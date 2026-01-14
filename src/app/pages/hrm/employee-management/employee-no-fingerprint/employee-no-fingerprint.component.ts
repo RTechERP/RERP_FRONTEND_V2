@@ -20,6 +20,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { firstValueFrom } from 'rxjs';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -41,6 +42,8 @@ import { EmployeeNofingerprintService } from './employee-no-fingerprint-service/
 import { ENFDetailComponent } from './ENF-detail/ENF-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { AuthService } from '../../../../auth/auth.service';
+import { PermissionService } from '../../../../services/permission.service';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
   selector: 'app-enf',
@@ -56,18 +59,19 @@ import { AuthService } from '../../../../auth/auth.service';
     NzSelectModule,
     NzSpinModule,
     NzSplitterModule,
+    NzGridModule,
     NzModalModule,
     NgbModalModule, //
     // ENFDetailComponent,
     HasPermissionDirective,
     NzDropDownModule,
+    Menubar
   ],
   templateUrl: './employee-no-fingerprint.component.html',
   styleUrls: ['./employee-no-fingerprint.component.css'],
 })
 export class EmployeeNoFingerprintComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   // #region ViewChild and Properties
   @ViewChild('tb_ENF', { static: false }) tb_ENFRef!: ElementRef;
 
@@ -80,6 +84,25 @@ export class EmployeeNoFingerprintComponent
 
   // UI states
   sizeSearch: string = '0';
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  // Menu bars
+  menuBars: any[] = [];
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
 
   // Search filters
   selectedDepartmentFilter: number | null = null;
@@ -115,13 +138,65 @@ export class EmployeeNoFingerprintComponent
     private enfService: EmployeeNofingerprintService,
     private ngbModal: NgbModal,
     private nzModal: NzModalService,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    private permissionService: PermissionService
+  ) { }
 
   // #region Lifecycle Hooks
   ngOnInit(): void {
+    this.initMenuBar();
     this.loadDepartments();
     this.getCurrentUser();
+  }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.addenf()
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.editenf()
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.deleteenf()
+      },
+      {
+        visible: this.permissionService.hasPermission("N1"),
+        label: 'TBP xác nhận',
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        command: () => this.approvedTBP()
+      },
+      {
+        label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-info',
+        items: [
+          {
+            visible: this.permissionService.hasPermission("N1,N2"),
+            label: 'HR duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.approvedHR()
+          },
+          {
+            visible: this.permissionService.hasPermission("N1,N2"),
+            label: 'HR hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.cancelApprovedHR()
+          }
+        ]
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportExcel()
+      }
+    ];
   }
 
   getCurrentUser(): void {
@@ -166,11 +241,12 @@ export class EmployeeNoFingerprintComponent
           this.departmentList = [];
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Load departments error:', error);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Không thể tải danh sách phòng ban .';
         this.notification.error(
           'Lỗi',
-          'Không thể tải danh sách phòng ban. Vui lòng thử lại sau.'
+          errorMessage
         );
         this.departmentList = [];
       },
@@ -189,9 +265,11 @@ export class EmployeeNoFingerprintComponent
 
   private drawTbenf(container: HTMLElement): void {
     console.log('Creating enf table...');
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
     this.tb_ENF = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
+      layout: 'fitDataStretch',
       ajaxURL: this.enfService.getENFListURL(),
       ajaxConfig: 'POST',
       ajaxRequestFunc: (url: any, config: any, params: any) => {
@@ -202,11 +280,11 @@ export class EmployeeNoFingerprintComponent
           DateEnd: this.toISODate(this.dateEnd),
           KeyWord: this.searchValue?.trim() || '',
           DepartmentID: this.selectedDepartmentFilter || 0,
-          EmployeeID:  0,
+          EmployeeID: 0,
           IDApprovedTP: 0,
           Status:
             this.selectedTBPStatusFilter === null ||
-            this.selectedTBPStatusFilter === undefined
+              this.selectedTBPStatusFilter === undefined
               ? -1
               : this.selectedTBPStatusFilter,
         };
@@ -239,8 +317,9 @@ export class EmployeeNoFingerprintComponent
       },
       ajaxError: (error: any) => {
         console.error('ENF AJAX Error:', error);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
         this.message.error(
-          'Lỗi khi tải dữ liệu ENF: ' + (error.message || error)
+          'Lỗi khi tải dữ liệu ENF: ' + errorMessage
         );
         return [];
       },
@@ -267,7 +346,7 @@ export class EmployeeNoFingerprintComponent
           Tổng số bản ghi: <span style="color: #1890ff; font-size: 1.05em;">${data.length}</span>
         </div>`;
       },
-      columns: this.getTableColumns(),
+      columns: this.getTableColumns(isMobile),
     } as any);
 
     this.setupTableEvents();
@@ -288,7 +367,8 @@ export class EmployeeNoFingerprintComponent
     ];
   }
 
-  private getTableColumns(): any[] {
+  private getTableColumns(isMobile: boolean = false): any[] {
+    const frozenOn = !isMobile;
     return [
       {
         title: 'TBP Duyệt',
@@ -313,7 +393,7 @@ export class EmployeeNoFingerprintComponent
           }
           return this.formatApprovalBadge(numValue);
         },
-        frozen: true,
+        frozen: frozenOn,
       },
       {
         title: 'HR Duyệt',
@@ -338,7 +418,7 @@ export class EmployeeNoFingerprintComponent
           }
           return this.formatApprovalBadge(numValue);
         },
-        frozen: true,
+        frozen: frozenOn,
       },
       {
         title: 'Mã nhân viên',
@@ -418,8 +498,9 @@ export class EmployeeNoFingerprintComponent
     this.tb_ENF.on('dataLoadError', (error: any) => {
       console.error('ENF Data Load Error:', error);
       this.isLoadTable = false;
+      const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
       this.message.error(
-        'Lỗi khi tải dữ liệu ENF: ' + (error.message || 'Unknown error')
+        'Lỗi khi tải dữ liệu ENF: ' + errorMessage
       );
     });
 
@@ -487,7 +568,7 @@ export class EmployeeNoFingerprintComponent
       IDApprovedTP: 0,
       Status:
         this.selectedTBPStatusFilter === null ||
-        this.selectedTBPStatusFilter === undefined
+          this.selectedTBPStatusFilter === undefined
           ? -1
           : this.selectedTBPStatusFilter,
     };
@@ -605,6 +686,14 @@ export class EmployeeNoFingerprintComponent
       return;
     }
 
+    // Kiểm tra trạng thái duyệt
+    if (this.isApproved(enfToEdit)) {
+      this.notification.warning('Thông báo', 'Bản ghi đã được duyệt, không thể chỉnh sửa!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+
     const modalRef = this.ngbModal.open(ENFDetailComponent, {
       size: 'lg',
       backdrop: 'static',
@@ -637,16 +726,12 @@ export class EmployeeNoFingerprintComponent
     }
 
     // Kiểm tra trạng thái duyệt
-    const approvedRows = selectedRows.filter(
-      (row) =>
-        row.StatusText === 'Đã duyệt' ||
-        row.StatusHRText === 'Đã duyệt' ||
-        row.IsApprovedBGDText === 'Đã duyệt'
-    );
+    const approvedRows = selectedRows.filter((row) => this.isApproved(row));
     if (approvedRows.length > 0) {
+      const fullNames = approvedRows.map(row => row['FullName'] || 'N/A').join(', ');
       this.notification.warning(
         'Thông báo',
-        'Có bản ghi đã được duyệt. Vui lòng hủy duyệt trước khi xóa!'
+        `Bản ghi đã được duyệt, không thể xóa:\n${fullNames}`
       );
       return;
     }
@@ -701,7 +786,7 @@ export class EmployeeNoFingerprintComponent
           else failedCount++;
           deleteNext(index + 1);
         },
-        error: (err) => {
+        error: (error: any) => {
           failedCount++;
           deleteNext(index + 1);
         },
@@ -846,7 +931,7 @@ export class EmployeeNoFingerprintComponent
           else failedCount++;
           approveNext(index + 1);
         },
-        error: () => {
+        error: (error: any) => {
           failedCount++;
           approveNext(index + 1);
         },
@@ -994,7 +1079,7 @@ export class EmployeeNoFingerprintComponent
           else failedCount++;
           approveNext(index + 1);
         },
-        error: () => {
+        error: (error: any) => {
           failedCount++;
           approveNext(index + 1);
         },
@@ -1083,8 +1168,7 @@ export class EmployeeNoFingerprintComponent
         ) {
           this.notification.warning(
             'Thông báo',
-            `Nhân viên ${
-              item.FullName
+            `Nhân viên ${item.FullName
             } không thuộc phòng ${this.currentDepartmentName.toUpperCase()}. Vui lòng kiểm tra lại!`
           );
           cancelNext(index + 1);
@@ -1123,7 +1207,7 @@ export class EmployeeNoFingerprintComponent
           else failedCount++;
           cancelNext(index + 1);
         },
-        error: () => {
+        error: (error: any) => {
           failedCount++;
           cancelNext(index + 1);
         },
@@ -1168,12 +1252,12 @@ export class EmployeeNoFingerprintComponent
           { nzStyle: { fontSize: '0.75rem' } }
         );
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Export Excel error:', error);
+      const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
       this.notification.error(
         'Thông báo',
-        'Lỗi khi xuất file Excel: ' +
-          (error instanceof Error ? error.message : 'Lỗi không xác định')
+        'Lỗi khi xuất file Excel: ' + errorMessage
       );
     }
   }
@@ -1279,6 +1363,37 @@ export class EmployeeNoFingerprintComponent
       return '';
     }
   }
+  // Helper method để kiểm tra bản ghi đã được duyệt chưa
+  private isApproved(item: any): boolean {
+    // Kiểm tra trạng thái duyệt TBP
+    const statusTBP = item.StatusText;
+    const isTBPApproved =
+      statusTBP === 'Đã duyệt' ||
+      item.IsApprovedTP === true ||
+      item.Status === 1;
+
+    // Kiểm tra trạng thái duyệt HR
+    const statusHR = item.StatusHRText;
+    const isHRApproved =
+      statusHR === 'Đã duyệt' ||
+      item.IsApprovedHR === true ||
+      item.StatusHR === 1;
+
+    // Kiểm tra quyền đặc biệt (Admin, N1, N2)
+    const hasPrivilege =
+      this.isAdmin ||
+      this.permissionService.hasPermission('N1') ||
+      this.permissionService.hasPermission('N2');
+
+    // Nếu có quyền đặc biệt, bỏ qua check TBP (trừ khi HR đã duyệt)
+    if (hasPrivilege) {
+      return isHRApproved;
+    }
+
+    // Nếu TBP hoặc HR đã duyệt thì không cho sửa
+    return isTBPApproved || isHRApproved;
+  }
+
   private formatApprovalBadge(status: number): string {
     // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
     const numStatus =

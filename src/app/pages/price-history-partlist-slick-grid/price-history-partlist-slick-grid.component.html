@@ -1,0 +1,115 @@
+<ng-container class="w-100">
+    <nz-splitter style="height: 93vh!important;">
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <!-- Bên trái: Các nút hành động -->
+                    <div class="d-flex gap-1">
+                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()"
+                            class="sticky-toggle-btn"
+                            [attr.aria-label]="showSearchPanel ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+                            [attr.aria-expanded]="showSearchPanel" type="button">
+                            <nz-icon [nzType]="showSearchPanel ? 'up' : 'down'" />
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Compact search (keyword + search button + dropdown filters) -->
+                <div class="bg-light border-bottom p-2" *ngIf="showSearchPanel">
+                    <div class="d-flex gap-1 align-items-center flex-wrap">
+                        <nz-form-label class="fs-12" style="font-size: 12px;">Dự án</nz-form-label>
+                        <nz-select [(ngModel)]="projectId" [ngModelOptions]="{standalone: true}" nzShowSearch
+                            nzAllowClear nzSize="small" nzPlaceHolder="Dự án" style="width: 250px;">
+                            @for (item of projects; track $index) {
+                            <nz-option nzCustomContent="true"
+                                [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                                {{ item.ProjectCode + " - " + item.ProjectName }}
+                            </nz-option>
+                            }
+                        </nz-select>
+
+                        <nz-form-label class="fs-12" style="font-size: 12px;">Nhà cung cấp</nz-form-label>
+                        <nz-select [(ngModel)]="supplierId" [ngModelOptions]="{standalone: true}" nzShowSearch
+                            nzAllowClear nzSize="small" nzPlaceHolder="Nhà cung cấp" style="width: 200px;">
+                            @for (item of suppliers; track $index) {
+                            <nz-option nzCustomContent="true" [nzLabel]="item.CodeNCC" [nzValue]="item.ID">
+                                {{ item.CodeNCC }}
+                            </nz-option>
+                            }
+                        </nz-select>
+
+                        <nz-form-label class="fs-12" style="font-size: 12px;">Người yêu cầu</nz-form-label>
+                        <nz-select [(ngModel)]="employeeRequestId" [ngModelOptions]="{standalone: true}" nzShowSearch
+                            nzAllowClear nzSize="small" nzPlaceHolder="Người yêu cầu" style="width: 200px;">
+                            @for (parent of employeeRequests; track $index) {
+                            <nz-option-group [nzLabel]="parent.label">
+                                @for (child of parent.options; track $index) {
+                                <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                                    [nzValue]="child.item.EmployeeID">
+                                    {{ child.item.Code + " - " + child.item.FullName }}
+                                </nz-option>
+                                }
+                            </nz-option-group>
+                            }
+                        </nz-select>
+
+                        <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 250px"
+                            [(ngModel)]="keyword" [ngModelOptions]="{standalone: true}" (keyup.enter)="getPriceHistoryPartlist()" />
+
+                        <button nz-button nzType="primary" nzSize="small" (click)="getPriceHistoryPartlist()">
+                            <nz-icon nzType="search" />
+                        </button>
+
+                       
+                    </div>
+                </div>
+
+                <div class="card-body p-0" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                    <nz-spin [nzSpinning]="isLoadTable" [nzDelay]="200">
+                        <div class="grid-container" id="grid-container-price-history" style="height: calc(100% - 50px);">
+                            <angular-slickgrid gridId="grvPriceHistory" [columns]="columnDefinitions"
+                                [options]="gridOptions" [dataset]="dataset"
+                                (onAngularGridCreated)="angularGridReady($event.detail)">
+                            </angular-slickgrid>
+                        </div>
+                    </nz-spin>
+
+                    <!-- Pagination UI -->
+                    <div class="card-footer bg-white p-1" style="flex-shrink: 0;">
+                        <div class="d-flex align-items-center justify-content-between gap-2" style="flex-wrap: wrap;">
+                            <div></div>
+                            <div class="d-flex align-items-center gap-1">
+                                <div class="fs-12">
+                                    Trang <b>{{ pageNumber || 1 }}</b>/<b>{{ totalPage || 1 }}</b>
+                                </div>
+                                <button nz-button nzType="default" nzSize="small" (click)="prevPage()"
+                                    [disabled]="(pageNumber || 1) <= 1">
+                                    <nz-icon nzType="left"></nz-icon>
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" (click)="nextPage()"
+                                    [disabled]="(pageNumber || 1) >= (totalPage || 1)">
+                                    <nz-icon nzType="right"></nz-icon>
+                                </button>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="fs-12">Số dòng</span>
+                                    <nz-select style="width: 80px;" nzSize="small" [ngModel]="pageSize"
+                                        (ngModelChange)="onPageSizeChange($event)">
+                                        <nz-option *ngFor="let s of pageSizeOptions" [nzValue]="s" [nzLabel]="s"></nz-option>
+                                    </nz-select>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="fs-12">Đi tới</span>
+                                    <input nz-input nzSize="small" style="width: 50px;" type="number" [min]="1" [max]="totalPage || 1"
+                                        [(ngModel)]="pageNumber" (keyup.enter)="goToPage(pageNumber)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>

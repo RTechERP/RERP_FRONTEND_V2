@@ -1,0 +1,142 @@
+.modal-header {
+  background-color: #28a745 !important;
+}
+
+.modal-body {
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 0.5rem;
+}
+
+.form-control-sm {
+  font-size: 0.875rem;
+}
+
+.nav-pills .nav-link {
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.nav-pills .nav-link.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.bg-whitesmoke {
+  background-color: #f5f5f5;
+}
+
+.bg-primary {
+  background-color: #007bff !important;
+  color: white;
+}
+
+.text-danger {
+  color: #dc3545;
+}
+
+.font-italic {
+  font-style: italic;
+}
+
+.font-weight-normal {
+  font-weight: normal;
+}
+
+.card {
+  border: 1px solid #dee2e6;
+}
+
+.card-header {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+  background-color: #f5f5f5;
+  border-top: 1px solid #dee2e6;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+/* Fix time picker display on small mobile screens (iPhone SE and smaller) */
+@media (max-width: 375px) {
+  ::ng-deep .ant-picker-time-panel-column {
+    width: 48px !important;
+    font-size: 12px !important;
+  }
+  
+  ::ng-deep .ant-picker-time-panel-cell {
+    padding: 2px 0 !important;
+    height: 24px !important;
+    line-height: 24px !important;
+  }
+  
+  ::ng-deep .ant-picker-time-panel {
+    width: auto !important;
+    min-width: 160px !important;
+    max-height: 140px !important;
+    overflow-y: auto !important;
+  }
+  
+  ::ng-deep .ant-picker-time-panel-column {
+    max-height: 140px !important;
+  }
+  
+  ::ng-deep .ant-picker-datetime-panel {
+    flex-direction: column !important;
+  }
+  
+  ::ng-deep .ant-picker-datetime-panel .ant-picker-time-panel {
+    border-left: 0 !important;
+    border-top: 1px solid #f0f0f0 !important;
+  }
+  
+  ::ng-deep .ant-picker-panel-container {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  ::ng-deep .ant-picker-dropdown {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+}
+
+/* Additional fixes for very small screens */
+@media (max-width: 320px) {
+  ::ng-deep .ant-picker-time-panel-column {
+    width: 42px !important;
+    font-size: 11px !important;
+  }
+  
+  ::ng-deep .ant-picker-time-panel-cell {
+    padding: 1px 0 !important;
+    height: 22px !important;
+    line-height: 22px !important;
+  }
+  
+  ::ng-deep .ant-picker-datetime-panel .ant-picker-date-panel,
+  ::ng-deep .ant-picker-datetime-panel .ant-picker-time-panel {
+    width: 100% !important;
+  }
+}
+

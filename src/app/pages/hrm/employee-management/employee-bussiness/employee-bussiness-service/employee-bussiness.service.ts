@@ -23,7 +23,9 @@ export class EmployeeBussinessService {
       employeeBussiness
     );
   }
-
+  getEmployeeApprove(): Observable<any> {
+    return this.http.get(this._url + `Employee/get-approve`);
+  }
   getEmployeeBussinessDetail(employeeId: Number, dayBussiness: any): Observable<any> {
     return this.http.get(this._url + `EmployeeBussiness/detail?employeeId=${employeeId}&dayBussiness=${dayBussiness}`);
   }
@@ -35,6 +37,10 @@ export class EmployeeBussinessService {
 
   getEmployeeVehicleBussiness(): Observable<any> {
     return this.http.get(this._url + 'EmployeeVehicleBussiness');
+  }
+
+  getVehicle(id: number): Observable<any> {
+    return this.http.get(this._url + `EmployeeBussiness/GetVehicle?id=${id}`);
   }
 
   saveEmployeeVehicleBussiness(employeeVehicleBussiness: any): Observable<any> {
@@ -91,7 +97,7 @@ export class EmployeeBussinessService {
   }
 
   getEmployeeBussinessByID(id: number): Observable<any> {
-    return this.http.get<any>(this._url + `EmployeeBussiness/GetEmployeeBussinessByID?id=${id}`);
+    return this.http.get<any>(this._url + `EmployeeBussiness/get-by-id?id=${id}`);
   }
 
   uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
@@ -123,5 +129,9 @@ export class EmployeeBussinessService {
     return this.http.get(url, {
       responseType: 'blob',
     });
+  }
+
+  getEmployeeBussinessVehicle(id: number): Observable<any> {
+    return this.http.get<any>(this._url + `EmployeeBussiness/get-employee-buissiness-vehicle?id=${id}`);
   }
 }

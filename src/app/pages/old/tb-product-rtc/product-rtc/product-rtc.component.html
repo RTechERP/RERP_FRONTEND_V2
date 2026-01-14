@@ -1,0 +1,129 @@
+<ng-container class="w-100">
+    <p-splitter [style]="{'height': '94vh'}" [panelSizes]="[20, 80]" [minSizes]="[15, 50]">
+        <!-- Left Panel - Product Group Grid -->
+        <ng-template pTemplate>
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <h6 class="m-0 ms-2">Nhóm sản phẩm</h6>
+                </div>
+                <div class="card-body p-0 group-grid-container" style="height: calc(94vh - 40px);">
+                    <angular-slickgrid
+                        [gridId]="'productGroupGrid-' + warehouseCode + warehouseType"
+                        [columns]="columnDefinitionsGroup"
+                        [options]="gridOptionsGroup"
+                        [dataset]="datasetGroup"
+                        (onAngularGridCreated)="angularGridGroupReady($event.detail)">
+                    </angular-slickgrid>
+                </div>
+            </div>
+        </ng-template>
+
+        <!-- Right Panel - Master Grid -->
+        <ng-template pTemplate>
+            <div class="card border-0 rounded-0 d-flex flex-column h-100">
+                <div class="card-header bg-white p-1 action-bar flex-shrink-0">
+                    <!-- Desktop: dải nút cuộn ngang -->
+                    <div class="d-none d-md-flex h-40 gap-1 align-items-center">
+                        <div class="flex-grow-1" style="overflow-x: auto;">
+                            <div class="d-flex gap-1 flex-nowrap">
+                                <button nz-button nzType="default" nzSize="small" class="btn-add"
+                                    (click)="onAddGroupProduct()" *hasPermission="'N26,N38,N1,N73,N80'">
+                                    <img src="assets/icon/action_add_group_16.png" alt="Thêm mới " />Thêm nhóm TB
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="btn-edit"
+                                    (click)="onEditGroup()" *hasPermission="'N26,N38,N1,N73,N80'">
+                                    <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa nhóm TB
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="btn-delete"
+                                    (click)="onDeleteProductGroup()" *hasPermission="'N26,N1,N73,N80'">
+                                    <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa nhóm TB
+                                </button>
+
+                                <span class="mx-2"
+                                    style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+
+                                <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
+                                    (click)="onAddProducRTC()" *hasPermission="'N26,N38,N1,N73,N80'">
+                                    <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />Thêm
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="btn-edit"
+                                    (click)="onEditProduct()" *hasPermission="'N26,N38,N1,N73,N80'">
+                                    <img src="assets/icon/action_edit_item_16.png" alt="Sửa thiết bị" />Sửa
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="btn-delete "
+                                    (click)="onDeleteProduct()" *hasPermission="'N26,N1,N73,N80'">
+                                    <img src="assets/icon/action_delete_item_16.png" alt="Xóa thiết bị" />Xóa
+                                </button>
+
+                                <span class="mx-2"
+                                    style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+
+                                <button nz-button nzType="default" nzSize="small" class="me-1"
+                                    *ngIf="warehouseType !== 2" (click)="onRequestPurchase()">
+                                    <img src="assets/icon/purchase.png" alt="Yêu cầu mượn hàng"
+                                        style="width:16px; height:16px; object-fit:contain" />Yêu cầu mượn hàng
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="me-1"
+                                    (click)="onOpenPurchaseRequestList()">
+                                    <img src="assets/icon/purchase.png" alt="Danh sách yêu cầu mua hàng"
+                                        style="width:16px; height:16px; object-fit:contain" />Danh sách yêu cầu mua hàng
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="me-1"
+                                    (click)="onOpenPriceRequest()">
+                                    <img src="assets/icon/purchase.png" alt="Yêu cầu báo giá"
+                                        style="width:16px; height:16px; object-fit:contain" />Yêu cầu báo giá
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dòng lọc dữ liệu -->
+                    <div class="border-top pt-2 mt-2">
+                        <div class="d-flex gap-2 align-items-end flex-wrap">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="fs-12">Tìm kiếm theo</nz-form-label>
+                                <nz-form-control>
+                                    <nz-radio-group [(ngModel)]="searchMode" (ngModelChange)="onSearchModeChange($event)"
+                                        name="searchModeFilter" nzSize="small">
+                                        <label nz-radio [nzValue]="'group'">Theo nhóm</label>
+                                        <label nz-radio [nzValue]="'all'">Tất cả</label>
+                                    </nz-radio-group>
+                                </nz-form-control>
+                            </nz-form-item>
+
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                                <nz-form-control>
+                                    <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWord"
+                                        (ngModelChange)="onKeywordChange($event)" nzSize="small"
+                                        style="width: 200px;" name="filterTextFilter" />
+                                </nz-form-control>
+                            </nz-form-item>
+
+                            <button nz-button nzType="primary" nzSize="small" (click)="getProduct()" class="mb-1">
+                                Tìm kiếm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- phần nội dung ở dưới -->
+                <div class="card-body p-0 flex-grow-1 overflow-hidden" style="min-height: 0;">
+                    <div *ngIf="isLoading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.4); z-index: 999; display: flex; align-items: center; justify-content: center;">
+                        <nz-spin [nzSpinning]="isLoading"></nz-spin>
+                    </div>
+                    <div class="grid-container" style="height: 100%;">
+                        <angular-slickgrid
+                            [gridId]="'productRtcGrid-' + warehouseCode + warehouseType"
+                            [columns]="columnDefinitions"
+                            [options]="gridOptions"
+                            [dataset]="dataset"
+                            (onAngularGridCreated)="angularGridReady($event.detail)"
+                            (onSelectedRowsChanged)="onRowSelectionChanged($event.detail.eventData, $event.detail.args)">
+                        </angular-slickgrid>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+    </p-splitter>
+</ng-container>

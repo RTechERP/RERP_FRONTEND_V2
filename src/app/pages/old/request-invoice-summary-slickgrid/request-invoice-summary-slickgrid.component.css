@@ -1,0 +1,56 @@
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+.reset {
+    all: revert;
+}
+
+.ant-splitter-panel {
+    position: relative;
+}
+
+.tabulator-cell {
+    padding: 0px;
+}
+
+.inner-content {
+    padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+    font-size: 0.75rem;
+}
+
+.ant-splitter {
+    height: 84vh !important;
+}
+
+/* SlickGrid Styles */
+.grid-container {
+    height: 100%;
+}
+
+#gridContainer {
+    height: 100%;
+}
+
+/* SlickGrid filter header */
+::ng-deep .slick-headerrow {
+    background-color: #f8f9fa;
+}
+
+::ng-deep .slick-headerrow-column input {
+    color: #000000 !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+*/:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}
+
+/* Urgent row styling */
+:host ::ng-deep .slick-row.urgent-row {
+    background-color: #FFA500 !important;
+}

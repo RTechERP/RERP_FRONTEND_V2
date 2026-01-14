@@ -33,7 +33,7 @@ nz-form-control {
 }
 
 /* Close button styling */
-.btn-close {
+/* .btn-close {
   background: none;
   border: none;
   padding: 8px;
@@ -46,15 +46,15 @@ nz-form-control {
   width: 32px;
   height: 32px;
   color: #ffffff;
-}
+} */
 
-.btn-close:hover {
+/* .btn-close:hover {
   background-color: rgba(255, 255, 255, 0.1);
-}
+} */
 
-.btn-close i {
+/* .btn-close i {
   font-size: 12px;
-}
+} */
 
 .modal-body {
   padding: 16px;
@@ -181,7 +181,7 @@ nz-button {
 ::ng-deep .tabulator-cell {
   white-space: normal !important;
 }
-.tabulator-cell { 
+.tabulator-cell {
     display: -webkit-box;
     -webkit-line-clamp: 2;    /* số dòng tối đa */
     -webkit-box-orient: vertical;

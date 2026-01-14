@@ -38,7 +38,8 @@ export class AuthService {
                         },
                         error: (error) => {
                             // console.error('getCurrentUser error after login:', error);
-                            this.notification.error(NOTIFICATION_TITLE.error, error.message, {});
+                            // this.notification.error(NOTIFICATION_TITLE.error, error.message, {});
+                            this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
                         },
                     });
                 }

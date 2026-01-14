@@ -22,7 +22,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { AssetAllocationService } from '../ts-asset-allocation-service/ts-asset-allocation.service';
-import { Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { AuthService } from '../../../../../../auth/auth.service';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { TsAssetChooseAssetsComponent } from '../ts-asset-choose-assets/ts-asset-choose-assets.component';
@@ -71,7 +71,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
     this.drawTbSelectAsset();
   }
   ngOnInit() {
-    this.dataInput.DateRecovery = this.formatDateForInput(this.dataInput.DateRecovery);//fomat lại ngày
+    this.dataInput.DateAllocation = this.formatDateForInput(this.dataInput.DateAllocation);//fomat lại ngày cấp phát
     this.getAllocation();
     this.getCurrentUser();
     this.getListEmployee();
@@ -166,6 +166,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   addRow() {
     if (this.assetTable) {
       this.assetTable.addRow({
+        _action: true,
         assetCode: '',
         assetName: '',
         note: ''
@@ -180,37 +181,28 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
       columns: [
         {
           title: "",
-          field: "addRow",
+          field: "_action",
           hozAlign: "center",
-          width: 40,
           headerSort: false,
-          titleFormatter: () => `
-    <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
-      <i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i>
-    </div>`,
-          formatter: () => `
-    <i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
-          cellClick: (e, cell) => {
+          width: 40,
+          formatter: () => `<span style="color: #dc3545; font-weight: bold; font-size: 12px; cursor: pointer;" title="Xóa dòng">X</span>`,
+          cellClick: (e: any, cell: any) => {
             const row = cell.getRow();
             const data = row.getData();
 
-            // Nếu là dòng cũ đã có trong DB (có ID) thì lưu lại ID để gửi lên API
             if (data['ID']) {
               this.deletedDetailIds.push(data['ID']);
             }
-
-            // Xóa khỏi bảng UI
             row.delete();
           },
         },
-
         { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
         { title: 'ID', field: 'ID', hozAlign: 'center', visible: false, headerHozAlign: 'center' },
-        { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 60 },
+        { title: 'STT', field: 'STT', formatter: 'rownum', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false },
         { title: "Mã tài sản", field: "TSCodeNCC", editor: "input", headerHozAlign: 'center' },
-        { title: "Tên tài sản", field: "TSAssetName", editor: "input", headerHozAlign: 'center', width:300,formatter:'textarea' },
+        { title: "Tên tài sản", field: "TSAssetName", editor: "input", headerHozAlign: 'center', width: 300, formatter: 'textarea' },
         { title: "Số Lượng", field: "Quantity", editor: "input", headerHozAlign: 'center', hozAlign: "right" },
-        { title: "Ghi chú", field: "Note", editor: "input", headerHozAlign: 'center',formatter:'textarea' }
+        { title: "Ghi chú", field: "Note", editor: "input", headerHozAlign: 'center', formatter: 'textarea' }
       ]
     });
   }
@@ -297,7 +289,15 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
       EmployeeID: this.dataInput.EmployeeID,
       IsDeleted: false
     }));
+    const assetManagements = rows.map(item => ({
+      ID: item.AssetManagementID,
+      IsAllocation: true,
+      StatusID: 1,
+      Status: "Chưa sử dụng",
+      DepartmentID: item.DepartmentID || 0,
+      EmployeeID: this.dataInput.EmployeeID,
 
+    }));
     // Thêm các dòng cần xóa (chỉ cần ID + IsDelete = true, các field khác backend có thể bỏ qua)
     const deletedDetailsPayload = this.deletedDetailIds.map(id => ({
       ID: id,
@@ -321,6 +321,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
         Status: 0,
         IsApprovedPersonalProperty: false
       },
+      tSAssetManagements: assetManagements,
       tSAssetAllocationDetails: [
         ...detailPayload,
         ...deletedDetailsPayload

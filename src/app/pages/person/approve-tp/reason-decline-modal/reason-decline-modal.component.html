@@ -1,0 +1,33 @@
+<div>
+  <div class="modal-header bg-primary align-items-center p-2">
+    <h6 class="text-white m-0">{{ modalTitle }}</h6>
+    <button type="button" class="btn-close" (click)="onCancel()" aria-label="Close"></button>
+  </div>
+  <div class="p-3">
+    <form nz-form [formGroup]="reasonForm" nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label nzRequired [nzSpan]="24">{{ labelText }}</nz-form-label>
+        <nz-form-control 
+          [nzSpan]="24" 
+          [nzErrorTip]="'Vui lòng nhập ' + labelText.toLowerCase() + '!'">
+          <textarea 
+            nz-input 
+            formControlName="reasonDecline" 
+            [nzAutosize]="{ minRows: 4, maxRows: 8 }"
+            [placeholder]="placeholderText"
+            maxlength="500">
+          </textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <button nz-button nzDanger nzType="default" (click)="onCancel()">
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="handleOk()" [nzLoading]="false">
+        Lưu
+      </button>
+    </div>
+  </div>
+</div>
+

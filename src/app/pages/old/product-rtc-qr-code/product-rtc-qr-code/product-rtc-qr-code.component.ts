@@ -2,7 +2,15 @@ import { inject, Inject, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit, OnDestroy, ViewEncapsulation, ViewChild, ElementRef } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -26,6 +34,12 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 import { ProductRtcQrCodeService } from '../product-rtc-qr-code-service/product-rtc-qr-code.service';
 import { forkJoin } from 'rxjs';
 import * as ExcelJS from 'exceljs';
+import { ActivatedRoute } from '@angular/router';
+import { MenuItem } from 'primeng/api';
+import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../../services/permission.service';
+import { HistoryProductRtcReturnQrComponent } from '../../inventory-demo/borrow/borrow-product-history/history-product-rtc-return-qr/history-product-rtc-return-qr.component';
+import { HistoryProductRtcBorrowQrComponent } from '../../inventory-demo/borrow/borrow-product-history/history-product-rtc-borrow-qr/history-product-rtc-borrow-qr.component';
 
 @Component({
   standalone: true,
@@ -42,48 +56,93 @@ import * as ExcelJS from 'exceljs';
     NzSplitterModule,
     NgbModalModule,
     NzModalModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    Menubar,
   ],
   selector: 'app-product-rtc-qr-code',
   templateUrl: './product-rtc-qr-code.component.html',
-  styleUrl: './product-rtc-qr-code.component.css'
+  styleUrl: './product-rtc-qr-code.component.css',
 })
-export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('qrCodeTableRef', { static: true }) qrCodeTableRef!: ElementRef<HTMLDivElement>;
+export class ProductRtcQrCodeComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
+  @ViewChild('qrCodeTableRef', { static: true })
+  qrCodeTableRef!: ElementRef<HTMLDivElement>;
 
   private ngbModal = inject(NgbModal);
   qrCodeTable: Tabulator | null = null;
-  filterText: string = "";
- warehouseID: number = 1; // Default warehouse ID, can be configured
+  filterText: string = '';
+  warehouseID: number = 1; // Default warehouse ID, can be configured
   qrCodeData: any[] = [];
   modulaLocationGroups: any[] = [];
   selectedModulaLocationID: number | null = null;
   private searchSubject = new Subject<string>();
 
+  productQrCodeMenu: MenuItem[] = [];
   constructor(
     private notification: NzNotificationService,
     private qrCodeService: ProductRtcQrCodeService,
     private modal: NzModalService,
-    @Optional() @Inject('tabData') private tabData: any
-  ) { }
+    private route: ActivatedRoute,
+    private permissionService: PermissionService,
+    private modalService: NgbModal
+  ) {}
 
   ngAfterViewInit(): void {
     this.drawTable();
-    this.loadData();
-    this.loadModulaLocations();
   }
 
   ngOnInit() {
-    if (this.tabData?.warehouseID) {
-      this.warehouseID = this.tabData.warehouseID;
-    }
-    // Setup debounce cho tìm kiếm
-    this.searchSubject.pipe(
-      debounceTime(500),
-      distinctUntilChanged()
-    ).subscribe(() => {
+    this.route.queryParams.subscribe((params) => {
+      const warehouseID = params['warehouseID'];
+
+      // Nếu không có queryParams, lấy từ localStorage hoặc default
+      if (!warehouseID) {
+        const savedWarehouseID = localStorage.getItem(
+          'product-rtc-qr-code-warehouseID'
+        );
+        this.warehouseID = savedWarehouseID ? parseInt(savedWarehouseID) : 1;
+      } else {
+        switch (warehouseID) {
+          case '1':
+            this.warehouseID = 1;
+            break;
+          case '2':
+            this.warehouseID = 2;
+            break;
+          case '3':
+            this.warehouseID = 3;
+            break;
+          case '4':
+            this.warehouseID = 4;
+            break;
+          case '5':
+            this.warehouseID = 5;
+            break;
+          case '6':
+            this.warehouseID = 6;
+            break;
+          default:
+            this.warehouseID = 1;
+        }
+        // Lưu vào localStorage để dùng lần sau
+        localStorage.setItem(
+          'product-rtc-qr-code-warehouseID',
+          this.warehouseID.toString()
+        );
+      }
+
+      // Load data sau khi đã set warehouseID
       this.loadData();
+      this.loadModulaLocations();
     });
+    this.loadMenu();
+    // Setup debounce cho tìm kiếm
+    this.searchSubject
+      .pipe(debounceTime(500), distinctUntilChanged())
+      .subscribe(() => {
+        this.loadData();
+      });
   }
 
   ngOnDestroy() {
@@ -91,28 +150,34 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   loadData() {
-    this.qrCodeService.getQRCodeList(this.warehouseID, this.filterText || "").subscribe({
-      next: (response: any) => {
-        console.log('response getQRCodeList = ', response);
-        // API returns: { status: 1, data: { dataList: [...] } }
-        if (response?.status === 1 && response?.data?.dataList) {
-          this.qrCodeData = response.data.dataList || [];
-        } else {
+    console.log('warehouseID = ', this.warehouseID);
+    this.qrCodeService
+      .getQRCodeList(this.warehouseID, this.filterText || '')
+      .subscribe({
+        next: (response: any) => {
+          console.log('response getQRCodeList = ', response);
+          // API returns: { status: 1, data: { dataList: [...] } }
+          if (response?.status === 1 && response?.data?.dataList) {
+            this.qrCodeData = response.data.dataList || [];
+          } else {
+            this.qrCodeData = [];
+          }
+          if (this.qrCodeTable) {
+            this.qrCodeTable.setData(this.qrCodeData);
+          }
+        },
+        error: (err: any) => {
+          console.error('Error loading QR code data:', err);
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Không thể tải dữ liệu QR code'
+          );
           this.qrCodeData = [];
-        }
-        if (this.qrCodeTable) {
-          this.qrCodeTable.setData(this.qrCodeData);
-        }
-      },
-      error: (err: any) => {
-        console.error('Error loading QR code data:', err);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu QR code');
-        this.qrCodeData = [];
-        if (this.qrCodeTable) {
-          this.qrCodeTable.setData([]);
-        }
-      }
-    });
+          if (this.qrCodeTable) {
+            this.qrCodeTable.setData([]);
+          }
+        },
+      });
   }
 
   loadModulaLocations() {
@@ -124,7 +189,7 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
       },
       error: (res: any) => {
         console.error('Error loading modula locations:', res);
-      }
+      },
     });
   }
 
@@ -143,17 +208,25 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
     });
 
     // Convert to array format for nz-option-group
-    this.modulaLocationGroups = Array.from(grouped.entries()).map(([trayId, items]) => {
-      // Lấy tên Tray từ item đầu tiên (Name là tên Tray)
-      const trayName = items[0]?.Name || items[0]?.Code || `Tray ${trayId}`;
-      return {
-        label: trayName,
-        options: items.map((item: any) => ({
-          value: item.ModulaLocationDetailID,
-          label: item.LocationName || `${trayName} - ${item.ModulaLocationDetailName || item.ModulaLocationDetailCode || ''}`
-        }))
-      };
-    });
+    this.modulaLocationGroups = Array.from(grouped.entries()).map(
+      ([trayId, items]) => {
+        // Lấy tên Tray từ item đầu tiên (Name là tên Tray)
+        const trayName = items[0]?.Name || items[0]?.Code || `Tray ${trayId}`;
+        return {
+          label: trayName,
+          options: items.map((item: any) => ({
+            value: item.ModulaLocationDetailID,
+            label:
+              item.LocationName ||
+              `${trayName} - ${
+                item.ModulaLocationDetailName ||
+                item.ModulaLocationDetailCode ||
+                ''
+              }`,
+          })),
+        };
+      }
+    );
   }
 
   filterOption = (input: string, option: any): boolean => {
@@ -165,14 +238,20 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
 
   onSetModulaLocation() {
     if (!this.selectedModulaLocationID) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn vị trí modula');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn vị trí modula'
+      );
       return;
     }
 
     // Lấy các bản ghi được chọn (tích) từ bảng
     const selectedRows = this.qrCodeTable?.getSelectedData() || [];
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn bản ghi cần set vị trí');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn bản ghi cần set vị trí'
+      );
       return;
     }
 
@@ -194,132 +273,149 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
           Status: row.Status || 1,
           ModulaLocationDetailID: this.selectedModulaLocationID,
           WarehouseID: row.WarehouseID || this.warehouseID,
-          IsDeleted: false
+          IsDeleted: false,
         }));
 
         this.qrCodeService.saveLocation(payload).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
-              this.notification.success(NOTIFICATION_TITLE.success, `Đã set vị trí modula cho ${count} bản ghi`);
-              this.qrCodeTable?.deselectRow?.(this.qrCodeTable.getSelectedRows());
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã set vị trí modula cho ${count} bản ghi`
+              );
+              this.qrCodeTable?.deselectRow?.(
+                this.qrCodeTable.getSelectedRows()
+              );
               this.loadData();
               this.selectedModulaLocationID = null;
             } else {
-              this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Set vị trí modula thất bại');
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                res?.message || 'Set vị trí modula thất bại'
+              );
             }
           },
           error: (res: any) => {
-            const errorMessage = res?.error?.message || 'Có lỗi xảy ra khi set vị trí modula';
+            const errorMessage =
+              res?.error?.message || 'Có lỗi xảy ra khi set vị trí modula';
             this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
-          }
+          },
         });
-      }
+      },
     });
   }
 
   drawTable() {
     this.qrCodeTable = new Tabulator(this.qrCodeTableRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
-     
+
       selectableRows: true,
       data: this.qrCodeData,
       paginationMode: 'local', // Sử dụng phân trang local
-      layout:'fitDataStretch',
-      addRowPos: "bottom",
+      layout: 'fitDataStretch',
+      addRowPos: 'bottom',
       history: true,
-      initialSort: [
-        { column: "ID", dir: "desc" }
-      ],
+      initialSort: [{ column: 'ID', dir: 'desc' }],
       columnDefaults: {
         ...DEFAULT_TABLE_CONFIG.columnDefaults,
-        cssClass: 'tabulator-cell-12px'
+        cssClass: 'tabulator-cell-12px',
       },
       columns: [
-        { title: "ID", field: "ID", visible: false },
+        { title: 'ID', field: 'ID', visible: false },
         {
-          title: "Trạng thái",
-          field: "StatusText",
-          hozAlign: "left",
+          title: 'Trạng thái',
+          field: 'StatusText',
+          hozAlign: 'left',
           formatter: (cell) => {
             const rowData = cell.getRow().getData();
             const status = rowData['Status'];
             switch (status) {
-              case 1: return "Trong kho";
-              case 2: return "Đang mượn";
-              case 3: return "Đã xuất kho";
-              case 4: return "Lost";
-              default: return cell.getValue() || "";
+              case 1:
+                return 'Trong kho';
+              case 2:
+                return 'Đang mượn';
+              case 3:
+                return 'Đã xuất kho';
+              case 4:
+                return 'Lost';
+              default:
+                return cell.getValue() || '';
             }
-          }
+          },
         },
 
         {
-          title: "Mã QR Code",
-          field: "ProductQRCode",
-          hozAlign: "left"
-          , bottomCalc: 'count'
-          , width: 120
+          title: 'Mã QR Code',
+          field: 'ProductQRCode',
+          hozAlign: 'left',
+          bottomCalc: 'count',
+          width: 120,
         },
         {
-          title: "SerialNumber",
-          field: "SerialNumber",
-          hozAlign: "left"
-          , bottomCalc: 'count',
-          width: 120
+          title: 'SerialNumber',
+          field: 'SerialNumber',
+          hozAlign: 'left',
+          bottomCalc: 'count',
+          width: 120,
         },
         {
-          title: "Mã sản phẩm",
-          field: "ProductCode",
-          hozAlign: "left"
-          , bottomCalc: 'count',
-          width: 120
+          title: 'Mã sản phẩm',
+          field: 'ProductCode',
+          hozAlign: 'left',
+          bottomCalc: 'count',
+          width: 120,
         },
         {
-          title: "Tên sản phẩm",
-          field: "ProductName",
-          hozAlign: "left",
+          title: 'Tên sản phẩm',
+          field: 'ProductName',
+          hozAlign: 'left',
           formatter: 'textarea',
         },
         {
-          title: "Mã nội bộ",
-          field: "ProductCodeRTC",
-          hozAlign: "left"
+          title: 'Mã nội bộ',
+          field: 'ProductCodeRTC',
+          hozAlign: 'left',
         },
         {
-          title: "Vị trí",
-          field: "AddressBox",
-          hozAlign: "left"
-          ,width: 120
+          title: 'Vị trí',
+          field: 'AddressBox',
+          hozAlign: 'left',
+          width: 120,
         },
 
         {
-          title: "Vị trí modula",
-          field: "ModulaLocationName",
-          hozAlign: "left"
+          title: 'Vị trí modula',
+          field: 'ModulaLocationName',
+          hozAlign: 'left',
         },
         {
-          title: "Ghi chú",
-          field: "Note",
-          hozAlign: "left",
+          title: 'Ghi chú',
+          field: 'Note',
+          hozAlign: 'left',
           formatter: (cell: any) => {
             const value = cell.getValue() || '';
             const maxLength = 50; // Số ký tự tối đa hiển thị
-            
+
             if (!value) {
               return '';
             }
-            
+
             // Nếu text dài hơn maxLength, cắt và thêm "..."
             if (value.length > maxLength) {
               const truncated = value.substring(0, maxLength) + '...';
               // Sử dụng HTML với title attribute để hiển thị tooltip
-              return `<span title="${value.replace(/"/g, '&quot;')}" style="cursor: help;">${truncated.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>`;
+              return `<span title="${value.replace(
+                /"/g,
+                '&quot;'
+              )}" style="cursor: help;">${truncated
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')}</span>`;
             }
-            
+
             return value.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          }
+          },
         },
-      ]
+      ],
     });
   }
 
@@ -330,7 +426,10 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
       keyboard: false,
       centered: true,
     });
-    modalRef.componentInstance.dataInput = { ID: 0, WarehouseID: this.warehouseID };
+    modalRef.componentInstance.dataInput = {
+      ID: 0,
+      WarehouseID: this.warehouseID,
+    };
     modalRef.result.then(
       (result) => {
         this.loadData();
@@ -344,7 +443,10 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
   onEditQRCode() {
     const selectedData = this.qrCodeTable?.getSelectedData();
     if (!selectedData || selectedData.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn QR code cần sửa!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn QR code cần sửa!'
+      );
       return;
     }
     const selectedRow = selectedData[0];
@@ -357,7 +459,7 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
     });
     modalRef.componentInstance.dataInput = {
       ...selectedRow,
-      WarehouseID: this.warehouseID
+      WarehouseID: this.warehouseID,
     };
     modalRef.result.then(
       (result) => {
@@ -372,7 +474,10 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
   onDeleteQRCode() {
     const selectedRows = this.qrCodeTable?.getSelectedData() || [];
     if (!selectedRows.length) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn bản ghi cần xóa');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn bản ghi cần xóa'
+      );
       return;
     }
 
@@ -386,41 +491,53 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
       nzCancelText: 'Hủy',
       nzOnOk: () => {
         const deleteRequests = selectedRows.map((row: any) => {
-          const payload = [{
-            ID: row.ID,
-            ProductRTCID: row.ProductRTCID,
-            ProductQRCode: row.ProductQRCode,
-            SerialNumber: row.SerialNumber,
-            Status: row.Status,
-            ModulaLocationDetailID: row.ModulaLocationDetailID,
-            WarehouseID: row.WarehouseID || this.warehouseID,
-            IsDeleted: true
-          }];
+          const payload = [
+            {
+              ID: row.ID,
+              ProductRTCID: row.ProductRTCID,
+              ProductQRCode: row.ProductQRCode,
+              SerialNumber: row.SerialNumber,
+              Status: row.Status,
+              ModulaLocationDetailID: row.ModulaLocationDetailID,
+              WarehouseID: row.WarehouseID || this.warehouseID,
+              IsDeleted: true,
+            },
+          ];
           return this.qrCodeService.saveData(payload);
         });
 
         forkJoin(deleteRequests).subscribe({
           next: (responses: any[]) => {
-            const success = responses.filter(r => r?.status === 1).length;
+            const success = responses.filter((r) => r?.status === 1).length;
             const failed = responses.length - success;
 
             if (failed === 0) {
-              this.notification.success(NOTIFICATION_TITLE.success, `Đã xóa ${success} QR code.`);
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã xóa ${success} QR code.`
+              );
             } else if (success === 0) {
-              this.notification.error(NOTIFICATION_TITLE.error, 'Không xóa được QR code nào.');
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Không xóa được QR code nào.'
+              );
             } else {
-              this.notification.warning(NOTIFICATION_TITLE.warning, `Xóa thành công ${success}, lỗi ${failed}.`);
+              this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Xóa thành công ${success}, lỗi ${failed}.`
+              );
             }
 
             this.qrCodeTable?.deselectRow?.(this.qrCodeTable.getSelectedRows());
             this.loadData();
           },
           error: (error: any) => {
-            const errorMessage = error?.error?.message || 'Có lỗi xảy ra khi xóa';
+            const errorMessage =
+              error?.error?.message || 'Có lỗi xảy ra khi xóa';
             this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
-          }
+          },
         });
-      }
+      },
     });
   }
 
@@ -433,7 +550,10 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
 
     const data = this.qrCodeData;
     if (!data || data.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu để xuất Excel!'
+      );
       return;
     }
 
@@ -452,7 +572,7 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
       'Vị trí',
       'Ghi chú',
       'SerialNumber',
-      'Vị trí modula'
+      'Vị trí modula',
     ];
     worksheet.addRow(headers);
 
@@ -462,18 +582,23 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF4472C4' }
+      fgColor: { argb: 'FF4472C4' },
     };
     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
     headerRow.height = 25;
 
     // Data rows
     data.forEach((row: any) => {
-      const statusText = row.Status === 1 ? 'Trong kho' :
-        row.Status === 2 ? 'Đang mượn' :
-          row.Status === 3 ? 'Đã xuất kho' :
-            row.Status === 4 ? 'Lost' :
-              row.StatusText || '';
+      const statusText =
+        row.Status === 1
+          ? 'Trong kho'
+          : row.Status === 2
+          ? 'Đang mượn'
+          : row.Status === 3
+          ? 'Đã xuất kho'
+          : row.Status === 4
+          ? 'Lost'
+          : row.StatusText || '';
 
       worksheet.addRow([
         statusText,
@@ -486,7 +611,7 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
         row.AddressBox || '',
         row.Note || '',
         row.SerialNumber || '',
-        row.ModulaLocationName || ''
+        row.ModulaLocationName || '',
       ]);
     });
 
@@ -507,7 +632,7 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
           top: { style: 'thin' },
           left: { style: 'thin' },
           bottom: { style: 'thin' },
-          right: { style: 'thin' }
+          right: { style: 'thin' },
         };
         if (rowNumber === 1) {
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -518,13 +643,13 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
     // Add filter
     worksheet.autoFilter = {
       from: { row: 1, column: 1 },
-      to: { row: 1, column: headers.length }
+      to: { row: 1, column: headers.length },
     };
 
     // Export file
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
 
     const formattedDate = new Date()
@@ -544,7 +669,10 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
+    this.notification.success(
+      NOTIFICATION_TITLE.success,
+      'Xuất Excel thành công!'
+    );
   }
 
   openModalImportExcel() {
@@ -564,4 +692,137 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
       }
     );
   }
+
+  //#region Load menu
+  loadMenu() {
+    this.productQrCodeMenu = [
+      {
+        label: 'Thêm',
+        icon: 'fa fa-plus text-success',
+        visible: this.permissionService.hasPermission('N26,N1,N80'),
+        command: () => {
+          this.onAddQRCode();
+        },
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa fa-pencil text-primary',
+        visible: this.permissionService.hasPermission('N26,N1,N80'),
+        command: () => {
+          this.onEditQRCode();
+        },
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa fa-trash text-danger',
+        visible: this.permissionService.hasPermission('N26,N1,N80'),
+        command: () => {
+          this.onDeleteQRCode();
+        },
+      },
+      {
+        label: 'Xuất excel',
+        icon: 'fa fa-file-excel text-success',
+        command: () => {
+          this.exportExcel();
+        },
+      },
+      {
+        label: 'Nhập excel',
+        visible: this.permissionService.hasPermission('N26,N1,N80'),
+        icon: 'fa-solid fa-file-import text-success',
+        command: () => {
+          this.openModalImportExcel();
+        },
+      },
+      {
+        label: 'Mượn thiết bị QRCode',
+        icon: 'fa-solid fa-qrcode text-primary',
+        command: () => {
+          this.onBorrowProductQRCode();
+        },
+      },
+    ];
+  }
+  //#endregion
+
+  //#region Mượn thiết bị
+  onBorrowProductQRCode() {
+    const selectedData = this.qrCodeTable?.getSelectedData();
+    if (!selectedData || selectedData.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn QR code cần mượn!'
+      );
+      return;
+    }
+    let _qrCodes: string[] = [];
+    for (let i = 0; i < selectedData.length; i++) {
+      const item = selectedData[i];
+      if (item.Status == 1) {
+        if (!_qrCodes.includes(item.ProductQRCode)) {
+          _qrCodes.push(item.ProductQRCode);
+        }
+      }
+    }
+
+    if (_qrCodes.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có sản phẩm hợp lệ để mượn. Vui lòng chọn sản phẩm với trạng thái trong kho!'
+      );
+      return;
+    }
+
+    const modalRef = this.modalService.open(
+      HistoryProductRtcBorrowQrComponent,
+      {
+        centered: true,
+        backdrop: 'static',
+        keyboard: false,
+        //windowClass: 'full-screen-modal',
+        size: 'xl',
+      }
+    );
+    modalRef.componentInstance.warehouseID = this.warehouseID;
+    modalRef.componentInstance._qrCodes = _qrCodes;
+    modalRef.componentInstance.isLoadQR = true;
+    modalRef.result.then(
+      (result) => {
+        if (result === true) {
+          this.loadData();
+        }
+      },
+      (dismissed) => {
+        // Modal dismissed
+      }
+    );
+  }
+  //#endregion
+
+  //#region Trả thiết bị
+  onReturnProductQRCode() {
+    const modalRef = this.modalService.open(
+      HistoryProductRtcReturnQrComponent,
+      {
+        centered: true,
+        backdrop: 'static',
+        keyboard: false,
+        //windowClass: 'full-screen-modal',
+        size: 'xl',
+      }
+    );
+    modalRef.componentInstance.warehouseID = this.warehouseID;
+    modalRef.result.then(
+      (result) => {
+        if (result === true) {
+          this.loadData();
+        }
+      },
+      (dismissed) => {
+        // Modal dismissed
+      }
+    );
+  }
+  //#endregion
 }

@@ -1,0 +1,226 @@
+<div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
+  <!-- Modal Header -->
+  <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
+      Nhân công dự án_{{ projectCodex }}
+    </h6>
+    <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"
+      style="background-color:lightcyan !important; font-weight: bold;"></button>
+  </div>
+
+  <!-- Modal Body -->
+  <div class="modal-body p-0" style="overflow: hidden; min-height: 0;">
+    <nz-splitter nzLayout="horizontal" style="height: 100%; min-height: 0;" (nzResizeEnd)="onSplitterResizeEnd($event)">
+      <!-- Phần trái: 3 bảng dọc -->
+      <nz-splitter-panel [nzSize]="sizeLeftPanel === '' ? undefined : sizeLeftPanel" nzDefaultSize="25%" nzMin="10%"
+        nzMax="50%" [nzCollapsible]="true" nzResizable="true">
+
+        <nz-splitter nzLayout="vertical" style="height: 100%">
+          <!-- Bảng 1: Giải pháp -->
+          <nz-splitter-panel nzDefaultSize="33.33%">
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+              <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center"
+                style=" font-weight: bold !important; background-color: #efebebe7 !important;">
+                <p class="m-0">Giải pháp</p>
+                <button nz-button nzType="text" class="btn-close-panel" style="color: red;" (click)="closeLeftPanel()"
+                  *ngIf="sizeLeftPanel !== '0'">
+                  <i nz-icon nzType="close"></i>
+                </button>
+              </div>
+              <div class="card-header bg-white p-1 d-flex gap-1">
+                <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
+                  (click)="openProjectSolutionDetail(false)" *hasPermission="'N13,N1,N27,N63'">
+                  <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
+                  Thêm
+                </button>
+                <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small"
+                  (click)="openProjectSolutionDetail(true)" *hasPermission="'N13,N1,N27,N63'">
+                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
+                  Sửa
+                </button>
+              </div>
+              <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container" style="min-height: 0;">
+                <angular-slickgrid gridId="grid-solution" [columns]="solutionColumns" [options]="solutionGridOptions"
+                  [dataset]="dataSolution" (onAngularGridCreated)="onSolutionGridReady($event)"
+                  (onSelectedRowsChanged)="onSolutionRowClick($event)"></angular-slickgrid>
+              </div>
+            </div>
+          </nz-splitter-panel>
+
+          <!-- Bảng 2: Phiên bản giải pháp -->
+          <nz-splitter-panel nzDefaultSize="33.33%">
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+              <div class="card-header bg-white p-1"
+                style=" font-weight: bold !important; background-color: #efebebe7 !important;">
+                <p class="m-0">Phiên bản giải pháp</p>
+              </div>
+              <div class="card-header bg-white p-1 d-flex gap-1">
+                <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
+                  (click)="openProjectSolutionVersionDetail(1, false)">
+                  <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
+                  Thêm
+                </button>
+                <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small"
+                  (click)="openProjectSolutionVersionDetail(1, true)">
+                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
+                  Sửa
+                </button>
+                <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger
+                  (click)="deleteProjectSolutionVersion(1)">
+                  <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />
+                  Xóa
+                </button>
+                <button class="fs-12" nz-button nzType="default" nzSize="small"
+                  (click)="onExportExcelSolutionVersion()">
+                  <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
+                </button>
+              </div>
+              <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-version-container"
+                style="min-height: 0;">
+                <angular-slickgrid *ngIf="gridsInitialized" gridId="grid-solution-version"
+                  [columns]="solutionVersionColumns" [options]="solutionVersionGridOptions"
+                  [dataset]="dataSolutionVersion" (onAngularGridCreated)="onSolutionVersionGridReady($event)"
+                  (onSelectedRowsChanged)="onSolutionVersionRowClick($event)"></angular-slickgrid>
+              </div>
+            </div>
+          </nz-splitter-panel>
+
+          <!-- Bảng 3: Phiên bản PO -->
+          <nz-splitter-panel nzDefaultSize="33.33%">
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+              <div class="card-header bg-white p-1 d-flex gap-1"
+                style=" font-weight: bold !important; background-color: #efebebe7 !important;">
+                <p class="m-0">Phiên bản PO</p>
+              </div>
+              <div class="card-header bg-white p-1 d-flex gap-1">
+                <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
+                  (click)="openProjectSolutionVersionDetail(2, false)">
+                  <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
+                  Thêm
+                </button>
+                <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small"
+                  (click)="openProjectSolutionVersionDetail(2, true)">
+                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
+                  Sửa
+                </button>
+                <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger
+                  (click)="deleteProjectSolutionVersion(2)">
+                  <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />
+                  Xóa
+                </button>
+                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onExportExcelPOVersion()">
+                  <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
+                </button>
+              </div>
+              <div class="card-body p-0 flex-grow-1 overflow-hidden grid-po-version-container" style="min-height: 0;">
+                <angular-slickgrid *ngIf="gridsInitialized" gridId="grid-po-version" [columns]="poVersionColumns"
+                  [options]="poVersionGridOptions" [dataset]="dataPOVersion"
+                  (onAngularGridCreated)="onPOVersionGridReady($event)"
+                  (onSelectedRowsChanged)="onPOVersionRowClick($event)"></angular-slickgrid>
+              </div>
+            </div>
+          </nz-splitter-panel>
+        </nz-splitter>
+      </nz-splitter-panel>
+
+      <!-- Phần phải: Bảng nhân công -->
+      <nz-splitter-panel [nzSize]="sizeRightPanel" nzDefaultSize="75%" nzMin="50%" nzMax="100%" nzResizable="true">
+        <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+          <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center"
+            style=" font-weight: bold !important; background-color: #efebebe7 !important;">
+            <div class="d-flex align-items-center gap-1">
+              <button nz-button nzType="text" class="btn-close-panel" style="color: green;" (click)="toggleLeftPanel()"
+                *ngIf="sizeLeftPanel === '0'">
+                <i nz-icon nzType="menu-unfold"></i>
+              </button>
+              <p class="m-0">Nhân công</p>
+            </div>
+          </div>
+
+          <div class="card-header bg-white p-1 d-flex gap-1">
+            <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
+              (click)="openProjectWorkerDetail(false)">
+              <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
+              Thêm
+            </button>
+            <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small"
+              (click)="openProjectWorkerDetail(true)">
+              <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
+            </button>
+            <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger click
+              (click)="deleteProjectWorker()">
+              <img src="assets/icon/action_delete_item_16.png" alt="Xóa " /> Xóa
+            </button>
+            <ng-container *hasPermission="'N38,N1'">
+              <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuTBP"
+                *ngIf="type == 2">
+                <img src="assets/icon/action_confirm_tbp_16.png" alt="TBP duyệt" /> TBP xác nhận
+                <i nz-icon nzType="down"></i>
+              </button>
+            </ng-container>
+            <nz-dropdown-menu #menuTBP="nzDropdownMenu">
+              <ul nz-menu>
+                <li nz-menu-item (click)="updateApprove(1)" *hasPermission="'N38,N1'">
+                  <img src="assets/icon/action_approved_16.png" />
+                  <span class="ms-1">TBP duyệt</span>
+                </li>
+                <li nz-menu-item (click)="updateApprove(2)" *hasPermission="'N38,N1'">
+                  <img src="assets/icon/action_unapproved_16.png" />
+                  <span class="ms-1">TBP hủy duyệt</span>
+                </li>
+              </ul>
+            </nz-dropdown-menu>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openImportExcelProjectWorker()">
+              <img src="assets/icon/action_import_16.png" /> Nhập Excel
+            </button>
+
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onExportExcel()">
+              <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
+            </button>
+          </div>
+
+          <div class="card-header bg-white p-1 d-flex gap-1">
+            <div style="min-width: 400px" class="d-flex gap-1 ms-auto align-items-center">
+              <label class="fs-12 mb-0">Trạng thái TBP</label>
+              <nz-select name="IsLateActual" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
+                [(ngModel)]="isApprovedTBP">
+                <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+                <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+              </nz-select>
+
+              <label class="fs-12 mb-0">Trạng thái</label>
+              <nz-select name="IsLateActual" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
+                [(ngModel)]="isDeleted">
+                <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+                <nz-option [nzValue]="0" nzLabel="Chưa xóa"></nz-option>
+                <nz-option [nzValue]="1" nzLabel="Đã xóa"></nz-option>
+              </nz-select>
+              <input nz-input nzSize="small" placeholder="Nhập từ khóa" style="width: 150px" [(ngModel)]="keyword"
+                (keyup.enter)="searchDataProjectWorker()" />
+              <button type="button" nz-button nzType="primary" nzSize="small" (click)="searchDataProjectWorker()">
+                <i nz-icon nzType="search"></i>
+                Tìm kiếm
+              </button>
+            </div>
+          </div>
+
+          <div class="card-body p-0 flex-grow-1 overflow-hidden grid-project-worker-container"
+            style="min-height: 0; position: relative;">
+            <!-- Loading cho bảng projectWorker -->
+            <div *ngIf="isLoading"
+              class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
+              style="z-index: 10;">
+              <nz-spin nzSimple></nz-spin>
+            </div>
+            <angular-slickgrid *ngIf="gridsInitialized" gridId="grid-project-worker" [columns]="projectWorkerColumns"
+              [options]="projectWorkerGridOptions" [dataset]="dataProjectWorker"
+              (onAngularGridCreated)="onProjectWorkerGridReady($event)"
+              (onSelectedRowsChanged)="onProjectWorkerRowClick($event)"></angular-slickgrid>
+          </div>
+        </div>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </div>
+  <!-- Modal Footer -->
+</div>

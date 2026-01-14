@@ -99,7 +99,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   currentState: any;
   createDate: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
-    .toISO();
+    .toJSDate();
   // Ngày dự kiến
   expectedPlanDate: any;
   expectedQuotationDate: any;
@@ -111,9 +111,14 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   realityQuotationDate: any;
   realityPODate: any;
   realityProjectEndDate: any;
+  isRealityProjectEndDateLocked = false;
+
+  readonly STATUS_MAINTENANCE = 6;
+  readonly STATUS_FINISHED = 9;
 
   // Ngày thay đổi trạng thái
-  dateChangeStatus: any;
+  dateChangeStatus: Date | null = null;
+  tempDateChangeStatus: Date | null = null;
   projectUserTeams: any[] = [];
   projectStatus: any;
   projectStatusIdDetail: any;
@@ -145,8 +150,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   ) {
     this.formGroup = this.fb.group({
       customerId: [null, [Validators.required]],
-      projectCode: [{value: '', disabled: true}, [Validators.required]],
-      createdDate: [DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO()],
+      projectCode: [{ value: '', disabled: true }, [Validators.required]],
+      createdDate: [DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toJSDate()],
       projectName: ['', [Validators.required]],
       userSaleId: [null, [Validators.required]],
       userTechId: [null, [Validators.required]],
@@ -164,7 +169,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       realityPODate: [null],
       realityProjectEndDate: [null],
       projectContactName: [''],
-      priority: [{value: '', disabled: true}, [Validators.required]],
+      priority: [{ value: '', disabled: true }, [Validators.required]],
       projectTypeId: [1, [Validators.required]],
       note: [''],
       currentState: [''],
@@ -208,19 +213,37 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     this.formGroup.get('projectTypeId')?.valueChanges.subscribe(value => {
       this.projectTypeId = value;
     });
+    this.formGroup.get('expectedPODate')?.valueChanges.subscribe(value => {
+      this.expectedPODate = value;
+    });
+    this.formGroup.get('expectedProjectEndDate')?.valueChanges.subscribe(value => {
+      this.expectedProjectEndDate = value;
+    });
+    this.formGroup.get('realityPlanDate')?.valueChanges.subscribe(value => {
+      this.realityPlanDate = value;
+    });
+    this.formGroup.get('realityQuotationDate')?.valueChanges.subscribe(value => {
+      this.realityQuotationDate = value;
+    });
+    this.formGroup.get('realityPODate')?.valueChanges.subscribe(value => {
+      this.realityPODate = value;
+    });
+    this.formGroup.get('realityProjectEndDate')?.valueChanges.subscribe(value => {
+      this.realityProjectEndDate = value;
+    });
     // Theo dõi customerId và projectTypeId
-  // combineLatest([
-  //   this.formGroup.get('customerId')!.valueChanges,
-  //   this.formGroup.get('projectTypeId')!.valueChanges,
-  //   this.formGroup.get('endUserId')!.valueChanges,
-  // ]).pipe(
-  //   debounceTime(200),
-  //   filter(([cid, tid]) => !!cid && this.customers.length > 0),
-  //   distinctUntilChanged()
-  // ).subscribe(() => {
-  //   debugger
-  //   this.getProjectCode();
-  // });
+    // combineLatest([
+    //   this.formGroup.get('customerId')!.valueChanges,
+    //   this.formGroup.get('projectTypeId')!.valueChanges,
+    //   this.formGroup.get('endUserId')!.valueChanges,
+    // ]).pipe(
+    //   debounceTime(200),
+    //   filter(([cid, tid]) => !!cid && this.customers.length > 0),
+    //   distinctUntilChanged()
+    // ).subscribe(() => {
+    //   debugger
+    //   this.getProjectCode();
+    // });
   }
 
   ngAfterViewInit(): void {
@@ -296,9 +319,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
     });
   }
-  
+
   //hàm gọi modal firm
-  openModalFirmBase(){
+  openModalFirmBase() {
     const modalRef = this.modalService.open(FirmBaseDetailComponent, {
       centered: true,
       backdrop: 'static',
@@ -308,7 +331,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     modalRef.result.catch(
       (result) => {
         if (result == true) {
-        this.getFirmBase()
+          this.getFirmBase()
         }
       },
     );
@@ -370,14 +393,14 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     if (this.projectId > 0) {
       this.projectService.getProject(this.projectId).subscribe({
         next: (response: any) => {
-          console.log('binh log',response.data);
+          console.log('binh log', response.data);
           this.projectCode = response.data.ProjectCode;
           this.projectName = response.data.ProjectName;
           this.note = response.data.Note;
           this.customerId = response.data.CustomerID;
           this.userSaleId = response.data.UserID;
           this.userTechId = response.data.UserTechnicalID;
-          
+
           // Cập nhật form values
           this.formGroup.patchValue({
             customerId: response.data.CustomerID,
@@ -388,8 +411,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           });
           this.createDate = DateTime.fromISO(response.data.CreatedDate)
             .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-            .toUTC()
-            .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            .toJSDate();
 
           this.projectStatusId = response.data.ProjectStatus;
           this.oldStatusId = response.data.ProjectStatus;
@@ -399,16 +421,17 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           this.priority = response.data.Priotity;
           this.projectTypeId =
             response.data.TypeProject <= 0 ? 1 : response.data.TypeProject;
-            
+
           // Cập nhật thêm form values
           this.formGroup.patchValue({
             pmId: response.data.ProjectManager,
             endUserId: response.data.EndUser,
             priority: response.data.Priotity,
             projectTypeId: response.data.TypeProject <= 0 ? 1 : response.data.TypeProject,
-            projectIdleader:response.data.ID,
-            projectStatusIdDetail:response.data.ProjectStatus,
+            projectIdleader: response.data.ID,
+            projectStatusIdDetail: response.data.ProjectStatus,
             projectStatusId: response.data.ProjectStatus, // Cập nhật projectStatusId vào form
+            createdDate: this.createDate,
           });
         },
         error: (error: any) => {
@@ -430,17 +453,15 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
           this.expectedPlanDate = res.data.ExpectedPlanDate
             ? DateTime.fromISO(res.data.ExpectedPlanDate)
-                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                .toUTC()
-                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+              .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+              .toJSDate()
             : null;
           this.expectedQuotationDate = res.data.ExpectedQuotationDate
             ? DateTime.fromISO(res.data.ExpectedQuotationDate)
-                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                .toUTC()
-                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+              .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+              .toJSDate()
             : null;
-            
+
           // Cập nhật form values cho ngày
           this.formGroup.patchValue({
             expectedPlanDate: this.expectedPlanDate,
@@ -448,41 +469,46 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           });
           this.expectedPODate = res.data.ExpectedPODate
             ? DateTime.fromISO(res.data.ExpectedPODate)
-                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                .toUTC()
-                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+              .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+              .toJSDate()
             : null;
           this.expectedProjectEndDate = res.data.ExpectedProjectEndDate
             ? DateTime.fromISO(res.data.ExpectedProjectEndDate)
-                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                .toUTC()
-                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+              .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+              .toJSDate()
             : null;
 
           this.realityPlanDate = res.data.RealityPlanDate
             ? DateTime.fromISO(res.data.RealityPlanDate)
-                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                .toUTC()
-                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+              .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+              .toJSDate()
             : null;
           this.realityQuotationDate = res.data.RealityQuotationDate
             ? DateTime.fromISO(res.data.RealityQuotationDate)
-                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                .toUTC()
-                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+              .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+              .toJSDate()
             : null;
           this.realityPODate = res.data.RealityPODate
             ? DateTime.fromISO(res.data.RealityPODate)
-                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                .toUTC()
-                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+              .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+              .toJSDate()
             : null;
           this.realityProjectEndDate = res.data.RealityProjectEndDate
             ? DateTime.fromISO(res.data.RealityProjectEndDate)
-                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                .toUTC()
-                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+              .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+              .toJSDate()
             : null;
+
+          this.formGroup.patchValue({
+            expectedPODate: this.expectedPODate,
+            expectedProjectEndDate: this.expectedProjectEndDate,
+            realityPlanDate: this.realityPlanDate,
+            realityQuotationDate: this.realityQuotationDate,
+            realityPODate: this.realityPODate,
+            realityProjectEndDate: this.realityProjectEndDate,
+          });
+
+          this.setRealityProjectEndDateLocked(!!this.realityProjectEndDate);
         },
         error: (error: any) => {
           const msg = error.message || 'Lỗi không xác định';
@@ -493,16 +519,30 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     }
   }
 
+  private setRealityProjectEndDateLocked(locked: boolean): void {
+    this.isRealityProjectEndDateLocked = locked;
+    const control = this.formGroup.get('realityProjectEndDate');
+    if (!control) {
+      return;
+    }
+
+    if (locked) {
+      control.disable({ emitEvent: false });
+    } else {
+      control.enable({ emitEvent: false });
+    }
+  }
+
   getProjectCode() {
     if (this.customers.length <= 0) return;
-    
+
     // Lấy giá trị từ form controls
-    
+
     const customerId = this.formGroup.get('customerId')?.value;
     const projectTypeId = this.formGroup.get('projectTypeId')?.value;
-    
+
     if (!customerId) return;
-    
+
     const customer = (this.customers as any[]).find(
       (x) => x.ID === customerId
     );
@@ -519,47 +559,92 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       this.formGroup.patchValue({ projectCode: '' });
       return;
     }
+    if (this.projectId == 0) {
+      if (this.customers.length > 0) {
+        this.projectService
+          .getProjectCodeModal(
+            this.projectId,
+            customer.CustomerShortName,
+            projectTypeId || 1
+          )
+          .subscribe({
+            next: (response: any) => {
+              this.projectCode = response.data;
+              console.log("hshs", this.projectCode)
+              this.formGroup.patchValue({ projectCode: response.data });
+              const endUserId = this.formGroup.get('endUserId')?.value;
+              if (!endUserId) {
+                this.formGroup.patchValue({ endUserId: customerId });
+              }
+            },
+            error: (error: any) => {
+              const msg = error.message || 'Lỗi không xác định';
+              this.notification.error(NOTIFICATION_TITLE.error, msg);
+              console.error('Lỗi:', error.error);
+            },
+          });
+      }
+    } else {
+      let currentCode = this.formGroup.get('projectCode')?.value || '';
+      if (!currentCode) return;
 
-    if (this.customers.length > 0) {
-      this.projectService
-        .getProjectCodeModal(
-          this.projectId,
-          customer.CustomerShortName,
-          projectTypeId || 1
-        )
-        .subscribe({
-          next: (response: any) => {
-            this.projectCode = response.data;
-            console.log("hshs", this.projectCode)
-            this.formGroup.patchValue({ projectCode: response.data });
-            const endUserId = this.formGroup.get('endUserId')?.value;
-            if (!endUserId) {
-              this.formGroup.patchValue({ endUserId: customerId });
-            }
-          },
-          error: (error: any) => {
-            const msg = error.message || 'Lỗi không xác định';
-            this.notification.error(NOTIFICATION_TITLE.error, msg);
-            console.error('Lỗi:', error.error);
-          },
-        });
+      // Xử lý prefix dựa trên projectTypeId
+      let newCode = this.updateProjectCodePrefix(currentCode, projectTypeId);
+
+      this.projectCode = newCode;
+      this.formGroup.patchValue({ projectCode: newCode });
+    }
+  }
+  // Hàm xử lý thêm/bỏ prefix
+  private updateProjectCodePrefix(currentCode: string, projectTypeId: number): string {
+    // Loại bỏ các prefix hiện có (TM. hoặc F.)
+    let coreCode = currentCode.replace(/^(TM\.|F\.)/, '');
+
+    // Thêm prefix mới dựa trên projectTypeId
+    switch (projectTypeId) {
+      case 2: // Loại TM
+        return `TM.${coreCode}`;
+      case 3: // Loại F
+        return `F.${coreCode}`;
+      default: // Loại thường (1 hoặc các giá trị khác)
+        return coreCode;
     }
   }
 
   getDayChange() {
     const projectStatusId = this.formGroup.get('projectStatusId')?.value;
-    
+
     // Cập nhật projectStatusId từ form
     this.projectStatusId = projectStatusId;
-    
+
     if (projectStatusId == this.oldStatusId || this.projectId <= 0) {
       // Nếu trạng thái không thay đổi, reset dateChangeStatus
       this.dateChangeStatus = null;
       return;
     }
 
-    // Reset dateChangeStatus khi mở modal mới để tránh giữ giá trị cũ
+    this.openDateChangeStatusModal({
+      okText: 'Xác nhận',
+      onCancel: () => {
+        this.formGroup.patchValue({ projectStatusId: this.oldStatusId });
+        this.projectStatusId = this.oldStatusId;
+        this.dateChangeStatus = null;
+        this.tempDateChangeStatus = null;
+      },
+      onOk: (selected: Date) => {
+        this.tryAutoFillRealityProjectEndDate(selected);
+        console.log('dateChangeStatus confirmed:', this.dateChangeStatus);
+      },
+    });
+  }
+
+  private openDateChangeStatusModal(config: {
+    okText: string;
+    onCancel: () => void;
+    onOk: (selected: Date) => void;
+  }): void {
     this.dateChangeStatus = null;
+    this.tempDateChangeStatus = new Date();
 
     const modalRef = this.modal.create({
       nzContent: this.dateChangeStatusContainer,
@@ -569,19 +654,17 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           type: 'default',
           nzDanger: true,
           onClick: () => {
-            this.formGroup.patchValue({ projectStatusId: this.oldStatusId });
-            this.projectStatusId = this.oldStatusId;
-            this.dateChangeStatus = null;
+            config.onCancel();
             modalRef.close();
           },
         },
         {
-          label: 'Xác nhận',
+          label: config.okText,
           type: 'primary',
           onClick: () => {
-            // Kiểm tra bằng hàm helper
-            if (!this.isValidDateChangeStatus()) {
-              console.log('dateChangeStatus value:', this.dateChangeStatus, 'type:', typeof this.dateChangeStatus);
+            const selected = this.coerceToDate(this.tempDateChangeStatus);
+            if (!(selected instanceof Date) || isNaN(selected.getTime())) {
+              console.log('tempDateChangeStatus value:', this.tempDateChangeStatus, 'type:', typeof this.tempDateChangeStatus);
               this.notification.error(
                 '',
                 'Vui lòng chọn ngày thay đổi trạng thái!',
@@ -589,15 +672,33 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
                   nzStyle: { fontSize: '0.75rem' },
                 }
               );
-            } else {
-              console.log('dateChangeStatus confirmed:', this.dateChangeStatus);
-              // Chỉ lưu giá trị ngày, không hiển thị thông báo "Đã lưu" vì chưa lưu vào DB
-              modalRef.close();
+              return;
             }
+
+            this.dateChangeStatus = selected;
+            config.onOk(selected);
+            modalRef.close();
           },
         },
       ],
     });
+  }
+
+  private isAutoFillRealityEndDateStatus(statusId: number): boolean {
+    return statusId === this.STATUS_MAINTENANCE || statusId === this.STATUS_FINISHED;
+  }
+
+  private tryAutoFillRealityProjectEndDate(dateLog: Date): void {
+    const statusId = this.formGroup.get('projectStatusId')?.value;
+    if (!this.isAutoFillRealityEndDateStatus(statusId)) {
+      return;
+    }
+
+    // Chỉ fill nếu ngày kết thúc thực tế đang trống (giống WinForm)
+    if (!this.realityProjectEndDate) {
+      this.realityProjectEndDate = dateLog;
+      this.formGroup.patchValue({ realityProjectEndDate: dateLog });
+    }
   }
 
   getProjectLeader() {
@@ -669,13 +770,13 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       this.projectService.getProject(projectId).subscribe({
         next: (response: any) => {
           if (response.data) {
-           
+
             if (this.projectId == this.projectIdleader) {
               this.projectStatusId = response.data.ProjectStatus;
-            
+
             } else {
               this.projectStatusIdDetail = response.data.ProjectStatus;
-              
+
             }
           }
         },
@@ -689,30 +790,38 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   onDateChange(date: any) {
-    this.dateChangeStatus = date;
+    this.dateChangeStatus = this.coerceToDate(date);
     console.log(this.dateChangeStatus);
   }
 
   onDateChangeStatusChange(date: any) {
     // Hàm này được gọi khi date picker trong modal thay đổi
-    this.dateChangeStatus = date;
-    console.log('onDateChangeStatusChange - date:', date, 'type:', typeof date, 'isValid:', date instanceof Date);
+    this.tempDateChangeStatus = this.coerceToDate(date);
+    console.log('onDateChangeStatusChange - date:', this.tempDateChangeStatus, 'type:', typeof this.tempDateChangeStatus, 'isValid:', this.tempDateChangeStatus instanceof Date);
+  }
+
+  private coerceToDate(value: any): Date | null {
+    if (!value) return null;
+    if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+    if (typeof value === 'string') {
+      const d = new Date(value);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    try {
+      // hỗ trợ trường hợp value là object có toDate()
+      if (typeof value?.toDate === 'function') {
+        const d = value.toDate();
+        return d instanceof Date && !isNaN(d.getTime()) ? d : null;
+      }
+    } catch {
+      // ignore
+    }
+    return null;
   }
 
   // Hàm helper để kiểm tra dateChangeStatus có giá trị hợp lệ không
   private isValidDateChangeStatus(): boolean {
-    if (!this.dateChangeStatus) {
-      return false;
-    }
-    // Kiểm tra nếu là Date object
-    if (this.dateChangeStatus instanceof Date) {
-      return !isNaN(this.dateChangeStatus.getTime());
-    }
-    // Kiểm tra nếu là string rỗng
-    if (typeof this.dateChangeStatus === 'string' && this.dateChangeStatus.trim() === '') {
-      return false;
-    }
-    return true;
+    return this.dateChangeStatus instanceof Date && !isNaN(this.dateChangeStatus.getTime());
   }
 
   saveDataProject() {
@@ -744,7 +853,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     const allData = this.tb_projectTypeLinks.getData();
     const projectTypeLinks =
       this.projectService.getSelectedRowsRecursive(allData);
-    
+
     // Kiểm tra mã dự án
     if (!this.projectCode) {
       this.notification.error('Thông báo', 'Vui lòng nhập mã dự án');
@@ -769,42 +878,17 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       this.oldStatusId != currentProjectStatusId &&
       this.projectId > 0
     ) {
-      // Reset dateChangeStatus khi mở modal mới
-      this.dateChangeStatus = null;
-      
-      const modalRef = this.modal.create({
-        nzContent: this.dateChangeStatusContainer,
-        nzFooter: [
-          {
-            label: 'Hủy',
-            type: 'default',
-            nzDanger: true,
-            onClick: () => {
-              this.dateChangeStatus = null;
-              modalRef.close();
-            },
-          },
-          {
-            label: 'Lưu',
-            type: 'primary',
-            onClick: () => {
-              // Kiểm tra lại dateChangeStatus trước khi lưu bằng hàm helper
-              if (!this.isValidDateChangeStatus()) {
-                console.log('dateChangeStatus value in save modal:', this.dateChangeStatus, 'type:', typeof this.dateChangeStatus);
-                this.notification.error(
-                  'Thông báo',
-                  'Vui lòng chọn ngày thay đổi trạng thái!',
-                );
-                return;
-              }
-              console.log('dateChangeStatus confirmed in save:', this.dateChangeStatus);
-              // Đóng modal và tiếp tục lưu dữ liệu
-              modalRef.close();
-              // Gọi continueSave để lưu thực sự sau khi đã có dateChangeStatus
-              this.continueSave(projectTypeLinks);
-            },
-          },
-        ],
+      this.openDateChangeStatusModal({
+        okText: 'Lưu',
+        onCancel: () => {
+          this.dateChangeStatus = null;
+          this.tempDateChangeStatus = null;
+        },
+        onOk: (selected: Date) => {
+          this.tryAutoFillRealityProjectEndDate(selected);
+          console.log('dateChangeStatus confirmed in save:', this.dateChangeStatus);
+          this.continueSave(projectTypeLinks);
+        },
       });
       return; // Dừng lại, không tiếp tục lưu
     }
@@ -815,11 +899,11 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   continueSave(projectTypeLinks: any[]) {
 
-    console.log(
-      DateTime.fromJSDate(new Date(this.dateChangeStatus)).isValid
-        ? DateTime.fromJSDate(new Date(this.dateChangeStatus)).toISO()
-        : null
-    );
+    // console.log(
+    //   DateTime.fromJSDate(new Date(this.dateChangeStatus)).isValid
+    //     ? DateTime.fromJSDate(new Date(this.dateChangeStatus)).toISO()
+    //     : null
+    // );
 
     const dataSave: any = {
       projectStatusOld: this.oldStatusId ?? 0,
@@ -888,7 +972,19 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     this.projectService.saveProject(dataSave).subscribe({
       next: (response: any) => {
         if (response.status == 1) {
-          this.activeModal.dismiss(true);
+          this.projectService.createProjectTree(response.data.project.ID, response.data.selectedProjectTypeLink).subscribe({
+            next: (response: any) => {
+              if (response.status == 1 && response.data) {
+                console.log(response.data);
+              }
+              this.activeModal.dismiss(true);
+            },
+            error: (error: any) => {
+              const msg = error.message || 'Lỗi không xác định';
+              this.notification.error(NOTIFICATION_TITLE.error, msg);
+              console.error('Lỗi:', error.error);
+            },
+          });
         }
       },
       error: (error: any) => {
@@ -967,7 +1063,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       dataTreeStartExpanded: true,
       layout: 'fitDataStretch',
       locale: 'vi',
-       
+
       columns: [
         {
           title: 'Chọn',
@@ -1104,7 +1200,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         return;
       }
     }
-    
+
     this.projectService.getProjectTypeLinks(this.projectIdleader).subscribe({
       next: (response: any) => {
         if (this.tb_projectTypeLinksDetail) {
@@ -1169,7 +1265,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       this.projectIdleader = this.projectId;
       this.projectStatusIdDetail = this.projectTypeId;
       this.currentTab = 1;
-      
+
       // Đợi DOM render xong rồi mới khởi tạo bảng
       setTimeout(() => {
         if (this.tb_projectTypeLinksDetailContainer?.nativeElement && !this.tb_projectTypeLinksDetail) {
@@ -1199,7 +1295,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     modalRef.result.catch((reason: any) => {
       if (reason !== undefined) {
         this.formGroup.get('priority')?.setValue(reason.priority);
-        
+
         this.listPriorities = reason.listPriorities;
       }
     });
@@ -1273,8 +1369,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   // Method để validate form
   validateForm(): boolean {
-     this.trimAllStringControls();
-     const requiredFields = [
+    this.trimAllStringControls();
+    const requiredFields = [
       'customerId',
       'projectName',
       'projectCode',
@@ -1291,18 +1387,18 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       const control = this.formGroup.get(key);
       return !control || control.invalid || control.value === '' || control.value == null;
     });
-    
+
     // Kiểm tra mức ưu tiên có giá trị hợp lệ
     const priorityControl = this.formGroup.get('priority');
     const priorityValue = priorityControl?.value;
-    
+
     if (!priorityControl || priorityValue === '' || priorityValue == null || priorityValue === undefined) {
       this.notification.error('Thông báo', 'Vui lòng nhập mức ưu tiên!');
       priorityControl?.markAsTouched();
       this.formGroup.markAllAsTouched();
       return false;
     }
-    
+
     // Kiểm tra priority là số và lớn hơn 0
     const priorityNum = parseFloat(priorityValue);
     if (isNaN(priorityNum) || priorityNum <= 0) {
@@ -1316,7 +1412,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     if (this.tb_projectTypeLinks) {
       const allData = this.tb_projectTypeLinks.getData();
       const projectTypeLinks = this.projectService.getSelectedRowsRecursive(allData);
-      
+
       // Chỉ kiểm tra nếu projectTypeId <= 1 (Dự án hoặc Thương mại)
       if (this.projectTypeId <= 1 && projectTypeLinks.length === 0) {
         this.notification.error('Thông báo', 'Vui lòng chọn ít nhất 1 kiểu dự án trong bảng!');
@@ -1324,20 +1420,19 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         return false;
       }
     }
-    
-    if (invalidFields.length > 0) 
-      {
+
+    if (invalidFields.length > 0) {
       this.formGroup.markAllAsTouched();
       return false;
-      }  
-     return true ; 
+    }
+    return true;
   }
 
- 
+
   validateLeaderForm(): boolean {
     this.trimAllStringControls();
     const projectIdleader = this.formGroup.get('projectIdleader');
-    const projectStatusIdDetail = this.formGroup.get('projectStatusIdDetail'); 
+    const projectStatusIdDetail = this.formGroup.get('projectStatusIdDetail');
     let isValid = true;
     if (!projectIdleader?.value || projectIdleader?.value <= 0) {
       projectIdleader?.markAsTouched();
@@ -1350,10 +1445,10 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     if (!isValid) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dự án và trạng thái!');
     }
-    
+
     return isValid;
   }
-  openAddCustomer(){
+  openAddCustomer() {
     const modalRef = this.modalService.open(CustomerDetailComponent, {
       centered: true,
       size: 'xl',
@@ -1369,5 +1464,5 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         }
       },
     );
-  } 
+  }
 }

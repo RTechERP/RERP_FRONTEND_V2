@@ -22,17 +22,22 @@ import { FormControl } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { EarlyLateService } from './early-late-service/early-late.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { AuthService } from '../../../auth/auth.service';
 import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.service';
+import { PermissionService } from '../../../services/permission.service';
+import { Menubar } from 'primeng/menubar';
+
 @Component({
   selector: 'app-early-late',
   templateUrl: './early-late.component.html',
@@ -55,18 +60,41 @@ import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.
     NzDatePickerModule,
     NzTabsModule,
     NzSplitterModule,
+    NzGridModule,
     NzRadioModule,
     NzTimePickerModule,
     NzSpinModule,
     NgIf,
     HasPermissionDirective,
-    FormsModule
+    NzDropDownModule,
+    FormsModule,
+    Menubar
   ]
 })
 export class EarlyLateComponent implements OnInit, AfterViewInit {
 
   private tabulator!: Tabulator;
   sizeSearch: string = '0';
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  // Menu bars
+  menuBars: any[] = [];
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
+
   searchForm!: FormGroup;
   earlyLateForm!: FormGroup;
   departmentList: any[] = [];
@@ -93,9 +121,11 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     private employeeService: EmployeeService,
     private authService: AuthService,
     private wfhService: WFHService,
+    private permissionService: PermissionService,
   ) { }
 
   ngOnInit() {
+    this.initMenuBar();
     this.initializeForm();
     this.loadDepartment();
     this.loadEarlyLate();
@@ -105,11 +135,75 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     this.authService.getCurrentUser().subscribe((res: any) => {
       const data = res?.data;
       this.currentUser = Array.isArray(data) ? data[0] : data;
-        this.currentEmployee = Array.isArray(this.currentUser)
-      ? this.currentUser[0]
-      : this.currentUser;
+      this.currentEmployee = Array.isArray(this.currentUser)
+        ? this.currentUser[0]
+        : this.currentUser;
     });
   }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.openAddModal()
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.openEditModal()
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.openDeleteModal()
+      },
+      {
+        label: 'TBP xác nhận',
+        visible: this.permissionService.hasPermission("N1"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        items: [
+          {
+            label: 'TBP duyệt',
+            visible: this.permissionService.hasPermission("N1"),
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.isApproveTBP(true)
+          },
+          {
+            label: 'TBP hủy duyệt',
+            visible: this.permissionService.hasPermission("N1"),
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.isApproveTBP(false)
+          }
+        ]
+      },
+      {
+        label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-info',
+        items: [
+          {
+            label: 'HR duyệt',
+            visible: this.permissionService.hasPermission("N1,N2"),
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.isApproveHR()
+          },
+          {
+            label: 'HR hủy duyệt',
+            visible: this.permissionService.hasPermission("N1,N2"),
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.isDisapproveHR()
+          }
+        ]
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportToExcel()
+      }
+    ];
+  }
+
   ngAfterViewInit(): void {
     this.initializeTable();
   }
@@ -145,8 +239,9 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       next: (data) => {
         this.employeeList = data.data;
       },
-      error: (error) => {
-        this.notification.error("Lỗi", "Lỗi tải danh sách nhân viên");
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi tải danh sách nhân viên';
+        this.notification.error("Lỗi", errorMessage);
       }
     })
   }
@@ -157,39 +252,28 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     const label = option.nzLabel?.toLowerCase() || '';
     return label.includes(searchText);
   };
+  disabledDate = (current: Date): boolean => {
+    // Chếch quyền HR thêm được những ngày khác
+    if (this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2') || this.currentUser.IsAdmin) {
+      return false;
+    }
 
-   loadApprovers(): void {
-    this.wfhService.getEmloyeeApprover().subscribe({
+    if (!current) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentDate = new Date(current);
+    currentDate.setHours(0, 0, 0, 0);
+    return currentDate < today;
+  };
+
+  loadApprovers(): void {
+    this.employeeService.getEmployeeApproved().subscribe({
       next: (res: any) => {
-        if (res && res.status === 1 && res.data) {
-          this.approverList = res.data.approvers || [];
-
-          // Group by DepartmentName
-          const grouped = this.approverList.reduce((acc: any, curr: any) => {
-            const dept = curr.DepartmentName || 'Khác';
-            if (!acc[dept]) {
-              acc[dept] = [];
-            }
-            // Map to match the structure expected by the template if needed, 
-            // or just push the object if it has ID, Code, FullName
-            acc[dept].push({
-              ID: curr.EmployeeID, // WFH service returns EmployeeID for approvers
-              Code: curr.Code,
-              FullName: curr.FullName
-            });
-            return acc;
-          }, {});
-
-          this.approvers = Object.keys(grouped).map(dept => ({
-            department: dept,
-            list: grouped[dept]
-          }));
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải danh sách người duyệt');
-        }
+        this.approverList = res.data || [];
       },
-      error: (res: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách người duyệt');
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Không thể tải danh sách người duyệt';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       },
     });
   }
@@ -229,7 +313,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     const today = new Date();
     const dateRegister = this.earlyLateForm?.get('DateRegister')?.value || today;
     const registerDate = new Date(dateRegister);
-    
+
     // Đi muộn: Type 1 (việc cá nhân) hoặc 4 (việc công ty)
     if (type === 1 || type === 4) {
       const start = new Date(registerDate);
@@ -238,7 +322,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       end.setHours(9, 0, 0, 0);
       return { start, end };
     }
-    
+
     // Về sớm: Type 2 (việc cá nhân) hoặc 3 (việc công ty)
     if (type === 2 || type === 3) {
       const start = new Date(registerDate);
@@ -247,19 +331,20 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       end.setHours(17, 30, 0, 0);
       return { start, end };
     }
-    
+
     // Default fallback
     return { start: new Date(), end: new Date() };
   }
 
   // Setup listener for Type changes
   private typeChangeSubscription: any;
+  private dateRegisterChangeSubscription: any;
   private setupTypeChangeListener(): void {
     // Unsubscribe previous subscription if exists
     if (this.typeChangeSubscription) {
       this.typeChangeSubscription.unsubscribe();
     }
-    
+
     // Subscribe to Type control changes
     this.typeChangeSubscription = this.earlyLateForm.get('Type')?.valueChanges.subscribe((type: number) => {
       if (type) {
@@ -272,56 +357,89 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     });
   }
 
+  //Update theo ngày đăng kí
+  private syncDateRangeWithRegister(): void {
+    const registerRaw = this.earlyLateForm.get('DateRegister')?.value;
+    if (!registerRaw) return;
+
+    const registerDate = new Date(registerRaw);
+    if (isNaN(registerDate.getTime())) return;
+
+    const currentStart = this.earlyLateForm.get('DateStart')?.value ? new Date(this.earlyLateForm.get('DateStart')?.value) : null;
+    const currentEnd = this.earlyLateForm.get('DateEnd')?.value ? new Date(this.earlyLateForm.get('DateEnd')?.value) : null;
+
+    const buildWithDate = (source: Date | null, fallbackHour: number, fallbackMinute: number) => {
+      const date = new Date(registerDate);
+      const hour = source ? source.getHours() : fallbackHour;
+      const minute = source ? source.getMinutes() : fallbackMinute;
+      const second = source ? source.getSeconds() : 0;
+      const ms = source ? source.getMilliseconds() : 0;
+      date.setHours(hour, minute, second, ms);
+      return date;
+    };
+
+    const newStart = buildWithDate(currentStart, 0, 0);
+    const newEnd = buildWithDate(currentEnd, 0, 0);
+
+    this.earlyLateForm.patchValue({
+      DateStart: newStart,
+      DateEnd: newEnd
+    }, { emitEvent: false });
+  }
+
+  // Lắng nghe thay đổi DateRegister để cập nhật DateStart/DateEnd cùng ngày
+  private setupDateRegisterChangeListener(): void {
+    if (this.dateRegisterChangeSubscription) {
+      this.dateRegisterChangeSubscription.unsubscribe();
+    }
+
+    this.dateRegisterChangeSubscription = this.earlyLateForm.get('DateRegister')?.valueChanges.subscribe(() => {
+      this.syncDateRangeWithRegister();
+    });
+  }
+
   private initializeTable(): void {
+    const frozenOn = !window.matchMedia('(max-width: 768px)').matches;
     this.tabulator = new Tabulator('#tb_early_late', {
       data: this.earlyLateList,
+      ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local',
       layout: 'fitColumns',
-      selectableRows: true,
-      height: '88vh',
-      rowHeader: {
-        formatter: "rowSelection",
-        titleFormatter: "rowSelection",
-        headerSort: false,
-        width: 50,
-        frozen: true,
-        headerHozAlign: "center",
-        hozAlign: "center"
-      },
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      rowContextMenu: [
-        {
-          label: "TBP hủy duyệt hủy đăng ký",
-          action: () => {
+      // langs: {
+      //   vi: {
+      //     pagination: {
+      //       first: '<<',
+      //       last: '>>',
+      //       prev: '<',
+      //       next: '>',
+      //     },
+      //   },
+      // },
+      // locale: 'vi',
+      // rowContextMenu: [
+      //   {
+      //     label: "TBP hủy duyệt hủy đăng ký",
+      //     action: () => {
 
 
-          }
-        },
-        {
-          label: "HR hủy duyệt hủy đăng ký",
-          action: () => {
+      //     }
+      //   },
+      //   {
+      //     label: "HR hủy duyệt hủy đăng ký",
+      //     action: () => {
 
-          }
-        }
+      //     }
+      //   }
 
 
-      ],
+      // ],
       groupBy: 'DepartmentName',
       groupHeader: function (value, count, data, group) {
         return value + "<span style='color:#d00; margin-left:10px;'>(" + count + " nhân viên)</span>";
       },
       columns: [
         {
-          title: 'TBP duyệt', field: 'IsApprovedTP', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: true,
+          title: 'Senior duyệt', field: 'IsSeniorApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60, frozen: frozenOn,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -329,7 +447,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          title: 'HR duyệt', field: 'IsApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: true,
+          title: 'TBP duyệt', field: 'IsApprovedTP', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: frozenOn,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -337,10 +455,18 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, frozen: true,
+          title: 'HR duyệt', field: 'IsApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: frozenOn,
+          formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked = value === true || value === 'true' || value === 1 || value === '1';
+            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
+          },
         },
         {
-          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false, frozen: true,
+          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, frozen: frozenOn,
+        },
+        {
+          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false, frozen: frozenOn, bottomCalc: 'count'
         },
         {
           title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
@@ -364,16 +490,49 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           title: 'Từ', field: 'DateStart', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('HH:mm dd/MM/yyyy') : '';
+            return value ? DateTime.fromISO(value).toFormat(' dd/MM/yyyy HH:mm') : '';
           }
         },
         {
           title: 'Đến', field: 'DateEnd', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('HH:mm dd/MM/yyyy') : '';
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm') : '';
           }
         },
+        {
+          title: 'CheckIn', field: 'CheckIn', hozAlign: 'center', headerHozAlign: 'center', width: 100,
+          formatter: (cell) => {
+            const value = cell.getValue();
+            const data = cell.getRow().getData();
+
+            if (data['IsNotValid'] === 1) {
+              const el = cell.getElement();
+              el.style.backgroundColor = '#fff3cd';
+              el.style.color = '#dc3545';
+              el.style.fontWeight = 'bold';
+            }
+
+            return value || '';
+          }
+        },
+        {
+          title: 'CheckOut', field: 'CheckOut', hozAlign: 'center', headerHozAlign: 'center', width: 100,
+          formatter: (cell) => {
+            const value = cell.getValue();
+            const data = cell.getRow().getData();
+
+            if (data['IsNotValid'] === 1) {
+              const el = cell.getElement();
+              el.style.backgroundColor = '#fff3cd';
+              el.style.color = '#dc3545';
+              el.style.fontWeight = 'bold';
+            }
+
+            return value || '';
+          }
+        },
+
         {
           title: 'Số phút', field: 'TimeRegister', hozAlign: 'right', headerHozAlign: 'center', width: 100, headerSort: false,
         },
@@ -390,19 +549,16 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false, formatter: 'textarea'
         }
       ],
-      pagination: true,
-      paginationSize: 100,
-      paginationSizeSelector: [10, 20, 50, 100]
     });
   }
 
   openAddModal() {
     const defaultType = 1; // Đi muộn việc cá nhân
     const defaultTimes = this.getDefaultTimesByType(defaultType);
-    
+
     this.earlyLateForm.reset({
       ID: 0,
-      EmployeeID: this.currentEmployee.EmployeeID,
+      EmployeeID: this.currentEmployee?.EmployeeID || null,
       ApprovedTP: null,
       DateStart: defaultTimes.start,
       DateEnd: defaultTimes.end,
@@ -411,15 +567,24 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       Reason: '',
       ReasonHREdit: ''
     });
-    this.earlyLateForm.get('EmployeeID')?.disable();
+
+    // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+    if (!this.canEditEmployee()) {
+      this.earlyLateForm.get('EmployeeID')?.disable();
+    } else {
+      this.earlyLateForm.get('EmployeeID')?.enable();
+    }
+
     this.earlyLateForm.get('ApprovedTP')?.enable();
     // Reset validation cho ReasonHREdit khi thêm mới
     this.earlyLateForm.get('ReasonHREdit')?.clearValidators();
     this.earlyLateForm.get('ReasonHREdit')?.updateValueAndValidity();
-    
+
     // Subscribe to Type changes
     this.setupTypeChangeListener();
-    
+    // Subscribe to DateRegister changes
+    this.setupDateRegisterChangeListener();
+
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addEarlyLateModal'));
     modal.show();
   }
@@ -431,10 +596,11 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    if (
-      (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedTP'] === true && selectedRows[0].getData()['IsApproved'] === true)
-    ) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
+    const selectedData = selectedRows[0].getData();
+
+    // Kiểm tra trạng thái duyệt - cho phép người có quyền sửa bất kể đã duyệt
+    if (this.isApproved(selectedData) && !this.checkCanEditApproved()) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt. Vui lòng hủy duyệt trước!');
       return;
     }
 
@@ -457,7 +623,13 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       ReasonHREdit: this.selectedEarlyLate.ReasonHREdit
     }, { emitEvent: false }); // Prevent triggering valueChanges
 
-    this.earlyLateForm.get('EmployeeID')?.disable();
+    // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+    if (!this.canEditEmployee()) {
+      this.earlyLateForm.get('EmployeeID')?.disable();
+    } else {
+      this.earlyLateForm.get('EmployeeID')?.enable();
+    }
+
     this.earlyLateForm.get('ApprovedTP')?.disable();
 
     this.earlyLateForm.get('ReasonHREdit')?.setValidators([Validators.required]);
@@ -465,6 +637,8 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
     // Subscribe to Type changes for edit mode as well (after patching)
     this.setupTypeChangeListener();
+    // Subscribe to DateRegister changes for edit mode
+    this.setupDateRegisterChangeListener();
 
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addEarlyLateModal'));
     modal.show();
@@ -477,10 +651,16 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    if (
-      (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedTP'] === true && selectedRows[0].getData()['IsApproved'] === true)
-    ) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi xóa!');
+    // Kiểm tra trạng thái duyệt cho tất cả các bản ghi đã chọn - cho phép người có quyền xóa bất kể đã duyệt
+    const selectedData = selectedRows.map(row => row.getData());
+    const approvedItems = selectedData.filter(item => this.isApproved(item));
+
+    if (approvedItems.length > 0 && !this.checkCanEditApproved()) {
+      const fullNames = approvedItems.map(item => item['FullName'] || 'N/A').join(', ');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Bản ghi đã duyệt. Bạn không có quyền xóa:\n${fullNames}`
+      );
       return;
     }
 
@@ -495,6 +675,17 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       nzOnOk: () => {
         for (let row of selectedRows) {
           let selectedEarlyLate = row.getData();
+
+          // Kiểm tra lại trạng thái duyệt trước khi xóa - cho phép người có quyền xóa bất kể đã duyệt
+          if (this.isApproved(selectedEarlyLate) && !this.checkCanEditApproved()) {
+            const fullName = selectedEarlyLate['FullName'] || 'N/A';
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              `Bản ghi đã duyệt. Bạn không có quyền xóa: ${fullName}`
+            );
+            continue;
+          }
+
           this.earlyLateService.saveEmployeeEarlyLate({
             ...selectedEarlyLate,
             IsDeleted: true
@@ -503,9 +694,9 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
               this.notification.success(NOTIFICATION_TITLE.success, 'Xóa ngày đã đăng ký thành công');
               this.loadEarlyLate();
             },
-            error: (error) => {
-              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngày đã đăng ký thất bại: ' + error.message);
-              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngày đã đăng ký thất bại: ' + error.message);
+            error: (error: any) => {
+              const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngày đã đăng ký thất bại: ' + errorMessage);
             }
           });
         }
@@ -647,18 +838,15 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
     if (isNaN(startDate.getTime())) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Ngày bắt đầu không hợp lệ. Vui lòng kiểm tra lại.');
-      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày bắt đầu không hợp lệ. Vui lòng kiểm tra lại.');
+
       this.earlyLateForm.get('StartDate')?.markAsTouched();
       return;
     }
-
     if (isNaN(endDate.getTime())) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');
       this.notification.error(NOTIFICATION_TITLE.error, 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');
       this.earlyLateForm.get('EndDate')?.markAsTouched();
       return;
     }
-
     // Convert to UTC ISO strings
     const startDateObj = new Date(Date.UTC(
       startDate.getUTCFullYear(),
@@ -677,12 +865,19 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
     formData.DateStart = startDateObj.toISOString();
     formData.DateEnd = endDateObj.toISOString();
-    formData.TimeRegister = endDateObj.getTime() - startDateObj.getTime(); // Duration in milliseconds
+    // Tính thời gian đăng ký bằng phút (không phải milliseconds)
+    const durationInMs = endDateObj.getTime() - startDateObj.getTime();
+    formData.TimeRegister = Math.round(durationInMs / (1000 * 60)); // Chuyển từ milliseconds sang phút
     formData.IsDeleted = false;
+    if (!formData.ID || formData.ID === 0) {
+      formData.ApprovedID = 0;
+      formData.IsApproved = false;
+    }
 
     if (formData.ID && formData.ID > 0) {
-      formData.IsApprovedHR = false;
-      formData.IsApprovedTP = false;
+      formData.IsApproved = false;    // Reset trạng thái duyệt HR
+      formData.IsApprovedHR = false;  // Reset trạng thái duyệt HR (backup field)
+      formData.IsApprovedTP = false;  // Reset trạng thái duyệt TBP
     }
 
     if (formData.ID && formData.ID > 0) {
@@ -692,35 +887,28 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
         return;
       }
     }
-
-    // Log final formData for debugging
-    console.log('Form Data:', JSON.stringify(formData));
-
     this.earlyLateService.saveEmployeeEarlyLate(formData).subscribe({
       next: () => {
         this.notification.success(NOTIFICATION_TITLE.success, 'Lưu đăng ký thành công');
         this.closeModal();
         this.loadEarlyLate();
       },
-      error: (response) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lưu đăng ký thất bại: ' + response.error.message);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lưu đăng ký thất bại: ' + response.error.message);
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lưu đăng ký thất bại: ' + errorMessage);
       },
     });
   }
-
   resetSearch() {
     this.initializeForm();
     this.loadEarlyLate();
   }
-
   isApproveTBP(status: boolean) {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length == 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn nhân viên để duyệt");
       return;
     }
-
     if (!status) {
       for (let row of selectedRows) {
         const data = row.getData();
@@ -735,9 +923,6 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
       }
     }
-
-
-    // Nếu là duyệt → làm như cũ
     if (status) {
       return this.handleApproveTP(status, selectedRows);
     }
@@ -752,8 +937,6 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           this.notification.warning("Thông báo", "Vui lòng nhập lý do hủy duyệt");
           return false; // ngăn modal đóng
         }
-
-        // Gọi chung 1 hàm xử lý
         this.handleApproveTP(status, selectedRows, this.reasonText);
         return true;
       }
@@ -779,14 +962,47 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           this.loadEarlyLate();
           this.reasonText = '';
         },
-        error: (error) => {
-          this.notification.error('Thất bại', 'Lỗi: ' + error.message);
+        error: (error: any) => {
+          const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
+          this.notification.error('Thất bại', 'Lỗi: ' + errorMessage);
           this.reasonText = '';
         }
       });
     }
   }
 
+
+  // Helper method để kiểm tra bản ghi đã được duyệt chưa
+  private isApproved(item: any): boolean {
+    // Kiểm tra trạng thái duyệt TBP
+    const isTBPApproved =
+      item.IsApprovedTP === true ||
+      item.IsApprovedTP === 1 ||
+      item.IsApprovedTP === '1';
+
+    // Kiểm tra trạng thái duyệt HR
+    const isHRApproved =
+      item.IsApproved === true ||
+      item.IsApproved === 1 ||
+      item.IsApproved === '1';
+
+    // Nếu TBP hoặc HR đã duyệt thì không cho sửa
+    return isTBPApproved || isHRApproved;
+  }
+
+  // Helper method để kiểm tra user có quyền chỉnh sửa nhân viên (N1, N2 hoặc IsAdmin)
+  private canEditEmployee(): boolean {
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
+
+    return hasN1Permission || hasN2Permission || isAdmin;
+  }
+
+  // Kiểm tra user có quyền sửa/xóa bản ghi đã duyệt (N1, N2 hoặc IsAdmin)
+  checkCanEditApproved(): boolean {
+    return this.canEditEmployee();
+  }
 
   isApproveHR() {
     const selectedRows = this.tabulator.getSelectedRows();
@@ -821,8 +1037,9 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
               this.notification.success(NOTIFICATION_TITLE.success, 'HR duyệt khai báo thành công');
               this.loadEarlyLate();
             },
-            error: (error) => {
-              this.notification.error('Thất bại', 'HR duyệt khai báo thất bại' + error.message);
+            error: (error: any) => {
+              const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
+              this.notification.error('Thất bại', 'HR duyệt khai báo thất bại: ' + errorMessage);
             }
           })
 
@@ -887,8 +1104,9 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           this.loadEarlyLate();
           this.reasonText = '';
         },
-        error: (error) => {
-          this.notification.error('Thất bại', 'HR hủy duyệt khai báo thất bại' + error.message);
+        error: (error: any) => {
+          const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
+          this.notification.error('Thất bại', 'HR hủy duyệt khai báo thất bại: ' + errorMessage);
           this.reasonText = '';
         }
       })

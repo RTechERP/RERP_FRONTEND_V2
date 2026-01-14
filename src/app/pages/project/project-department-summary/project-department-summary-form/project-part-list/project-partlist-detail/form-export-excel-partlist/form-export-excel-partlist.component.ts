@@ -57,6 +57,66 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
   // Original data for filtering
   originalData: any[] = [];
 
+  // Natural sort function for hierarchy strings (1.1.1, 1.1.10, etc.) - same logic as project-part-list-slick-grid
+  naturalSortHierarchy = (a: any, b: any, aRow: any, bRow: any, column: any, dir: string, sorterParams: any): number => {
+    const aVal = String(a || '');
+    const bVal = String(b || '');
+
+    if (aVal === bVal) return 0;
+
+    const aParts = aVal.split('.');
+    const bParts = bVal.split('.');
+    const maxLength = Math.max(aParts.length, bParts.length);
+
+    for (let i = 0; i < maxLength; i++) {
+      const aPart = parseInt(aParts[i] || '0', 10);
+      const bPart = parseInt(bParts[i] || '0', 10);
+
+      if (aPart < bPart) return -1;
+      if (aPart > bPart) return 1;
+    }
+
+    return 0;
+  };
+
+  // Function to sort tree data by TT using natural sort
+  sortTreeDataByTT(data: any[]): any[] {
+    const sortNodes = (nodes: any[]): any[] => {
+      // Sort current level
+      nodes.sort((a, b) => {
+        const aVal = String(a.TT || '');
+        const bVal = String(b.TT || '');
+
+        if (aVal === bVal) return 0;
+
+        const aParts = aVal.split('.');
+        const bParts = bVal.split('.');
+        const maxLength = Math.max(aParts.length, bParts.length);
+
+        for (let i = 0; i < maxLength; i++) {
+          const aPart = parseInt(aParts[i] || '0', 10);
+          const bPart = parseInt(bParts[i] || '0', 10);
+
+          if (aPart < bPart) return -1;
+          if (aPart > bPart) return 1;
+        }
+
+        return 0;
+      });
+
+      // Recursively sort children
+      nodes.forEach(node => {
+        if (node._children && node._children.length > 0) {
+          node._children = sortNodes(node._children);
+        }
+      });
+
+      return nodes;
+    };
+
+    return sortNodes([...data]);
+  }
+
   constructor(
     public activeModal: NgbActiveModal,
     private notification: NzNotificationService,
@@ -129,6 +189,8 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
       );
     }
 
+    // Sort filtered data by TT using natural sort
+    filteredData = this.sortTreeDataByTT(filteredData);
     this.tb_ExportProjectPartList.setData(filteredData);
   }
 
@@ -137,10 +199,12 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
     this.searchMaker = '';
     this.searchSupplier = '';
     if (this.tb_ExportProjectPartList) {
-      // Ensure originalData is enriched before setting
-      const enrichedOriginalData = this.originalData && this.originalData.length > 0
+      // Ensure originalData is enriched and sorted before setting
+      let enrichedOriginalData = this.originalData && this.originalData.length > 0
         ? this.enrichDataWithProjectInfo([...this.originalData])
         : this.originalData;
+      // Sort data by TT using natural sort
+      enrichedOriginalData = this.sortTreeDataByTT(enrichedOriginalData);
       this.tb_ExportProjectPartList.setData(enrichedOriginalData);
     }
   }
@@ -172,12 +236,12 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
           TenDuAn_Value: this.projectName || '',
           NguoiLap_Label: this.currentUser?.FullName || '',
         };
-        
+
         // Recursively enrich children
         if (node._children && node._children.length > 0) {
           enrichedNode._children = enrich(node._children);
         }
-        
+
         return enrichedNode;
       });
     };
@@ -201,15 +265,18 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
 
   drawTbExportProjectPartList(container: HTMLElement): void {
     // Ensure data is enriched before displaying
-    const enrichedData = this.partListData && this.partListData.length > 0 
+    let enrichedData = this.partListData && this.partListData.length > 0
       ? this.enrichDataWithProjectInfo([...this.partListData])
       : [];
-    
+
+    // Sort data by TT using natural sort (1.1.1, 1.1.10, etc.)
+    enrichedData = this.sortTreeDataByTT(enrichedData);
+
     this.tb_ExportProjectPartList = new Tabulator(container, {
       data: enrichedData,
       layout: 'fitDataStretch',
       ...DEFAULT_TABLE_CONFIG,
-      pagination:false,
+      pagination: false,
       rowHeader: false,
       dataTree: true,
       dataTreeStartExpanded: true,
@@ -217,18 +284,209 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
       dataTreeElementColumn: 'TT',
       rowFormatter: (row: any) => {
         const rowData = row.getData();
-        // Set màu xám cho các dòng cha (có _children)
-        if (rowData._children && rowData._children.length > 0) {
-          const rowElement = row.getElement();
-          if (rowElement) {
-            rowElement.style.backgroundColor = '#E0E0E0'; // Màu xám
-          }
+        const el = row.getElement();
+        // Reset style
+        el.style.cssText = '';
+
+        // === LOGIC VẼ MÀU GIỐNG WINFORM NodeCellStyle ===
+        const hasChildren = rowData._children && rowData._children.length > 0;
+        const isDeleted = rowData.IsDeleted === true;
+        const isProblem = rowData.IsProblem === true;
+        const quantityReturn = Number(rowData.QuantityReturn) || 0;
+
+        // 1. Ưu tiên cao nhất: Dòng bị xóa → Red + White text
+        if (isDeleted) {
+          el.style.backgroundColor = 'red';
+          el.style.color = 'black';
+          return;
         }
+        // 2. Dòng có vấn đề → Orange
+        if (isProblem) {
+          el.style.backgroundColor = 'orange';
+          return;
+        }
+        // 3. Số lượng trả về > 0 → LightGreen (hàng đã về)
+        if (quantityReturn > 0) {
+          el.style.backgroundColor = 'lightgreen';
+          return;
+        }
+        // 4. Node cha (có children) → LightGray + Bold
+        if (hasChildren) {
+          el.style.backgroundColor = '#E0E0E0'; // Màu xám
+          el.style.fontWeight = 'bold';
+          return;
+        }
+        // 5. Node lá không có điều kiện đặc biệt → màu trắng mặc định
       },
       columns: [
-       
+
+        {
+          title: '',
+          columns: [
             {
               title: '',
+              field: '',
+              width: 150,
+              headerHozAlign: 'left',
+              columns: [
+                {
+                  title: '',
+                  columns: [
+                    {
+                      title: 'Người lập',
+                      headerHozAlign: 'left',
+                      columns: [
+                        {
+                          title: '',
+                          field: 'NguoiLap_Label',
+                          width: 120,
+                          headerHozAlign: 'right',
+                          columns: [{
+                            title: 'Ngày',
+                            width: 120,
+                            columns: [
+                              {
+                                title: 'TT',
+                                field: 'TT',
+                                width: 150,
+                                hozAlign: 'center',
+                                sorter: this.naturalSortHierarchy,
+                              }
+                            ]
+                          },
+                          {
+                            title: '' + DateTime.now().toFormat('dd/MM/yyyy'),
+                            field: '',
+                            columns: [
+                              {
+                                title: 'Tên vật tư',
+                                field: 'GroupMaterial',
+                                width: 150,
+                                formatter: 'textarea'
+                              }
+                            ]
+                          },
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+              ]
+            }
+
+          ]
+        },
+        {
+          title: 'DANH MỤC VẬT TƯ',
+          headerHozAlign: 'center',
+          columns: [
+
+            {
+              title: 'Mã dự án:',
+              field: 'MaDuAn_Label',
+              width: 120,
+              headerHozAlign: 'right',
+              columns: [
+                {
+                  title: 'Tên dự án:',
+                  field: '',
+                  width: 150,
+                  headerHozAlign: 'left',
+                  columns: [
+                    {
+                      title: 'Kiểm tra:',
+                      field: '',
+                      width: 150,
+                      headerHozAlign: 'left',
+                      columns: [
+                        {
+                          title: '',
+                          field: '',
+                          width: 150,
+                          headerHozAlign: 'left',
+                          columns: [
+                            {
+                              title: 'Ngày:',
+                              field: '',
+                              width: 150,
+                              headerHozAlign: 'left',
+                              columns: [
+                                {
+                                  title: 'Mã thiết bị',
+                                  field: 'ProductCode',
+                                  width: 150,
+                                  headerHozAlign: 'left',
+                                  formatter: 'textarea'
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              title: this.projectCode,
+              field: 'MaDuAn_Value',
+              width: 140,
+              headerHozAlign: 'left',
+              columns: [
+                {
+                  title: this.projectName || '',
+                  field: 'TenDuAn_Value',
+                  width: 150,
+                  headerHozAlign: 'left',
+                  columns: [
+                    {
+                      title: '',
+                      field: '',
+                      width: 150,
+                      headerHozAlign: 'left',
+                      columns: [
+                        {
+                          title: '',
+                          field: '',
+                          width: 150,
+                          headerHozAlign: 'left',
+                          columns: [
+                            {
+                              title: '',
+                              field: '',
+                              width: 150,
+                              headerHozAlign: 'left',
+                              columns: [
+                                {
+                                  title: 'Mã đặt hàng',
+                                  field: 'BillCodePurchase',
+                                  width: 150,
+                                  headerHozAlign: 'left',
+                                },
+                                {
+                                  title: 'Hãng SX',
+                                  field: 'Manufacturer',
+                                  width: 150,
+                                  headerHozAlign: 'left',
+                                },
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+
+            {
+              title: '',
+              field: '',
+              width: 150,
+              headerHozAlign: 'left',
               columns: [
                 {
                   title: '',
@@ -237,95 +495,28 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'left',
                   columns: [
                     {
-                      title: '',
-                      columns: [
-                        {
-                          title: 'Người lập',
-                          headerHozAlign: 'left',
-                          columns: [
-                            {
-                              title: '',
-                              field: 'NguoiLap_Label',
-                              width: 120,
-                              headerHozAlign: 'right',
-                              columns: [{
-                                title: 'Ngày',
-                                width: 120,
-                                columns: [
-                                  {
-                                    title: 'TT',
-                                    field: 'TT',
-                                    width: 150,
-                                    hozAlign: 'center',
-                                  }
-                                ]
-                              },
-                              {
-                                title: ''+DateTime.now().toFormat('dd/MM/yyyy'),
-                                field: '',
-                                columns: [
-                                  {
-                                    title: 'Tên vật tư',
-                                    field: 'GroupMaterial',
-                                    width: 150,
-                                    formatter:'textarea'
-                                  }
-                                ]
-                              },
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                  ]
-                }
-             
-          ]
-        },
-        {
-          title: 'DANH MỤC VẬT TƯ',
-          headerHozAlign: 'center',
-          columns: [
-           
-                {
-                  title: 'Mã dự án:',
-                  field: 'MaDuAn_Label',
-                  width: 120,
-                  headerHozAlign: 'right',
-                  columns: [
-                    {
-                      title: 'Tên dự án:',
+                      title: 'Phê duyệt',
                       field: '',
                       width: 150,
                       headerHozAlign: 'left',
                       columns: [
                         {
-                          title: 'Kiểm tra:',
+                          title: '',
                           field: '',
                           width: 150,
                           headerHozAlign: 'left',
                           columns: [
                             {
-                              title: '',
+                              title: 'Ngày: ',
                               field: '',
                               width: 150,
                               headerHozAlign: 'left',
                               columns: [
                                 {
-                                  title: 'Ngày:',
-                                  field: '',
+                                  title: 'Thông số kỹ thuật ',
+                                  field: 'Model',
                                   width: 150,
                                   headerHozAlign: 'left',
-                                  columns: [
-                                    {
-                                      title: 'Mã thiết bị',
-                                      field: 'ProductCode',
-                                      width: 150,
-                                      headerHozAlign: 'left',
-                                      formatter:'textarea'
-                                    }
-                                  ]
                                 }
                               ]
                             }
@@ -333,109 +524,12 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                         }
                       ]
                     }
-                  ]
-                },
-                {
-                  title: this.projectCode,
-                  field: 'MaDuAn_Value',
-                  width: 140,
-                  headerHozAlign: 'left',
-                  columns: [
-                    {
-                      title: this.projectName || '',
-                      field: 'TenDuAn_Value',
-                      width: 150,
-                      headerHozAlign: 'left',
-                      columns: [
-                        {
-                          title: '',
-                          field: '',
-                          width: 150,
-                          headerHozAlign: 'left',
-                          columns: [
-                            {
-                              title: '',
-                              field: '',
-                              width: 150,
-                              headerHozAlign: 'left',
-                              columns: [
-                                {
-                                  title: '',
-                                  field: '',
-                                  width: 150,
-                                  headerHozAlign: 'left',
-                                  columns: [
-                                    {
-                                      title: 'Mã đặt hàng',
-                                      field: 'BillCodePurchase',
-                                      width: 150,
-                                      headerHozAlign: 'left',
-                                    },
-                                    {
-                                      title: 'Hãng SX',
-                                      field: 'Manufacturer',
-                                      width: 150,
-                                      headerHozAlign: 'left',
-                                    },
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                },
-                
-                {
-                  title: '',
-                  field: '',
-                  width: 150,
-                  headerHozAlign: 'left',
-                      columns: [
-                        {
-                          title: '',
-                          field: '',
-                          width: 150,
-                          headerHozAlign: 'left',
-                          columns: [
-                            {
-                              title: 'Phê duyệt',
-                              field: '',
-                              width: 150,
-                              headerHozAlign: 'left',
-                              columns: [
-                                {
-                                  title: '',
-                                  field: '',
-                                  width: 150,
-                                  headerHozAlign: 'left',
-                                  columns: [
-                                    {
-                                      title: 'Ngày: ',
-                                      field: '',
-                                      width: 150,
-                                      headerHozAlign: 'left',
-                                      columns: [
-                                        {
-                                          title: 'Thông số kỹ thuật ',
-                                          field: 'Model',
-                                          width: 150,
-                                          headerHozAlign: 'left',
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                        
-                      ]
-                    }
+
                   ]
                 }
-             
+              ]
+            }
+
           ]
         },
         {
@@ -469,24 +563,24 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                                 {
                                   title: 'Số lượng/1 máy',
                                   field: 'QtyMin',
-                              width: 150,
-                              headerHozAlign: 'center',
+                                  width: 150,
+                                  headerHozAlign: 'center',
                                   hozAlign: 'right',
                                   formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            {
-                              title: 'Số lượng tổng',
+                                },
+                                {
+                                  title: 'Số lượng tổng',
                                   field: 'QtyFull',
-                              width: 150,
-                              headerHozAlign: 'center',
+                                  width: 150,
+                                  headerHozAlign: 'center',
                                   hozAlign: 'right',
                                   formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            {
-                              title: 'Đơn vị',
+                                },
+                                {
+                                  title: 'Đơn vị',
                                   field: 'Unit',
-                              width: 150,
-                              headerHozAlign: 'center',
+                                  width: 150,
+                                  headerHozAlign: 'center',
                                 }
                               ]
                             }
@@ -497,10 +591,7 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                   ]
                 }
               ]
-          },
-        {
-          title: '',
-          columns: [
+            },
             {
               title: '',
               columns: [
@@ -514,155 +605,163 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                           title: '',
                           columns: [
                             {
-                              title: 'Đơn giá KT nhập',
-                              field: 'Price',
-                              hozAlign: 'right',
-                              width: 120,
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            {
-                              title: 'Thành tiền KT nhập',
-                              field: 'Amount',
-                              hozAlign: 'right',
-                              width: 150,
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                
-                            { title: 'Tiến độ', field: 'LeadTime', width: 120 },
-                            { title: 'Nhà cung cấp', field: 'NameNCCPriceQuote', width: 180 ,  formatter:'textarea'},
-                
-                            {
-                              title: 'Ngày yêu cầu đặt hàng',
-                              field: 'RequestDate',
-                              width: 160,
-                              formatter: (cell: any) => this.formatDate(cell.getValue()),
-                            },
-                            { title: 'Tiến độ yêu cầu', field: 'LeadTimePurchase', width: 150 },
-                
-                            {
-                              title: 'SL đặt thực tế',
-                              field: '',
-                              width: 120,
-                              hozAlign: 'right',
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            { title: 'Nhà cung cấp mua', field: 'SupplierNamePurchase', width: 120 , formatter:'textarea'},
-                            { title: 'Giá đặt mua', field: 'PriceOrder', width: 150,
-                              hozAlign: 'right',
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            { title: 'Ngày đặt hàng thực tế', field: 'RequestDatePurchase', width: 150,
-                              formatter: (cell: any) => this.formatDate(cell.getValue()),
-                             },
-                             { title: 'Dự kiến hàng về', field: 'ExpectedReturnDate', width: 150,
-                              formatter: (cell: any) => this.formatDate(cell.getValue()),
-                             },
-                             {
-                              title: 'Tình trạng', field: 'StatusText', width: 150,
-                             },
-                             {
-                              title: 'Chất lượng', field: 'Quality', width: 150,
-                             },
-                             {
-                              title: 'Ghi chú', field: 'Note', width:300,
-                              formatter:'textarea'
-                             },
-                             {
-                              title: 'Lý do phát sinh', field: 'ReasonProblem', width: 300,
-                              formatter:'textarea'
-                             },
-                             {
-                              title: 'Mã đặc biệt', field: 'SpecialCode', width: 150,
-                             },
-                             {
-                              title: 'Đơn giá Pur báo', field: 'UnitPriceQuote', width: 150,
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                             },
-                             {
-                              title: 'Thành tiền Pur báo', field: 'TotalPriceQuote1', width: 150,
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                             },
-                             {
-                              title: 'Loại tiền Pur báo', field: 'CurrencyQuote', width: 140,
-                             },                
-                            {
-                              title: 'Tỷ giá báo',
-                              field: 'CurrencyRateQuote',
-                              width: 100,
-                              hozAlign: 'right',
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            {
-                              title: 'Thành tiền quy đổi báo giá (VNĐ)',
-                              field: 'TotalPriceExchangeQuote',
-                              hozAlign: 'right',
-                              width: 200,
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                
-                            {
-                              title: 'Đơn giá Pur mua',
-                              field: 'UnitPricePurchase',
-                              hozAlign: 'right',
-                              width: 140,
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            {
-                              title: 'Thành tiền Pur mua',
-                              field: 'TotalPricePurchase',
-                              hozAlign: 'right',
-                              width: 150,
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            { title: 'Loại tiền Pur mua', field: 'CurrencyPurchase', width: 140 },
-                            {
-                              title: 'Tỷ giá mua',
-                              field: 'CurrencyRatePurchase',
-                              width: 100,
-                              hozAlign: 'right',
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            {
-                              title: 'Thành tiền quy đổi mua (VNĐ)',
-                              field: 'TotalPriceExchangePurchase',
-                              hozAlign: 'right',
-                              width: 200,
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                
-                            { title: 'Leadtime Pur báo giá', field: 'LeadTimeQuote', width: 170 },
-                            { title: 'Leadtime Pur đặt mua', field: 'LeadTimePurchase', width: 170 },
-                
-                            {
-                              title: 'SL đã về',
-                              field: 'QuantityReturn',
-                              width: 100,
-                              hozAlign: 'right',
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            { title: 'Mã nội bộ', field: 'ProductNewCode', width: 120 },
-                            { title: 'Số HĐ đầu vào', field: 'SomeBill', width: 150 },
-                            {
-                              title: 'SL đã về',
-                              field: 'QuantityReturn',
-                              width: 100,
-                              hozAlign: 'right',
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            {
-                              title: 'SL đã xuất',
-                              field: 'TotalExport',
-                              width: 100,
-                              hozAlign: 'right',
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            {
-                              title: 'SL còn lại',
-                              field: 'RemainQuantity',
-                              width: 100,
-                              hozAlign: 'right',
-                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
+                              title: '',
+                              columns: [
+                                {
+                                  title: 'Đơn giá KT nhập',
+                                  field: 'Price',
+                                  hozAlign: 'right',
+                                  width: 120,
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                {
+                                  title: 'Thành tiền KT nhập',
+                                  field: 'Amount',
+                                  hozAlign: 'right',
+                                  width: 150,
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+
+                                { title: 'Tiến độ', field: 'LeadTime', width: 120 },
+                                { title: 'Nhà cung cấp', field: 'NameNCCPriceQuote', width: 180, formatter: 'textarea' },
+
+                                {
+                                  title: 'Ngày yêu cầu đặt hàng',
+                                  field: 'RequestDate',
+                                  width: 160,
+                                  formatter: (cell: any) => this.formatDate(cell.getValue()),
+                                },
+                                { title: 'Tiến độ yêu cầu', field: 'LeadTimePurchase', width: 150 },
+
+                                {
+                                  title: 'SL đặt thực tế',
+                                  field: '',
+                                  width: 120,
+                                  hozAlign: 'right',
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                { title: 'Nhà cung cấp mua', field: 'SupplierNamePurchase', width: 120, formatter: 'textarea' },
+                                {
+                                  title: 'Giá đặt mua', field: 'PriceOrder', width: 150,
+                                  hozAlign: 'right',
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                {
+                                  title: 'Ngày đặt hàng thực tế', field: 'RequestDatePurchase', width: 150,
+                                  formatter: (cell: any) => this.formatDate(cell.getValue()),
+                                },
+                                {
+                                  title: 'Dự kiến hàng về', field: 'ExpectedReturnDate', width: 150,
+                                  formatter: (cell: any) => this.formatDate(cell.getValue()),
+                                },
+                                {
+                                  title: 'Tình trạng', field: 'StatusText', width: 150,
+                                },
+                                {
+                                  title: 'Chất lượng', field: 'Quality', width: 150,
+                                },
+                                {
+                                  title: 'Ghi chú', field: 'Note', width: 300,
+                                  formatter: 'textarea'
+                                },
+                                {
+                                  title: 'Lý do phát sinh', field: 'ReasonProblem', width: 300,
+                                  formatter: 'textarea'
+                                },
+                                {
+                                  title: 'Mã đặc biệt', field: 'SpecialCode', width: 150,
+                                },
+                                {
+                                  title: 'Đơn giá Pur báo', field: 'UnitPriceQuote', width: 150,
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                {
+                                  title: 'Thành tiền Pur báo', field: 'TotalPriceQuote1', width: 150,
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                {
+                                  title: 'Loại tiền Pur báo', field: 'CurrencyQuote', width: 140,
+                                },
+                                {
+                                  title: 'Tỷ giá báo',
+                                  field: 'CurrencyRateQuote',
+                                  width: 100,
+                                  hozAlign: 'right',
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                {
+                                  title: 'Thành tiền quy đổi báo giá (VNĐ)',
+                                  field: 'TotalPriceExchangeQuote',
+                                  hozAlign: 'right',
+                                  width: 200,
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+
+                                {
+                                  title: 'Đơn giá Pur mua',
+                                  field: 'UnitPricePurchase',
+                                  hozAlign: 'right',
+                                  width: 140,
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                {
+                                  title: 'Thành tiền Pur mua',
+                                  field: 'TotalPricePurchase',
+                                  hozAlign: 'right',
+                                  width: 150,
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                { title: 'Loại tiền Pur mua', field: 'CurrencyPurchase', width: 140 },
+                                {
+                                  title: 'Tỷ giá mua',
+                                  field: 'CurrencyRatePurchase',
+                                  width: 100,
+                                  hozAlign: 'right',
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                {
+                                  title: 'Thành tiền quy đổi mua (VNĐ)',
+                                  field: 'TotalPriceExchangePurchase',
+                                  hozAlign: 'right',
+                                  width: 200,
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+
+                                { title: 'Leadtime Pur báo giá', field: 'LeadTimeQuote', width: 170 },
+                                { title: 'Leadtime Pur đặt mua', field: 'LeadTimePurchase', width: 170 },
+
+                                {
+                                  title: 'SL đã về',
+                                  field: 'QuantityReturn',
+                                  width: 100,
+                                  hozAlign: 'right',
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                { title: 'Mã nội bộ', field: 'ProductNewCode', width: 120 },
+                                { title: 'Số HĐ đầu vào', field: 'SomeBill', width: 150 },
+                                {
+                                  title: 'SL đã về',
+                                  field: 'QuantityReturn',
+                                  width: 100,
+                                  hozAlign: 'right',
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                {
+                                  title: 'SL đã xuất',
+                                  field: 'TotalExport',
+                                  width: 100,
+                                  hozAlign: 'right',
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                                {
+                                  title: 'SL còn lại',
+                                  field: 'RemainQuantity',
+                                  width: 100,
+                                  hozAlign: 'right',
+                                  formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                                },
+                              ]
+                            }
                           ]
                         }
                       ]
@@ -674,22 +773,22 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
           ]
         }
       ]
-    }
-  ]
-  });
-}
+    });
+  }
 
   async exportExcel(): Promise<void> {
     if (!this.tb_ExportProjectPartList) return;
 
     // Lấy toàn bộ dữ liệu tree (cả node cha và node con) từ dữ liệu gốc
     // Enrich data with project info before flattening
-    const enrichedTreeData = this.partListData && this.partListData.length > 0
+    let enrichedTreeData = this.partListData && this.partListData.length > 0
       ? this.enrichDataWithProjectInfo([...this.partListData])
       : [];
+    // Sort data by TT using natural sort before flattening
+    enrichedTreeData = this.sortTreeDataByTT(enrichedTreeData);
     // Flatten tree data để export tất cả các node
     const data = this.flattenTreeData(enrichedTreeData);
-    
+
     if (!data || data.length === 0) {
       this.notification.warning(
         'Thông báo',
@@ -698,47 +797,57 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Debug: Kiểm tra dữ liệu có QuantityReturn
+    const rowsWithQuantityReturn = data.filter((row: any) => {
+      const qty = Number(row.QuantityReturn) || 0;
+      return qty > 0;
+    });
+    console.log('Tổng số dòng có QuantityReturn > 0:', rowsWithQuantityReturn.length);
+    if (rowsWithQuantityReturn.length > 0) {
+      console.log('Mẫu dòng có QuantityReturn > 0:', rowsWithQuantityReturn[0]);
+    }
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh mục vật tư');
 
     // ===== HEADER SECTION (Rows 1-6) =====
     // Row 1: Title "DANH MỤC VẬT TƯ"
-   // ===== MERGE CELLS (HEADER) =====
-worksheet.mergeCells('A1:A3');
-worksheet.mergeCells('B1:B3');
-worksheet.mergeCells('A4:B4');
-worksheet.mergeCells('A5:B5');
+    // ===== MERGE CELLS (HEADER) =====
+    worksheet.mergeCells('A1:A3');
+    worksheet.mergeCells('B1:B3');
+    worksheet.mergeCells('A4:B4');
+    worksheet.mergeCells('A5:B5');
 
-worksheet.mergeCells('C1:F1'); 
-// worksheet.mergeCells('C2:D2');
-worksheet.mergeCells('G2:I2');
-worksheet.mergeCells('G3:I3');
+    worksheet.mergeCells('C1:F1');
+    // worksheet.mergeCells('C2:D2');
+    worksheet.mergeCells('G2:I2');
+    worksheet.mergeCells('G3:I3');
 
-// ===== HEADER VALUES =====
-worksheet.getCell('C1').value = 'DANH MỤC VẬT TƯ';
-worksheet.getCell('C1').font = { bold: true, size: 14 };
-worksheet.getCell('C1').alignment = { horizontal: 'center', vertical: 'middle' };
+    // ===== HEADER VALUES =====
+    worksheet.getCell('C1').value = 'DANH MỤC VẬT TƯ';
+    worksheet.getCell('C1').font = { bold: true, size: 14 };
+    worksheet.getCell('C1').alignment = { horizontal: 'center', vertical: 'middle' };
 
-worksheet.getCell('C2').value = 'Mã dự án:';
-worksheet.getCell('C2').alignment = { horizontal: 'right' };
-worksheet.getCell('D2').value = this.projectCode || '';
+    worksheet.getCell('C2').value = 'Mã dự án:';
+    worksheet.getCell('C2').alignment = { horizontal: 'right' };
+    worksheet.getCell('D2').value = this.projectCode || '';
 
-worksheet.getCell('C3').value = 'Tên dự án:';
-worksheet.getCell('C3').alignment = { horizontal: 'right' };
-worksheet.getCell('D3').value = this.projectName || '';
+    worksheet.getCell('C3').value = 'Tên dự án:';
+    worksheet.getCell('C3').alignment = { horizontal: 'right' };
+    worksheet.getCell('D3').value = this.projectName || '';
 
-worksheet.getCell('G3').value = 'BM03-RTC.TE-QT01\nBan hành lần: 02';
-worksheet.getCell('G3').alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    worksheet.getCell('G3').value = 'BM03-RTC.TE-QT01\nBan hành lần: 02';
+    worksheet.getCell('G3').alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
-worksheet.getCell('A4').value = 'Người lập:';
-worksheet.getCell('B4').value = this.currentUser?.FullName || '';
-worksheet.getCell('E4').value = 'Kiểm tra:';
-worksheet.getCell('H4').value = 'Phê duyệt:';
+    worksheet.getCell('A4').value = 'Người lập:';
+    worksheet.getCell('B4').value = this.currentUser?.FullName || '';
+    worksheet.getCell('E4').value = 'Kiểm tra:';
+    worksheet.getCell('H4').value = 'Phê duyệt:';
 
-worksheet.getCell('A6').value = 'Ngày:';
-worksheet.getCell('G6').value = DateTime.now().toFormat('dd/MM/yyyy');
-worksheet.getCell('E6').value = 'Ngày:';
-worksheet.getCell('H6').value = 'Ngày:';
+    worksheet.getCell('A6').value = 'Ngày:';
+    worksheet.getCell('G6').value = DateTime.now().toFormat('dd/MM/yyyy');
+    worksheet.getCell('E6').value = 'Ngày:';
+    worksheet.getCell('H6').value = 'Ngày:';
 
     // ===== DATA HEADER (Row 7) =====
     const exportColumns = [
@@ -756,7 +865,7 @@ worksheet.getCell('H6').value = 'Ngày:';
       { header: 'Tiến độ', field: 'LeadTime', width: 15 },
       { header: 'Nhà cung cấp', field: 'NameNCCPriceQuote', width: 20 },
       { header: 'Ngày yêu cầu đặt hàng', field: 'RequestDate', width: 20, isDate: true },
-      { header: 'Tiến độ yêu cầu', field: 'LeadTimePurchase', width: 18 },  
+      { header: 'Tiến độ yêu cầu', field: 'LeadTimePurchase', width: 18 },
       { header: 'SL đặt thực tế', field: 'QtyOrderActual', width: 15, isNumber: true },
       { header: 'NCC mua hàng', field: 'SupplierNamePurchase', width: 18 },
       { header: 'Giá đặt mua', field: 'PriceOrder', width: 15, isNumber: true },
@@ -778,9 +887,9 @@ worksheet.getCell('H6').value = 'Ngày:';
       { header: 'Tỷ giá mua', field: 'CurrencyRatePurchase', width: 12, isNumber: true },
       { header: 'Thành tiền quy đổi mua (VNĐ)', field: 'TotalPriceExchangePurchase', width: 25, isNumber: true },
       { header: 'Leadtime Pur báo giá', field: 'LeadTimeQuote', width: 20 },
-      
+
       { header: 'Leadtime Pur đặt mua', field: 'LeadTimePurchase', width: 20 },
-        { header: 'SL đã về', field: 'QuantityReturn', width: 12, isNumber: true },
+      { header: 'SL đã về', field: 'QuantityReturn', width: 12, isNumber: true },
       { header: 'Mã nội bộ', field: 'ProductNewCode', width: 15 },
       { header: 'Số HĐ đầu vào', field: 'SomeBill', width: 18 },
       { header: 'SL đã về', field: 'QuantityReturn', width: 12, isNumber: true },
@@ -839,6 +948,43 @@ worksheet.getCell('H6').value = 'Ngày:';
 
       const excelRow = worksheet.addRow(rowData);
 
+      // === LOGIC VẼ MÀU GIỐNG WINFORM NodeCellStyle ===
+      const hasChildren = row._children && row._children.length > 0;
+      const isDeleted = row.IsDeleted === true;
+      const isProblem = row.IsProblem === true;
+      // Parse QuantityReturn - giống logic trong project-part-list.component.ts
+      const quantityReturn = Number(row.QuantityReturn) || 0;
+
+      // Debug cho dòng có QuantityReturn > 0
+      if (quantityReturn > 0) {
+        console.log(`Row ${rowIndex + 1} - TT: ${row.TT}, QuantityReturn: ${row.QuantityReturn}, parsed: ${quantityReturn}`);
+      }
+
+      // Xác định màu nền cho toàn bộ dòng
+      let rowFillColor: ExcelJS.Fill | null = null;
+      let rowFont: Partial<ExcelJS.Font> | null = null;
+
+      // Áp dụng màu theo thứ tự ưu tiên (giống WinForm)
+      // 1. Ưu tiên cao nhất: Dòng bị xóa → Red
+      if (isDeleted) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } } as ExcelJS.Fill; // Đỏ
+        rowFont = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
+      }
+      // 2. Dòng có vấn đề → Orange
+      else if (isProblem) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFA500' } } as ExcelJS.Fill; // Cam
+      }
+      // 3. Số lượng trả về > 0 → LightGreen (hàng đã về)
+      else if (quantityReturn > 0) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF90EE90' } } as ExcelJS.Fill; // Xanh lá
+        console.log(`Applying green color to row ${rowIndex + 1} with QuantityReturn: ${quantityReturn}`);
+      }
+      // 4. Node cha (có children) → Light yellow
+      else if (hasChildren) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFACD' } } as ExcelJS.Fill; // Light yellow
+        rowFont = { name: 'Times New Roman', size: 11, bold: true };
+      }
+
       // Style data rows
       excelRow.eachCell((cell, colNumber) => {
         cell.border = {
@@ -857,7 +1003,16 @@ worksheet.getCell('H6').value = 'Ngày:';
             cell.numFmt = '#,##0.00';
           }
         }
+
+        // Áp dụng màu nền cho toàn bộ dòng
+        if (rowFillColor) {
+          cell.fill = rowFillColor;
+        }
+        if (rowFont) {
+          cell.font = rowFont;
+        }
       });
+
       excelRow.eachCell((cell, colNumber) => {
         const colDef = exportColumns[colNumber - 1];
         cell.alignment = {
@@ -866,17 +1021,6 @@ worksheet.getCell('H6').value = 'Ngày:';
           horizontal: colDef?.isNumber ? 'right' : 'left'
         };
       });
-
-      // Highlight group rows (rows without TT or with parent indicator)
-      if (!row.TT || (row._children && row._children.length > 0)) {
-        excelRow.eachCell((cell) => {
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFFFFF00' }, // Yellow background for group rows
-          };
-        });
-      }
     });
 
     // Generate and download file

@@ -1,0 +1,264 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white text-uppercase">
+        {{ currentUser?.PositionID === 6 ? "Báo cáo Lái xe" : "Báo cáo Cắt phim" }}
+    </h6>
+    <button type="button" class="btn-close me-1" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body p-2">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7">
+        <!-- Dòng 1: Họ tên, Chức vụ, Ngày báo cáo, Button Thêm dòng (PositionID=7), Button Làm thêm -->
+        <nz-row [nzGutter]="16">
+            <!-- Họ tên -->
+            <nz-col [nzXs]="12" [nzSm]="12"
+                [nzMd]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzLg]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzXl]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Họ tên</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input nz-input [value]="currentUser?.FullName || ''" disabled class="w-100" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Chức vụ -->
+            <nz-col [nzXs]="12" [nzSm]="12"
+                [nzMd]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzLg]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzXl]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Chức vụ</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input nz-input [value]="currentUser?.PositionName || ''" disabled class="w-100" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Ngày báo cáo -->
+            <nz-col [nzXs]="9" [nzSm]="9"
+                [nzMd]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzLg]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzXl]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Ngày báo cáo<span class="text-danger ps-1">*</span></nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzValidateStatus]="getValidateStatus('DateReport')"
+                        [nzErrorTip]="getErrorTip('DateReport')">
+                        <nz-date-picker formControlName="DateReport" class="w-100" nzFormat="dd/MM/yyyy"
+                            nzPlaceHolder="Chọn ngày báo cáo" [nzDisabledDate]="disabledDate"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Buttons -->
+            <nz-col [nzXs]="15" [nzSm]="15"
+                [nzMd]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 9 : 6"
+                [nzLg]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 9 : 6"
+                [nzXl]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 9 : 6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0" [style.visibility]="'hidden'">.</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <div class="d-flex gap-2">
+                            <!-- Button Thêm dòng - chỉ hiển thị với PositionID = 7 hoặc 72 và mode = add -->
+                            <button *ngIf="
+                  (currentUser?.PositionID === 7 ||
+
+                  currentUser?.PositionID === 72) &&
+                  mode === 'add'
+                " nz-button nzType="default" nzSize="default" (click)="addFilmRow()" class="flex-grow-1">
+                                <i nz-icon nzType="plus" nzTheme="outline"></i> Thêm dòng
+                            </button>
+                            <!-- Button Làm thêm -->
+                            <button nz-button nzType="primary" nzSize="default" (click)="openOverTimeModal()"
+                                [class.flex-grow-1]="currentUser?.PositionID !== 7 && currentUser?.PositionID !== 72"
+                                [class.w-100]="currentUser?.PositionID !== 7 && currentUser?.PositionID !== 72 && mode"
+                                [class.flex-grow-1]="currentUser?.PositionID === 7 || currentUser?.PositionID === 72 && mode != 'add'"
+                                `
+                                [class.w-100]="currentUser?.PositionID !== 7 || currentUser?.PositionID !== 72 && mode === 'add'">
+                                Làm thêm
+                            </button>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <!-- ============ TH1: PositionID = 6 (Lái xe) ============ -->
+        <ng-container *ngIf="currentUser?.PositionID === 6">
+            <!-- Dòng 2: Số Km, Số cuốc xe muộn, Tổng số phút chậm -->
+            <nz-row [nzGutter]="16" class="mt-2">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Số Km<span class="text-danger ps-1">*</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzValidateStatus]="getValidateStatus('KmNumber')"
+                            [nzErrorTip]="getErrorTip('KmNumber')">
+                            <nz-input-number formControlName="KmNumber" class="w-100" [nzMin]="0"
+                                nzPlaceHolder="Nhập số Km"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Số cuốc xe muộn<span
+                                class="text-danger ps-1">*</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzValidateStatus]="getValidateStatus('TotalLate')"
+                            [nzErrorTip]="getErrorTip('TotalLate')">
+                            <nz-input-number formControlName="TotalLate" class="w-100" [nzMin]="0"
+                                nzPlaceHolder="Nhập số cuốc xe muộn"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Tổng số phút chậm<span
+                                class="text-danger ps-1">*</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzValidateStatus]="getValidateStatus('TotalTimeLate')"
+                            [nzErrorTip]="getErrorTip('TotalTimeLate')">
+                            <nz-input-number formControlName="TotalTimeLate" class="w-100" [nzMin]="0"
+                                nzPlaceHolder="Nhập tổng số phút"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Dòng 3: Lý do muộn, Trạng thái xe, Kiến nghị/Yêu cầu -->
+            <nz-row [nzGutter]="16" class="mt-2">
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Lý do muộn<span
+                                class="text-danger ps-1">*</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzValidateStatus]="getValidateStatus('ReasonLate')"
+                            [nzErrorTip]="getErrorTip('ReasonLate')">
+                            <textarea nz-input formControlName="ReasonLate" rows="3" class="w-100"
+                                placeholder="Nhập lý do muộn"></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Trạng thái xe</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <textarea nz-input formControlName="StatusVehicle" rows="3" class="w-100"
+                                placeholder="Nhập trạng thái xe"></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Kiến nghị / Yêu cầu</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <textarea nz-input formControlName="Propose" rows="3" class="w-100"
+                                placeholder="Nhập kiến nghị / yêu cầu"></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </ng-container>
+
+        <!-- ============ TH2: PositionID = 7 (Cắt phim) ============ -->
+        <ng-container *ngIf="currentUser?.PositionID === 7 || currentUser?.PositionID === 72">
+            <!-- Fieldset cho từng dòng công việc -->
+            <div formArrayName="filmRows">
+                <fieldset *ngFor="let row of filmRows.controls; let i = index" [formGroupName]="i"
+                    class="mt-3 border p-3 position-relative" style="border-radius: 4px">
+                    <legend class="fs-12 mb-2 fw-bold" style="width: auto; padding: 0 10px">
+                        Công việc {{ i + 1 }}
+                        <button *ngIf="filmRows.length > 1" nz-button nzType="text" nzDanger nzSize="small" class="ms-2"
+                            (click)="removeFilmRow(i)" nz-tooltip nzTooltipTitle="Xóa dòng">
+                            <i nz-icon nzType="delete" nzTheme="outline"></i>
+                        </button>
+                    </legend>
+
+                    <!-- Dòng 2: Nội dung công việc -->
+                    <!-- <nz-row [nzGutter]="16">
+                       
+                    </nz-row> -->
+
+                    <nz-row [nzGutter]="16" class="mt-2">
+                        <!-- Nội dung công việc -->
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="16" [nzLg]="16" [nzXl]="8">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">Nội dung công việc<span
+                                        class="text-danger ps-1">*</span></nz-form-label>
+                                <nz-form-control [nzSpan]="24" [nzValidateStatus]="
+                    getFilmRowValidateStatus(i, 'FilmManagementDetailId')
+                  " [nzErrorTip]="getFilmRowErrorTip(i, 'FilmManagementDetailId')">
+                                    <nz-select formControlName="FilmManagementDetailId" class="w-100" nzShowSearch
+                                        nzAllowClear nzPlaceHolder="Chọn nội dung công việc"
+                                        (ngModelChange)="onFilmChange(i, $event)">
+                                        <nz-option *ngFor="let film of filmList" [nzValue]="film.ID"
+                                            [nzLabel]="film.WorkContent1"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <!-- Năng suất trung bình (disabled) -->
+                        <nz-col [nzXs]="12" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="8">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">Năng suất trung bình (phút)</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-input-number formControlName="PerformanceAVG" class="w-100"
+                                        [nzDisabled]="true"></nz-input-number>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <!-- Kết quả (Số lượng) -->
+                        <nz-col [nzXs]="12" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="8">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">Số lượng<span
+                                        class="text-danger ps-1">*</span></nz-form-label>
+                                <nz-form-control [nzSpan]="24"
+                                    [nzValidateStatus]="getFilmRowValidateStatus(i, 'Quantity')"
+                                    [nzErrorTip]="getFilmRowErrorTip(i, 'Quantity')">
+                                    <nz-input-number formControlName="Quantity" class="w-100" [nzMin]="0"
+                                        nzPlaceHolder="SL" (ngModelChange)="calculatePerformance(i)"></nz-input-number>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <!-- Năng suất (phút) = TimeActual -->
+                        <nz-col [nzXs]="12" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="8">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">Thời gian (phút)<span
+                                        class="text-danger ps-1">*</span></nz-form-label>
+                                <nz-form-control [nzSpan]="24"
+                                    [nzValidateStatus]="getFilmRowValidateStatus(i, 'TimeActual')"
+                                    [nzErrorTip]="getFilmRowErrorTip(i, 'TimeActual')">
+                                    <nz-input-number formControlName="TimeActual" class="w-100" [nzMin]="0"
+                                        nzPlaceHolder="Phút"
+                                        (ngModelChange)="calculatePerformance(i)"></nz-input-number>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <!-- Năng suất thực tế (disabled) -->
+                        <nz-col [nzXs]="12" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="8">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">Năng suất thực tế</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-input-number formControlName="PerformanceActual" class="w-100"
+                                        [nzDisabled]="true"></nz-input-number>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <!-- Tỷ lệ (disabled) -->
+                        <nz-col [nzXs]="12" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="8">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">Tỷ lệ (%)</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-input-number formControlName="Percentage" class="w-100" [nzDisabled]="true"
+                                        [nzFormatter]="percentFormatter"></nz-input-number>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+                </fieldset>
+            </div>
+        </ng-container>
+    </form>
+</div>
+
+|<div class="modal-footer bg-light p-2">
+    <button nz-button nzType="default" (click)="close()" [disabled]="saving">
+        Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="saveDailyReport()" [disabled]="saving">
+        <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
+        {{ saving ? "Đang lưu..." : mode === "add" ? "Lưu" : "Cập nhật" }}
+    </button>
+</div>

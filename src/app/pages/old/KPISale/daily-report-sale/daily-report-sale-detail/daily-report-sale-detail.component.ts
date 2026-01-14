@@ -58,6 +58,10 @@ import { DailyReportSaleService } from '../daily-report-sale-service/daily-repor
 import { AppUserService } from '../../../../../services/app-user.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { FirmService } from '../../../../general-category/firm/firm-service/firm.service';
+import { FirmBaseDetailComponent } from '../../../../project/firmbase-detail/firm-base-detail.component';
+import { CustomerDetailComponent } from '../../../../crm/customers/customer-detail/customer-detail.component';
+import { ProjectTypeBaseDetailComponent } from '../../../VisionBase/kho-base/follow-project-base/project-type-base-detail/project-type-base-detail.component';
+import { CustomerPartComponent } from '../../../customer-part/customer-part.component';
 
 @Component({
   selector: 'app-daily-report-sale-detail',
@@ -103,6 +107,11 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   isEditMode: boolean = false; // Chế độ sửa
   isLoading: boolean = false; // Đang load dữ liệu
 
+  // Modal thêm trạng thái dự án
+  showProjectStatusModal: boolean = false;
+  projectStatusForm!: FormGroup;
+  isSavingProjectStatus: boolean = false;
+  
   users: any[] = [];
   projects: any[] = [];
   customers: any[] = [];
@@ -116,6 +125,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   constructor(
     public activeModal: NgbActiveModal,
     private modal: NzModalService,
+    private modalService: NgbModal,
     private notification: NzNotificationService,
     private fb: FormBuilder,
     private dailyReportSaleService: DailyReportSaleService,
@@ -124,12 +134,13 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     private firmService: FirmService,
   ) {
     this.initForm();
+    this.initProjectStatusForm();
   }
 
   initForm(): void {
     this.dailyReportSaleForm = this.fb.group({
       userId: [null, Validators.required],
-      projectId: [null, Validators.required],
+      projectId: [null],
       customerId: [null, Validators.required],
       firmId: [null, Validators.required],
       projectTypeId: [null, Validators.required],
@@ -147,6 +158,13 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       planNext: ['', Validators.required],
       productOfCustomer: ['', Validators.required],
       dateStatusLog: [null], // Ngày thay đổi trạng thái
+    });
+  }
+
+  initProjectStatusForm(): void {
+    this.projectStatusForm = this.fb.group({
+      stt: [1, [Validators.required, Validators.min(1)]],
+      statusName: ['', Validators.required]
     });
   }
 
@@ -194,6 +212,13 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     if (this.editId > 0) {
       this.isEditMode = true;
       this.loadExistingData();
+    } else {
+      // Nếu thêm mới, tự động set dateStart và dateEnd về hôm nay
+      const today = new Date();
+      this.dailyReportSaleForm.patchValue({
+        dateStart: today,
+        dateEnd: today
+      });
     }
   }
 
@@ -219,7 +244,6 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
             customerId: data.CustomerID || null,
             firmId: data.FirmBaseID || null,
             projectTypeId: data.ProjectTypeBaseID || null,
-            projectStatusId: data.ProjectStatusBaseID || null,
             dateStart: data.DateStart ? new Date(data.DateStart) : null,
             dateEnd: data.DateEnd ? new Date(data.DateEnd) : null,
             groupTypeId: data.GroupType || null,
@@ -231,7 +255,6 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
             planNext: data.PlanNext || '',
             productOfCustomer: data.ProductOfCustomer || '',
           });
-
           // Load contacts và parts trước, sau đó mới set contactId và partId
           if (data.CustomerID) {
             const contactId = data.ContacID || null;
@@ -259,6 +282,8 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
                 });
 
                 this.isLoading = false;
+                // Gọi onProjectChange sau khi isLoading = false để load projectStatusId
+                this.onProjectChange(data.ProjectID || null);
               },
               error: (error) => {
                 console.error('Error loading contacts/parts:', error);
@@ -268,10 +293,14 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
                   partId: partId
                 });
                 this.isLoading = false;
+                // Gọi onProjectChange sau khi isLoading = false để load projectStatusId
+                this.onProjectChange(data.ProjectID || null);
               }
             });
           } else {
             this.isLoading = false;
+            // Gọi onProjectChange sau khi isLoading = false để load projectStatusId
+            this.onProjectChange(data.ProjectID || null);
           }
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể tải dữ liệu');
@@ -450,7 +479,24 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   onAddCustomer(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm khách hàng đang được phát triển');
+    const modalRef = this.modalService.open(CustomerDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.warehouseId = this.warehouseId;
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadCustomers();
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   onAddProject(): void {
@@ -458,23 +504,143 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   onAddContact(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm người liên hệ đang được phát triển');
+    if (!this.dailyReportSaleForm.get('customerId')?.value || this.dailyReportSaleForm.get('customerId')?.value <= 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn Khách hàng trước!');
+      return;
+    }
+    const modalRef = this.modalService.open(CustomerDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.warehouseId = this.warehouseId;
+    modalRef.componentInstance.isEditMode = true;
+    modalRef.componentInstance.EditID = this.dailyReportSaleForm.get('customerId')?.value;
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadCustomers();
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   onAddFirm(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm hãng đang được phát triển');
+    const modalRef = this.modalService.open(FirmBaseDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadFirmBase();
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   onAddProjectType(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm loại dự án đang được phát triển');
+    const modalRef = this.modalService.open(ProjectTypeBaseDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadProjectTypeBase();
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   onAddProjectStatus(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm trạng thái dự án đang được phát triển');
+    // Reset form và mở modal
+    this.projectStatusForm.reset({
+      stt: this.projectStatuses.length + 1,
+      statusName: ''
+    });
+    this.showProjectStatusModal = true;
+  }
+
+  // Các hàm xử lý modal trạng thái dự án
+  onProjectStatusModalCancel(): void {
+    this.showProjectStatusModal = false;
+    this.projectStatusForm.reset();
+  }
+
+  saveAndCloseProjectStatus(): void {
+    if (this.projectStatusForm.invalid) {
+      // Đánh dấu các trường là touched để hiển thị lỗi
+      Object.values(this.projectStatusForm.controls).forEach(control => {
+        control.markAsTouched();
+      });
+      return;
+    }
+
+    this.isSavingProjectStatus = true;
+    const stt = this.projectStatusForm.get('stt')?.value;
+    const statusName = this.projectStatusForm.get('statusName')?.value;
+
+    // Gọi API để lưu trạng thái dự án
+    this.dailyReportSaleService.saveProjectStatus(stt, statusName).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.notification.success('Thành công', 'Thêm trạng thái dự án thành công!');
+          this.loadProjectStatuses(); // Load lại danh sách trạng thái
+          this.showProjectStatusModal = false;
+          this.projectStatusForm.reset();
+        } else {
+          this.notification.error('Lỗi', response.message || 'Thêm trạng thái dự án thất bại!');
+        }
+        this.isSavingProjectStatus = false;
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', 'Có lỗi xảy ra khi thêm trạng thái dự án!');
+        this.isSavingProjectStatus = false;
+      }
+    });
   }
 
   onAddPart(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm EndUser đang được phát triển');
+
+    if (!this.dailyReportSaleForm.get('customerId')?.value || this.dailyReportSaleForm.get('customerId')?.value <= 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn Khách hàng trước!');
+      return;
+    }
+
+    const modalRef = this.modalService.open(CustomerPartComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.customerId = this.dailyReportSaleForm.get('customerId')?.value;
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadCustomerParts(this.dailyReportSaleForm.get('customerId')?.value);
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   loadProductCustomer(): void {

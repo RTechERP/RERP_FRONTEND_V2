@@ -136,12 +136,12 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
   ) {
     this.formGroup = this.fb.group({
       ProductGroupID: [null, [Validators.required]],
-      Unit: ['', [Validators.required, inStringListValidator(() => this.listUnitCount, 'UnitCode')]],
+      Unit: ['', [Validators.required, inStringListValidator(() => this.listUnitCount, 'UnitName')]],
       ProductCode: ['', [Validators.required, noVietnameseValidator]],
       ProductName: ['', [Validators.required]],
       NumberInStoreDauky: [{ value: 0, disabled: true }],
       NumberInStoreCuoiKy: [{ value: 0, disabled: true }],
-      LocationID: [null, [Validators.required, inIdListValidator(() => this.listLocation, 'ID')]],
+      LocationID: [null],
       Maker: ['', [Validators.required, inStringListValidator(() => this.listFirm, 'FirmName')]],
       Note: ['',[Validators.maxLength(500)]],
       IsFix: [false]
@@ -256,6 +256,10 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     const location = this.listLocation.find((p: any) => p.ID === formValue.LocationID);
     const addressbox = location ? location.LocationName : '';
 
+    // Tìm UnitName dựa trên UnitCode được chọn
+    //const selectedUnit = this.listUnitCount.find((u: any) => u.UnitName === formValue.Unit);
+    const unitName = formValue.Unit || '';
+
     // Đảm bảo IsFix có giá trị mặc định là false nếu không có
     const isFix = formValue.IsFix !== null && formValue.IsFix !== undefined ? formValue.IsFix : false;
 
@@ -268,7 +272,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           ID: this.id,
           ProductCode: formValue.ProductCode,
           ProductName: formValue.ProductName,
-          Unit: formValue.Unit,
+          Unit: unitName,
           NumberInStoreDauky: formValue.NumberInStoreDauky,
           NumberInStoreCuoiKy: formValue.NumberInStoreCuoiKy,
           ProductGroupID: formValue.ProductGroupID,
@@ -278,8 +282,6 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           LocationID: formValue.LocationID,
           Note: formValue.Note,
           IsFix: isFix,
-          UpdatedBy: 'admin',
-          UpdatedDate: new Date()
         },
         Inventory: {
           Note: formValue.Note,
@@ -307,7 +309,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         ProductSale: {
           ProductCode: formValue.ProductCode,
           ProductName: formValue.ProductName,
-          Unit: formValue.Unit,
+          Unit: unitName,
           NumberInStoreDauky: formValue.NumberInStoreDauky,
           NumberInStoreCuoiKy: formValue.NumberInStoreCuoiKy,
           ProductGroupID: formValue.ProductGroupID,

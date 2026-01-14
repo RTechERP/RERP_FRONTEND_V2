@@ -21,20 +21,10 @@ label[nz-checkbox] {
   max-width: 200px;
 }
 
-:host ::ng-deep .ant-select-dropdown {
-  max-width: 300px !important;
-}
-
 :host ::ng-deep .ant-select-item-option-content {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 280px;
-}
-
-/* dropdown text scroll */
-::ng-deep .ant-select-dropdown {
-  max-width: 300px !important;
 }
 
 ::ng-deep .ant-select-dropdown .ant-select-item {
@@ -109,4 +99,14 @@ label[nz-checkbox] {
 
 .ant-tabs-tab-btn {
   font-size: 0.75rem;
+}
+
+
+/* Đổi màu chữ trong headerFilter thành đen */
+::ng-deep .tabulator-header-filter input {
+  color: #000000 !important;
+}
+
+::ng-deep .tabulator-header-filter select {
+  color: #000000 !important;
 }

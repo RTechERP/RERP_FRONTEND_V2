@@ -12,6 +12,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
@@ -23,6 +24,8 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EmployeeRegisterBussinessFormComponent } from './employee-register-bussiness-form/employee-register-bussiness-form.component';
+import { VehicleSelectModalComponent } from './employee-register-bussiness-form/vehicle-select-modal/vehicle-select-modal.component';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
   selector: 'app-employee-register-bussiness',
@@ -44,6 +47,8 @@ import { EmployeeRegisterBussinessFormComponent } from './employee-register-buss
     NzModalModule,
     NzSpinModule,
     NgIf,
+    NzGridModule,
+    Menubar,
   ]
 })
 export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit {
@@ -54,13 +59,33 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
   exportingExcel = false;
   sizeSearch: string = '0';
   isLoading = false;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
   // Dropdown data for search
   typeList: any[] = [];
   vehicleList: any[] = [];
+  vehicleBussinessList: any[] = []; // Danh sách phương tiện của chuyến công tác
 
   // Data
   employeeBussinessList: any[] = [];
+
+  // Menu bars
+  menuBars: any[] = [];
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -73,8 +98,56 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
   }
 
   ngOnInit() {
+    this.initMenuBar();
     this.loadTypes();
     this.loadVehicles();
+  }
+
+  initMenuBar() {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => {
+          this.openAddModal();
+        }
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => {
+          this.openEditModal();
+        }
+      },
+      {
+        label: 'Xem phương tiện',
+        icon: 'fa-solid fa-eye fa-lg text-info',
+        command: () => {
+          this.openViewVehicleModal();
+        }
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => {
+          this.openDeleteModal();
+        }
+      },
+      {
+        label: 'Sao chép',
+        icon: 'fa-solid fa-copy fa-lg text-info',
+        command: () => {
+          this.openCopyModal();
+        }
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => {
+          this.exportToExcel();
+        }
+      }
+    ];
   }
 
   ngAfterViewInit(): void {
@@ -154,15 +227,25 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     const startDate = formValue.startDate ? new Date(formValue.startDate).toISOString() : null;
     const endDate = formValue.endDate ? new Date(formValue.endDate).toISOString() : null;
 
+    // Xử lý NotCheckIn: nếu là null hoặc undefined thì gửi -1, còn lại gửi giá trị thực (0 hoặc 1)
+    let notCheckInValue = -1;
+    if (formValue.notCheckIn === 0) {
+      notCheckInValue = 0;
+    } else if (formValue.notCheckIn === 1) {
+      notCheckInValue = 1;
+    } else {
+      notCheckInValue = -1; // null, undefined, hoặc giá trị khác
+    }
+
     const request: any = {
       DateStart: startDate,
       DateEnd: endDate,
       Keyword: formValue.keyWord || "",
       EmployeeID: 0,
-      IsApproved: formValue.status !== -1 ? formValue.status : null,
+      IsApproved: formValue.status !== -1 ? formValue.status : -1,
       Type: formValue.type || null,
       VehicleID: formValue.vehicleId || null,
-      NotCheckIn: formValue.notCheckIn ||-1
+      NotCheckIn: notCheckInValue
     };
 
     this.bussinessService.getEmployeeBussinesssPerson(request).subscribe({
@@ -195,6 +278,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       layout: 'fitDataStretch',
       height: '90vh',
       selectableRows: true,
+      paginationMode: 'local',
       rowHeader: { formatter: "rowSelection", titleFormatter: "rowSelection", headerSort: false, width: 50, frozen: true, headerHozAlign: "center", hozAlign: "center" },
       data: [],
       columns: [
@@ -223,7 +307,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
           formatter: 'textarea', bottomCalc: 'count'
         },
         {
-          title: 'ID', field: 'ID', width: 150, visible: false,hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
+          title: 'ID', field: 'ID', width: 150, visible: false, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
           formatter: 'textarea', bottomCalc: 'count'
         },
         {
@@ -240,7 +324,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
             const value = cell.getValue() || '';
             if (!value) return '<p class="m-0" style="white-space:pre-wrap;line-height: normal;font-weight: unset;"></p>';
             try {
-              const formatted = DateTime.fromISO(value).isValid 
+              const formatted = DateTime.fromISO(value).isValid
                 ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
                 : DateTime.fromJSDate(new Date(value)).toFormat('dd/MM/yyyy');
               return `<p class="m-0" style="white-space:pre-wrap;line-height: normal;font-weight: unset;">${formatted}</p>`;
@@ -273,7 +357,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
         },
         {
           title: 'Ăn tối', field: 'Overnight', width: 70, headerHozAlign: 'center', headerSort: false,
-          formatter: 'tickCross'
+          formatter: 'tickCross', hozAlign: 'center'
         },
         {
           title: 'Xuất phát trước 7h15', field: 'CostWorkEarly', width: 120, hozAlign: 'right', headerHozAlign: 'center', headerSort: false,
@@ -303,7 +387,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
             const value = cell.getValue() || '';
             if (!value) return '<p class="m-0" style="white-space:pre-wrap;line-height: normal;font-weight: unset;"></p>';
             try {
-              const formatted = DateTime.fromISO(value).isValid 
+              const formatted = DateTime.fromISO(value).isValid
                 ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm')
                 : DateTime.fromJSDate(new Date(value)).toFormat('dd/MM/yyyy HH:mm');
               return `<p class="m-0" style="white-space:pre-wrap;line-height: normal;font-weight: unset;">${formatted}</p>`;
@@ -349,6 +433,9 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
           #tb_employee_register_bussiness * {
             font-size: 12px !important;
           }
+          #tb_employee_register_bussiness .badge {
+            font-size: 9px !important;
+          }
         `;
         const existingStyle = document.getElementById('tabulator-employee-register-bussiness-font-size-override');
         if (existingStyle) {
@@ -366,7 +453,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       backdrop: 'static',
       keyboard: false
     });
-    
+
     modalRef.componentInstance.data = null;
     modalRef.componentInstance.isEditMode = false;
 
@@ -400,15 +487,20 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể chỉnh sửa');
       return;
     }
-    const formData = this.mapTableDataToFormData(selectedData);
-    
+
+    const bussinessID = selectedData['ID'] || selectedData['Id'] || 0;
+    if (!bussinessID || bussinessID === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy ID bản ghi');
+      return;
+    }
+
     const modalRef = this.modalService.open(EmployeeRegisterBussinessFormComponent, {
       centered: true,
       size: 'xl',
       backdrop: 'static',
       keyboard: false
     });
-    modalRef.componentInstance.data = formData;
+    modalRef.componentInstance.id = bussinessID;
     modalRef.componentInstance.isEditMode = true;
 
     modalRef.result.then(
@@ -423,6 +515,241 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     );
   }
 
+  openViewVehicleModal() {
+    const selectedRows = this.tabulator.getSelectedRows();
+    if (selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một bản ghi để xem phương tiện');
+      return;
+    }
+    if (selectedRows.length > 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn chỉ một bản ghi để xem phương tiện');
+      return;
+    }
+
+    const selectedData = selectedRows[0].getData();
+    const bussinessID = selectedData['ID'] || selectedData['Id'] || 0;
+
+    if (!bussinessID || bussinessID <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi chưa được lưu, không thể xem phương tiện');
+      return;
+    }
+
+    // Load danh sách phương tiện
+    this.isLoading = true;
+    this.bussinessService.getEmployeeBussinessVehicle(bussinessID).subscribe({
+      next: (response: any) => {
+        this.isLoading = false;
+        if (response && response.status === 1 && response.data) {
+          const vehicles = Array.isArray(response.data) ? response.data : [response.data];
+
+          // Chuyển đổi dữ liệu từ API sang format của VehicleItem
+          // Format từ stored procedure: ID, EmployeeBussinesID, EmployeeVehicleBussinessID, VehicleName, VehicleID, Cost, BillImage, Note
+          const vehicleItems = vehicles.map((v: any, index: number) => ({
+            id: `vehicle_detail_${index + 2}`,
+            vehicleId: v.EmployeeVehicleBussinessID || 0,
+            vehicleName: v.VehicleName || '',
+            cost: v.Cost || 0,
+            note: v.Note || '',
+            customName: (v.EmployeeVehicleBussinessID === 0 || v.EmployeeVehicleBussinessID === null) ? (v.VehicleName || '') : '', // Nếu là phương tiện khác, dùng VehicleName làm customName
+            vehicleItemID: v.ID || 0 // ID của bản ghi EmployeeBussinessVehicle
+          }));
+
+          // Kiểm tra trạng thái duyệt
+          const statusTBP = selectedData['StatusTBP'];
+          const statusHR = selectedData['StatusHR'];
+          const isApproved = statusTBP === 1 || statusHR === 1;
+
+          // Mở modal
+          const modalRef = this.modalService.open(VehicleSelectModalComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false
+          });
+
+          const componentInstance = modalRef.componentInstance;
+          if (componentInstance) {
+            componentInstance.vehicleList = this.vehicleList;
+            componentInstance.selectedVehicles = vehicleItems;
+            componentInstance.isViewMode = isApproved; // Chỉ cho phép edit nếu Chờ duyệt
+            componentInstance.bussinessID = bussinessID; // Lưu ID để cập nhật
+          }
+
+          modalRef.result.then(
+            (result: any) => {
+              if (result && !isApproved) {
+                const vehicles = result.vehicles || result; // Hỗ trợ cả format cũ và mới
+                const deletedVehicles = result.deletedVehicles || [];
+                this.updateVehiclesAndRecalculate(bussinessID, vehicles, deletedVehicles, selectedData);
+              }
+            },
+            () => {
+            }
+          );
+        } else {
+          // Không có phương tiện, mở modal trống
+          const modalRef = this.modalService.open(VehicleSelectModalComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false
+          });
+
+          const componentInstance = modalRef.componentInstance;
+          if (componentInstance) {
+            componentInstance.vehicleList = this.vehicleList;
+            componentInstance.selectedVehicles = [];
+            componentInstance.isViewMode = false;
+            componentInstance.bussinessID = bussinessID;
+          }
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phương tiện: ' + error.message);
+      }
+    });
+  }
+
+  // Cập nhật phương tiện và tính lại chi phí
+  private updateVehiclesAndRecalculate(bussinessID: number, vehicles: any[], deletedVehicles: any[], selectedData: any): void {
+    this.isLoading = true;
+
+    const totalVehicleCost = vehicles.reduce((sum, v) => sum + (v.cost || 0), 0);
+    const costBussiness = selectedData['CostBussiness'] || selectedData['CostType'] || 0;
+    const costWorkEarly = selectedData['CostWorkEarly'] || 0;
+    const costOvernight = selectedData['CostOvernight'] || 0;
+    const totalMoney = Number(costBussiness) + Number(totalVehicleCost) + Number(costWorkEarly) + Number(costOvernight);
+
+    const updateData: any = {
+      employeeBussiness: {
+        ID: bussinessID,
+        CostVehicle: totalVehicleCost,
+        TotalMoney: totalMoney
+      },
+      employeeBussinessFiles: null,
+      employeeBussinessVehicle: null
+    };
+
+    if (vehicles.length > 0) {
+      const firstVehicle = vehicles[0];
+      updateData.employeeBussinessVehicle = {
+        ID: firstVehicle.vehicleItemID || 0,
+        EmployeeBussinesID: bussinessID,
+        EmployeeVehicleBussinessID: firstVehicle.vehicleId || 0,
+        Cost: firstVehicle.cost || 0,
+        BillImage: '',
+        Note: firstVehicle.note || '',
+        VehicleName: firstVehicle.vehicleName || firstVehicle.customName || ''
+      };
+    }
+
+    this.bussinessService.saveDataEmployee(updateData).subscribe({
+      next: () => {
+        if (vehicles.length > 1) {
+          this.saveRemainingVehiclesForView(bussinessID, vehicles.slice(1), deletedVehicles, totalMoney);
+        } else {
+          this.deleteVehicles(bussinessID, deletedVehicles);
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi cập nhật phương tiện: ' + error.message);
+      }
+    });
+  }
+
+  // Lưu các phương tiện còn lại
+  private saveRemainingVehiclesForView(bussinessID: number, remainingVehicles: any[], deletedVehicles: any[], totalMoney: number): void {
+    let completedCount = 0;
+    const totalVehicles = remainingVehicles.length;
+
+    if (totalVehicles === 0) {
+      this.deleteVehicles(bussinessID, deletedVehicles);
+      return;
+    }
+
+    remainingVehicles.forEach((vehicle) => {
+      const vehicleDto: any = {
+        employeeBussiness: null,
+        employeeBussinessFiles: null,
+        employeeBussinessVehicle: {
+          ID: vehicle.vehicleItemID || 0,
+          EmployeeBussinesID: bussinessID,
+          EmployeeVehicleBussinessID: vehicle.vehicleId || 0,
+          Cost: vehicle.cost || 0,
+          BillImage: '',
+          Note: vehicle.note || '',
+          VehicleName: vehicle.vehicleName || vehicle.customName || ''
+        }
+      };
+
+      this.bussinessService.saveDataEmployee(vehicleDto).subscribe({
+        next: () => {
+          completedCount++;
+          if (completedCount === totalVehicles) {
+            this.deleteVehicles(bussinessID, deletedVehicles);
+          }
+        },
+        error: (error) => {
+          completedCount++;
+          if (completedCount === totalVehicles) {
+            this.deleteVehicles(bussinessID, deletedVehicles);
+          }
+        }
+      });
+    });
+  }
+
+  // Xóa mềm các phương tiện đã bị xóa
+  private deleteVehicles(bussinessID: number, deletedVehicles: any[]): void {
+    if (!deletedVehicles || deletedVehicles.length === 0) {
+      this.isLoading = false;
+      this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật phương tiện thành công');
+      this.loadEmployeeBussinessPerson();
+      return;
+    }
+
+    let completedCount = 0;
+    const totalDeleted = deletedVehicles.length;
+
+    deletedVehicles.forEach((vehicle) => {
+      const vehicleDto: any = {
+        employeeBussiness: null,
+        employeeBussinessFiles: null,
+        employeeBussinessVehicle: {
+          ID: vehicle.vehicleItemID || 0,
+          EmployeeBussinesID: bussinessID,
+          EmployeeVehicleBussinessID: vehicle.vehicleId || 0,
+          Cost: vehicle.cost || 0,
+          BillImage: '',
+          Note: vehicle.note || '',
+          VehicleName: vehicle.vehicleName || vehicle.customName || '',
+          IsDeleted: true
+        }
+      };
+
+      this.bussinessService.saveDataEmployee(vehicleDto).subscribe({
+        next: () => {
+          completedCount++;
+          if (completedCount === totalDeleted) {
+            this.isLoading = false;
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật phương tiện thành công');
+            this.loadEmployeeBussinessPerson();
+          }
+        },
+        error: (error) => {
+          completedCount++;
+          if (completedCount === totalDeleted) {
+            this.isLoading = false;
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật phương tiện thành công');
+            this.loadEmployeeBussinessPerson();
+          }
+        }
+      });
+    });
+  }
+
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
@@ -431,6 +758,14 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     }
 
     const selectedData = selectedRows.map(row => row.getData());
+
+    // Kiểm tra các bản ghi đã duyệt
+    const approvedRecords = selectedData.filter(item => item['StatusTBP'] === 1 || item['StatusHR'] === 1);
+    if (approvedRecords.length > 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Có ${approvedRecords.length} bản ghi đã được duyệt, không thể xóa`);
+      return;
+    }
+
     const ids = selectedData.map(item => item['ID']).filter(id => id > 0);
 
     if (ids.length === 0) {
@@ -477,47 +812,72 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     }
 
     const selectedData = selectedRows[0].getData();
-    
-    // Kiểm tra nếu đã duyệt thì không cho sao chép
-    const statusTBP = selectedData['StatusTBP'];
-    const statusHR = selectedData['StatusHR'];
-    
-    // Nếu TBP hoặc HR đã duyệt (status = 1) thì không cho sao chép
-    if (statusTBP === 1 || statusHR === 1) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể sao chép');
+
+    // Cho phép sao chép cả bản ghi đã duyệt - sẽ reset trạng thái duyệt về Chờ duyệt
+
+    const bussinessID = selectedData['ID'] || selectedData['Id'] || 0;
+    if (!bussinessID || bussinessID === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy ID bản ghi');
       return;
     }
-    
-    // Map dữ liệu từ table sang format của form
-    const formData = this.mapTableDataToFormData(selectedData);
-    
-    // Tạo bản copy với ID = 0 và ngày mới
-    const copyData = {
-      ...formData,
-      ID: 0,
-      DayBussiness: new Date()
-    };
 
-    const modalRef = this.modalService.open(EmployeeRegisterBussinessFormComponent, {
-      centered: true,
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false
-    });
+    // Gọi API để lấy dữ liệu đầy đủ
+    this.bussinessService.getEmployeeBussinessByID(bussinessID).subscribe({
+      next: (response: any) => {
+        if (response && response.data) {
+          const result = response.data;
 
-    modalRef.componentInstance.data = copyData;
-    modalRef.componentInstance.isEditMode = false;
+          // Tạo bản copy với ID = 0 và ngày mới
+          const copyData = {
+            ID: 0,
+            EmployeeID: result.EmployeeID || result.EmployeeId || 0,
+            DayBussiness: new Date(),
+            ApprovedId: result.ApprovedID || result.ApprovedId || result.ApproverID || null,
+            Location: result.Location || '',
+            NotCheckIn: result.NotChekIn || result.NotCheckIn || 0,
+            Type: result.TypeBusiness || result.Type || result.TypeID || null,
+            CostBussiness: result.CostBussiness || result.CostType || 0,
+            VehicleID: result.VehicleID || result.VehicleId || null,
+            CostVehicle: result.CostVehicle || 0,
+            WorkEarly: result.WorkEarly === true || result.WorkEarly === 1 || result.WorkEarly === 'true' || result.WorkEarly === '1' || result.WorkEarly === 'True',
+            CostWorkEarly: result.CostWorkEarly || 0,
+            Overnight: result.OvernightType !== undefined ? result.OvernightType : (result.Overnight === true ? 1 : 0),
+            CostOvernight: result.CostOvernight || 0,
+            TotalMoney: result.TotalMoney || 0,
+            Note: result.Note || '',
+            Reason: result.Reason || '',
+            IsProblem: result.IsProblem || false,
+            AttachFileName: result.AttachFileName || ''
+          };
 
-    modalRef.result.then(
-      (result) => {
-        if (result?.success) {
-          this.loadEmployeeBussinessPerson();
+          const modalRef = this.modalService.open(EmployeeRegisterBussinessFormComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false
+          });
+
+          modalRef.componentInstance.data = copyData;
+          modalRef.componentInstance.isEditMode = false;
+
+          modalRef.result.then(
+            (result) => {
+              if (result?.success) {
+                this.loadEmployeeBussinessPerson();
+              }
+            },
+            () => {
+              // Modal dismissed
+            }
+          );
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu để sao chép');
         }
       },
-      () => {
-        // Modal dismissed
+      error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu: ' + error.message);
       }
-    );
+    });
   }
 
   // Map dữ liệu từ table sang format của form
@@ -533,7 +893,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       VehicleID: tableData.VehicleID || tableData.VehicleId || null,
       CostVehicle: tableData.CostVehicle || 0,
       NotCheckIn: tableData.NotCheckIn || tableData.NotChekIn || 0,
-      WorkEarly: tableData.WorkEarly || false,
+      WorkEarly: tableData.WorkEarly === true || tableData.WorkEarly === 1 || tableData.WorkEarly === 'true' || tableData.WorkEarly === '1' || tableData.WorkEarly === 'True',
       CostWorkEarly: tableData.CostWorkEarly || 0,
       Overnight: tableData.OvernightType !== undefined ? tableData.OvernightType : (tableData.Overnight === true ? 1 : 0),
       CostOvernight: tableData.CostOvernight || 0,
@@ -555,7 +915,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
 
     try {
       const allData = this.employeeBussinessList;
-      
+
       if (allData.length === 0) {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
         this.exportingExcel = false;
@@ -582,7 +942,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
           'Loại': item.TypeName || '',
           'Phương tiện': item.VehicleName || '',
           'Chấm công': item.NotCheckIn === 1 ? 'Không chấm công' : 'Có chấm công',
-          'Trạng thái': item.IsApproved ? 'Đã duyệt' : 'Chưa duyệt',
+          'Trạng thái': item.IsApproved ? 'Đã duyệt' : 'Chờ duyệt',
           'Ghi chú': item.Note || ''
         };
       });
@@ -650,18 +1010,18 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
   }
 
   private formatApprovalBadge(status: number): string {
-    // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
+    // 0 hoặc null: Chờ duyệt, 1: Đã duyệt, 2: Không duyệt
     const numStatus = status === null || status === undefined ? 0 : Number(status);
-    
+
     switch (numStatus) {
       case 0:
-        return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
+        return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px;">Chờ duyệt</span>';
       case 1:
-        return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+        return '<span class="badge bg-success" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px;">Đã duyệt</span>';
       case 2:
-        return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không duyệt</span>';
+        return '<span class="badge bg-danger" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px;">Không duyệt</span>';
       default:
-        return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+        return '<span class="badge bg-secondary" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px;">Không xác định</span>';
     }
   }
 }

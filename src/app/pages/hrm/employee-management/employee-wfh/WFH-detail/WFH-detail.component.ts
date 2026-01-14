@@ -17,6 +17,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { WFHService } from '../WFH-service/WFH.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { EmployeeService } from '../../../employee/employee-service/employee.service';
 
 
 export interface EmployeeDto {
@@ -29,6 +30,7 @@ export interface EmployeeDto {
 
 export interface ApproverDto {
   ID: number;
+  EmployeeID: number;
   Code: string;
   FullName: string;
   Role?: string;
@@ -224,7 +226,7 @@ export class WFHDetailComponent implements OnInit {
     return this.isViewMode || this.saving;
   }
 
-    ngOnInit(): void {
+  ngOnInit(): void {
     this.initializeData();
     this.loadEmployeesAndApprovers();
     this.setupFormData();
@@ -235,9 +237,21 @@ export class WFHDetailComponent implements OnInit {
     private message: NzMessageService,
     private notification: NzNotificationService,
     private wfhService: WFHService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private employeeService: EmployeeService
   ) {
     this.initForm();
+  }
+
+  loadApprovers() {
+    this.employeeService.getEmployeeApproved().subscribe({
+      next: (res: any) => {
+        this.approverList = res.data || [];
+      },
+      error: (error: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi tải danh sách người duyệt: ' + error.message);
+      }
+    });
   }
 
   // Initialize reactive form
@@ -271,9 +285,7 @@ export class WFHDetailComponent implements OnInit {
 
   // Initialize component data
   initializeData(): void {
-    console.log('WFH Detail Mode:', this.mode);
-    console.log('User Role:', this.userRole);
-    console.log('WFH Data:', this.wfhData);
+
   }
 
   // Load employees and approvers from API
@@ -303,45 +315,20 @@ export class WFHDetailComponent implements OnInit {
               label: `${dept}`,
               options: empGroups[dept],
             }));
-
-          // Group approvers by DepartmentName
-          const apprGroups: { [key: string]: ApproverDto[] } = {};
-          (res.data.approvers || []).forEach((appr: any) => {
-            const dept = appr.DepartmentName || 'Không xác định';
-            if (!apprGroups[dept]) apprGroups[dept] = [];
-            apprGroups[dept].push({
-              ID: appr.EmployeeID,
-              FullName: appr.FullName,
-              DepartmentName: appr.DepartmentName,
-              Code: appr.Code,
-            });
-          });
-
-          // Sort approvers within each group by Code
-          Object.keys(apprGroups).forEach((dept) => {
-            apprGroups[dept].sort((a, b) => (a.Code || '').localeCompare(b.Code || ''));
-          });
-
-          // Sort groups by department name
-          this.approverGroups = Object.keys(apprGroups)
-            .sort((a, b) => a.localeCompare(b))
-            .map((dept) => ({
-              label: `Phòng ban: ${dept}`,
-              options: apprGroups[dept],
-            }));
         } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải dữ liệu');
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải dữ liệu nhân viên');
           this.employeeGroups = [];
-          this.approverGroups = [];
         }
       },
       error: () => {
         this.loading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu nhân viên và người duyệt');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu nhân viên');
         this.employeeGroups = [];
-        this.approverGroups = [];
       },
     });
+
+    // Load approvers separately using new API
+    this.loadApprovers();
   }
 
   // Format employees data với debug logs
@@ -370,10 +357,19 @@ export class WFHDetailComponent implements OnInit {
       });
     }
 
-    // Update validators for reasonEdit if edit mode
+    // Update validators for reasonEdit: chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng
+    const reasonEditControl = this.wfhForm.get('reasonEdit');
     if (this.isEditMode && this.wfhData?.ID && this.wfhData.ID > 0) {
-      this.wfhForm.get('reasonEdit')?.setValidators([Validators.required, Validators.minLength(1)]);
-      this.wfhForm.get('reasonEdit')?.updateValueAndValidity();
+      const wfhEmployeeID = this.wfhData?.EmployeeID || 0;
+      const currentEmpID = this.currentEmployeeId || 0;
+
+      // Chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng
+      if (currentEmpID !== wfhEmployeeID && currentEmpID > 0 && wfhEmployeeID > 0) {
+        reasonEditControl?.setValidators([Validators.required, Validators.minLength(1)]);
+      } else {
+        reasonEditControl?.clearValidators();
+      }
+      reasonEditControl?.updateValueAndValidity();
     }
   }
 
@@ -455,18 +451,24 @@ export class WFHDetailComponent implements OnInit {
       return false;
     }
 
-      const contentWork = this.wfhForm.get('contentWork')?.value;
+    const contentWork = this.wfhForm.get('contentWork')?.value;
     if (!contentWork || !contentWork.trim()) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đủ thông tin bắt buộc');
       return false;
     }
 
-    // Check Lý do sửa nếu là edit mode (ID > 0)
+    // Check Lý do sửa: chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng
     if (this.wfhData?.ID && this.wfhData.ID > 0) {
-      const reasonEdit = this.wfhForm.get('reasonEdit')?.value;
-      if (!reasonEdit || !reasonEdit.trim()) {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đủ thông tin bắt buộc');
-        return false;
+      const wfhEmployeeID = this.wfhData?.EmployeeID || 0;
+      const currentEmpID = this.currentEmployeeId || 0;
+
+      // Chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng
+      if (currentEmpID !== wfhEmployeeID && currentEmpID > 0 && wfhEmployeeID > 0) {
+        const reasonEdit = this.wfhForm.get('reasonEdit')?.value;
+        if (!reasonEdit || !reasonEdit.trim()) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đủ thông tin bắt buộc');
+          return false;
+        }
       }
     }
 

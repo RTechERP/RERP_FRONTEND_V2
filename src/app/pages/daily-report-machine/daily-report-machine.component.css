@@ -1,0 +1,216 @@
+:host {
+    font-size: 12px !important;
+}
+
+/* Mobile menubar z-index fix */
+::ng-deep .p-menubar {
+  position: relative;
+  z-index: 1050;
+}
+
+::ng-deep .p-menubar-mobile {
+  position: relative;
+  z-index: 1050;
+}
+
+::ng-deep .p-menubar-root-list {
+  position: relative;
+  z-index: 1051;
+}
+
+/* Fix card header z-index */
+
+.tabulator {
+    font-size: 12px;
+}
+
+.box {
+    height: 100%;
+    width: 100%;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.ant-splitter-panel {
+    position: relative;
+}
+
+.ant-splitter {
+    height: 93vh !important;
+}
+
+/* CSS để textarea cells tự xuống dòng */
+:host ::ng-deep .tabulator-cell {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+}
+
+/* Filter bar styles */
+.filter-bar {
+    transition: all 0.3s ease;
+}
+
+.filter-backdrop {
+    display: none;
+}
+
+.filter-backdrop.mobile-only {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+
+/* .filter-bar.mobile-modal nz-col {
+    margin-bottom: 8px;
+  } */
+
+/* Card header responsive */
+.card-header {
+    -webkit-overflow-scrolling: touch;
+}
+
+.card-header .d-flex {
+    min-width: max-content;
+}
+
+.card-header button {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .card-header {
+        padding: 8px 4px !important;
+    }
+
+    .card-header button {
+        font-size: 11px !important;
+        padding: 4px 8px !important;
+        min-height: 32px;
+        touch-action: manipulation;
+    }
+
+    .card-header button img {
+        width: 14px;
+        height: 14px;
+    }
+
+    .sticky-toggle-btn {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        background-color: white;
+        min-width: 40px;
+    }
+}
+
+@media (min-width: 769px) {
+    .filter-backdrop.mobile-only {
+        display: none;
+    }
+
+    /* Đảm bảo card không tăng chiều cao khi filter bar hiển thị */
+    .card-header {
+        flex-shrink: 0;
+    }
+
+    .card-body {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+}
+
+.sticky-toggle-btn {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background-color: white;
+}
+
+::ng-deep .filter-bar .ant-form-item {
+    margin-bottom: 2px;
+}
+
+::ng-deep .filter-bar .ant-form-item-label {
+    padding-bottom: 0;
+}
+
+.mobile-filter-form {
+    gap: 4px;
+}
+
+.ant-form-inline .ant-form-item {
+    margin-right: 0px !important;
+}
+
+/* Fix dropdown width - không co dãn theo text */
+:host ::ng-deep .ant-select-dropdown {
+    min-width: 200px !important;
+    max-width: 400px !important;
+}
+
+/* Đảm bảo option text xuống dòng nếu quá dài */
+:host ::ng-deep .ant-select-item-option-content {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    line-height: 1.4 !important;
+    padding: 4px 0 !important;
+}
+
+/* Hoặc nếu muốn cắt text với ... */
+:host ::ng-deep .ant-select-item-option-content {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Fix cho select box không bị giãn */
+:host ::ng-deep .filter-bar .ant-select-selector {
+    min-width: 150px;
+}
+
+/* Đảm bảo các input trong filter bar hiển thị tốt */
+:host ::ng-deep .filter-bar .ant-picker {
+    width: 100%;
+}
+
+:host ::ng-deep .filter-bar .ant-select {
+    width: 100%;
+}
+
+:host ::ng-deep .filter-bar input[nz-input] {
+    width: 100%;
+}
+
+:host ::ng-deep .ant-form-item {
+    margin-bottom: 12px !important;
+}

@@ -37,6 +37,7 @@ import {
   TabulatorFull as Tabulator,
   RowComponent,
   CellComponent,
+  ColumnDefinition,
 } from 'tabulator-tables';
 // import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 // import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -70,6 +71,10 @@ import { QuotationKhDataComponent } from '../quotation-kh-data/quotation-kh-data
 import { CustomerDetailComponent } from '../../crm/customers/customer-detail/customer-detail.component';
 import { ProjectPartListComponent } from '../../project/project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
 import { ImportExcelPokhComponent } from '../pokh/import-excel/import-excel.component';
+import { ProductSaleDetailComponent } from '../Sale/ProductSale/product-sale-detail/product-sale-detail.component';
+import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
+import { ProductSaleComponent } from '../Sale/ProductSale/product-sale.component';
+import { TabulatorPopupService } from '../../../shared/components/tabulator-popup';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -128,7 +133,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private notification: NzNotificationService,
     private viewPOKHService: ViewPokhService,
-    public activeModal: NgbActiveModal
+    public activeModal: NgbActiveModal,
+    private menuEventService: MenuEventService,
+    private tabulatorPopupService: TabulatorPopupService
   ) { }
 
   //#region : Khai báo
@@ -164,6 +171,35 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   dataCurrencies: any[] = [];
   dataPOKHDetailUser: any[] = [];
   selectedCustomer: any = null;
+
+  // Định nghĩa columns cho product popup (tái sử dụng được)
+  productPopupColumns: ColumnDefinition[] = [
+    {
+      title: 'Mã SP',
+      field: 'ProductCode',
+      width: 120,
+    },
+    {
+      title: 'Tên sản phẩm',
+      field: 'ProductName',
+      width: 250,
+    },
+    {
+      title: 'Mã nội bộ',
+      field: 'ProductNewCode',
+      width: 120,
+    },
+    {
+      title: 'ĐVT',
+      field: 'Unit',
+      width: 80,
+    },
+    {
+      title: 'Tên nhóm',
+      field: 'ProductGroupName',
+      width: 200,
+    },
+  ];
   poFormData: any = {
     status: 0,
     poCode: '',
@@ -182,7 +218,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     currencyId: 0,
     isBigAccount: false,
     isApproved: false,
-    warehouseId: 1,
     accountType: 0,
     totalMoneyDiscount: 0,
     discount: 0,
@@ -197,7 +232,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     POType: 0,
     status: 0,
     group: 0,
-    warehouseId: 1,
+    warehouseId: this.warehouseId,
     employeeTeamSaleId: 0,
     startDate: new Date(),
     endDate: new Date(),
@@ -223,6 +258,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Hàm khởi tạo
   ngOnInit(): void {
+    if (this.warehouseId) {
+      this.filters.warehouseId = this.warehouseId;
+    }
     const endDate = new Date();
     const startDate = new Date();
     startDate.setMonth(endDate.getMonth() - 3);
@@ -283,7 +321,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               this.selectedCustomer = fullCustomer;
             }
           }
-          
+
           if (callback) callback();
         } else {
           this.notification.error('Lỗi khi tải khách hàng:', response.message);
@@ -494,14 +532,14 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       console.warn('loadPOKHData: Invalid id', id);
       return;
     }
-    
+
     if (this.isLoadingData) {
       console.warn('loadPOKHData: Already loading data');
       return;
     }
-    
+
     this.isLoadingData = true;
-    
+
     this.POKHService.getPOKHByID(id).subscribe(
       (response) => {
         if (response.status === 1) {
@@ -542,7 +580,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.selectedCustomer = this.dataCustomers.find(
             (c) => c.ID === pokhData.CustomerID
           );
-          
+
           if (!this.selectedCustomer && pokhData.CustomerID) {
             this.selectedCustomer = {
               ID: pokhData.CustomerID,
@@ -550,7 +588,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               CustomerShortName: '',
             };
           }
-          
+
           this.isResponsibleUsersEnabled = pokhData.UserType === 1;
 
           // Tính toán chiết khấu lần đầu khi load dữ liệu: chỉ tính từ moneyDiscount, không tính từ %
@@ -561,7 +599,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           if (this.isCopy) {
             this.dataPOKHDetailFile = [];
             this.dataPOKHFiles = [];
-            
+
             let item = this.selectedCustomer || this.dataCustomers.find(
               (c) => c.ID === pokhData.CustomerID
             );
@@ -675,7 +713,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
               // Tính lại chiết khấu sau khi load xong tất cả dữ liệu: chỉ tính từ moneyDiscount, không tính từ %
               this.calculateTotalFromMoneyDiscount();
-              
+
               this.isLoadingData = false;
             },
             (forkJoinError) => {
@@ -686,7 +724,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               this.tb_ProductDetailTreeList?.setData([]);
               this.tb_POKHDetailFile?.setData([]);
               if (this.tb_DetailUser) this.tb_DetailUser.setData([]);
-              
+
               this.isLoadingData = false;
             }
           );
@@ -1217,6 +1255,15 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           !row.ReceiveMoney || Object.keys(row.ReceiveMoney).length === 0
             ? 0
             : row.ReceiveMoney,
+        // Handle numeric fields that may be empty strings
+        Qty: row.Qty === '' || row.Qty === null || row.Qty === undefined ? null : Number(row.Qty),
+        IntoMoney: row.IntoMoney === '' || row.IntoMoney === null || row.IntoMoney === undefined ? null : Number(row.IntoMoney),
+        UnitPrice: row.UnitPrice === '' || row.UnitPrice === null || row.UnitPrice === undefined ? null : Number(row.UnitPrice),
+        VAT: row.VAT === '' || row.VAT === null || row.VAT === undefined ? null : Number(row.VAT),
+        NetUnitPrice: row.NetUnitPrice === '' || row.NetUnitPrice === null || row.NetUnitPrice === undefined ? null : Number(row.NetUnitPrice),
+        EstimatedPay: row.EstimatedPay === '' || row.EstimatedPay === null || row.EstimatedPay === undefined ? null : Number(row.EstimatedPay),
+        Debt: row.Debt === '' || row.Debt === null || row.Debt === undefined ? null : Number(row.Debt),
+        TotalPriceIncludeVAT: row.TotalPriceIncludeVAT === '' || row.TotalPriceIncludeVAT === null || row.TotalPriceIncludeVAT === undefined ? null : Number(row.TotalPriceIncludeVAT),
       };
       dataTree.push(processedRow);
 
@@ -1228,13 +1275,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   }
   getPOKHData() {
     const poDate = new Date(this.poFormData.poDate || new Date());
-    
+
     if (!this.selectedCustomer && this.poFormData.customerId > 0) {
       this.selectedCustomer = this.dataCustomers.find(
         (c) => c.ID === this.poFormData.customerId
       );
     }
-    
+
     return {
       ID: this.selectedId || 0,
       Status: this.poFormData.status || 0,
@@ -1256,7 +1303,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       UserType: this.poFormData.userType || 0,
       QuotationID: this.poFormData.quotationId || 0,
       PONumber: this.poFormData.poNumber || '',
-      WarehouseID: this.poFormData.warehouseId || 0,
+      WarehouseID: this.warehouseId || 0,
       CurrencyID: this.poFormData.currencyId || 0,
       Year: poDate.getFullYear(),
       Month: poDate.getMonth() + 1,
@@ -1873,6 +1920,20 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
   }
 
+  openProductSaleDetailModal() {
+    const modalRef = this.modalService.open(ProductSaleDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.result.catch((result) => {
+      if (result == true) {
+        this.loadProducts();
+      }
+    });
+  }
+
   openQuotationKhDataModal() {
     const modalRef = this.modalService.open(QuotationKhDataComponent, {
       centered: true,
@@ -1921,6 +1982,30 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
     });
   }
+
+  openProductSaleTab() {
+    // this.activeModal.close();
+    // this.openComponentInTab(ProductSaleComponent, 'VẬT TƯ')
+
+    const modalRef = this.modalService.open(ProductSaleComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.isFromPOKH = true;
+  }
+
+  /**
+   * Mở component trong tab thay vì modal
+   * @param comp Component class cần mở
+   * @param title Tiêu đề của tab
+   * @param data Dữ liệu truyền vào component (optional)
+   */
+  openComponentInTab(comp: Type<any>, title: string, data?: any): void {
+    this.menuEventService.openNewTab(comp, title, data);
+  }
+
   onFileSelected(event: any) {
     const files = event.target.files;
     if (files && files.length > 0) {
@@ -2004,16 +2089,18 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         {
           title: '',
           field: 'actions',
+          frozen: true,
           formatter: (cell) => {
-            return `<img src="/assets/icon/delete-btn.png" class="delete-btn" style="width: 20px; height: 20px; cursor: pointer;" alt="Xóa" />`;
+            return `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
           },
-          width: '1px',
+          width: '5%',
           hozAlign: 'center',
           cellClick: (e, cell) => {
             const target = e.target as HTMLElement;
             if (
-              target.classList.contains('delete-btn') ||
-              target.tagName === 'IMG'
+              target.tagName === 'BUTTON' ||
+              target.tagName === 'I' ||
+              target.closest('button')
             ) {
               this.modal.confirm({
                 nzTitle: 'Xác nhận xóa',
@@ -2068,6 +2155,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     // };
   }
   initProductDetailTreeList(): void {
+    if (this.tb_ProductDetailTreeList) {
+      this.tb_ProductDetailTreeList.destroy();
+    }
     this.tb_ProductDetailTreeList = new Tabulator(
       this.tbProductDetailTreeListElement.nativeElement,
       {
@@ -2110,15 +2200,16 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             field: 'actions',
             frozen: true,
             formatter: (cell) => {
-              return `<img src="/assets/icon/delete-btn.png" class="delete-btn" style="width: 20px; height: 20px; cursor: pointer;" alt="Xóa" />`;
+              return `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
             },
             width: '5%',
             hozAlign: 'center',
             cellClick: (e, cell) => {
               const target = e.target as HTMLElement;
               if (
-                target.classList.contains('delete-btn') ||
-                target.tagName === 'IMG'
+                target.tagName === 'BUTTON' ||
+                target.tagName === 'I' ||
+                target.closest('button')
               ) {
                 this.modal.confirm({
                   nzTitle: 'Xác nhận xóa',
@@ -2170,29 +2261,27 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           },
           {
             title: 'Mã Nội Bộ',
-            field: 'ProductNewCode',
-            sorter: 'string',
-            width: 120,
-            editor: 'list',
+            field: 'ProductID',
+            width: 150,
+            hozAlign: 'center',
+            headerHozAlign: 'center',
             tooltip: true,
             frozen: true,
-            editorParams: {
-              values: this.dataProducts.map((product) => {
-                const shortLabel =
-                  `${product.ProductNewCode} - ${product.ProductCode}`.length > 50
-                    ? `${product.ProductNewCode} - ${product.ProductCode}`.substring(
-                      0,
-                      50
-                    ) + '...'
-                    : `${product.ProductNewCode} - ${product.ProductCode}`;
-
-                return {
-                  label: shortLabel,
-                  value: product.ProductNewCode,
-                  id: product.ID,
-                };
-              }),
-              autocomplete: true,
+            formatter: (cell) => {
+              const productId = Number(cell.getValue());
+              const product = this.dataProducts.find((p) => p.ID === productId);
+              const productNewCode = product ? product.ProductNewCode : '';
+              return `
+              <button class="btn-toggle-detail w-100 h-100" style="background-color: white; border: 1px solid #d9d9d9;" title="${productNewCode || 'Chọn sản phẩm'
+                }">
+                <span class="product-code-text">${productNewCode || 'Chọn SP'
+                }</span>
+                <span class="arrow">&#9662;</span>
+              </button>
+            `;
+            },
+            cellClick: (e, cell) => {
+              this.showProductPopup(cell);
             },
           },
           {
@@ -2231,6 +2320,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 80,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             bottomCalc: (values, data) => {
               return this.accumulateTreeValues(data, 'Qty');
             },
@@ -2262,6 +2354,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2277,6 +2372,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2304,8 +2402,22 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+            bottomCalc: (values, data) => {
+              return this.accumulateTreeValues(data, 'IntoMoney');
+            },
+            bottomCalcFormatter: 'money',
+            bottomCalcFormatterParams: {
               precision: 0,
               decimal: '.',
               thousand: ',',
@@ -2319,6 +2431,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 100,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: function (cell, formatterParams, onRendered) {
               const value = cell.getValue();
               if (
@@ -2337,6 +2452,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2387,6 +2505,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
           },
           {
             title: 'Ngày hóa đơn',
@@ -2418,6 +2539,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
           },
           {
             title: 'Ngày yêu cầu thanh toán',
@@ -2455,27 +2579,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     );
 
     this.tb_ProductDetailTreeList.on('cellEdited', (cell: CellComponent) => {
-      if (cell.getColumn().getField() === 'ProductNewCode') {
-
-        this.selectedRow = cell.getRow(); //update trigger chọn dòng khi bấm vào cell mã nội bộ
-        
-        const selectedProduct = this.dataProducts.find(
-          (p) => p.ProductNewCode === cell.getValue()
-        );
-        console.log('Dữ liệu của sản phẩm đã nhận: ', selectedProduct);
-        if (selectedProduct) {
-          const row = cell.getRow();
-          row.update({
-            productId: selectedProduct.ID,
-            ProductCode: selectedProduct.ProductCode,
-            ProductName: selectedProduct.ProductName,
-            Unit: selectedProduct.Unit,
-            Maker: selectedProduct.Maker,
-            ProductGroupName: selectedProduct.ProductGroupName,
-          });
-          console.log('rowEdited: ', row);
-        }
-      }
       this.handleCellValueChange(cell);
     });
 
@@ -2488,6 +2591,57 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       }
     );
   }
+
+  // Mở popup chọn sản phẩm sử dụng TabulatorPopupService
+  showProductPopup(cell: CellComponent) {
+    const cellElement = cell.getElement();
+
+    // Toggle: nếu đang mở thì đóng
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    // Mở popup mới với TabulatorPopupService
+    this.tabulatorPopupService.open(
+      {
+        data: this.dataProducts || [],
+        columns: this.productPopupColumns,
+        searchFields: ['ProductCode', 'ProductName', 'ProductNewCode'],
+        searchPlaceholder: 'Tìm kiếm sản phẩm...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '500px',
+        maxWidth: '700px',
+        onRowSelected: (selectedProduct) => {
+          // Fill dữ liệu vào row cha
+          const parentRow = cell.getRow();
+          parentRow.update({
+            ProductID: selectedProduct.ID,
+            productId: selectedProduct.ID,
+            ProductNewCode: selectedProduct.ProductNewCode,
+            ProductCode: selectedProduct.ProductCode,
+            ProductName: selectedProduct.ProductName,
+            Unit: selectedProduct.Unit,
+            Maker: selectedProduct.Maker,
+            ProductGroupName: selectedProduct.ProductGroupName,
+          });
+
+          // Trigger cellEdited để tính toán lại các giá trị
+          this.handleCellValueChange(cell);
+
+          // Đóng popup
+          this.tabulatorPopupService.close();
+        },
+        onClosed: () => {
+          // Optional: xử lý khi popup đóng
+        },
+      },
+      cellElement
+    );
+  }
+
   initDetailTable(): void {
     this.tb_DetailUser = new Tabulator(this.tbDetailUserElement.nativeElement, {
       data: this.dataPOKHDetailUser,
@@ -2526,7 +2680,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           frozen: true,
           headerSort: false,
           titleFormatter: () =>
-            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-warning cursor-pointer" title="Thêm dòng"></i></div>`,
           headerClick: () => {
             this.addRowDetailUser();
           },

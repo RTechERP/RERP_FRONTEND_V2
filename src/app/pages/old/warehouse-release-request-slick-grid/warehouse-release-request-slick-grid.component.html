@@ -1,0 +1,92 @@
+<div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
+  <!-- Modal Dialog -->
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">YÊU CẦU XUẤT KHO</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body">
+    <!-- Toolbar -->
+    <div class="toolbar mb-3">
+      <div class="btn-group">
+        <button nz-button nz-dropdown [nzDropdownMenu]="menuRelease">
+          <nz-icon nzType="export">
+          </nz-icon>
+          Yêu cầu xuất kho từ
+          <nz-icon nzType="down" />
+        </button>
+        <nz-dropdown-menu #menuRelease="nzDropdownMenu">
+          <ul nz-menu style="min-width: 250px;">
+            <li nz-menu-item *ngFor="let warehouse of warehouses" (click)="onWarehouseSelect(warehouse)">
+              {{warehouse.WarehouseName}}
+            </li>
+          </ul>
+        </nz-dropdown-menu>
+      </div>
+      <!-- <div class="btn-group ms-3">
+        <button nz-button nz-dropdown [nzDropdownMenu]="menuTransfer">
+          <nz-icon nzType="export">
+          </nz-icon>
+          Yêu cầu chuyển kho từ
+          <nz-icon nzType="down" />
+        </button>
+        <nz-dropdown-menu #menuTransfer="nzDropdownMenu">
+          <ul nz-menu style="min-width: 250px;">
+            <li nz-menu-item *ngFor="let warehouse of warehouses" (click)="onWarehouseTranferSelect(warehouse)">
+              {{warehouse.WarehouseName}}
+            </li>
+          </ul>
+        </nz-dropdown-menu>
+      </div> -->
+    </div>
+
+    <!-- Search Panel -->
+
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label mb-2">Khách hàng</label>
+        <nz-select style="width: 100%;" nzPlaceHolder="Chọn khách hàng" [(ngModel)]="selectedCustomer"
+          (ngModelChange)="onCustomerChange($event)" nzAllowClear nzShowSearch>
+          <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
+            [nzLabel]="customer.CustomerName"></nz-option>
+        </nz-select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label mb-2">Dự án</label>
+        <nz-select style="width: 100%;" nzPlaceHolder="Chọn dự án" [(ngModel)]="selectedProject"
+          (ngModelChange)="onProjectChange($event)" nzAllowClear nzShowSearch>
+          <nz-option *ngFor="let project of projects" [nzValue]="project.ID"
+            [nzLabel]="project.ProjectCode + '-' + project.ProjectName"></nz-option>
+        </nz-select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label mb-2">Loại kho</label>
+        <nz-select style="width: 100%;" nzPlaceHolder="Chọn loại kho" [(ngModel)]="selectedProductGroup"
+          (ngModelChange)="onProductGroupChange($event)" nzAllowClear nzShowSearch>
+          <nz-option *ngFor="let group of productGroups" [nzValue]="group.ID"
+            [nzLabel]="group.ProductGroupName"></nz-option>
+        </nz-select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label mb-2">Từ khóa</label>
+        <input nz-input type="text" class="form-control" [(ngModel)]="keyword" placeholder="Nhập từ khóa">
+      </div>
+      <div class="col-md-1 d-flex align-items-end">
+        <button nz-button nzType="primary" nzSize="default" (click)="onSearch()" class="w-100">
+          <i nz-icon nzType="search"></i>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- Data Grid -->
+    <div class="grid-container" id="gridContainer">
+      <nz-spin [nzSpinning]="isLoading">
+        <angular-slickgrid gridId="warehouseReleaseGrid" [columns]="columnDefinitions" [options]="gridOptions"
+          [dataset]="dataset" (onAngularGridCreated)="onAngularGridCreated($event.detail)">
+        </angular-slickgrid>
+      </nz-spin>
+    </div>
+  </div>
+
+</div>

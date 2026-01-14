@@ -31,7 +31,7 @@
                 <nz-form-item>
                     <nz-form-label required>Điều khoản TT<span style="color: red">(*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn điều khoản'">
-                        <nz-select formControlName="RulePayID" nzPlaceHolder="Chọn điều khoản">
+                        <nz-select formControlName="RulePayID" nzPlaceHolder="Chọn điều khoản" nzShowSearch nzAllowClear>
                             <nz-option *ngFor="let item of rulePayList" [nzValue]="item.ID"
                                 [nzLabel]="item.Code + '-' + item.Note"></nz-option>
                         </nz-select>
@@ -99,7 +99,7 @@
                 <nz-form-item>
                     <nz-form-label required>Nhà cung cấp<span style="color: red">(*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn nhà cung cấp hoặc khách hàng'">
-                        <nz-select formControlName="SupplierSaleID" nzPlaceHolder="Chọn nhà cung cấp" nzShowSearch
+                        <nz-select formControlName="SupplierSaleID" nzPlaceHolder="Chọn nhà cung cấp" nzShowSearch nzAllowClear
                             name="SupplierSaleID">
                             <nz-option *ngFor="let item of nccList" [nzValue]="item.ID" [nzLabel]="item.NameNCC"
                                 nzCustomContent>
@@ -113,7 +113,7 @@
                 <nz-form-item>
                     <nz-form-label required>Kho<span style="color: red">(*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn kho'">
-                        <nz-select formControlName="WarehouseID" nzShowSearch nzPlaceHolder="Chọn kho">
+                        <nz-select formControlName="WarehouseID" nzShowSearch nzPlaceHolder="Chọn kho" nzAllowClear>
                             <nz-option *ngFor="let wh of warehouses" [nzValue]="wh.ID"
                                 [nzLabel]="wh.WarehouseName"></nz-option>
                         </nz-select>
@@ -137,7 +137,7 @@
                     <nz-form-label>Khách hàng<span style="color: red">(*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn khách hàng'">
                         <nz-select formControlName="CustomerID" nzPlaceHolder="Chọn khách hàng" name="CustomerID"
-                            nzShowSearch>
+                            nzShowSearch nzAllowClear>
                             <nz-option *ngFor="let item of customerList" [nzValue]="item.ID"
                                 [nzLabel]="item.CustomerName" nzCustomContent>
                                 {{ item.CustomerShortName }} - {{ item.CustomerName }}

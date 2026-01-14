@@ -1,0 +1,17 @@
+.modal-body {
+    font-size: 12px;
+}
+
+.modal-header h6 {
+    font-size: 14px;
+    margin: 0;
+}
+
+nz-form-label {
+    font-size: 12px;
+}
+
+input,
+textarea {
+    font-size: 12px;
+}

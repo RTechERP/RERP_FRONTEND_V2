@@ -26,7 +26,10 @@ export class TrackingMarksService {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
     };
 
     return this.http.get<any>(this._url + 'get-all', {
@@ -68,12 +71,10 @@ export class TrackingMarksService {
 
   /**
    * Upload file
+   * @param id ID tracking mark
+   * @param formData FormData đã có key, subPath, và files
    */
-  uploadFile(id: number, files: File[]): Observable<any> {
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append('files', file);
-    });
+  uploadFile(id: number, formData: FormData): Observable<any> {
     return this.http.post<any>(this._url + 'upload-file', formData, {
       params: { id: id.toString() }
     });

@@ -11,10 +11,12 @@ export interface ApproveByApproveTPRequestParam {
   Status?: number;
   DeleteFlag?: number;
   EmployeeID?: number;
+  StatusSenior?: number;
   TType?: number;
   StatusHR?: number;
   StatusBGD?: number;
   UserTeamID?: number;
+  SeniorID?: number;
   Page?: number;
   Size?: number;
 }
@@ -25,16 +27,20 @@ export interface ApproveItemParam {
   FieldName?: string | null;
   FullName?: string | null;
   DeleteFlag?: boolean | null;
-  IsApprovedHR?: boolean | null;
+  IsApprovedHR?: boolean | null;  // Changed back to boolean
   IsCancelRegister?: number | null;
-  IsApprovedTP?: boolean | null;
-  IsApprovedBGD?: boolean | null;
-  IsSeniorApproved?: boolean | null;
+  IsApprovedTP?: boolean | null;  // Changed back to boolean
+  IsApprovedBGD?: boolean | null;  // Changed back to boolean
+  IsSeniorApproved?: boolean | null;  // Changed back to boolean
   ValueUpdatedDate?: string | null;
   ValueDecilineApprove?: string | null;
+  DecilineApprove?: number | null;  // Trạng thái không duyệt: 2 = Không đồng ý duyệt
   EvaluateResults?: string | null;
   EmployeeID?: number | null;
   TType?: number | null;
+  ReasonDeciline?: string | null;
+  ForceApproveSenior?: boolean | null;  // TBP can force approve even if Senior hasn't approved
+  ApprovedSeniorID?: number | null;  // ID của Senior đã duyệt
 }
 
 export interface ApproveRequestParam {
@@ -52,6 +58,7 @@ export interface NotProcessedApprovalItem {
 })
 export class ApproveTpService {
   private apiUrl = environment.host + 'api/home/';
+  private apiUrlApprove = environment.host + 'api/Approve/';
 
   constructor(private http: HttpClient) { }
 
@@ -70,7 +77,16 @@ export class ApproveTpService {
       Accept: 'application/json',
     });
 
-    return this.http.post<any>(`${this.apiUrl}approve-tbp`, request, { headers });
+    return this.http.post<any>(`${this.apiUrlApprove}approve-tbp-new`, request, { headers });
+  }
+
+  unApproveTBP(request: ApproveRequestParam): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    return this.http.post<any>(`${this.apiUrlApprove}approve-tbp-new`, request, { headers });
   }
 
   approveBGD(request: ApproveRequestParam): Observable<any> {
@@ -79,7 +95,7 @@ export class ApproveTpService {
       Accept: 'application/json',
     });
 
-    return this.http.post<any>(`${this.apiUrl}approve-bgd`, request, { headers });
+    return this.http.post<any>(`${this.apiUrlApprove}approve-bgd-new`, request, { headers });
   }
 
   approveSenior(request: ApproveRequestParam): Observable<any> {
@@ -88,7 +104,7 @@ export class ApproveTpService {
       Accept: 'application/json',
     });
 
-    return this.http.post<any>(`${this.apiUrl}approve-senior`, request, { headers });
+    return this.http.post<any>(`${this.apiUrlApprove}approve-senior-new`, request, { headers });
   }
 
   getApproveByApproveTPAjax(): string {
@@ -100,7 +116,7 @@ export class ApproveTpService {
       .set('status', request.status?.toString() || '0')
       .set('departmentid', request.departmentid?.toString() || '0')
       .set('keyword', request.keyword || '');
-    
+
     return this.http.get<any>(`${environment.host}api/employee/`, { params });
   }
 
@@ -109,7 +125,46 @@ export class ApproveTpService {
       .set('yearValue', yearValue.toString())
       .set('quarterValue', quarterValue.toString())
       .set('departmentID', departmentID.toString());
-    
+
     return this.http.get<any>(`${environment.host}api/KPIEmployeeTeam/getall`, { params });
+  }
+
+  getUserTeamLinkByLeaderID(): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    return this.http.get<any>(`${this.apiUrl}get-user-team-link-by-leader-id`, { headers });
+  }
+
+  getUserTeam(): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    return this.http.get<any>(`${this.apiUrl}get-user-team`, { headers });
+  }
+
+  getQuantityApprove(request?: ApproveByApproveTPRequestParam): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    // Set default dates if not provided
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const requestBody: ApproveByApproveTPRequestParam = {
+      ...request,
+      DateStart: request?.DateStart || oneWeekAgo,
+      DateEnd: request?.DateEnd || lastDayOfMonth
+    };
+
+    return this.http.post<any>(`${this.apiUrl}get-quantity-approve`, requestBody, { headers });
   }
 }

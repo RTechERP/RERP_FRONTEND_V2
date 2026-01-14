@@ -57,6 +57,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { TabulatorPopupService } from '../../../../shared/components/tabulator-popup';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
+import { BillImportChoseSerialService } from '../bill-import-chose-serial/bill-import-chose-serial.service';
 
 @Component({
   standalone: true,
@@ -82,7 +83,7 @@ import { BillExportService } from '../../Sale/BillExport/bill-export-service/bil
   styleUrls: ['./bill-import-technical-form.component.css'],
 })
 export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
-  title:string = 'Phiếu nhập kho';
+  title: string = 'Phiếu nhập kho';
   // danh sách loại phiếu nhập kĩ thuật
   billType: any = [
     { ID: 0, Name: '--Chọn loại--' },
@@ -182,20 +183,31 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   private ngbModal = inject(NgbModal);
   public activeModal = inject(NgbActiveModal);
   constructor(
-    private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
     private billImportTechnicalService: BillImportTechnicalService,
     private notification: NzNotificationService,
     private tbProductRtcService: TbProductRtcService,
     private appUserService: AppUserService,
     private tabulatorPopupService: TabulatorPopupService,
-    private billExportService: BillExportService
-  ) { }
+    private billExportService: BillExportService,
+    private billImportChoseSerialService: BillImportChoseSerialService
+  ) {}
 
   supplierOrCustomerValidator(
     control: AbstractControl
   ): ValidationErrors | null {
     const parent = control.parent;
     if (!parent) return null;
+
+    // Nếu là Mượn NCC (BillTypeNew === 1), không validate CustomerID
+    const billTypeNew = parent.get('BillTypeNew')?.value;
+    if (billTypeNew === 1) {
+      // Chỉ validate SupplierSaleID, không cần CustomerID
+      const supplierSaleID = parent.get('SupplierSaleID')?.value;
+      if (!supplierSaleID) {
+        return { supplierOrCustomerRequired: true };
+      }
+      return null;
+    }
 
     const supplierSaleID = parent.get('SupplierSaleID')?.value;
     const customerID = parent.get('CustomerID')?.value;
@@ -224,7 +236,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       SupplierSaleID: [null, this.supplierOrCustomerValidator.bind(this)],
       RulePayID: [34, Validators.required],
       CustomerID: [null, this.supplierOrCustomerValidator.bind(this)],
-      ApproverID: [this.warehouseType === 2 ? 97 : 54, Validators.required],//54:Phạm Văn Quyền; 97:Bùi Mạnh Cần
+      ApproverID: [this.warehouseType === 2 ? 97 : 54, Validators.required], //54:Phạm Văn Quyền; 97:Bùi Mạnh Cần
       Receiver: [''],
       Status: [false],
       Suplier: [''],
@@ -253,22 +265,36 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
     });
 
-    // Subscribe to BillTypeNew changes to update column visibility
+    // Subscribe to BillTypeNew changes to update column visibility and validation
     this.formDeviceInfo
       .get('BillTypeNew')
       ?.valueChanges.subscribe((billType: number) => {
         this.updateColumnVisibility(billType);
+        // Update validation khi BillTypeNew thay đổi
+        this.formDeviceInfo
+          .get('CustomerID')
+          ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+        this.formDeviceInfo
+          .get('SupplierSaleID')
+          ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
       });
 
     // Subscribe to DeliverID changes to auto-fill Deliver (FullName)
-    this.formDeviceInfo.get('DeliverID')?.valueChanges.subscribe((deliverID: number) => {
-      if (deliverID && this.emPloyeeLists && this.emPloyeeLists.length > 0) {
-        const employee = this.emPloyeeLists.find((e: any) => e.ID === deliverID);
-        if (employee && employee.FullName) {
-          this.formDeviceInfo.patchValue({ Deliver: employee.FullName }, { emitEvent: false });
+    this.formDeviceInfo
+      .get('DeliverID')
+      ?.valueChanges.subscribe((deliverID: number) => {
+        if (deliverID && this.emPloyeeLists && this.emPloyeeLists.length > 0) {
+          const employee = this.emPloyeeLists.find(
+            (e: any) => e.ID === deliverID
+          );
+          if (employee && employee.FullName) {
+            this.formDeviceInfo.patchValue(
+              { Deliver: employee.FullName },
+              { emitEvent: false }
+            );
+          }
         }
-      }
-    });
+      });
 
     // Disable WarehouseType field - không cho sửa
     this.formDeviceInfo.get('WarehouseType')?.disable();
@@ -335,13 +361,19 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     });
   }
   getWarehouse() {
+    // Lưu warehouseID từ input trước khi gọi API (để không bị mất khi dataEdit được patch)
+    const inputWarehouseID = this.warehouseID;
+
     this.billImportTechnicalService.getWarehouse().subscribe((res: any) => {
       const list = res.data || [];
       this.warehouses = list;
       console.log('Warehouse List:', list);
 
-      // Ưu tiên dùng warehouseID nếu đã được truyền vào
-      let currentId = this.warehouseID;
+      // Ưu tiên dùng warehouseID từ input nếu đã được truyền vào
+      let currentId =
+        inputWarehouseID && inputWarehouseID > 0
+          ? inputWarehouseID
+          : this.warehouseID;
 
       // Nếu không có warehouseID hoặc = 0, tìm theo WarehouseCode
       if (!currentId || currentId === 0) {
@@ -353,12 +385,25 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         currentId = currentWarehouse?.ID ?? 0;
       }
 
+      // Nếu vẫn không có, lấy từ dataEdit (nếu có)
+      if ((!currentId || currentId === 0) && this.dataEdit?.WarehouseID) {
+        currentId = this.dataEdit.WarehouseID;
+      }
+
       // Set WarehouseID và disable control để người dùng không thay đổi
       if (currentId > 0) {
-        this.formDeviceInfo.patchValue({ WarehouseID: currentId });
-        // Lưu giá trị WarehouseID vào biến instance để sử dụng khi lưu
-        this.warehouseID = currentId;
-        this.formDeviceInfo.get('WarehouseID')?.disable();
+        // Sử dụng setTimeout để đảm bảo form đã được khởi tạo và dataEdit đã được patch (nếu có)
+        setTimeout(() => {
+          // Luôn ưu tiên warehouseID từ input nếu có
+          const finalWarehouseID =
+            inputWarehouseID && inputWarehouseID > 0
+              ? inputWarehouseID
+              : currentId;
+          this.formDeviceInfo.patchValue({ WarehouseID: finalWarehouseID });
+          // Lưu giá trị WarehouseID vào biến instance để sử dụng khi lưu
+          this.warehouseID = finalWarehouseID;
+          this.formDeviceInfo.get('WarehouseID')?.disable();
+        }, 300);
       }
     });
   }
@@ -499,7 +544,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     if (deliverID && this.emPloyeeLists && this.emPloyeeLists.length > 0) {
       const employee = this.emPloyeeLists.find((e: any) => e.ID === deliverID);
       if (employee && employee.FullName) {
-        this.formDeviceInfo.patchValue({ Deliver: employee.FullName }, { emitEvent: false });
+        this.formDeviceInfo.patchValue(
+          { Deliver: employee.FullName },
+          { emitEvent: false }
+        );
       }
     }
   }
@@ -507,7 +555,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
 
   //#Init
   ngOnInit() {
-    this.title = this.warehouseType === 1 ? 'Phiếu nhập kho DEMO' : 'Phiếu nhập kho AGV';
+    // this.title =
+    //   this.warehouseType === 1 ? 'Phiếu nhập kho DEMO' : 'Phiếu nhập kho AGV';
     this.initForm();
 
     // Khởi tạo BillTypeNew = 0 (--Chọn loại phiếu--)
@@ -528,7 +577,22 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       this.isFormDisabled = true;
     }
 
+    // Load các lookup data trước
+    this.getRulepay();
+    this.getNCC();
+    this.getCustomer();
+    this.getDocumentImport();
+    this.getListEmployee();
+    this.getProductList();
+    this.getEmployeeApprove();
+
+    // Load warehouse và set WarehouseID (phải load trước khi patch dataEdit)
+    this.getWarehouse();
+
     if (this.dataEdit) {
+      // Lưu warehouseID từ input trước khi patch dataEdit (để không bị override)
+      const inputWarehouseID = this.warehouseID;
+
       this.formDeviceInfo.patchValue({
         ...this.dataEdit,
         CreatDate: this.dataEdit?.CreatDate
@@ -537,7 +601,26 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         DateRequestImport: this.dataEdit?.DateRequestImport
           ? DateTime.fromISO(this.dataEdit.DateRequestImport).toJSDate()
           : null,
+        // Ưu tiên warehouseID từ input nếu có, nếu không thì dùng từ dataEdit
+        WarehouseID:
+          inputWarehouseID && inputWarehouseID > 0
+            ? inputWarehouseID
+            : this.dataEdit.WarehouseID || this.warehouseID,
       });
+
+      // Restore warehouseID từ input để getWarehouse() sử dụng
+      if (inputWarehouseID && inputWarehouseID > 0) {
+        this.warehouseID = inputWarehouseID;
+      }
+
+      // Đảm bảo WarehouseID được set lại sau khi patch (nếu warehouseID từ input đã được set)
+      if (inputWarehouseID && inputWarehouseID > 0) {
+        setTimeout(() => {
+          this.formDeviceInfo.patchValue({ WarehouseID: inputWarehouseID });
+          this.formDeviceInfo.get('WarehouseID')?.disable();
+        }, 300);
+      }
+
       // Update column visibility after data is loaded
       setTimeout(() => {
         const billType = this.formDeviceInfo.get('BillTypeNew')?.value ?? 0;
@@ -563,14 +646,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     if (!this.dataEdit) {
       this.getNewCode();
     }
-    this.getRulepay();
-    this.getNCC();
-    this.getCustomer();
-    this.getDocumentImport();
-    this.getListEmployee();
-    this.getProductList();
-    this.getWarehouse();
-    this.getEmployeeApprove();
     // Set người nhận mặc định là user đang đăng nhập (chỉ khi tạo mới)
     const currentUser = this.appUserService.currentUser;
     if (currentUser?.ID && !this.dataEdit) {
@@ -596,7 +671,15 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   changeStatus() {
     this.getNewCode();
   }
-  close() {
+  async close() {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial lớn hơn số lượng yêu cầu, vui lòng kiểm tra lại'
+      );
+      return;
+    }
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
@@ -618,7 +701,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     });
 
     modalRef.componentInstance.isModalMode = true;
-    modalRef.componentInstance.warehouseType = this.warehouseType
+    modalRef.componentInstance.warehouseType = this.warehouseType;
 
     modalRef.result.then(
       (products: any[]) => {
@@ -686,7 +769,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     const supplierSaleID = this.newBillImport.SupplierSaleID || 0;
     const rulePayID = this.newBillImport.RulePayID || 0;
 
-
     // Patch dữ liệu master từ PONCC vào form
     this.formDeviceInfo.patchValue({
       BillCode: this.newBillImport.BillCode || '',
@@ -717,10 +799,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       return;
     }
 
-
     // Map dữ liệu từ dtDetails sang format của BillImportTechnical
     const mappedProducts = this.dtDetails.map((item: any, index: number) => {
-
       // Ưu tiên ProductRTCID cho kho kỹ thuật
       const productID = item.ProductRTCID || item.ProductSaleID || 0;
 
@@ -754,8 +834,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         Note: item.Note || '',
         EmployeeIDBorrow: 0,
         DeadlineReturnNCC: null,
-        BillCodePO: item.BillCode || '', // Mã đơn mua hàng
-        PONCCDetailID: item.ID || 0, // Lưu ID để trace back
+        BillCodePO: item.BillCode || '',
+        PONCCDetailID: item.ID || 0,
       };
     });
 
@@ -905,10 +985,12 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             const product = this.productOptions.find((p) => p.ID === productId);
             const productCode = product ? product.ProductCode : '';
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${productCode || 'Chọn sản phẩm'
+              <button class="btn-toggle-detail w-100 h-100" title="${
+                productCode || 'Chọn sản phẩm'
               }">
-                <span class="product-code-text">${productCode || 'Chọn SP'
-              }</span>
+                <span class="product-code-text">${
+                  productCode || 'Chọn SP'
+                }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
@@ -958,14 +1040,14 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           width: 120,
         },
         {
-          title: 'Số chứng từ',
+          title: 'Số hóa đơn',
           field: 'SomeBill',
           editor: 'input',
           width: 120,
           editable: () => this.canEditRestrictedFields, // PHASE 6.3: Only DeliverID or Admin
         },
         {
-          title: 'Ngày chứng từ',
+          title: 'Ngày hóa đơn',
           field: 'DateSomeBill',
           editor: 'input',
           width: 130,
@@ -1057,7 +1139,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           hozAlign: 'center',
           width: 40,
           headerSort: false,
-          visible: false,
           titleFormatter: () => `
     <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
       <i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i>
@@ -1130,16 +1211,24 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     productCode: string,
     existingSerials: { ID: number; Serial: string }[]
   ) {
+    if (rowData.ID == null || rowData.ID <= 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Các mã sản phẩm thêm mới cần lưu trước khi chọn serial!'
+      );
+      return;
+    }
     const modalRef = this.ngbModal.open(BillImportChoseSerialComponent, {
       size: 'md',
       centered: true,
       backdrop: 'static',
       keyboard: false,
     });
-    modalRef.componentInstance.quantity = quantity;
-    modalRef.componentInstance.productCode = productCode;
-    modalRef.componentInstance.existingSerials = existingSerials;
-
+    modalRef.componentInstance.dataBillDetail = rowData;
+    modalRef.componentInstance.type = 1;
+    modalRef.componentInstance.isTechBill = true;
+    modalRef.componentInstance.warehouseId = this.warehouseID;
+    modalRef.componentInstance.isBillImport = true;
     modalRef.result
       .then((serials: { ID: number; Serial: string }[]) => {
         const newSerial = serials.map((s) => s.Serial).join(', ');
@@ -1148,7 +1237,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         rowData['SerialIDs'] = serialIDs;
         row.update(rowData);
       })
-      .catch(() => { });
+      .catch(() => {});
   }
   // Thêm dòng mới vào bảng tạm
   addRow() {
@@ -1452,6 +1541,15 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
 
   // Lưu dữ liệu
   async saveData() {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial không đủ, vui lòng kiểm tra lại'
+      );
+      return;
+    }
+
     // PHASE 3.1: Validate form
     if (this.formDeviceInfo.invalid) {
       Object.values(this.formDeviceInfo.controls).forEach((control) => {
@@ -1480,19 +1578,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Borrow type validation: require EmployeeIDBorrow and DeadlineReturnNCC per row
-    if (formValue.BillTypeNew === 1) {
-      const invalidRow = this.selectedDevices.find(
-        (d: any) => !d.EmployeeIDBorrow || !d.DeadlineReturnNCC
-      );
-      if (invalidRow) {
-        this.notification.warning(
-          'Cảnh báo',
-          'Đối với phiếu Mượn NCC, vui lòng nhập Người mượn và Hạn trả NCC cho từng dòng.'
-        );
-        return;
-      }
-    }
+    // Bỏ validation EmployeeIDBorrow và DeadlineReturnNCC cho phiếu Mượn NCC
+    // (Theo yêu cầu: khi trạng thái là mượn ncc thì bỏ validate hạn trả ncc và người mượn)
 
     const deliverEmployee = this.emPloyeeLists.find(
       (e) => e.ID === formValue.DeliverID
@@ -2068,4 +2155,32 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     }, 0);
   }
   */
+
+  async checkSerial(): Promise<boolean> {
+    // const tableData = this.deviceTempTable?.getData() || this.selectedDevices;
+
+    // for (const detail of tableData) {
+    //   const qty = detail.Quantity || detail.Qty || 0;
+    //   const detailId = detail.ID;
+
+    //   if (!detailId || detailId <= 0) {
+    //     continue;
+    //   }
+
+    //   try {
+    //     const result = await this.billImportChoseSerialService
+    //       .countSerialBillImportTech(detailId)
+    //       .toPromise();
+
+    //     if (qty < (result?.data || 0)) {
+    //       return false;
+    //     }
+    //   } catch (error) {
+    //     console.error('Lỗi check serial', detailId, error);
+    //     return false;
+    //   }
+    // }
+
+    return true;
+  }
 }

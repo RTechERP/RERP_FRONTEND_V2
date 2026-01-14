@@ -551,18 +551,45 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
           const trackingMarkId = res.data?.id || this.trackingMarkId;
           
           // Upload files if any
-          const filesToUpload = this.files
-            .filter((f: any) => f.file && !f.ID)
-            .map((f: any) => f.file as File);
+          const newFiles = this.files.filter((f: any) => f.file && !f.ID); // Chỉ upload file mới (có file object và ID = 0)
 
-          if (filesToUpload.length > 0 && trackingMarkId > 0) {
-            this.trackingMarksService.uploadFile(trackingMarkId, filesToUpload).subscribe({
-              next: () => {
+          if (newFiles.length > 0 && trackingMarkId > 0) {
+            const formData = new FormData();
+
+            // Thêm từng file mới vào FormData
+            newFiles.forEach((fileObj: any) => {
+              formData.append('files', fileObj.file);
+            });
+
+            // key: để backend nhận biết loại tài liệu
+            formData.append('key', 'TrackingMarks');
+
+            // subPath: Năm/TM{ID} (lọc ký tự không hợp lệ trong đường dẫn)
+            const year = new Date().getFullYear().toString();
+            const trackingMarkIdStr = trackingMarkId.toString();
+            const sanitize = (s: string) =>
+              s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+            const subPath = [sanitize(year), sanitize(`TM${trackingMarkIdStr}`)]
+              .filter((x) => x)
+              .join('/');
+
+            formData.append('subPath', subPath);
+
+            // Gọi API upload
+            this.trackingMarksService.uploadFile(trackingMarkId, formData).subscribe({
+              next: (result: any) => {
+                // API trả về format: { status: 1, message: "..." } hoặc { Status: 1, Message: "..." }
+                if (result && (result.status == 1 || result.Status == 1)) {
+                  console.log('Files uploaded successfully');
+                } else {
+                  console.warn('File upload warning:', result?.message || result?.Message);
+                }
                 this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
                 this.onSave.emit(res.data);
                 this.activeModal.close(true);
               },
-              error: () => {
+              error: (err) => {
+                console.error('Error uploading files:', err);
                 this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công nhưng upload file thất bại');
                 this.onSave.emit(res.data);
                 this.activeModal.close(true);
@@ -578,7 +605,8 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lưu phiếu');
+        const errorMessage = error?.error?.message || error?.message || 'Lỗi khi lưu phiếu';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       }
     });
   }

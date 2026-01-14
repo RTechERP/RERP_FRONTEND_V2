@@ -87,6 +87,15 @@ export class ProjectService {
   getProjectStatus(): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-project-status`);
   }
+
+  // Cập nhật trạng thái dự án
+  updateProjectStatus(projectID: number, projectStatusID: number, dateLog: Date): Observable<any> {
+    const params = new HttpParams()
+      .set('projectID', projectID.toString())
+      .set('projectStatusID', projectStatusID.toString())
+      .set('dateLog', dateLog.toISOString());
+    return this.http.post<any>(this.urlProject + `update-status`, null, { params });
+  }
   // modal lấy danh sách nhóm file
   getGroupFiles(): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-group-files`);
@@ -370,18 +379,16 @@ export class ProjectService {
     let selected: any[] = [];
   
     data.forEach((row) => {
-      // Chỉ lấy dòng được chọn (Selected === true)
-      if (row.Selected === true) {
-        selected.push({
-          ProjectTypeLinkID: row.ProjectTypeLinkID || row.ID || 0,
-          ID: row.ID,
-          LeaderID: row.LeaderID || 0,
-          Selected: row.Selected,
-          projectTypeID: row.ProjectTypeID || row.ID
-        });
-      }
+      // Lấy dòng cha (parent) - lấy tất cả các dòng
+      selected.push({
+        ProjectTypeLinkID: row.ProjectTypeLinkID || 0,
+        ID: row.ID,
+        LeaderID: row.LeaderID || 0,
+        Selected: row.Selected,
+        projectTypeID: row.ProjectTypeID || row.ID
+      });
       
-      // Đệ quy kiểm tra children
+      // Đệ quy lấy tất cả các dòng con (children) nếu có
       if (row._children && Array.isArray(row._children)) {
         selected = selected.concat(
           this.getSelectedRowsRecursive(row._children)
@@ -509,6 +516,12 @@ export class ProjectService {
     debugger;
     return this.http.get<any>(
       this.urlProjectWorkTimeline + `get-user-team?depID=${departmentId}`
+    );
+  }
+
+  getEmployeeByUserTeam(userTeamID: number): Observable<any> {
+    return this.http.get<any>(
+      this.urlProject + `get-employee-by-userTeam?userTeamID=${userTeamID}`
     );
   }
 
@@ -851,7 +864,8 @@ export class ProjectService {
     const headers = columns.map((col: any) => col.getDefinition().title);
     worksheet.addRow(headers);
 
-    data.forEach((row: any) => {
+    let rowIndex = 0;
+    data.forEach((row: any, index: number) => {
       const rowData = columns.map((col: any) => {
         const field = col.getField();
         let value = row[field];
@@ -863,7 +877,22 @@ export class ProjectService {
         return value;
       });
 
-      worksheet.addRow(rowData);
+      const excelRow = worksheet.addRow(rowData);
+      rowIndex = excelRow.number;
+      
+      // Kiểm tra nếu là dòng cuối cùng (bottom row) - có thể chứa text như "Số báo cáo = ..." hoặc "Tổng số ngày = ..."
+      const isBottomRow = index === data.length - 1;
+      if (isBottomRow) {
+        excelRow.eachCell((cell) => {
+          cell.font = { bold: true };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFD3D3D3' }, // Light grey background
+          };
+          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        });
+      }
     });
 
     // Format cột có giá trị là Date
@@ -897,6 +926,16 @@ export class ProjectService {
         column: columns.length,
       },
     };
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell) => {
+        cell.alignment = {
+          ...(cell.alignment || {}),
+          wrapText: true,
+          vertical: 'middle',
+        };
+      });
+    });
+    
 
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();
@@ -1067,6 +1106,15 @@ export class ProjectService {
         size: size.toString(),
       };
       return this.http.get<any>(this.urlProject + `get-project-work-reports`, { params: filter });
+    }
+    //#endregion
+
+    //#region Kiểm tra quyền nhân viên
+    getEmployeePermission(projectId: number, employeeId: number): Observable<any> {
+      const params = new HttpParams()
+        .set('projectId', projectId.toString())
+        .set('employeeId', employeeId.toString());
+      return this.http.get<any>(this.urlProject + `get-employee-permission`, { params });
     }
     //#endregion
 

@@ -1,0 +1,118 @@
+<div class="bill-import-technical-summary-container">
+  <!-- Modal Header -->
+  <div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white text-uppercase" id="summaryModalLabel">TỔNG HỢP CHI TIẾT PHIẾU NHẬP PHÒNG KỸ THUẬT</h6>
+    <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="closeModal()"></button>
+  </div>
+
+  <!-- Modal Body -->
+  <div class="modal-body">
+    <!-- Header & Toolbar -->
+    <div class="header-section">
+      <div class="toolbar">
+        <button
+          nz-button
+          nzType="primary"
+          (click)="exportExcel()"
+          [disabled]="isLoading || dataset.length === 0">
+          <i nz-icon nzType="file-excel" nzTheme="outline"></i>
+          Xuất Excel
+        </button>
+        <button
+          nz-button
+          nzType="primary"
+          (click)="saveChanges()"
+          [disabled]="isLoading || changedRows.size === 0">
+          <i nz-icon nzType="save" nzTheme="outline"></i>
+          Lưu hóa đơn
+        </button>
+      </div>
+    </div>
+
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <nz-spin [nzSpinning]="isLoading">
+      <div class="filter-row">
+        <!-- Date Range -->
+        <div class="filter-item">
+          <label>Từ ngày:</label>
+          <input
+            nz-input
+            type="date"
+            [(ngModel)]="searchParams.dateStart"
+            [disabled]="searchParams.checkAll" />
+        </div>
+
+        <div class="filter-item">
+          <label>Đến ngày:</label>
+          <input
+            nz-input
+            type="date"
+            [(ngModel)]="searchParams.dateEnd"
+            [disabled]="searchParams.checkAll" />
+        </div>
+
+        <div class="filter-item">
+          <label nz-checkbox [(ngModel)]="searchParams.checkAll" (ngModelChange)="onCheckAllChange($event)">
+            Tất cả
+          </label>
+        </div>
+
+        <!-- Bill Type Filter -->
+        <div class="filter-item">
+          <label>Lọc phiếu:</label>
+          <nz-select
+            [(ngModel)]="searchParams.billType"
+            nzPlaceHolder="Chọn loại phiếu"
+            style="width: 200px;">
+            <nz-option
+              *ngFor="let type of billTypes"
+              [nzValue]="type.ID"
+              [nzLabel]="type.Name">
+            </nz-option>
+          </nz-select>
+        </div>
+
+        <!-- Search Keyword -->
+        <div class="filter-item">
+          <label>Từ khóa:</label>
+          <input
+            nz-input
+            type="text"
+            [(ngModel)]="searchParams.filterText"
+            placeholder="Tìm theo số phiếu, NCC, NV..."
+            style="width: 250px;" />
+        </div>
+
+        <!-- Search Button -->
+        <div class="filter-item">
+          <button
+            nz-button
+            nzType="primary"
+            (click)="onSearch()"
+            [disabled]="isLoading">
+            <i nz-icon nzType="search" nzTheme="outline"></i>
+            Tìm kiếm
+          </button>
+        </div>
+      </div>
+    </nz-spin>
+  </div>
+
+  <nz-divider></nz-divider>
+
+  <!-- Grid Section -->
+  <div class="grid-section" id="gridContainer">
+    <angular-slickgrid
+      gridId="grid-bill-import-technical-summary"
+      [columns]="columnDefinitions"
+      [options]="gridOptions"
+      [dataset]="dataset"
+      (onAngularGridCreated)="angularGridReady($event)">
+    </angular-slickgrid>
+  </div>
+  <!-- Modal Footer -->
+  <div class="modal-footer">
+    <button nz-button nzType="default" (click)="closeModal()">Đóng</button>
+  </div>
+</div>

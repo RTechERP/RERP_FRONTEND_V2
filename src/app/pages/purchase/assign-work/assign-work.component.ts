@@ -34,20 +34,19 @@ import { ChooseEmployeeComponent } from './choose-employee/choose-employee.compo
     NzModalModule,
     CommonModule,
     NzButtonModule,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
   templateUrl: './assign-work.component.html',
-  styleUrl: './assign-work.component.css'
+  styleUrl: './assign-work.component.css',
 })
 export class AssignWorkComponent implements OnInit, AfterViewInit {
-
   //#region Khai báo biến
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private modal: NzModalService,
-    private assignWorkService: AssignWorkService,
-  ) { }
+    private assignWorkService: AssignWorkService
+  ) {}
 
   @ViewChild('tb_userTeamLink', { static: false })
   tb_userTeamLinkContainer!: ElementRef;
@@ -61,19 +60,19 @@ export class AssignWorkComponent implements OnInit, AfterViewInit {
   //#endregion
 
   //#region Hàm chạy khi mở chương trình
-  ngOnInit(): void {
-
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     this.drawTbUserTeamLink(this.tb_userTeamLinkContainer.nativeElement);
-    this.drawTbUserTeamLinkDetail(this.tb_userTeamLinkDetailContainer.nativeElement);
+    this.drawTbUserTeamLinkDetail(
+      this.tb_userTeamLinkDetailContainer.nativeElement
+    );
     this.getProjectType();
     this.getProjectTypeAssign(this.projectTypeId);
   }
   //#endregion
 
-  //#region Tạo bảng 
+  //#region Tạo bảng
   drawTbUserTeamLink(container: HTMLElement) {
     this.tb_userTeamLink = new Tabulator(container, {
       height: '89vh',
@@ -88,13 +87,13 @@ export class AssignWorkComponent implements OnInit, AfterViewInit {
           title: 'Mã',
           field: 'ProjectTypeCode',
           width: 150,
-          headerSort: false
+          headerSort: false,
         },
         {
           title: 'Tên',
           field: 'ProjectTypeName',
           width: 150,
-          headerSort: false
+          headerSort: false,
         },
       ],
     });
@@ -112,7 +111,7 @@ export class AssignWorkComponent implements OnInit, AfterViewInit {
       layout: 'fitDataStretch',
       selectableRows: true,
       locale: 'vi',
-      groupBy: (data) => `Danh mục: ${data.ProjectTypeName ?? ""}`,
+      groupBy: (data) => `Danh mục: ${data.ProjectTypeName ?? ''}`,
       groupHeader: function (value, count, data, group) {
         return `${value}`;
       },
@@ -134,13 +133,15 @@ export class AssignWorkComponent implements OnInit, AfterViewInit {
           title: 'Mã nhân viên',
           field: 'Code',
           width: 150,
-          headerSort: false
+          minWidth: 150,
+          headerSort: false,
         },
         {
           title: 'Tên nhân viên',
           field: 'FullName',
           width: 150,
-          headerSort: false
+          minWidth: 150,
+          headerSort: false,
         },
       ],
     });
@@ -185,19 +186,17 @@ export class AssignWorkComponent implements OnInit, AfterViewInit {
         const newItem = {
           ID: 0,
           ParentID: 0,
-          ProjectTypeName: '--Tất cả--'
+          ProjectTypeName: '--Tất cả--',
         };
         const newData = [newItem, ...data.data];
         let tree = this.setDataTree(newData, 'ID');
+
         this.tb_userTeamLink.setData(tree);
         this.tb_userTeamLink.selectRow(0);
       },
       error: (error) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          error.error.message
-        );
-      }
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+      },
     });
   }
 
@@ -208,11 +207,8 @@ export class AssignWorkComponent implements OnInit, AfterViewInit {
         this.tb_userTeamLinkDetail.setData(data.data);
       },
       error: (error) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          error.error.message
-        );
-      }
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+      },
     });
   }
   //#endregion
@@ -229,7 +225,7 @@ export class AssignWorkComponent implements OnInit, AfterViewInit {
     if (this.projectTypeId <= 0 || this.projectTypeId == null) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        "Vui lòng chọn nhóm cần thêm nhân viên!"
+        'Vui lòng chọn nhóm cần thêm nhân viên!'
       );
       return;
     }
@@ -280,7 +276,5 @@ export class AssignWorkComponent implements OnInit, AfterViewInit {
         });
       },
     });
-
   }
-
 }

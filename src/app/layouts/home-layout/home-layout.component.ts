@@ -262,12 +262,12 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
 
         this.appUserService.user$.subscribe(() => {
             this.permissionService.refreshPermissions();
-            this.menus = this.menuService
-                .getMenus()
-                .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
-            this.menuQuickAccess = this.menuService
-                .getMenus()
-                .filter((x) => x.key == 'person');
+            // this.menus = this.menuService
+            //     .getMenus()
+            //     .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
+            // this.menuQuickAccess = this.menuService
+            //     .getMenus()
+            //     .filter((x) => x.key == 'person');
             this.cdr.markForCheck?.();
         });
     }

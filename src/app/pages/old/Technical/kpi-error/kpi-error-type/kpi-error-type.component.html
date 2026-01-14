@@ -1,0 +1,25 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">DANH SÁCH LOẠI LỖI</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-2" style="height: 500px; overflow: hidden;">
+    <!-- Menu Bar -->
+    <div class="mb-2">
+        <p-menubar [model]="menuBars"></p-menubar>
+    </div>
+
+    <!-- SlickGrid Table -->
+    <div id="grid-container" style="height: 400px;">
+        <angular-slickgrid gridId="kpiErrorTypeGrid" [columns]="columnDefinitions" [options]="gridOptions"
+            [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+            (onClick)="onRowClick($event.detail.eventData, $event.detail.args)">
+        </angular-slickgrid>
+    </div>
+</div>
+
+<div class="modal-footer p-1">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+</div>

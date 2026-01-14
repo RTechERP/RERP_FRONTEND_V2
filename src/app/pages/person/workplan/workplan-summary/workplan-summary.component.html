@@ -1,0 +1,177 @@
+<div class="workplan-container">
+    <!-- Header row 1: Tiêu đề và radio -->
+    <div class="card border-0 rounded-0 flex-shrink-0 sticky-header">
+        <div class="card-header bg-white p-1">
+            <div class="header-content-mobile">
+                <div class="title-section">
+                    <h6 class="m-0 text-uppercase fw-bold" style="white-space: nowrap;">Kế hoạch công việc tổng hợp</h6>
+                </div>
+                <div class="radio-section">
+                    <nz-radio-group [(ngModel)]="viewType" (ngModelChange)="onViewTypeChange()" nzButtonStyle="solid" nzSize="small">
+                        <label nz-radio-button [nzValue]="0">Tổng hợp</label>
+                        <label nz-radio-button [nzValue]="1">Chi tiết</label>
+                    </nz-radio-group>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header row 2: Form tìm kiếm -->
+    <div class="card border-0 rounded-0 flex-shrink-0 sticky-header">
+        <div class="card-header bg-white p-1">
+            <nz-row [nzGutter]="[8, 8]">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label >Từ ngày</label>
+                        <nz-date-picker 
+                            [(ngModel)]="dateStart" 
+                            nzPlaceHolder="Từ ngày" 
+                            nzFormat="dd/MM/yyyy"
+                            nzSize="small"
+                            name="dateStart"
+                            style="width: 100%;">
+                        </nz-date-picker>
+                    </div>
+                </nz-col>
+                
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label >Đến ngày</label>
+                        <nz-date-picker 
+                            [(ngModel)]="dateEnd" 
+                            nzPlaceHolder="Đến ngày" 
+                            nzFormat="dd/MM/yyyy"
+                            nzSize="small"
+                            name="dateEnd"
+                            style="width: 100%;">
+                        </nz-date-picker>
+                    </div>
+                </nz-col>
+
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label >Phòng ban</label>
+                        <nz-select 
+                            nzPlaceHolder="Phòng ban" 
+                            [(ngModel)]="departmentId"
+                            nzSize="small"
+                            nzShowSearch
+                            nzAllowClear
+                            (ngModelChange)="onDepartmentChange()"
+                            style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option 
+                                *ngFor="let item of departmentList" 
+                                [nzLabel]="item.Name || ''" 
+                                [nzValue]="item.ID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+                    <div class="form-field-vertical">
+                        <label >Team</label>
+                        <nz-select 
+                            nzPlaceHolder="Team" 
+                            [(ngModel)]="teamId"
+                            nzSize="small"
+                            nzShowSearch
+                            nzAllowClear
+                            (ngModelChange)="onTeamChange()"
+                            style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option 
+                                *ngFor="let item of teamList" 
+                                [nzLabel]="item.Leader || ''" 
+                                [nzValue]="item.ID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+                    <div class="form-field-vertical">
+                        <label >Nhân viên</label>
+                        <nz-select 
+                            nzPlaceHolder="Nhân viên" 
+                            [(ngModel)]="userId"
+                            nzSize="small"
+                            nzShowSearch
+                            nzAllowClear
+                            style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option 
+                                *ngFor="let item of userList" 
+                                [nzLabel]="item.FullName || ''" 
+                                [nzValue]="item.UserID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+                    <div class="form-field-vertical">
+                        <label >Từ khóa</label>
+                        <input 
+                            nz-input 
+                            placeholder="Từ khóa" 
+                            [(ngModel)]="keyword"
+                            nzSize="small"
+                            style="width: 100%;" />
+                    </div>
+                </nz-col>
+
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label >&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
+                                Đặt lại
+                            </button>
+                            
+                            <button nz-button nzType="primary" nzSize="small" (click)="loadData()">
+                                <span nz-icon nzType="search"></span>
+                                Tìm kiếm
+                            </button>
+                        </div>
+                    </div>
+                </nz-col>
+            </nz-row>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-scroll-container">
+        <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+            <table class="table table-hover table-bordered" id="tbl_workplan_detail">
+                    <thead class="sticky-thead">
+                        <tr>
+                            <th class="sticky-left">Họ tên</th>
+                            <th *ngFor="let col of columnNames.slice(1)" 
+                                [innerHTML]="formatDateHeader(col)">
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="tbody_workplan_detail text-left">
+                        <ng-container *ngFor="let item of summaryData; let i = index">
+                            <tr>
+                                <td tabindex="0" rowspan="2" class="sticky-left">{{ item.FullName }}</td>
+                                <td *ngFor="let col of columnNames.slice(1); let j = index" 
+                                    tabindex="0" 
+                                    [style.white-space]="'pre-line'"
+                                    [style.background-color]="getWorkContent(item['Day' + (j + 1)]).Location == 1 ? '' : '#ffd291'"
+                                    (click)="onEditWorkContentDetail(getWorkContent(item['Day' + (j + 1)]).Id)">
+                                    {{ getWorkContent(item['Day' + (j + 1)]).Content }}
+                                </td>
+                            </tr>
+                            <tr tabindex="0">
+                                <td [attr.colspan]="3" style="white-space:pre-line;">{{ item.WorkPlanPreviousWeek }}</td>
+                                <td [attr.colspan]="columnNames.length - 4" style="white-space:pre-line;">{{ item.WorkPlanCurrentWeek }}</td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+        </nz-spin>
+    </div>
+</div>

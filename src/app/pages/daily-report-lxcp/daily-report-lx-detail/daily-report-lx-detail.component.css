@@ -1,0 +1,77 @@
+:host {
+  font-size: 12px;
+}
+
+.modal-header {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+}
+
+.fs-7 {
+  font-size: 0.875rem;
+}
+
+.fs-12 {
+  font-size: 12px !important;
+}
+
+fieldset {
+  background-color: #fafafa;
+  border: 1px solid #d9d9d9 !important;
+}
+
+fieldset legend {
+  background-color: #fafafa;
+  color: #1890ff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .modal-body {
+    padding: 8px !important;
+  }
+
+  fieldset {
+    padding: 12px !important;
+    margin-top: 12px !important;
+  }
+
+  nz-form-label {
+    padding-bottom: 2px !important;
+  }
+}
+
+/* Input number full width */
+:host ::ng-deep .ant-input-number {
+  width: 100% !important;
+}
+
+/* Select full width */
+:host ::ng-deep .ant-select {
+  width: 100% !important;
+}
+
+/* Form item spacing */
+nz-form-item {
+  margin-bottom: 8px;
+}
+
+/* Disabled input styling */
+:host ::ng-deep .ant-input-number-disabled,
+:host ::ng-deep .ant-input-disabled {
+  background-color: #f5f5f5;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+/* Button close white */
+.btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.modal-body {
+  max-height: 80vh;
+  overflow-y: auto;
+}

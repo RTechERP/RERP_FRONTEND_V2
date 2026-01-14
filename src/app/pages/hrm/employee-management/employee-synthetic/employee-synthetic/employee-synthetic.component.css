@@ -1,3 +1,29 @@
+:host {
+  font-size: 12px !important;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 93vh;
+  overflow: hidden;
+}
+
+.card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body > div {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
 ::ng-deep app-employee-synthetic {
   font-size: 12px;
 }

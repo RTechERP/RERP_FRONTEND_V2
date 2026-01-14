@@ -21,6 +21,9 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { MenubarModule } from 'primeng/menubar';
+import { MenuItem } from 'primeng/api';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator, ColumnDefinition, RowComponent, CellComponent } from 'tabulator-tables';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
@@ -57,8 +60,10 @@ import { PONCCService } from '../poncc/poncc.service';
     NzSplitterModule,
     NzTabsModule,
     NzModalModule,
+    NzDropDownModule,
     NgbModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    MenubarModule
   ],
   templateUrl: './project-partlist-purchase-request-new.component.html',
   styleUrl: './project-partlist-purchase-request-new.component.css'
@@ -88,7 +93,17 @@ export class ProjectPartlistPurchaseRequestNewComponent implements OnInit, After
   @Input() isPurchaseRequestDemo: any = false;
 
   sizeSearch: string = '0';
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
   isLoading = false;
+
+  // Menu items for PrimeNG Menubar
+  menuItems: MenuItem[] = [];
+  maxVisibleItems = 9; // Số nút tối đa hiển thị trực tiếp
+
+  // Check if mobile
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
   lstPOKH: any[] = [];
   lstWarehouses: any[] = [];
   requestTypes: any[] = [];
@@ -149,6 +164,10 @@ export class ProjectPartlistPurchaseRequestNewComponent implements OnInit, After
   // Cached data by type for local pagination
   private allData: any[] = [];
   private dataByType = new Map<number, any[]>();
+
+  // Track cell đang được click để copy
+  private clickedCell: CellComponent | null = null;
+  private copyKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
 
   // Map caption theo form WinForms để hiển thị tiêu đề cột tiếng Việt
   private CAPTION_MAP: Record<string, string> = {
@@ -220,7 +239,7 @@ export class ProjectPartlistPurchaseRequestNewComponent implements OnInit, After
     SpecialCode: 'Mã đặc biệt',
     TotalPriceHistory: 'Thành tiền lịch sử',
     InventoryProjectID: 'Phiếu giữ hàng',
-    NotePartlist: 'Ghi chú PL',
+    NotePartlist: 'Ghi chú KT',
     IsStock: 'Tồn kho',
     TargetPrice: 'Giá Target',
     DuplicateID: 'DuplicateID',
@@ -404,8 +423,193 @@ private validateManufacturerForVision(rows: any[]): boolean {
 
   //#region Hàm chạy khi mở chương trình
   ngOnInit(): void {
+    this.initMenuItems();
     this.getRequestTypes();
     this.loadLookups();
+    this.setupCopyToClipboard();
+  }
+
+  // Initialize menu items based on current state
+  initMenuItems() {
+    this.menuItems = [];
+
+    // Khi isYCMH = true
+    if (this.isYCMH) {
+      this.menuItems = [
+        {
+          label: 'Chọn YCMH',
+          icon: 'fa-solid fa-plus fa-lg text-primary',
+          command: () => this.onSelectYCMH()
+        }
+      ];
+      return;
+    }
+
+    // Hiển thị tất cả các nút
+    const allItems: MenuItem[] = [
+      {
+        label: 'Check đặt hàng',
+        icon: 'fa-solid fa-check fa-lg text-success',
+        command: () => this.onCheckOrder(this.activeTabIndex, true)
+      },
+      {
+        label: 'Hủy Check đặt hàng',
+        icon: 'fa-solid fa-xmark fa-lg text-danger',
+        command: () => this.onCheckOrder(this.activeTabIndex, false)
+      }
+    ];
+
+    // Items requiring N35,N1 permission
+    if (this.permissionService.hasPermission('N35,N1')) {
+      allItems.push(
+        {
+          label: 'Lưu thay đổi',
+          icon: 'fa-solid fa-floppy-disk fa-lg text-primary',
+          command: () => this.onSaveData(this.activeTabIndex)
+        },
+        {
+          label: 'Sửa',
+          icon: 'fa-solid fa-pen-to-square fa-lg text-warning',
+          command: () => this.onEdit(this.activeTabIndex)
+        },
+        {
+          label: 'Hủy Y/c',
+          icon: 'fa-solid fa-trash fa-lg text-danger',
+          command: () => this.onDeleteRequest(this.activeTabIndex)
+        },
+        {
+          label: 'Thêm NCC',
+          icon: 'fa-solid fa-plus fa-lg text-primary',
+          command: () => this.onAddSupplierSale()
+        },
+        {
+          label: 'Y/C duyệt mua',
+          icon: 'fa-solid fa-circle-check fa-lg text-success',
+          command: () => this.onRequestApproved(this.activeTabIndex, true)
+        },
+        {
+          label: 'Hủy Y/C duyệt mua',
+          icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+          command: () => this.onRequestApproved(this.activeTabIndex, false)
+        },
+        {
+          label: 'Hoàn thành',
+          icon: 'fa-solid fa-check-circle fa-lg text-success',
+          command: () => this.onCompleteRequest(this.activeTabIndex, 7)
+        },
+        {
+          label: 'Hủy hoàn thành',
+          icon: 'fa-solid fa-times-circle fa-lg text-danger',
+          command: () => this.onCompleteRequest(this.activeTabIndex, 1)
+        }
+      );
+    }
+
+    // Items requiring N58,N1 permission
+    if (this.permissionService.hasPermission('N58,N1')) {
+      allItems.push(
+        {
+          label: 'BGD duyệt',
+          icon: 'fa-solid fa-circle-check fa-lg text-success',
+          command: () => this.onApproved(this.activeTabIndex, true, false)
+        },
+        {
+          label: 'BGD hủy duyệt',
+          icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+          command: () => this.onApproved(this.activeTabIndex, false, false)
+        }
+      );
+    }
+
+    // Items requiring N35,N1 permission (continued)
+    if (this.permissionService.hasPermission('N35,N1')) {
+      allItems.push(
+        {
+          label: 'Tạo PO NCC',
+          icon: 'fa-solid fa-file-circle-plus fa-lg text-primary',
+          command: () => this.onAddPoncc()
+        },
+        {
+          label: 'Tải file',
+          icon: 'fa-solid fa-download fa-lg text-primary',
+          command: () => this.onDownloadFile(this.activeTabIndex)
+        }
+      );
+    }
+
+    // Lọc các items có visible = false
+    const visibleItems = allItems.filter(item => item.visible !== false);
+
+    // Nếu số lượng items <= maxVisibleItems, hiển thị tất cả trực tiếp
+    if (visibleItems.length <= this.maxVisibleItems) {
+      this.menuItems = visibleItems;
+    } else {
+      // Nếu vượt quá maxVisibleItems, tách ra: items chính + More menu
+      const directItems = visibleItems.slice(0, this.maxVisibleItems - 1);
+      const moreItems = visibleItems.slice(this.maxVisibleItems - 1);
+
+      this.menuItems = [
+        ...directItems,
+        {
+          label: 'More',
+          icon: 'fa-solid fa-ellipsis fa-lg text-secondary',
+          items: moreItems
+        }
+      ];
+    }
+  }
+
+  private setupCopyToClipboard(): void {
+    // Lắng nghe sự kiện Ctrl+C để copy giá trị cell
+    this.copyKeydownHandler = (e: KeyboardEvent) => {
+      // Kiểm tra Ctrl+C hoặc Cmd+C (Mac)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && this.clickedCell) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        try {
+          const value = this.clickedCell.getValue();
+          const textToCopy = value !== null && value !== undefined ? String(value) : '';
+          
+          // Copy vào clipboard
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+              // Có thể hiển thị thông báo nếu muốn
+              // this.notify.success('Đã copy', `Đã copy: ${textToCopy}`);
+            }).catch(() => {
+              // Fallback cho trình duyệt cũ
+              this.fallbackCopyToClipboard(textToCopy);
+            });
+          } else {
+            // Fallback cho trình duyệt cũ
+            this.fallbackCopyToClipboard(textToCopy);
+          }
+        } catch (error) {
+          console.error('Lỗi khi copy:', error);
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', this.copyKeydownHandler);
+  }
+
+  private fallbackCopyToClipboard(text: string): void {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      document.execCommand('copy');
+    } catch (err) {
+      console.error('Fallback copy failed:', err);
+    }
+    
+    document.body.removeChild(textArea);
   }
 
   ngAfterViewInit(): void {
@@ -422,6 +626,40 @@ private validateManufacturerForVision(rows: any[]): boolean {
   //#region Sự kiện tìm kiếm
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  }
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const isMobile = window.innerWidth <= 768;
+    const wasOpen = this.showSearchBar;
+
+    this.showSearchBar = !this.showSearchBar;
+
+    if (isMobile) {
+      if (this.showSearchBar) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+      } else {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      }
+    }
+
+    requestAnimationFrame(() => {
+      if (isMobile && this.showSearchBar && !wasOpen) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
   }
 
   onSearch() {
@@ -442,8 +680,6 @@ private validateManufacturerForVision(rows: any[]): boolean {
       IsDeleted: this.isDeletedFilter,
       IsTechBought: -1,
       IsJobRequirement: -1,
-      Page: 1,
-      Size: 5000,
     };
 
     this.srv.getAll(filter).subscribe({
@@ -527,6 +763,17 @@ private validateManufacturerForVision(rows: any[]): boolean {
 
         this.refreshAllTables();
         this.isLoading = false;
+        
+        // Tự động ẩn filter bar trên mobile sau khi tìm kiếm
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile && this.showSearchBar) {
+          document.body.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.width = '';
+          setTimeout(() => {
+            this.showSearchBar = false;
+          }, 100);
+        }
       },
       error: (err) => {
         this.isLoading = false;
@@ -755,8 +1002,12 @@ private validateManufacturerForVision(rows: any[]): boolean {
 
   private readonly moneyFormatter = (cell: any) => this.formatNumberEnUS(cell.getValue(), 2);
   private readonly dateFormatter = (cell: any) => this.formatDateDDMMYYYY(cell.getValue());
-  private readonly tooltipFormatter = (cell: any) => {
-    const value = cell.getValue();
+  private readonly tooltipFormatter = (e: MouseEvent, cell: any) => {
+    // Trong Tabulator, tooltip formatter nhận 2 tham số:
+    // - e: MouseEvent (tham số đầu tiên)
+    // - cell: CellComponent (tham số thứ hai)
+    if (!cell) return '';
+    const value = typeof cell?.getValue === 'function' ? cell.getValue() : cell;
     if (value === null || value === undefined || value === '') return '';
     return String(value);
   };
@@ -1152,6 +1403,10 @@ private validateManufacturerForVision(rows: any[]): boolean {
         return `${value} (${count})`;
       },
       rowContextMenu: () => !this.isYCMH ? this.buildRowContextMenu(tabIndex) : [],
+      cellClick: (e: MouseEvent, cell: CellComponent) => {
+        // Lưu cell đang được click để có thể copy khi nhấn Ctrl+C
+        this.clickedCell = cell;
+      },
     };
   }
 
@@ -2126,7 +2381,10 @@ private validateManufacturerForVision(rows: any[]): boolean {
       nzOnOk: () => {
         this.isLoading = true;
 
-        this.srv.saveData(dataToSave).subscribe({
+        // Gửi dữ liệu với format { data: [...] } nếu API yêu cầu
+        const payload: any = { data: dataToSave };
+        
+        this.srv.saveData(payload as any).subscribe({
           next: (rs) => {
             this.notify.success(NOTIFICATION_TITLE.success, rs.message);
             this.changedRows = [];
@@ -2157,9 +2415,9 @@ private validateManufacturerForVision(rows: any[]): boolean {
       const rowId = changedRow.ID;
       const duplicateId = changedRow.DuplicateID;
 
-      // Thêm dòng hiện tại nếu chưa có
+      // Thêm dòng hiện tại nếu chưa có (đã normalize)
       if (!addedIds.has(rowId)) {
-        result.push(changedRow);
+        result.push(this.normalizeRowData(changedRow));
         addedIds.add(rowId);
       }
 
@@ -2178,10 +2436,10 @@ private validateManufacturerForVision(rows: any[]): boolean {
             (itemDuplicateId && itemDuplicateId === duplicateId);
 
           if (isRelated && !addedIds.has(itemId)) {
-            result.push({
+            result.push(this.normalizeRowData({
               ...item,
               IsMarketing: this.activeTabIndex === 7 || this.activeTabIndex === 1
-            });
+            }));
             addedIds.add(itemId);
           }
         });
@@ -2189,6 +2447,42 @@ private validateManufacturerForVision(rows: any[]): boolean {
     });
 
     return result;
+  }
+
+  // Hàm normalize dữ liệu row trước khi gửi lên API
+  private normalizeRowData(row: any): any {
+    const normalized: any = { ...row };
+
+    // Normalize các field số (convert string, empty string, null, undefined thành number hoặc null)
+    const numericFields = [
+      'ID', 'SupplierSaleID', 'Quantity', 'UnitPrice', 'UnitImportPrice', 'VAT', 
+      'TargetPrice', 'CurrencyID', 'ProductGroupID', 'ProductGroupRTCID', 
+      'WarehouseID', 'CurrencyRate', 'ProjectID', 'ProductRTCID', 'ProductSaleID',
+      'DuplicateID', 'PONCCID', 'POKHID', 'JobRequirementID', 'CustomerID'
+    ];
+
+    numericFields.forEach(field => {
+      if (normalized[field] !== undefined && normalized[field] !== null) {
+        const value = normalized[field];
+        // Nếu là string rỗng hoặc không phải số hợp lệ, set thành null
+        if (value === '' || value === 'null' || value === 'undefined') {
+          normalized[field] = null;
+        } else {
+          const numValue = Number(value);
+          // Nếu convert thành số hợp lệ, dùng số đó, ngược lại giữ nguyên (có thể là 0)
+          if (!isNaN(numValue) && isFinite(numValue)) {
+            normalized[field] = numValue;
+          } else {
+            normalized[field] = null;
+          }
+        }
+      } else {
+        // Nếu undefined hoặc null, set thành null
+        normalized[field] = null;
+      }
+    });
+
+    return normalized;
   }
   //#endregion
 

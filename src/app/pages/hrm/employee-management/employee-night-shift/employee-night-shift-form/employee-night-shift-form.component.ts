@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -20,11 +20,15 @@ import { VehicleRepairService } from '../../../vehicle/vehicle-repair/vehicle-re
 import { WFHService } from '../../employee-wfh/WFH-service/WFH.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { AuthService } from '../../../../../auth/auth.service';
+import { PermissionService } from '../../../../../services/permission.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { OverTimeComponent } from '../../../over-time/over-time.component';
 import { OverTimeDetailComponent } from '../../../over-time/over-time-detail/over-time-detail.component';
-
+import { OverTimePersonFormComponent } from '../../../over-time/over-time-person/over-time-person-form/over-time-person-form.component';
+import { EmployeeService } from '../../../employee/employee-service/employee.service';
+import flatpickr from 'flatpickr';
+import { Vietnamese } from 'flatpickr/dist/l10n/vn.js';
 
 
 
@@ -50,7 +54,7 @@ import { OverTimeDetailComponent } from '../../../over-time/over-time-detail/ove
   templateUrl: './employee-night-shift-form.component.html',
   styleUrl: './employee-night-shift-form.component.css'
 })
-export class EmployeeNightShiftFormComponent implements OnInit {
+export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() dataInput: any = null; // Dữ liệu khi sửa
   @Input() allEmployees: any[] = []; // Danh sách nhân viên
   @Input() allApprovers: any[] = []; // Danh sách người duyệt (có thể dùng chung với employees)
@@ -58,7 +62,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   formGroup!: FormGroup;
   isEditMode: boolean = false;
   employees: { department: string, list: any[] }[] = [];
-  approvers: { department: string, list: any[] }[] = [];
+  approverList: any[] = [];
   dateFormat = 'dd/MM/yyyy HH:mm';
   currentUser: any = null;
   isSelfDeclaration: boolean = false; // Người đăng nhập tự khai báo
@@ -76,14 +80,22 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     if (value !== this._selectedIndex && value >= 0 && value < this.tabs.length) {
       // Lưu dữ liệu tab hiện tại trước khi chuyển
       this.saveTabData(this._selectedIndex);
-      
+
       // Cập nhật selectedIndex
       this._selectedIndex = value;
-      
+
       // Load dữ liệu tab mới
       this.loadTabData(value);
+
+      // Khởi tạo lại Flatpickr cho tab mới
+      setTimeout(() => {
+        this.initializeFlatpickrForTab(value);
+      }, 100);
     }
   }
+
+  // Flatpickr instances map
+  private flatpickrInstances: Map<string, flatpickr.Instance> = new Map();
 
   constructor(
     private fb: FormBuilder,
@@ -95,6 +107,9 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     private wfhService: WFHService,
     private modalService: NgbModal,
     private modal: NzModalService,
+    private permissionService: PermissionService,
+    private employeeService: EmployeeService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.initForm();
   }
@@ -108,7 +123,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     today.setHours(0, 0, 0, 0);
     const todayStr = this.formatDateForTab(today);
     this.tabs = [todayStr];
-    
+
     // Khởi tạo dữ liệu cho tab đầu tiên
     this.tabFormData[0] = {
       DateRegister: new Date(today),
@@ -130,12 +145,20 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       this.formGroup.get('ReasonHREdit')?.updateValueAndValidity();
       this.formGroup.get('ReasonHREdit')?.enable();
 
-      // Disable EmployeeID and ApprovedTBP in edit mode
-      this.formGroup.get('EmployeeID')?.disable();
+      // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+      if (!this.canEditEmployee()) {
+        this.formGroup.get('EmployeeID')?.disable();
+      } else {
+        this.formGroup.get('EmployeeID')?.enable();
+      }
       this.formGroup.get('ApprovedTBP')?.disable();
     } else {
-          this.formGroup.get('EmployeeID')?.disable();
-
+      // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+      if (!this.canEditEmployee()) {
+        this.formGroup.get('EmployeeID')?.disable();
+      } else {
+        this.formGroup.get('EmployeeID')?.enable();
+      }
     }
 
     this.loadEmployees();
@@ -151,6 +174,141 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     this.loadTabData(0);
   }
 
+  ngAfterViewInit(): void {
+    // Khởi tạo Flatpickr cho tab đầu tiên sau khi view đã render
+    setTimeout(() => {
+      this.initializeFlatpickrForTab(0);
+    }, 200);
+  }
+
+  ngOnDestroy(): void {
+    // Cleanup tất cả flatpickr instances
+    this.flatpickrInstances.forEach((instance) => {
+      instance.destroy();
+    });
+    this.flatpickrInstances.clear();
+  }
+
+  // Khởi tạo Flatpickr cho một tab cụ thể
+  private initializeFlatpickrForTab(tabIndex: number): void {
+    const dateStartId = `datestart-${tabIndex}`;
+    const dateEndId = `dateend-${tabIndex}`;
+
+    // Destroy existing instances if any
+    if (this.flatpickrInstances.has(dateStartId)) {
+      this.flatpickrInstances.get(dateStartId)?.destroy();
+    }
+    if (this.flatpickrInstances.has(dateEndId)) {
+      this.flatpickrInstances.get(dateEndId)?.destroy();
+    }
+
+    const dateStartElement = document.getElementById(dateStartId);
+    const dateEndElement = document.getElementById(dateEndId);
+
+    // Lấy DateRegister để set minDate cho DateStart
+    const dateRegister = this.formGroup.get('DateRegister')?.value;
+
+    if (dateStartElement) {
+      const defaultDate = this.tabFormData[tabIndex]?.DateStart || null;
+
+      const fpDateStart = flatpickr(dateStartElement, {
+        enableTime: true,
+        time_24hr: true,
+        dateFormat: 'd/m/Y H:i',
+        locale: Vietnamese,
+        minDate: dateRegister ? new Date(dateRegister) : undefined,
+        minTime: '20:00',
+        defaultDate: defaultDate,
+        allowInput: true,
+        disableMobile: false,
+        onChange: (selectedDates: Date[]) => {
+          if (selectedDates.length > 0) {
+            const date = new Date(selectedDates[0]);
+            date.setSeconds(0, 0);
+
+            // Cập nhật form
+            this.formGroup.patchValue({ DateStart: date });
+
+            // Lưu vào tabFormData
+            if (this.tabFormData[tabIndex]) {
+              this.tabFormData[tabIndex].DateStart = date;
+            }
+
+            // Cập nhật minDate cho DateEnd
+            this.updateDateEndFlatpickrMinDate(tabIndex, date);
+
+            // Tính lại TotalHours
+            this.updateTotalHoursWithBreaks();
+          }
+        }
+      });
+
+      this.flatpickrInstances.set(dateStartId, fpDateStart);
+    }
+
+    if (dateEndElement) {
+      const defaultDate = this.tabFormData[tabIndex]?.DateEnd || null;
+      const dateStartValue = this.tabFormData[tabIndex]?.DateStart;
+
+      const fpDateEnd = flatpickr(dateEndElement, {
+        enableTime: true,
+        time_24hr: true,
+        dateFormat: 'd/m/Y H:i',
+        locale: Vietnamese,
+        minDate: dateStartValue ? new Date(dateStartValue) : undefined,
+        defaultDate: defaultDate,
+        allowInput: true,
+        disableMobile: false,
+        onChange: (selectedDates: Date[]) => {
+          if (selectedDates.length > 0) {
+            const date = new Date(selectedDates[0]);
+            date.setSeconds(0, 0);
+
+            // Cập nhật form
+            this.formGroup.patchValue({ DateEnd: date });
+
+            // Lưu vào tabFormData
+            if (this.tabFormData[tabIndex]) {
+              this.tabFormData[tabIndex].DateEnd = date;
+            }
+
+            // Tính lại TotalHours
+            this.updateTotalHoursWithBreaks();
+          }
+        }
+      });
+
+      this.flatpickrInstances.set(dateEndId, fpDateEnd);
+    }
+  }
+
+  // Cập nhật minDate cho DateEnd flatpickr khi DateStart thay đổi
+  private updateDateEndFlatpickrMinDate(tabIndex: number, dateStart: Date): void {
+    const dateEndId = `dateend-${tabIndex}`;
+    const fpDateEnd = this.flatpickrInstances.get(dateEndId);
+    if (fpDateEnd) {
+      fpDateEnd.set('minDate', dateStart);
+    }
+  }
+
+  // Set giá trị cho Flatpickr từ tabFormData
+  private setFlatpickrValuesForTab(tabIndex: number): void {
+    const dateStartId = `datestart-${tabIndex}`;
+    const dateEndId = `dateend-${tabIndex}`;
+
+    const fpDateStart = this.flatpickrInstances.get(dateStartId);
+    const fpDateEnd = this.flatpickrInstances.get(dateEndId);
+
+    const tabData = this.tabFormData[tabIndex];
+
+    if (fpDateStart && tabData?.DateStart) {
+      fpDateStart.setDate(new Date(tabData.DateStart), false);
+    }
+    if (fpDateEnd && tabData?.DateEnd) {
+      fpDateEnd.setDate(new Date(tabData.DateEnd), false);
+    }
+  }
+
   getCurrentUser(): void {
     this.authService.getCurrentUser().subscribe({
       next: (res: any) => {
@@ -164,11 +322,22 @@ export class EmployeeNightShiftFormComponent implements OnInit {
             this.formGroup.patchValue({
               EmployeeID: this.currentUser.EmployeeID
             });
-            // Không disable field EmployeeID để người dùng vẫn có thể thay đổi
+            // Chỉ disable field EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+            if (!this.canEditEmployee()) {
+              this.formGroup.get('EmployeeID')?.disable();
+            } else {
+              this.formGroup.get('EmployeeID')?.enable();
+            }
           } else {
             // Sửa: Populate form sau khi đã có currentUser
             if (this.dataInput) {
               this.populateForm();
+            }
+            // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+            if (!this.canEditEmployee()) {
+              this.formGroup.get('EmployeeID')?.disable();
+            } else {
+              this.formGroup.get('EmployeeID')?.enable();
             }
           }
         } else {
@@ -262,6 +431,11 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     }
 
     const dateStart = new Date(value);
+    if (!value) {
+      return null;
+    }
+
+
     const hour = dateStart.getHours();
 
     if (hour < 20) {
@@ -387,34 +561,10 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   }
 
   loadApprovers(): void {
-    this.wfhService.getEmloyeeApprover().subscribe({
+    this.employeeService.getEmployeeApproved().subscribe({
       next: (res: any) => {
-        if (res && res.status === 1 && res.data) {
-          const rawApprovers = res.data.approvers || [];
 
-          // Group by DepartmentName
-          const grouped = rawApprovers.reduce((acc: any, curr: any) => {
-            const dept = curr.DepartmentName || 'Khác';
-            if (!acc[dept]) {
-              acc[dept] = [];
-            }
-            // Map to match the structure expected by the template if needed, 
-            // or just push the object if it has ID, Code, FullName
-            acc[dept].push({
-              ID: curr.EmployeeID, // WFH service returns EmployeeID for approvers
-              Code: curr.Code,
-              FullName: curr.FullName
-            });
-            return acc;
-          }, {});
-
-          this.approvers = Object.keys(grouped).map(dept => ({
-            department: dept,
-            list: grouped[dept]
-          }));
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải danh sách người duyệt');
-        }
+        this.approverList = res.data || [];
       },
       error: (res: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách người duyệt');
@@ -444,6 +594,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       const dt = DateTime.fromISO(data.DateStart);
       if (dt.isValid) {
         dateStart = dt.toJSDate();
+        dateStart.setSeconds(0, 0); // Set giây về 00
       }
     } else if (dateRegister) {
       // Mặc định: 18:00
@@ -455,14 +606,17 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       const dt = DateTime.fromISO(data.DateEnd);
       if (dt.isValid) {
         dateEnd = dt.toJSDate();
+        dateEnd.setSeconds(0, 0); // Set giây về 00
       }
     } else if (dateRegister && data.TotalHours) {
       // Tính từ TotalHours
       const totalMs = (data.TotalHours + (data.BreaksTime || 0)) * 60 * 60 * 1000;
       dateEnd = new Date(dateStart ? dateStart.getTime() + totalMs : dateRegister.getTime() + totalMs);
+      dateEnd.setSeconds(0, 0); // Set giây về 00
     } else if (dateStart) {
       // Mặc định: +8 giờ
       dateEnd = new Date(dateStart.getTime() + 8 * 60 * 60 * 1000);
+      dateEnd.setSeconds(0, 0); // Set giây về 00
     }
 
     // Đảm bảo ReasonHREdit được enable trước khi patchValue
@@ -504,7 +658,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
 
     // Lưu dữ liệu vào tab đầu tiên sau khi populate
     this.saveTabData(0);
-    
+
     // Cập nhật tên tab dựa trên DateRegister
     if (dateRegister) {
       this.updateTabTitle(0, dateRegister);
@@ -577,13 +731,29 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     });
 
     // Tính tổng giờ khi DateStart hoặc DateEnd thay đổi
-    this.formGroup.get('DateStart')?.valueChanges.subscribe(() => {
+    this.formGroup.get('DateStart')?.valueChanges.subscribe((value) => {
+      // Normalize giây về 00
+      if (value) {
+        const normalizedDate = new Date(value);
+        if (normalizedDate.getSeconds() !== 0 || normalizedDate.getMilliseconds() !== 0) {
+          normalizedDate.setSeconds(0, 0);
+          this.formGroup.patchValue({ DateStart: normalizedDate }, { emitEvent: false });
+        }
+      }
       // Validate DateEnd khi DateStart thay đổi
       this.formGroup.get('DateEnd')?.updateValueAndValidity();
       this.updateTotalHoursWithBreaks();
     });
 
-    this.formGroup.get('DateEnd')?.valueChanges.subscribe(() => {
+    this.formGroup.get('DateEnd')?.valueChanges.subscribe((value) => {
+      // Normalize giây về 00
+      if (value) {
+        const normalizedDate = new Date(value);
+        if (normalizedDate.getSeconds() !== 0 || normalizedDate.getMilliseconds() !== 0) {
+          normalizedDate.setSeconds(0, 0);
+          this.formGroup.patchValue({ DateEnd: normalizedDate }, { emitEvent: false });
+        }
+      }
       // Validate DateStart khi DateEnd thay đổi
       this.formGroup.get('DateStart')?.updateValueAndValidity();
       this.updateTotalHoursWithBreaks();
@@ -770,6 +940,10 @@ export class EmployeeNightShiftFormComponent implements OnInit {
         IsProblem: tabData.IsProblem || false,
         ReasonHREdit: reasonHREdit,
         IsDeleted: false,
+        // Khi sửa, reset trạng thái duyệt về chưa duyệt
+        IsApprovedTBP: 0,
+        IsApprovedHR: 0,
+        ApprovedHR: 0,
       });
     }
 
@@ -805,14 +979,14 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   }
 
   onAddOverTime(): void {
-      const modalRef = this.modalService.open(OverTimeDetailComponent, {
-        centered: true,
+    const modalRef = this.modalService.open(OverTimePersonFormComponent, {
+      centered: true,
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
-      });
-  
-    }
+    });
+
+  }
 
   getErrorMessage(controlName: string): string {
     const control = this.formGroup.get(controlName);
@@ -933,7 +1107,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   // Tabs management methods
   newTab(): void {
     const newTabIndex = this.tabs.length;
-    
+
     // Tính ngày tiếp theo dựa trên tab cuối cùng hoặc ngày hôm nay nếu không có tab nào
     let nextDate: Date;
     if (newTabIndex > 0 && this.tabFormData[newTabIndex - 1]?.DateRegister) {
@@ -948,10 +1122,10 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       nextDate.setDate(nextDate.getDate() + 1);
       nextDate.setHours(0, 0, 0, 0);
     }
-    
+
     const nextDateStr = this.formatDateForTab(nextDate);
     this.tabs.push(nextDateStr);
-    
+
     // Khởi tạo dữ liệu cho tab mới với ngày tiếp theo
     this.tabFormData[newTabIndex] = {
       DateRegister: new Date(nextDate),
@@ -966,10 +1140,16 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       ID: 0
     };
     this.tabDatePickerKeys[newTabIndex] = 0;
-    
+
     // Set selectedIndex sẽ tự động lưu tab cũ và load tab mới
     this._selectedIndex = newTabIndex;
     this.loadTabData(newTabIndex);
+
+    // Khởi tạo Flatpickr cho tab mới sau khi DOM render
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.initializeFlatpickrForTab(newTabIndex);
+    }, 100);
   }
 
   closeTab({ index }: { index: number }): void {
@@ -983,17 +1163,30 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       this.saveTabData(this._selectedIndex);
     }
 
+    // Cleanup Flatpickr instances cho tab bị xóa
+    const dateStartId = `datestart-${index}`;
+    const dateEndId = `dateend-${index}`;
+
+    if (this.flatpickrInstances.has(dateStartId)) {
+      this.flatpickrInstances.get(dateStartId)?.destroy();
+      this.flatpickrInstances.delete(dateStartId);
+    }
+    if (this.flatpickrInstances.has(dateEndId)) {
+      this.flatpickrInstances.get(dateEndId)?.destroy();
+      this.flatpickrInstances.delete(dateEndId);
+    }
+
     // Xóa dữ liệu tab
     delete this.tabFormData[index];
     delete this.tabDatePickerKeys[index];
-    
+
     // Xóa tab khỏi mảng
     this.tabs.splice(index, 1);
-    
+
     // Điều chỉnh selectedIndex và re-index dữ liệu
     const newTabFormData: { [key: number]: any } = {};
     const newTabDatePickerKeys: { [key: number]: number } = {};
-    
+
     // Re-index: tất cả các tab sau index bị xóa sẽ dịch lên 1
     Object.keys(this.tabFormData).forEach((key: string) => {
       const oldIndex = parseInt(key);
@@ -1007,28 +1200,48 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     });
     this.tabFormData = newTabFormData;
     this.tabDatePickerKeys = newTabDatePickerKeys;
-    
+
     // Điều chỉnh selectedIndex (sử dụng _selectedIndex để tránh trigger setter)
     if (this._selectedIndex >= index && this._selectedIndex > 0) {
       this._selectedIndex--;
     } else if (this._selectedIndex >= this.tabs.length) {
       this._selectedIndex = this.tabs.length - 1;
     }
-    
+
     // Cập nhật tên tab dựa trên DateRegister của mỗi tab
     this.updateAllTabTitles();
-    
+
     // Load dữ liệu tab mới được chọn (không cần trigger setter vì đã lưu ở trên)
     this.loadTabData(this._selectedIndex);
+
+    // Khởi tạo lại Flatpickr cho tab hiện tại sau khi re-render
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.initializeFlatpickrForTab(this._selectedIndex);
+    }, 100);
   }
 
 
   saveTabData(index: number): void {
     const formValue = this.formGroup.getRawValue();
+
+    // Normalize giây về 00 cho DateStart và DateEnd trước khi lưu
+    let normalizedDateStart = formValue.DateStart;
+    if (normalizedDateStart) {
+      normalizedDateStart = new Date(normalizedDateStart);
+      normalizedDateStart.setSeconds(0, 0);
+    }
+
+    let normalizedDateEnd = formValue.DateEnd;
+    if (normalizedDateEnd) {
+      normalizedDateEnd = new Date(normalizedDateEnd);
+      normalizedDateEnd.setSeconds(0, 0);
+    }
+
     this.tabFormData[index] = {
       DateRegister: formValue.DateRegister,
-      DateStart: formValue.DateStart,
-      DateEnd: formValue.DateEnd,
+      DateStart: normalizedDateStart,
+      DateEnd: normalizedDateEnd,
       BreaksTime: formValue.BreaksTime || 0,
       TotalHours: formValue.TotalHours || 0,
       Location: formValue.Location || '',
@@ -1042,11 +1255,24 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   loadTabData(index: number): void {
     const tabData = this.tabFormData[index];
     if (tabData) {
+      // Normalize giây về 00 cho DateStart và DateEnd
+      let normalizedDateStart = tabData.DateStart;
+      if (normalizedDateStart) {
+        normalizedDateStart = new Date(normalizedDateStart);
+        normalizedDateStart.setSeconds(0, 0);
+      }
+
+      let normalizedDateEnd = tabData.DateEnd;
+      if (normalizedDateEnd) {
+        normalizedDateEnd = new Date(normalizedDateEnd);
+        normalizedDateEnd.setSeconds(0, 0);
+      }
+
       // Tạm thời tắt valueChanges subscription để tránh vòng lặp
       this.formGroup.patchValue({
         DateRegister: tabData.DateRegister,
-        DateStart: tabData.DateStart,
-        DateEnd: tabData.DateEnd,
+        DateStart: normalizedDateStart,
+        DateEnd: normalizedDateEnd,
         BreaksTime: tabData.BreaksTime || 0,
         TotalHours: tabData.TotalHours || 0,
         Location: tabData.Location || '',
@@ -1055,23 +1281,28 @@ export class EmployeeNightShiftFormComponent implements OnInit {
         ReasonHREdit: tabData.ReasonHREdit || '',
         ID: tabData.ID || 0
       }, { emitEvent: false });
-      
+
       // Force re-render date picker
       if (!this.tabDatePickerKeys[index]) {
         this.tabDatePickerKeys[index] = 0;
       }
       this.tabDatePickerKeys[index]++;
       this.datePickerKey = this.tabDatePickerKeys[index];
-      
+
       // Tính lại TotalHours nếu có DateStart và DateEnd
       if (tabData.DateStart && tabData.DateEnd) {
         this.updateTotalHoursWithBreaks();
       }
-      
+
       // Cập nhật tên tab dựa trên DateRegister
       if (tabData.DateRegister) {
         this.updateTabTitle(index, new Date(tabData.DateRegister));
       }
+
+      // Cập nhật giá trị Flatpickr
+      setTimeout(() => {
+        this.setFlatpickrValuesForTab(index);
+      }, 50);
     } else {
       // Khởi tạo dữ liệu rỗng nếu chưa có
       this.tabFormData[index] = {
@@ -1141,5 +1372,14 @@ export class EmployeeNightShiftFormComponent implements OnInit {
         this.tabs[i] = 'Chưa chọn ngày';
       }
     }
+  }
+
+  // Helper method để kiểm tra user có quyền chỉnh sửa nhân viên (N1, N2 hoặc IsAdmin)
+  private canEditEmployee(): boolean {
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
+
+    return hasN1Permission || hasN2Permission || isAdmin;
   }
 }

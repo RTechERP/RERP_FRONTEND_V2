@@ -1,0 +1,230 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center p-1">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0.5rem">
+      {{ isViewOnly ? 'CHI TIẾT ĐĂNG KÝ PHÒNG HỌP' : (isEditMode ? 'SỬA ĐĂNG KÝ PHÒNG HỌP' : 'THÊM ĐĂNG KÝ PHÒNG HỌP') }}
+    </h6>
+    <button type="button" class="btn-close" (click)="onCancel()" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body p-3" style="max-height: 85vh; overflow-y: auto; overflow-x: hidden;">
+    <form nz-form [formGroup]="bookingForm" nzLayout="vertical">
+      <!-- Row 1: Họ tên, Phòng ban, Phòng họp -->
+      <nz-row [nzGutter]="[16, 16]">
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="8">
+          <nz-form-item>
+            <nz-form-label>
+              Họ tên<span class="text-danger ps-1 me-1"> (*)</span>
+            </nz-form-label>
+            <nz-form-control>
+              <nz-select
+                formControlName="EmployeeId"
+                nzPlaceHolder="Chọn nhân viên"
+                nzAllowClear
+                nzShowSearch
+                style="width: 100%"
+                [nzDisabled]="true"
+              >
+                <nz-option
+                  *ngFor="let emp of employees"
+                  [nzValue]="emp.value"
+                  [nzLabel]="emp.label"
+                ></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="8">
+          <nz-form-item>
+            <nz-form-label>
+              Phòng ban<span class="text-danger ps-1 me-1"> (*)</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="'Vui lòng chọn Phòng ban!'"
+              [nzValidateStatus]="
+                bookingForm.get('DepartmentId')?.invalid &&
+                bookingForm.get('DepartmentId')?.touched
+                  ? 'error'
+                  : ''
+              "
+            >
+              <nz-select
+                formControlName="DepartmentId"
+                nzPlaceHolder="---Chọn phòng ban---"
+                nzAllowClear
+                nzShowSearch
+                style="width: 100%"
+              >
+                <nz-option
+                  *ngFor="let dept of departments"
+                  [nzValue]="dept.value"
+                  [nzLabel]="dept.label"
+                ></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="8">
+          <nz-form-item>
+            <nz-form-label>
+              Phòng họp<span class="text-danger ps-1 me-1"> (*)</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="'Vui lòng chọn Phòng họp!'"
+              [nzValidateStatus]="
+                bookingForm.get('MeetingRoomId')?.invalid &&
+                bookingForm.get('MeetingRoomId')?.touched
+                  ? 'error'
+                  : ''
+              "
+            >
+              <nz-select
+                formControlName="MeetingRoomId"
+                nzPlaceHolder="---Chọn phòng họp---"
+                nzAllowClear
+                style="width: 100%"
+              >
+                <nz-option
+                  *ngFor="let room of meetingRooms"
+                  [nzValue]="room.value"
+                  [nzLabel]="room.label"
+                ></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Row 2: Ngày đăng ký, Bắt đầu, Kết thúc -->
+      <nz-row [nzGutter]="[16, 16]">
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+          <nz-form-item>
+            <nz-form-label>
+              Ngày đăng ký<span class="text-danger ps-1 me-1"> (*)</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="'Vui lòng chọn ngày đăng ký!'"
+              [nzValidateStatus]="
+                bookingForm.get('DateRegister')?.invalid &&
+                bookingForm.get('DateRegister')?.touched
+                  ? 'error'
+                  : ''
+              "
+            >
+              <nz-date-picker
+                formControlName="DateRegister"
+                nzFormat="dd/MM/yyyy"
+                nzPlaceHolder="Chọn ngày"
+                [nzDisabledDate]="disabledDate"
+                style="width: 100%"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+          <nz-form-item>
+            <nz-form-label>
+              Bắt đầu<span class="text-danger ps-1 me-1"> (*)</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="'Vui lòng chọn giờ bắt đầu!'"
+              [nzValidateStatus]="
+                bookingForm.get('StartTime')?.invalid &&
+                bookingForm.get('StartTime')?.touched
+                  ? 'error'
+                  : ''
+              "
+            >
+              <input
+                nz-input
+                formControlName="StartTime"
+                type="time"
+                placeholder="HH:mm"
+                class="form-control form-control-sm"
+                style="width: 100%"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+          <nz-form-item>
+            <nz-form-label>
+              Kết thúc<span class="text-danger ps-1 me-1"> (*)</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="'Vui lòng chọn giờ kết thúc!'"
+              [nzValidateStatus]="
+                bookingForm.get('EndTime')?.invalid &&
+                bookingForm.get('EndTime')?.touched
+                  ? 'error'
+                  : ''
+              "
+            >
+              <input
+                nz-input
+                formControlName="EndTime"
+                type="time"
+                placeholder="HH:mm"
+                class="form-control form-control-sm"
+                style="width: 100%"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Row 3: Nội dung -->
+      <nz-row [nzGutter]="[16, 16]">
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24">
+          <nz-form-item>
+            <nz-form-label>
+              Nội dung<span class="text-danger ps-1 me-1"> (*)</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="'Vui lòng nhập Nội dung!'"
+              [nzValidateStatus]="
+                bookingForm.get('Content')?.invalid &&
+                bookingForm.get('Content')?.touched
+                  ? 'error'
+                  : ''
+              "
+            >
+              <textarea
+                nz-input
+                formControlName="Content"
+                [nzAutosize]="{ minRows: 3, maxRows: 6 }"
+                placeholder="Nhập nội dung cuộc họp"
+                class="form-control form-control-sm"
+                style="width: 100%"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </div>
+
+  <div class="modal-footer bg-whitesmoke">
+    <button
+      nz-button
+      nzDanger
+      nzType="default"
+      (click)="onCancel()"
+      [nzLoading]="isLoading"
+    >
+      Đóng
+    </button>
+    <button
+      *ngIf="!isViewOnly"
+      nz-button
+      nzType="primary"
+      (click)="onSave()"
+      [nzLoading]="isLoading"
+    >
+      Lưu
+    </button>
+  </div>
+</div>

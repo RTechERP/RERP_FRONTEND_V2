@@ -12,6 +12,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
@@ -23,6 +24,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { OverTimePersonFormComponent } from './over-time-person-form/over-time-person-form.component';
+import { environment } from '../../../../../environments/environment';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
   selector: 'app-over-time-person',
@@ -44,6 +47,8 @@ import { OverTimePersonFormComponent } from './over-time-person-form/over-time-p
     NzModalModule,
     NzSpinModule,
     NgIf,
+    Menubar,
+    NzGridModule,
   ]
 })
 export class OverTimePersonComponent implements OnInit, AfterViewInit {
@@ -54,12 +59,31 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
   exportingExcel = false;
   sizeSearch: string = '0';
   isLoading = false;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
   // Dropdown data for search
   typeList: any[] = [];
 
   // Data
   overTimeList: any[] = [];
+
+  // Menu bars
+  menuBars: any[] = [];
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -72,7 +96,42 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.initMenuBar();
     this.loadTypes();
+  }
+
+  initMenuBar() {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => {
+          this.openAddModal();
+        }
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => {
+          this.openEditModal();
+        }
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => {
+          this.openDeleteModal();
+        }
+      },
+
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => {
+          this.exportToExcel();
+        }
+      }
+    ];
   }
 
   ngAfterViewInit(): void {
@@ -174,6 +233,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       height: '90vh',
+
       selectableRows: true,
       paginationMode: 'local',
       rowHeader: { formatter: "rowSelection", titleFormatter: "rowSelection", headerSort: false, width: 50, frozen: true, headerHozAlign: "center", hozAlign: "center" },
@@ -189,16 +249,16 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
               status = row.StatusTBP;
             }
             const numStatus = status === null || status === undefined ? 0 : (status === true ? 1 : (status === false ? 0 : Number(status)));
-            
+
             switch (numStatus) {
               case 0:
-                return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chờ duyệt</span>';
+                return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Chờ duyệt</span>';
               case 1:
-                return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+                return '<span class="badge bg-success" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Đã duyệt</span>';
               case 2:
-                return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không đồng ý duyệt</span>';
+                return '<span class="badge bg-danger" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Không đồng ý duyệt</span>';
               default:
-                return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+                return '<span class="badge bg-secondary" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Không xác định</span>';
             }
           }
         },
@@ -212,16 +272,16 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
               status = row.StatusHR;
             }
             const numStatus = status === null || status === undefined ? 0 : (status === true ? 1 : (status === false ? 0 : Number(status)));
-            
+
             switch (numStatus) {
               case 0:
-                return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chờ duyệt</span>';
+                return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Chờ duyệt</span>';
               case 1:
-                return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+                return '<span class="badge bg-success" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Đã duyệt</span>';
               case 2:
-                return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không đồng ý duyệt</span>';
+                return '<span class="badge bg-danger" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Không đồng ý duyệt</span>';
               default:
-                return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+                return '<span class="badge bg-secondary" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Không xác định</span>';
             }
           }
         },
@@ -235,18 +295,12 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
           }
         },
         {
-          title: 'Họ tên', field: 'EmployeeFullName',bottomCalc: 'count', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue() || '';
-            return value || (cell.getRow().getData().FullName || '');
-          }
+          title: 'Họ tên', field: 'EmployeeFullName', bottomCalc: 'count', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
+          formatter: 'textarea'
         },
         {
           title: 'Trưởng phòng', field: 'ApprovedTBP', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue() || '';
-            return value || (cell.getRow().getData().NguoiDuyet || '');
-          }
+          formatter: 'textarea'
         },
         {
           title: 'Nhân sự', field: 'ApprovedHR', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
@@ -285,6 +339,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
               const dateValue = value instanceof Date ? value : (DateTime.fromISO(value).isValid ? DateTime.fromISO(value).toJSDate() : new Date(value));
               const formattedDate = DateTime.fromJSDate(dateValue).toFormat('dd/MM/yyyy HH:mm');
               return `<div style="white-space: pre-wrap; word-wrap: break-word;">${formattedDate}</div>`;
+
             } catch {
               return '';
             }
@@ -310,7 +365,16 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Số giờ', field: 'TimeReality', width: 80, hozAlign: 'right', headerHozAlign: 'center', headerSort: false,
-          formatter: 'textarea', bottomCalc: 'sum',
+          formatter: 'textarea',
+          bottomCalc: 'sum',
+          bottomCalcParams: {
+            precision: 2
+          },
+          bottomCalcFormatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value == null || value === undefined || isNaN(value)) return '0.00';
+            return Number(value).toFixed(2);
+          }
         },
         {
           title: 'Địa điểm', field: 'LocationText', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
@@ -339,8 +403,18 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
         {
           title: 'File bổ sung', field: 'FileName', width: 200, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
           formatter: (cell: any) => {
-            const value = cell.getValue() || '';
-            return value || '';
+            const rowData = cell.getRow().getData();
+            const fileName = rowData.FileName || '';
+            if (fileName) {
+              return `<a href="javascript:void(0)" style="color: #1677ff; text-decoration: underline; cursor: pointer;">${fileName}</a>`;
+            }
+            return '';
+          },
+          cellClick: (e: any, cell: any) => {
+            const rowData = cell.getRow().getData();
+            if (rowData.FileName) {
+              this.downloadFile(rowData);
+            }
           }
         },
         {
@@ -381,8 +455,11 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
           #tb_over_time_person .tabulator-col-title,
           #tb_over_time_person .tabulator-row,
           #tb_over_time_person .tabulator-row .tabulator-cell,
-          #tb_over_time_person * {
+          #tb_over_time_person *:not(.badge) {
             font-size: 12px !important;
+          }
+          #tb_over_time_person .badge {
+            font-size: 9px !important;
           }
         `;
         const existingStyle = document.getElementById('tabulator-over-time-person-font-size-override');
@@ -401,7 +478,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false
     });
-    
+
     modalRef.componentInstance.data = null;
     modalRef.componentInstance.isEditMode = false;
 
@@ -429,28 +506,15 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
     }
 
     const selectedData = selectedRows[0].getData();
-    
-    // Kiểm tra trạng thái duyệt TBP: có thể là boolean hoặc number (0/1/2)
-    let statusTBP = selectedData['IsApproved'] || selectedData['IsApprovedTBP'];
-    if (selectedData['StatusTBP'] !== null && selectedData['StatusTBP'] !== undefined) {
-      statusTBP = selectedData['StatusTBP'];
-    }
-    const numStatusTBP = statusTBP === null || statusTBP === undefined ? 0 : (statusTBP === true ? 1 : (statusTBP === false ? 0 : Number(statusTBP)));
-    
-    // Kiểm tra trạng thái duyệt HR: có thể là boolean hoặc number (0/1/2)
-    let statusHR = selectedData['IsApprovedHR'];
-    if (selectedData['StatusHR'] !== null && selectedData['StatusHR'] !== undefined) {
-      statusHR = selectedData['StatusHR'];
-    }
-    const numStatusHR = statusHR === null || statusHR === undefined ? 0 : (statusHR === true ? 1 : (statusHR === false ? 0 : Number(statusHR)));
-    
-    // Nếu TBP hoặc HR đã duyệt (status = 1) thì không cho sửa
-    if (numStatusTBP === 1 || numStatusHR === 1) {
+
+    // Kiểm tra trạng thái duyệt
+    if (this.isApproved(selectedData)) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể chỉnh sửa');
       return;
     }
+
     const formData = this.mapTableDataToFormData(selectedData);
-    
+
     const modalRef = this.modalService.open(OverTimePersonFormComponent, {
       centered: true,
       size: 'xl',
@@ -474,10 +538,21 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
 
   openDeleteModal(id?: number, timeStart?: string, endTime?: string) {
     if (id !== undefined && id > 0) {
-      // Xóa từ cellClick
+      // Xóa từ cellClick - cần tìm row data từ ID
+      const allData = this.overTimeList;
+      const itemToDelete = allData.find(item => (item.ID || item.Id) === id);
+
+      if (itemToDelete) {
+        // Kiểm tra trạng thái duyệt
+        if (this.isApproved(itemToDelete)) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể xóa');
+          return;
+        }
+      }
+
       let timeStartFormatted = '';
       let endTimeFormatted = '';
-      
+
       if (timeStart) {
         try {
           const dateValue = DateTime.fromISO(timeStart).isValid ? DateTime.fromISO(timeStart).toJSDate() : new Date(timeStart);
@@ -486,7 +561,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
           timeStartFormatted = timeStart;
         }
       }
-      
+
       if (endTime) {
         try {
           const dateValue = DateTime.fromISO(endTime).isValid ? DateTime.fromISO(endTime).toJSDate() : new Date(endTime);
@@ -520,6 +595,18 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
     }
 
     const selectedData = selectedRows.map(row => row.getData());
+
+    // Kiểm tra trạng thái duyệt cho tất cả các bản ghi đã chọn
+    const approvedItems = selectedData.filter(item => this.isApproved(item));
+    if (approvedItems.length > 0) {
+      const fullNames = approvedItems.map(item => item['EmployeeFullName'] || item['FullName'] || 'N/A').join(', ');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Có ${approvedItems.length} bản ghi đã được duyệt, không thể xóa:\n${fullNames}`
+      );
+      return;
+    }
+
     const ids = selectedData.map(item => item['ID'] || item['Id']).filter((id: any) => id > 0);
 
     if (ids.length === 0) {
@@ -542,21 +629,40 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
 
   deleteOverTime(ids: number[]) {
     this.isLoading = true;
-    const selectedRows = this.tabulator.getSelectedRows();
-    const selectedData = selectedRows.map(row => row.getData());
-    
-    // Lọc các bản ghi có ID trong danh sách ids
-    const dataToDelete = selectedData.filter(item => {
-      const itemId = item['ID'] || item['Id'];
-      return ids.includes(itemId);
-    });
-    
+
+    // Lấy dữ liệu từ overTimeList hoặc từ selectedRows
+    let dataToDelete: any[] = [];
+
+    if (ids.length > 0) {
+      // Tìm từ overTimeList
+      dataToDelete = this.overTimeList.filter(item => {
+        const itemId = item['ID'] || item['Id'];
+        return ids.includes(itemId);
+      });
+    } else {
+      // Lấy từ selectedRows
+      const selectedRows = this.tabulator.getSelectedRows();
+      dataToDelete = selectedRows.map(row => row.getData());
+    }
+
     if (dataToDelete.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có bản ghi hợp lệ để xóa');
       this.isLoading = false;
       return;
     }
-    
+
+    // Kiểm tra lại trạng thái duyệt trước khi xóa
+    const approvedItems = dataToDelete.filter(item => this.isApproved(item));
+    if (approvedItems.length > 0) {
+      const fullNames = approvedItems.map(item => item['EmployeeFullName'] || item['FullName'] || 'N/A').join(', ');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Bản ghi đã được duyệt, không thể xóa:\n${fullNames}`
+      );
+      this.isLoading = false;
+      return;
+    }
+
     // Chỉ gửi ID và IsDeleted
     const dto: any = {
       EmployeeOvertimes: dataToDelete.map(item => ({
@@ -593,30 +699,9 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
     }
 
     const selectedData = selectedRows[0].getData();
-    
-    // Kiểm tra trạng thái duyệt TBP: có thể là boolean hoặc number (0/1/2)
-    let statusTBP = selectedData['IsApproved'] || selectedData['IsApprovedTBP'];
-    if (selectedData['StatusTBP'] !== null && selectedData['StatusTBP'] !== undefined) {
-      statusTBP = selectedData['StatusTBP'];
-    }
-    const numStatusTBP = statusTBP === null || statusTBP === undefined ? 0 : (statusTBP === true ? 1 : (statusTBP === false ? 0 : Number(statusTBP)));
-    
-    // Kiểm tra trạng thái duyệt HR: có thể là boolean hoặc number (0/1/2)
-    let statusHR = selectedData['IsApprovedHR'];
-    if (selectedData['StatusHR'] !== null && selectedData['StatusHR'] !== undefined) {
-      statusHR = selectedData['StatusHR'];
-    }
-    const numStatusHR = statusHR === null || statusHR === undefined ? 0 : (statusHR === true ? 1 : (statusHR === false ? 0 : Number(statusHR)));
-    
-    // Nếu TBP hoặc HR đã duyệt (status = 1) thì không cho sao chép
-    if (numStatusTBP === 1 || numStatusHR === 1) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể sao chép');
-      return;
-    }
-    
     // Map dữ liệu từ table sang format của form
     const formData = this.mapTableDataToFormData(selectedData);
-    
+
     // Tạo bản copy với ID = 0 và ngày mới
     const copyData = {
       ...formData,
@@ -676,7 +761,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
 
     try {
       const allData = this.overTimeList;
-      
+
       if (allData.length === 0) {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
         this.exportingExcel = false;
@@ -799,12 +884,103 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
   private formatApprovalBadge(status: any): string {
     // true: Đã duyệt, false/null: Chưa duyệt
     const isApproved = status === true || status === 1 || status === '1';
-    
+
     if (isApproved) {
-      return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+      return '<span class="badge bg-success" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Đã duyệt</span>';
     } else {
-      return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
+      return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Chưa duyệt</span>';
     }
+  }
+
+  // Helper method để kiểm tra bản ghi đã được duyệt chưa
+  private isApproved(item: any): boolean {
+    // Kiểm tra trạng thái duyệt TBP: có thể là boolean hoặc number (0/1/2)
+    let statusTBP = item['IsApproved'] || item['IsApprovedTBP'];
+    if (item['StatusTBP'] !== null && item['StatusTBP'] !== undefined) {
+      statusTBP = item['StatusTBP'];
+    }
+    const numStatusTBP = statusTBP === null || statusTBP === undefined ? 0 : (statusTBP === true ? 1 : (statusTBP === false ? 0 : Number(statusTBP)));
+
+    // Kiểm tra trạng thái duyệt HR: có thể là boolean hoặc number (0/1/2)
+    let statusHR = item['IsApprovedHR'];
+    if (item['StatusHR'] !== null && item['StatusHR'] !== undefined) {
+      statusHR = item['StatusHR'];
+    }
+    const numStatusHR = statusHR === null || statusHR === undefined ? 0 : (statusHR === true ? 1 : (statusHR === false ? 0 : Number(statusHR)));
+
+    // Kiểm tra trạng thái duyệt Senior (nếu có)
+    let statusSenior = item['IsSeniorApproved'];
+    if (item['StatusSenior'] !== null && item['StatusSenior'] !== undefined) {
+      statusSenior = item['StatusSenior'];
+    }
+    const numStatusSenior = statusSenior === null || statusSenior === undefined ? 0 : (statusSenior === true ? 1 : (statusSenior === false ? 0 : Number(statusSenior)));
+
+    // Nếu TBP, HR hoặc Senior đã duyệt (status = 1) thì không cho sửa/xóa
+    return numStatusTBP === 1 || numStatusHR === 1 || numStatusSenior === 1;
+  }
+
+  downloadFile(rowData: any) {
+    const id = rowData.ID || rowData.Id || 0;
+    if (!id || id <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy ID bản ghi');
+      return;
+    }
+
+    this.isLoading = true;
+    this.overTimeService.getEmployeeOverTimeByID(id).subscribe({
+      next: (response: any) => {
+        this.isLoading = false;
+        if (response && response.status === 1 && response.data) {
+          const data = response.data;
+          // API trả về: { employeeOverTime, overTimeFile }
+          const overTimeFile = data.overTimeFile || null;
+
+          if (!overTimeFile) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có file đính kèm');
+            return;
+          }
+
+          let serverPath = overTimeFile.ServerPath || '';
+          const fileName = overTimeFile.FileName || '';
+
+          if (!fileName) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có tên file để tải xuống');
+            return;
+          }
+
+          // Đảm bảo ServerPath không chứa tên file ở cuối
+          // Nếu ServerPath kết thúc bằng fileName, loại bỏ fileName khỏi ServerPath
+          if (serverPath && fileName) {
+            const normalizedServerPath = serverPath.replace(/[\\/]+$/, ''); // Loại bỏ dấu \ hoặc / ở cuối
+            const normalizedFileName = fileName.replace(/^[\\/]+/, ''); // Loại bỏ dấu \ hoặc / ở đầu
+            if (normalizedServerPath.endsWith(normalizedFileName)) {
+              serverPath = normalizedServerPath.substring(0, normalizedServerPath.length - normalizedFileName.length);
+              serverPath = serverPath.replace(/[\\/]+$/, ''); // Loại bỏ dấu \ hoặc / ở cuối sau khi cắt
+            }
+          }
+
+          // Ghép serverPath và fileName để tạo URL download
+          // subPath là đường dẫn thư mục (không bao gồm tên file), fileName là tên file
+          const downloadUrl = `${environment.host}api/home/download-by-key?key=LamThem&subPath=${encodeURIComponent(serverPath)}&fileName=${encodeURIComponent(fileName)}`;
+
+          // Tạo link download và tự động click để tải file
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = fileName; // Đặt tên file khi download
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy thông tin file');
+        }
+      },
+      error: (error: any) => {
+        this.isLoading = false;
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải file: ' + errorMessage);
+      }
+    });
   }
 }
 

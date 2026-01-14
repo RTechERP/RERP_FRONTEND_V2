@@ -102,31 +102,19 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
     this.isSearchVisible = !this.isSearchVisible;
   }
   ngOnInit(): void {
-    this.setDefaultWeekRange();
+    this.setDefaultDateRange();
     this.getDailyReportHr();
   }
-  private setDefaultWeekRange(): void {
-    const today = new Date();
-
-    // getDay(): 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
-    const day = today.getDay();
-    const diffToMonday = (day + 6) % 7; // chuyển về index Thứ 2 = 0
-
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - diffToMonday);
-    monday.setHours(0, 0, 0, 0);
-
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
-
-    this.DateStart = monday;
-    this.DateEnd = sunday;
+  private setDefaultDateRange(): void {
+    const nowUTC7 = DateTime.now().setZone('Asia/Ho_Chi_Minh');
+    const today = nowUTC7.set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+    const yesterday = nowUTC7.minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+    this.DateStart = yesterday.toJSDate();
+    this.DateEnd = today.toJSDate();
   }
   onEmployeeChange(selectedID: number): void {
     const emp = this.employeeList.find((x) => x.ID === selectedID);
     this.UserID = emp ? emp.UserID : null;
-    console.log('EmployeeID:', this.EmployeeID, 'UserID:', this.UserID);
   }
   getEmployee() {
     const request = {
@@ -141,27 +129,26 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
     });
   }
   getDailyReportHr(): void {
+    const formatDate = (date: Date | null): string => {
+      if (!date) return '';
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
     const payload = {
-      dateStart: this.DateStart ? this.DateStart.toISOString() : null,
-      dateEnd: this.DateEnd ? this.DateEnd.toISOString() : null,
+      dateStart: formatDate(this.DateStart),
+      dateEnd: formatDate(this.DateEnd),
       keyword: this.Keyword || '',
       departmentID: this.DepartmentID || 0,
       userID: this.UserID || 0,
       employeeID: this.EmployeeID || 0,
     };
-
-    console.log('payload', payload);
-
     this.dailyReportHrService.getDailyReportHr(payload).subscribe({
       next: (res: any) => {
         this.filmReport = res.data.dataFilm || [];
         this.driverReport = res.data.dataDriver || [];
         this.hrReport = res.data.technical || [];
-
-        console.log('filmReport', this.filmReport);
-        console.log('driverReport', this.driverReport);
-        console.log('hrReport', this.hrReport);
-
         this.initOrUpdateTables();
       },
       error: (err: any) => {
@@ -192,43 +179,77 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
       this.filmTable = new Tabulator('#filmReportTable', {
         data: this.filmReport,
         ...DEFAULT_TABLE_CONFIG,
-        layout: 'fitColumns',
+        layout: 'fitDataStretch',
         height: '83vh',
         paginationMode: 'local',
-        reactiveData: true,
+      
         columnDefaults: {
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         columns: [
-          { title: 'STT', formatter: 'rownum', width: 60, hozAlign: 'center' },
+          { title: 'STT', formatter: 'rownum', width: 60, hozAlign: 'center', headerWordWrap: true },
+          { title: 'Họ tên', field: 'FullName', width: 150, headerWordWrap: true },
           {
-            title: 'Ngày báo cáo',
+            title: 'Ngày',
             field: 'DateReport',
-            width: 140,
+            width: 120,
+            headerWordWrap: true,
             formatter: (cell) => {
               const v = cell.getValue();
               return v ? new Date(v).toLocaleDateString('vi-VN') : '';
             },
           },
-          { title: 'Nhân viên', field: 'FullName', width: 200 },
-          { title: 'Nội dung công việc', field: 'WorkContent', widthGrow: 2 },
-          { title: 'Tên phim / công đoạn', field: 'FilmName', width: 200 },
-          { title: 'Số lượng', field: 'Quantity', hozAlign: 'right' },
+          { title: 'Đầu mục', field: 'FilmName', width: 150, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'Nội dung công việc', field: 'WorkContent', widthGrow: 2, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'ĐVT', field: 'UnitName', width: 100, hozAlign: 'center', headerWordWrap: true },
           {
-            title: 'Thời gian thực tế (phút)',
-            field: 'TimeActual',
+            title: 'Năng suất trung bình (phút / đơn vị sản phẩm)',
+            field: 'PerformanceAVG',
+            width: 200,
             hozAlign: 'right',
+            headerWordWrap: true,
+          },
+          { title: 'Kết quả thực hiện', field: 'Quantity', width: 150, hozAlign: 'right', headerWordWrap: true },
+          {
+            title: 'Thời gian thực hiện (Phút)',
+            field: 'TimeActual',
+            width: 150,
+            hozAlign: 'right',
+            headerWordWrap: true,
           },
           {
-            title: 'Hiệu suất thực tế',
+            title: 'Năng suất thực tế (Phút / Đơn vị sản phẩm)',
             field: 'PerformanceActual',
+            width: 200,
             hozAlign: 'right',
+            headerWordWrap: true,
+          },
+          {
+            title: 'Năng suất trung bình / Năng suất thực tế',
+            field: 'Percentage',
+            width: 200,
+            hozAlign: 'right',
+            headerWordWrap: true,
+          },
+          {
+            title: 'Ngày tạo',
+            field: 'CreatedDate',
+            width: 120,
+            headerWordWrap: true,
+            formatter: (cell) => {
+              const v = cell.getValue();
+              if (!v) return '';
+              const date = new Date(v);
+              const dateStr = date.toLocaleDateString('vi-VN');
+              const timeStr = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+              return `${dateStr} ${timeStr}`;
+            },
           },
         ],
       });
     }
-    // 2. Bảng CẮT PHIM (driverReportTable) – ví dụ dựa data thứ 2 bạn gửi
+    // 2. Bảng LÁI XE (driverReportTable)
     if (this.driverTable) {
       this.driverTable.setData(this.driverReport);
     } else {
@@ -243,64 +264,87 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
         },
         columns: [
-          { title: 'STT', formatter: 'rownum', width: 60, hozAlign: 'center' },
+          { title: 'STT', formatter: 'rownum', width: 60, hozAlign: 'center', headerWordWrap: true },
+          { title: 'Họ tên', field: 'FullName', width: 150, headerWordWrap: true },
           {
-            title: 'Ngày báo cáo',
+            title: 'Ngày',
             field: 'DateReport',
-            width: 140,
+            width: 120,
+            headerWordWrap: true,
             formatter: (cell) => {
               const v = cell.getValue();
               return v ? new Date(v).toLocaleDateString('vi-VN') : '';
             },
           },
-          { title: 'Nhân viên', field: 'FullName', width: 200 },
-          { title: 'Km số', field: 'KmNumber', hozAlign: 'right' },
-          { title: 'Trạng thái xe', field: 'StatusVehicle', width: 160 },
-          { title: 'Lý do đi muộn', field: 'ReasonLate', width: 200 },
-          { title: 'Đề xuất', field: 'Propose', widthGrow: 2 },
+          { title: 'Lý do muộn', field: 'ReasonLate', widthGrow: 2, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'Tình trạng xe', field: 'StatusVehicle', width: 150, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'Kiến nghị / Đề xuất', field: 'Propose', widthGrow: 2, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'Số Km', field: 'KmNumber', width: 120, hozAlign: 'right', headerWordWrap: true },
+          { title: 'Số cuốc muộn', field: 'TotalLate', width: 120, hozAlign: 'right', headerWordWrap: true },
+          { title: 'Tổng số phút chậm', field: 'TotalTimeLate', width: 150, hozAlign: 'right', headerWordWrap: true },
+          {
+            title: 'Ngày tạo',
+            field: 'CreatedDate',
+            width: 120,
+            headerWordWrap: true,
+            formatter: (cell) => {
+              const v = cell.getValue();
+              if (!v) return '';
+              const date = new Date(v);
+              const dateStr = date.toLocaleDateString('vi-VN');
+              const timeStr = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+              return `${dateStr} ${timeStr}`;
+            },
+          },
         ],
       });
     }
 
-    // 3. Bảng LÁI XE (hrReportTable) – ví dụ dựa data thứ 3
+    // 3. Bảng HR Report (hrReportTable)
     if (this.hrTable) {
       this.hrTable.setData(this.hrReport);
     } else {
       this.hrTable = new Tabulator('#hrReportTable', {
         data: this.hrReport,
-
         ...DEFAULT_TABLE_CONFIG,
-        layout: 'fitColumns',
+        layout: 'fitDataStretch',
         height: '83vh',
-
-        reactiveData: true,
-        columnDefaults: {
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
+    paginationMode: 'local',
         columns: [
-          { title: 'STT', formatter: 'rownum', width: 60, hozAlign: 'center' },
+          { title: 'STT', formatter: 'rownum', width: 60, hozAlign: 'center', headerWordWrap: true },
+          { title: 'Họ tên', field: 'FullName', width: 150, headerWordWrap: true },
+          { title: 'Chức vụ', field: 'PositionName', width: 150, headerWordWrap: true },
           {
-            title: 'Ngày báo cáo',
+            title: 'Ngày',
             field: 'DateReport',
-            width: 140,
+            width: 120,
+            headerWordWrap: true,
             formatter: (cell) => {
               const v = cell.getValue();
               return v ? new Date(v).toLocaleDateString('vi-VN') : '';
             },
           },
-          { title: 'Mã NV', field: 'Code', width: 100 },
-          { title: 'Họ tên', field: 'FullName', width: 200 },
-          { title: 'Chức danh', field: 'PositionName', width: 200 },
-          { title: 'Dự án / phân loại', field: 'ProjectText', width: 200 },
-          { title: 'Giờ làm', field: 'TotalHours', hozAlign: 'right' },
-          { title: 'Giờ OT', field: 'TotalHourOT', hozAlign: 'right' },
+          { title: 'Nội dung', field: 'Content', widthGrow: 2, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'Kết quả', field: 'Results', widthGrow: 2, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'Kế hoạch ngày tiếp theo', field: 'PlanNextDay', widthGrow: 2, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'Tồn đọng', field: 'BackLog', widthGrow: 1, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'Lý do tồn đọng', field: 'Note', widthGrow: 2, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'Vấn đề phát sinh', field: 'Problem', widthGrow: 2, headerWordWrap: true, formatter: 'textarea' },
+          { title: 'Giải pháp', field: 'ProblemSolve', widthGrow: 2, headerWordWrap: true, formatter: 'textarea' },
           {
-            title: '% hoàn thành',
-            field: 'PercentComplete',
-            hozAlign: 'right',
+            title: 'Ngày tạo',
+            field: 'CreatedDate',
+            width: 120,
+            headerWordWrap: true,
+            formatter: (cell) => {
+              const v = cell.getValue();
+              if (!v) return '';
+              const date = new Date(v);
+              const dateStr = date.toLocaleDateString('vi-VN');
+              const timeStr = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+              return `${dateStr} ${timeStr}`;
+            },
           },
-          { title: 'Ghi chú', field: 'Note', widthGrow: 2 },
         ],
       });
     }
@@ -309,13 +353,16 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
   //#region xuất excel
   async onExportExcel() {
     const tables = [
-      { table: this.filmTable, sheetName: 'Báo cáo HCNS-IT' },
-      { table: this.driverTable, sheetName: 'Báo cáo cắt phim' },
-      { table: this.hrTable, sheetName: 'Báo cáo lái xe' },
+      { table: this.hrTable, sheetName: 'Báo cáo HCNS-IT' },
+      { table: this.filmTable, sheetName: 'Báo cáo cắt phim' },
+      { table: this.driverTable, sheetName: 'Báo cáo lái xe' },     
     ];
 
     const workbook = new ExcelJS.Workbook();
     let hasData = false;
+
+    // Danh sách các field là date để xử lý đặc biệt
+    const dateFields = ['DateReport', 'CreatedDate'];
 
     for (const cfg of tables) {
       const table = cfg.table;
@@ -347,7 +394,26 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
             const field = col.getField();
             let value = row[field];
 
-            if (
+            // Xử lý date fields
+            if (dateFields.includes(field) && value) {
+              // Nếu là string ISO date
+              if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+                value = new Date(value);
+              }
+              // Nếu là string date khác format
+              else if (typeof value === 'string' && value.trim() !== '') {
+                const dateValue = new Date(value);
+                if (!isNaN(dateValue.getTime())) {
+                  value = dateValue;
+                }
+              }
+              // Nếu đã là Date object
+              else if (value instanceof Date) {
+                value = value;
+              }
+            }
+            // Xử lý các string date khác (nếu có)
+            else if (
               typeof value === 'string' &&
               /^\d{4}-\d{2}-\d{2}T/.test(value)
             ) {
@@ -364,7 +430,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
       // Format cột Date
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) return;
-        row.eachCell((cell) => {
+        row.eachCell((cell, colNumber) => {
           if (cell.value instanceof Date) {
             cell.numFmt = 'dd/mm/yyyy';
           }

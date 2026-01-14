@@ -1,0 +1,114 @@
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+
+    <!-- Header với p-menubar -->
+    <div class="card-header bg-white p-0" style="flex-shrink: 0;">
+      <p-menubar [model]="menuBars">
+        <ng-template pTemplate="item" let-item>
+          <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+          </a>
+        </ng-template>
+      </p-menubar>
+    </div>
+
+    <!-- Filter bar - hiển thị dạng hàng ngang -->
+    <div class="filter-bar bg-light border-bottom p-2">
+      <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-end">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker [(ngModel)]="filters.startDate" name="startDate" nzFormat="dd/MM/yyyy" style="width: 150px"
+              nzSize="small"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker [(ngModel)]="filters.endDate" name="endDate" nzFormat="dd/MM/yyyy" style="width: 150px"
+              nzSize="small"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+          <nz-form-control>
+            <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.filterText" name="filterText"
+              style="width: 150px"
+              (keyup.enter)="loadMainData(filters.startDate, filters.endDate, filters.filterText)" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mb-0">
+          <nz-form-control>
+            <div class="d-flex gap-1">
+              <button nz-button nzType="primary" nzSize="small"
+                (click)="loadMainData(filters.startDate, filters.endDate, filters.filterText)">
+                Tìm kiếm
+              </button>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </div>
+
+    <!-- Content -->
+    <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
+      <nz-splitter nzLayout="vertical" class="h-100 request-invoice-splitter">
+        <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+          <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+            <div class="card-body p-0 flex-grow-1 grid-container-main" style="overflow: hidden;">
+              <angular-slickgrid gridId="gridMain" [columns]="columnDefinitionsMain" [options]="gridOptionsMain"
+                [dataset]="datasetMain" (onAngularGridCreated)="angularGridReadyMain($event.detail)"
+                (onClick)="onMainRowClick($event.detail.eventData, $event.detail.args)"
+                (onDblClick)="onMainRowDblClick($event.detail.eventData, $event.detail.args)">
+              </angular-slickgrid>
+            </div>
+          </div>
+        </nz-splitter-panel>
+
+        <nz-splitter-panel nzDefaultSize="40%" [nzCollapsible]="true" nzResizable="true">
+          <nz-splitter>
+            <nz-splitter-panel>
+              <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                <div class="card-body p-0 flex-grow-1 grid-container-detail"
+                  style="overflow: hidden; position: relative; min-height: 0;">
+                  <angular-slickgrid gridId="gridDetail" [columns]="columnDefinitionsDetail"
+                    [options]="gridOptionsDetail" [dataset]="datasetDetail"
+                    (onAngularGridCreated)="angularGridReadyDetail($event.detail)"
+                    (onClick)="onDetailRowClick($event.detail.eventData, $event.detail.args)">
+                  </angular-slickgrid>
+                </div>
+              </div>
+            </nz-splitter-panel>
+            <nz-splitter-panel nzDefaultSize="23%" [nzCollapsible]="true" nzResizable="true">
+                <nz-tabset [nzTabPosition]="'top'" class="flex-grow-1 d-flex flex-column" (nzSelectedIndexChange)="onFilesTabChange($event)">
+                  <nz-tab nzTitle="Danh sách file">
+                    <div class="card-body p-0 flex-grow-1 grid-container-file" style="min-height: 200px;">
+                      <angular-slickgrid gridId="gridFile" [columns]="columnDefinitionsFile" [options]="gridOptionsFile"
+                        [dataset]="datasetFile" (onAngularGridCreated)="angularGridReadyFile($event.detail)"
+                        (onClick)="onFileRowClick($event.detail.eventData, $event.detail.args)"
+                        (onDblClick)="onFileRowDblClick($event.detail.eventData, $event.detail.args)">
+                      </angular-slickgrid>
+                    </div>
+                  </nz-tab>
+                  <nz-tab nzTitle="File PO">
+                    <div class="card-body p-0 flex-grow-1 grid-container-pofile" style="min-height: 200px;">
+                      <angular-slickgrid *ngIf="isPOFileGridRendered" gridId="gridPOFile" [columns]="columnDefinitionsPOFile"
+                        [options]="gridOptionsPOFile" [dataset]="datasetPOFile"
+                        (onAngularGridCreated)="angularGridReadyPOFile($event.detail)"
+                        (onClick)="onPOFileRowClick($event.detail.eventData, $event.detail.args)"
+                        (onDblClick)="onPOFileRowDblClick($event.detail.eventData, $event.detail.args)">
+                      </angular-slickgrid>
+                    </div>
+                  </nz-tab>
+                </nz-tabset>
+            </nz-splitter-panel>
+          </nz-splitter>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </div>
+  </div>
+</ng-container>

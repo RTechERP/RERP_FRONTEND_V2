@@ -1,139 +1,224 @@
-<div class="card-body">
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0" style="background: transparent">
+    <div class="card-header p-0 pt-2">
+      <form nz-form nzLayout="horizontal" class="fs-7 form-header">
+        <nz-row [nzGutter]="24">
+          <!-- Mã sản phẩm-->
+          <nz-col [nzSpan]="8" class="me-2 md-2">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzSpan]="6" required>
+                Mã sản phẩm <span class="ms-1" style="color: red">(*)</span>
+              </nz-form-label>
+              <nz-form-control [nzSpan]="18">
+                <input
+                  nz-input
+                  type="text"
+                  name="ProductCode"
+                  [(ngModel)]="ProductCode"
+                  [readonly]="true"
+                  style="width: 100%"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-<form nz-form nzLayout="horizontal" class="fs-7 form-header">
-    <nz-row [nzGutter]="24">
-      <!-- Mã sản phẩm-->
-      <nz-col [nzSpan]="8" class="me-2 md-2">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6" required>
-            Mã sản phẩm <span style="color: red">(*)</span>
-          </nz-form-label>
-          <nz-form-control [nzSpan]="18">
-            <input nz-input type="text" name="ProductCode" [(ngModel)]="ProductCode" [readonly]="true"
-              style="width: 100%;" />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
+          <!-- Tồn kho đầu kì -->
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label required>
+                Tồn kho đầu kì <span class="ms-1" style="color: red">(*)</span>
+              </nz-form-label>
+              <nz-form-control [nzSpan]="18">
+                <input
+                  nz-input
+                  type="number"
+                  name="NumberBegin"
+                  [(ngModel)]="NumberBegin"
+                  [readonly]="true"
+                  style="width: 100%"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <!-- Lọc NCC -->
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzSpan]="6"
+                >Nhập<span class="ms-1" style="color: red"
+                  >(*)</span
+                ></nz-form-label
+              >
+              <nz-form-control [nzSpan]="18">
+                <input
+                  nz-input
+                  type="number"
+                  name="NumberImport"
+                  [(ngModel)]="NumberImport"
+                  [readonly]="true"
+                  style="width: 100%"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-      <!-- Tồn kho đầu kì -->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label required>
-            Tồn kho đầu kì <span style="color: red">(*)</span>
-          </nz-form-label>
-          <nz-form-control [nzSpan]="18">
-            <input nz-input type="number" name="NumberBegin" [(ngModel)]="NumberBegin" [readonly]="true"
-              style="width: 100%;" />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <!-- Lọc NCC -->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6">Nhập<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="18">
-            <input nz-input type="number" name="NumberImport" [(ngModel)]="NumberImport" [readonly]="true"
-              style="width: 100%;" />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
+          <!-- Lọc NCC -->
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzSpan]="8">SL đang mượn</nz-form-label>
+              <nz-form-control [nzSpan]="16">
+                <input
+                  nz-input
+                  type="number"
+                  name="NumberBorrowing"
+                  [(ngModel)]="NumberBorrowing"
+                  [readonly]="true"
+                  style="width: 100%"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
 
-      <!-- Lọc NCC -->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label  [nzSpan]="8">SL đang mượn</nz-form-label>
-          <nz-form-control [nzSpan]="16">
-            <input nz-input type="number" name="NumberBorrowing" [(ngModel)]="NumberBorrowing" [readonly]="true"
-              style="width: 100%;" />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+        <nz-row [nzGutter]="24">
+          <!-- Từ ngày -->
+          <nz-col [nzSpan]="8" class="me-2 md-2">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzSpan]="6" required>
+                Tên sản phẩm <span class="ms-1" style="color: red">(*)</span>
+              </nz-form-label>
+              <nz-form-control [nzSpan]="18">
+                <input
+                  nz-input
+                  type="text"
+                  name="ProductName"
+                  [(ngModel)]="ProductName"
+                  [readonly]="true"
+                  style="width: 100%"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-    <nz-row [nzGutter]="24">
-      <!-- Từ ngày -->
-      <nz-col [nzSpan]="8" class="me-2 md-2">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6" required>
-            Tên sản phẩm <span style="color: red">(*)</span>
-          </nz-form-label>
-          <nz-form-control [nzSpan]="18">
-            <input nz-input type="text" name="ProductName" [(ngModel)]="ProductName" [readonly]="true"
-              style="width: 100%;" />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
+          <!-- Đến ngày -->
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label required>
+                Tồn kho cuối kì <span class="ms-1" style="color: red">(*)</span>
+              </nz-form-label>
+              <nz-form-control [nzSpan]="18">
+                <input
+                  nz-input
+                  type="number"
+                  name="InventoryLatest"
+                  [(ngModel)]="InventoryLatest"
+                  [readonly]="true"
+                  style="width: 100%"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <!-- Lọc NCC -->
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzSpan]="6"
+                >Xuất<span class="ms-1" style="color: red"
+                  >(*)</span
+                ></nz-form-label
+              >
+              <nz-form-control [nzSpan]="18">
+                <input
+                  nz-input
+                  type="number"
+                  name="NumberExport"
+                  [(ngModel)]="NumberExport"
+                  [readonly]="true"
+                  style="width: 100%"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-      <!-- Đến ngày -->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label required>
-            Tồn kho cuối kì <span style="color: red">(*)</span>
-          </nz-form-label>
-          <nz-form-control [nzSpan]="18">
-            <input nz-input type="number" name="InventoryLatest" [(ngModel)]="InventoryLatest" [readonly]="true"
-              style="width: 100%;" />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <!-- Lọc NCC -->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6">Xuất<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="18">
-            <input nz-input type="number" name="NumberExport" [(ngModel)]="NumberExport" [readonly]="true"
-              style="width: 100%;" />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-
-      <!-- Lọc NCC -->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="8">SL thực tế</nz-form-label>
-          <nz-form-control [nzSpan]="16">
-            <input nz-input type="number" name="InventoryReal" [(ngModel)]="InventoryReal" [readonly]="true"
-              style="width: 100%;" />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
-  </form>
-
-  <div style="flex: 1; min-height: 0; overflow: hidden; height: 80vh;">
-    <!-- Splitter layout giống C# form -->
-  <nz-splitter >
-    <!-- Left Panel: Bảng Mượn với Tab -->
-    <nz-splitter-panel nzResizable="false" [nzMin]="20" [nzMax]="80">
-      <nz-tabset class="borrow-tab custom-tab-title">
-        <nz-tab nzTitle="Danh sách Mượn">
-          <div #tbBorrowRef style="height: 100%; width: 100%;"></div>
-        </nz-tab>
-      </nz-tabset>
-    </nz-splitter-panel>
-
-    <!-- Right Panel: Splitter vertical cho Export (trên) và Import (dưới) -->
-    <nz-splitter-panel nzResizable="false" [nzMin]="20" [nzMax]="80">
-      <nz-splitter nzLayout="vertical">
-        <!-- Top: Bảng Xuất với Tab -->
-        <nz-splitter-panel nzResizable="true" [nzMin]="20" [nzMax]="80">
-          <nz-tabset class="export-tab custom-tab-title">
-            <nz-tab nzTitle="Danh sách Xuất">
-              <div #tbExportRef style="height: 100%; width: 100%;"></div>
-            </nz-tab>
-          </nz-tabset>
+          <!-- Lọc NCC -->
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzSpan]="8">SL thực tế</nz-form-label>
+              <nz-form-control [nzSpan]="16">
+                <input
+                  nz-input
+                  type="number"
+                  name="InventoryReal"
+                  [(ngModel)]="InventoryReal"
+                  [readonly]="true"
+                  style="width: 100%"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </form>
+    </div>
+    <!-- Content với tabs động -->
+    <div class="card-body p-0">
+      <nz-splitter>
+        <!-- LEFT : Phiếu mượn -->
+        <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="60%">
+          <nz-card nzTitle="Danh sách Mượn" class="full-card">
+            <div class="grid-container-borrow">
+              <angular-slickgrid
+                gridId="gridBorrow"
+                [columns]="columnDefinitionsBorrow"
+                [options]="gridOptionsBorrow"
+                [dataset]="datasetBorrow"
+                (onAngularGridCreated)="angularGridReadyBorrow($event.detail)"
+              >
+              </angular-slickgrid>
+            </div>
+          </nz-card>
         </nz-splitter-panel>
 
-        <!-- Bottom: Bảng Nhập với Tab -->
-        <nz-splitter-panel nzResizable="false" [nzMin]="20" [nzMax]="80">
-          <nz-tabset class="import-tab custom-tab-title">
-            <nz-tab nzTitle="Danh sách Nhập">
-              <div #tbImportRef style="height: 100%; width: 100%;"></div>
-            </nz-tab>
-          </nz-tabset>
+        <!-- RIGHT -->
+        <nz-splitter-panel>
+          <nz-splitter nzLayout="vertical">
+            <!-- TOP : Phiếu nhập -->
+            <nz-splitter-panel>
+              <nz-card nzTitle="Danh sách xuất" class="full-card">
+                <div class="grid-container-export">
+                  <angular-slickgrid
+                    gridId="gridExport"
+                    [columns]="columnDefinitionsExport"
+                    [options]="gridOptionsExport"
+                    [dataset]="datasetExport"
+                    (onAngularGridCreated)="
+                      angularGridReadyExport($event.detail)
+                    "
+                    (onDblClick)="onExportDblClick($event)"
+                  >
+                  </angular-slickgrid>
+                </div>
+              </nz-card>
+            </nz-splitter-panel>
+
+            <!-- BOTTOM : Phiếu xuất -->
+            <nz-splitter-panel>
+              <nz-card nzTitle="Danh sách nhập" class="full-card">
+                <div class="grid-container-import">
+                  <angular-slickgrid
+                    gridId="gridImport"
+                    [columns]="columnDefinitionsImport"
+                    [options]="gridOptionsImport"
+                    [dataset]="datasetImport"
+                    (onAngularGridCreated)="
+                      angularGridReadyImport($event.detail)
+                    "
+                    (onDblClick)="onImportDblClick($event)"
+                  >
+                  </angular-slickgrid>
+                </div>
+              </nz-card>
+            </nz-splitter-panel>
+          </nz-splitter>
         </nz-splitter-panel>
       </nz-splitter>
-    </nz-splitter-panel>
-  </nz-splitter>
+    </div>
   </div>
-</div>
+</ng-container>

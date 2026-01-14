@@ -1,0 +1,386 @@
+.custom-date-cell span {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+}
+
+/* Chỉ tô màu Chủ nhật thuộc tháng hiện tại */
+.holiday {
+  background: #dc3545;
+  color: #fff;
+  border-radius: 5px !important;
+}
+
+::ng-deep .ant-tabs-tab {
+  padding: 5px 0 !important;
+}
+
+::ng-deep h6 {
+  margin-bottom: 0.5rem !important;
+}
+
+::ng-deep .ant-radio-group {
+  display: none !important;
+}
+
+::ng-deep .ant-picker-calendar-header {
+  justify-content: center !important;
+  padding-top: 0 !important;
+  padding-bottom: 0.25rem !important;
+}
+::ng-deep .ant-list-vertical .ant-list-item-meta-title {
+  margin: 0 !important;
+  font-size: 12px !important;
+}
+
+::ng-deep .card-title {
+  font-size: 12px !important;
+}
+::ng-deep .ant-tabs-tab-btn {
+  font-size: 12px !important;
+}
+
+::ng-deep .gutter-example {
+  font-size: 12px !important;
+}
+
+.gutter-row {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.gutter-row:hover {
+  transform: translateY(-4px);
+}
+.grid-config {
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.grid-config:hover {
+  border-color: #1677ff;
+  box-shadow: 0 0 8px rgba(22, 119, 255, 0.3);
+}
+.py-2 {
+  padding-top: 1.5rem !important;
+  padding-bottom: 1.5rem !important;
+}
+
+::ng-deep
+  .ant-picker-cell-in-view.ant-picker-cell-today
+  .ant-picker-cell-inner {
+  background: rgb(18, 128, 207);
+}
+::ng-deep
+  .ant-picker-cell-in-view.ant-picker-cell-today
+  .ant-picker-cell-inner::before {
+  border-radius: 5px !important;
+  border: 1px solid rgb(18, 128, 207);
+}
+
+::ng-deep .ant-collapse {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+
+
+.app-launcher {
+  width: 360px;
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  /* viền 2px màu xanh */
+  border-radius: 2px;
+  overflow: hidden;
+  /* cắt nội dung lòi ra ngoài */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.app-launcher-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px;
+  /* max-height: 130px; */
+  overflow-y: auto;
+  /* chỉ lớp con scroll */
+}
+
+.app-launcher-inner::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-launcher-inner::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.app-launcher a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #000000;
+  font-size: 12px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-weight: bold;
+  height: 100px;
+}
+
+.app-launcher a img {
+  width: 50%;
+}
+
+.app-launcher a:hover {
+  background: #ef4723;
+  color: #fff;
+}
+
+/* .app-launcher a:hover img {
+  transform: scale(1.08);
+} */
+
+.app-launcher-inner a.active {
+  background: #ef4723;
+  color: #fff;
+}
+
+/* .list-group-item a{
+    color: #6777ef !important;
+    font-size: 12px;
+} */
+
+.list-group-item a{
+    /* text-transform: uppercase; */
+    /* color: #6777ef; */
+    font-size: 12px;
+}
+
+
+.list-group-item a:not([href]){
+    /* text-transform: uppercase; */
+    /* color: #6777ef; */
+    /* font-size: 12px; */
+}
+
+.list-group-item a[href]{
+    /* text-transform: uppercase; */
+    color: #6777ef !important;
+    /* font-size: 12px; */
+}
+
+.list-group-item a[href]:hover{
+    color: #6777ef !important;
+    text-decoration: underline;
+}
+
+/*
+/* Cột cha */
+.fixed-col {
+  height: 92vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; 
+   min-height: 0;
+}
+
+/* Mỗi card chiếm đều chiều cao */
+.fixed-col .card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;   
+}
+
+.fixed-col .card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;   
+}
+
+/* Header không bị co */
+.fixed-col .card .card-header {
+  flex-shrink: 0;
+}
+
+/* Chỉ scroll body */
+.fixed-col .card .card-body {
+  flex: 1 1 auto;  
+  overflow-y: auto;
+  min-height: 0;   
+}
+
+
+.app-launcher {
+  width: 360px;
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  /* viền 2px màu xanh */
+  border-radius: 2px;
+  overflow: hidden;
+  /* cắt nội dung lòi ra ngoài */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.app-launcher-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px;
+  /* max-height: 330px; */
+  overflow-y: auto;
+  /* chỉ lớp con scroll */
+}
+
+.app-launcher-inner::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-launcher-inner::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.app-launcher a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #000000;
+  font-size: 12px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-weight: bold;
+  height: 100px;
+}
+
+.app-launcher a img {
+  width: 50%;
+}
+
+.app-launcher a:hover {
+  background: #ef4723;
+  color: #fff;
+}
+
+/* .app-launcher a:hover img {
+  transform: scale(1.08);
+} */
+
+.app-launcher-inner a.active {
+  background: #ef4723;
+  color: #fff;
+}
+
+.notif-dropdown {
+  min-width: 423px;
+  max-height: 570px;
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.notif-header {
+  padding: 12px;
+  font-size: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notif-count {
+  font-size: 12px;
+  color: #999;
+}
+
+.notif-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border: 1px solid #b9b9b9;
+}
+
+.notif-item:hover {
+  background: #f5f5f5;
+}
+
+.notif-footer {
+  padding: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: #1890ff;
+  border-top: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.notif-footer:hover {
+  background: #f0f0f0;
+}
+
+.notif-item img {
+  width: 42px;
+  height: 42px;
+}
+
+.notif-text {
+  flex: 1;
+  /* text chiếm phần còn lại */
+  font-size: 14px;
+}
+
+.notif-time {
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+  /* không xuống dòng */
+}
+
+:host ::ng-deep .ant-badge-count {
+  font-size: 8px;
+  /* chữ nhỏ hơn */
+  min-width: 14px;
+  /* thu hẹp nền tròn */
+  height: 14px;
+  /* thu hẹp chiều cao */
+  line-height: 14px;
+  /* căn giữa số */
+  padding: 0 3px;
+  /* giảm padding */
+}
+
+.user-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-trigger {
+  /* height: 64px; */
+  padding: 0 24px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s, padding 0s;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* width: 100%; */
+}
+
+.p-avatar img{
+    width: 20px;
+    height: 20px;
+}

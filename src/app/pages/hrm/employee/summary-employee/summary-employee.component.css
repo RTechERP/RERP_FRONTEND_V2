@@ -1,53 +1,123 @@
-.search-form-card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-  border: 1px solid #e8e8e8;
+/* Base styles */
+:host,
+:host ::ng-deep * {
+  font-size: 12px;
 }
 
-.card-body-custom {
-  padding: 24px 20px;
-  background: #fafafa;
+.fs-12 {
+  font-size: 12px;
 }
 
-.form-label-custom {
-  font-size: 13px;
-  font-weight: 600;
-  color: #262626;
-  margin-bottom: 8px;
+/* Card layout */
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
-.search-button {
-  min-width: 120px;
-  height: 36px;
-  box-shadow: 0 2px 6px rgba(24, 144, 255, 0.25);
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.search-button span[nz-icon] {
-  margin-right: 6px;
+/* Tab styles - smaller padding */
+:host ::ng-deep .ant-tabs-tab {
+  padding: 4px 12px !important;
+  margin: 0 2px !important;
 }
 
-::ng-deep .search-form-card .ant-form-item {
-  margin-bottom: 0;
+:host ::ng-deep .ant-tabs-nav {
+  margin-bottom: 0 !important;
 }
 
-::ng-deep .search-form-card .ant-input,
-::ng-deep .search-form-card .ant-picker,
-::ng-deep .search-form-card .ant-select-selector {
-  min-height: 36px;
-  border-radius: 5px !important;
+/* Tabset fill parent - like nz-splitter in propose-vehicle-repair */
+:host ::ng-deep .ant-tabs {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
+:host ::ng-deep .ant-tabs-content-holder {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
 
+:host ::ng-deep .ant-tabs-content {
+  height: 100%;
+}
 
+:host ::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+}
+
+:host ::ng-deep .ant-tabs-tabpane-active {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+/* Grid container - same as propose-vehicle-repair */
+.grid-container {
+  height: 100%;
+  width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* Filter bar */
+.filter-bar {
+  padding: 8px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.filter-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+}
+
+/* Mobile styles */
 @media (max-width: 768px) {
-  .card-body-custom {
-    padding: 16px 12px;
+  .filter-bar.mobile-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   }
-  
-  .search-button {
-    width: 100%;
+}
+
+@media (min-width: 769px) {
+
+  .filter-backdrop,
+  .mobile-search-toggle {
+    display: none !important;
   }
-  
 }

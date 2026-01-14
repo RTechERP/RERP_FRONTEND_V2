@@ -63,13 +63,20 @@ import { WarehouseReleaseRequestComponent } from '../warehouse-release-request/w
 import { AppComponent } from '../../../app.component';
 import { POKHControllerComponent } from '../pokh-control/pokh-control';
 import { FollowProductReturnComponent } from '../follow-product-return/follow-product-return.component';
-import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { PoRequestPriceRtcComponent } from '../po-request-price-rtc/po-request-price-rtc.component';
 import { HistoryMoneyComponent } from '../history-money/history-money.component';
+import { ProjectPartlistPriceRequestNewComponent } from '../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
+import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
+import { ActivatedRoute } from '@angular/router';
+import { ProjectPartlistPurchaseRequestNewComponent } from '../../purchase/project-partlist-purchase-request-new/project-partlist-purchase-request-new.component';
+import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
+import { WarehouseReleaseRequestSlickGridComponent } from '../warehouse-release-request-slick-grid/warehouse-release-request-slick-grid.component';
+import { PoRequestBuySlickgridComponent } from '../po-request-buy-slickgrid/po-request-buy-slickgrid.component';
+import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -127,7 +134,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private notification: NzNotificationService,
     private viewPOKHService: ViewPokhService,
-    @Optional() @Inject('tabData') private tabData: any
+    private route: ActivatedRoute
   ) { }
 
   //#region : Khai báo
@@ -191,9 +198,14 @@ export class PokhComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Hàm khởi tạo
   ngOnInit(): void {
-    if (this.tabData?.warehouseId) {
-      this.filters.warehouseId = this.tabData.warehouseId;
-    }
+    // if (this.tabData?.warehouseId) {
+    //     this.filters.warehouseId = this.tabData.warehouseId;
+    // }
+
+    this.route.queryParams.subscribe(params => {
+      this.filters.warehouseId = params['warehouseId'] || 1
+      // this.warehouseType = params['warehouseType'] || 1;
+    });
     const endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
 
@@ -217,6 +229,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
     this.drawPOKHTable();
     this.initProductTable();
     this.initFileTable();
+    setupTabulatorCellCopy(this.tb_POKHProduct, this.tb_POKHProductElement.nativeElement);
+    setupTabulatorCellCopy(this.tb_POKH, this.tb_POKHElement.nativeElement);
   }
   //#endregion
 
@@ -984,8 +998,129 @@ export class PokhComponent implements OnInit, AfterViewInit {
         ids.push(...this.getAllRowIds(childRow));
       });
     }
-
     return ids;
+  }
+
+  private downloadBlob(blob: Blob, fileName: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  openProjectPartlistPurchaseRequest(): void {
+    if (!this.selectedId) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn POKH trước!'
+      );
+      return;
+    }
+    this.modalRef = this.modalService.open(ProjectPartListPurchaseRequestSlickGridComponent, {
+      centered: true,
+      windowClass: 'full-screen-modal',
+      backdrop: 'static',
+    });
+    this.modalRef.componentInstance.pokhIdFilter = this.selectedId;
+    this.modalRef.componentInstance.listRequestBuySelect = true;
+  }
+
+  openProjectPartlistPriceRequestNew(): void {
+    if (!this.selectedId) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn POKH trước!'
+      );
+      return;
+    }
+    this.modalRef = this.modalService.open(ProjectPartlistPriceRequestNewComponent, {
+      centered: true,
+      windowClass: 'full-screen-modal',
+      backdrop: 'static',
+    });
+    this.modalRef.componentInstance.poKHID = this.selectedId;
+    this.modalRef.componentInstance.isFromPOKH = true;
+  }
+
+  openModalViewPOKH() {
+    this.modalRef = this.modalService.open(ViewPokhComponent, {
+      centered: true,
+      windowClass: 'full-screen-modal',
+      backdrop: 'static',
+    });
+    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
+  }
+
+  openWarehouseReleaseRequestModal() {
+    // this.modalRef = this.modalService.open(WarehouseReleaseRequestComponent, {
+    //   centered: true,
+    //   backdrop: 'static',
+    //   windowClass: 'full-screen-modal',
+    // });
+    // this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
+
+    this.modalRef = this.modalService.open(WarehouseReleaseRequestSlickGridComponent, {
+      centered: true,
+      backdrop: 'static',
+      windowClass: 'full-screen-modal',
+    });
+    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
+  }
+
+  // openPORequestBuyModal() {
+  //   if (!this.selectedId) {
+  //     this.notification.warning(
+  //       NOTIFICATION_TITLE.warning,
+  //       'Vui lòng chọn POKH trước!'
+  //     );
+  //     return;
+  //   }
+  //   const modalRef = this.modalService.open(PoRequestBuyComponent, {
+  //           centered: true,
+  //           backdrop: 'static',
+  //           windowClass: 'full-screen-modal',
+  //       });
+  //       modalRef.componentInstance.pokhId = this.selectedId;
+
+  //       modalRef.result.then(
+  //           (result) => {
+  //               if (result) {
+  //               }
+  //           },
+  //           (reason) => {
+  //               console.log('Modal dismissed');
+  //           }
+  //       );
+  // }
+
+  openPORequestBuyModal() {
+    if (!this.selectedId) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn POKH trước!'
+      );
+      return;
+    }
+    const modalRef = this.modalService.open(PoRequestBuyComponent, {
+      centered: true,
+      backdrop: 'static',
+      windowClass: 'full-screen-modal',
+    });
+    modalRef.componentInstance.pokhId = this.selectedId;
+
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+        }
+      },
+      (reason) => {
+        console.log('Modal dismissed');
+      }
+    );
   }
 
   formatFileSize(bytes: number): string {
@@ -1275,76 +1410,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
     ];
   }
 
-  private downloadBlob(blob: Blob, fileName: string): void {
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  }
-
-  openProjectPartlistPurchaseRequest(): void {
-    this.notification.warning(
-      NOTIFICATION_TITLE.warning,
-      'Chức năng đang phát triển!'
-    );
-  }
-
-  openProjectPartlistPriceRequestNew(): void {
-    this.notification.warning(
-      NOTIFICATION_TITLE.warning,
-      'Chức năng đang phát triển!'
-    );
-  }
-
-  openModalViewPOKH() {
-    this.modalRef = this.modalService.open(ViewPokhComponent, {
-      centered: true,
-      windowClass: 'full-screen-modal',
-      backdrop: 'static',
-    });
-    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
-  }
-
-  openWarehouseReleaseRequestModal() {
-    this.modalRef = this.modalService.open(WarehouseReleaseRequestComponent, {
-      centered: true,
-      backdrop: 'static',
-      windowClass: 'full-screen-modal',
-    });
-    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
-  }
-
-  openPORequestBuyModal() {
-    if (!this.selectedId) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn POKH trước!'
-      );
-      return;
-    }
-
-    const modalRef = this.modalService.open(PoRequestBuyComponent, {
-      centered: true,
-      backdrop: 'static',
-      windowClass: 'full-screen-modal',
-    });
-    modalRef.componentInstance.pokhId = this.selectedId;
-
-    modalRef.result.then(
-      (result) => {
-        if (result) {
-          // Handle successful modal close if needed
-        }
-      },
-      (reason) => {
-        console.log('Modal dismissed');
-      }
-    );
-  }
   openModal() {
     this.isModalOpen = true;
     this.modalRef = this.modalService.open(PokhDetailComponent, {
@@ -1389,7 +1454,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       pagination: true,
       paginationMode: 'remote',
       paginationSize: 50,
-      paginationSizeSelector: [10, 30, 50, 100, 300, 500],
+      paginationSizeSelector: [10, 30, 50, 100, 300, 500, 99999999],
       ajaxURL: this.POKHService.getPOKHAjax(),
       ajaxParams: this.getPOKHAjaxParams(),
       ajaxConfig: {
@@ -1456,8 +1521,17 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'StatusTextNew',
           sorter: 'string',
           width: 150,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc trạng thái',
         },
-        { title: 'Loại', field: 'MainIndex', sorter: 'string', width: 200 },
+        {
+          title: 'Loại',
+          field: 'MainIndex',
+          sorter: 'string',
+          width: 200,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc loại',
+        },
         {
           title: 'New Account',
           field: 'NewAccount',
@@ -1471,22 +1545,47 @@ export class PokhComponent implements OnInit, AfterViewInit {
           </div>`;
           },
         },
-        { title: 'Số POKH', field: 'PONumber', sorter: 'number', width: 100 },
-        { title: 'Mã PO', field: 'POCode', sorter: 'string', width: 150 },
+        {
+          title: 'Số POKH',
+          field: 'PONumber',
+          sorter: 'number',
+          width: 100,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc số POKH',
+        },
+        {
+          title: 'Mã PO',
+          field: 'POCode',
+          sorter: 'string',
+          width: 150,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc mã PO',
+        },
         {
           title: 'Khách hàng',
           field: 'CustomerName',
           sorter: 'string',
           formatter: 'textarea',
           width: 300,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc khách hàng',
         },
         {
           title: 'Người phụ trách',
           field: 'FullName',
           sorter: 'string',
           width: 150,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc người phụ trách',
         },
-        { title: 'Dự án', field: 'ProjectName', sorter: 'string', width: 200 },
+        {
+          title: 'Dự án',
+          field: 'ProjectName',
+          sorter: 'string',
+          width: 200,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc dự án',
+        },
         {
           title: 'Ngày nhận PO',
           field: 'ReceivedDatePO',
@@ -1515,6 +1614,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           sorter: 'number',
           width: 150,
           formatter: 'money',
+          hozAlign: 'right',
         },
         {
           title: 'Tổng tiền nhận PO',
@@ -1522,6 +1622,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           sorter: 'number',
           width: 150,
           formatter: 'money',
+          hozAlign: 'right',
           formatterParams: {
             precision: 0,
             decimal: '.',
@@ -1545,6 +1646,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           sorter: 'number',
           width: 150,
           formatter: 'money',
+          hozAlign: 'right',
         },
         {
           title: 'Tình trạng tiến độ giao hàng',
@@ -1558,13 +1660,22 @@ export class PokhComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 150,
         },
-        { title: 'End User', field: 'EndUser', sorter: 'string', width: 150 },
+        {
+          title: 'End User',
+          field: 'EndUser',
+          sorter: 'string',
+          width: 150,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc end user',
+        },
         {
           title: 'Ghi chú',
           field: 'Note',
           sorter: 'string',
           formatter: 'textarea',
           width: 120,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc ghi chú',
         },
         {
           title: 'Công nợ',
@@ -1578,8 +1689,17 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'ImportStatus',
           sorter: 'string',
           width: 150,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc hóa đơn',
         },
-        { title: 'Đặt hàng', field: 'PONumber', sorter: 'string', width: 150 },
+        {
+          title: 'Đặt hàng',
+          field: 'PONumber',
+          sorter: 'string',
+          width: 150,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc đặt hàng',
+        },
       ],
     });
 
@@ -1616,7 +1736,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       {
         data: this.dataPOKHProduct,
         dataTree: true,
-        layout: 'fitDataFill',
+        layout: 'fitColumns',
         dataTreeStartExpanded: true,
         pagination: true,
         paginationSize: 10,
@@ -1772,6 +1892,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 200,
             formatter: 'money',
+            hozAlign: 'right',
             formatterParams: {
               precision: 0,
               decimal: '.',
@@ -1786,6 +1907,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 200,
             formatter: 'money',
+            hozAlign: 'right',
             formatterParams: {
               precision: 0,
               decimal: '.',
@@ -1830,6 +1952,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 200,
             formatter: 'money',
+            hozAlign: 'right',
             formatterParams: {
               precision: 0,
               decimal: '.',
@@ -1957,7 +2080,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     this.tb_POKHFile = new Tabulator(this.tb_POKHFileElement.nativeElement, {
       data: this.dataPOKHFiles,
       layout: 'fitDataFill',
-      height: '10vh',
+      height: '100%',
       movableColumns: true,
       resizableRows: true,
       rowContextMenu: this.getContextFileMenu(),
@@ -1978,7 +2101,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           title: 'Tên file',
           field: 'FileName',
           sorter: 'string',
-          width: '100%',
+          width: '83%',
         },
       ],
     });

@@ -87,24 +87,12 @@
                 [class.ng-invalid]="hasError('approvedId')"
                 (ngModelChange)="onApprovedChange()"
               >
-                <nz-option-group
-                  *ngFor="let group of approverGroups"
-                  [nzLabel]="group.label"
+                <nz-option
+                  *ngFor="let appr of approverList"
+                  [nzLabel]="appr.Code + ' - ' + appr.FullName"
+                  [nzValue]="appr.EmployeeID"
                 >
-                  <nz-option
-                    *ngFor="let appr of group.options"
-                    [nzLabel]="appr.Code + ' - ' + appr.FullName"
-                    [nzValue]="appr.ID"
-                  >
-                    <div class="approver-option">
-                      <span class="approver-code">{{ appr.Code }}</span>
-                      <span class="approver-name"> - {{ appr.FullName }}</span>
-                      <small class="text-muted d-block">{{
-                        appr.DepartmentName
-                      }}</small>
-                    </div>
-                  </nz-option>
-                </nz-option-group>
+                </nz-option>
               </nz-select>
             </nz-form-control>
           </nz-form-item>
@@ -240,16 +228,16 @@
         </nz-col>
       </nz-row>
 
-      <!-- Row 6: Lý do sửa đổi -->
+      <!-- Row 6: Lý do sửa đổi - chỉ hiển thị khi edit mode và có ID -->
       <ng-container *hasPermission="'N2,N1'">
-        <nz-row [nzGutter]="[24, 16]" *ngIf="isEditMode">
+        <nz-row [nzGutter]="[24, 16]" *ngIf="isEditMode && wfhData && wfhData.ID && wfhData.ID > 0">
           <nz-col [nzSpan]="24">
             <nz-form-item class="pt-1">
               <nz-form-label class="fs-12 d-flex align-items-center">
                 Lý do sửa đổi
                 <span
                   class="text-danger ps-1"
-                  *ngIf="wfhData && wfhData.ID && wfhData.ID > 0"
+                  *ngIf="wfhData && wfhData.ID && wfhData.ID > 0 && currentEmployeeId && wfhData.EmployeeID && currentEmployeeId !== wfhData.EmployeeID"
                   >(*)</span
                 >
               </nz-form-label>

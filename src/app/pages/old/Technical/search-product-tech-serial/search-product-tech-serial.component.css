@@ -45,12 +45,9 @@
   white-space: nowrap !important;
 }
 
-.tabulator {
-  font-size: 0.75rem;
-}
-
-.tabulator-cell {
-  padding: 0px;
+::ng-deep #exportTable,
+::ng-deep #importTable {
+  height: 86vh !important;
 }
 
 .fs-12 {
@@ -83,4 +80,8 @@
     border-radius: 2px;
     height: 24px;
     line-height: 22px;
+}
+
+::ng-deep .ant-splitter{
+  height: 89vh !important;
 }

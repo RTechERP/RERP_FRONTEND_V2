@@ -135,6 +135,10 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
   }
 
   loadUser() {
+    this.userId = this.appUserService.id;
+    if(ID_ADMIN_DEMO_LIST.includes(this.userId) || this.appUserService.isAdmin) {
+      this.userId = 0;
+    }
     this.borrowService.getUserHistoryProduct(this.userId).subscribe({
       next: (response: any) => {
         let data = response.data;
@@ -420,13 +424,12 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
               const userId = this.appUserService?.id || 0;
               const isAdmin = IDAdminDemo.includes(userId);
               const isGlobalAdmin = this.appUserService?.isAdmin || false;
-              const employeeID = this.appUserService?.employeeID || 0;
             // trạng thái đang mượn nếu là admin
-            if (isAdmin || isGlobalAdmin || employeeID == 78) {
+            if (isAdmin || isGlobalAdmin ) {
               data.Status = 1;
             }
             console.log('data',data);
-            
+
             return this.borrowService.postSaveHistoryProductRTC(data).toPromise()
               .then(() => {
                 return { item, success: true, message: null }

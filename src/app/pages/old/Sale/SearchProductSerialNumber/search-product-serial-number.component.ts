@@ -1,4 +1,12 @@
-import { Component, OnInit, AfterViewInit, ViewChild, Input, Inject, Optional } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  ViewChild,
+  Input,
+  Inject,
+  Optional,
+} from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
@@ -31,6 +39,7 @@ import { DateTime } from 'luxon';
 import { SearchProductSerialNumberServiceService } from './search-product-serial-number-service/search-product-serial-number-service.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-search-product-serial-number',
   standalone: true,
@@ -58,15 +67,16 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
   styleUrl: './search-product-serial-number.component.css',
 })
 export class SearchProductSerialNumberComponent
-  implements OnInit, AfterViewInit {
+  implements OnInit, AfterViewInit
+{
   wearHouseID: number = 1;
   constructor(
     private searchProductSerialNumberService: SearchProductSerialNumberServiceService,
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    @Optional() @Inject('tabData') private tabData: any
-  ) { }
+    private route: ActivatedRoute
+  ) {}
 
   isLoading = false;
 
@@ -78,9 +88,13 @@ export class SearchProductSerialNumberComponent
 
   keyword: string = '';
   ngOnInit(): void {
-    if (this.tabData?.warehouseID) {
-      this.wearHouseID = this.tabData.warehouseID;
-    }
+    // if (this.tabData?.warehouseID) {
+    //   this.wearHouseID = this.tabData.warehouseID;
+    // }
+
+    this.route.queryParams.subscribe((params) => {
+      this.wearHouseID = params['warehouseID'] || 'HN';
+    });
     this.loadData();
   }
   ngAfterViewInit(): void {
@@ -113,7 +127,7 @@ export class SearchProductSerialNumberComponent
     this.table_Import = new Tabulator('#table_import', {
       data: this.dataImport,
       ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataFill',
+      layout: 'fitDataStretch',
       height: '89vh',
       selectableRows: true, // Cho phép checkbox chọn dòng
       movableColumns: true,
@@ -130,8 +144,9 @@ export class SearchProductSerialNumberComponent
           width: 80,
           formatter: (cell) => {
             const value = cell.getValue();
-            return `<input type="checkbox" ${value === true ? 'checked' : ''
-              } disabled />`;
+            return `<input type="checkbox" ${
+              value === true ? 'checked' : ''
+            } disabled />`;
           },
         },
         {
@@ -192,7 +207,7 @@ export class SearchProductSerialNumberComponent
     this.table_Export = new Tabulator('#table_export', {
       data: this.dataExport,
       ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataFill',
+      layout: 'fitDataStretch',
       height: '89vh',
       selectableRows: true, // Cho phép checkbox chọn dòng
       movableColumns: true,
@@ -210,8 +225,9 @@ export class SearchProductSerialNumberComponent
           width: 80,
           formatter: (cell) => {
             const value = cell.getValue();
-            return `<input type="checkbox" ${value === true ? 'checked' : ''
-              } disabled />`;
+            return `<input type="checkbox" ${
+              value === true ? 'checked' : ''
+            } disabled />`;
           },
         },
         {
@@ -241,7 +257,7 @@ export class SearchProductSerialNumberComponent
         },
         {
           title: 'Serial Number',
-          field: 'SerialNumber',
+          field: 'SerialNumber1',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },

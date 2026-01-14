@@ -1,0 +1,64 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
+
+@Injectable({
+    providedIn: 'root',
+})
+export class ViewPokhSlickgridService {
+    private _url = environment.host + 'api/ViewPOKH/';
+    constructor(private http: HttpClient) { }
+    loadViewPOKH(
+        datetimeS: Date,
+        datetimeE: Date,
+        employeeTeamSaleId: number,
+        userId: number,
+        poType: number,
+        status: number,
+        customerId: number,
+        keyword: string,
+        warehouseId: number
+    ): Observable<any> {
+        return this.http.get<any>(this._url + 'get-viewpokh', {
+            params: {
+                datetimeS: datetimeS.toISOString(),
+                datetimeE: datetimeE.toISOString(),
+                employeeTeamSaleId: employeeTeamSaleId.toString(),
+                userId: userId.toString(),
+                poType: poType.toString(),
+                status: status.toString(),
+                customerId: customerId.toString(),
+                keyword: keyword,
+                warehouseId: warehouseId.toString(),
+            },
+        });
+    }
+    loadUser(): Observable<any> {
+        return this.http.get<any>(this._url + 'get-user');
+    }
+
+    loadEmployeeByTeamSale(teamId: number): Observable<any> {
+        return this.http.get<any>(this._url + 'get-employee-by-teamsale', {
+            params: {
+                teamId: teamId.toString(),
+            },
+        });
+    }
+    loadCustomer(): Observable<any> {
+        return this.http.get<any>(this._url + 'get-customer');
+    }
+    loadGroupSale(): Observable<any> {
+        return this.http.get<any>(this._url + 'get-groupsale');
+    }
+    loadEmployeeTeamSale(): Observable<any> {
+        return this.http.get<any>(this._url + 'get-employee-team-sale');
+    }
+    loadMainIndex(): Observable<any> {
+        return this.http.get<any>(this._url + 'get-mainindex');
+    }
+    saveData(data: any): Observable<any> {
+        return this.http.post<any>(this._url + 'save-data', data);
+    }
+}

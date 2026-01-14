@@ -8,11 +8,12 @@ import {
   SimpleChanges,
   Inject,
   Optional,
+  HostListener,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { RowComponent } from 'tabulator-tables';
+import { RowComponent, CellComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -32,6 +33,7 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { ActivatedRoute } from '@angular/router';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { environment } from '../../../../../environments/environment';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
@@ -43,6 +45,7 @@ import { BillImportDetailComponent } from '../BillImport/Modal/bill-import-detai
 import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
 import { NgZone } from '@angular/core';
+import { BillExportDetailNewComponent } from '../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 @Component({
   selector: 'app-chi-tiet-san-pham-sale',
   imports: [
@@ -97,6 +100,7 @@ export class ChiTietSanPhamSaleComponent
     private modalService: NgbModal,
     private menuEventService: MenuEventService,
     private zone: NgZone,
+    private route: ActivatedRoute,
     @Optional() @Inject('tabData') private tabData: any
   ) {
     // When opened from inventory via menuEventService, data comes through injector
@@ -128,6 +132,40 @@ export class ChiTietSanPhamSaleComponent
   table_Data!: Tabulator;
   title: string = 'LỊCH SỬ NHẬP XUẤT SẢN PHẨM';
 
+  // Selected cell for copy functionality
+  private selectedCellValue: string | null = null;
+
+  // HostListener for Ctrl+C to copy selected cell value
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 'c' && this.selectedCellValue !== null) {
+      // Prevent default browser copy behavior only if we have a selected cell
+      event.preventDefault();
+      this.copyToClipboard(this.selectedCellValue);
+    }
+  }
+
+  // Copy text to clipboard
+  private copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).then(
+      () => {
+      },
+      (err) => {
+        console.error('Could not copy text: ', err);
+        this.notificationService.error('Lỗi', 'Không thể copy vào clipboard');
+      }
+    );
+  }
+
+  // Setup cellClick event for a table to track selected cell
+  private setupCellClickHandler(table: Tabulator) {
+    table.on('cellClick', (_e: UIEvent, cell: CellComponent) => {
+      const value = cell.getValue();
+      // Convert value to string, handle null/undefined
+      this.selectedCellValue = value !== null && value !== undefined ? String(value) : '';
+    });
+  }
+
   // Calculated totals
   totalImport: number = 0;
   totalExport: number = 0;
@@ -136,6 +174,20 @@ export class ChiTietSanPhamSaleComponent
   totalLast: number = 0;
 
   ngOnInit() {
+    // Read data from query params (when opened via window.open with route)
+    this.route.queryParams.subscribe((params) => {
+      if (params['code']) {
+        this.code = params['code'] || '';
+        this.suplier = params['suplier'] || '';
+        this.productName = params['productName'] || '';
+        this.numberDauKy = params['numberDauKy'] || '';
+        this.numberCuoiKy = params['numberCuoiKy'] || '';
+        this.import = params['import'] || '';
+        this.export = params['export'] || '';
+        this.productSaleID = parseInt(params['productSaleID'] || '0', 10);
+        this.wareHouseCode = params['wareHouseCode'] || '';
+      }
+    });
     // Data will be loaded in ngAfterViewInit after tables are initialized
   }
 
@@ -304,7 +356,7 @@ export class ChiTietSanPhamSaleComponent
     modalRef.componentInstance.newBillImport = rowData;
     modalRef.componentInstance.isCheckmode = true;
     modalRef.componentInstance.id = rowData.ID || rowData.id || 0;
-    modalRef.componentInstance.wareHouseCode = this.wareHouseCode;
+    modalRef.componentInstance.WarehouseCode = this.wareHouseCode;
 
     // Reload data after modal closes
     modalRef.result.finally(() => {
@@ -313,7 +365,7 @@ export class ChiTietSanPhamSaleComponent
   }
 
   openBillExportDetail(rowData: any) {
-    const modalRef = this.modalService.open(BillExportDetailComponent, {
+    const modalRef = this.modalService.open(BillExportDetailNewComponent, {
       centered: true,
       windowClass: 'full-screen-modal',
       size: 'xl',
@@ -465,6 +517,9 @@ export class ChiTietSanPhamSaleComponent
         const rowData = row.getData();
         this.openBillImportDetail(rowData);
       });
+
+      // Setup cell click handler for copy functionality
+      this.setupCellClickHandler(this.table_DataImport);
     }
 
     // Table 2: Phiếu xuất
@@ -601,6 +656,9 @@ export class ChiTietSanPhamSaleComponent
         const rowData = row.getData();
         this.openBillExportDetail(rowData);
       });
+
+      // Setup cell click handler for copy functionality
+      this.setupCellClickHandler(this.table_DataExport);
     }
 
     // Table 3: Phiếu yêu cầu xuất
@@ -735,6 +793,9 @@ export class ChiTietSanPhamSaleComponent
           this.openBillExportDetail(rowData);
         }
       );
+
+      // Setup cell click handler for copy functionality
+      this.setupCellClickHandler(this.table_DataRequestExport);
     }
 
     // Table 4: Phiếu yêu cầu nhập
@@ -855,6 +916,9 @@ export class ChiTietSanPhamSaleComponent
           this.openBillImportDetail(rowData);
         }
       );
+
+      // Setup cell click handler for copy functionality
+      this.setupCellClickHandler(this.table_DataRequestImport);
     }
 
     // Table 5: Hàng giữ
@@ -983,6 +1047,9 @@ export class ChiTietSanPhamSaleComponent
           },
         ],
       });
+
+      // Setup cell click handler for copy functionality
+      this.setupCellClickHandler(this.table_Data);
     }
   }
 }

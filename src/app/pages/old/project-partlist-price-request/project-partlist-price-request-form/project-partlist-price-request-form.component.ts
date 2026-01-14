@@ -1,3 +1,4 @@
+import { AppUserService } from './../../../../services/app-user.service';
 import {
   Component,
   OnInit,
@@ -17,6 +18,7 @@ import { TabulatorFull as Tabulator, ColumnDefinition } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { FormsModule } from '@angular/forms';
 import { ProjectPartlistPriceRequestService } from '../project-partlist-price-request-service/project-partlist-price-request.service';
+import { ProjectPartlistPurchaseRequestService } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -60,9 +62,11 @@ import { BillExportService } from '../../Sale/BillExport/bill-export-service/bil
   styleUrls: ['./project-partlist-price-request-form.component.css'],
 })
 export class ProjectPartlistPriceRequestFormComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   private priceRequestService = inject(ProjectPartlistPriceRequestService);
+  private purchaseRequestService = inject(
+    ProjectPartlistPurchaseRequestService
+  );
   private notification = inject(NzNotificationService);
   private authService = inject(AuthService);
   private firmService = inject(FirmService);
@@ -75,6 +79,8 @@ export class ProjectPartlistPriceRequestFormComponent
   @Input() projectTypeID: number = 0;
   @Input() initialPriceRequestTypeID: number | null = null;
   @Input() isVPP: boolean = false;
+  @Input() noteJobRequirement: string = '';
+  @Input() qty: number = 0;
 
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
@@ -91,6 +97,8 @@ export class ProjectPartlistPriceRequestFormComponent
   employeeGroups: Array<{ department: string; items: any[] }> = [];
   priceRequestTypes: any[] = [];
   dtProductSale: any[] = [];
+  productsRTC: any[] = [];
+  dtSupplierSale: any[] = [];
   firms: any[] = [];
   customers: any[] = [];
   lstSave: any[] = [];
@@ -112,8 +120,13 @@ export class ProjectPartlistPriceRequestFormComponent
 
   // Popup state management
   showProductPopup: boolean = false;
+  showSupplierPopup: boolean = false;
   currentEditingCell: any = null;
   productPopupPosition: { top: string; left: string } = {
+    top: '0px',
+    left: '0px',
+  };
+  supplierPopupPosition: { top: string; left: string } = {
     top: '0px',
     left: '0px',
   };
@@ -139,7 +152,43 @@ export class ProjectPartlistPriceRequestFormComponent
     'ProductNewCode',
   ];
 
-  constructor(public activeModal: NgbActiveModal) {}
+  productRTCColumns: ColumnDefinition[] = [
+    { title: 'Mã SP', field: 'ProductCode', width: 120, headerSort: false },
+    {
+      title: 'Tên sản phẩm',
+      field: 'ProductName',
+      width: 200,
+      headerSort: false,
+    },
+    {
+      title: 'Mã nội bộ',
+      field: 'ProductCodeRTC',
+      width: 120,
+      headerSort: false,
+    },
+    { title: 'ĐVT', field: 'Unit', width: 80, headerSort: false },
+  ];
+  productRTCSearchFields: string[] = [
+    'ProductCode',
+    'ProductName',
+    'ProductCodeRTC',
+  ];
+
+  supplierColumns: ColumnDefinition[] = [
+    { title: 'Mã NCC', field: 'CodeNCC', width: 120, headerSort: false },
+    {
+      title: 'Tên NCC',
+      field: 'NameNCC',
+      width: 200,
+      headerSort: false,
+    },
+  ];
+  supplierSearchFields: string[] = ['CodeNCC', 'NameNCC'];
+
+  constructor(
+    public activeModal: NgbActiveModal,
+    private appUserService: AppUserService
+  ) { }
 
   get isEditMode(): boolean {
     return !!(this.dataInput && this.dataInput.length > 0);
@@ -159,9 +208,9 @@ export class ProjectPartlistPriceRequestFormComponent
 
           this.isAdmin = Boolean(
             this.currentUser.IsAdmin ??
-              this.currentUser.isAdmin ??
-              this.currentUser.IsSystemAdmin ??
-              false
+            this.currentUser.isAdmin ??
+            this.currentUser.IsSystemAdmin ??
+            false
           );
         }
       },
@@ -174,6 +223,7 @@ export class ProjectPartlistPriceRequestFormComponent
     this.getAllUser();
     this.getPriceRequestType();
     this.getProductSale();
+    this.GetSupplierSale();
     this.getFirms();
     // this.getCustomers();
 
@@ -185,6 +235,7 @@ export class ProjectPartlistPriceRequestFormComponent
       ) {
         this.priceRequestTypeID = this.initialPriceRequestTypeID;
       }
+      this.requester = this.appUserService.employeeID ?? 0;
       this.requestDate = new Date();
       this.tableData = [];
       return;
@@ -207,8 +258,8 @@ export class ProjectPartlistPriceRequestFormComponent
     // Lưu tạm giá trị, sẽ bind lại sau khi priceRequestTypes load xong
     const tempTypeID = Number(
       this.dataInput[0]['ProjectPartlistPriceRequestTypeID'] ||
-        this.dataInput[0]['PriceRequestTypeID'] ||
-        0
+      this.dataInput[0]['PriceRequestTypeID'] ||
+      0
     );
 
     // Chỉ set ngay nếu có giá trị, sẽ được bind lại chính xác trong getPriceRequestType
@@ -278,8 +329,8 @@ export class ProjectPartlistPriceRequestFormComponent
             // Khi sửa: bind từ dataInput, đảm bảo giá trị tồn tại trong danh sách
             const typeId = Number(
               this.dataInput[0]['ProjectPartlistPriceRequestTypeID'] ||
-                this.dataInput[0]['PriceRequestTypeID'] ||
-                0
+              this.dataInput[0]['PriceRequestTypeID'] ||
+              0
             );
 
             if (typeId > 0) {
@@ -386,7 +437,61 @@ export class ProjectPartlistPriceRequestFormComponent
           this.drawTable();
         }, 0);
       },
-      error: (err) => {},
+      error: (err) => { },
+    });
+  }
+
+  GetSupplierSale() {
+    this.priceRequestService.getSuplierSale().subscribe({
+      next: (response) => {
+        this.dtSupplierSale = response.data;
+        console.log('dtsuppliersale: ', this.dtSupplierSale);
+      },
+      error: (err) => {
+        console.error('Error loading supplier sale:', err);
+      },
+    });
+  }
+
+  getProductsRTC() {
+    const request = {
+      warehouseID: 0,
+      warehouseType: 0,
+      productRTCID: 0,
+      checkAll: 1,
+      keyWord: '',
+      page: 1,
+      size: 100000,
+      productGroupID: 0,
+    };
+
+    this.purchaseRequestService.getProductsRTC(request).subscribe({
+      next: (response: any) => {
+        let productsArray: any[] = [];
+
+        if (response?.data) {
+          if (Array.isArray(response.data)) {
+            productsArray = response.data;
+          } else if (
+            response.data.products &&
+            Array.isArray(response.data.products)
+          ) {
+            productsArray = response.data.products;
+          }
+        } else if (Array.isArray(response)) {
+          productsArray = response;
+        }
+
+        this.productsRTC = productsArray;
+        console.log('productsRTC: ', this.productsRTC);
+      },
+      error: (error: any) => {
+        console.error('Error loading ProductRTC:', error);
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          error.error?.message
+        );
+      },
     });
   }
 
@@ -415,7 +520,7 @@ export class ProjectPartlistPriceRequestFormComponent
   //   });
   // }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
   createdControl1(
     component: Type<any>,
     injector: EnvironmentInjector,
@@ -585,13 +690,45 @@ export class ProjectPartlistPriceRequestFormComponent
     return true;
   }
 
+  // Hàm chuẩn hóa giá trị để so sánh
+  private normalizeValue(value: any): any {
+    // Nếu là null hoặc undefined, trả về null
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    // Nếu là số, chuyển về dạng số để so sánh
+    if (typeof value === 'number' || !isNaN(Number(value))) {
+      return Number(value);
+    }
+
+    // Các giá trị khác giữ nguyên
+    return value;
+  }
+
   private drawTable(): void {
     this.table = new Tabulator(this.tableDiv.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       data: this.tableData,
-      rowHeader: false,
+
+      rowHeader: {
+        headerSort: false,
+        resizable: false,
+        frozen: true,
+        headerHozAlign: 'center',
+        hozAlign: 'center',
+        formatter: 'rowSelection',
+        titleFormatter: 'rowSelection',
+        cellClick: function (e, cell) {
+          e.stopPropagation();
+          cell.getRow().toggleSelect();
+        },
+      },
       layout: 'fitDataStretch',
+      selectableRows: false,
+      pagination: false,
+
       columns: [
         {
           title: '',
@@ -653,7 +790,6 @@ export class ProjectPartlistPriceRequestFormComponent
             row.delete();
           },
         },
-
         {
           title: 'STT',
           headerSort: false,
@@ -665,28 +801,37 @@ export class ProjectPartlistPriceRequestFormComponent
         {
           title: 'Mã nội bộ',
           headerSort: false,
-          field: 'ProductNewCode',
+          field:
+            this.priceRequestTypeID === 6 ? 'ProductCodeRTC' : 'ProductNewCode',
           width: 150,
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: (cell: any) => {
             const val = cell.getValue();
-            const product = (this.dtProductSale || []).find(
-              (p: any) => p.ProductNewCode === val
-            );
-            const productCode = product ? product.ProductNewCode : '';
+            let productCode = '';
+
+            if (this.priceRequestTypeID === 6) {
+              const product = (this.productsRTC || []).find(
+                (p: any) => p.ProductCodeRTC === val
+              );
+              productCode = product ? product.ProductCodeRTC : '';
+            } else {
+              const product = (this.dtProductSale || []).find(
+                (p: any) => p.ProductNewCode === val
+              );
+              productCode = product ? product.ProductNewCode : '';
+            }
+
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${
-                productCode || 'Chọn sản phẩm'
+              <button class="btn-toggle-detail w-100 h-100" title="${productCode || 'Chọn sản phẩm'
               }">
-                <span class="product-code-text">${
-                  productCode || 'Chọn SP'
-                }</span>
+                <span class="product-code-text">${productCode || 'Chọn SP'
+              }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
           },
-          cellClick: (e, cell) => {
+          cellClick: (_e, cell) => {
             this.toggleProductTable(cell);
           },
         },
@@ -696,7 +841,6 @@ export class ProjectPartlistPriceRequestFormComponent
           field: 'ProductCode',
           editor: 'input',
           headerHozAlign: 'center',
-          validator: ['required'],
           width: '150',
           hozAlign: 'left',
           editable: (cell: any) => {
@@ -710,7 +854,6 @@ export class ProjectPartlistPriceRequestFormComponent
           field: 'ProductName',
           editor: 'input',
           headerHozAlign: 'center',
-          validator: ['required'],
           width: '200',
           hozAlign: 'left',
           editable: (cell: any) => {
@@ -751,7 +894,6 @@ export class ProjectPartlistPriceRequestFormComponent
               : '';
           },
           headerHozAlign: 'center',
-          validator: ['required'],
           width: '120',
           hozAlign: 'center',
           editable: (cell: any) => {
@@ -765,7 +907,6 @@ export class ProjectPartlistPriceRequestFormComponent
           field: 'Quantity',
           editor: 'input',
           headerHozAlign: 'center',
-          validator: ['required'],
           width: '150',
           hozAlign: 'right',
           editable: (cell: any) => {
@@ -779,12 +920,40 @@ export class ProjectPartlistPriceRequestFormComponent
           field: 'Unit',
           editor: 'input',
           headerHozAlign: 'center',
-          validator: ['required'],
           hozAlign: 'left',
           width: '100',
           editable: (cell: any) => {
             const rowData = cell.getRow().getData();
             return this.canEditCell(rowData);
+          },
+        },
+        {
+          title: 'Nhà cung cấp',
+          headerSort: false,
+          field: 'SupplierSaleID',
+          width: 200,
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          visible: this.priceRequestTypeID === 6,
+          formatter: (cell: any) => {
+            const val = cell.getValue();
+            const supplier = (this.dtSupplierSale || []).find(
+              (s: any) => s.ID === val
+            );
+            const supplierName = supplier ? supplier.NameNCC : '';
+            return `
+              <button class="btn-toggle-detail w-100 h-100" title="${supplierName || 'Chọn nhà cung cấp'
+              }">
+                <span class="product-code-text">${supplierName || 'Chọn NCC'
+              }</span>
+                <span class="arrow">&#9662;</span>
+              </button>
+            `;
+          },
+          cellClick: (e, cell) => {
+            if (this.priceRequestTypeID === 6) {
+              this.toggleSupplierTable(cell);
+            }
           },
         },
         {
@@ -809,16 +978,61 @@ export class ProjectPartlistPriceRequestFormComponent
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 200,
-          editable: (cell: any) => {
-            const rowData = cell.getRow().getData();
-            if (this.jobRequirementID > 0) return false;
-            return this.canEditCell(rowData);
-          },
+          // editable: (cell: any) => {
+          //   const rowData = cell.getRow().getData();
+          //   if (this.jobRequirementID > 0) return false;
+          //   return this.canEditCell(rowData);
+          // },
         },
       ],
       height: '30vh',
       headerSort: false,
       reactiveData: true,
+    });
+
+    // Event listener: Khi edit cell, tự động bind giá trị vào các dòng đã chọn
+    this.table.on('cellEdited', (cell: any) => {
+      const editedRow = cell.getRow();
+      const field = cell.getField();
+      const newValue = cell.getValue();
+      const data = editedRow.getData();
+
+      // Lấy danh sách các dòng đã được select
+      const selectedRows = this.table.getSelectedRows();
+      const hasSelectedRows = selectedRows && selectedRows.length > 0;
+
+      // Kiểm tra xem dòng đang được edit có nằm trong danh sách các dòng được chọn không
+      const currentRowId = data['ID'] || editedRow.getPosition();
+      const isCurrentRowSelected =
+        hasSelectedRows &&
+        selectedRows.some((selectedRow: any) => {
+          const selectedData = selectedRow.getData();
+          const selectedRowId = selectedData['ID'] || selectedRow.getPosition();
+          return selectedRowId === currentRowId;
+        });
+
+      // Chỉ cập nhật các dòng được chọn nếu dòng đang edit cũng nằm trong danh sách được chọn
+      if (hasSelectedRows && isCurrentRowSelected) {
+        // Cập nhật tất cả các dòng đã chọn với giá trị mới (trừ dòng đang edit)
+        selectedRows.forEach((selectedRow: any) => {
+          const selectedData = selectedRow.getData();
+          const selectedRowId = selectedData['ID'] || selectedRow.getPosition();
+
+          // Bỏ qua dòng đang được edit (vì nó đã được Tabulator tự động cập nhật)
+          if (selectedRowId === currentRowId) {
+            return;
+          }
+
+          const oldValue = selectedData[field];
+
+          // Chỉ cập nhật nếu giá trị thực sự thay đổi
+          if (this.normalizeValue(oldValue) !== this.normalizeValue(newValue)) {
+            const updateData: any = {};
+            updateData[field] = newValue;
+            selectedRow.update(updateData);
+          }
+        });
+      }
     });
 
     // Sau khi table được vẽ, update column visibility dựa trên priceRequestTypeID hiện tại
@@ -830,6 +1044,11 @@ export class ProjectPartlistPriceRequestFormComponent
   }
   onPriceRequestTypeChange(value: number | null) {
     this.priceRequestTypeID = value ?? 0;
+
+    // Load ProductRTC khi chuyển sang typeID = 6
+    if (this.priceRequestTypeID === 6 && this.productsRTC.length === 0) {
+      this.getProductsRTC();
+    }
 
     if (!this.table) return;
 
@@ -848,6 +1067,25 @@ export class ProjectPartlistPriceRequestFormComponent
         });
       }
     }
+
+    const colSupplier = this.table.getColumn('SupplierSaleID');
+    if (colSupplier) {
+      if (this.priceRequestTypeID === 6) {
+        colSupplier.show();
+      } else {
+        colSupplier.hide();
+        const rows = this.table.getRows();
+        rows.forEach((r) => {
+          const data = r.getData();
+          if (data['SupplierSaleID']) {
+            r.update({ SupplierSaleID: null });
+          }
+        });
+      }
+    }
+
+    // Redraw table để cập nhật field của cột Mã nội bộ
+    this.table.redraw(true);
   }
 
   addRow() {
@@ -886,32 +1124,63 @@ export class ProjectPartlistPriceRequestFormComponent
     if (!this.currentEditingCell) return;
 
     const parentRow = this.currentEditingCell.getRow();
-    const productNewCode = selectedProduct.ProductNewCode;
     const currentRowData = parentRow.getData();
 
-    // Check for duplicates
-    const exists = this.table.getData().some((r: any) => {
-      if (r.ID === currentRowData.ID) return false;
-      return r.ProductNewCode === productNewCode;
-    });
+    if (this.priceRequestTypeID === 6) {
+      // Xử lý cho ProductRTC
+      const productCodeRTC = selectedProduct.ProductCodeRTC;
 
-    if (exists) {
-      this.notification.warning(
-        'Thông báo',
-        `Sản phẩm có Mã nội bộ [${productNewCode}] đã tồn tại trong danh sách!`
-      );
-      return;
+      // Check for duplicates
+      const exists = this.table.getData().some((r: any) => {
+        if (r.ID === currentRowData.ID) return false;
+        return r.ProductCodeRTC === productCodeRTC;
+      });
+
+      if (exists) {
+        this.notification.warning(
+          'Thông báo',
+          `Sản phẩm có Mã nội bộ [${productCodeRTC}] đã tồn tại trong danh sách!`
+        );
+        return;
+      }
+
+      // Update row with selected product data (ProductRTC)
+      parentRow.update({
+        ProductCodeRTC: selectedProduct.ProductCodeRTC,
+        ProductCode: selectedProduct.ProductCode,
+        ProductName: selectedProduct.ProductName,
+        Unit: selectedProduct.Unit,
+        Maker: selectedProduct.Maker,
+        StatusRequest: selectedProduct.StatusRequest,
+      });
+    } else {
+      // Xử lý cho ProductSale
+      const productNewCode = selectedProduct.ProductNewCode;
+
+      // Check for duplicates
+      const exists = this.table.getData().some((r: any) => {
+        if (r.ID === currentRowData.ID) return false;
+        return r.ProductNewCode === productNewCode;
+      });
+
+      if (exists) {
+        this.notification.warning(
+          'Thông báo',
+          `Sản phẩm có Mã nội bộ [${productNewCode}] đã tồn tại trong danh sách!`
+        );
+        return;
+      }
+
+      // Update row with selected product data (ProductSale)
+      parentRow.update({
+        ProductNewCode: selectedProduct.ProductNewCode,
+        ProductCode: selectedProduct.ProductCode,
+        ProductName: selectedProduct.ProductName,
+        Unit: selectedProduct.Unit,
+        Maker: selectedProduct.Maker,
+        StatusRequest: selectedProduct.StatusRequest,
+      });
     }
-
-    // Update row with selected product data
-    parentRow.update({
-      ProductNewCode: selectedProduct.ProductNewCode,
-      ProductCode: selectedProduct.ProductCode,
-      ProductName: selectedProduct.ProductName,
-      Unit: selectedProduct.Unit,
-      Maker: selectedProduct.Maker,
-      StatusRequest: selectedProduct.StatusRequest,
-    });
 
     // Close the popup
     this.showProductPopup = false;
@@ -923,46 +1192,89 @@ export class ProjectPartlistPriceRequestFormComponent
     this.currentEditingCell = null;
   }
 
+  toggleSupplierTable(cell: any) {
+    this.currentEditingCell = cell;
+
+    const cellElement = cell.getElement();
+    const cellRect = cellElement.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const spaceBelow = viewportHeight - cellRect.bottom;
+    const spaceAbove = cellRect.top;
+
+    if (spaceBelow < 300 && spaceAbove > spaceBelow) {
+      this.supplierPopupPosition = {
+        top: 'auto',
+        left: cellRect.left + 'px',
+      };
+    } else {
+      this.supplierPopupPosition = {
+        top: cellRect.bottom + 'px',
+        left: cellRect.left + 'px',
+      };
+    }
+
+    this.showSupplierPopup = true;
+  }
+
+  onSupplierSelected(selectedSupplier: any) {
+    if (!this.currentEditingCell) return;
+
+    const parentRow = this.currentEditingCell.getRow();
+
+    parentRow.update({
+      SupplierSaleID: selectedSupplier.ID,
+    });
+
+    this.showSupplierPopup = false;
+    this.currentEditingCell = null;
+  }
+
+  onSupplierPopupClosed() {
+    this.showSupplierPopup = false;
+    this.currentEditingCell = null;
+  }
+
   checkDeadline(deadline: Date): boolean {
-    const now = new Date();
-    const fifteenPM = new Date(now);
-    fifteenPM.setHours(15, 0, 0, 0);
+    // Kiểm tra Deadline
+    // Deadline phải cách ngày yêu cầu ít nhất 2 ngày
+    // Nếu yêu cầu sau 15h thì tính từ ngày hôm sau
+    // Deadline phải là ngày làm việc (không tính thứ 7, chủ nhật)
+    const now = DateTime.now();
+    const currentHour = now.hour;
 
-    let dateRequest = new Date(now);
-
-    if (now >= fifteenPM) {
-      dateRequest.setDate(dateRequest.getDate() + 1);
+    // Tính ngày bắt đầu tính (nếu sau 15h thì tính từ ngày mai)
+    let startDate = now.startOf('day');
+    if (currentHour >= 15) {
+      startDate = startDate.plus({ days: 1 });
     }
 
-    if (dateRequest.getDay() === 6) {
-      dateRequest.setDate(dateRequest.getDate() + 2);
-    } else if (dateRequest.getDay() === 0) {
-      dateRequest.setDate(dateRequest.getDate() + 1);
+    // Ngày deadline tối thiểu (phải cách ít nhất 2 ngày từ startDate)
+    const minDeadline = startDate.plus({ days: 2 });
+
+    // Parse deadline
+    const deadlineDate = DateTime.fromJSDate(deadline);
+
+    if (!deadlineDate || !deadlineDate.isValid) {
+      return true; // Nếu deadline không hợp lệ thì return true để validate khác xử lý
     }
 
-    let workDays: Date[] = [];
-    const dateReq = new Date(dateRequest.toDateString());
-    const dateDL = new Date(deadline.toDateString());
-    const totalDays = Math.floor(
-      (dateDL.getTime() - dateReq.getTime()) / (1000 * 3600 * 24)
-    );
-
-    for (let i = 0; i <= totalDays; i++) {
-      const d = new Date(dateReq);
-      d.setDate(d.getDate() + i);
-      const day = d.getDay();
-      if (day !== 0 && day !== 6) {
-        workDays.push(d);
-      }
-    }
-
-    if (workDays.length < 2 && !this.currentUser?.IsAdmin) {
+    // Kiểm tra nếu deadline là thứ 7 hoặc chủ nhật
+    const dayOfWeek = deadlineDate.weekday; // 1 = Monday, 6 = Saturday, 7 = Sunday
+    if (dayOfWeek === 6 || dayOfWeek === 7) {
       this.notification.warning(
         'Thông báo',
-        `Deadline phải ít nhất là 2 ngày làm việc tính từ [${dateRequest.toLocaleDateString(
-          'vi-VN'
-        )}] (không tính Thứ 7 & Chủ nhật).`
+        `Deadline (${deadlineDate.toFormat('dd/MM/yyyy')}) là ngày cuối tuần. Deadline phải là ngày làm việc (T2 - T6).`
       );
+      return false;
+    }
+
+    // Kiểm tra nếu deadline không đủ 2 ngày
+    if (deadlineDate < minDeadline) {
+      const errorMsg = currentHour >= 15
+        ? 'Yêu cầu từ sau 15h nên ngày Deadline tối thiểu là 2 ngày tính từ ngày hôm sau!'
+        : 'Deadline tối thiểu là 2 ngày từ ngày hiện tại!';
+
+      this.notification.warning('Thông báo', errorMsg);
       return false;
     }
 
@@ -1114,7 +1426,7 @@ export class ProjectPartlistPriceRequestFormComponent
         Note: note,
         DateRequest: this.requestDate ? new Date(this.requestDate) : null,
         EmployeeID: Number(this.requester) || null,
-       // CustomerID: Number(this.customerID) || null,
+        // CustomerID: Number(this.customerID) || null,
         IsJobRequirement: isJobRequirement,
         IsCommercialProduct: isCommercialProduct,
         ProjectPartlistID: projectPartlistId,
@@ -1123,12 +1435,14 @@ export class ProjectPartlistPriceRequestFormComponent
         StatusRequest: isNew ? 1 : oldStatus,
         NoteHR: data['NoteHR'] || null,
         IsDeleted: false,
+        SupplierSaleID: data['SupplierSaleID'] || 0,
       };
 
       if (
         isNew &&
         record['ProjectPartlistPriceRequestTypeID'] !== 4 &&
-        record['ProjectPartlistPriceRequestTypeID'] !== 3
+        record['ProjectPartlistPriceRequestTypeID'] !== 3 &&
+        record['ProjectPartlistPriceRequestTypeID'] !== 6
       ) {
         if (jobRequirementId && jobRequirementId > 0) {
           record['IsJobRequirement'] = true;

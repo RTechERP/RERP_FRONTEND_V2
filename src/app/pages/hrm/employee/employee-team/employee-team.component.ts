@@ -14,12 +14,14 @@ import { NzOptionComponent, NzSelectModule } from 'ng-zorro-antd/select';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { CommonModule } from '@angular/common';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 
 @Component({
   selector: 'app-employee-team',
   templateUrl: './employee-team.component.html',
   styleUrls: ['./employee-team.component.css'],
   imports: [
+    CommonModule,
     NzIconModule,
     NzButtonModule,
     NzNotificationModule,
@@ -27,7 +29,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzFormModule,
     NzInputModule,
     NzSelectModule,
-    NzOptionComponent
+    NzSplitterModule
   ],
   providers: [NzNotificationService, NzModalService],
   standalone: true
@@ -39,6 +41,7 @@ export class EmployeeTeamComponent implements OnInit {
   employeeTeamForm!: FormGroup;
   selectedEmployeeTeam: any = null;
   department: any = null;
+  sizeSearch: string = '0';
   constructor(
     private fb: FormBuilder,
     private notification: NzNotificationService,
@@ -56,7 +59,7 @@ export class EmployeeTeamComponent implements OnInit {
       Code: ['', [Validators.required]],
       Name: ['', [Validators.required]],
       DepartmentID: [0, [Validators.required]],
-      IsDeleted: [false]
+      IsDeleted: [0]
     });
   }
 
@@ -168,9 +171,14 @@ export class EmployeeTeamComponent implements OnInit {
       Code: '',
       Name: '',
       DepartmentID: null,
-      IsDeleted: false
+      IsDeleted: 0
     });
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeTeamModal'));
+    
+        
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeTeamModal'), {
+      backdrop: false,
+      keyboard: true
+    });
     modal.show();
 
   }
@@ -189,9 +197,14 @@ export class EmployeeTeamComponent implements OnInit {
       DepartmentID: this.selectedEmployeeTeam.DepartmentID,
       Code: this.selectedEmployeeTeam.Code,
       Name: this.selectedEmployeeTeam.Name,
-      IsDeleted: false
+      IsDeleted: 0
     });
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeTeamModal'));
+    
+        
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeTeamModal'), {
+      backdrop: false,
+      keyboard: true
+    });
     modal.show();
   }
 
@@ -200,6 +213,8 @@ export class EmployeeTeamComponent implements OnInit {
     if (modal) {
       (window as any).bootstrap.Modal.getInstance(modal).hide();
     }
+    
+        
     this.employeeTeamForm.reset();
   }
 
@@ -220,7 +235,7 @@ export class EmployeeTeamComponent implements OnInit {
       nzOnOk: () => {
         this.employeeService.saveEmployeeTeam({
           ...selectedEmployeeTeam,
-          IsDeleted: true
+          IsDeleted: 1
         }).subscribe({
           next: (response) => {
             this.notification.success(NOTIFICATION_TITLE.success, 'Xóa team phòng ban thành công');
@@ -233,5 +248,9 @@ export class EmployeeTeamComponent implements OnInit {
       },
       nzCancelText: 'Hủy'
     });
+  }
+
+  toggleSearchPanel() {
+    this.sizeSearch = this.sizeSearch == '0' ? '20%' : '0';
   }
 }

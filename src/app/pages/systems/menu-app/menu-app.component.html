@@ -1,0 +1,38 @@
+<!-- <p-menubar [model]="menuBars"> </p-menubar> -->
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
+
+    <ng-template #end>
+        <!-- <form nz-form class="ant-advanced-search-form">
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                        <nz-form-control>
+                            <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
+                                <input type="text" [(ngModel)]="keyword" nz-input placeholder="Nhập từ khóa"
+                                    [ngModelOptions]="{ standalone: true }" />
+                            </nz-input-group>
+                            <ng-template #suffixIconButton>
+                                <button nz-button nzType="primary" nzSearch nzSize="small"><span nz-icon nzType="search"
+                                        (click)="loadData()"></span></button>
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+        </form> -->
+    </ng-template>
+</p-menubar>
+
+
+<div class="grid-container border" style="height:89vh;">
+    <angular-slickgrid gridId="grdData" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
+        (onAngularGridCreated)="angularGridReady($event.detail)">
+    </angular-slickgrid>
+
+</div>

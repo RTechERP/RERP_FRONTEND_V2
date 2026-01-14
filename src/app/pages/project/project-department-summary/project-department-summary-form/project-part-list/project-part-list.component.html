@@ -1,6 +1,5 @@
 <div style="display: flex; flex-direction: column; position: relative;" [style.height]="tbp ? '93vh' : '100vh'">
     <!-- Modal Header -->
-   
     <div
       class="modal-header bg-primary align-items-center ps-2"
       style="flex-shrink: 0" *ngIf="!tbp"
@@ -51,7 +50,7 @@
                     nzSize="small"
                     class="fs-12 button button-succes btn-add"
                     (click)="openProjectSolutionDetail(false)"
-                    *hasPermission="'N38,N1,N63,N27'"
+                    *hasPermission="'N13,N1,N27,N63'"
                   >
                     <img
                       src="assets/icon/action_add_item_16.png"
@@ -65,7 +64,7 @@
                     nzType="default"
                     nzSize="small"
                     (click)="openProjectSolutionDetail(true)"
-                    *hasPermission="'N38,N1,N63,N27'"
+                    *hasPermission="'N13,N1,N27,N63'"
                   >
                     <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
                     Sửa
@@ -116,7 +115,7 @@
                     nz-button
                     nzSize="small"
                     class="fs-12 button button-succes btn-add"
-                    (click)="openProjectSolutionVersionDetail(1, false)" *hasPermission="'N1,N27,N38,N62,N28'"
+                    (click)="openProjectSolutionVersionDetail(1, false)" *hasPermission="'N38,N62,N1,N27,N28'"
                   
                   >
                     <img
@@ -130,7 +129,7 @@
                     nz-button
                     nzType="default"
                     nzSize="small"
-                    (click)="openProjectSolutionVersionDetail(1, true)" *hasPermission="'N38,N1, N62,N28,N27'"
+                    (click)="openProjectSolutionVersionDetail(1, true)" *hasPermission="'N38,N62,N1,N27,N28'"
                   >
                     <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
                     Sửa
@@ -141,7 +140,7 @@
                     nzType="default"
                     nzSize="small"
                     nzDanger
-                    (click)="deleteProjectPartListVersion(1)" *hasPermission="'N38,N1, N62,N28,N27'"
+                    (click)="deleteProjectPartListVersion(1)" *hasPermission="'N38,N62,N1,N63,N28'"
                   >
                     <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />
                     Xóa
@@ -177,7 +176,7 @@
                     nzSize="small"
                     class="fs-12 button button-succes btn-add"
                     (click)="openProjectSolutionVersionDetail(2, false)"
-                    *hasPermission="'N38,N1, N62,N28,N27'"
+                    *hasPermission="'N38,N62,N1,N27,N28'"
                   >
                     <img
                       src="assets/icon/action_add_item_16.png"
@@ -191,7 +190,7 @@
                     nzType="default"
                     nzSize="small"
                     (click)="openProjectSolutionVersionDetail(2, true)"
-                    *hasPermission="'N38,N1, N62,N28,N27'"
+                    *hasPermission="'N38,N62,N1,N27,N28'"
                   >
                     <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
                     Sửa
@@ -203,7 +202,7 @@
                     nzSize="small"
                     nzDanger
                     (click)="deleteProjectPartListVersion(2)"
-                    *hasPermission="'N38,N1, N62,N28,N27'"
+                    *hasPermission="'N38,N62,N1,N63,N28'"
                   >
                     <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />
                     Xóa
@@ -309,35 +308,41 @@
             </div>
   
             <div class="card-header bg-white p-1 d-flex gap-1">
-              <button
-                nz-button
-                nzSize="small"
-                class="fs-12 button button-succes btn-add"
-                (click)="openProjectPartlistDetail(false)" *ngIf="!tbp"
-              >
-                <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
-                Thêm
-              </button>
-              <button
-                class="fs-12 btn-edit"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="openProjectPartlistDetail(true)" *ngIf="!tbp"
-              >
-                <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
-              </button>
-              <button
-                class="fs-12 btn-delete"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                nzDanger
-                click
-                (click)="deleteProjectPartList()" *ngIf="!tbp"
-              >
-                <img src="assets/icon/action_delete_item_16.png" alt="Xóa " /> Xóa
-              </button>
+              <ng-container *ngIf="!tbp">
+                <button
+                  nz-button
+                  nzSize="small"
+                  class="fs-12 button button-succes btn-add"
+                  (click)="openProjectPartlistDetail(false)" 
+                  *hasPermission="'N38,N62,N1,N27,N28'"
+                >
+                  <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
+                  Thêm
+                </button>
+                
+                <button
+                  class="fs-12 btn-edit"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="openProjectPartlistDetail(true)" 
+                  *hasPermission="'N38,N62,N1,N27,N28'"
+                >
+                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
+                </button>
+                
+                <button
+                  class="fs-12 btn-delete"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  nzDanger
+                  (click)="deleteProjectPartList()" 
+                  *hasPermission="'N38,N62,N1,N27,N28'"
+                >
+                  <img src="assets/icon/action_delete_item_16.png" alt="Xóa " /> Xóa
+                </button>
+              </ng-container>
               <ng-container *ngIf="!tbp">
                 <button
                   class="fs-12"
@@ -428,7 +433,6 @@
                   nzSize="small"
                   nz-dropdown
                   [nzDropdownMenu]="menuExport"
-               
                 >
                   <img src="assets/icon/action_confirm_tbp_16.png" alt="TBP duyệt" />Yêu cầu xuất kho
                   <i nz-icon nzType="down"></i>
@@ -452,11 +456,48 @@
                     <img src="assets/icon/warehouse_16.png" />
                     <span class="ms-1">Kho Hải Phòng</span>
                   </li>
-                  <li nz-menu-item (click)="requestExportByWarehouse('ĐP')">
+                  <li nz-menu-item (click)="requestExportByWarehouse('DP')">
                     <img src="assets/icon/warehouse_16.png" />
                     <span class="ms-1">Kho Đan Phượng</span>
                   </li>
-                 
+                </ul>
+              </nz-dropdown-menu>
+              <!-- yêu cầu chuyển kho -->
+              <ng-container>
+                <button
+                  class="fs-12"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  nz-dropdown
+                  [nzDropdownMenu]="menuTransfer"
+                >
+                  <img src="assets/icon/action_confirm_tbp_16.png" alt="TBP duyệt" />Yêu cầu chuyển kho
+                  <i nz-icon nzType="down"></i>
+                </button>
+              </ng-container>
+                <nz-dropdown-menu #menuTransfer="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="requestExportByWarehouse('HN')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho HN</span>
+                  </li>
+                  <li nz-menu-item (click)="requestExportByWarehouse('HCM')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho HCM</span>
+                  </li>
+                  <li nz-menu-item (click)="requestExportByWarehouse('BN')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho Bắc Ninh</span>
+                  </li>
+                  <li nz-menu-item (click)="requestExportByWarehouse('HP')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho Hải Phòng</span>
+                  </li>
+                  <li nz-menu-item (click)="requestExportByWarehouse('DP')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho Đan Phượng</span>
+                  </li>
                 </ul>
               </nz-dropdown-menu>
               <!-- end -->

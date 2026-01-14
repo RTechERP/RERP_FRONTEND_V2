@@ -29,10 +29,7 @@
   height: 100%;
 }
 
-.offcanvas-left.show + .project-container {
-  margin-left: 300px;
-  width: calc(100% - 300px);
-}
+
 
 ::ng-deep ng-select .ng-value-container {
   display: flex !important;
@@ -41,22 +38,14 @@
   white-space: nowrap !important;
 }
 
-.tabulator {
-  font-size: 0.75rem;
-}
-
-.tabulator-cell {
-  padding: 0px;
-}
-
 .fs-12 {
-  font-size: 0.75rem;
+  font-size: 12px;
 }
 
 .btn {
-    font-weight: bold;
+  font-weight: bold;
   height: 2.5vh;
-  font-size: 0.75rem;
+  font-size: 12px;
   border: none;
 }
 
@@ -71,12 +60,131 @@
 }
 
 ::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
-    margin-top: 3px;
-    margin-right: 1px;
-    font-size: .75rem;
-    background-color: #fafafa;
-    border: none;
-    border-radius: 2px;
-    height: 24px;
-    line-height: 22px;
+  margin-top: 3px;
+  margin-right: 1px;
+  font-size: 12px;
+  background-color: #fafafa;
+  border: none;
+  border-radius: 2px;
+  height: 24px;
+  line-height: 22px;
+}
+
+/* Filter bar responsive */
+.filter-bar {
+  padding: 8px;
+}
+
+.filter-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+}
+
+/* Mobile modal style cho filter */
+@media (max-width: 768px) {
+  .filter-bar.mobile-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  .mobile-filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Grid container styles */
+.grid-container {
+  width: 100%;
+  height: 100%;
+}
+
+::ng-deep .slick-header-column {
+  font-size: 12px !important;
+}
+
+::ng-deep .slick-cell {
+  font-size: 12px !important;
+}
+
+
+.grid-container {
+  height: 100%;
+  width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
+}
+
+/* Fix nz-tab height for grid */
+::ng-deep nz-tabset {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+::ng-deep .ant-tabs {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+::ng-deep .ant-tabs-content-holder {
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  height: 100% !important;
+}
+
+::ng-deep .ant-tabs-content {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-tabs-tabpane {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-tabs-tabpane-active {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Grid container detail styles */
+#grid-container-propose-vehicle-detail {
+  flex: 1 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+#grid-container-propose-vehicle-detail .slickgrid-container {
+  height: 100% !important;
 }

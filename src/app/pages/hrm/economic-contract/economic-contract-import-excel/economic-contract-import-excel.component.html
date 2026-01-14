@@ -1,0 +1,47 @@
+<div class="modal-content">
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">NHẬP DỮ LIỆU HỢP ĐỒNG KINH TẾ TỪ EXCEL</h6>
+        <button type="button" class="btn-close btn-close-white" (click)="closeExcelModal()"></button>
+    </div>
+
+    <div class="modal-body modal-body-scroll">
+        <div class="d-flex flex-column gap-2 p-2">
+            <div class="progress-wrapper">
+                <div class="progress-text text-center fs-12">{{ formatProgressText() }}</div>
+                <nz-progress [nzPercent]="displayProgress" [nzShowInfo]="false"></nz-progress>
+            </div>
+
+            <div class="d-flex flex-column flex-lg-row gap-2 align-items-stretch">
+                <div class="flex-grow-1 d-flex gap-2">
+                    <input nz-input class="fs-12 flex-grow-1" [(ngModel)]="filePath" [disabled]="true"
+                        placeholder="Chọn file Excel..." />
+                    <input type="file" id="fileInputContract" class="d-none" accept=".xlsx,.xls"
+                        (change)="onFileSelected($event)" />
+                    <button type="button" class="btn btn-warning btn-sm" (click)="openFileExplorer()" title="Chọn file">
+                        <i class="fas fa-folder-open"></i>
+                    </button>
+                </div>
+
+                <div class="flex-grow-1 d-flex gap-2">
+                    <select class="form-select form-select-sm fs-12 flex-grow-1" [(ngModel)]="selectedSheet"
+                        (change)="onSheetChange()">
+                        <option value="">Chọn Sheet</option>
+                        <option *ngFor="let s of excelSheets" [value]="s">{{ s }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-2">
+            <div id="datatableExcelContract" style="height: 350px; overflow-y: auto;"></div>
+        </div>
+
+        <div class="modal-footer gap-2">
+            <button nz-button nzDanger (click)="closeExcelModal()">Đóng</button>
+            <button nz-button type="button" (click)="downloadTemplate()">
+                <nz-icon nzType="download" nzTheme="outline"></nz-icon> Mẫu
+            </button>
+            <button nz-button nzType="primary" (click)="saveExcelData()" [nzLoading]="isLoading">Lưu</button>
+        </div>
+    </div>
+</div>

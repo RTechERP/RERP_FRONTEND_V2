@@ -62,4 +62,145 @@
   .tabulator .tabulator-table {
     min-width: 900px; /* đủ lớn để có thể kéo ngang */
   }
+  /* Đổi màu chữ trong headerFilter thành đen */
+
+}
+::ng-deep .tabulator-header-filter input {
+  color: #000000 !important;
+}
+
+::ng-deep .tabulator-header-filter select {
+  color: #000000 !important;
+}
+
+/* SlickGrid Styles */
+.grid-container-management,
+.grid-container-detail {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+::ng-deep .grid-container-management .slickgrid-container,
+::ng-deep .grid-container-detail .slickgrid-container {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+
+/* SlickGrid font size */
+::ng-deep .slick-header-column,
+::ng-deep .slick-cell {
+  font-size: 0.75rem !important;
+}
+
+/* Fix nz-tab height for grid */
+::ng-deep nz-tabset {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+::ng-deep .ant-tabs {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+::ng-deep .ant-tabs-content-holder {
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  height: 100% !important;
+}
+
+::ng-deep .ant-tabs-content {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-tabs-tabpane {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-tabs-tabpane-active {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Grid container detail */
+::ng-deep .grid-container-detail {
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+/* Ẩn scrollbar dọc ở frozen pane */
+.slick-pane-left .slick-viewport {
+  overflow-y: hidden !important;
+}
+
+/* Hide horizontal scrollbar in frozen columns section */
+::ng-deep .slick-frozen-left .slick-viewport {
+  overflow-x: hidden !important;
+}
+
+/* Hide scrollbar in frozen columns header */
+::ng-deep .slick-frozen-left .slick-header-columns {
+  overflow-x: hidden !important;
+}
+
+/* Hide scrollbar in frozen columns headerrow */
+::ng-deep .slick-frozen-left .slick-headerrow-columns {
+  overflow-x: hidden !important;
+}
+/* Danh sách options */
+::ng-deep .ms-drop.bottom .ms-list {
+  overflow-y: auto !important;
+}
+
+::ng-deep .ms-drop.bottom .ms-list li {
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+/* Label và checkbox */
+::ng-deep .ms-drop.bottom .ms-list li label {
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 12px !important;
+  width: 100% !important;
+  cursor: pointer !important;
+}
+
+/* Text của option - ellipsis cho text dài */
+::ng-deep .ms-drop.bottom .ms-list li label span {
+  flex: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+/* Checkbox container */
+::ng-deep .ms-drop.bottom .ms-list li label .icon-checkbox-container {
+  margin-right: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Select All */
+::ng-deep .ms-drop.bottom .ms-select-all {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  background-color: #fafafa !important;
+}
+
+::ng-deep .ms-drop.bottom .ms-select-all label {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  cursor: pointer !important;
 }

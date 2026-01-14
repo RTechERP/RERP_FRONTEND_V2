@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { DateTime } from 'luxon';
 import { environment } from '../../../../../environments/environment';
 // import { HOST } from '../../../../../app.config';
 @Injectable({
@@ -53,7 +54,7 @@ export class BillImportTechnicalService {
     });
   }
   getNCC(): Observable<any> {
-    return this.http.get<any>(this.urlNCC);
+    return this.http.get<any>(this.urlNCC+'/get-supplier-sale');
   }
   getRulepay(): Observable<any> {
     return this.http.get<any>(this.urlRulepay);
@@ -98,5 +99,139 @@ export class BillImportTechnicalService {
   }
     getemployee(): Observable<any> {
     return this.http.get<any>(environment.host + `api/employee/employees`);
+  }
+
+  /**
+   * Lấy lịch sử kiểm tra mượn NCC
+   * @param params Tham số tìm kiếm
+   * @returns Observable<any>
+   */
+  getCheckHistoryTech(params: {
+    dateStart: Date | string;
+    dateEnd: Date | string;
+    employeeId: number;
+    employeeBorrowId: number;
+    supplierId: number;
+    wareHouseId: number;
+    filterText?: string;
+  }): Observable<any> {
+    // Format date để tương thích với backend C# DateTime
+    const formatDate = (date: Date | string): string => {
+      if (date instanceof Date) {
+        return DateTime.fromJSDate(date).toISO() || date.toISOString();
+      }
+      return date;
+    };
+
+    const httpParams = new HttpParams()
+      .set('dateStart', formatDate(params.dateStart))
+      .set('dateEnd', formatDate(params.dateEnd))
+      .set('employeeId', params.employeeId.toString())
+      .set('employeeBorrowId', params.employeeBorrowId.toString())
+      .set('supplierId', params.supplierId.toString())
+      .set('wareHouseId', params.wareHouseId.toString())
+      .set('filterText', params.filterText || '');
+    
+    return this.http.get<any>(`${this.url}get-check-history-tech`, { params: httpParams });
+  }
+
+  /**
+   * Lấy danh sách nhân viên mượn
+   * @param status Trạng thái (mặc định 0)
+   * @returns Observable<any>
+   */
+  getEmployeeBorrow(status: number = 0): Observable<any> {
+    const params = new HttpParams().set('status', status.toString());
+    return this.http.get<any>(`${this.url}get-employee-borrow`, { params });
+  }
+
+  /**
+   * Lấy danh sách nhân viên lịch sử sản phẩm
+   * @param userId ID người dùng (mặc định 0 để lấy tất cả)
+   * @returns Observable<any>
+   */
+  getEmployeeHistoryProduct(userId: number = 0): Observable<any> {
+    const params = new HttpParams().set('userId', userId.toString());
+    return this.http.get<any>(`${this.url}get-employee-history-product`, { params });
+  }
+
+  /**
+   * Xuất Excel lịch sử kiểm tra mượn NCC
+   * @param params Tham số tìm kiếm
+   * @returns Observable<Blob>
+   */
+  exportCheckHistoryTech(params: {
+    dateStart: Date | string;
+    dateEnd: Date | string;
+    employeeId: number;
+    employeeBorrowId: number;
+    supplierId: number;
+    wareHouseId: number;
+    filterText?: string;
+  }): Observable<any> {
+    // Format date để tương thích với backend C# DateTime
+    const formatDate = (date: Date | string): string => {
+      if (date instanceof Date) {
+        return DateTime.fromJSDate(date).toISO() || date.toISOString();
+      }
+      return date;
+    };
+
+    const httpParams = new HttpParams()
+      .set('dateStart', formatDate(params.dateStart))
+      .set('dateEnd', formatDate(params.dateEnd))
+      .set('employeeId', params.employeeId.toString())
+      .set('employeeBorrowId', params.employeeBorrowId.toString())
+      .set('supplierId', params.supplierId.toString())
+      .set('wareHouseId', params.wareHouseId.toString())
+      .set('filterText', params.filterText || '');
+
+    return this.http.get(`${this.url}export-check-history-tech`, {
+      params: httpParams,
+    });
+  }
+
+  /**
+   * Lấy tổng hợp chi tiết phiếu nhập phòng kỹ thuật
+   * Tương ứng với stored procedure: spGetBillImportTechnicalSummary
+   * @param filter Điều kiện lọc
+   * @returns Observable<any> Trả về { status, message, data, documents }
+   */
+  getBillImportTechnicalSummary(filter: {
+    pageNumber?: number;
+    pageSize?: number;
+    dateStart: string | null;
+    dateEnd: string;
+    status: number;
+    filterText: string;
+    warehouseId: number;
+    isAll: boolean;
+  }): Observable<any> {
+    // Map frontend params to backend DTO
+    const params = {
+      DateStart: filter.dateStart,
+      DateEnd: filter.dateEnd,
+      Status: filter.status,
+      FilterText: filter.filterText,
+      WarehouseId: filter.warehouseId,
+      IsAll: filter.isAll,
+    };
+
+    return this.http.post<any>(
+      `${this.url}get-bill-import-technical-summary`,
+      params
+    );
+  }
+
+  /**
+   * Cập nhật thông tin chi tiết phiếu nhập (hóa đơn, DPO, DueDate, etc)
+   * @param data Danh sách chi tiết cần cập nhật
+   * @returns Observable<any>
+   */
+  updateBillImportDetails(data: any[]): Observable<any> {
+    return this.http.post<any>(
+      `${this.url}save-bill-import-summary`,
+      data
+    );
   }
 }

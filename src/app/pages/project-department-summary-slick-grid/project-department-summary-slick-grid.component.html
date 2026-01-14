@@ -1,0 +1,397 @@
+<ng-container class="w-100">
+    <nz-splitter style="height: 94vh!important;">
+        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1" style="overflow-x: auto !important;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                            (click)="toggleSearchPanel()">
+                            <nz-icon nzType="close" nzTheme="outline"></nz-icon>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form nz-form nzLayout="vertical">
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker name="dateStart" class="w-100" nzFormat="dd/MM/yyyy"
+                                    [(ngModel)]="searchParams.dateTimeS" nzAllowClear="false"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy"
+                                    [(ngModel)]="searchParams.dateTimeE" nzAllowClear="false"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="departmentID" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn phòng ban" [(ngModel)]="searchParams.departmentID"
+                                    (ngModelChange)="getUserTeam()">
+                                    @for (item of departments; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name" [nzValue]="item.ID">
+                                        {{ item.Name }}
+                                    </nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Team</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="userTeamID" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn team" [(ngModel)]="searchParams.userTeamID"
+                                    (ngModelChange)="getEmployeesByTeam()">
+                                    @for (item of teams; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name" [nzValue]="item.ID">
+                                        {{ item.Name }}
+                                    </nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="userID" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn nhân viên" [(ngModel)]="searchParams.userID">
+                                    @for (parent of users; track $index) {
+                                    <nz-option-group [nzLabel]="parent.label">
+                                        @for (child of parent.options; track $index) {
+                                        <nz-option nzCustomContent="true" [nzLabel]="child.item?.FullName"
+                                            [nzValue]="child.item.UserID">
+                                            {{ child.item.Code + " - " + child.item.FullName }}
+                                        </nz-option>
+                                        }
+                                    </nz-option-group>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Kiểu dự án</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="projectTypeIds" class="w-100" [nzMaxTagCount]="2" nzAllowClear
+                                    [nzMaxTagPlaceholder]="tagPlaceHolder" nzMode="multiple"
+                                    nzPlaceHolder="Chọn kiểu dự án" [(ngModel)]="projectTypeIds">
+                                    @for (item of projectTypes; track $index) {
+                                    <nz-option [nzLabel]="item.ProjectTypeName" [nzValue]="item.ID"></nz-option>
+                                    }
+                                </nz-select>
+                                <ng-template #tagPlaceHolder let-selectedList>...</ng-template>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2" *ngIf="isHide">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="projecStatusIds" class="w-100" [nzMaxTagCount]="1" nzAllowClear
+                                    [nzMaxTagPlaceholder]="tagPlaceHolder" nzMode="multiple"
+                                    nzPlaceHolder="Chọn trạng thái" [(ngModel)]="projecStatusIds">
+                                    @for (item of projecStatuses; track $index) {
+                                    <nz-option [nzLabel]="item.StatusName" [nzValue]="item.ID"></nz-option>
+                                    }
+                                </nz-select>
+                                <ng-template #tagPlaceHolder let-selectedList>...</ng-template>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                    <button nz-button nzType="default" nzSize="small" (click)="setDefautSearch()">
+                        Đặt lại
+                    </button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="loadProjects()">
+                        Tìm kiếm
+                    </button>
+                </div>
+            </div>
+        </nz-splitter-panel>
+
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <!-- Mobile menubar -->
+                    <p-menubar *ngIf="isMobile" [model]="menuBars" style="width: 100%;"></p-menubar>
+
+                    <div class="d-flex gap-1 flex-wrap align-items-center" *ngIf="!isMobile">
+                        <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanelNew($event)"
+                            class="sticky-toggle-btn"
+                            [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+                            [attr.aria-expanded]="showSearchBar" type="button">
+                            <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
+                        </button>
+
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="openProjectWorkReportModal()">
+                            <img src="assets/icon/list_project_report_16.png" alt="Danh sách báo cáo công việc"
+                                class="me-1" /> Ds báo cáo công việc
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openWorkItemModal()">
+                            <img src="assets/icon/work_item_16.png" alt="Hạng mục công việc" class="me-1" /> Hạng mục
+                            công việc
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="openProjectWorkerModal()">
+                            <img src="assets/icon/project_woker_16.png" alt="Nhân công dự án" class="me-1" /> Nhân công
+                            dự án
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="openProjectPartListWindow()">
+                            <img src="assets/icon/partlist_16.png" alt="Danh mục vật tư" class="me-1" /> Danh mục vật tư
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                            <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
+                        </button>
+                        <!-- Nút toggle thông tin thêm -->
+                        <button class="fs-12" nz-button [nzType]="showDetailPanel ? 'primary' : 'default'" nzSize="small" (click)="toggleDetailPanel()">
+                            <nz-icon [nzType]="showDetailPanel ? 'eye' : 'eye-invisible'" nzTheme="outline"></nz-icon>
+                            Thông tin thêm
+                        </button>
+
+                        <!-- Context menu dropdown -->
+                        <button nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="contextMenu">
+                            <nz-icon nzType="more"></nz-icon>
+                        </button>
+                        <nz-dropdown-menu #contextMenu="nzDropdownMenu">
+                            <ul nz-menu>
+                                <li nz-submenu nzTitle="Mức độ ưu tiên cá nhân">
+                                    <ul>
+                                        <li nz-menu-item (click)="setPersionalPriority(1)">1</li>
+                                        <li nz-menu-item (click)="setPersionalPriority(2)">2</li>
+                                        <li nz-menu-item (click)="setPersionalPriority(3)">3</li>
+                                        <li nz-menu-item (click)="setPersionalPriority(4)">4</li>
+                                        <li nz-menu-item (click)="setPersionalPriority(5)">5</li>
+                                    </ul>
+                                </li>
+                                <li nz-menu-item (click)="openProjectEmployee()">
+                                    <img src="assets/icon/participants_16.png" class="me-1" /> Người tham gia
+                                </li>
+                                <li nz-menu-item (click)="changeProject()">
+                                    <img src="assets/icon/compare_project_16.png" class="me-1" /> Chuyển báo cáo công
+                                    việc
+                                </li>
+                                <li nz-menu-item (click)="openProjectPartListProblemModal()">
+                                    <img src="assets/icon/additional_goods_16.png" class="me-1" /> Hàng phát sinh
+                                </li>
+                                <li nz-menu-item (click)="openProjectRequest()">
+                                    <img src="assets/icon/solution_16.png" class="me-1" /> Yêu cầu - Giải pháp
+                                </li>
+                                <li nz-menu-item (click)="openProjectTypeLinkDetail()">
+                                    <img src="assets/icon/update_leader_16.png" class="me-1" /> Cập nhật Leader
+                                </li>
+                                <li nz-menu-item (click)="openProjectStatus()" *hasPermission="'N1,N13,N27'">
+                                    <img src="assets/icon/project_status_16.png" class="me-1" /> Trạng thái dự án
+                                </li>
+                                <li nz-menu-item (click)="openUpdateCurrentSituation()" *hasPermission="'N1,N13,N27'">
+                                    <img src="assets/icon/update_status_16.png" class="me-1" /> Cập nhật hiện trạng
+                                </li>
+                            </ul>
+                        </nz-dropdown-menu>
+                    </div>
+                </div>
+
+                <!-- Compact search (keyword + search button + dropdown filters) -->
+                <div class="bg-light border-bottom p-2" *ngIf="showSearchBar">
+                    <div class="d-flex gap-1 align-items-center flex-wrap">
+                        <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
+                        <nz-date-picker [(ngModel)]="searchParams.dateTimeS" [ngModelOptions]="{standalone: true}"
+                            nzFormat="dd/MM/yyyy" nzSize="small" nzAllowClear="false" style="width: 140px;" />
+                        <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
+                        <nz-date-picker [(ngModel)]="searchParams.dateTimeE" [ngModelOptions]="{standalone: true}"
+                            nzFormat="dd/MM/yyyy" nzSize="small" nzAllowClear="false" style="width: 140px;" />
+
+                        <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
+                        <nz-select [(ngModel)]="searchParams.departmentID" [ngModelOptions]="{standalone: true}"
+                            nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Phòng ban" style="width: 200px;"
+                            (ngModelChange)="getUserTeam()">
+                            @for (item of departments; track $index) {
+                            <nz-option nzCustomContent="true" [nzLabel]="item.Name" [nzValue]="item.ID">
+                                {{ item.Name }}
+                            </nz-option>
+                            }
+                        </nz-select>
+
+                        <nz-form-label class="fs-12" style="font-size: 12px;">Team</nz-form-label>
+                        <nz-select [(ngModel)]="searchParams.userTeamID" [ngModelOptions]="{standalone: true}"
+                            nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Team" style="width: 200px;"
+                            (ngModelChange)="getEmployeesByTeam()">
+                            @for (item of teams; track $index) {
+                            <nz-option nzCustomContent="true" [nzLabel]="item.Name" [nzValue]="item.ID">
+                                {{ item.Name }}
+                            </nz-option>
+                            }
+                        </nz-select>
+
+                        <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 280px"
+                            [(ngModel)]="searchParams.keyword" [ngModelOptions]="{standalone: true}"
+                            (keyup.enter)="loadProjects()" (ngModelChange)="onSearchChange($event)" />
+
+                        <button nz-button nzType="primary" nzSize="small" (click)="loadProjects()">
+                            <nz-icon nzType="search" />
+                        </button>
+
+                        <button nz-button nzType="primary" nzSize="small" nz-dropdown [nzDropdownMenu]="searchMenu"
+                            nzTrigger="click" nzPlacement="bottomRight" style="padding-left: 8px; padding-right: 8px;">
+                            <i nz-icon nzType="down"></i>
+                        </button>
+
+                        <nz-dropdown-menu #searchMenu="nzDropdownMenu">
+                            <div class="p-3 advanced-filters-container"
+                                style="min-width: 320px; background-color: #ffffff; border: 1px solid #d9d9d9; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                                <ng-container *ngTemplateOutlet="advancedFiltersTemplate"></ng-container>
+                            </div>
+                        </nz-dropdown-menu>
+
+                        <ng-template #advancedFiltersTemplate>
+                            <form nz-form nzLayout="vertical">
+                                <nz-form-item class="mb-0">
+                                    <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
+                                    <nz-form-control class="w-100">
+                                        <nz-select [(ngModel)]="searchParams.userID" name="userID" nzShowSearch
+                                            nzAllowClear nzSize="small" nzPlaceHolder="Chọn nhân viên"
+                                            style="width: 100%;">
+                                            @for (parent of users; track $index) {
+                                            <nz-option-group [nzLabel]="parent.label">
+                                                @for (child of parent.options; track $index) {
+                                                <nz-option nzCustomContent="true" [nzLabel]="child.item?.FullName"
+                                                    [nzValue]="child.item.UserID">
+                                                    {{ child.item.Code + " - " + child.item.FullName }}
+                                                </nz-option>
+                                                }
+                                            </nz-option-group>
+                                            }
+                                        </nz-select>
+                                    </nz-form-control>
+                                </nz-form-item>
+
+                                <nz-form-item class="mb-0">
+                                    <nz-form-label class="fs-12" style="font-size: 12px;">Kiểu dự án</nz-form-label>
+                                    <nz-form-control class="w-100">
+                                        <nz-select [(ngModel)]="projectTypeIds" name="projectTypeIds" nzMode="multiple"
+                                            nzAllowClear [nzMaxTagCount]="2" nzSize="small"
+                                            nzPlaceHolder="Chọn kiểu dự án" style="width: 100%;">
+                                            @for (item of projectTypes; track $index) {
+                                            <nz-option [nzLabel]="item.ProjectTypeName" [nzValue]="item.ID"></nz-option>
+                                            }
+                                        </nz-select>
+                                    </nz-form-control>
+                                </nz-form-item>
+
+                                <nz-form-item class="mb-0" *ngIf="isHide">
+                                    <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
+                                    <nz-form-control class="w-100">
+                                        <nz-select [(ngModel)]="projecStatusIds" name="projecStatusIds"
+                                            nzMode="multiple" nzAllowClear [nzMaxTagCount]="1" nzSize="small"
+                                            nzPlaceHolder="Chọn trạng thái" style="width: 100%;">
+                                            @for (item of projecStatuses; track $index) {
+                                            <nz-option [nzLabel]="item.StatusName" [nzValue]="item.ID"></nz-option>
+                                            }
+                                        </nz-select>
+                                    </nz-form-control>
+                                </nz-form-item>
+
+                                <nz-form-item class="mb-0">
+                                    <nz-form-control class="w-100 m-1">
+                                        <div class="d-flex gap-1 justify-content-end ">
+                                            <button nz-button nzType="default" nzSize="small"
+                                                (click)="setDefautSearch()">Đặt lại</button>
+                                            <button nz-button nzType="primary" nzSize="small"
+                                                (click)="loadProjects()">Tìm kiếm</button>
+                                        </div>
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </form>
+                        </ng-template>
+                    </div>
+                </div>
+
+                <div class="card-body p-0" style="height: calc(100vh - 120px); display: flex; flex-direction: column;"
+                    [class.with-search-bar]="showSearchBar" [class.without-search-bar]="!showSearchBar">
+                    <nz-spin [nzSpinning]="isLoading" [nzDelay]="200"
+                        style="flex: 1; display: flex; flex-direction: column; height: 100%;">
+                        <nz-splitter style="height: 100%; flex: 1;">
+                            <!-- Bảng Master (bên trái) -->
+                            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbMaster">
+                                <div class="grid-container" id="grid-container-projects" style="height: 100%;">
+                                    <angular-slickgrid gridId="grvProjectsSummary" [columns]="columnDefinitions"
+                                        [options]="gridOptions" [dataset]="dataset"
+                                        (onAngularGridCreated)="angularGridReady($event.detail)"
+                                        (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                                        (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                                    </angular-slickgrid>
+                                </div>
+                            </nz-splitter-panel>
+
+                            <!-- Bảng Detail (bên phải) -->
+                            <nz-splitter-panel *ngIf="showDetailPanel" [nzSize]="sizeTbDetail"
+                                [nzCollapsible]="true" nzResizable="true">
+                                <div style="height: 100%; display: flex; flex-direction: column;">
+                                    <div class="d-flex justify-content-between align-items-center p-1 border-bottom">
+                                        <div class="d-flex gap-2">
+                                            <button nz-button nzType="text" nzSize="small"
+                                                [class.active]="activeTab === 'workreport'"
+                                                (click)="switchTab('workreport')">
+                                                Danh sách hạng mục
+                                            </button>
+                                            <button nz-button nzType="text" nzSize="small"
+                                                [class.active]="activeTab === 'typelink'"
+                                                (click)="switchTab('typelink')">
+                                                Kiểu dự án
+                                            </button>
+                                        </div>
+                                        <button nz-button nzType="text" nzSize="small" style="color: red;"
+                                            (click)="closePanel()">
+                                            <nz-icon nzType="close"></nz-icon>
+                                        </button>
+                                    </div>
+
+                                    <!-- Tab Danh sách hạng mục -->
+                                    <div *ngIf="activeTab === 'workreport' && detailGridsReady"
+                                        style="flex: 1; display: flex; flex-direction: column;">
+                                        <div class="d-flex align-items-center p-1 gap-1 justify-content-end">
+                                            <button class="fs-12 border" nz-button nzType="text" nzSize="small"
+                                                style="background-color: lightyellow">
+                                                Sắp hết hạn
+                                            </button>
+                                            <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
+                                                style="background-color: orange">
+                                                Chậm
+                                            </button>
+                                            <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
+                                                style="background-color: red">
+                                                Failed
+                                            </button>
+                                        </div>
+                                        <div id="grid-container-workreport" style="flex: 1;">
+                                            <angular-slickgrid gridId="grvWorkReportSummary"
+                                                [columns]="columnDefinitionsWorkReport"
+                                                [options]="gridOptionsWorkReport" [dataset]="datasetWorkReport"
+                                                (onAngularGridCreated)="angularGridWorkReportReady($event.detail)">
+                                            </angular-slickgrid>
+                                        </div>
+                                    </div>
+
+                                    <!-- Tab Kiểu dự án -->
+                                    <div *ngIf="activeTab === 'typelink' && detailGridsReady" style="flex: 1;">
+                                        <div id="grid-container-typelink" style="height: 100%;">
+                                            <angular-slickgrid gridId="grvTypeLinkSummary"
+                                                [columns]="columnDefinitionsTypeLink" [options]="gridOptionsTypeLink"
+                                                [dataset]="datasetTypeLink"
+                                                (onAngularGridCreated)="angularGridTypeLinkReady($event.detail)">
+                                            </angular-slickgrid>
+                                        </div>
+                                    </div>
+                                </div>
+                            </nz-splitter-panel>
+                        </nz-splitter>
+                    </nz-spin>
+                </div>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>

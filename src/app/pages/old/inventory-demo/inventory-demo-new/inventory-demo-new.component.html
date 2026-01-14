@@ -1,0 +1,115 @@
+<ng-container class="w-100">
+    <p-splitter [style]="{'height': '94vh'}" [panelSizes]="[20, 80]" [minSizes]="[15, 50]">
+        <!-- Left Panel - Product Group Grid -->
+        <ng-template pTemplate>
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <h6 class="m-0 ms-2 fs-12">Nhóm sản phẩm</h6>
+                </div>
+                <div class="card-body p-0 group-grid-container" style="height: calc(94vh - 40px);">
+                    <angular-slickgrid
+                        [gridId]="'productGroupGrid-' + warehouseID + warehouseType"
+                        [columns]="columnDefinitionsGroup"
+                        [options]="gridOptionsGroup"
+                        [dataset]="datasetGroup"
+                        (onAngularGridCreated)="angularGridGroupReady($event.detail)">
+                    </angular-slickgrid>
+                </div>
+            </div>
+        </ng-template>
+
+        <!-- Right Panel - Master Grid -->
+        <ng-template pTemplate>
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex gap-1 justify-content-between align-items-center">
+                        <div class="d-flex gap-1">
+                            <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                (click)="exportToExcelProduct()">
+                                <img class="btn-action-icon" src="assets/icon/action_export_excel_24.svg" /> Xuất Excel
+                            </button>
+                            <button *hasPermission="'N26,N1,N80'" class="fs-12" nz-button nzType="default" nzSize="small"
+                                (click)="onUpdateQrCode()">
+                                <nz-icon nzType="qrcode" nzTheme="outline" />Update QRCode
+                            </button>
+                            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportNCC()">
+                                <img class="btn-action-icon" src="assets/icon/action_confirm_bgd_16.png" />Báo cáo NCC
+                            </button>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center ms-auto">
+                            <div class="d-flex align-items-center gap-1">
+                                <div style="width: 20px; height: 20px; background-color: #ffd3dd; border: 1px solid #ccc;"></div>
+                                <span class="fs-12">Đã xuất hết</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <div style="width: 20px; height: 20px; background-color: rgb(255, 231, 187); border: 1px solid #ccc;"></div>
+                                <span class="fs-12">Hàng tặng/bán/trả</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dòng lọc dữ liệu -->
+                    <div class="border-top pt-2 mt-2 px-1">
+                        <div class="d-flex gap-2 align-items-end flex-wrap">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="fs-12">Tìm kiếm theo</nz-form-label>
+                                <nz-form-control>
+                                    <nz-radio-group [(ngModel)]="searchMode" (ngModelChange)="onSearchModeChange($event)"
+                                        name="searchModeFilter" nzSize="small">
+                                        <label nz-radio [nzValue]="'group'">Theo nhóm</label>
+                                        <label nz-radio [nzValue]="'all'">Tất cả</label>
+                                    </nz-radio-group>
+                                </nz-form-control>
+                            </nz-form-item>
+
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                                <nz-form-control>
+                                    <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWord"
+                                        (ngModelChange)="onKeywordChange($event)" nzSize="small"
+                                        style="width: 200px;" name="filterTextFilter" />
+                                </nz-form-control>
+                            </nz-form-item>
+
+                            <button nz-button nzType="primary" nzSize="small" (click)="onSearch()" class="mb-1">
+                                Tìm kiếm
+                            </button>
+
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="fs-12">Vị trí</nz-form-label>
+                                <nz-form-control>
+                                    <nz-select class="fs-12" style="width: 250px;" nzSize="small" nzShowSearch nzAllowClear
+                                        nzPlaceHolder="Chọn vị trí..." [(ngModel)]="selectedLocationID"
+                                        name="selectedLocationID">
+                                        <nz-option *ngFor="let loc of productLocationData"
+                                            [nzLabel]="loc.ProductLocationName || loc.LocationName"
+                                            [nzValue]="loc.ID"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+
+                            <button nz-button nzType="default" nzSize="small" (click)="onSetLocation()" class="mb-1">
+                                Set
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-0" style="height: 87vh;">
+                    <div *ngIf="isLoading" class="loading-overlay">
+                        <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+                        <span class="loading-text">Đang tải dữ liệu...</span>
+                    </div>
+                    <angular-slickgrid
+                        [gridId]="'inventoryDemoGrid-' + warehouseID + warehouseType"
+                        [columns]="columnDefinitions"
+                        [options]="gridOptions"
+                        [dataset]="dataset"
+                        (onAngularGridCreated)="angularGridReady($event.detail)"
+                        (onSelectedRowsChanged)="onRowSelectionChanged($event.detail.eventData, $event.detail.args)">
+                    </angular-slickgrid>
+                </div>
+            </div>
+        </ng-template>
+    </p-splitter>
+</ng-container>

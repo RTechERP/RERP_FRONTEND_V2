@@ -1,0 +1,439 @@
+<nav class="navbar sticky-top p-0" style="background-color: #23458a;">
+    <div class="container-fluid">
+        <a class="navbar-brand p-0" href="#" style="width: 6%;" routerLink="/home">
+            <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="" width="100%"
+                class="d-inline-block align-text-top">
+
+        </a>
+
+        <div class="">
+            <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
+                style="border: none !important; background-color:transparent;" nzTrigger="click">
+                <img src="assets/icon/app_store.svg">
+            </button>
+
+            <nz-dropdown-menu #appmenu="nzDropdownMenu">
+                <div class="app-launcher">
+                    <div class="app-launcher-inner">
+                        @for (m of menus; track $index) {
+
+                        <a [href]="m.Router" (click)="openModule($event, m.Router, m.Code)" *ngIf="m.IsPermission">
+                            <img [src]="m.Icon" />
+                            <span class="mt-1">{{m.Title}}</span>
+                        </a>
+                        }
+                    </div>
+                </div>
+            </nz-dropdown-menu>
+
+            <app-app-notifycation-dropdown [items]="notifItems" (itemClick)="onPick($event)">
+                <button style="border: none !important;background-color: transparent; margin:0 5px;" nz-button
+                    nzType="text" class=" fs-7" trigger>
+                    <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length" class="fs-7">
+                        <img src="assets/icon/notification_home.svg" class="bell-icon">
+                    </nz-badge>
+                </button>
+            </app-app-notifycation-dropdown>
+
+            <app-app-user-dropdown>
+                <button nz-button nzType="text" trigger style="border: none !important;background-color: transparent;">
+                    <img src="assets/icon/user.svg">
+                </button>
+            </app-app-user-dropdown>
+        </div>
+    </div>
+</nav>
+
+<div class="row m-0" style="background-color: rgb(230, 230, 230);">
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">truy cập nhanh</h5>
+            </div>
+
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of menuQickAcesss.Children; track $index) {
+                    <li class="list-group-item border-0 py-1"
+                        *ngIf="item.Code =='M79' || item.Code =='M136' || item.Code =='M137' || item.Code =='M139'">
+                        <a [attr.href]="item.Router ? item.Router : null"
+                            (click)="handleClickLink($event, item.Router, item.Title)">
+                            <img [src]="item.Icon" width="5%">
+                            <span> {{item.Title}}</span>
+                        </a>
+                        <ul class="list-group">
+                            @for (c of item.Children; track $index) {
+                            <li class="list-group-item border-0 py-1"
+                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
+                                <a [attr.href]="c.Router ? c.Router : null"
+                                    (click)="handleClickLink($event, c.Router, c.Title)">
+                                    <img [src]="c.Icon" width="5%">
+                                    <span> {{c.Title}}</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">chức năng</h5>
+            </div>
+            <div class="card-body p-2">
+                <div class="gutter-example">
+                    <div nz-row [nzGutter]="[16, 16]">
+                        @for (m of menus; track $index) {
+                        <a nz-col class="gutter-row" [nzXs]="8" [nzMd]="6" [nzLg]="6" *ngIf="m.IsPermission"
+                            [href]="m.Router" (click)="openModule($event, m.Router, m.Code)">
+                            <div class="grid-config text-center py-1 shadow"
+                                style="display: flex; flex-flow: column;justify-content: center;align-items: center; height: 107px;">
+                                <img [style.width]="'70%'" [src]="m.Icon?.replace('24','64')" alt="">
+                                <p class="m-0 mt-2 fw-bold text-dark" style="line-height: normal;">{{m.Title}}</p>
+                                <!-- <a [href]="m.Router" (click)="openModule($event, m.Router, m.Code)">{{m.Title}}</a> -->
+                                <!-- {{m.Title}} -->
+                            </div>
+
+                        </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">duyệt cá nhân</h5>
+            </div>
+
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of menuApproves.Children; track $index) {
+                    <li class="list-group-item border-0 border-bottom py-1" *ngIf="item.IsPermission">
+                        <a class=" text-dark" [attr.href]="item.Router ? item.Router : null"
+                            (click)="handleClickLink($event, item.Router, item.Title)">
+                            <img [src]="item.Icon">
+                            <span>{{item.Title}}</span>
+                        </a>
+                        <ul class="list-group">
+                            @for (c of item.Children; track $index) {
+                            <li class="list-group-item border-0 py-1" *ngIf="item.IsPermission"
+                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
+                                <a [attr.href]="c.Router ? c.Router : null"
+                                    (click)="handleClickLink($event, c.Router, c.Title)">
+                                    <img [src]="c.Icon">
+                                    <span> {{c.Title}}</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Thông báo</h5>
+                <a routerLink="/newsletter-view-all" class="small text-primary fw-bold" style="text-decoration: none;">
+                    Xem tất cả <i nz-icon nzType="right" nzTheme="outline"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div *ngIf="quantityApprove?.Count > 0">
+                    <div class="px-3 py-2 bg-light"
+                        style="background-color: #fff3cd !important; border-left: 4px solid #ffc107;"
+                        *hasPermission="'N1,N32,N85'">
+                        <small class="text-muted fw-bold">
+                            Bạn đang có <span class="text-danger fw-bold">{{quantityApprove?.Count || 0}}</span> đơn
+                            đăng kí
+                            công chưa duyệt!
+                            <span class="text-primary cursor-pointer fw-bold"
+                                style="color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
+                                (click)="newTabApprove()">Bấm vào đây để duyệt</span>
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Newsletter List -->
+                <ul class="list-group list-group-flush">
+                    @for (item of newsletters; track item.ID) {
+                    <li class="list-group-item py-3">
+                        <div class="d-flex w-100 gap-3">
+                            <img [src]="getNewsletterImageUrl(item)" alt="Newsletter thumb"
+                                class="flex-shrink-0 rounded shadow-sm"
+                                style="width: 60px; height: 60px; object-fit: cover; border: 1px solid #eee;">
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="d-flex w-100 justify-content-between align-items-start mb-1">
+                                    <h6 class="mb-0 fw-bold text-truncate" [title]="item.Title"
+                                        style="max-width: calc(100% - 90px);">
+                                        {{item.Title}}
+                                    </h6>
+                                    <small class="text-muted flex-shrink-0" style="font-size: 11px;">
+                                        {{item.CreatedDate | date:'dd/MM/yyyy'}}
+                                    </small>
+                                </div>
+                                <div class="text-primary cursor-pointer fw-bold"
+                                    style="font-size: 12px; color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
+                                    (click)="openNewsletterDetail(item.ID)">
+                                    Xem chi tiết
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    }
+
+                    @if (newsletters.length === 0) {
+                    <li class="list-group-item text-center text-muted py-4">
+                        <small>Chưa có thông báo mới</small>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Cá nhân</h5>
+            </div>
+            <div class="card-body p-0" style="height: 80vh; overflow: auto;">
+
+
+                <nz-tabset nzCentered>
+                    @for (item of menuPersons; track $index){
+                    <nz-tab [nzTitle]="item.Title">
+                        <ul class="list-group">
+                            @for (c1 of item.Children; track $index) {
+
+                            <li class="list-group-item border-0 border-bottom py-1" *ngIf="c1.IsPermission">
+                                <a class=" text-dark" [attr.href]="c1.Router ? c1.Router : null"
+                                    (click)="handleClickLink($event, c1.Router, c1.Title)">
+                                    <img [src]="c1.Icon">
+                                    <span> {{c1.Title}}</span>
+                                </a>
+                                <ul class="list-group">
+                                    @for (c2 of c1.Children; track $index) {
+                                    <li class="list-group-item border-0 py-1" *ngIf="c2.IsPermission"
+                                        [ngClass]="{'border-bottom':$index < c1.Children.length - 1,'':$index == c1.Children.length - 1}">
+                                        <a [attr.href]="c2.Router ? c2.Router : null"
+                                            (click)="handleClickLink($event, c2.Router, c2.Title)">
+                                            <img [src]="c2.Icon">
+                                            <span> {{c2.Title}}</span>
+                                        </a>
+                                    </li>
+                                    }
+                                </ul>
+                            </li>
+
+                            }
+                        </ul>
+                    </nz-tab>
+                    }
+                </nz-tabset>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Kế hoạch tuần</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of menuWeekplans.Children; track $index) {
+                    <li class="list-group-item border-0 py-1">
+                        <a [href]="item.Router == '' ? '#' : item.Router"
+                            (click)="handleClickLink($event, item.Router, item.Title)">
+                            <img [src]="item.Icon">
+                            <span> {{item.Title}}</span>
+                        </a>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+        <!-- <div class="card">
+            <p-tabs value="0">
+                <p-tablist>
+                    <p-tab value="0" class="p-2">Nghỉ {{totalEmployeeOnleave == 0 ?'':`(${totalEmployeeOnleave}) -
+                        ${today | date:'dd/MM/yyyy'}`}}</p-tab>
+                    <p-tab value="1" class="p-2">WFH {{totalEmployeeWfh == 0 ?'':`(${totalEmployeeWfh}) - ${today |
+                        date:'dd/MM/yyyy'}`}}</p-tab>
+                </p-tablist>
+                <p-tabpanels class="p-0">
+                    <p-tabpanel value="0" style="display: block; height: 38vh; overflow: auto;">
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @for (item of employeeOnleaves; track $index) {
+                                <li class="list-group-item border-0 border-bottom py-1">
+                                    <details open>
+                                        <summary class="fw-bold" style="font-size: 12px;">{{item.DepartmentName}}
+                                            ({{item.Employees.length}})
+                                        </summary>
+                                        <ul class="list-group">
+                                            @for (e of item.Employees; track $index) {
+                                            <li class="list-group-item border-0 py-1" style="font-size: 12px;">
+                                                <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
+                                            </li>
+                                            }
+                                        </ul>
+                                    </details>
+
+                                </li>
+                                }
+                            </ul>
+                        </div>
+                    </p-tabpanel>
+                    <p-tabpanel value="1" style="display: block; height: 377px; overflow: auto;">
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @for (item of employeeWfhs; track $index) {
+                                <li class="list-group-item border-0 border-bottom py-1">
+                                    <details open>
+                                        <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
+                                        </summary>
+                                        <ul class="list-group">
+                                            @for (e of item.Employees; track $index) {
+                                            <li class="list-group-item border-0 py-1">
+                                                <span>{{$index + 1}}.{{e.EmployeeName}}
+                                                    {{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
+                                            </li>
+                                            }
+                                        </ul>
+                                    </details>
+
+                                </li>
+                                }
+                            </ul>
+                        </div>
+                    </p-tabpanel>
+
+                </p-tabpanels>
+            </p-tabs>
+
+        </div> -->
+
+        <div class="card">
+            <div class="card-header">
+                <!-- <h5 class="card-title m-0 text-uppercase fw-bold py-1">
+                    WFH {{totalEmployeeWfh == 0 ?'':`(${totalEmployeeWfh}) - ${today | date:'dd/MM/yyyy'}`}}
+                </h5> -->
+
+                <nz-tabset nzCentered [(nzSelectedIndex)]="activeTab">
+                    <nz-tab [nzTitle]="titleTemplateOnleave"></nz-tab>
+                    <nz-tab [nzTitle]="titleTemplateWFH"></nz-tab>
+                </nz-tabset>
+                <ng-template class="panel-title" #titleTemplateOnleave>
+                    NGHỈ PHÉP {{totalEmployeeOnleave == 0 ? '':`(${totalEmployeeOnleave})`}} - {{today |
+                    date:'dd/MM/yyyy'}}
+                </ng-template>
+                <ng-template class="panel-title" #titleTemplateWFH>WFH {{totalEmployeeWfh == 0 ?
+                    '':`(${totalEmployeeWfh})`}} - {{today | date:'dd/MM/yyyy'}}
+                </ng-template>
+            </div>
+
+            <div class="card-body p-0">
+                <!-- <ul class="list-group list-group-flush">
+                    @for (item of employeeOnleaves; track $index) {
+                    <li class="list-group-item border-0 border-bottom py-1">
+                        <details open>
+                            <summary class="fw-bold" style="font-size: 12px;">{{item.DepartmentName}}
+                                ({{item.Employees.length}})
+                            </summary>
+                            <ul class="list-group">
+                                @for (e of item.Employees; track $index) {
+                                <li class="list-group-item border-0 py-1" style="font-size: 12px;">
+                                    <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
+                                </li>
+                                }
+                            </ul>
+                        </details>
+
+                    </li>
+                    }
+                </ul> -->
+                <ng-container [ngSwitch]="activeTab">
+
+                    <ng-container *ngSwitchCase="0">
+                        <ul class="list-group list-group-flush">
+                            @for (item of employeeOnleaves; track $index) {
+                            <li class="list-group-item border-0 border-bottom py-1">
+                                <details open>
+                                    <summary class="fw-bold" style="font-size: 12px;">{{item.DepartmentName}}
+                                        ({{item.Employees.length}})
+                                    </summary>
+                                    <ul class="list-group">
+                                        @for (e of item.Employees; track $index) {
+                                        <li class="list-group-item border-0 py-1" style="font-size: 12px;">
+                                            <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
+                                        </li>
+                                        }
+                                    </ul>
+                                </details>
+
+                            </li>
+                            }
+                        </ul>
+                    </ng-container>
+
+
+                    <ng-container *ngSwitchCase="1">
+                        <ul class="list-group list-group-flush">
+                            @for (item of employeeWfhs; track $index) {
+                            <li class="list-group-item border-0 border-bottom py-1">
+                                <details open>
+                                    <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
+                                    </summary>
+                                    <ul class="list-group">
+                                        @for (e of item.Employees; track $index) {
+                                        <li class="list-group-item border-0 py-1">
+                                            <span>{{$index + 1}}.{{e.EmployeeName}}
+                                                {{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
+                                        </li>
+                                        }
+                                    </ul>
+                                </details>
+
+                            </li>
+                            }
+                        </ul>
+                    </ng-container>
+
+                </ng-container>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Lịch làm việc
+                </h5>
+                <span class="badge bg-danger ms-auto">Ngày nghỉ</span>
+            </div>
+            <div class="card-body p-0 pt-1">
+                <nz-calendar [nzFullscreen]="false" [(ngModel)]="calendarDate" [nzCustomHeader]=""
+                    [nzDateFullCell]="dateCell" (nzSelectChange)="onSelectChangeCalendar($event)">
+                </nz-calendar>
+
+                <ng-template #dateCell let-date>
+                    <div class="custom-date-cell" [ngClass]="{holiday: isHoliday(date) || isSaturday(date)}">
+                        {{ date.getDate() }}
+                    </div>
+                </ng-template>
+            </div>
+        </div>
+
+    </div>
+
+</div>

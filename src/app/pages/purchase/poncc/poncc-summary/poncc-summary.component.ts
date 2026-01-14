@@ -1,6 +1,31 @@
 import { CommonModule } from '@angular/common';
-import { Component, AfterViewInit, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import {
+  Component,
+  AfterViewInit,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  inject,
+  ChangeDetectorRef,
+} from '@angular/core';
+import {
+  AngularSlickgridModule,
+  AngularGridInstance,
+  Column,
+  GridOption,
+  Filters,
+  Formatters,
+  Editors,
+  OnClickEventArgs,
+  OnCellChangeEventArgs,
+  OnSelectedRowsChangedEventArgs,
+  Aggregators,
+  GroupTotalFormatters,
+  SortComparers,
+  FieldType,
+  MultipleSelectOption,
+} from 'angular-slickgrid';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -17,37 +42,65 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { SupplierSaleService } from '../../supplier-sale/supplier-sale.service';
 import { ProjectService } from '../../../project/project-service/project.service';
-
+import ExcelJS from 'exceljs';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { AppUserService } from '../../../../services/app-user.service';
+import { MenuItem } from 'primeng/api';
+import { Menubar } from 'primeng/menubar';
+import { PonccSummaryDetailComponent } from './poncc-summary-detail/poncc-summary-detail.component';
+import { DateTime } from 'luxon';
 @Component({
   selector: 'app-poncc-summary',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    NzButtonModule,
-    NzDatePickerModule,
+    AngularSlickgridModule,
     NzFormModule,
-    NzIconModule,
     NzInputModule,
     NzSelectModule,
+    NzDatePickerModule,
+    NzButtonModule,
+    NzGridModule,
+    NzDropDownModule,
+    NzIconModule,
+    NzModalModule,
     NzSplitterModule,
+    FormsModule,
     NzSpinComponent,
+    Menubar,
   ],
   templateUrl: './poncc-summary.component.html',
-  styleUrl: './poncc-summary.component.css'
+  styleUrl: './poncc-summary.component.css',
 })
 export class PonccSummaryComponent implements OnInit, AfterViewInit {
-  @ViewChild('table_ponccSummary', { static: false }) tableRef!: ElementRef;
-  table!: Tabulator;
-  public activeModal = inject(NgbActiveModal);
+  //#region Khai báo biến
+  constructor(
+    public activeModal: NgbActiveModal,
+    private projectService: ProjectService,
+    private ponccService: PONCCService,
+    private notify: NzNotificationService,
+    private supplierSaleService: SupplierSaleService,
+    private cdr: ChangeDetectorRef,
+    private ngbModal: NgbModal,
+    private modal: NzModalService,
+    private appUserService: AppUserService
+  ) {}
 
-  get modalTitle(): string {
-    return 'TỔNG HỢP PO NCC';
-  }
-
-  // Filters
-  dateStart: Date = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  dateEnd: Date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+  ponccSummaryMenu: MenuItem[] = [];
+  shouldShowSearchBar: boolean = true;
+  dateStart: Date = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1
+  );
+  dateEnd: Date = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth() + 1,
+    0
+  );
   supplierId: number = 0;
   employeeId: number = 0;
   status: number = -1;
@@ -55,41 +108,35 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
   sizeSearch: string = '0';
   suppliers: any[] = [];
   employees: any[] = [];
+
   isLoading: boolean = false;
+  angularGridMaster!: AngularGridInstance;
+  columnDefinitionsMaster: Column[] = [];
+  gridOptionsMaster: GridOption = {};
 
-  constructor(
-    private srv: PONCCService,
-    private notify: NzNotificationService,
-    private projectService: ProjectService,
-    private supplierSaleService: SupplierSaleService,
-  ) { }
+  summaryData: any[] = [];
+  //#endregion
 
+  //#region Khởi tạo
   ngOnInit(): void {
+    this.loadMenu();
     this.loadLookups();
+    this.initGridColumns();
+    this.initGridOptions();
   }
 
   ngAfterViewInit(): void {
-    this.initTable();
     setTimeout(() => {
-      this.onSearch();
-    }, 0);
+      this.cdr.detectChanges();
+      setTimeout(() => {
+        this.onSearch();
+      }, 100);
+    }, 200);
   }
+  //#endregion
 
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
-  }
-
-  resetSearch(): void {
-    this.dateStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    this.dateEnd = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
-    this.supplierId = 0;
-    this.employeeId = 0;
-    this.status = -1;
-    this.filterText = '';
-    this.onSearch();
-  }
-
-  private loadLookups() {
+  //#region Hàm
+  loadLookups() {
     this.projectService.getUsers().subscribe({
       next: (response: any) => {
         this.employees = this.projectService.createdDataGroup(
@@ -98,428 +145,1355 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         );
       },
       error: (error: any) => {
-        this.notify.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notify.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi khi tải danh sách nhân viên: ' + error.message
+        );
       },
     });
     this.supplierSaleService.getNCC().subscribe({
       next: (res: any) => (this.suppliers = res.data || []),
       error: (error: any) => {
-        this.notify.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhà cung cấp: ' + error.message);
+        this.notify.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi khi tải danh sách nhà cung cấp: ' + error.message
+        );
       },
     });
+  }
+
+  loadMenu() {
+    this.ponccSummaryMenu = [
+      {
+        label: 'Thêm',
+        icon: 'fa fa-plus text-success',
+        visible: this.appUserService.isAdmin,
+        command: () => {
+          this.onAdd();
+        },
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa fa-pencil text-primary',
+        visible: this.appUserService.isAdmin,
+        command: () => {
+          this.onEdit();
+        },
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa fa-trash text-danger',
+        visible: this.appUserService.isAdmin,
+        command: () => {
+          this.onDelete();
+        },
+      },
+      {
+        label: 'Xuất excel',
+        icon: 'fa fa-file-excel text-success',
+        command: () => {
+          this.onExportToExcel();
+        },
+      },
+    ];
   }
 
   onSearch(): void {
     this.isLoading = true;
-    const dateStartCopy = new Date(this.dateStart);
-    dateStartCopy.setHours(0, 0, 0, 0);
-    const dateEndCopy = new Date(this.dateEnd);
-    dateEndCopy.setHours(23, 59, 59, 999);
+
+    // Format date theo local time để tránh bị lùi ngày do timezone
+    const formatLocalDate = (
+      date: Date,
+      isEndOfDay: boolean = false
+    ): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+
+      if (isEndOfDay) {
+        return `${year}-${month}-${day}T23:59:59`;
+      }
+      return `${year}-${month}-${day}T00:00:00`;
+    };
 
     const request = {
       FilterText: this.filterText?.trim() || '',
-      DateStart: dateStartCopy.toISOString(),
-      DateEnd: dateEndCopy.toISOString(),
+      DateStart: formatLocalDate(this.dateStart, false),
+      DateEnd: formatLocalDate(this.dateEnd, true),
       SupplierID: this.supplierId || 0,
-      Status: this.status === -1 ? undefined : this.status,
+      Status: this.status,
       EmployeeID: this.employeeId || 0,
     };
 
-    this.srv.getPONCCSummary(request).subscribe({
+    this.ponccService.getPONCCSummary(request).subscribe({
       next: (response) => {
         const data = response.data || [];
-        this.table?.setData(data);
+        this.summaryData = data;
+        this.summaryData = this.summaryData.map((x, index) => ({
+          ...x,
+          id: index + 1,
+        }));
+        console.log(this.summaryData);
         this.isLoading = false;
+
+        // Update footer row with count
+        setTimeout(() => {
+          this.applyDistinctFilters();
+          this.updateMasterFooterRow();
+        }, 100);
       },
       error: (error) => {
         this.isLoading = false;
-        this.notify.error(NOTIFICATION_TITLE.error, 'Không tải được dữ liệu tổng hợp PO NCC: ' + (error.message || ''));
+        this.notify.error(
+          NOTIFICATION_TITLE.error,
+          'Không tải được dữ liệu tổng hợp PO NCC: ' + (error.message || '')
+        );
       },
     });
   }
 
-  private initTable() {
-    const columns: ColumnDefinition[] = [
-      {
-        title: 'Ngày đơn hàng', field: 'RequestDate', width: 110, headerSort: false, hozAlign: 'center',
-        formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue())
-        , frozen: true
-      },
-      { title: 'Công ty nhập', field: 'CompanyText', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea', frozen: true },
-      { title: 'Số đơn hàng', field: 'BillCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea', bottomCalc: 'count', frozen: true },
-      { title: 'Diễn giải', field: 'Note', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      {
-        title: 'Ngày giao hàng', field: 'DeliveryDate', width: 110, headerSort: false, hozAlign: 'center',
-        formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue())
-      },
-      { title: 'Mã nhà cung cấp', field: 'CodeNCC', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Tên nhà cung cấp', field: 'NameNCC', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Mã dự án', field: 'ProjectCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Tên dự án', field: 'ProjectName', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Số PO', field: 'POCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Mã nội bộ', field: 'ProductNewCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Tên hàng', field: 'ProductName', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Mã sản phẩm', field: 'ProductCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Mã sản phẩm NCC', field: 'ProductCodeOfSupplier', width: 150, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Hãng', field: 'Maker', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Đơn vị tính', field: 'UnitName', width: 100, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Loại tiền', field: 'CurrencyName', width: 100, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      {
-        title: 'Đơn giá mua chưa VAT', field: 'UnitPrice', width: 140, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      {
-        title: 'Đơn giá mua có VAT', field: 'UnitPriceVAT', width: 140, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      {
-        title: 'Số lượng đặt hàng', field: 'QtyRequest', width: 130, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0)
-      },
-      {
-        title: 'Số lượng đã nhận', field: 'QuantityReturn', width: 130, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0)
-      },
-      {
-        title: 'Số lượng còn lại', field: 'QuantityRemain', width: 130, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0)
-      },
-      {
-        title: 'Giá trị hàng quy đổi', field: 'TotalMoneyChangePO', width: 150, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      {
-        title: 'Giá trị đặt hàng', field: 'TotalPrice', width: 130, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      { title: 'Tình trạng', field: 'StatusText', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Nhân viên mua hàng', field: 'FullName', width: 150, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Phân loại NCC/NCC mới', field: 'NCCNew', width: 150, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      {
-        title: 'Công nợ', field: 'DeptSupplier', width: 80, headerSort: false, hozAlign: 'center',
-        formatter: function (cell: any) {
-          const value = cell.getValue();
-          const checked = value === true || value === 'true' || value === 1 || value === '1';
-          return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-        },
-      },
-      { title: 'Điều khoản thanh toán', field: 'RulePayName', width: 150, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      {
-        title: 'Phí vận chuyển', field: 'FeeShip', width: 120, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      {
-        title: 'Giá bán', field: 'PriceSale', width: 120, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      {
-        title: 'Deadline Giao hàng', field: 'DeadlineDelivery', width: 130, headerSort: false, hozAlign: 'center',
-        formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue())
-      },
-      {
-        title: 'Giá lịch sử', field: 'PriceHistory', width: 120, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      {
-        title: 'Giá chào thầu', field: 'BiddingPrice', width: 120, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-        bottomCalc: 'sum',
-        bottomCalcFormatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      { title: 'NCC xử lý chứng từ', field: 'SupplierVoucher', width: 150, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      {
-        title: 'Stock kho hiện tại', field: 'TotalQuantityLast', width: 130, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0),
-        bottomCalc: 'sum',
-      },
-      {
-        title: 'Ghi chú stock kho', field: 'MinQuantity', width: 130, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0)
-      },
-      {
-        title: 'Thuế VAT', field: 'VAT', width: 100, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 2)
-      },
-      {
-        title: 'Tỷ giá', field: 'CurrencyRate', width: 100, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      {
-        title: 'Hóa đơn', field: 'IsBill', width: 80, headerSort: false, hozAlign: 'center',
-        formatter: function (cell: any) {
-          const value = cell.getValue();
-          const checked = value === true || value === 'true' || value === 1 || value === '1';
-          return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-        },
-      },
-      {
-        title: 'Ngày yêu cầu nhập kho', field: 'DateRequestImport', width: 150, headerSort: false, hozAlign: 'center',
-        formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue())
-      },
+  resetSearch(): void {
+    this.dateStart = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1
+    );
+    this.dateEnd = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      0
+    );
+    this.supplierId = 0;
+    this.employeeId = 0;
+    this.status = -1;
+    this.filterText = '';
+    this.onSearch();
+  }
 
-      { title: 'Số phiếu nhập', field: 'BillImportCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      {
-        title: 'Đơn giá bán Admin', field: 'UnitPricePOKH', width: 140, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-        bottomCalc: 'sum',
-        bottomCalcFormatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      {
-        title: 'Không đạt chất lượng', field: 'OrderQualityNotMet', width: 150, headerSort: false, hozAlign: 'center',
-        formatter: function (cell: any) {
-          const value = cell.getValue();
-          const checked = value === true || value === 'true' || value === 1 || value === '1';
-          return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-        },
-      },
-      { title: 'Lý do không đạt', field: 'ReasonForFailure', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      {
-        title: 'Tiền giảm thuế', field: 'TaxReduction', width: 130, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      {
-        title: 'Chi phí FE', field: 'COFormE', width: 120, headerSort: false, hozAlign: 'right',
-        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
-      },
-      { title: 'Số hóa đơn', field: 'SomeBill', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+  //#endregion
+
+  //#region Các hàm xử lý cho bảng
+  angularGridMasterReady(angularGrid: AngularGridInstance) {
+    this.angularGridMaster = angularGrid;
+
+    // Lắng nghe sự kiện filter để cập nhật footer tính toán theo view hiển thị
+    if (angularGrid && angularGrid.dataView) {
+      angularGrid.dataView.onRowCountChanged.subscribe(() => {
+        this.updateMasterFooterRow();
+      });
+    }
+
+    setTimeout(() => {
+      angularGrid.resizerService.resizeGrid();
+      this.updateMasterFooterRow();
+      this.applyDistinctFilters();
+    }, 100);
+  }
+
+  applyDistinctFilters(): void {
+    const angularGrid = this.angularGridMaster;
+    if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
+
+    const data = angularGrid.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (
+      items: any[],
+      field: string
+    ): Array<{ value: any; label: string }> => {
+      const map = new Map<string, { value: any; label: string }>();
+      items.forEach((row: any) => {
+        const value = row?.[field];
+        if (value === null || value === undefined || value === '') return;
+        const key = `${typeof value}:${String(value)}`;
+        if (!map.has(key)) {
+          map.set(key, { value, label: String(value) });
+        }
+      });
+      return Array.from(map.values()).sort((a, b) =>
+        a.label.localeCompare(b.label)
+      );
+    };
+
+    const booleanCollection = [
+      { value: true, label: 'Có' },
+      { value: false, label: 'Không' },
     ];
+    const booleanFields = new Set([
+      'NCCNew',
+      'DeptSupplier',
+      'IsBill',
+      'OrderQualityNotMet',
+    ]);
 
-    if (this.tableRef) {
-      this.table = new Tabulator(this.tableRef.nativeElement, {
-        ...DEFAULT_TABLE_CONFIG,
-        columns: columns,
-        rowHeader: false,
-
-        data: [],
-        layout: 'fitDataStretch',
-        paginationMode: 'local',
-      } as any);
+    const columns = angularGrid.slickGrid.getColumns();
+    if (columns) {
+      columns.forEach((column: any) => {
+        if (
+          column.filter &&
+          column.filter.model === Filters['multipleSelect']
+        ) {
+          const field = column.field;
+          if (!field) return;
+          column.filter.collection = booleanFields.has(field)
+            ? booleanCollection
+            : getUniqueValues(data, field);
+        }
+      });
     }
+
+    if (this.columnDefinitionsMaster) {
+      this.columnDefinitionsMaster.forEach((colDef: any) => {
+        if (
+          colDef.filter &&
+          colDef.filter.model === Filters['multipleSelect']
+        ) {
+          const field = colDef.field;
+          if (!field) return;
+          colDef.filter.collection = booleanFields.has(field)
+            ? booleanCollection
+            : getUniqueValues(data, field);
+        }
+      });
+    }
+
+    const updatedColumns = angularGrid.slickGrid.getColumns();
+    angularGrid.slickGrid.setColumns(updatedColumns);
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
   }
 
-  private formatNumberEnUS(v: any, digits: number = 2): string {
-    const n = Number(v);
-    if (!isFinite(n)) return '';
-    return n.toLocaleString('en-US', {
-      minimumFractionDigits: digits,
-      maximumFractionDigits: digits,
-    });
+  initGridColumns() {
+    this.columnDefinitionsMaster = [
+      {
+        id: 'RequestDate',
+        name: 'Ngày đơn hàng',
+        field: 'RequestDate',
+        cssClass: 'text-center',
+        width: 110,
+        sortable: false,
+        type: FieldType.date,
+
+        filterable: true,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: {
+          model: Filters['compoundDate'],
+          params: {
+            operator: '>=',
+            dateFormat: 'DD/MM/YYYY',
+            filterFormat: 'DD/MM/YYYY',
+          },
+        },
+        editor: {
+          model: Editors['date'],
+          massUpdate: true,
+          editorOptions: { hideClearButton: false },
+        },
+      },
+      {
+        id: 'CompanyText',
+        name: 'Công ty nhập',
+        field: 'CompanyText',
+        width: 120,
+        sortable: false,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'BillCode',
+        name: 'Số đơn hàng',
+        field: 'BillCode',
+        width: 120,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'Note',
+        name: 'Diễn giải',
+        field: 'Note',
+        width: 200,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'DeliveryDate',
+        name: 'Ngày giao hàng',
+        field: 'DeliveryDate',
+        cssClass: 'text-center',
+        width: 110,
+        sortable: false,
+        type: FieldType.date,
+        filterable: true,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      {
+        id: 'CodeNCC',
+        name: 'Mã nhà cung cấp',
+        field: 'CodeNCC',
+        width: 120,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'NameNCC',
+        name: 'Tên nhà cung cấp',
+        field: 'NameNCC',
+        width: 200,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'ProjectCode',
+        name: 'Mã dự án',
+        field: 'ProjectCode',
+        width: 120,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'ProjectName',
+        name: 'Tên dự án',
+        field: 'ProjectName',
+        width: 200,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'POCode',
+        name: 'Số PO',
+        field: 'POCode',
+        width: 120,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'ProductNewCode',
+        name: 'Mã nội bộ',
+        field: 'ProductNewCode',
+        width: 120,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'ProductName',
+        name: 'Tên hàng',
+        field: 'ProductName',
+        width: 200,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'ProductCode',
+        name: 'Mã sản phẩm',
+        field: 'ProductCode',
+        width: 120,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'ProductCodeOfSupplier',
+        name: 'Mã sản phẩm NCC',
+        field: 'ProductCodeOfSupplier',
+        width: 150,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'Maker',
+        name: 'Hãng',
+        field: 'Maker',
+        width: 120,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'UnitName',
+        name: 'Đơn vị tính',
+        field: 'UnitName',
+        width: 100,
+        sortable: false,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'CurrencyName',
+        name: 'Loại tiền',
+        field: 'CurrencyName',
+        width: 100,
+        sortable: false,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'UnitPrice',
+        name: 'Đơn giá mua chưa VAT',
+        field: 'UnitPrice',
+        cssClass: 'text-end',
+        width: 140,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'UnitPriceVAT',
+        name: 'Đơn giá mua có VAT',
+        field: 'UnitPriceVAT',
+        cssClass: 'text-end',
+        width: 140,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'QtyRequest',
+        name: 'Số lượng đặt hàng',
+        field: 'QtyRequest',
+        cssClass: 'text-end',
+        width: 130,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 0, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'QuantityReturn',
+        name: 'Số lượng đã nhận',
+        field: 'QuantityReturn',
+        cssClass: 'text-end',
+        width: 130,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 0, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'QuantityRemain',
+        name: 'Số lượng còn lại',
+        field: 'QuantityRemain',
+        cssClass: 'text-end',
+        width: 130,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 0, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'TotalMoneyChangePO',
+        name: 'Giá trị hàng quy đổi',
+        field: 'TotalMoneyChangePO',
+        cssClass: 'text-end',
+        width: 150,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'TotalPrice',
+        name: 'Giá trị đặt hàng',
+        field: 'TotalPrice',
+        cssClass: 'text-end',
+        width: 130,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'StatusText',
+        name: 'Tình trạng',
+        field: 'StatusText',
+        width: 120,
+        sortable: false,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'FullName',
+        name: 'Nhân viên mua hàng',
+        field: 'FullName',
+        width: 150,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'NCCNew',
+        name: 'Phân loại NCC/NCC mới',
+        field: 'NCCNew',
+        width: 150,
+        sortable: false,
+        cssClass: 'text-center',
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        formatter: Formatters.checkmarkMaterial,
+        type: FieldType.boolean,
+      },
+      {
+        id: 'DeptSupplier',
+        name: 'Công nợ',
+        field: 'DeptSupplier',
+        cssClass: 'text-center',
+        width: 80,
+        sortable: false,
+        formatter: Formatters.checkmarkMaterial,
+        type: FieldType.boolean,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'RulePayName',
+        name: 'Điều khoản thanh toán',
+        field: 'RulePayName',
+        width: 150,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'FeeShip',
+        name: 'Phí vận chuyển',
+        field: 'FeeShip',
+        cssClass: 'text-end',
+        width: 120,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'PriceSale',
+        name: 'Giá bán',
+        field: 'PriceSale',
+        cssClass: 'text-end',
+        width: 120,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'DeadlineDelivery',
+        name: 'Deadline Giao hàng',
+        field: 'DeadlineDelivery',
+        width: 130,
+        sortable: false,
+        type: FieldType.date,
+        filterable: true,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      {
+        id: 'PriceHistory',
+        name: 'Giá lịch sử',
+        field: 'PriceHistory',
+        cssClass: 'text-end',
+        width: 120,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'BiddingPrice',
+        name: 'Giá chào thầu',
+        field: 'BiddingPrice',
+        cssClass: 'text-end',
+        width: 120,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'SupplierVoucher',
+        name: 'NCC xử lý chứng từ',
+        field: 'SupplierVoucher',
+        width: 150,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'TotalQuantityLast',
+        name: 'Stock kho hiện tại',
+        field: 'TotalQuantityLast',
+        cssClass: 'text-end',
+        width: 130,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 0, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'MinQuantity',
+        name: 'Ghi chú stock kho',
+        field: 'MinQuantity',
+        cssClass: 'text-end',
+        width: 130,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 0, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'VAT',
+        name: 'Thuế VAT',
+        field: 'VAT',
+        cssClass: 'text-end',
+        width: 100,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'CurrencyRate',
+        name: 'Tỷ giá',
+        field: 'CurrencyRate',
+        cssClass: 'text-end',
+        width: 100,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'IsBill',
+        name: 'Hóa đơn',
+        field: 'IsBill',
+        cssClass: 'text-center',
+        width: 80,
+        sortable: false,
+        formatter: Formatters.checkmarkMaterial,
+        type: FieldType.boolean,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'DateRequestImport',
+        name: 'Ngày yêu cầu nhập kho',
+        field: 'DateRequestImport',
+        cssClass: 'text-center',
+        width: 150,
+        sortable: false,
+        type: FieldType.date,
+        filterable: true,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      {
+        id: 'BillImportCode',
+        name: 'Số phiếu nhập',
+        field: 'BillImportCode',
+        width: 120,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'UnitPricePOKH',
+        name: 'Đơn giá bán Admin',
+        cssClass: 'text-end',
+        field: 'UnitPricePOKH',
+        width: 140,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'OrderQualityNotMet',
+        name: 'Không đạt chất lượng',
+        field: 'OrderQualityNotMet',
+        cssClass: 'text-center',
+        width: 150,
+        sortable: false,
+        formatter: Formatters.checkmarkMaterial,
+        type: FieldType.boolean,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'ReasonForFailure',
+        name: 'Lý do không đạt',
+        field: 'ReasonForFailure',
+        width: 200,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'TaxReduction',
+        name: 'Tiền giảm thuế',
+        cssClass: 'text-end',
+        field: 'TaxReduction',
+        width: 130,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'COFormE',
+        name: 'Chi phí FE',
+        cssClass: 'text-end',
+        field: 'COFormE',
+        width: 120,
+        sortable: false,
+        type: FieldType.number,
+        formatter: Formatters.decimal,
+        params: { decimalPlaces: 2, thousandSeparator: ',' },
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'SomeBill',
+        name: 'Số hóa đơn',
+        field: 'SomeBill',
+        width: 120,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+    ];
   }
 
-  private formatDateDDMMYYYY(val: any): string {
-    if (!val) return '';
-    try {
-      const d = new Date(val);
-      if (isNaN(d.getTime())) return '';
-      const p2 = (n: number) => String(n).padStart(2, '0');
-      return `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()}`;
-    } catch {
-      return '';
-    }
-  }
+  initGridOptions() {
+    this.gridOptionsMaster = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-summary-poncc',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
 
-  /**
-   * Export table to Excel with footer using ExcelJS
-   */
-  async onExportToExcel(): Promise<void> {
-    if (!this.table) {
-      this.notify.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất!');
-      return;
-    }
+      gridWidth: '100%',
+      datasetIdPropertyName: 'id',
 
-    const data = this.table.getData();
-    if (!data || data.length === 0) {
-      this.notify.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất!');
-      return;
-    }
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false,
+      },
 
-    // Format dates for filename: DDMMYY
-    const formatDate = (date: Date | null): string => {
-      if (!date) return new Date().toLocaleDateString('en-GB').split('/').map(p => p.padStart(2, '0')).join('').slice(0, 6);
-      const d = new Date(date);
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = String(d.getFullYear()).slice(-2);
-      return `${day}${month}${year}`;
+      checkboxSelector: {
+        hideInFilterHeaderRow: false,
+        hideInColumnTitleRow: true,
+        applySelectOnAllPages: true,
+      },
+
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+
+      enableAutoSizeColumns: false,
+      autoFitColumnsOnFirstLoad: false,
+
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 30,
+      frozenColumn: 3,
     };
+  }
 
-    const dateStartStr = formatDate(this.dateStart);
-    const dateEndStr = formatDate(this.dateEnd);
-    const fileName = `TongHopPONCC_${dateStartStr}_${dateEndStr}.xlsx`;
+  updateMasterFooterRow() {
+    if (this.angularGridMaster && this.angularGridMaster.slickGrid) {
+      // Lấy dữ liệu đã lọc trên view thay vì toàn bộ dữ liệu
+      const items =
+        (this.angularGridMaster.dataView?.getFilteredItems?.() as any[]) ||
+        this.summaryData;
 
-    // Use ExcelJS to create workbook
-    const ExcelJS = await import('exceljs');
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Tổng hợp PO NCC');
+      // Đếm số lượng BillCode
+      const billCodeCount = (items || []).filter(
+        (item) => item.BillCode
+      ).length;
 
-    // Get visible columns
-    const columns = this.table.getColumns();
-    const visibleColumns = columns
-      .map((col: any) => col.getDefinition())
-      .filter((def: any) => def.formatter !== 'rowSelection');
+      // Tính tổng cho các cột số có cssClass: 'text-end'
+      const totals: { [key: string]: number } = {};
 
-    const headers = visibleColumns.map((def: any) => def.title);
+      // Lấy danh sách các cột có cssClass chứa 'text-end'
+      const numericColumns = this.columnDefinitionsMaster
+        .filter((col: any) => col.cssClass?.includes('text-end'))
+        .map((col: any) => col.field);
 
-    // Add header row
-    const headerRow = worksheet.addRow(headers);
-    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Times New Roman', size: 10 };
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: '32A441' } // Màu xanh lá
-    };
-    headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-    headerRow.height = 25;
-
-    // Set font Times New Roman size 10 for header cells
-    headerRow.eachCell((cell) => {
-      cell.font = { ...cell.font, name: 'Times New Roman', size: 10 };
-    });
-
-    // Detect columns with bottomCalc
-    const sumFields: string[] = [];
-    const countFields: string[] = [];
-    visibleColumns.forEach((col: any) => {
-      if (col.bottomCalc === 'sum') {
-        sumFields.push(col.field);
-      } else if (col.bottomCalc === 'count') {
-        countFields.push(col.field);
-      }
-    });
-
-    // Initialize totals
-    const totals: any = {};
-    sumFields.forEach(field => totals[field] = 0);
-    countFields.forEach(field => totals[field] = 0);
-
-    // Add data rows
-    data.forEach((row: any) => {
-      const rowData = visibleColumns.map((col: any) => {
-        const field = col.field;
-        let value = row[field];
-
-        // Calculate sum
-        if (sumFields.includes(field) && value) {
-          totals[field] += Number(value) || 0;
-        }
-
-        // Calculate count
-        if (countFields.includes(field)) {
-          totals[field] += 1;
-        }
-
-        // Format boolean
-        if (typeof value === 'boolean') {
-          return value ? 'V' : 'X';
-        }
-
-        // Format date
-        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-          value = new Date(value);
-        }
-
-        return value;
+      // Tính tổng cho từng cột
+      numericColumns.forEach((field: string) => {
+        totals[field] = (items || []).reduce(
+          (sum, item) => sum + (Number(item[field]) || 0),
+          0
+        );
       });
 
-      const dataRow = worksheet.addRow(rowData);
-      dataRow.alignment = { vertical: 'middle', wrapText: true };
+      this.angularGridMaster.slickGrid.setFooterRowVisibility(true);
 
-      dataRow.eachCell((cell, colNumber) => {
-        const field = visibleColumns[colNumber - 1]?.field;
-        const colDef = visibleColumns[colNumber - 1];
+      // Set footer values cho từng column
+      const columns = this.angularGridMaster.slickGrid.getColumns();
+      columns.forEach((col: any) => {
+        const footerCell = this.angularGridMaster.slickGrid.getFooterRowColumn(
+          col.id
+        );
+        if (!footerCell) return;
 
-        // Set font Times New Roman size 10
-        cell.font = { name: 'Times New Roman', size: 10 };
-
-        // Set alignment based on column definition
-        if (colDef?.hozAlign === 'right') {
-          cell.alignment = { vertical: 'middle', horizontal: 'right', wrapText: true };
-        } else if (colDef?.hozAlign === 'center') {
-          cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        // Đếm cho cột BillCode
+        if (col.id === 'BillCode') {
+          footerCell.innerHTML = `<b>${billCodeCount} đơn hàng</b>`;
+        }
+        // Format số tiền cho các cột text-end
+        else if (totals[col.field] !== undefined) {
+          const formattedValue = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(totals[col.field]);
+          footerCell.innerHTML = `<b>${formattedValue}</b>`;
         } else {
-          cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
-        }
-
-        if (sumFields.includes(field)) {
-          if (typeof cell.value === 'number') {
-            cell.numFmt = '#,##0';
-          }
-        }
-
-        if (cell.value instanceof Date) {
-          cell.numFmt = 'dd/mm/yyyy';
+          footerCell.innerHTML = '';
         }
       });
-    });
-
-    // Add footer row
-    const footerData = visibleColumns.map((col: any) => {
-      const field = col.field;
-
-      if (sumFields.includes(field)) {
-        return totals[field];
-      }
-
-      if (countFields.includes(field)) {
-        return totals[field];
-      }
-
-      if (field === visibleColumns[0].field) {
-        return 'Tổng cộng';
-      }
-
-      return '';
-    });
-
-    const footerRow = worksheet.addRow(footerData);
-    footerRow.font = { bold: true, name: 'Times New Roman', size: 10 };
-    footerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFD3D3D3' }
-    };
-    footerRow.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
-
-    footerRow.eachCell((cell, colNumber) => {
-      const field = visibleColumns[colNumber - 1]?.field;
-      const colDef = visibleColumns[colNumber - 1];
-
-      // Set font Times New Roman size 10
-      cell.font = { bold: true, name: 'Times New Roman', size: 10 };
-
-      // Set alignment based on column definition
-      if (colDef?.hozAlign === 'right') {
-        cell.alignment = { vertical: 'middle', horizontal: 'right', wrapText: true };
-      } else if (colDef?.hozAlign === 'center') {
-        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-      } else {
-        cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
-      }
-
-      if (sumFields.includes(field) || countFields.includes(field)) {
-        cell.numFmt = '#,##0';
-      }
-    });
-
-    // Set column width based on Tabulator column width (convert pixels to Excel width)
-    // Excel width unit is approximately 1/7 of a character width
-    // Tabulator width is in pixels, roughly 1 pixel = 0.14 Excel units
-    worksheet.columns = visibleColumns.map((colDef: any) => {
-      const tabulatorWidth = colDef.width || 120;
-      // Convert pixels to Excel width: approximately 1 pixel = 0.14 Excel units
-      // But we'll use a more practical conversion: width in pixels / 7
-      const excelWidth = Math.max(tabulatorWidth / 7, 8); // Minimum width 8
-      return { width: Math.min(excelWidth, 50) }; // Maximum width 50
-    });
-
-    // Download file
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.click();
-    window.URL.revokeObjectURL(url);
+    }
   }
+  //#endregion
+
+  //#region Hàm xử lý cho modal
+  onAdd() {
+    const modalRef = this.ngbModal.open(PonccSummaryDetailComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      size: 'xl',
+      windowClass: 'modal-xl-poncc',
+    });
+
+    modalRef.result.finally(() => {
+      this.onSearch();
+    });
+  }
+
+  onEdit() {
+    const selectedRowIndexes =
+      this.angularGridMaster.slickGrid.getSelectedRows();
+
+    const selectedRows = selectedRowIndexes
+      .map((rowIndex: number) =>
+        this.angularGridMaster.dataView.getItem(rowIndex)
+      )
+      .filter((item: any) => item);
+
+    if (selectedRows.length === 0) {
+      this.notify.info(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn 1 yêu cầu cần sửa.'
+      );
+      return;
+    }
+
+    if (selectedRows[0].ID && selectedRows[0].ID <= 0) {
+      this.notify.info(
+        NOTIFICATION_TITLE.warning,
+        'Các thông tin của RTC không được thay đổi!'
+      );
+      return;
+    }
+
+    const modalRef = this.ngbModal.open(PonccSummaryDetailComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      size: 'xl',
+      windowClass: 'modal-xl-poncc',
+    });
+    modalRef.componentInstance.ponccSummary = selectedRows[0];
+    console.log(selectedRows[0]);
+    modalRef.result.finally(() => {
+      this.onSearch();
+    });
+  }
+
+  onDelete() {
+    const selectedRowIndexes =
+      this.angularGridMaster.slickGrid.getSelectedRows();
+
+    const selectedRows = selectedRowIndexes
+      .map((rowIndex: number) =>
+        this.angularGridMaster.dataView.getItem(rowIndex)
+      )
+      .filter((item: any) => item);
+
+    if (selectedRows.length === 0) {
+      this.notify.info(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn yêu cầu cần xóa.'
+      );
+      return;
+    }
+    let data: any[] = [];
+    selectedRows.forEach((row: any) => {
+      if (row.ID > 0) {
+        data.push(row.ID);
+      }
+    });
+
+    if (data.length === 0) {
+      this.notify.info(
+        NOTIFICATION_TITLE.warning,
+        'Thông tin của RTC không được xóa!'
+      );
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: 'Bạn có chắc chắn muốn xóa các yêu cầu đã chọn không?',
+      nzOnOk: () => {
+        this.ponccService
+          .deletePonccHistory({ lsDeleted: data })
+          .subscribe((res) => {
+            if (res) {
+              this.notify.success(
+                NOTIFICATION_TITLE.success,
+                'Xóa thành công.'
+              );
+              this.onSearch();
+            }
+          });
+      },
+    });
+  }
+
+  async onExportToExcel() {
+    const angularGrid = this.angularGridMaster;
+    if (!angularGrid) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không tìm thấy bảng dữ liệu.'
+      );
+      return;
+    }
+
+    this.isLoading = true;
+
+    // Lấy dữ liệu đã được lọc từ dataView thay vì toàn bộ summaryData
+    const rawData =
+      (angularGrid.dataView?.getFilteredItems?.() as any[]) ||
+      (angularGrid.dataView?.getItems() as any[]) ||
+      [];
+
+    if (rawData.length === 0) {
+      this.notify.info(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu để xuất Excel.'
+      );
+      this.isLoading = false;
+      return;
+    }
+
+    try {
+      let columns = this.columnDefinitionsMaster || [];
+      columns = columns.filter((col: any) => col.hidden !== true);
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Tổng hợp PONCC');
+
+      // Thêm header
+      const headerRow = worksheet.addRow(
+        columns.map((col: Column) => col.name || col.field)
+      );
+      headerRow.font = {
+        bold: true,
+        name: 'Tahoma',
+        color: { argb: 'FFFFFFFF' },
+      };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF5B9BD5' },
+      };
+
+      // Thêm các dòng dữ liệu
+      rawData.forEach((row: any) => {
+        const rowData = columns.map((col: any) => {
+          const value = row[col.field];
+
+          // Xử lý null/undefined
+          if (value === null || value === undefined) return '';
+
+          // Xử lý checkbox
+          if (
+            col.field === 'NCCNew' ||
+            col.field === 'DeptSupplier' ||
+            col.field === 'IsBill' ||
+            col.field === 'OrderQualityNotMet'
+          ) {
+            return value === true ? 'V' : '';
+          }
+
+          // Format số tiền
+          if (
+            [
+              'UnitPrice',
+              'UnitPriceVAT',
+              'QtyRequest',
+              'QuantityReturn',
+              'QuantityRemain',
+              'TotalMoneyChangePO',
+              'TotalPrice',
+              'FeeShip',
+              'PriceSale',
+              'PriceHistory',
+              'BiddingPrice',
+              'TotalQuantityLast',
+              'MinQuantity',
+              'VAT',
+              'CurrencyRate',
+              'UnitPricePOKH',
+              'TaxReduction',
+              'COFormE',
+            ].includes(col.field)
+          ) {
+            const numValue = Number(value) || 0;
+            return numValue === 0
+              ? 0
+              : new Intl.NumberFormat('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(numValue);
+          }
+
+          // Format ngày
+          if (
+            [
+              'RequestDate',
+              'DeliveryDate',
+              'DateRequestImport',
+              'DeadlineDelivery',
+            ].includes(col.field)
+          ) {
+            if (!value) return '';
+            let dateValue: DateTime | null = null;
+            if (value instanceof Date) {
+              dateValue = DateTime.fromJSDate(value);
+            } else if (typeof value === 'string') {
+              dateValue = DateTime.fromISO(value);
+            }
+            return dateValue && dateValue.isValid
+              ? dateValue.toFormat('dd/MM/yyyy')
+              : '';
+          }
+
+          return value;
+        });
+        worksheet.addRow(rowData);
+      });
+
+      // Footer tổng
+      const footerRowData = columns.map((col: Column) => {
+        if (col.field === 'BillCode') {
+          return `Tổng: ${rawData.length}`;
+        }
+
+        // Các cột cần tính tổng
+        if (
+          [
+            'UnitPrice',
+            'UnitPriceVAT',
+            'QtyRequest',
+            'QuantityReturn',
+            'QuantityRemain',
+            'TotalMoneyChangePO',
+            'TotalPrice',
+            'FeeShip',
+            'PriceSale',
+            'PriceHistory',
+            'BiddingPrice',
+            'TotalQuantityLast',
+            'MinQuantity',
+            'VAT',
+            'CurrencyRate',
+            'UnitPricePOKH',
+            'TaxReduction',
+            'COFormE',
+          ].includes(col.field || '')
+        ) {
+          const sum = rawData.reduce((acc: number, item: any) => {
+            const val = Number(item[col.field || '']) || 0;
+            return acc + val;
+          }, 0);
+          return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(sum);
+        }
+
+        return '';
+      });
+
+      const footerRow = worksheet.addRow(footerRowData);
+      footerRow.font = {
+        bold: true,
+        name: 'Tahoma',
+        color: { argb: 'FFFFFFFF' },
+      };
+      footerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF5B9BD5' },
+      };
+
+      // Auto-fit columns
+      worksheet.columns.forEach((column: any) => {
+        let maxLength = 0;
+        column.eachCell?.({ includeEmpty: true }, (cell: any) => {
+          const columnLength = cell.value ? cell.value.toString().length : 10;
+          if (columnLength > maxLength) {
+            maxLength = columnLength;
+          }
+        });
+        column.width = maxLength < 10 ? 10 : maxLength + 2;
+      });
+
+      // Xuất file
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `TongHopPONCC_${DateTime.now().toFormat(
+        'yyyyMMdd'
+      )}.xlsx`;
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+
+      this.notify.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
+    } catch (error: any) {
+      this.notify.error(
+        NOTIFICATION_TITLE.error,
+        'Lỗi khi xuất Excel: ' + error.message
+      );
+    } finally {
+      this.isLoading = false;
+    }
+  }
+  //#endregion
 }

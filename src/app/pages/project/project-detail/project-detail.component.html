@@ -28,9 +28,9 @@
                       </nz-form-label>
                       <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('customerId')">
                         <nz-select formControlName="customerId" class="w-100" nzShowSearch nzAllowClear
-                                   nzPlaceHolder="Chọn khách hàng" (ngModelChange)="getProjectCode()" [(ngModel)]="customerId">
+                                nzPlaceHolder="Chọn khách hàng" (ngModelChange)="getProjectCode()" [(ngModel)]="customerId">
                           @for (item of customers; track $index) {
-                            <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName" [nzValue]="item.ID">
+                            <nz-option nzCustomContent="true" [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"  [nzValue]="item.ID">
                               {{ item.CustomerCode + " - " + item.CustomerName }}
                             </nz-option>
                           }
@@ -322,7 +322,7 @@
                                               <nz-form-label class="fs-12" [nzSpan]="24">Ngày kết thúc</nz-form-label>
                                               <nz-form-control [nzSpan]="24">
                                                   <nz-date-picker formControlName="realityProjectEndDate" class="w-100"
-                                                      nzFormat="dd/MM/yyyy" [nzAllowClear]="false"></nz-date-picker>
+                                                      nzFormat="dd/MM/yyyy" ></nz-date-picker>
                                               </nz-form-control>
                                           </nz-form-item>
                                       </div>
@@ -366,8 +366,7 @@
                                   <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectTypeId')">
                                       <nz-select formControlName="projectTypeId" class="w-100" nzShowSearch nzAllowClear
                                           nzPlaceHolder="Chọn kiểu dự án"
-                                        
-                                          
+                                        (ngModelChange)="getProjectCode()"
                                           >
                                           <nz-option [nzValue]="1" nzLabel="Dự án"></nz-option>
                                           <nz-option [nzValue]="2" nzLabel="Thương mại"></nz-option>
@@ -509,6 +508,6 @@
 
 <ng-template #dateChangeStatus>
   <nz-form-label class="">Ngày thay đổi <span class="text-danger">*</span></nz-form-label>
-  <nz-date-picker [(ngModel)]="dateChangeStatus" name="dateChangeStatus" class="w-100" nzFormat="dd/MM/yyyy"
+  <nz-date-picker [(ngModel)]="tempDateChangeStatus" name="dateChangeStatus" class="w-100" nzFormat="dd/MM/yyyy"
       nzSize="default" [nzAllowClear]="false" (ngModelChange)="onDateChangeStatusChange($event)"></nz-date-picker>
 </ng-template>

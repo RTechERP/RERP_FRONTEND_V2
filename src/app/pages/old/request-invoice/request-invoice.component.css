@@ -49,3 +49,74 @@
 .ant-tabs-tab-btn {
     font-size: 0.75rem;
 }
+
+
+/* Đổi màu chữ trong headerFilter thành đen */
+::ng-deep .tabulator-header-filter input {
+    color: #000000 !important;
+  }
+  
+  ::ng-deep .tabulator-header-filter select {
+    color: #000000 !important;
+  }
+
+.file-table-container {
+    max-height: 30.5vh; /* Độ dài bảng file và filepo */
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Đảm bảo tab content có giới hạn chiều cao */
+:host ::ng-deep .ant-tabs-content-holder {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-tabs-tabpane-active {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+  .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+/* Filter bar với position absolute để không đẩy nội dung */
+.filter-bar {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Điều chỉnh splitter để không bị che */
+.ant-splitter {
+    margin-top: 0 !important;
+}
+
+/* Card body cần position relative */
+.card-body {
+    position: relative !important;
+}

@@ -197,7 +197,11 @@ getBillImportDetail(billIDs: number[]): Observable<any> {
   }
 
   getOptionProduct(warehouseCode: string, productGroupID: number): Observable<any> {
+    console.log('warehouseCode:', warehouseCode);
+
     const code = (warehouseCode ?? '').trim() || 'HN';
+    console.log('warehouseCode:', code);
+
     const params = new HttpParams()
       .set('warehouseCode', code)
       .set('productGroupID', String(productGroupID ?? 0));
@@ -210,6 +214,14 @@ getBillImportDetail(billIDs: number[]): Observable<any> {
   export(id: number, type: number): Observable<Blob> {
     const url = `${environment.host}api/billexport/export-excel?id=${id}&type=${type}`;
     return this.http.get(url, {
+      responseType: 'blob',
+    });
+  }
+
+  // Export Excel Multiple - Returns ZIP file containing multiple Excel files
+  exportExcelMultiple(listId: number[], type: number): Observable<Blob> {
+    const url = `${environment.host}api/billexport/export-excel?type=${type}`;
+    return this.http.post(url, listId, {
       responseType: 'blob',
     });
   }
@@ -351,4 +363,43 @@ getBillImportDetail(billIDs: number[]): Observable<any> {
       responseType: 'blob',
     });
   }
+
+  // Get Bill Import by Bill Export ID (for transfer reference links)
+  getBillImportByBillExportID(billExportID: number): Observable<any> {
+    return this.http.get<any>(
+      environment.host + `api/billexport/by-billexport/${billExportID}`
+    );
+  }
+
+  // Get POKH Files by PO Number
+  getPOKHFiles(poNumber: string): Observable<any> {
+    return this.http.get<any>(
+      environment.host + `api/BillExport/get-pokh-files/${encodeURIComponent(poNumber)}`
+    );
+  }
+
+  // Download POKH File
+  downloadPOKHFile(poNumber: string, fileName: string): Observable<Blob> {
+    const url = `${environment.host}api/BillExport/download-pokh-file/${encodeURIComponent(poNumber)}/${encodeURIComponent(fileName)}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+    });
+  }
+  getInventoryProjectImportExport(
+  warehouseID: number,
+  productID: number,
+  projectID: number,
+  pokhDetailID: number,
+  billExportDetailIds: string  // ✅ Nhận CSV: "123,456,789"
+): Observable<any> {
+  return this.http.get(`${environment.host}api/billexport/get-inventory-project-import-export`, {
+    params: {
+      warehouseId: warehouseID.toString(),
+      productId: productID.toString(),
+      projectId: projectID.toString(),
+      pokhDetailId: pokhDetailID.toString(),
+      billExportDetailIds: billExportDetailIds || ''  // ✅ Truyền empty string nếu null
+    }
+  });
+}
 }

@@ -175,6 +175,9 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
 
   //#region chạy khi mở chương trình
   ngOnInit(): void {
+    // Set phòng ban mặc định = 2 khi load page
+    this.searchParams.departmentID = 2;
+    
     this.route.paramMap.subscribe((params) => {
       let id = params.get('id');
       if (Number(id) == 2) {
@@ -231,6 +234,43 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
     } else {
       // Reset team khi không chọn phòng ban
       this.searchParams.userTeamID = 0;
+      this.users = [];
+    }
+  }
+
+  getEmployeesByTeam() {
+    this.users = [];
+    if (this.searchParams.userTeamID > 0) {
+      this.projectService
+        .getEmployeeByUserTeam(this.searchParams.userTeamID)
+        .subscribe({
+          next: (response: any) => {
+            const employees = response.data || [];
+            // Format dữ liệu theo cấu trúc option group nếu có DepartmentName
+            if (employees.length > 0 && employees[0].DepartmentName) {
+              this.users = this.projectService.createdDataGroup(
+                employees,
+                'DepartmentName'
+              );
+            } else {
+              // Nếu không có DepartmentName, tạo cấu trúc đơn giản
+              this.users = [
+                {
+                  label: 'Nhân viên',
+                  options: employees.map((item: any) => ({ item: item })),
+                },
+              ];
+            }
+          },
+          error: (error) => {
+            console.error('Lỗi:', error);
+            this.users = [];
+          },
+        });
+    } else {
+      // Reset nhân viên khi không chọn team
+      this.users = [];
+      this.searchParams.userID = 0;
     }
   }
   getDepartment() {
@@ -346,7 +386,7 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
       },
       {
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Chuyển dự án" class="me-1" /> Chuyển dự án</span>',
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Chuyển báo cáo công việc" class="me-1" /> Chuyển báo cáo công việc</span>',
         action: (e: any, row: any) => {
           this.changeProject();
         },
@@ -437,14 +477,14 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
           title: 'Mức độ ưu tiên',
           columns: [
             {
-              title: 'Dự án',
+              title: 'Mức ưu tiên',
               field: 'PriotityText',
               hozAlign: 'right',
               //   headerHozAlign: 'center',
               width: 70,
             },
             {
-              title: 'Cá nhân',
+              title: 'Mức độ ưu tiên cá nhân',
               field: 'PersonalPriotity',
               hozAlign: 'right',
               //   headerHozAlign: 'center',

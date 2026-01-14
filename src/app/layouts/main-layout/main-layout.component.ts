@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
-import { Params, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Params, Router, RouteReuseStrategy, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
@@ -28,25 +28,37 @@ import { CustomerComponent } from '../../pages/crm/customers/customer/customer.c
 
 // import { menus } from '../../pages/old/menus/menus.component';
 import {
-  GroupItem,
-  LeafItem,
-  MenuItem,
-  MenuService,
+    GroupItem,
+    LeafItem,
+    MenuItem,
+    MenuService,
 } from '../../pages/systems/menus/menu-service/menu.service';
 import { MenuEventService } from '../../pages/systems/menus/menu-service/menu-event.service';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import {
-  AppNotifycationDropdownComponent,
-  NotifyItem,
+    AppNotifycationDropdownComponent,
+    NotifyItem,
 } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { MenusComponent } from '../../pages/old/menus/menus.component';
 import { NzGridModule } from 'ng-zorro-antd/grid';
+import { ɵɵRouterOutlet } from "@angular/router/testing";
+import { MenuAppService } from '../../pages/systems/menu-app/menu-app.service';
+import { NOTIFICATION_TITLE } from '../../app.config';
+import { environment } from '../../../environments/environment';
+import { CustomRouteReuseStrategy } from '../../custom-route-reuse.strategy';
+// import { LayoutEventService } from '../layout-event.service';
+import { take, filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 type TabItem = {
-  title: string;
-  comp: Type<any>;
-  injector?: Injector;
-  data?: any; // Lưu data để so sánh unique key
+    title: string;
+    // comp: Type<any>;
+    // injector?: Injector;
+    data?: any; // Lưu data để so sánh unique key
+    route: string;
+    queryParams?: any;    // vd: { warehouseCode: 'HN' }
+    key: string;
+    // outlet: string; // 👈 RẤT QUAN TRỌNG
 };
 // export type BaseItem = {
 //   key: string;
@@ -72,265 +84,861 @@ export const isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
 export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
 
 const COMPONENT_REGISTRY: Record<string, Type<any>> = {
-  customer: CustomerComponent,
-  productRTC: TbProductRtcComponent,
-  project: ProjectComponent,
+    customer: CustomerComponent,
+    productRTC: TbProductRtcComponent,
+    project: ProjectComponent,
 };
 
 // Reverse mapping để serialize component -> key
 const COMPONENT_TO_KEY: Map<Type<any>, string> = new Map(
-  Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
+    Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
 );
 @Component({
-  selector: 'app-main-layout',
-  imports: [
-    RouterLink,
-    NzBadgeModule,
-    // RouterOutlet,
-    NzIconModule,
-    NzLayoutModule,
-    NzMenuModule,
-    NzButtonModule,
-    NzTabsModule,
-    NzDropDownModule,
-    ReactiveFormsModule,
-    CommonModule,
-    AppNotifycationDropdownComponent,
-    AppUserDropdownComponent,
-    NgComponentOutlet,
-    NzGridModule,
-  ],
-  templateUrl: '../../app.component.html',
-  styleUrl: '../../app.component.css',
-  standalone: true,
+    selector: 'app-main-layout',
+    imports: [
+        RouterLink,
+        NzBadgeModule,
+        RouterOutlet,
+        NzIconModule,
+        NzLayoutModule,
+        NzMenuModule,
+        NzButtonModule,
+        NzTabsModule,
+        NzDropDownModule,
+        ReactiveFormsModule,
+        CommonModule,
+        AppNotifycationDropdownComponent,
+        AppUserDropdownComponent,
+        NzGridModule,
+    ],
+    templateUrl: '../../app.component.html',
+    styleUrl: '../../app.component.css',
+    standalone: true,
 })
-export class MainLayoutComponent implements OnInit {
-  CustomerComponent = CustomerComponent;
-  ProductRtcComponent = TbProductRtcComponent;
-  ProjectComponent = ProjectComponent;
-  constructor(
-    private auth: AuthService,
-    private router: Router,
-    public menuService: MenuService,
-    private notification: NzNotificationService,
-    private injector: Injector,
-    private menuEventService: MenuEventService,
-  ) {
-    this.menus = this.menuService.getMenus();
-  }
-  notificationComponent = AppNotifycationDropdownComponent;
-  //#region Khai báo biến
-  isCollapsed = true;
-  isMobile = window.innerHeight <= 768;
-  isDatcom = false;
-  selectedIndex = 0;
-  trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
-  isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-  isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-  menus: MenuItem[] = [];
-  dynamicTabs: TabItem[] = [];
+export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
+    CustomerComponent = CustomerComponent;
+    ProductRtcComponent = TbProductRtcComponent;
+    ProjectComponent = ProjectComponent;
+    constructor(
+        private auth: AuthService,
+        private router: Router,
+        public menuService: MenuService,
+        public menuAppService: MenuAppService,
+        private notification: NzNotificationService,
+        private injector: Injector,
+        private menuEventService: MenuEventService,
+        private reuse: RouteReuseStrategy,
+        // private layoutEvent: LayoutEventService,
+        private cd: ChangeDetectorRef,
+        private route: ActivatedRoute,
+        // private tabService: TabServiceService
+    ) {
+        // this.menus = this.menuService.getMenus();
+    }
+    notificationComponent = AppNotifycationDropdownComponent;
+    //#region Khai báo biến
+    isCollapsed = true;
+    isMobile = window.innerHeight <= 768;
+    isDatcom = false;
+    selectedIndex = 0;
+    trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
+    // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+    menus: any[] = [];
+    dynamicTabs: TabItem[] = [];
+    private isNavigatingFromNewTab = false; // Flag để biết navigation có phải từ newTab không
 
-  menu: any = {};
-  //#endregion
-  notifItems: NotifyItem[] = [
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 2,
-    //   title: 'Bàn giao TS BM-09 hoàn tất',
-    //   detail: 'Phòng IT • BB556',
-    //   time: '08:55',
-    //   group: 'today',
-    //   icon: 'file-done',
-    // },
-    // {
-    //   id: 3,
-    //   title: 'Đơn cấp phát #CP-778 tạo mới',
-    //   detail: 'Kho TB • 5 mục',
-    //   time: '16:40',
-    //   group: 'yesterday',
-    //   icon: 'plus-square',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 2,
-    //   title: 'Bàn giao TS BM-09 hoàn tất',
-    //   detail:
-    //     'Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556',
-    //   time: '08:55',
-    //   group: 'today',
-    //   icon: 'file-done',
-    // },
-  ];
 
-  menuKey: string = '';
-  ngOnInit(): void {
-    // const saved = localStorage.getItem('openMenuKey') || '';
-    // console.log(this.menus);
-    // this.setOpenMenu(saved || null);
+    menu: any = {};
+    //#endregion
+    notifItems: NotifyItem[] = [
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 2,
+        //   title: 'Bàn giao TS BM-09 hoàn tất',
+        //   detail: 'Phòng IT • BB556',
+        //   time: '08:55',
+        //   group: 'today',
+        //   icon: 'file-done',
+        // },
+        // {
+        //   id: 3,
+        //   title: 'Đơn cấp phát #CP-778 tạo mới',
+        //   detail: 'Kho TB • 5 mục',
+        //   time: '16:40',
+        //   group: 'yesterday',
+        //   icon: 'plus-square',
+        // },
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 2,
+        //   title: 'Bàn giao TS BM-09 hoàn tất',
+        //   detail:
+        //     'Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556',
+        //   time: '08:55',
+        //   group: 'today',
+        //   icon: 'file-done',
+        // },
+    ];
 
-    this.menuService.menuKey$.subscribe((x) => {
-      this.menuKey = x;
-    });
-    this.setOpenMenu(this.menuKey);
+    menuKey: string = '';
+    private routerSubscription?: Subscription;
 
-    // Khôi phục các tabs đã mở từ localStorage
-    // this.restoreTabs();
+    rootMenuKey: string = '';
 
-    // Subscribe vào event mở tab từ các component con
-    this.menuEventService.onOpenTab$.subscribe((tabData) => {
-      this.newTab(tabData.comp, tabData.title, tabData.data);
-    });
-  }
-  //   newTab(comp: Type<any>, title: string, injector?: Injector) {
-  //     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
-  //     if (idx >= 0) {
-  //       this.selectedIndex = idx;
-  //       return;
-  //     }
+    ngOnInit(): void {
+        // const saved = localStorage.getItem('openMenuKey') || '';
+        // console.log(this.menus);
+        // this.setOpenMenu(saved || null);
 
-  //     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
-  //     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
-  //   }
+        // this.isCollapsed = !this.isCollapsed;
+        this.getMenus();
 
-  newTab(comp: Type<any>, title: string, data?: any) {
-    if (this.isMobile) {
-      this.isCollapsed = !this.isCollapsed;
+        // console.log(' this.menuKey :', this.menuKey);
+
+        // this.menuService.menuKey$.subscribe((x) => {
+        //     this.menuKey = x;
+        //     console.log('menuKey$:', this.menuKey);
+
+        //     this.setOpenMenu(this.menuKey);
+        //     this.toggleMenu(this.menuKey);
+        // });
+        // console.log('menuKey ngOnInit:', this.menuKey);
+        // this.setOpenMenu(this.menuKey);
+        // this.toggleMenu(this.menuKey);
+
+        // Khôi phục các tabs đã mở từ localStorage
+        // this.restoreTabs();
+
+        // // Subscribe vào event mở tab từ các component con
+        // this.menuEventService.onOpenTab$.subscribe((tabData) => {
+        //     // this.newTab(tabData.comp, tabData.title, tabData.data);
+        // });
+
+        // Subscribe vào router events để tự động tạo tab khi paste URL trực tiếp
+        // Subscribe sau khi menus đã load (sẽ được setup trong getMenus)
     }
 
-    const idx = this.dynamicTabs.findIndex((t) => t.title === title);
-    if (idx >= 0) {
-      this.selectedIndex = idx;
-      return;
+    ngOnDestroy(): void {
+        if (this.routerSubscription) {
+            this.routerSubscription.unsubscribe();
+        }
     }
 
-    const injector = Injector.create({
-      providers: [{ provide: 'tabData', useValue: data }],
-      parent: this.injector,
-    });
+    // Hàm check và tạo tab từ current route (khi paste URL trực tiếp lần đầu)
+    private checkAndCreateTabFromCurrentRoute(): void {
+        const currentUrl = this.router.url;
+        if (currentUrl && currentUrl !== '/app' && currentUrl !== '/home' && currentUrl !== '/login') {
+            this.handleDirectNavigation(currentUrl);
+        }
+    }
 
-    this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
-    setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+    // Hàm tìm menu item theo route
+    private findMenuItemByRoute(route: string, items: any[]): any | null {
+        for (const item of items) {
+            // So sánh route (có thể có hoặc không có / ở đầu)
+            const itemRoute = item.router === '#' ? '' : item.router.replace(/^\//, '');
+            if (itemRoute === route || itemRoute === `/${route}` || item.router === route || item.router === `/${route}`) {
+                return item;
+            }
+            if (item.children && item.children.length > 0) {
+                const found = this.findMenuItemByRoute(route, item.children);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
 
-    // Lưu tabs vào localStorage
-    // this.saveTabs();
-  }
+    // Hàm xử lý khi navigate trực tiếp từ URL (paste URL)
+    private handleDirectNavigation(url: string): void {
+        // Bỏ qua nếu navigation đến từ newTab (để tránh tạo tab trùng)
+        if (this.isNavigatingFromNewTab) {
+            // console.log('Skipping handleDirectNavigation - navigation from newTab');
+            return;
+        }
 
-  closeTab({ index }: { index: number }) {
-    this.dynamicTabs.splice(index, 1);
-    if (this.selectedIndex >= this.dynamicTabs.length)
-      this.selectedIndex = this.dynamicTabs.length - 1;
+        // Loại bỏ base path và query string để lấy route
+        const urlWithoutQuery = url.split('?')[0];
+        const route = urlWithoutQuery.startsWith('/') ? urlWithoutQuery.substring(1) : urlWithoutQuery;
 
-    // Lưu tabs vào localStorage sau khi đóng
-    // this.saveTabs();
-  }
-  //   getMenus(id: number): void {
-  //     this.menuService.getMenus(id).subscribe({
-  //       next: (response: any) => {
-  //         if (response.status == 1) {
-  //           this.menu = response.data;
-  //           //   console.log(this.menu);
-  //         }
-  //       },
-  //       error: (err) => {
-  //         // console.log(err);
-  //         // this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-  //       },
-  //     });
-  //   }
+        // Bỏ qua nếu là route mặc định hoặc không phải route con
+        if (!route || route === 'app' || route === 'home' || route === 'login') {
+            return;
+        }
 
-  logout() {
-    this.auth.logout();
-  }
-  onPick(n: NotifyItem) {
-    console.log('picked:', n);
-    // TODO: điều hướng/đánh dấu đã đọc...
-  }
-  // toggleMenu(key: string) {
-  //   const m = this.menus.find((x) => x.key === key);
-  //   if (m) m.isOpen = !m.isOpen;
-  // }
-  // isMenuOpen(key: string): boolean {
-  //   const m = this.menus.find((x) => x.key === key);
-  //   return !!m && !!m.isOpen;
-  // }
-  private setOpenMenu(key: string | null) {
-    this.menus.forEach((m) => (m.isOpen = key !== null && m.key === key));
-    // localStorage.setItem('openMenuKey', key ?? '');
-  }
+        // Lấy queryParams từ URL (nếu có)
+        const urlObj = new URL(url, window.location.origin);
+        let queryParams: any = {};
+        urlObj.searchParams.forEach((value, key) => {
+            queryParams[key] = value;
+        });
 
-  isMenuOpen = (key: string) =>
-    this.menus.some((m) => m.key === key && m.isOpen);
-  toggleMenu(key: string) {
-    // this.menus.forEach((x) => (x.isOpen = false));
-    const m = this.menus.find((x) => x.key === key);
-    if (m) m.isOpen = !m.isOpen;
+        // Nếu URL không có queryParams, tìm trong menu app xem có queryParams không
+        let menuItem: any = null;
+        let menuQueryParams: any = null;
 
-    if (m?.isOpen) this.menuKey = key;
-  }
+        if (Object.keys(queryParams).length === 0 && this.menus.length > 0) {
+            menuItem = this.findMenuItemByRoute(route, this.menus);
+            if (menuItem && menuItem.queryParams && menuItem.queryParams !== '') {
+                // Parse queryParams từ menu
+                try {
+                    menuQueryParams = typeof menuItem.queryParams === 'string'
+                        ? JSON.parse(menuItem.queryParams)
+                        : menuItem.queryParams;
+                    // console.log('Found queryParams from menu for route:', route, menuQueryParams);
+                } catch (e) {
+                    // console.error('Error parsing menu queryParams:', e);
+                }
+            }
+        }
 
-  // dùng khi muốn mở thẳng 1 group từ nơi khác
-  openOnly(key: string) {
-    this.setOpenMenu(key);
-  }
+        // Ưu tiên queryParams từ URL, nếu không có thì dùng từ menu
+        const finalQueryParams = Object.keys(queryParams).length > 0 ? queryParams : menuQueryParams;
+        const normalizedParams = finalQueryParams && Object.keys(finalQueryParams).length > 0 ? finalQueryParams : undefined;
 
-  /**
-   * Lưu các tabs hiện tại vào localStorage
-   */
-  //   private saveTabs() {
-  //     const tabsData = this.dynamicTabs.map((tab) => ({
-  //       title: tab.title,
-  //       compKey: COMPONENT_TO_KEY.get(tab.comp) || '',
-  //     }));
-  //     localStorage.setItem('openTabs', JSON.stringify(tabsData));
-  //     localStorage.setItem('selectedTabIndex', String(this.selectedIndex));
-  //   }
+        // Nếu có queryParams từ menu mà URL không có, navigate lại với queryParams
+        if (menuQueryParams && Object.keys(queryParams).length === 0) {
+            // Build URL với queryParams từ menu
+            let newUrl = `/${route}`;
+            if (menuQueryParams) {
+                const params = new URLSearchParams();
+                Object.keys(menuQueryParams).forEach(key => {
+                    params.append(key, String(menuQueryParams[key]));
+                });
+                newUrl += `?${params.toString()}`;
+            }
+            // console.log('Navigating with queryParams from menu:', newUrl);
+            this.router.navigateByUrl(newUrl);
+            return; // Return để đợi navigation xong, sẽ gọi lại handleDirectNavigation
+        }
 
-  //   /**
-  //    * Khôi phục các tabs từ localStorage
-  //    */
-  //   private restoreTabs() {
-  //     try {
-  //       const savedTabs = localStorage.getItem('openTabs');
-  //       const savedIndex = localStorage.getItem('selectedTabIndex');
+        // Tạo key giống như trong newTab
+        const key = route + JSON.stringify(normalizedParams ?? {});
 
-  //       if (savedTabs) {
-  //         const tabsData = JSON.parse(savedTabs) as Array<{
-  //           title: string;
-  //           compKey: string;
-  //         }>;
+        // Kiểm tra xem tab đã tồn tại chưa
+        const existingTab = this.dynamicTabs.find(t => t.key === key);
+        if (existingTab) {
+            // Tab đã tồn tại, chỉ cần set selectedIndex
+            this.selectedIndex = this.dynamicTabs.indexOf(existingTab);
+            return;
+        }
 
-  //         tabsData.forEach(({ title, compKey }) => {
-  //           const comp = COMPONENT_REGISTRY[compKey];
-  //           if (comp) {
-  //             const injector = Injector.create({
-  //               providers: [{ provide: 'tabData', useValue: undefined }],
-  //               parent: this.injector,
-  //             });
-  //             this.dynamicTabs.push({ title, comp, injector });
-  //           }
-  //         });
+        // Tìm title từ menu
+        let title = route; // default title
+        if (!menuItem) {
+            menuItem = this.findMenuItemByRoute(route, this.menus);
+        }
+        if (menuItem && menuItem.title) {
+            title = menuItem.title;
+        }
 
-  //         if (savedIndex && this.dynamicTabs.length > 0) {
-  //           const index = parseInt(savedIndex, 10);
-  //           this.selectedIndex = Math.min(index, this.dynamicTabs.length - 1);
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error('Error restoring tabs:', error);
-  //     }
-  //   }
+        // Tạo tab mới
+        const newTab: TabItem = {
+            title,
+            route,
+            queryParams: normalizedParams,
+            key
+        };
+
+        this.dynamicTabs = [...this.dynamicTabs, newTab];
+        this.selectedIndex = this.dynamicTabs.length - 1;
+
+        // console.log('Auto-created tab from direct navigation:', newTab);
+    }
+
+    ngAfterViewInit(): void {
+        // this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
+        //     // this.menuKey = key;
+        //     if (key) this.toggleMenu(key);
+
+        //     this.menuService.menuKey$.subscribe((key) => {
+        //         this.menuKey = key;
+        //     });
+        //     this.setOpenMenu(key);
+        // });
+    }
+
+
+    findRootKeyByRouter(
+        items: any[],
+        router: string
+    ): string | null {
+        for (const root of items) {
+            // nếu chính root match
+            if (root.router === router) {
+                return root.key;
+            }
+
+            // nếu route nằm trong children của root
+            if (root.children?.length) {
+                const found = this.findKeyByRouter(root.children, router);
+                if (found) {
+                    return root.key; // 👈 TRẢ VỀ KEY CẤP 0
+                }
+            }
+        }
+        return null;
+    }
+
+    private findKeyByRouter(
+        items: any[],
+        router: string
+    ): string | null {
+        for (const item of items) {
+            if (item.router === router) return item.key;
+
+            if (item.children?.length) {
+                const found = this.findKeyByRouter(item.children, router);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+
+
+    getMenus() {
+        console.log('this.is getMenus:', this.isCollapsed);
+        this.menuAppService.getAll().subscribe({
+            next: (response) => {
+
+                // console.log(response);
+
+                this.menuService.menuKey$.subscribe((x) => {
+                    this.menuKey = x;
+                    this.isCollapsed = x == '';
+                });
+
+                const map = new Map<number, any>();
+                // this.nodes = [];
+                // Tạo map trước
+                response.data.menus.forEach((item: any) => {
+                    const menuItem = {
+                        id: item.ID,
+                        stt: item.STT,
+                        key: item.Code,
+                        title: item.Title,
+                        router: item.Router == '' ? '#' : `${item.Router}`,
+                        icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+                        isPermission: item.IsPermission,
+                        ParentID: item.ParentID,
+                        children: [],
+                        isOpen: item.ParentID > 0 || item.Code == this.menuKey,
+                        queryParams: (item.QueryParam || ''),
+                    };
+
+                    // Log để debug queryParams từ database
+                    if (item.QueryParam && item.QueryParam !== '') {
+                        // console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
+                    }
+
+                    map.set(item.ID, menuItem);
+                });
+
+                // Gắn cha – con
+                response.data.menus.forEach((item: any) => {
+                    const node = map.get(item.ID);
+
+                    if (item.ParentID && map.has(item.ParentID)) {
+                        const parent = map.get(item.ParentID);
+                        parent.children.push(node);
+                    } else {
+                        this.menus.push(node);
+                    }
+                });
+
+                // console.log(this.menus);
+
+                this.menus = this.menuAppService.sortBySTTImmutable(this.menus, i => i.STT ?? i.stt ?? 0);
+
+                // console.log('response.data.menus:', this.router.url.split('?')[0]);
+
+                const router = this.router.url.split('?')[0].replace('/', '');
+                this.rootMenuKey = this.findRootKeyByRouter(this.menus, router) || '';
+                if (this.rootMenuKey) {
+                    this.menus.forEach(item => {
+                        item.isOpen = item.key === this.rootMenuKey
+                    });
+                }
+
+                // Sau khi menus đã load, check current route và tự động tạo tab nếu cần
+                // (khi paste URL trực tiếp)
+                setTimeout(() => {
+                    this.checkAndCreateTabFromCurrentRoute();
+                }, 0);
+
+                // Subscribe vào router events để tự động tạo tab khi navigate trực tiếp
+                if (!this.routerSubscription) {
+                    this.routerSubscription = this.router.events
+                        .pipe(filter(event => event instanceof NavigationEnd))
+                        .subscribe((event: any) => {
+                            if (event instanceof NavigationEnd) {
+                                // Delay một chút để đảm bảo menus đã load
+                                setTimeout(() => {
+                                    this.handleDirectNavigation(event.url);
+                                }, 100);
+                            }
+                        });
+                }
+
+
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            },
+        })
+    }
+
+    get currentTab() {
+        return this.dynamicTabs[this.selectedIndex];
+    }
+
+    // newTab(comp: Type<any>, title: string, data?: any) {
+    //     if (this.isMobile) {
+    //         this.isCollapsed = !this.isCollapsed;
+    //     }
+
+    //     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+    //     if (idx >= 0) {
+    //         this.selectedIndex = idx;
+    //         return;
+    //     }
+
+    //     const injector = Injector.create({
+    //         providers: [{ provide: 'tabData', useValue: data }],
+    //         parent: this.injector,
+    //     });
+
+    //     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
+    //     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+
+    //     // Lưu tabs vào localStorage
+    //     // this.saveTabs();
+    // }
+
+
+
+    // newTab(route: string, title: string) {
+    //     const idx = this.dynamicTabs.findIndex(t => t.route === route);
+
+    //     if (idx >= 0) {
+    //         this.selectedIndex = idx;
+    //         this.router.navigateByUrl(route);
+    //         return;
+    //     }
+
+    //     this.dynamicTabs = [...this.dynamicTabs, { title, route }];
+
+    //     setTimeout(() => {
+    //         this.selectedIndex = this.dynamicTabs.length - 1;
+    //         this.router.navigateByUrl(route);
+    //     });
+    // }
+
+    newTab(route: string, title: string, queryParams?: any) {
+
+        // console.log('=== newTab called ===');
+        // console.log('route:', route);
+        // console.log('title:', title);
+        // console.log('queryParams (raw):', queryParams);
+        // console.log('queryParams type:', typeof queryParams);
+
+        // Parse queryParams nếu là string JSON từ database
+        let parsedParams: any = null;
+        if (queryParams && queryParams !== '') {
+            if (typeof queryParams === 'string') {
+                try {
+                    parsedParams = JSON.parse(queryParams);
+                    // console.log('Parsed queryParams:', parsedParams);
+                } catch (e) {
+                    // console.error('Error parsing queryParams:', e, 'queryParams value:', queryParams);
+                    parsedParams = null;
+                }
+            } else if (typeof queryParams === 'object') {
+                // Đã là object rồi, không cần parse
+                parsedParams = queryParams;
+                // console.log('queryParams already object:', parsedParams);
+            }
+        } else {
+            // console.log('queryParams is empty or undefined');
+        }
+
+        // Normalize: chỉ lấy object có keys, loại bỏ null/undefined/empty
+        const normalizedParams =
+            parsedParams && typeof parsedParams === 'object' && Object.keys(parsedParams).length > 0
+                ? parsedParams
+                : undefined;
+
+        // const key = route + JSON.stringify(queryParams ?? {});
+        const key = route + JSON.stringify(normalizedParams ?? {});
+
+        // console.log('new tab key:', key);
+        // console.log('new tab normalizedParams:', normalizedParams);
+        // console.log('=== end newTab ===');
+
+
+
+        // Loại bỏ / ở đầu route nếu có (vì route nằm trong children của MainLayoutComponent)
+        const cleanRoute = route.startsWith('/') ? route.substring(1) : route;
+
+        const idx = this.dynamicTabs.findIndex(t => t.key === key);
+        if (idx >= 0) {
+            this.selectedIndex = idx;
+            // this.router.navigate([route], { queryParams });
+            // console.log('Navigate to existing tab:', cleanRoute, 'with queryParams:', normalizedParams);
+            // Build URL với queryParams - convert tất cả values sang string
+            let url = `/${cleanRoute}`;
+            if (normalizedParams) {
+                const params = new URLSearchParams();
+                Object.keys(normalizedParams).forEach(key => {
+                    const value = normalizedParams[key];
+                    // Convert boolean, number sang string
+                    params.append(key, String(value));
+                });
+                url += `?${params.toString()}`;
+            }
+            // console.log('Navigating to URL:', url);
+            // Set flag để skip handleDirectNavigation
+            this.isNavigatingFromNewTab = true;
+            this.router.navigateByUrl(url).then(() => {
+                // Reset flag sau khi navigation xong
+                setTimeout(() => {
+                    this.isNavigatingFromNewTab = false;
+                }, 100);
+            });
+            return;
+        }
+
+        // this.dynamicTabs = [];
+
+
+        if (this.dynamicTabs.length) {
+            for (let i = 0; i < this.dynamicTabs.length; i++) {
+                this.closeTab(i);
+            }
+        }
+
+        this.isCollapsed = true;
+
+        // console.log('this.isCollapsed newtab:', this.isCollapsed);
+
+        // console.log(this.dynamicTabs);
+
+        this.dynamicTabs = [
+            ...this.dynamicTabs,
+            // { title, route, queryParams, key }
+            { title, route: cleanRoute, queryParams: normalizedParams, key }
+        ];
+
+        // console.log('new tab this.dynamicTabs:', this.dynamicTabs);
+
+        // setTimeout(() => {
+
+        this.cd.detectChanges();
+        this.selectedIndex = this.dynamicTabs.length - 1;
+        // this.router.navigate([route], { queryParams });
+        // console.log('Navigate to new tab:', cleanRoute, 'with queryParams:', normalizedParams);
+        // Build URL với queryParams - convert tất cả values sang string
+        let url = `/${cleanRoute}`;
+        if (normalizedParams) {
+            const params = new URLSearchParams();
+            Object.keys(normalizedParams).forEach(key => {
+                const value = normalizedParams[key];
+                // Convert boolean, number sang string
+                params.append(key, String(value));
+            });
+            url += `?${params.toString()}`;
+        }
+        // console.log('Navigating to URL:', url);
+        // Set flag để skip handleDirectNavigation
+        this.isNavigatingFromNewTab = true;
+        this.router.navigateByUrl(url).then(() => {
+            // Reset flag sau khi navigation xong
+            setTimeout(() => {
+                this.isNavigatingFromNewTab = false;
+            }, 100);
+        });
+        // });
+    }
+
+    // newTab(route: string, title: string, queryParams?: any) {
+
+    //     // const lastDash = route.lastIndexOf('-');
+    //     // const result = route.slice(lastDash + 1); // "HN"
+
+    //     const outlet = route;
+    //     let normalizedParams: any = null;
+    //     if (queryParams) {
+    //         try {
+    //             normalizedParams = typeof queryParams === 'string' ? JSON.parse(queryParams) : queryParams;
+    //             normalizedParams = Object.keys(normalizedParams || {}).length ? normalizedParams : null;
+    //         } catch {
+    //             normalizedParams = null;
+    //         }
+    //     }
+
+    //     // Check nếu tab đã tồn tại
+    //     const existingIndex = this.dynamicTabs.findIndex(t => t.route === route);
+    //     if (existingIndex !== -1) {
+    //         this.selectedIndex = existingIndex;
+    //     } else {
+    //         this.dynamicTabs.push({
+    //             title,
+    //             route,
+    //             outlet,
+    //             queryParams: normalizedParams,
+    //             key: route
+    //         });
+    //         this.selectedIndex = this.dynamicTabs.length - 1;
+    //     }
+
+    //     // Navigate
+    //     this.router.navigate(
+    //         [{ outlets: { [this.currentTab.outlet]: [route] } }],
+    //         { relativeTo: this.route, queryParams: normalizedParams || undefined }
+    //     );
+    // }
+
+
+
+
+    onTabChange(index: number) {
+        const tab = this.dynamicTabs[index];
+        if (tab) {
+            // this.router.navigateByUrl(tab.route);
+            // Đảm bảo truyền queryParams khi chuyển tab
+            // console.log('onTabChange - Navigate to:', tab.route, 'with queryParams:', tab.queryParams);
+            // Build URL với queryParams - convert tất cả values sang string
+            let url = `/${tab.route}`;
+            if (tab.queryParams) {
+                const params = new URLSearchParams();
+                Object.keys(tab.queryParams).forEach(key => {
+                    const value = tab.queryParams[key];
+                    // Convert boolean, number sang string
+                    params.append(key, String(value));
+                });
+                url += `?${params.toString()}`;
+            }
+            // console.log('onTabChange - Navigating to URL:', url);
+            // Set flag để skip handleDirectNavigation
+            this.isNavigatingFromNewTab = true;
+            this.router.navigateByUrl(url).then(() => {
+                // Reset flag sau khi navigation xong
+                setTimeout(() => {
+                    this.isNavigatingFromNewTab = false;
+                }, 100);
+            });
+        }
+    }
+
+
+    // closeTab({ index }: { index: number }) {
+    //     this.dynamicTabs.splice(index, 1);
+    //     if (this.selectedIndex >= this.dynamicTabs.length)
+    //         this.selectedIndex = this.dynamicTabs.length - 1;
+
+    //     // Lưu tabs vào localStorage sau khi đóng
+    //     // this.saveTabs();
+    // }
+
+    closeTab(index: number): void {
+        const tab = this.dynamicTabs[index];
+        if (!tab) return;
+
+        // 1. Clear route cache (nếu có RouteReuseStrategy)
+        const reuse = this.reuse as CustomRouteReuseStrategy;
+        if (reuse && typeof reuse.clear === 'function') {
+            reuse.clear(tab.route);
+        }
+
+        const isActive = this.selectedIndex === index;
+
+        // 2. Remove tab
+        this.dynamicTabs.splice(index, 1);
+
+        // 3. Xử lý selectedIndex
+        if (this.dynamicTabs.length === 0) {
+            this.selectedIndex = 0;
+            // Set flag để skip handleDirectNavigation
+            this.isNavigatingFromNewTab = true;
+            this.router.navigateByUrl('/app').then(() => {
+                setTimeout(() => {
+                    this.isNavigatingFromNewTab = false;
+                }, 100);
+            });
+            return;
+        }
+
+        if (isActive) {
+            const nextIndex = Math.max(index - 1, 0);
+            this.selectedIndex = nextIndex;
+            const nextTab = this.dynamicTabs[nextIndex];
+            // Build URL với queryParams nếu có
+            let url = `/${nextTab.route}`;
+            if (nextTab.queryParams) {
+                const params = new URLSearchParams();
+                Object.keys(nextTab.queryParams).forEach(key => {
+                    params.append(key, String(nextTab.queryParams[key]));
+                });
+                url += `?${params.toString()}`;
+            }
+            // Set flag để skip handleDirectNavigation
+            this.isNavigatingFromNewTab = true;
+            this.router.navigateByUrl(url).then(() => {
+                setTimeout(() => {
+                    this.isNavigatingFromNewTab = false;
+                }, 100);
+            });
+        } else if (this.selectedIndex > index) {
+            // đóng tab phía trước tab đang active
+            this.selectedIndex--;
+        }
+    }
+
+    // closeTab(index: number): void {
+    //     const tab = this.dynamicTabs[index];
+    //     if (!tab) return;
+
+    //     const isActive = this.selectedIndex === index;
+
+    //     // 1. Xóa tab khỏi mảng
+    //     this.dynamicTabs.splice(index, 1);
+
+    //     // 2. Xử lý selectedIndex
+    //     if (this.dynamicTabs.length === 0) {
+    //         this.selectedIndex = 0;
+    //         this.router.navigate(['/app']); // route mặc định
+    //         return;
+    //     }
+
+    //     if (isActive) {
+    //         // nếu tab active bị đóng → chọn tab bên trái, hoặc tab đầu tiên
+    //         const nextIndex = Math.max(index - 1, 0);
+    //         this.selectedIndex = nextIndex;
+
+    //         const nextTab = this.dynamicTabs[nextIndex];
+    //         this.router.navigate(
+    //             [{ outlets: { [nextTab.outlet]: [nextTab.route] } }],
+    //             { relativeTo: this.route, queryParams: nextTab.queryParams || undefined }
+    //         );
+    //     } else if (this.selectedIndex > index) {
+    //         // nếu đóng tab phía trước tab đang active → giảm selectedIndex
+    //         this.selectedIndex--;
+    //     }
+    // }
+
+
+
+    logout() {
+        this.auth.logout();
+    }
+    onPick(n: NotifyItem) {
+        console.log('picked:', n);
+        // TODO: điều hướng/đánh dấu đã đọc...
+    }
+    // toggleMenu(key: string) {
+    //   const m = this.menus.find((x) => x.key === key);
+    //   if (m) m.isOpen = !m.isOpen;
+    // }
+    // isMenuOpen(key: string): boolean {
+    //   const m = this.menus.find((x) => x.key === key);
+    //   return !!m && !!m.isOpen;
+    // }
+    private setOpenMenu(key: string | null) {
+        // console.log('setOpenMenu key:', key);
+        // console.log('setOpenMenu trước:', this.menus);
+        this.menus.forEach((m) => (m.isOpen = key !== null && m.key === key));
+
+
+        // this.menus.forEach(item => item.isOpen = true);
+
+
+        // console.log('setOpenMenu sau:', this.menus);
+        // localStorage.setItem('openMenuKey', key ?? '');
+
+    }
+
+    isMenuOpen = (key: string) =>
+        this.menus.some((m) => m.key === key && m.isOpen);
+
+    toggleMenu(event: MouseEvent, route: string, key: string) {
+
+        if (route == '') return;
+        if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
+            event.preventDefault(); // chặn reload
+
+            const m = this.menus.find((x) => x.key === key);
+            if (m) m.isOpen = !m.isOpen;
+
+            if (m?.isOpen) this.menuKey = key;
+            this.isCollapsed = false;
+
+        }
+    }
+
+    // dùng khi muốn mở thẳng 1 group từ nơi khác
+    openOnly(key: string) {
+        this.setOpenMenu(key);
+    }
+
+    /**
+     * Lưu các tabs hiện tại vào localStorage
+     */
+    //   private saveTabs() {
+    //     const tabsData = this.dynamicTabs.map((tab) => ({
+    //       title: tab.title,
+    //       compKey: COMPONENT_TO_KEY.get(tab.comp) || '',
+    //     }));
+    //     localStorage.setItem('openTabs', JSON.stringify(tabsData));
+    //     localStorage.setItem('selectedTabIndex', String(this.selectedIndex));
+    //   }
+
+    //   /**
+    //    * Khôi phục các tabs từ localStorage
+    //    */
+    //   private restoreTabs() {
+    //     try {
+    //       const savedTabs = localStorage.getItem('openTabs');
+    //       const savedIndex = localStorage.getItem('selectedTabIndex');
+
+    //       if (savedTabs) {
+    //         const tabsData = JSON.parse(savedTabs) as Array<{
+    //           title: string;
+    //           compKey: string;
+    //         }>;
+
+    //         tabsData.forEach(({ title, compKey }) => {
+    //           const comp = COMPONENT_REGISTRY[compKey];
+    //           if (comp) {
+    //             const injector = Injector.create({
+    //               providers: [{ provide: 'tabData', useValue: undefined }],
+    //               parent: this.injector,
+    //             });
+    //             this.dynamicTabs.push({ title, comp, injector });
+    //           }
+    //         });
+
+    //         if (savedIndex && this.dynamicTabs.length > 0) {
+    //           const index = parseInt(savedIndex, 10);
+    //           this.selectedIndex = Math.min(index, this.dynamicTabs.length - 1);
+    //         }
+    //       }
+    //     } catch (error) {
+    //       console.error('Error restoring tabs:', error);
+    //     }
+    //   }
 }

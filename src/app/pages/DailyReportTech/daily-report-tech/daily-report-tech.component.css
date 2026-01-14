@@ -1,0 +1,68 @@
+:host {
+    font-size: 12px !important;
+  }
+
+/* Mobile menubar z-index fix */
+::ng-deep .p-menubar {
+  position: relative;
+  z-index: 1050;
+}
+
+::ng-deep .p-menubar-mobile {
+  position: relative;
+  z-index: 1050;
+}
+
+::ng-deep .p-menubar-root-list {
+  position: relative;
+  z-index: 1051;
+}
+
+/* Fix card header z-index */
+
+  .tabulator {
+    font-size: 12px;
+  }
+  
+  .box {
+    height: 100%;
+    width: 100%;
+  }
+  
+  .card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+  }
+
+  .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-body > div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+  
+  .ant-splitter-panel {
+    position: relative;
+  }
+  
+  .ant-splitter {
+    height: 93vh !important;
+  }
+  
+  /* CSS để textarea cells tự xuống dòng */
+  :host ::ng-deep .tabulator-cell {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+  }

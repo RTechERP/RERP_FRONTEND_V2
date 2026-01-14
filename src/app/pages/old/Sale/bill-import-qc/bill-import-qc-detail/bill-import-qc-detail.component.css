@@ -1,0 +1,79 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem !important;
+  /* position: absolute !important; */
+  width: 100% !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+.ant-splitter {
+  height: 85vh !important;
+}
+
+.modal-header {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+::ng-deep .full-screen-modal {
+  height: auto !important;
+}
+
+.custom-fieldset {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+.custom-legend {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1890ff;
+  padding: 0 8px;
+  margin: 0 0 0 8px;
+  width: auto;
+  border: none;
+}
+
+.ant-form-item{
+  margin-bottom: 12px;
+}
+
+::ng-deep #gridMaster {
+    height: 49.6vh !important;
+}
+::ng-deep #gridFileCheck {
+    height: 31vh !important;
+    width: 49.5vw !important;
+}
+::ng-deep #gridFileReport { 
+    height: 31vh !important;
+    width: 50vw !important;
+}
+::ng-deep .btn-xs { 
+    font-size: 12px !important;
+}

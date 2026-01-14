@@ -11,7 +11,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, Form } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators, Form } from '@angular/forms';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -23,6 +23,10 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzMessageModule } from 'ng-zorro-antd/message';
+import { AuthService } from '../../../../../auth/auth.service';
 import { EmployeeService } from '../../../employee/employee-service/employee.service';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
@@ -47,6 +51,7 @@ import { WFHService } from '../../employee-wfh/WFH-service/WFH.service';
     NzInputModule,
     NzNotificationModule,
     ReactiveFormsModule,
+    FormsModule,
     NzIconModule,
     NzCheckboxModule,
     NzInputNumberModule,
@@ -55,6 +60,8 @@ import { WFHService } from '../../employee-wfh/WFH-service/WFH.service';
     NzSplitterModule,
     NgIf,
     NzSpinModule,
+    NzUploadModule,
+    NzMessageModule,
   ]
 })
 export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, OnChanges {
@@ -78,6 +85,19 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   listId: number[] = []; // Danh sách ID cần xóa
   hasDataChanges = false; // Flag để kiểm tra có thay đổi không
 
+  // Đăng ký bổ sung và upload file
+  isProblem = false;
+  selectedFile: File | null = null;
+  uploadedFileData: any = null;
+  tempFileRecord: any = null;
+  existingFileRecord: any = null;
+  fileList: any[] = [];
+  existingFiles: any[] = [];
+  deletedFileIds: number[] = [];
+  deletedFiles: any[] = [];
+  attachFileName: string = '';
+  currentUser: any = null;
+
   constructor(
     private fb: FormBuilder,
     private modal: NzModalService,
@@ -88,9 +108,12 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     public activeModal: NgbActiveModal,
     private appUserService: AppUserService,
     private wfhService: WFHService,
+    private message: NzMessageService,
+    private authService: AuthService,
   ) { }
 
   overNightTypeList = [
+    { value: 0, label: 'Không có' },
     { value: 1, label: 'Từ sau 20h' },
     { value: 2, label: 'Theo loại CT' },
   ];
@@ -100,6 +123,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     this.initSearchForm();
     this.loadApprover();
     this.loadEmployee();
+    this.getCurrentUser();
     // Load vehicleList trước để có dữ liệu khi map VehicleID
     this.loadVehicleList(() => {
       // Sau khi vehicleList load xong, mới load detailData
@@ -147,26 +171,47 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     this.listId = []; // Reset list ID cần xóa
     this.hasDataChanges = false; // Reset flag thay đổi
 
+    // Reset file data
+    this.existingFiles = [];
+    this.existingFileRecord = null;
+    this.attachFileName = '';
+    this.selectedFile = null;
+    this.tempFileRecord = null;
+    this.fileList = [];
+    this.deletedFileIds = [];
+    this.deletedFiles = [];
+
     // Set form values from the first item in detail data
     const firstItem = this.detailData[0];
     if (firstItem != null) {
+      // Set IsProblem từ dữ liệu
+      this.isProblem = firstItem['IsProblem'] || false;
+
       this.searchForm.patchValue({
         employeeId: firstItem['EmployeeID'] ?? 0,
         approverId: firstItem['ApprovedID'] ?? 0,
-        dateRegister: new Date(firstItem['DayBussiness'])
+        dateRegister: new Date(firstItem['DayBussiness']),
+        isProblem: this.isProblem
       });
 
       // Disable employee và approver khi có dữ liệu
       this.searchForm.get('employeeId')?.disable();
       this.searchForm.get('approverId')?.disable();
+
+      // Load file đính kèm nếu có ID
+      if (firstItem['ID'] && firstItem['ID'] > 0) {
+        this.loadFilesByBussinessID(firstItem['ID']);
+      }
     } else {
       // Enable khi không có dữ liệu
       this.searchForm.get('employeeId')?.enable();
       this.searchForm.get('approverId')?.enable();
+      this.isProblem = false;
       this.searchForm.patchValue({
         employeeId: null,
         approverId: null,
-        dateRegister: new Date()
+        dateRegister: new Date(),
+        isProblem: false
       });
     }
 
@@ -246,8 +291,149 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     this.searchForm = this.fb.group({
       approverId: null,
       employeeId: null,
-      dateRegister: new Date()
+      dateRegister: new Date(),
+      isProblem: [false]
     });
+  }
+
+  getCurrentUser() {
+    this.authService.getCurrentUser().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          const data = res.data;
+          this.currentUser = Array.isArray(data) ? data[0] : data;
+        }
+      },
+      error: () => { }
+    });
+  }
+
+  onIsProblemChange(checked: boolean) {
+    this.isProblem = checked;
+    this.searchForm.patchValue({ isProblem: checked });
+
+    if (!checked) {
+      // Khi bỏ chọn đăng ký bổ sung, xóa file đã chọn
+      this.selectedFile = null;
+      this.uploadedFileData = null;
+      this.tempFileRecord = null;
+      this.fileList = [];
+      if (!this.existingFileRecord) {
+        this.attachFileName = '';
+      }
+    }
+  }
+
+  // Xử lý khi chọn file với nz-upload
+  beforeUpload = (file: any): boolean => {
+    if (this.existingFiles.length > 0) {
+      this.existingFiles.forEach(existingFile => {
+        if (existingFile.ID && existingFile.ID > 0 && !this.deletedFileIds.includes(existingFile.ID)) {
+          this.deletedFileIds.push(existingFile.ID);
+          this.deletedFiles.push({
+            ...existingFile,
+            IsDeleted: true
+          });
+        }
+      });
+      this.existingFiles = [];
+      this.existingFileRecord = null;
+    }
+
+    this.selectedFile = null;
+    this.tempFileRecord = null;
+    this.uploadedFileData = null;
+    this.fileList = [file];
+    this.selectedFile = file;
+    this.attachFileName = file.name;
+    return false;
+  };
+
+  removeFile() {
+    this.selectedFile = null;
+    this.uploadedFileData = null;
+    this.attachFileName = '';
+    this.tempFileRecord = null;
+    this.fileList = [];
+  }
+
+  // Xóa file đính kèm đã có
+  deleteExistingFile(fileId: number) {
+    const fileToDelete = this.existingFiles.find(f => f.ID === fileId);
+    if (!fileToDelete) {
+      return;
+    }
+
+    if (fileId > 0 && !this.deletedFileIds.includes(fileId)) {
+      this.deletedFileIds.push(fileId);
+      this.deletedFiles.push({
+        ...fileToDelete,
+        IsDeleted: true
+      });
+    }
+
+    this.existingFiles = this.existingFiles.filter(f => f.ID !== fileId);
+
+    const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
+
+    if (remainingFiles.length === 0) {
+      this.existingFileRecord = null;
+      this.attachFileName = '';
+    } else {
+      const firstFile = remainingFiles[0];
+      this.existingFileRecord = {
+        ID: firstFile.ID || 0,
+        EmployeeBussinessID: firstFile.EmployeeBussinessID || 0,
+        FileName: firstFile.FileName || '',
+        OriginPath: firstFile.OriginPath || '',
+        ServerPath: firstFile.ServerPath || ''
+      };
+      this.attachFileName = firstFile.FileName || firstFile.OriginPath || '';
+    }
+  }
+
+  // Load danh sách file đính kèm
+  loadFilesByBussinessID(bussinessID: number) {
+    if (!bussinessID || bussinessID <= 0) {
+      this.existingFiles = [];
+      return;
+    }
+
+    this.employeeBussinessService.getFileByID(bussinessID).subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1 && response.data) {
+          this.existingFiles = Array.isArray(response.data) ? response.data : [response.data];
+
+          if (this.existingFiles.length > 0) {
+            const firstFile = this.existingFiles[0];
+            this.existingFileRecord = {
+              ID: firstFile.ID || 0,
+              EmployeeBussinessID: firstFile.EmployeeBussinessID || 0,
+              FileName: firstFile.FileName || '',
+              OriginPath: firstFile.OriginPath || '',
+              ServerPath: firstFile.ServerPath || ''
+            };
+            this.attachFileName = firstFile.FileName || firstFile.OriginPath || '';
+          }
+        } else {
+          this.existingFiles = [];
+        }
+      },
+      error: () => {
+        this.existingFiles = [];
+      }
+    });
+  }
+
+  // Tạo subpath dựa trên ngày công tác và code nhân viên
+  private generateSubPath(dayBussiness: Date, employeeCode: string): string {
+    const date = new Date(dayBussiness);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const monthName = `Tháng ${month}`;
+    const dayFormatted = `Ngày ${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
+    return `Năm ${year}\\${monthName}\\${dayFormatted}\\${employeeCode}\\`;
   }
 
   loadEmployee() {
@@ -256,8 +442,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         if (res && res.status === 1 && res.data) {
           // Lưu danh sách employee gốc (để tương thích với code cũ nếu cần)
           this.employeeList = res.data.employees || [];
-
-          // Group employees by DepartmentName
           const empGroups: { [key: string]: any[] } = {};
           (res.data.employees || []).forEach((emp: any) => {
             const dept = emp.DepartmentName || 'Không xác định';
@@ -297,45 +481,12 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   }
 
   loadApprover() {
-    this.wfhService.getEmloyeeApprover().subscribe({
+    this.employeeBussinessService.getEmployeeApprove().subscribe({
       next: (res) => {
-        if (res && res.status === 1 && res.data) {
-          // Lưu danh sách approver gốc (để tương thích với code cũ nếu cần)
-          this.approverList = res.data.approvers || [];
-
-          // Group approvers by DepartmentName
-          const apprGroups: { [key: string]: any[] } = {};
-          (res.data.approvers || []).forEach((appr: any) => {
-            const dept = appr.DepartmentName || 'Không xác định';
-            if (!apprGroups[dept]) apprGroups[dept] = [];
-            apprGroups[dept].push({
-              ID: appr.EmployeeID,
-              FullName: appr.FullName,
-              DepartmentName: appr.DepartmentName,
-              Code: appr.Code,
-            });
-          });
-
-          // Sort approvers within each group by Code
-          Object.keys(apprGroups).forEach((dept) => {
-            apprGroups[dept].sort((a, b) => (a.Code || '').localeCompare(b.Code || ''));
-          });
-
-          // Sort groups by department name
-          this.approverGroups = Object.keys(apprGroups)
-            .sort((a, b) => a.localeCompare(b))
-            .map((dept) => ({
-              label: `Phòng ban: ${dept}`,
-              options: apprGroups[dept],
-            }));
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải dữ liệu người duyệt');
-          this.approverList = [];
-          this.approverGroups = [];
-        }
+        this.approverList = res.data || [];
       },
       error: (error: any) => {
-        this.notification.warning("Lỗi", "Lỗi khi lấy danh sách người duyệt");
+        this.notification.warning(NOTIFICATION_TITLE.error, error.error?.message || "Lỗi khi lấy danh sách người duyệt");
         this.approverList = [];
         this.approverGroups = [];
       }
@@ -350,9 +501,9 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     const employee = this.employeeGroups
       .flatMap(g => g.options)
       .find(e => e.ID === optionValue);
-    
+
     if (!employee) return false;
-    
+
     return (
       (employee.Code || '').toLowerCase().includes(searchText) ||
       (employee.FullName || '').toLowerCase().includes(searchText) ||
@@ -365,12 +516,10 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     if (!input) return true;
     const searchText = input.toLowerCase();
     const optionValue = option.nzValue;
-    const approver = this.approverGroups
-      .flatMap(g => g.options)
-      .find(a => a.ID === optionValue);
-    
+    const approver = this.approverList.find(a => a.EmployeeID === optionValue);
+
     if (!approver) return false;
-    
+
     return (
       (approver.Code || '').toLowerCase().includes(searchText) ||
       (approver.FullName || '').toLowerCase().includes(searchText) ||
@@ -508,256 +657,289 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
     try {
       this.tabulator = new Tabulator('#tb_employee_bussiness_detail', {
-      data: this.employeeBussinessDetail, // Initialize with empty array
-      layout: 'fitDataStretch',
-      height: '82vh',
-      columns: [
-        {
-          title: '',
-          field: 'addRow',
-          headerSort: false,
-          width: 40,
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          titleFormatter: () =>
-            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
-          headerClick: (e: any, column: any) => {
-            this.addRow();
+        data: this.employeeBussinessDetail, // Initialize with empty array
+        layout: 'fitDataStretch',
+        height: '82vh',
+        columns: [
+          {
+            title: '',
+            field: 'addRow',
+            headerSort: false,
+            width: 40,
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            titleFormatter: () =>
+              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+            headerClick: (e: any, column: any) => {
+              this.addRow();
+            },
+            formatter: (cell: any) => {
+              const data = cell.getRow().getData();
+              let id = data['ID'];
+              return id <= 0 || id == null
+                ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
+                : '';
+            },
+
+            cellClick: (e: any, cell: any) => {
+              const rowData = cell.getRow().getData();
+              const id = rowData.ID || 0;
+              if (id > 0) {
+                // Thêm vào listId để xóa sau
+                if (!this.listId.includes(id)) {
+                  this.listId.push(id);
+                }
+              }
+              cell.getRow().delete();
+              this.resetSTT();
+              this.hasDataChanges = true;
+            }
+          } as any,
+          { title: 'STT', field: 'STT', editor: 'input', hozAlign: 'center', headerHozAlign: 'center', width: 80 },
+          {
+            title: 'Địa điểm',
+            field: 'Location',
+            editor: 'textarea',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 200,
+            headerSort: false,
+            variableHeight: true,
+            formatter: 'textarea'
           },
-          formatter: (cell: any) => {
-            const data = cell.getRow().getData();
-            let id = data['ID'];
-            return id <= 0 || id == null
-              ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
-              : '';
+          {
+            title: 'Loại',
+            field: 'TypeBusiness',
+            editor: 'list',
+            headerSort: false,
+            editorParams: {
+              values: this.employeeTypeBussinessList
+            },
+            formatter: (cell: any) => {
+
+              const value = parseInt(cell.getValue());
+              const type = this.employeeTypeBussinessList.find((emp: any) => emp.value === value);
+              return type ? type.label : '--Chọn loại--';
+            },
+            cellEdited: (cell: any) => {
+              const row = cell.getRow();
+              // Sử dụng setTimeout để đảm bảo giá trị đã được cập nhật vào row data
+              setTimeout(() => {
+                this.setTotalCost(row);
+              }, 10);
+            },
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 350
+          },
+          {
+            title: 'Xuất phát trước 7h15',
+            field: 'WorkEarly',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            width: 200,
+            headerSort: false,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              const checked = value === true || value === 'true' || value === 1 || value === '1';
+              const input = document.createElement('input');
+              input.type = 'checkbox';
+              input.checked = checked;
+
+              // Add event listener to update cell value when checkbox changes
+              input.addEventListener('change', () => {
+                cell.setValue(input.checked);
+                const row = cell.getRow();
+                this.setTotalCost(row);
+              });
+
+              return input;
+            },
+            // Ensure the cell's value is always a boolean
+            mutator: function (value) {
+              return value === true || value === 'true' || value === 1 || value === '1';
+            }
+          },
+          {
+            title: 'Phụ cấp ăn tối',
+            field: 'OvernightType',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 300,
+            editor: 'list',
+            editorParams: {
+              values: this.overNightTypeList
+            },
+            headerSort: false,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              const type = this.overNightTypeList.find((ov: any) => ov.value === value);
+              return type ? type.label : value;
+            },
+            cellEdited: (cell: any) => {
+              const row = cell.getRow();
+              // Sử dụng setTimeout để đảm bảo giá trị đã được cập nhật vào row data
+              setTimeout(() => {
+                this.setTotalCost(row);
+              }, 10);
+            }
+          },
+          {
+            title: 'Không chấm công tại VP',
+            field: 'NotChekIn',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            width: 180,
+            headerSort: false,
+            formatter: function (cell) {
+              const value = cell.getValue();
+              const checked = value === true || value === 'true' || value === 1 || value === '1';
+              const input = document.createElement('input');
+              input.type = 'checkbox';
+              input.checked = checked;
+
+              input.addEventListener('change', () => {
+                cell.setValue(input.checked);
+              });
+
+              return input;
+            },
+            headerWordWrap: true,
+            // Ensure the cell's value is always a boolean
+            mutator: function (value) {
+              return value === true || value === 'true' || value === 1 || value === '1';
+            }
           },
 
-          cellClick: (e: any, cell: any) => {
-            const rowData = cell.getRow().getData();
-            const id = rowData.ID || 0;
-            if (id > 0) {
-              // Thêm vào listId để xóa sau
-              if (!this.listId.includes(id)) {
-                this.listId.push(id);
+          {
+            title: 'Phương tiện',
+            field: 'VehicleID',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 200,
+            headerSort: false,
+            editor: 'list',
+            editorParams: {
+              values: this.vehicleList
+            },
+            formatter: (cell: any) => {
+              const value = parseInt(cell.getValue()) || 0;
+              const vehicle = this.vehicleList.find((v: any) => v.value === value);
+              return vehicle ? vehicle.vehicleData?.VehicleName || vehicle.label : '--Chọn phương tiện--';
+            },
+            cellEdited: (cell: any) => {
+              const row = cell.getRow();
+              const vehicleID = parseInt(cell.getValue()) || 0;
+              const vehicle = this.vehicleList.find((v: any) => v.value === vehicleID);
+
+              if (vehicle && vehicle.vehicleData) {
+                const vehicleName = vehicle.vehicleData.VehicleName || '';
+                const vehicleCost = parseFloat(vehicle.vehicleData.Cost) || 0;
+
+                row.update({
+                  VehicleID: vehicleID,
+                  VehicleName: vehicleName,
+                  TotalCostVehicle: vehicleCost
+                });
+
+                // Tính lại tổng chi phí
+                this.setTotalCost(row);
+              } else {
+                // Nếu không chọn hoặc chọn "Không chọn"
+                row.update({
+                  VehicleID: 0,
+                  VehicleName: '',
+                  TotalCostVehicle: 0
+                });
+                this.setTotalCost(row);
               }
             }
-            cell.getRow().delete();
-            this.resetSTT();
-            this.hasDataChanges = true;
-          }
-        } as any,
-        { title: 'STT', field: 'STT', editor: 'input', hozAlign: 'center', headerHozAlign: 'center', width: 80 },
-        {
-          title: 'Địa điểm',
-          field: 'Location',
-          editor: 'input',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 200, headerSort: false,
-
-        },
-        {
-          title: 'Loại',
-          field: 'TypeBusiness',
-          editor: 'list',
-          headerSort: false,
-          editorParams: {
-            values: this.employeeTypeBussinessList
           },
-          formatter: (cell: any) => {
-
-            const value = parseInt(cell.getValue());
-            const type = this.employeeTypeBussinessList.find((emp: any) => emp.value === value);
-            return type ? type.label : '--Chọn loại--';
+          {
+            title: 'Lý do công tác',
+            field: 'Reason',
+            editor: 'textarea',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 500,
+            headerSort: false,
+            variableHeight: true,
+            formatter: 'textarea'
           },
-          cellEdited: (cell: any) => {
-            const row = cell.getRow();
-            // Sử dụng setTimeout để đảm bảo giá trị đã được cập nhật vào row data
-            setTimeout(() => {
-              this.setTotalCost(row);
-            }, 10);
-          },
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 350
-        },
-        {
-          title: 'Xuất phát trước 7h15',
-          field: 'WorkEarly',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 200,
-          headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.checked = checked;
-
-            // Add event listener to update cell value when checkbox changes
-            input.addEventListener('change', () => {
-              cell.setValue(input.checked); 
-              const row = cell.getRow();
-              this.setTotalCost(row);
-            });
-
-            return input;
-          },
-          // Ensure the cell's value is always a boolean
-          mutator: function (value) {
-            return value === true || value === 'true' || value === 1 || value === '1';
-          }
-        },
-        {
-          title: 'Phụ cấp ăn tối',
-          field: 'OvernightType',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 300,
-          editor: 'list',
-          editorParams: {
-            values: this.overNightTypeList
-          },
-          headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            const type = this.overNightTypeList.find((ov: any) => ov.value === value);
-            return type ? type.label : value;
-          },
-          cellEdited: (cell: any) => {
-            const row = cell.getRow();
-            // Sử dụng setTimeout để đảm bảo giá trị đã được cập nhật vào row data
-            setTimeout(() => {
-              this.setTotalCost(row);
-            }, 10);
-          }
-        },
-        {
-          title: 'Không chấm công tại VP',
-          field: 'NotChekIn',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 180,
-          headerSort: false,
-          formatter: function (cell) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.checked = checked;
-
-            input.addEventListener('change', () => {
-              cell.setValue(input.checked);
-            });
-
-            return input;
-          },
-          headerWordWrap: true,
-          // Ensure the cell's value is always a boolean
-          mutator: function (value) {
-            return value === true || value === 'true' || value === 1 || value === '1';
-          }
-        },
-
-        {
-          title: 'Phương tiện',
-          field: 'VehicleID',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 500,
-          headerSort: false,
-          editor: 'list',
-          editorParams: {
-            values: this.vehicleList
-          },
-          formatter: (cell: any) => {
-            const value = parseInt(cell.getValue()) || 0;
-            const vehicle = this.vehicleList.find((v: any) => v.value === value);
-            return vehicle ? vehicle.vehicleData?.VehicleName || vehicle.label : '--Chọn phương tiện--';
-          },
-          cellEdited: (cell: any) => {
-            const row = cell.getRow();
-            const vehicleID = parseInt(cell.getValue()) || 0;
-            const vehicle = this.vehicleList.find((v: any) => v.value === vehicleID);
-
-            if (vehicle && vehicle.vehicleData) {
-              const vehicleName = vehicle.vehicleData.VehicleName || '';
-              const vehicleCost = parseFloat(vehicle.vehicleData.Cost) || 0;
-
-              row.update({
-                VehicleID: vehicleID,
-                VehicleName: vehicleName,
-                TotalCostVehicle: vehicleCost
-              });
-
-              // Tính lại tổng chi phí
-              this.setTotalCost(row);
-            } else {
-              // Nếu không chọn hoặc chọn "Không chọn"
-              row.update({
-                VehicleID: 0,
-                VehicleName: '',
-                TotalCostVehicle: 0
-              });
-              this.setTotalCost(row);
+          {
+            title: 'Tổng chi phí phương tiện',
+            field: 'TotalCostVehicle',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            width: 200,
+            headerSort: false,
+            editor: false,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              if (typeof value === 'number' && !isNaN(value)) {
+                return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+              }
+              return '0 ₫';
             }
-          }
-        },
-        {
-          title: 'Tổng chi phí phương tiện',
-          field: 'TotalCostVehicle',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
-          width: 200,
-          headerSort: false,
-          editor: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            if (typeof value === 'number' && !isNaN(value)) {
-              return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+          },
+          {
+            title: 'Tổng chi phí',
+            field: 'TotalCost',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            width: 200,
+            headerSort: false,
+            editor: false,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              if (typeof value === 'number' && !isNaN(value)) {
+                return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+              }
+              return '0 ₫';
             }
-            return '0 ₫';
-          }
-        },
-        {
-          title: 'Tổng chi phí',
-          field: 'TotalCost',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
-          width: 200,
-          headerSort: false,
-          editor: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            if (typeof value === 'number' && !isNaN(value)) {
-              return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-            }
-            return '0 ₫';
-          }
-        },
-        // {
-        //   title: 'Thêm phương tiện',
-        //   field: 'openModal',
-        //   hozAlign: 'center',
-        //   headerHozAlign: 'center',
-        //   headerWordWrap: true,
-        //   headerSort: false,
-        //   width: 60,
-        //   formatter: (cell: any) => {
-        //     return `<div style="display: flex; justify-content: center; align-items: center; height: 100%;">
-        //     <i class="fas fa-plus text-success cursor-pointer" title="Thêm phương tiện"></i></div>`;
-        //   },
+          },
+          // {
+          //   title: 'Thêm phương tiện',
+          //   field: 'openModal',
+          //   hozAlign: 'center',
+          //   headerHozAlign: 'center',
+          //   headerWordWrap: true,
+          //   headerSort: false,
+          //   width: 60,
+          //   formatter: (cell: any) => {
+          //     return `<div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+          //     <i class="fas fa-plus text-success cursor-pointer" title="Thêm phương tiện"></i></div>`;
+          //   },
 
-        //   cellClick: (e: any, cell: any) => {
-        //     const rowData = cell.getRow().getData();
-        //     this.editVehiceDetail(rowData);
-        //   }
-        // },
-        { title: 'Lý do sửa', field: 'ReasonHREdit', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false, },
-        { title: 'Ghi chú', field: 'Note', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false, },
+          //   cellClick: (e: any, cell: any) => {
+          //     const rowData = cell.getRow().getData();
+          //     this.editVehiceDetail(rowData);
+          //   }
+          // },
+          {
+            title: 'Lý do sửa',
+            field: 'ReasonHREdit',
+            editor: 'textarea',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 500,
+            headerSort: false,
+            variableHeight: true,
+            formatter: 'textarea'
+          },
+          {
+            title: 'Ghi chú',
+            field: 'Note',
+            editor: 'textarea',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 500,
+            headerSort: false,
+            variableHeight: true,
+            formatter: 'textarea'
+          },
 
-      ]
+        ]
       });
     } catch (error) {
       console.error('Error initializing Tabulator:', error);
@@ -770,7 +952,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         const field = cell.getField();
         const row = cell.getRow();
         const rowData = row.getData();
-        
+
         // Nếu là dòng đã tồn tại (ID > 0) và không phải đang edit field ReasonHREdit
         // thì kiểm tra lý do sửa
         if (rowData.ID > 0 && field !== 'ReasonHREdit') {
@@ -780,7 +962,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             if (!reasonHREdit || reasonHREdit.trim() === '') {
               const stt = rowData.STT || row.getPosition() + 1;
               this.notification.warning(
-                NOTIFICATION_TITLE.error, 
+                NOTIFICATION_TITLE.error,
                 `Vui lòng nhập Lý do sửa cho dòng [STT: ${stt}]!`
               );
               // Focus vào cell ReasonHREdit
@@ -793,7 +975,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             }
           }
         }
-        
+
         this.hasDataChanges = true;
         this.employeeBussinessDetail = this.tabulator!.getData();
       });
@@ -801,7 +983,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       this.tabulator.on('dataChanged', () => {
         this.hasDataChanges = true;
         this.employeeBussinessDetail = this.tabulator!.getData();
-        
+
         // Kiểm tra các dòng đã tồn tại (ID > 0) có lý do sửa chưa
         const allData = this.tabulator.getData();
         allData.forEach((rowData: any, index: number) => {
@@ -812,7 +994,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
               // Chỉ hiển thị warning một lần, không spam
               setTimeout(() => {
                 this.notification.warning(
-                  NOTIFICATION_TITLE.error, 
+                  NOTIFICATION_TITLE.error,
                   `Vui lòng nhập Lý do sửa cho dòng [STT: ${stt}]!`
                 );
               }, 100);
@@ -966,6 +1148,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
     const employeeBussiness = this.tabulator.getData() || [];
     const formValue = this.searchForm.getRawValue(); // getRawValue để lấy cả disabled fields
+    const isProblemValue = this.isProblem;
 
     // Tính toán các chi phí cho từng dòng
     const formData = {
@@ -976,7 +1159,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
         // Tính các chi phí
         const costWorkEarly = (item.WorkEarly === true || item.WorkEarly === 1 || item.WorkEarly === 'true') ? 50000 : 0;
-        const costOvernight = (item.OvernightType > 0) ? 35000 : 0;
+        const costOvernight = (item.OvernightType > 0 && item.OvernightType !== 0) ? 35000 : 0;
         const costVehicle = item.TotalCostVehicle || 0;
         const totalMoney = costBussiness + costOvernight + costWorkEarly + costVehicle;
 
@@ -995,59 +1178,200 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           CostVehicle: item.TotalCostVehicle ?? 0,
           ReasonHREdit: item.ReasonHREdit ?? '',
           Note: item.Note ?? '',
+          Reason: item.Reason ?? '',
+          IsProblem: isProblemValue,
           CostBussiness: costBussiness,
           CostOvernight: costOvernight,
           CostWorkEarly: costWorkEarly,
           TotalMoney: totalMoney,
           Overnight: item.OvernightType > 0,
           DecilineApprove: item.ID > 0 ? undefined : 1, // Chỉ set khi insert mới
-          IsApproved: item.ID > 0 ? false : undefined, // Reset khi update
-          IsApprovedHR: item.ID > 0 ? false : undefined // Reset khi update
+          IsApproved: item.ID > 0 ? false : undefined, // Reset trạng thái duyệt TBP khi update
+          IsApprovedHR: item.ID > 0 ? false : undefined, // Reset trạng thái duyệt HR khi update
+          Status: item.ID > 0 ? 0 : undefined, // Reset Status TBP khi update
+          StatusHR: item.ID > 0 ? 0 : undefined // Reset Status HR khi update
         };
       })
     };
 
-    // Lưu dữ liệu
-    this.employeeBussinessService.saveEmployeeBussiness(formData.EmployeeBussinesses).subscribe({
-      next: (response) => {
-        // Xóa các dòng đã đánh dấu xóa
-        if (this.listId.length > 0) {
-          this.employeeBussinessService.deletedEmployeeBussiness(this.listId).subscribe({
-            next: () => {
-              this.listId = [];
-              this.hasDataChanges = false;
-              this.isSaving = false;
-              this.activeModal.close({ success: true });
-              this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
-            },
-            error: (error) => {
-              this.isSaving = false;
-              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa công tác thất bại');
-            }
-          });
+    // Nếu có file mới, upload trước rồi save
+    if (this.selectedFile) {
+      this.uploadFileAndSave(formData.EmployeeBussinesses);
+    } else {
+      this.saveDataWithFile(formData.EmployeeBussinesses);
+    }
+  }
+
+  // Upload file và sau đó save
+  uploadFileAndSave(data: any[]): void {
+    if (!this.selectedFile) {
+      this.saveDataWithFile(data);
+      return;
+    }
+
+    const formValue = this.searchForm.getRawValue();
+    const employeeID = formValue.employeeId;
+    const employee = this.employeeList.find(emp => emp.ID === employeeID);
+    const employeeCode = employee?.Code || 'UNKNOWN';
+    const dayBussiness = formValue.dateRegister ? new Date(formValue.dateRegister) : new Date();
+    const subPath = this.generateSubPath(dayBussiness, employeeCode);
+
+    const loadingMsg = this.message.loading(`Đang tải lên ${this.selectedFile.name}...`, {
+      nzDuration: 0,
+    }).messageId;
+
+    this.employeeBussinessService.uploadMultipleFiles([this.selectedFile], subPath).subscribe({
+      next: (res: any) => {
+        this.message.remove(loadingMsg);
+
+        if (res?.status === 1 && res?.data?.length > 0) {
+          const uploadedFile = res.data[0];
+          this.uploadedFileData = uploadedFile;
+
+          const fileRecord: any = {
+            ID: this.existingFileRecord?.ID || 0,
+            EmployeeBussinessID: 0,
+            FileName: uploadedFile.SavedFileName || uploadedFile.FileName || '',
+            OriginPath: uploadedFile.OriginPath || uploadedFile.OriginalFileName || uploadedFile.OriginName || (this.selectedFile ? this.selectedFile.name : '') || '',
+            ServerPath: uploadedFile.ServerPath || uploadedFile.FilePath || '',
+          };
+
+          this.tempFileRecord = fileRecord;
+          this.saveDataWithFile(data);
         } else {
-          this.hasDataChanges = false;
+          this.message.remove(loadingMsg);
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Upload file thất bại!');
           this.isSaving = false;
-          this.activeModal.close({ success: true });
-          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
         }
       },
-      error: (error) => {
+      error: (err: any) => {
+        this.message.remove(loadingMsg);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Upload file thất bại!');
+        this.isSaving = false;
+      },
+    });
+  }
+
+  // Save employee bussiness và file
+  saveDataWithFile(data: any[]): void {
+    // Lưu dữ liệu
+    this.employeeBussinessService.saveEmployeeBussiness(data).subscribe({
+      next: (response: any) => {
+        const savedIds = response?.data || [];
+
+        // Nếu có file mới hoặc file đã tồn tại, lưu file cho từng bản ghi
+        if (this.tempFileRecord || this.existingFileRecord) {
+          this.saveFilesForRecords(savedIds, data);
+        } else {
+          this.processAfterSave();
+        }
+      },
+      error: (error: any) => {
         this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký công tác thất bại');
       }
     });
   }
 
+  // Lưu file cho các bản ghi
+  saveFilesForRecords(savedIds: any[], data: any[]): void {
+    // Nếu không có file record, bỏ qua
+    if (!this.tempFileRecord && !this.existingFileRecord) {
+      this.processAfterSave();
+      return;
+    }
+
+    const fileRecord = this.tempFileRecord || this.existingFileRecord;
+
+    // Lưu file cho bản ghi đầu tiên (hoặc tất cả nếu cần)
+    if (savedIds && savedIds.length > 0) {
+      const firstSavedId = savedIds[0]?.ID || savedIds[0] || data[0]?.ID || 0;
+      if (firstSavedId > 0) {
+        const filePayload = {
+          ...fileRecord,
+          EmployeeBussinessID: firstSavedId
+        };
+
+        this.employeeBussinessService.saveEmployeeBussinessFile(filePayload).subscribe({
+          next: () => {
+            this.processDeletedFiles();
+          },
+          error: () => {
+            this.processDeletedFiles();
+          }
+        });
+      } else {
+        this.processDeletedFiles();
+      }
+    } else {
+      this.processDeletedFiles();
+    }
+  }
+
+  // Xử lý xóa các file đã đánh dấu
+  processDeletedFiles(): void {
+    if (this.deletedFiles.length > 0) {
+      let completedCount = 0;
+      const totalFiles = this.deletedFiles.length;
+
+      this.deletedFiles.forEach((deletedFile) => {
+        const filePayload = {
+          ...deletedFile,
+          IsDeleted: true,
+          UpdatedBy: this.currentUser?.UserName || 'admin'
+        };
+
+        this.employeeBussinessService.saveEmployeeBussinessFile(filePayload).subscribe({
+          next: () => {
+            completedCount++;
+            if (completedCount === totalFiles) {
+              this.processAfterSave();
+            }
+          },
+          error: () => {
+            completedCount++;
+            if (completedCount === totalFiles) {
+              this.processAfterSave();
+            }
+          }
+        });
+      });
+    } else {
+      this.processAfterSave();
+    }
+  }
+
+  // Xử lý sau khi save xong
+  processAfterSave(): void {
+    // Xóa các dòng đã đánh dấu xóa
+    if (this.listId.length > 0) {
+      this.employeeBussinessService.deletedEmployeeBussiness(this.listId).subscribe({
+        next: () => {
+          this.listId = [];
+          this.hasDataChanges = false;
+          this.isSaving = false;
+          this.activeModal.close({ success: true });
+          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
+        },
+        error: () => {
+          this.isSaving = false;
+          this.notification.error(NOTIFICATION_TITLE.error, 'Xóa công tác thất bại');
+        }
+      });
+    } else {
+      this.hasDataChanges = false;
+      this.isSaving = false;
+      this.activeModal.close({ success: true });
+      this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
+    }
+  }
+
   // Tính tổng chi phí cho một dòng
   setTotalCost(row: any) {
     const rowData = row.getData();
-    console.log('setTotalCost - rowData:', rowData);
-    console.log('setTotalCost - rowData.TypeBusiness:', rowData.TypeBusiness);
+
 
     const typeBussinessID = parseInt(rowData.TypeBusiness) || 0;
-    console.log('setTotalCost - typeBussinessID after parse:', typeBussinessID);
-    console.log('setTotalCost - employeeTypeBussinessList:', this.employeeTypeBussinessList);
 
     // Tìm loại công tác với so sánh chính xác cả number và string
     const typeBussiness = this.employeeTypeBussinessList.find((t: any) => {
@@ -1055,45 +1379,38 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       return tValue === typeBussinessID;
     });
 
-    console.log('setTotalCost - typeBussiness found:', typeBussiness);
 
     // Lấy Cost từ typeData
     let costBussiness = 0;
     if (typeBussiness && typeBussiness.typeData) {
       const typeData = typeBussiness.typeData;
-      console.log('setTotalCost - typeData:', typeData);
 
       // Kiểm tra typeData.Cost (chữ hoa) - ưu tiên nhất
       if (typeData.Cost != null && typeData.Cost !== undefined && typeData.Cost !== '') {
         costBussiness = parseFloat(typeData.Cost) || 0;
-        console.log('setTotalCost - costBussiness from typeData.Cost:', costBussiness);
       }
       // Kiểm tra typeData.cost (chữ thường)
       else if (typeData.cost != null && typeData.cost !== undefined && typeData.cost !== '') {
         costBussiness = parseFloat(typeData.cost) || 0;
-        console.log('setTotalCost - costBussiness from typeData.cost:', costBussiness);
       }
       // Kiểm tra các trường khác có thể chứa Cost
       else if (typeData.COST != null && typeData.COST !== undefined && typeData.COST !== '') {
         costBussiness = parseFloat(typeData.COST) || 0;
-        console.log('setTotalCost - costBussiness from typeData.COST:', costBussiness);
       }
     }
 
-    // Nếu vẫn không tìm thấy, kiểm tra trực tiếp từ typeBussiness
+
     if (costBussiness === 0 && typeBussiness) {
       if (typeBussiness.Cost != null && typeBussiness.Cost !== undefined && typeBussiness.Cost !== '') {
         costBussiness = parseFloat(typeBussiness.Cost) || 0;
-        console.log('setTotalCost - costBussiness from typeBussiness.Cost:', costBussiness);
       }
       else if (typeBussiness.cost != null && typeBussiness.cost !== undefined && typeBussiness.cost !== '') {
         costBussiness = parseFloat(typeBussiness.cost) || 0;
-        console.log('setTotalCost - costBussiness from typeBussiness.cost:', costBussiness);
       }
     }
 
     const costWorkEarly = (rowData.WorkEarly === true || rowData.WorkEarly === 1 || rowData.WorkEarly === 'true' || rowData.WorkEarly === '1') ? 50000 : 0;
-    const costOvernight = (rowData.OvernightType > 0 && rowData.OvernightType != null) ? 35000 : 0;
+    const costOvernight = (rowData.OvernightType > 0 && rowData.OvernightType != null && rowData.OvernightType !== 0) ? 35000 : 0;
     const costVehicle = parseFloat(rowData.TotalCostVehicle) || 0;
 
     const totalCost = costBussiness + costWorkEarly + costOvernight + costVehicle;

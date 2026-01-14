@@ -1,0 +1,230 @@
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+
+    <!-- Header với p-menubar -->
+    <div class="card-header bg-white p-0" style="flex-shrink: 0;">
+      <p-menubar [model]="menuBars">
+        <ng-template pTemplate="item" let-item>
+          <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+          </a>
+        </ng-template>
+      </p-menubar>
+    </div>
+
+    <!-- Filter bar - hiển thị dạng hàng ngang -->
+    <div class="filter-bar bg-light border-bottom p-2">
+      <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">Từ
+            ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker [(ngModel)]="filters.startDate" name="startDate" nzFormat="dd/MM/yyyy"
+              style="width: 150px; font-size: 12px;" nzSize="small"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">Đến
+            ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker [(ngModel)]="filters.endDate" name="endDate" nzFormat="dd/MM/yyyy"
+              style="width: 150px; font-size: 12px;" nzSize="small"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">Loại</nz-form-label>
+          <nz-form-control>
+            <nz-select name="status" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn loại"
+              style="width: 150px;" [(ngModel)]="filters.status">
+              <nz-option *ngFor="let item of mainIndexes" [nzValue]="item.ID" [nzLabel]="item.MainIndex1"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">Từ
+            khóa</nz-form-label>
+          <nz-form-control>
+            <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.filterText" name="filterText"
+              style="width: 150px; font-size: 12px;" (keyup.enter)="searchPOKH()" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Nút tìm kiếm với dropdown cho filter bổ sung -->
+        <nz-form-item class="mb-0">
+          <nz-form-control>
+            <div class="btn-group">
+              <button nz-button nzType="primary" nzSize="small" (click)="searchPOKH()">
+                Tìm kiếm
+              </button>
+              <button nz-button nzType="primary" nzSize="small" nz-dropdown [nzDropdownMenu]="advancedSearchMenu"
+                nzTrigger="click" nzPlacement="bottomRight" style="padding-left: 8px; padding-right: 8px;">
+                <i nz-icon nzType="down"></i>
+              </button>
+              <nz-dropdown-menu #advancedSearchMenu="nzDropdownMenu">
+                <div class="p-3"
+                  style="min-width: 400px; background-color: #ffffff; border: 1px solid #d9d9d9; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                  <form nz-form nzLayout="vertical">
+                    <nz-form-item class="mb-2">
+                      <nz-form-label class="fs-12">Người phụ trách</nz-form-label>
+                      <nz-form-control class="w-100">
+                        <nz-select name="userId" nzShowSearch nzAllowClear nzSize="small" class="w-100"
+                          nzPlaceHolder="Người phụ trách" [(ngModel)]="filters.userId">
+                          <nz-option *ngFor="let item of filterUserData" [nzValue]="item.ID"
+                            [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+
+                    <nz-form-item class="mb-2">
+                      <nz-form-label class="fs-12">Nhóm</nz-form-label>
+                      <nz-form-control class="w-100">
+                        <nz-select name="employeeTeamSaleId" nzShowSearch nzAllowClear nzSize="small" class="w-100"
+                          nzPlaceHolder="Nhóm" [(ngModel)]="filters.employeeTeamSaleId">
+                          <nz-option *ngFor="let item of filterEmployeeTeamSale" [nzValue]="item.ID"
+                            [nzLabel]="item.Name"></nz-option>
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+
+                    <nz-form-item class="mb-0">
+                      <nz-form-label class="fs-12">Khách hàng</nz-form-label>
+                      <nz-form-control class="w-100">
+                        <nz-select name="customerId" nzShowSearch nzAllowClear nzSize="small" class="w-100"
+                          nzPlaceHolder="Khách hàng" [(ngModel)]="filters.customerId">
+                          <nz-option *ngFor="let item of dataCustomers" [nzValue]="item.ID"
+                            [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"></nz-option>
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </form>
+                </div>
+              </nz-dropdown-menu>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </div>
+
+    <!-- Content -->
+    <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
+      <nz-splitter nzLayout="vertical" class="h-100">
+        <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+          <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+            <div class="card-body p-0 flex-grow-1 grid-container-pokh" style="overflow: hidden;">
+              <angular-slickgrid gridId="gridPOKH" [columns]="columnDefinitionsPOKH" [options]="gridOptionsPOKH"
+                [dataset]="datasetPOKH" (onAngularGridCreated)="angularGridReadyPOKH($event.detail)"
+                (onClick)="onPOKHRowClick($event.detail.eventData, $event.detail.args)"
+                (onDblClick)="onPOKHRowDblClick($event.detail.eventData, $event.detail.args)">
+              </angular-slickgrid>
+            </div>
+            <div class="card-footer bg-white p-1" style="flex-shrink: 0;">
+              <div class="d-flex align-items-center justify-content-between gap-2" style="flex-wrap: wrap;">
+                <div></div>
+
+                <div class="d-flex align-items-center gap-1">
+                  <div class="fs-12">
+                    Trang <b>{{ filters.pageNumber || 1 }}</b>/<b>{{ totalPage || 1 }}</b>
+                  </div>
+                  <button nz-button nzType="default" nzSize="small" (click)="prevPage()"
+                    [disabled]="(filters.pageNumber || 1) <= 1">
+                    <nz-icon nzType="left"></nz-icon>
+                  </button>
+                  <button nz-button nzType="default" nzSize="small" (click)="nextPage()"
+                    [disabled]="(filters.pageNumber || 1) >= (totalPage || 1)">
+                    <nz-icon nzType="right"></nz-icon>
+                  </button>
+                  <div class="d-flex align-items-center gap-1">
+                    <span class="fs-12">Số dòng</span>
+                    <nz-select style="width: 80px;" nzSize="small" [ngModel]="filters.pageSize"
+                      (ngModelChange)="onPageSizeChange($event)">
+                      <nz-option *ngFor="let s of pageSizeOptions" [nzValue]="s" [nzLabel]="s"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="d-flex align-items-center gap-1">
+                    <span class="fs-12">Đi tới</span>
+                    <nz-input-number nzSize="small" style="width: 30px;" [nzMin]="1" [nzMax]="totalPage || 1"
+                      [ngModel]="filters.pageNumber || 1" (ngModelChange)="goToPage($event)">
+                    </nz-input-number>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nz-splitter-panel>
+        <nz-splitter-panel nzDefaultSize="44%" [nzCollapsible]="true" nzResizable="true">
+          <nz-splitter class="h-100">
+            <nz-splitter-panel>
+              <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+                  <h6 class="m-0 ms-2">Chi tiết sản phẩm</h6>
+                </div>
+                <div class="card-body p-0 flex-grow-1 grid-container-pokh-product"
+                  style="overflow: hidden; position: relative; min-height: 0;">
+                  <angular-slickgrid gridId="gridPOKHProduct" [columns]="columnDefinitionsPOKHProduct"
+                    [options]="gridOptionsPOKHProduct" [dataset]="datasetPOKHProduct"
+                    (onAngularGridCreated)="angularGridReadyPOKHProduct($event.detail)">
+                  </angular-slickgrid>
+                </div>
+              </div>
+            </nz-splitter-panel>
+            <nz-splitter-panel nzDefaultSize="20%">
+              <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+                  <h6 class="m-0 ms-2">Danh sách file</h6>
+                </div>
+                <div class="card-body p-0 flex-grow-1 grid-container-pokh-file"
+                  style="overflow: hidden; position: relative; min-height: 0;">
+                  <angular-slickgrid gridId="gridPOKHFile" [columns]="columnDefinitionsPOKHFile"
+                    [options]="gridOptionsPOKHFile" [dataset]="datasetPOKHFile"
+                    (onAngularGridCreated)="angularGridReadyPOKHFile($event.detail)"
+                    (onDblClick)="onPOKHFileRowDblClick($event.detail.eventData, $event.detail.args)">
+                  </angular-slickgrid>
+                </div>
+              </div>
+            </nz-splitter-panel>
+          </nz-splitter>
+
+        </nz-splitter-panel>
+      </nz-splitter>
+    </div>
+  </div>
+</ng-container>
+
+<style>
+  .pokh-modal-content {
+    height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+
+  .pokh-tabset {
+    height: 100%;
+  }
+
+  .pokh-tab-content {
+    height: calc(100vh - 300px);
+    overflow-y: auto;
+  }
+
+  /* Ensure these styles only apply to the POKH modal */
+  ::ng-deep .pokh-modal .ant-modal {
+    width: 90% !important;
+    max-width: 1400px;
+  }
+
+  ::ng-deep .pokh-modal .ant-modal-body {
+    height: calc(100vh - 200px);
+    overflow: hidden;
+  }
+
+  ::ng-deep .pokh-modal .ant-tabs-content {
+    height: 100%;
+  }
+
+  ::ng-deep .pokh-modal .ant-tabs-tabpane {
+    height: 100%;
+  }
+</style>

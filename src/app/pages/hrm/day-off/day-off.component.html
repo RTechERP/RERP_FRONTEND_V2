@@ -1,439 +1,202 @@
+<p-menubar [model]="menuBars">
+  <ng-template pTemplate="item" let-item>
+    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+      <i [class]="item.icon"></i>
+      <span class="p-menuitem-text">{{ item.label }}</span>
+    </a>
+  </ng-template>
+
+  <ng-template #end>
+    <div class="flex items-center gap-2">
+      <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
+        (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
+        <nz-icon nzType="search" />
+      </button>
+    </div>
+  </ng-template>
+</p-menubar>
+
 <ng-container class="w-100">
-  <nz-splitter>
-    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button
-              class="border-0 me-2"
-              nz-button
-              nzSize="default"
-              nzType="default"
-              nzDanger
-              (click)="toggleSearchPanel()"
-            >
-              <nz-icon nzType="close" nzTheme="outline" />
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <form nz-form [formGroup]="searchForm" nzLayout="vertical">
-            <nz-row [nzGutter]="24" class="pb-1">
-              <nz-col [nzSpan]="12">
-                <nz-form-label class="p-0 fs-12">Tháng</nz-form-label>
-              </nz-col>
-              <nz-col [nzSpan]="12">
-                <nz-form-label class="p-0 fs-12">Năm</nz-form-label>
-              </nz-col>
-            </nz-row>
-            <nz-row [nzGutter]="24">
-              <nz-col [nzSpan]="12">
-                <nz-input-number
-                  formControlName="month"
-                  nzMin="1"
-                  nzMax="12"
-                  nzSize="default"
-                  style="width: 100%"
-                />
-              </nz-col>
-              <nz-col [nzSpan]="12">
-                <nz-input-number
-                  formControlName="year"
-                  nzMin="1"
-                  nzMax="3000"
-                  nzSize="default"
-                  style="width: 100%"
-                />
-              </nz-col>
-            </nz-row>
-            <nz-form-item class="mb-2" class="mt-2">
-              <nz-form-label [nzSpan]="24" class="fs-12"
-                >Phòng ban</nz-form-label
-              >
-              <nz-form-control [nzSpan]="24">
-                <nz-select
-                  formControlName="departmentId"
-                  nzPlaceHolder="Chọn phòng ban"
-                  nzAllowClear
-                  nzShowSearch
-                >
-                  <nz-option
-                    *ngFor="let dept of departmentList"
-                    [nzValue]="dept.ID"
-                    [nzLabel]="dept.Name"
-                  ></nz-option>
+  <div class="card border-0 rounded-0" style="height: 89vh !important;">
+    <!-- Backdrop overlay cho mobile -->
+    <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+      <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile()">
+        <span class="fw-bold" style="font-size: 12px;">Tìm kiếm</span>
+        <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger (click)="ToggleSearchPanelNew()">
+          <nz-icon nzType="close" />
+        </button>
+      </div>
+      <form nz-form [formGroup]="searchForm" class="mobile-filter-form">
+        <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+          <!-- Tháng -->
+          <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="3" [nzXl]="2">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Tháng</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="month" nzMin="1" nzMax="12" nzSize="small"
+                  class="w-100"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Năm -->
+          <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="3" [nzXl]="2">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Năm</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="year" nzMin="1" nzMax="3000" nzSize="small"
+                  class="w-100"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Phòng ban -->
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="departmentId" nzShowSearch nzAllowClear nzSize="small"
+                  nzPlaceHolder="Chọn phòng ban" class="w-100">
+                  <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
-            <nz-form-item class="mb-2" class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24"
-                >Trạng thái TBP</nz-form-label
-              >
-              <nz-form-control [nzSpan]="24">
-                <nz-select
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzSize="default"
-                  nzPlaceHolder="Chọn trạng thái TBP"
-                  formControlName="status"
-                >
-                  <nz-option nzValue="1" nzLabel="Chờ duyệt"></nz-option>
-                  <nz-option nzValue="2" nzLabel="Đã duyệt"></nz-option>
-                  <nz-option
-                    nzValue="3"
-                    nzLabel="Không đồng ý duyệt"
-                  ></nz-option>
-                  <nz-option
-                    nzValue="4"
-                    nzLabel="Chờ duyệt hủy đăng ký"
-                  ></nz-option>
-                  <nz-option
-                    nzValue="5"
-                    nzLabel="Đã duyệt hủy đăng ký"
-                  ></nz-option>
+          </nz-col>
+
+          <!-- Trạng thái TBP -->
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái TBP</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="status" nzShowSearch nzSize="small" nzPlaceHolder="Chọn trạng thái"
+                  class="w-100">
+                  <nz-option [nzValue]="-1" nzLabel="---Tất cả---"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
+                  <nz-option [nzValue]="3" nzLabel="Chờ duyệt hủy đăng ký"></nz-option>
+                  <nz-option [nzValue]="4" nzLabel="Đã duyệt hủy đăng ký"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
-            <nz-form-item class="mb-2" class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <input
-                  nz-input
-                  placeholder="Nhập từ khóa"
-                  nzSize="default"
-                  formControlName="keyWord"
-                />
+          </nz-col>
+
+          <!-- Từ khóa và nút tìm kiếm -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="4">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
+              <nz-form-control>
+                <div class="d-flex gap-1">
+                  <input nz-input placeholder="Nhập từ khóa..." nzSize="small" formControlName="keyWord"
+                    class="flex-grow-1" (keyup.enter)="loadEmployeeOnLeave()" />
+                  <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
+                    (click)="loadEmployeeOnLeave()">
+                    <nz-icon nzType="search" />
+                  </button>
+                </div>
               </nz-form-control>
             </nz-form-item>
-          </form>
-        </div>
-        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-          <button
-            nz-button
-            nzType="default"
-            nzSize="small"
-            (click)="resetSearch()"
-          >
-            Đặt lại
-          </button>
-          <button
-            nz-button
-            nzType="primary"
-            nzSize="small"
-            (click)="loadEmployeeOnLeave()"
-          >
-            Tìm kiếm
-          </button>
-        </div>
+          </nz-col>
+        </nz-row>
+      </form>
+    </div>
+
+    <!-- Content với bảng -->
+    <div class="card-body p-0 position-relative" [class.with-search-bar]="shouldShowSearchBar"
+      [class.without-search-bar]="!shouldShowSearchBar">
+      <div *ngIf="isLoading">
+        <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(255,255,255,0.4)',
+                    zIndex: '999',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }"></nz-spin>
       </div>
-    </nz-splitter-panel>
-    <nz-splitter-panel>
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-2" style="overflow: auto">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex gap-2">
-              <button
-                nz-button
-                nzType="default"
-                nzSize="small"
-                style="font-size: 0.75rem; font-weight: bold"
-                (click)="toggleSearchPanel()"
-              >
-                <nz-icon nzType="search" />
-              </button>
-              <button
-                class="fs-12 btn-add"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="openAddModal()"
-              >
-                <img src="assets/icon/action_add_item_16.png" alt="Thêm " />
-                Thêm
-              </button>
-              <button
-                class="fs-12 btn-edit"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="openEditModal()"
-              >
-                <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
-              </button>
-              <button
-                class="fs-12 btn-delete"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="openDeleteModal()"
-              >
-                <img
-                  src="assets/icon/action_delete_item_16.png"
-                  alt="Xóa "
-                />Xóa
-              </button>
-              <button
-                class="fs-12"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="approved(true, true)"
-                *hasPermission="'N1'"
-              >
-                <img
-                  src="assets/icon/action_approved_16.png"
-                  alt="TBP duyệt"
-                />TBP duyệt
-              </button>
-              <button
-                class="fs-12"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="approved(false, true)"
-                *hasPermission="'N1'"
-              >
-                <img
-                  src="assets/icon/action_unapproved_16.png"
-                  alt="TBP hủy duyệt"
-                />TBP hủy duyệt
-              </button>
-              <button
-                class="fs-12"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="approved(true, false)"
-                *hasPermission="'N2,N1'"
-              >
-                <img
-                  src="assets/icon/action_approved_16.png"
-                  alt="TBP duyệt"
-                />HR duyệt
-              </button>
-              <button
-                class="fs-12"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="approved(false, false)"
-                *hasPermission="'N2,N1'"
-              >
-                <img
-                  src="assets/icon/action_unapproved_16.png"
-                  alt="TBP hủy duyệt"
-                />HR hủy duyệt
-              </button>
-              <button
-                class="fs-12"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="isApproveCancelTP()"
-                *hasPermission="'N1'"
-              >
-                <img
-                  src="assets/icon/action_approved_16.png"
-                  alt="TBP duyệt đăng ký"
-                />TBP duyệt hủy đăng ký
-              </button>
-              <button
-                class="fs-12"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="isApproveCancelHR()"
-                *hasPermission="'N2,N1'"
-              >
-                <img
-                  src="assets/icon/action_approved_16.png"
-                  alt="TBP hủy duyệt đăng ký"
-                />HR duyệt hủy đăng ký
-              </button>
-              <button
-                class="fs-12"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="openDeclareDayOffModal()"
-                *hasPermission="'N2,N1'"
-              >
-                <img
-                  src="assets/icon/action_calendar_16.png"
-                  alt="Khai báo ngày phép"
-                />Khai báo ngày phép
-              </button>
-              <button
-                class="fs-12"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="openSummaryDayOffModal()"
-                *hasPermission="'N2,N1'"
-              >
-                <img
-                  src="assets/icon/action_calendar_16.png"
-                  alt="Báo cáo ngày nghỉ"
-                />Báo cáo ngày nghỉ
-              </button>
-              <button
-                class="fs-12"
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="exportToExcel()"
-              >
-                <img
-                  src="assets/icon/action_export_excel_16.png"
-                  alt="Xuất excel"
-                />Xuất excel
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="card-body p-0 position-relative">
-          <div *ngIf="isLoading">
-            <nz-spin
-              [nzSpinning]="isLoading"
-              nzSimple
-              [style]="{
-                position: 'absolute',
-                top: '0',
-                left: '0',
-                width: '100%',
-                height: '100%',
-                background: 'rgba(255,255,255,0.4)',
-                zIndex: '999',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }"
-            ></nz-spin>
-          </div>
-          <div id="tb_day_off"></div>
-        </div>
-      </div>
-    </nz-splitter-panel>
-  </nz-splitter>
+      <div id="tb_day_off"></div>
+    </div>
+  </div>
 </ng-container>
 
-<div
-  class="modal fade"
-  id="addDayOffModal"
-  tabindex="-1"
-  aria-labelledby="addDayOffModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-xl modal-dialog-centered fs-12">
+<div class="modal fade" id="addDayOffModal" tabindex="-1" aria-labelledby="addDayOffModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl  fs-12 ">
     <div class="modal-content">
       <div class="modal-header bg-primary">
-        <h6
-          class="modal-title text-uppercase text-white"
-          id="addDayOffModalLabel"
-        >
+        <h6 class="modal-title text-uppercase text-white" id="addDayOffModalLabel">
           CHI TIẾT NGÀY NGHỈ
         </h6>
-        <button
-          type="button"
-          class="btn-close me-1"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close me-1" data-bs-dismiss="modal" style="font-size: 1.5rem !important;"
+          aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <div
-          class="mb-3"
-          style="
+      <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+        <div class="mb-3" style="
             background-color: #fff5f5;
             border: 2px solid #dc3545;
             border-left: 5px solid #dc3545;
             border-radius: 6px;
             padding: 10px;
             box-shadow: 0 2px 4px rgba(220, 53, 69, 0.1);
-          "
-        >
+          ">
           <div class="d-flex align-items-center">
-            <span style="font-size: 15px; color: #dc3545; margin-right: 5px"
-              >⚠️</span
-            >
-            <strong
-              style="
+            <span style="font-size: 15px; color: #dc3545; margin-right: 5px">⚠️</span>
+            <strong style="
                 color: #dc3545;
                 font-size: 14px;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
-              "
-              >GHI CHÚ:</strong
-            >
+              ">GHI CHÚ:</strong>
           </div>
-          <ul
-            class="mb-0 ps-0"
-            style="
+          <ul class="mb-0 ps-0" style="
               font-size: 12.5px;
               line-height: 2;
               color: #dc3545;
               list-style: none;
-            "
-          >
+            ">
             <li class="d-flex align-items-start">
-              <span
-                style="
+              <span style="
                   color: #dc3545;
                   font-weight: bold;
                   margin-right: 8px;
                   margin-top: 2px;
-                "
-                >•</span
-              >
+                ">•</span>
               <div>
-                <strong style="color: #dc3545; font-weight: 600"
-                  >Nghỉ phép:</strong
-                >
-                <span style="color: #dc3545"
-                  >Xin nghỉ trước 19H của ngày liền trước ngày nghỉ & quỹ phép
-                  còn dương đến thời điểm xin nghỉ. Không ứng trước phép.</span
-                >
+                <strong style="color: #dc3545; font-weight: 600">Nghỉ phép (P):</strong>
+                <span style="color: #dc3545">Đăng ký trên Website Nội Bộ trước 19H ngày liền trước ngày nghỉ, quỹ phép
+                  phải còn dương tại thời điểm xin nghỉ (không ứng phép). Nhân sự đang thử việc được tính phép nhưng
+                  chưa được sử dụng, không hoàn phép nếu không ký HĐLĐ chính thức.</span>
               </div>
             </li>
             <li class="d-flex align-items-start">
-              <span
-                style="
+              <span style="
                   color: #dc3545;
                   font-weight: bold;
                   margin-right: 8px;
                   margin-top: 2px;
-                "
-                >•</span
-              >
+                ">•</span>
               <div>
-                <strong style="color: #dc3545; font-weight: 600"
-                  >Nghỉ không lương:</strong
-                >
-                <span style="color: #dc3545"
-                  >Xin nghỉ sau 19H của ngày liền trước ngày nghỉ.</span
-                >
+                <strong style="color: #dc3545; font-weight: 600">Nghỉ không lương (Ro):</strong>
+                <span style="color: #dc3545"> Xin nghỉ sau 19H của ngày liền trước ngày nghỉ/Không còn phép.</span>
               </div>
             </li>
             <li class="mb-0 d-flex align-items-start">
-              <span
-                style="
+              <span style="
                   color: #dc3545;
                   font-weight: bold;
                   margin-right: 8px;
                   margin-top: 2px;
-                "
-                >•</span
-              >
+                ">•</span>
               <div>
-                <strong style="color: #dc3545; font-weight: 600"
-                  >Nghỉ việc riêng có hưởng lương:</strong
-                >
-                <span style="color: #dc3545"
-                  >Bản thân NLĐ/ con NLĐ kết hôn, Cha/ Mẹ/ Vợ/ Chồng/ Con
-                  mất.</span
-                >
+                <strong style="color: #dc3545; font-weight: 600">Nghỉ việc riêng có hưởng lương (R):</strong>
+                <span style="color: #dc3545">NLĐ kết hôn (03 ngày); Con NLĐ kết hôn (01 ngày); Cha/Mẹ/Vợ/Chồng/Con mất
+                  (03 ngày).</span>
               </div>
             </li>
           </ul>
@@ -443,30 +206,14 @@
           <nz-row [nzGutter]="24" class="pb-1">
             <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
               <nz-form-item class="mb-2">
-                <nz-form-label [nzSpan]="24" class="fs-12 p-0"
-                  >Họ và tên<span class="text-danger ps-1"
-                    >*</span
-                  ></nz-form-label
-                >
-                <nz-form-control
-                  [nzSpan]="24"
-                  nzErrorTip="Vui lòng chọn tên nhân viên"
-                >
-                  <nz-select
-                    class="w-100"
-                    nzShowSearch
-                    nzAllowClear
-                    nzSize="default"
-                    formControlName="EmployeeID"
-                    nzPlaceHolder="Chọn họ tên nhân viên"
-                  >
+                <nz-form-label [nzSpan]="24" class="fs-12 p-0">Họ và tên<span
+                    class="text-danger ps-1">*</span></nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn tên nhân viên">
+                  <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default" formControlName="EmployeeID"
+                    nzPlaceHolder="Chọn họ tên nhân viên">
                     @for (item of employeeList; track $index) {
-                    <nz-option
-                      nzCustomContent="true"
-                      [nzLabel]="item.FullName"
-                      [nzValue]="item.ID"
-                      >{{ item.Code + " - " + item.FullName }}</nz-option
-                    >
+                    <nz-option nzCustomContent="true" [nzLabel]="item.FullName" [nzValue]="item.ID">{{ item.Code + " - "
+                      + item.FullName }}</nz-option>
                     }
                   </nz-select>
                 </nz-form-control>
@@ -474,34 +221,14 @@
             </nz-col>
             <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
               <nz-form-item class="mb-2">
-                <nz-form-label [nzSpan]="24" class="fs-12 p-0"
-                  >Người duyệt<span class="text-danger ps-1"
-                    >*</span
-                  ></nz-form-label
-                >
-                <nz-form-control
-                  [nzSpan]="24"
-                  nzErrorTip="Vui lòng chọn người duyệt"
-                >
-                  <nz-select
-                    formControlName="ApprovedTP"
-                    nzPlaceHolder="Chọn người duyệt"
-                    nzShowSearch
-                    nzAllowClear
-                    [nzFilterOption]="filterOption"
-                    class="fs-12 w-100"
-                  >
-                    <nz-option-group
-                      *ngFor="let group of approvers"
-                      [nzLabel]="group.department"
-                    >
-                      <nz-option
-                        *ngFor="let approver of group.list"
-                        [nzValue]="approver.ID"
-                        [nzLabel]="approver.Code + ' - ' + approver.FullName"
-                      >
-                      </nz-option>
-                    </nz-option-group>
+                <nz-form-label [nzSpan]="24" class="fs-12 p-0">Người duyệt<span
+                    class="text-danger ps-1">*</span></nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn người duyệt">
+                  <nz-select formControlName="ApprovedTP" nzPlaceHolder="Chọn người duyệt" nzShowSearch nzAllowClear
+                    [nzFilterOption]="filterOption" class="fs-12 w-100">
+                    <nz-option *ngFor="let approver of approverList" [nzValue]="approver.EmployeeID"
+                      [nzLabel]="approver.Code + ' - ' + approver.FullName">
+                    </nz-option>
                   </nz-select>
                 </nz-form-control>
               </nz-form-item>
@@ -510,21 +237,12 @@
           <nz-row [nzGutter]="24">
             <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12" class="mb-2">
               <nz-form-label class="fs-12 p-0">Ngày đăng ký</nz-form-label>
-              <nz-date-picker
-                formControlName="StartDate"
-                nzPlaceHolder="Chọn ngày đăng ký nghỉ"
-                nzFormat="dd/MM/yyyy"
-                [nzSize]="'default'"
-                style="width: 100%"
-              ></nz-date-picker>
+              <nz-date-picker formControlName="StartDate" nzPlaceHolder="Chọn ngày đăng ký nghỉ" nzFormat="dd/MM/yyyy"
+                [nzSize]="'default'" [nzDisabledDate]="disabledDate" style="width: 100%"></nz-date-picker>
             </nz-col>
             <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12" class="mb-2">
               <nz-form-label class="fs-12 p-0">Thời gian nghỉ</nz-form-label>
-              <nz-select
-                formControlName="TimeOnLeave"
-                style="width: 100%"
-                nzPlaceHolder="Chọn thời gian nghỉ"
-              >
+              <nz-select formControlName="TimeOnLeave" style="width: 100%" nzPlaceHolder="Chọn thời gian nghỉ">
                 <nz-option [nzValue]="1" nzLabel="Buổi sáng"></nz-option>
                 <nz-option [nzValue]="2" nzLabel="Buổi chiều"></nz-option>
                 <nz-option [nzValue]="3" nzLabel="Cả ngày"></nz-option>
@@ -533,131 +251,59 @@
           </nz-row>
 
           <nz-form-item class="mb-2">
-            <nz-form-label [nzSpan]="24" class="fs-12 p-0"
-              >Loại<span class="text-danger ps-1">*</span></nz-form-label
-            >
+            <nz-form-label [nzSpan]="24" class="fs-12 p-0">Loại<span class="text-danger ps-1">*</span></nz-form-label>
             <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại">
-              <nz-select
-                formControlName="TypeIsReal"
-                style="width: 100%"
-                nzPlaceHolder="Chọn thời gian nghỉ"
-              >
+              <nz-select formControlName="TypeIsReal" style="width: 100%" nzPlaceHolder="Chọn thời gian nghỉ">
                 <nz-option [nzValue]="1" nzLabel="Nghỉ không lương"></nz-option>
                 <nz-option [nzValue]="2" nzLabel="Nghỉ phép"></nz-option>
-                <nz-option
-                  [nzValue]="3"
-                  nzLabel="Nghỉ việc riêng có hưởng lương"
-                ></nz-option>
+                <nz-option [nzValue]="3" nzLabel="Nghỉ việc riêng có hưởng lương"></nz-option>
               </nz-select>
             </nz-form-control>
           </nz-form-item>
 
           <nz-form-item class="mb-2">
-            <nz-form-label [nzSpan]="24" class="fs-12 p-0"
-              >Lý do<span class="text-danger ps-1">*</span></nz-form-label
-            >
+            <nz-form-label [nzSpan]="24" class="fs-12 p-0">Lý do<span class="text-danger ps-1">*</span></nz-form-label>
             <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập lý do">
-              <textarea
-                rows="1"
-                style="max-height: 10vh"
-                nz-input
-                formControlName="Reason"
-              ></textarea>
+              <textarea rows="1" style="max-height: 10vh" nz-input formControlName="Reason"></textarea>
             </nz-form-control>
           </nz-form-item>
 
-          <nz-form-item class="mb-2">
-            <nz-form-label [nzSpan]="24" class="fs-12 p-0"
-              >Lý do sửa</nz-form-label
-            >
+          <nz-form-item class="mb-2" *ngIf="shouldShowReasonHREdit()">
+            <nz-form-label [nzSpan]="24" class="fs-12 p-0">Lý do sửa<span
+                class="text-danger ps-1">*</span></nz-form-label>
             <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập lý do sửa">
-              <textarea
-                rows="1"
-                style="max-height: 10vh"
-                nz-input
-                formControlName="ReasonHREdit"
-              ></textarea>
+              <textarea rows="1" style="max-height: 10vh" nz-input formControlName="ReasonHREdit"></textarea>
             </nz-form-control>
           </nz-form-item>
         </form>
       </div>
       <div class="modal-footer py-1">
-        <button
-          type="button"
-          class="btn btn-outline-danger"
-          (click)="closeModal()"
-          style="border: 1px solid; border-radius: 0"
-        >
+        <button type="button" class="btn btn-outline-danger" (click)="closeModal()" [disabled]="isLoading"
+          style="border: 1px solid; border-radius: 0">
           Đóng
         </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="onSubmit()"
-          style="border-radius: 0"
-        >
-          Lưu
+        <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="isLoading"
+          style="border-radius: 0">
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1" role="status"></span>
+          {{ isLoading ? 'Đang lưu...' : 'Lưu' }}
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<div
-  class="modal fade"
-  id="summaryDayOffModal"
-  tabindex="-1"
-  aria-labelledby="summaryDayOffModalLabel"
-  aria-hidden="true"
->
+<div class="modal fade" id="summaryDayOffModal" tabindex="-1" aria-labelledby="summaryDayOffModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered fs-12 modal-fullscreen">
     <div class="modal-content">
       <div class="modal-header bg-primary">
-        <h6
-          class="modal-title text-uppercase text-white"
-          id="summaryDayOffModalLabel"
-        >
+        <h6 class="modal-title text-uppercase text-white" id="summaryDayOffModalLabel">
           BÁO CÁO ĐĂNG KÝ NGHỈ
         </h6>
-        <button
-          type="button"
-          class="btn-close me-2"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body pt-0">
         <app-summary-day-off></app-summary-day-off>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div
-  class="modal fade"
-  id="declareDayOffModal"
-  tabindex="-1"
-  aria-labelledby="declareDayOffModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered fs-12 modal-xl">
-    <div class="modal-content">
-      <div class="modal-header bg-primary">
-        <h6
-          class="modal-title text-uppercase text-white"
-          id="declareDayOffModalLabel"
-        >
-          KHAI BÁO NGHỈ PHÉP
-        </h6>
-        <button
-          type="button"
-          class="btn-close me-2"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body pt-0">
-        <app-declare-day-off></app-declare-day-off>
       </div>
     </div>
   </div>

@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -35,7 +36,8 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { PermissionService } from '../../../services/permission.service';
 import { CourseCatalogDetailComponent } from '../course_management-form/course-catalog-detail/course-catalog-detail.component';
 import { CourseDetailComponent } from '../course_management-form/course-detail/course-detail.component';
-
+import { MenuItem, PrimeIcons } from 'primeng/api';
+import { Menubar } from 'primeng/menubar';
 interface Category {
   ID: number;
   Code: string;
@@ -67,7 +69,8 @@ interface Lesson {
     NzModalModule,
     NgbModalModule,
     NzFormModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    Menubar,
   ],
   templateUrl: './course-management.component.html',
   styleUrl: './course-management.component.css',
@@ -76,6 +79,93 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   @ViewChild('CategoryTable') categoryTableRef!: ElementRef;
   @ViewChild('CourseTable') courseTableRef!: ElementRef;
   @ViewChild('LessonTable') lessonTableRef!: ElementRef;
+
+      categoryMenuBars: MenuItem[] = [
+        {
+            label: 'Thêm',
+            icon: 'fa-solid fa-circle-plus fa-lg text-success',
+            //visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onAddCategory();
+            },
+        },
+
+        {
+            label: 'Sửa',
+            icon: 'fa-solid fa-file-pen fa-lg text-primary',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onEditCategory();
+            },
+        },
+        {
+            label: 'Xóa',
+            icon: 'fa-solid fa-trash fa-lg text-danger',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onDeleteCategory();
+            },
+        },
+        { separator: true },
+    ];
+
+    courseMenuBars: MenuItem[] = [
+        {
+            label: 'Thêm',
+            icon: 'fa-solid fa-circle-plus fa-lg text-success',
+            //visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onAddCourse();
+            },
+        },
+
+        {
+            label: 'Sửa',
+            icon: 'fa-solid fa-file-pen fa-lg text-primary',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onEditCourse();
+            },
+        },
+        {
+            label: 'Xóa',
+            icon: 'fa-solid fa-trash fa-lg text-danger',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onDeleteCourse();
+            },
+        },
+        { separator: true },
+    ];
+
+        lessonMenuBars: MenuItem[] = [
+        {
+            label: 'Thêm',
+            icon: 'fa-solid fa-circle-plus fa-lg text-success',
+            //visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onAddLesson();
+            },
+        },
+
+        {
+            label: 'Sửa',
+            icon: 'fa-solid fa-file-pen fa-lg text-primary',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onEditLesson();
+            },
+        },
+        {
+            label: 'Xóa',
+            icon: 'fa-solid fa-trash fa-lg text-danger',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onDeleteLesson();
+            },
+        },
+        { separator: true },
+    ];
 
   splitterLayout: 'horizontal' | 'vertical' = 'horizontal';
 
@@ -97,6 +187,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
 
   keyword: string = '';
   dataDepartment: any[] = [];
+  dataTeam: any[] = [];
 
   constructor(
     private notification: NzNotificationService,
@@ -121,6 +212,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     this.draw_lessonTable();
     this.getDataCategory();
     this.getDataDepartment();
+    this.getDataTeam();
   }
 
   getDataCategory() {
@@ -156,7 +248,13 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
 
   getDataDepartment() {
     this.courseService.getDataDepartment().subscribe((response: any) => {
-      this.dataDepartment = response.data || [];
+      this.dataDepartment = response.data || response || [];
+    });
+  }
+
+  getDataTeam() {
+    this.courseService.getDataTeams().subscribe((response: any) => {
+      this.dataTeam = response.data || response || [];
     });
   }
 
@@ -244,7 +342,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
 
   onAddCategory() {
     // Lấy STT lớn nhất từ bảng danh mục
-    const maxSTT = this.categoryData.length > 0 
+    const maxSTT = this.categoryData.length > 0
       ? Math.max(...this.categoryData.map(c => c.STT || 0))
       : 0;
 
@@ -267,6 +365,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.mode = 'add';
     modalRef.componentInstance.maxSTT = maxSTT;
     modalRef.componentInstance.dataDepartment = this.dataDepartment;
+    modalRef.componentInstance.dataTeam = this.dataTeam;
 
     modalRef.result.then(
       (result) => {
@@ -302,11 +401,11 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       TeamIDs: []
     };
     modalRef.componentInstance.catalogID = this.categoryID;
-    modalRef.componentInstance.dataInput = dataToEdit;
+    modalRef.componentInstance.dataInput = { ...dataToEdit };
     modalRef.componentInstance.mode = 'edit';
-    modalRef.componentInstance.maxSTT = 0; // Không cần STT khi edit
-    modalRef.componentInstance.dataDepartment = this.dataDepartment;
-
+    modalRef.componentInstance.maxSTT = 0;
+    modalRef.componentInstance.dataDepartment = [...this.dataDepartment];
+    modalRef.componentInstance.dataTeam = [...this.dataTeam];
     modalRef.result.then(
       (result) => {
         if (result == true) {
@@ -320,27 +419,60 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   }
 
   onDeleteCategory() {
-    const dataSelect: Category[] = this.categoryTable!.getSelectedData();
+    const dataSelect: any[] = this.categoryTable!.getSelectedData();
     if (dataSelect.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một danh mục để xóa!');
       return;
     }
+
+    const categoryNames = dataSelect.map(c => c.Name).join(', ');
+    const displayNames = dataSelect.length > 3
+      ? `${dataSelect.slice(0, 3).map(c => c.Name).join(', ')} và ${dataSelect.length - 3} danh mục khác`
+      : categoryNames;
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa ${dataSelect[0].Name} không?`,
+      nzContent: `Bạn có chắc chắn muốn xóa danh mục "${displayNames}" không?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
+      nzOkDanger: true,
       nzOnOk: () => {
-        // TODO: Implement delete API
-        // this.courseService.deleteCategory(dataSelect[0].ID).subscribe({
-        //   next: (res) => {
-        //     if (res.status === 1) {
-        //       this.notification.success('Thông báo', 'Đã xóa thành công!');
-        //       this.getDataCategory();
-        //     }
-        //   }
-        // });
-        this.notification.info('Thông báo', 'Chức năng xóa danh mục đang được phát triển');
+        const deleteRequests = dataSelect.map(category => {
+          const payload = {
+            ID: category.ID,
+            Code: category.Code,
+            Name: category.Name,
+            DepartmentSTT: category.DepartmentSTT ?? category.DepartmentID, // API expects DepartmentSTT
+            STT: category.STT,
+            CatalogType: category.CatalogType,
+            ProjectTypeIDs: category.ProjectTypeIDs || [],
+            DeleteFlag: false,
+            IsDeleted: true
+          };
+          return this.courseService.saveCourseCatalog(payload);
+        });
+
+        forkJoin(deleteRequests).subscribe({
+          next: (results: any[]) => {
+            const successCount = results.filter(res => res && res.status === 1).length;
+            const failCount = results.length - successCount;
+
+            if (successCount > 0) {
+              this.notification.success('Thông báo', `Đã xóa thành công ${successCount} danh mục!`);
+            }
+
+            if (failCount > 0) {
+              this.notification.warning('Thông báo', `Có ${failCount} danh mục không thể xóa!`);
+            }
+
+            this.getDataCategory();
+          },
+          error: (err) => {
+            this.notification.error('Thông báo', 'Có lỗi xảy ra khi thực hiện xóa danh sách danh mục!');
+            console.error('Error deleting categories:', err);
+            this.getDataCategory();
+          }
+        });
       },
     });
   }
@@ -359,6 +491,21 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       PersonInCharge: '',
       Creator: '',
     };
+    modalRef.componentInstance.dataCategory = this.categoryData;
+    modalRef.componentInstance.dataCourse = this.courseData;
+    modalRef.componentInstance.categoryID = this.categoryID;
+    modalRef.componentInstance.mode = 'add';
+
+        modalRef.result.then(
+      (result) => {
+        if (result == true) {
+          this.getCourse();
+        }
+      },
+      (reason) => {
+        // Modal dismissed - không làm gì
+      }
+    );
 
   }
 
@@ -369,7 +516,32 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn một khóa học để sửa!');
       return;
     }
-    this.notification.info('Thông báo', 'Chức năng sửa khóa học đang được phát triển');
+
+    const modalRef = this.modalService.open(CourseDetailComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false
+    });
+
+    modalRef.componentInstance.dataInput = dataToEdit;
+    console.log('Dữ liệu truyền vào modal sửa khóa học:', dataToEdit);
+
+    modalRef.componentInstance.dataCategory = this.categoryData;
+    modalRef.componentInstance.dataCourse = this.courseData;
+    modalRef.componentInstance.categoryID = this.categoryID;
+    modalRef.componentInstance.mode = 'edit';
+            modalRef.result.then(
+      (result) => {
+        if (result == true) {
+          this.getCourse();
+        }
+      },
+      (reason) => {
+        // Modal dismissed - không làm gì
+      }
+    );
+    //this.notification.info('Thông báo', 'Chức năng sửa khóa học đang được phát triển');
   }
 
   onDeleteCourse() {
@@ -384,10 +556,28 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        // TODO: Implement delete API
-        this.notification.info('Thông báo', 'Chức năng xóa khóa học đang được phát triển');
+        for (let selectedData of dataSelect) {
+          const deleteDTO = {
+            ...selectedData,
+            DeleteFlag: false,
+          };
+
+          this.courseService.saveCourse(deleteDTO).subscribe({
+            next: (response: any) => {
+              this.notification.success(
+                'Thông báo',
+                'Đã xóa thành công khóa học!'
+              );
+              this.getCourse();
+            },
+            error: (error: any) => {
+              this.notification.error('Thông báo', 'Lỗi xóa khóa học');
+            },
+          });
+        }
       },
     });
+
   }
 
   onAddLesson() {
@@ -475,6 +665,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       this.categoryTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
         const rowData = row.getData();
         this.searchParams.categoryID = rowData['ID'];
+        this.categoryID = rowData['ID'];
         this.getCourse();
       });
 
@@ -581,7 +772,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             columns: [
               {
                 title: 'Thực hành',
-                field: 'IsPractice',  
+                field: 'IsPractice',
                 hozAlign: 'center',
                 headerHozAlign: 'center',
                 width: 50,
@@ -725,11 +916,11 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         const selectedRows = this.courseTable!.getSelectedRows();
         this.courseID = 0;
         this.lessonData = [];
-     
+
           if (this.lessonTable) {
             this.lessonTable.setData(this.lessonData);
           }
-        
+
       });
     }
   }

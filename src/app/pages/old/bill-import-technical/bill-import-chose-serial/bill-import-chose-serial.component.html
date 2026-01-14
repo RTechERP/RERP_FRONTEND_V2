@@ -1,13 +1,97 @@
-<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
-  <h6 class="modal-title text-white" id="assetModalLabel">Nhập serial</h6>
-  <button type="button" class="btn-close" aria-label="Close" (click)="cancel()"></button>
-</div>
+<div style="display: flex; flex-direction: column; height: 70vh">
+  <!-- Modal Header -->
+  <div
+    class="bg-primary align-items-center ps-2 pe-2"
+    style="
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem;
+      border-top-left-radius: 0.25rem !important;
+      border-top-right-radius: 0.25rem !important;
+    "
+  >
+    <h6 class="text-light text-uppercase m-0">Chi tiết serial {{ name }}</h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="activeModal.dismiss()"
+      aria-label="Close"
+    ></button>
+  </div>
 
-<div class="modal-body p-2 flex-grow-1 overflow-visible" style="overflow-y: unset;">
-  <div #serialTable></div>
-</div>
+  <!-- Modal Body với Splitter -->
+  <div
+    class="p-0"
+    style="flex: 1; overflow: hidden; display: flex; flex-direction: column"
+  >
+    <div
+      class="card h-100 border-0 rounded-0"
+      style="display: flex; flex-direction: column"
+    >
+      <div
+        class="card-body p-0"
+        style="
+          flex: 1;
+          overflow: auto;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+        "
+      >
+        <div class="grid-container-detail-file">
+          <angular-slickgrid
+            gridId="gridFileDetail"
+            [columns]="columnDefinitionsMaster"
+            [options]="gridOptionsMaster"
+            [dataset]="serialData"
+            (onAngularGridCreated)="angularGridMasterReady($event.detail)"
+            (onHeaderClick)="
+              onGridMasterHeaderClick(
+                $event.detail.eventData,
+                $event.detail.args
+              )
+            "
+            (onClick)="
+              onGridMasterClick($event.detail.eventData, $event.detail.args)
+            "
+          >
+          </angular-slickgrid>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<div class="modal-footer flex-shrink-0">
-  <button class="fs-12 btn" nz-button nzDanger (click)="cancel()">Đóng</button>
-  <button class="fs-12 btn" nz-button nzType="primary" (click)="save()">Lưu</button>
+  <!-- Modal Footer -->
+  <div class="modal-footer py-1">
+    <button
+      nz-button
+      nzType="default"
+      nzSize="small"
+      nzDanger
+      (click)="activeModal.dismiss()"
+    >
+      Đóng
+    </button>
+    <button
+      nz-button
+      nzType="default"
+      nzSize="small"
+      [nzLoading]="false"
+      [disabled]="isAddSerial"
+      (click)="addSerial()"
+      *ngIf="!isTechBill"
+    >
+      Chọn từ phiếu nhập
+    </button>
+    <button
+      nz-button
+      nzType="primary"
+      nzSize="small"
+      [nzLoading]="false"
+      (click)="saveData()"
+    >
+      <i class="fas fa-save me-1"></i> Lưu
+    </button>
+  </div>
 </div>

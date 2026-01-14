@@ -1,0 +1,363 @@
+import { Component, OnInit, Input, AfterViewInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {
+    FormBuilder,
+    FormsModule,
+    FormGroup,
+    Validators,
+    ReactiveFormsModule,
+} from '@angular/forms';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { DateTime } from 'luxon';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { combineLatest } from 'rxjs';
+
+import { DocumentService } from '../document-service/document.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { AuthService } from '../../../../auth/auth.service';
+
+
+interface Document {
+    STT: number;
+    Code: string;
+    DocumentTypeID: number;
+    NameDocument: string;
+    DepartmentID: number;
+    DatePromulgate: Date | null;
+    DateEffective: Date | null;
+    GroupType: number;
+    IsPromulgated?: boolean;
+    IsOnWeb?: boolean;
+    SignedEmployeeID?: number;
+    AffectedScope?: string;
+}
+
+@Component({
+    selector: 'app-document-sale-admin-form',
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        FormsModule,
+        NzTabsModule,
+        NzSelectModule,
+        NzGridModule,
+        NzDatePickerModule,
+        NzIconModule,
+        NzInputModule,
+        NzButtonModule,
+        NzModalModule,
+        NzFormModule,
+        NzCheckboxModule,
+    ],
+    templateUrl: './document-sale-admin-form.component.html',
+    styleUrl: './document-sale-admin-form.component.css',
+})
+export class DocumentSaleAdminFormComponent implements OnInit, AfterViewInit {
+    @Input() newDocument: Document = {
+        STT: 0,
+        Code: '',
+        NameDocument: '',
+        DepartmentID: 0,
+        DocumentTypeID: 2, // Mặc định loại văn bản = 2
+        DatePromulgate: null,
+        DateEffective: null,
+        SignedEmployeeID: 0,
+        AffectedScope: '',
+        GroupType: 2, // Mặc định GroupType = 2
+    };
+    employees: { department: string, list: any[] }[] = [];
+    @Input() documentID: number = 0;
+    @Input() dataDepartment: any[] = [];
+    @Input() searchParams = {
+        departmentID: -1,
+        idDocumentType: 2, // Mặc định loại văn bản = 2
+    };
+    @Input() documentTypeID: number = 2; // Mặc định = 2
+    @Input() documentTypeData: any[] = [];
+    @Input() dataInput: any;
+    @Input() mode: 'add' | 'edit' = 'add';
+    formGroup: FormGroup;
+    saving: boolean = false;
+    currentUser: any = null;
+
+    constructor(
+        private fb: FormBuilder,
+        private notification: NzNotificationService,
+        private documentService: DocumentService,
+        private activeModal: NgbActiveModal,
+        private authService: AuthService
+    ) {
+        this.formGroup = this.fb.group({
+            STT: 0,
+            NameDocument: [null, [Validators.required, Validators.maxLength(100)]],
+            Code: ['', [Validators.required, Validators.maxLength(100)]],
+            DepartmentID: ['', [Validators.required]],
+            DocumentTypeID: [47, [Validators.required]], // Mặc định = 47
+            DatePromulgate: ['', [Validators.required]],
+            DateEffective: ['', [Validators.required]],
+            SignedEmployeeID: [0],
+            AffectedScope: [''],
+            GroupType: 2, // Mặc định = 2
+            IsPromulgated: [false], // Mặc định = false
+            IsOnWeb: [false], // Mặc định = false
+        });
+    }
+
+    ngOnInit(): void {
+        this.formGroup = this.fb.group({
+            STT: [0],
+            NameDocument: ['', [Validators.required, Validators.maxLength(100)]],
+            Code: ['', [Validators.required, Validators.maxLength(100)]],
+            DepartmentID: ['', Validators.required],
+            DocumentTypeID: [47, Validators.required], // Mặc định = 47
+            DatePromulgate: ['', Validators.required],
+            DateEffective: ['', Validators.required],
+            SignedEmployeeID: [0],
+            AffectedScope: [''],
+            GroupType: [2], // Mặc định = 2
+            IsPromulgated: [false], // Mặc định = false
+            IsOnWeb: [false], // Mặc định = false
+        });
+
+        // Tự động bind phòng ban khi thêm mới
+        this.getCurrentUser();
+
+        // Load dữ liệu nếu là chế độ edit
+        if (this.mode === 'edit' && this.dataInput) {
+            // Nếu DepartmentID không có (null, undefined, 0) thì set thành 0 (Văn bản chung)
+            const departmentID =
+                this.dataInput.DepartmentID !== null &&
+                    this.dataInput.DepartmentID !== undefined &&
+                    this.dataInput.DepartmentID !== ''
+                    ? this.dataInput.DepartmentID
+                    : 0;
+
+            this.formGroup.patchValue({
+                STT: this.dataInput.STT || 0,
+                NameDocument: this.dataInput.NameDocument || '',
+                Code: this.dataInput.Code || '',
+                DepartmentID: departmentID,
+                DocumentTypeID: this.dataInput.DocumentTypeID || 47, // Mặc định = 47
+                DatePromulgate: this.formatDateForInput(this.dataInput.DatePromulgate),
+                DateEffective: this.formatDateForInput(this.dataInput.DateEffective),
+                GroupType: this.dataInput.GroupType || 2, // Mặc định = 2
+                SignedEmployeeID: this.dataInput.SignedEmployeeID || 0,
+                AffectedScope: this.dataInput.AffectedScope || '',
+                IsPromulgated: false, // Luôn = false
+                IsOnWeb: false, // Luôn = false
+            });
+        }
+
+        // 👇 Lắng nghe sự thay đổi của DepartmentID (chỉ khi thêm mới)
+        if (this.mode === 'add') {
+            this.formGroup.get('DepartmentID')!.valueChanges.subscribe((deptId) => {
+                // Gọi hàm khi có thay đổi với DocumentTypeID = 47
+                this.onTypeOrDepartmentChange(47, deptId);
+            });
+        }
+        this.loadEmployees();
+        this.getdataDepartment();
+        this.getDataDocumentType();
+    }
+    getCurrentUser(): void {
+        this.authService.getCurrentUser().subscribe({
+            next: (res: any) => {
+                const data = res?.data;
+                this.currentUser = Array.isArray(data) ? data[0] : data;
+                if (this.mode === 'add' && this.currentUser?.DepartmentID) {
+                    this.formGroup.patchValue({
+                        DepartmentID: this.currentUser.DepartmentID
+                    });
+                }
+            }
+        });
+    }
+
+    filterOption = (input: string, option: any): boolean => {
+        if (!input) return true;
+        const searchText = input.toLowerCase();
+        const label = option.nzLabel?.toLowerCase() || '';
+        return label.includes(searchText);
+    };
+
+    ngAfterViewInit(): void { }
+
+    // Hàm format date cho input type="date" (yyyy-MM-dd)
+    formatDateForInput(value: any): string {
+        if (!value) return '';
+
+        // Nếu là Date object
+        if (value instanceof Date) {
+            const dt = DateTime.fromJSDate(value);
+            return dt.isValid ? dt.toFormat('yyyy-MM-dd') : '';
+        }
+
+        const str = String(value).trim();
+        if (!str) return '';
+
+        // Thử parse ISO string
+        let dt = DateTime.fromISO(str);
+        if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+
+        // Thử parse dd/MM/yyyy
+        dt = DateTime.fromFormat(str, 'dd/MM/yyyy');
+        if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+
+        // Nếu là string dạng yyyy-MM-dd thì trả về luôn
+        if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+            return str.substring(0, 10);
+        }
+
+        return '';
+    }
+
+    onTypeOrDepartmentChange(typeId?: number, deptId?: number): void {
+        if (!typeId) {
+            this.formGroup.patchValue({ STT: 0 });
+            return;
+        }
+
+        this.documentService.getNextStt(typeId, deptId ?? 0).subscribe({
+            next: (res) => {
+                if (res.status === 1) {
+                    this.formGroup.patchValue({ STT: res.nextStt });
+                }
+            },
+            error: (err) => console.error('Lỗi API:', err),
+        });
+    }
+
+    private trimAllStringControls() {
+        Object.keys(this.formGroup.controls).forEach((k) => {
+            const c = this.formGroup.get(k);
+            const v = c?.value;
+            if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
+        });
+    }
+
+    saveDocument() {
+        if (this.saving) {
+            return; // Ngăn không cho lưu nhiều lần
+        }
+
+        this.trimAllStringControls();
+        if (this.formGroup.invalid) {
+            Object.values(this.formGroup.controls).forEach((c) => {
+                c.markAsTouched();
+                c.updateValueAndValidity({ onlySelf: true });
+            });
+            this.notification.warning(
+                'Cảnh báo',
+                'Vui lòng điền đầy đủ thông tin bắt buộc'
+            );
+            return;
+        }
+
+        this.saving = true; // Bắt đầu lưu
+
+        const formValue = this.formGroup.value;
+        // Nếu DepartmentID không có (null, undefined, '') thì set thành 0 (Văn bản chung)
+        const departmentID =
+            formValue.DepartmentID !== null &&
+                formValue.DepartmentID !== undefined &&
+                formValue.DepartmentID !== ''
+                ? formValue.DepartmentID
+                : 0;
+
+        const payload = {
+            ID: this.dataInput?.ID ?? 0,
+            STT: formValue.STT,
+            Code: formValue.Code,
+            DocumentTypeID: formValue.DocumentTypeID || 47, // Lấy từ form, mặc định = 47 nếu không có
+            DepartmentID: departmentID,
+            NameDocument: formValue.NameDocument,
+            DatePromulgate: formValue.DatePromulgate,
+            DateEffective: formValue.DateEffective,
+            GroupType: 2, // Luôn = 2
+            SignedEmployeeID: formValue.SignedEmployeeID || 0,
+            AffectedScope: formValue.AffectedScope || '',
+            IsPromulgated: false, // Luôn = false
+            IsOnWeb: false, // Luôn = false
+        };
+        this.documentService.saveDocument(payload).subscribe({
+            next: (res) => {
+                this.saving = false; // Kết thúc lưu
+                if (res.status === 1) {
+                    const message =
+                        this.mode === 'edit' ? 'Sửa thành công!' : 'Thêm mới thành công!';
+                    this.notification.success('Thông báo', message);
+                    this.close();
+                } else {
+                    this.notification.warning(
+                        'Thông báo',
+                        res.message || 'Không thể thêm nhóm!'
+                    );
+                }
+            },
+            error: (err) => {
+                this.saving = false; // Kết thúc lưu khi có lỗi
+                this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
+            },
+        });
+    }
+
+    getdataDepartment() {
+        this.documentService.getDataDepartment().subscribe((response: any) => {
+            this.dataDepartment = response.data || [];
+
+            // Thêm 1 phần tử mới vào mảng
+            this.dataDepartment.push({
+                ID: 0,
+                Name: 'Văn bản chung',
+            });
+        });
+    }
+
+    getDataDocumentType() {
+        this.documentService.getDataDocumentType().subscribe((response: any) => {
+            this.documentTypeData = response.data || [];
+        });
+    }
+
+    close() {
+        this.activeModal.close(true);
+    }
+    loadEmployees(): void {
+        const request = { status: 0, departmentid: 0, keyword: '' };
+        this.documentService.getEmployee(request).subscribe({
+            next: (res: any) => {
+                const rawEmployees = (res?.data || []).filter((emp: any) => emp.Status === 0);
+
+                // Group by DepartmentName
+                const grouped = rawEmployees.reduce((acc: any, curr: any) => {
+                    const dept = curr.DepartmentName || 'Khác';
+                    if (!acc[dept]) {
+                        acc[dept] = [];
+                    }
+                    acc[dept].push(curr);
+                    return acc;
+                }, {});
+
+                this.employees = Object.keys(grouped).map(dept => ({
+                    department: dept,
+                    list: grouped[dept]
+                }));
+            },
+            error: (res: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, res.error.message || 'Không thể tải danh sách nhân viên');
+            },
+        });
+    }
+}

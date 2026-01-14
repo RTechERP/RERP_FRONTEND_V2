@@ -1,0 +1,210 @@
+/* :host {
+    display: block;
+    height: 93vh;
+}
+
+.ant-splitter {
+    height: 100% !important;
+}
+
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-splitter-panel .card {
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel .card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+.reset {
+    all: revert;
+}
+
+.ant-splitter-panel {
+    position: relative;
+}
+
+.inner-content {
+    padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+    font-size: 0.75rem;
+} */
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-bar {
+    position: relative;
+    z-index: 1;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.ant-splitter {
+    margin-top: 0 !important;
+    height: 81vh !important;
+}
+
+/* Đảm bảo splitter panels không vượt quá kích thước */
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel .card {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.card-body {
+    position: relative !important;
+}
+
+/* SlickGrid container styles
+.grid-container-main {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.grid-container-detail {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.grid-container-file {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.grid-container-pofile {
+    width: 100%;
+    height: 100%;
+    position: relative;
+} */
+
+/* SlickGrid styling */
+:host ::ng-deep .slick-header-column {
+    font-size: 0.75rem !important;
+}
+
+:host ::ng-deep .slick-cell {
+    font-size: 0.75rem !important;
+    padding: 2px 4px !important;
+}
+
+:host ::ng-deep .slick-row {
+    font-size: 0.75rem !important;
+}
+
+/* Urgent row styling */
+:host ::ng-deep .urgent-row {
+    background-color: #FFA500 !important;
+}
+
+/* Footer row styling */
+:host ::ng-deep .slick-footerrow {
+    background-color: #f8f9fa;
+    border-top: 2px solid #dee2e6;
+}
+
+:host ::ng-deep .slick-footerrow-column {
+    border-right: 1px solid #dee2e6;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    font-weight: bold;
+}
+
+:host ::ng-deep .slick-footerrow-column:last-child {
+    border-right: none;
+}
+
+/* Tab content styles */
+:host ::ng-deep .ant-tabs-content-holder {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-tabs-tabpane-active {
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-container-main {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}
+
+/* Detail grid ngắn lại, không bị kéo dài theo main */
+.grid-container-detail {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-detail angular-slickgrid,
+:host ::ng-deep .grid-container-detail .slickgrid-container,
+:host ::ng-deep .grid-container-detail .gridPane {
+    height: 100% !important;
+}
+
+.grid-container-file {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-file angular-slickgrid,
+:host ::ng-deep .grid-container-file .slickgrid-container,
+:host ::ng-deep .grid-container-file .gridPane {
+    height: 100% !important;
+}
+
+.grid-container-pofile {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-pofile angular-slickgrid,
+:host ::ng-deep .grid-container-pofile .slickgrid-container,
+:host ::ng-deep .grid-container-pofile .gridPane {
+    height: 100% !important;
+}

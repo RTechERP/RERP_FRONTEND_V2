@@ -468,7 +468,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
       });
 
       // key: để backend nhận biết loại tài liệu
-      formData.append('key', 'TuanBeoTest');
+      formData.append('key', 'RequestInvoiceFile');
 
       this.requestInvoiceService.getRequestInvoiceById(RIID).subscribe((data: any) => {
         const requestInvoice = data;
@@ -1088,9 +1088,15 @@ export class RequestInvoiceDetailComponent implements OnInit {
               field: 'RequestDate',
               sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) return value;
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
               },
             },
             {
@@ -1098,9 +1104,15 @@ export class RequestInvoiceDetailComponent implements OnInit {
               field: 'DateRequestImport',
               sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) return value;
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
               },
             },
             {
@@ -1121,9 +1133,15 @@ export class RequestInvoiceDetailComponent implements OnInit {
               field: 'ExpectedDate',
               sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) return value;
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
               },
             },
             {
@@ -1137,6 +1155,40 @@ export class RequestInvoiceDetailComponent implements OnInit {
 
       ],
     });
+
+    // Thêm event listener để xử lý khi edit cell - tự động cập nhật các dòng đã chọn
+    this.tb_DataTable.on('cellEdited', (cell: CellComponent) => {
+      this.handleCellEditForSelectedRows(cell);
+    });
+  }
+
+  // Hàm xử lý khi edit cell - tự động cập nhật các dòng đã chọn (cho cột Số hóa đơn, Ngày hóa đơn và Tồn kho)
+  handleCellEditForSelectedRows(cell: CellComponent): void {
+    const editedRow = cell.getRow();
+    const editedField = cell.getColumn().getField();
+    const newValue = cell.getValue();
+
+    // Chỉ xử lý cho 3 cột: Số hóa đơn, Ngày hóa đơn và Tồn kho
+    if (editedField !== 'InvoiceNumber' && editedField !== 'InvoiceDate' && editedField !== 'IsStock') {
+      return;
+    }
+
+    const selectedRows = this.tb_DataTable.getSelectedRows();
+
+    // Nếu có nhiều hơn 1 dòng được chọn (bao gồm cả dòng vừa edit)
+    if (selectedRows.length > 1) {
+      selectedRows.forEach((row: RowComponent) => {
+        // Bỏ qua dòng vừa được edit (đã được cập nhật rồi)
+        if (row === editedRow) {
+          return;
+        }
+
+        // Cập nhật giá trị cho các dòng đã chọn
+        const rowData = row.getData();
+        rowData[editedField] = newValue;
+        row.update(rowData);
+      });
+    }
   }
   //#endregion
 
@@ -1144,6 +1196,12 @@ export class RequestInvoiceDetailComponent implements OnInit {
   handlePOKHData(): void {
     if (this.selectedRowsData.length > 0) {
       const firstRow = this.selectedRowsData[0];
+
+      // load pokh file đính kèm
+      if (this.POKHID === 0 && firstRow.POKHID) {
+        this.POKHID = firstRow.POKHID;
+        this.loadPOKHFile();
+      }
 
       // Tìm thông tin khách hàng từ danh sách customers
       const customer = this.customers.find((c) => c.ID === this.customerID);

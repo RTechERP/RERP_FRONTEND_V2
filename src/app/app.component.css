@@ -149,7 +149,6 @@ nz-sider {
 .ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab-active {
   background-color: #ef4723 !important;
   padding: 7px 16px !important;
-  /* color: #fff; */
 }
 
 ::ng-deep
@@ -209,7 +208,7 @@ nz-sider {
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 12px;
-  max-height: 330px;
+  /* max-height: 330px; */
   overflow-y: auto;
   /* chỉ lớp con scroll */
 }
@@ -444,7 +443,12 @@ nz-sider {
   .ant-menu-item
   > .ant-menu-title-content {
   line-height: 1.5em !important;
+
+    display: flex;
+  /* justify-content: center; */
+  align-items: center;
 }
+
 
 /*start style active menu */
 
@@ -473,3 +477,28 @@ nz-sider {
 }
 
 /*end style active menu */
+
+::ng-deep .cdk-overlay-pane .ant-menu-submenu-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+::ng-deep .cdk-overlay-pane .ant-menu-submenu-title img.menu-icon {
+  width: 10% !important ;
+  /* filter: brightness(0) invert(1); */
+}
+
+::ng-deep .cdk-overlay-pane
+  .ant-menu-submenu-title p {
+  /* color: #fff; */
+  margin: 0;
+  white-space: unset !important;
+}
+
+
+.hidden-tab-header ::ng-deep .ant-tabs-nav {
+  display: none;
+}
+

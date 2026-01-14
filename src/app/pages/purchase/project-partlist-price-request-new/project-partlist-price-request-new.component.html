@@ -1,491 +1,50 @@
-<!-- <ng-container class="w-100">
-    <nz-splitter>
-        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
-                            (click)="ToggleSearchPanel()">
-                            <nz-icon nzType="close" nzTheme="outline" />
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <form nz-form nzLayout="vertical">
-                        <nz-form-item>
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-date-picker [(ngModel)]="filters.dateStart" name="dateStart" nzFormat="dd/MM/yyyy"
-                                    class="w-100" nzSize="small"></nz-date-picker>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-date-picker [(ngModel)]="filters.dateEnd" name="dateEnd" nzFormat="dd/MM/yyyy"
-                                    class="w-100" nzSize="small"></nz-date-picker>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" [(ngModel)]="filters.statusRequest" nzShowSearch nzAllowClear
-                                    nzSize="small" name="statusRequest" nzPlaceHolder="trạng thái">
-                                    <nz-option [nzValue]="1" nzLabel="Tất cả"></nz-option>
-                                    <nz-option [nzValue]="2" nzLabel="Yêu cầu báo giá"></nz-option>
-                                    <nz-option [nzValue]="3" nzLabel="Đã báo giá"></nz-option>
-                                    <nz-option [nzValue]="4" nzLabel="Đã hoàn thành"></nz-option>
-                                    <nz-option [nzValue]="5" nzLabel="Yêu cầu check lại"></nz-option>
-                                    <nz-option [nzValue]="6" nzLabel="Từ chối báo giá"></nz-option>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Chọn dự án</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" [(ngModel)]="filters.projectId" name="projectId" nzShowSearch
-                                    nzAllowClear nzSize="small" nzPlaceHolder="Chọn dự án">
-                                    <nz-option *ngFor="let item of dtproject"
-                                        [nzLabel]="item.ProjectCode + '--' + item.ProjectName"
-                                        [nzValue]="item.ID"></nz-option>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.keyword"
-                                    name="keyword" />
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">PO:</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn PO"
-                                    nzSize="small" [(ngModel)]="filters.poKHID" name="poKHID">
-                                    <nz-option *ngFor="let item of dtPOKH" [nzLabel]="item.POCode"
-                                        [nzValue]="item.ID"></nz-option>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                    </form>
-                </div>
-                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-                    <button nz-button nzType="default" nzSize="small" (click)="ResetFilters()">
-                        Đặt lại
-                    </button>
-                    <button nz-button nzType="primary" nzSize="small" (click)="ApplyFilters()">
-                        Tìm kiếm
-                    </button>
-                </div>
-            </div>
-        </nz-splitter-panel>
-        <nz-splitter-panel nzDefaultSize="100%">
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-1">
-                    <div class="d-flex gap-1" horizontalScroll>
-                        <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanel()">
+<ng-container class="w-100">
+    <!-- Modal header - hiển thị khi activeModal tồn tại hoặc showHeader = true -->
+    <div *ngIf="showHeader || activeModal || isFromPOKH" class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">{{ headerText }}</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
+
+    <div class="card h-100 border-0 rounded-0">
+        <!-- Header với PrimeNG MenuBar -->
+        <div class="card-header bg-white p-1">
+            <p-menubar [model]="menuItems" styleClass="p-0 border-0">
+                <ng-template pTemplate="end">
+                    <div class="flex items-center gap-2">
+                        <!-- Mobile: Search button with dropdown -->
+                        <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
+                            nz-dropdown [nzDropdownMenu]="mobileSearchMenu"
+                            nzTrigger="click"
+                            nzPlacement="bottomRight"
+                            type="button"
+                            aria-label="Tìm kiếm">
                             <nz-icon nzType="search" />
                         </button>
-                        <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-add" nzType="default"
-                            (click)="OnAddClick()" nzSize="small">
-                            <img src="assets/icon/action_add_item_16.png" /> Thêm
-                        </button>
-                        <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-edit" nzType="default"
-                            (click)="OnEditClick()" nzSize="small">
-                            <img src="assets/icon/action_edit_item_16.png" />Sửa
-                        </button>
-                        <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="OnSaveData()"
-                            nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_save_24.svg" />Lưu dữ liệu
-                        </button>
 
-                        <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="CheckPrice(true)"
-                            nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Check giá
-                        </button>
-                        <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="CheckPrice(false)"
-                            nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy check giá
-                        </button>
-                        <button nz-button nzType="default" (click)="QuotePrice()" *hasPermission="'N35,N1'"
-                            nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Báo giá
-                        </button>
-                        <button nz-button nzType="default" (click)="QuotePrice(1)" *hasPermission="'N35,N1'"
-                            nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy báo giá
-                        </button>
-                        <button nz-button nzType="default" (click)="RejectPriceRequest()" *hasPermission="'N35,N1'"
-                            nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_reject.svg" />Từ chối báo giá
-                        </button>
-                        <button nz-button nzType="default" (click)="CancelRejectPriceRequest()"
-                            *hasPermission="'N35,N1'" nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy từ chối báo giá
-                        </button>
-                        <button nz-button nzType="default" (click)="QuotePrice(3)" *hasPermission="'N35,N1'"
-                            nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Hoàn thành
-                        </button>
-                        <button nz-button nzType="default" (click)="QuotePrice(0)" *hasPermission="'N35,N1'"
-                            nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy hoàn thành
-                        </button>
-                        <button nz-button nzType="default" class="btn-delete" (click)="OnDeleteClick()"
-                            *hasPermission="'N35,N1'" nzSize="small">
-                            <img src="assets/icon/action_delete_item_16.png" />Xóa
-                        </button>
-                        <button nz-button nzType="default" (click)="DownloadFile()" *hasPermission="'N35,N1'"
-                            nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_dowload_file_24.svg" />Tải xuống
-                        </button>
-                        <button nz-button nzType="default" (click)="OpenAddSupplierModal()" *hasPermission="'N35,N1'"
-                            nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Thêm nhà cung cấp
-                        </button>
-                        <button nz-button nzType="default" (click)="OpenRequestBuyModal()"
-                            *hasPermission="'N34,N69,N80'" nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/purchase_request.png " />Yêu cầu mua
-                        </button>
-                        <button nz-button nzType="default" (click)="OpenImportExcel()"
-                            *hasPermission="'N27,N34,N69,N80'" nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_import_excel_24.svg" />Nhập Excel
-                        </button>
-                        <div class="btn-group">
-                            <button *hasPermission="'N27,N34,N69,N80'" nz-button nzType="default" nzSize="small"
-                                nz-dropdown [nzDropdownMenu]="menu">
-                                <img class="btn-action-icon" src="assets/icon/action_export_excel_16.png" />Xuất Excel
-                                <i nz-icon nzType="down"></i>
-                            </button>
-
-                            <nz-dropdown-menu #menu="nzDropdownMenu">
-                                <ul nz-menu>
-                                    <li nz-menu-item (click)="ExportToExcelAdvanced()">
-                                        <img src="assets/icon/row_16.png" />
-                                        Theo dòng đã
-                                        chọn
-                                    </li>
-                                    <li nz-menu-item (click)="ExportToExcelTab()">
-                                        <img src="assets/icon/row_16.png" />Trang hiện
-                                        tại
-                                    </li>
-                                    <li nz-menu-item (click)="ExportAllTabsToExcel()">
-                                        <img src="assets/icon/row_16.png" />Tất cả
-                                    </li>
-                                </ul>
-                            </nz-dropdown-menu>
-                        </div>
-
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <nz-splitter>
-                        <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
-                            <div class="custom-tabs-container">
-                                <ul class="nav nav-tabs" id="customTab" role="tablist">
-                                    <li class="nav-item" role="presentation"
-                                        *ngFor="let type of getVisibleProjectTypes(); let i = index">
-                                        <a class="nav-link" [class.active]="activeTabId === type.ProjectTypeID"
-                                            [id]="'tab-' + type.ProjectTypeID"
-                                            href="javascript:void(0)" role="tab"
-                                            [attr.aria-controls]="'pane-' + type.ProjectTypeID"
-                                            [attr.aria-selected]="activeTabId === type.ProjectTypeID"
-                                            (click)="$event.preventDefault(); $event.stopPropagation(); SelectProjectType(type.ProjectTypeID, $event)">
-                                            {{ type.ProjectTypeName | uppercase }}
-                                        </a>
-                                    </li>
-                                </ul>
-
-                                <div class="tab-content p-0" id="customTabContent">
-                                    <div class="tab-pane fade" *ngFor="let type of getVisibleProjectTypes()"
-                                        [class.show]="activeTabId === type.ProjectTypeID"
-                                        [class.active]="activeTabId === type.ProjectTypeID"
-                                        [id]="'pane-' + type.ProjectTypeID" role="tabpanel"
-                                        [attr.aria-labelledby]="'tab-' + type.ProjectTypeID">
-                                        <div class="table-container p-1">
-                                            <div [id]="'datatable-' + type.ProjectTypeID"
-                                                class="tabulator-container container-fluid p-0"></div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <!-- Mobile search dropdown menu -->
+                        <nz-dropdown-menu #mobileSearchMenu="nzDropdownMenu">
+                            <div class="p-3 mobile-search-dropdown">
+                                <ng-container *ngTemplateOutlet="searchFiltersTemplate"></ng-container>
                             </div>
-                        </nz-splitter-panel>
-                    </nz-splitter>
-                </div>
-            </div>
-        </nz-splitter-panel>
-    </nz-splitter>
-</ng-container>
-<ng-template #rejectReasonTpl>
-    <div class="mb-2">Vui lòng nhập lý do từ chối:</div>
-    <textarea nz-input [(ngModel)]="rejectReason" rows="3" placeholder="Nhập lý do..." class="w-100"></textarea>
-</ng-template>
-<ng-template #requestBuyTpl>
-    <div class="mb-2">
-        <label class="form-label">Deadline</label>
-        <nz-date-picker [(ngModel)]="requestBuyDeadline" nzFormat="dd/MM/yyyy" class="w-100"
-            nzSize="small"></nz-date-picker>
-    </div>
-    <div class="text-muted">Chỉ cần nhập Deadline. Các thông tin khác (VPP, JobRequirementID) đã có sẵn từ Input.</div>
-</ng-template>
-<app-tabulator-popup *ngIf="showSupplierPopup" [data]="dtSupplierSale" [columns]="supplierColumns"
-    [searchFields]="supplierSearchFields" [height]="'300px'" (rowSelected)="onSupplierSelected($event)"
-    (closed)="onSupplierPopupClosed()" [style.position]="'absolute'" [style.top]="supplierPopupPosition.top"
-    [style.left]="supplierPopupPosition.left" [style.zIndex]="1000" [style.width]="'500px'"></app-tabulator-popup>
-<app-project-partlist-price-request-form *ngIf="showDetailModal" [dataInput]="modalData"
-    (formSubmitted)="OnFormSubmit()" (closeModal)="showDetailModal = false">
-</app-project-partlist-price-request-form> -->
-
-<ng-container class="w-100">
-    <div class="card h-100 border-0 rounded-0">
-        <!-- Header với các nút action -->
-        <div class="card-header bg-white p-1 position-relative">
-            <!-- Nút X để đóng modal - chỉ hiển thị khi mở dưới dạng modal -->
-            <button *ngIf="activeModal"
-                    type="button"
-                    class="btn-close-modal position-absolute"
-                    aria-label="Close"
-                    (click)="closeModal()"
-                    title="Đóng">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="d-flex gap-1 horizontal-scroll-container" horizontalScroll>
-                <button nz-button nzType="default" nzSize="small"
-                        (click)="ToggleSearchPanelNew($event); $event.stopPropagation()"
-                        (mousedown)="$event.stopPropagation()"
-                        (touchstart)="$event.stopPropagation()"
-                        (touchend)="$event.stopPropagation()"
-                        class="sticky-toggle-btn"
-                        [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
-                        [attr.aria-expanded]="showSearchBar"
-                        type="button">
-                    <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
-                </button>
-                <!-- Refresh - load lại toàn bộ dữ liệu -->
-                <button nz-button nzType="default" nzSize="small" (click)="RefreshAll()" title="Làm mới">
-                    <img src="assets/icon/btn_refresh.png" />
-                    Làm mới
-                </button>
-                <!-- Thêm - luôn hiển thị khi có quyền -->
-                <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-add" nzType="default"
-                    (click)="OnAddClick()" nzSize="small">
-                    <img src="assets/icon/action_add_item_16.png" /> Thêm
-                </button>
-                <!-- Sửa - luôn hiển thị khi có quyền -->
-                <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-edit" nzType="default"
-                    (click)="OnEditClick()" nzSize="small">
-                    <img src="assets/icon/action_edit_item_16.png" />Sửa
-                </button>
-                <!-- Lưu dữ liệu - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="OnSaveData()"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_save_24.svg" />Lưu dữ liệu
-                    </button>
-                </ng-container>
-                <!-- Check giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="CheckPrice(true)"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Check giá
-                    </button>
-                </ng-container>
-                <!-- Hủy check giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="CheckPrice(false)"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy check giá
-                    </button>
-                </ng-container>
-                <!-- Báo giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="QuotePrice()"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Báo giá
-                    </button>
-                </ng-container>
-                <!-- Hủy báo giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="QuotePrice(1)"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy báo giá
-                    </button>
-                </ng-container>
-                <!-- Từ chối báo giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="RejectPriceRequest()"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_reject.svg" />Từ chối báo giá
-                    </button>
-                </ng-container>
-                <!-- Hủy từ chối báo giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="CancelRejectPriceRequest()"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy từ chối báo giá
-                    </button>
-                </ng-container>
-                <!-- Hoàn thành - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="QuotePrice(3)"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Hoàn thành
-                    </button>
-                </ng-container>
-                <!-- Hủy hoàn thành - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="QuotePrice(0)"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Chưa hoàn thành
-                    </button>
-                </ng-container>
-                <!-- Xóa - luôn hiển thị khi có quyền -->
-                <button nz-button nzType="default" class="btn-delete" (click)="OnDeleteClick()"
-                    *hasPermission="'N1,N34,N69'" nzSize="small">
-                    <img src="assets/icon/action_delete_item_16.png" />Xóa
-                </button>
-                <!-- Tải xuống - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="DownloadFile()"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_dowload_file_24.svg" />Tải xuống
-                    </button>
-                </ng-container>
-                <!-- Thêm nhà cung cấp - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
-                    <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="OpenAddSupplierModal()"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Thêm nhà cung cấp
-                    </button>
-                </ng-container>
-                <!-- Yêu cầu mua - hiển thị khi restrictedView, ẩn khi isHRDept, luôn hiển thị khi projectPartlistPriceRequestTypeID === 4 -->
-                <ng-container *ngIf="!isHRDept || projectPartlistPriceRequestTypeID === 4">
-                    <button *hasPermission="'N34,N69,N80'" nz-button nzType="default" (click)="OpenRequestBuyModal()"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/purchase_request.png " />Yêu cầu mua
-                    </button>
-                </ng-container>
-                <!-- Nhập Excel - hiển thị khi restrictedView, ẩn khi isHRDept, luôn hiển thị khi projectPartlistPriceRequestTypeID === 4 -->
-                <ng-container *ngIf="!isHRDept || projectPartlistPriceRequestTypeID === 4">
-                    <button *hasPermission="'N27,N34,N69,N80'" nz-button nzType="default" (click)="OpenImportExcel()"
-                        nzSize="small">
-                        <img class="btn-action-icon" src="assets/icon/action_import_excel_24.svg" />Nhập Excel
-                    </button>
-                </ng-container>
-                <!-- Xuất Excel - ẩn khi restrictedView -->
-                <div *ngIf="!restrictedView" class="btn-group">
-                    <button *hasPermission="'N27,N34,N69,N80'" nz-button nzType="default" nzSize="small"
-                        nz-dropdown [nzDropdownMenu]="menu">
-                        <img class="btn-action-icon" src="assets/icon/action_export_excel_16.png" />Xuất Excel
-                        <i nz-icon nzType="down"></i>
-                    </button>
-                    <nz-dropdown-menu #menu="nzDropdownMenu">
-                        <ul nz-menu>
-                            <li nz-menu-item (click)="ExportToExcelAdvanced()">
-                                <img src="assets/icon/row_16.png" />Theo dòng đã chọn
-                            </li>
-                            <li nz-menu-item (click)="ExportToExcelTab()">
-                                <img src="assets/icon/row_16.png" />Trang hiện tại
-                            </li>
-                            <li nz-menu-item (click)="ExportAllTabsToExcel()">
-                                <img src="assets/icon/row_16.png" />Tất cả
-                            </li>
-                        </ul>
-                    </nz-dropdown-menu>
-                </div>
-            </div>
+                        </nz-dropdown-menu>
+                    </div>
+                </ng-template>
+            </p-menubar>
         </div>
 
-        <!-- Backdrop overlay cho mobile -->
-        <div class="filter-backdrop"
-             *ngIf="shouldShowSearchBar"
-             (click)="ToggleSearchPanelNew()"
-             [class.mobile-only]="true">
-        </div>
-
-        <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, modal trên mobile - ẩn khi isHRDept -->
-        <div class="filter-bar bg-light border-bottom p-2"
-             *ngIf="shouldShowSearchBar"
-             [class.mobile-modal]="true">
-
-            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-end">
-                <!-- Các filter mặc định hiển thị -->
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
-                    <nz-form-control>
-                        <nz-date-picker [(ngModel)]="filters.dateStart" name="dateStart" nzFormat="dd/MM/yyyy"
-                            style="width: 150px; font-size: 12px;" nzSize="small"></nz-date-picker>
-                    </nz-form-control>
-                </nz-form-item>
-
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
-                    <nz-form-control>
-                        <nz-date-picker [(ngModel)]="filters.dateEnd" name="dateEnd" nzFormat="dd/MM/yyyy"
-                            style="width: 150px; font-size: 12px;" nzSize="small"></nz-date-picker>
-                    </nz-form-control>
-                </nz-form-item>
-
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
-                    <nz-form-control>
-                        <nz-select style="width: 180px; font-size: 12px;" [(ngModel)]="filters.statusRequest" nzShowSearch nzAllowClear
-                            nzSize="small" name="statusRequest" nzPlaceHolder="trạng thái">
-                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
-                            <nz-option [nzValue]="1" nzLabel="Yêu cầu báo giá"></nz-option>
-                            <nz-option [nzValue]="2" nzLabel="Đã báo giá"></nz-option>
-                            <nz-option [nzValue]="3" nzLabel="Đã hoàn thành"></nz-option>
-                            <nz-option [nzValue]="4" nzLabel="Yêu cầu check lại"></nz-option>
-                            <nz-option [nzValue]="5" nzLabel="Từ chối báo giá"></nz-option>
-                        </nz-select>
-                    </nz-form-control>
-                </nz-form-item>
-
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
-                    <nz-form-control>
-                        <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.keyword"
-                            name="keyword" style="width: 150px; font-size: 12px;" />
-                    </nz-form-control>
-                </nz-form-item>
-
-                <!-- Nút tìm kiếm với dropdown cho filter bổ sung -->
-                <nz-form-item class="mb-0">
-                    <nz-form-control>
-                        <div class="btn-group">
-                            <button nz-button nzType="primary" nzSize="small" (click)="ApplyFilters()">
-                                Tìm kiếm
-                            </button>
-                            <button nz-button nzType="primary" nzSize="small" 
-                                    nz-dropdown 
-                                    [nzDropdownMenu]="searchMenu"
-                                    nzTrigger="click"
-                                    nzPlacement="bottomRight"
-                                    style="padding-left: 8px; padding-right: 8px;">
-                                <i nz-icon nzType="down"></i>
-                            </button>
-                            <nz-dropdown-menu #searchMenu="nzDropdownMenu">
-                                <div class="p-3 advanced-filters-container" style="min-width: 300px; background-color: #ffffff; border: 1px solid #d9d9d9; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                                    <ng-container *ngTemplateOutlet="advancedFiltersTemplate"></ng-container>
-                                </div>
-                            </nz-dropdown-menu>
-                        </div>
-                    </nz-form-control>
-                </nz-form-item>
-            </form>
+        <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, ẩn trên mobile -->
+        <div class="filter-bar bg-light border-bottom p-2" *ngIf="!isMobile()">
+            <ng-container *ngTemplateOutlet="searchFiltersTemplate"></ng-container>
         </div>
 
         <!-- Content với tabs động -->
-        <div class="card-body p-0" [class.with-search-bar]="shouldShowSearchBar" [class.without-search-bar]="!shouldShowSearchBar">
+        <div class="card-body p-0 with-search-bar">
             <div class="custom-tabs-container">
                 <ul class="nav nav-tabs" id="customTab" role="tablist">
                     <li class="nav-item" role="presentation"
                         *ngFor="let type of getVisibleProjectTypes(); let i = index">
                         <a class="nav-link" [class.active]="activeTabId === type.ProjectTypeID"
-                            [id]="'tab-' + type.ProjectTypeID"
-                            href="javascript:void(0)" role="tab"
+                            [id]="'tab-' + type.ProjectTypeID" href="javascript:void(0)" role="tab"
                             [attr.aria-controls]="'pane-' + type.ProjectTypeID"
                             [attr.aria-selected]="activeTabId === type.ProjectTypeID"
                             (click)="$event.preventDefault(); $event.stopPropagation(); SelectProjectType(type.ProjectTypeID, $event)">
@@ -496,17 +55,25 @@
 
                 <div class="tab-content p-0" id="customTabContent" style="position: relative;">
                     <!-- Spinner overlay -->
-                    <div *ngIf="loading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center;">
+                    <div *ngIf="loading"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center;">
                         <nz-spin [nzSpinning]="loading" nzSimple [nzSize]="'large'"></nz-spin>
                     </div>
                     <div class="tab-pane fade" *ngFor="let type of getVisibleProjectTypes()"
                         [class.show]="activeTabId === type.ProjectTypeID"
-                        [class.active]="activeTabId === type.ProjectTypeID"
-                        [id]="'pane-' + type.ProjectTypeID" role="tabpanel"
-                        [attr.aria-labelledby]="'tab-' + type.ProjectTypeID">
-                        <div class="table-container p-1">
-                            <div [id]="'datatable-' + type.ProjectTypeID"
-                                class="tabulator-container container-fluid p-0"></div>
+                        [class.active]="activeTabId === type.ProjectTypeID" [id]="'pane-' + type.ProjectTypeID"
+                        role="tabpanel" [attr.aria-labelledby]="'tab-' + type.ProjectTypeID">
+                        <div class="table-container p-1 grid-container" [class]="'grid-container-' + type.ProjectTypeID"
+                            *ngIf="(activeTabId === type.ProjectTypeID || angularGrids.has(type.ProjectTypeID)) && columnDefinitionsMap.has(type.ProjectTypeID)">
+                            <angular-slickgrid [gridId]="'grid-' + type.ProjectTypeID"
+                                [columns]="columnDefinitionsMap.get(type.ProjectTypeID) || []"
+                                [options]="gridOptionsMap.get(type.ProjectTypeID) || {}"
+                                [dataset]="datasetsMap.get(type.ProjectTypeID) || []"
+                                (onAngularGridCreated)="angularGridReady(type.ProjectTypeID, $event.detail)"
+                                (onClick)="onCellClicked(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)"
+                                (onCellChange)="onCellChange(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)"
+                                (onSelectedRowsChanged)="handleRowSelection(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)">
+                            </angular-slickgrid>
                         </div>
                     </div>
                 </div>
@@ -514,6 +81,86 @@
         </div>
     </div>
 </ng-container>
+<!-- </div> -->
+
+
+<ng-template #searchFiltersTemplate>
+    <div style="background-color: #ffffff; padding: 8px;">
+        <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-end">
+            <!-- Các filter mặc định hiển thị -->
+            <nz-form-item class="mb-0" nzFlex="1 1 auto">
+                <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
+                <nz-form-control>
+                    <nz-date-picker [(ngModel)]="filters.dateStart" name="dateStart" nzFormat="dd/MM/yyyy"
+                        style="width: 150px; font-size: 12px;" nzSize="small"></nz-date-picker>
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mb-0" nzFlex="1 1 auto">
+                <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
+                <nz-form-control>
+                    <nz-date-picker [(ngModel)]="filters.dateEnd" name="dateEnd" nzFormat="dd/MM/yyyy"
+                        style="width: 150px; font-size: 12px;" nzSize="small"></nz-date-picker>
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mb-0" nzFlex="1 1 auto">
+                <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
+                <nz-form-control>
+                    <nz-select style="width: 180px; font-size: 12px;" [(ngModel)]="filters.statusRequest"
+                        nzShowSearch nzAllowClear nzSize="small" name="statusRequest" nzPlaceHolder="trạng thái">
+                        <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                        <nz-option [nzValue]="1" nzLabel="Yêu cầu báo giá"></nz-option>
+                        <nz-option [nzValue]="2" nzLabel="Đã báo giá"></nz-option>
+                        <nz-option [nzValue]="3" nzLabel="Đã hoàn thành"></nz-option>
+                        <nz-option [nzValue]="4" nzLabel="Yêu cầu check lại"></nz-option>
+                        <nz-option [nzValue]="5" nzLabel="Từ chối báo giá"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mb-0" nzFlex="1 1 auto">
+                <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
+                <nz-form-control>
+                    <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.keyword"
+                        name="keyword" style="width: 150px; font-size: 12px;" />
+                </nz-form-control>
+            </nz-form-item>
+
+            <!-- Advanced filters - hiển thị trực tiếp khi mobile -->
+            <ng-container *ngIf="isMobile()">
+                <ng-container *ngTemplateOutlet="advancedFiltersTemplate"></ng-container>
+            </ng-container>
+
+            <!-- Nút tìm kiếm -->
+            <nz-form-item class="mb-0" nzFlex="1 1 auto">
+                <nz-form-control>
+                    <!-- Desktop: Nút tìm kiếm với dropdown -->
+                    <div *ngIf="!isMobile()" class="btn-group">
+                        <button nz-button nzType="primary" nzSize="small" (click)="ApplyFilters()">
+                            Tìm kiếm
+                        </button>
+                        <button nz-button nzType="primary" nzSize="small" nz-dropdown [nzDropdownMenu]="advancedSearchMenu"
+                            nzTrigger="click" nzPlacement="bottomRight"
+                            style="padding-left: 8px; padding-right: 8px;">
+                            <i nz-icon nzType="down"></i>
+                        </button>
+                        <nz-dropdown-menu #advancedSearchMenu="nzDropdownMenu">
+                            <div class="p-3 advanced-filters-container"
+                                style="min-width: 300px; background-color: #ffffff; border: 1px solid #d9d9d9; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                                <ng-container *ngTemplateOutlet="advancedFiltersTemplate"></ng-container>
+                            </div>
+                        </nz-dropdown-menu>
+                    </div>
+                    <!-- Mobile: Chỉ nút tìm kiếm -->
+                    <button *ngIf="isMobile()" nz-button nzType="primary" nzSize="small" (click)="ApplyFilters()">
+                        Tìm kiếm
+                    </button>
+                </nz-form-control>
+            </nz-form-item>
+        </form>
+    </div>
+</ng-template>
 
 <ng-template #rejectReasonTpl>
     <div class="mb-2">Vui lòng nhập lý do từ chối:</div>
@@ -530,15 +177,25 @@
 
 <ng-template #advancedFiltersTemplate>
     <div style="background-color: #ffffff;padding: 0;">
-        <form nz-form nzLayout="vertical" class="mt-1"  >
+        <form nz-form nzLayout="vertical" class="mt-1">
             <nz-form-item>
                 <nz-form-label class="fs-12">Dự án</nz-form-label>
                 <nz-form-control>
                     <nz-select style="width: 100%" [(ngModel)]="filters.projectId" name="projectId" nzShowSearch
                         nzAllowClear nzSize="small" nzPlaceHolder="Chọn dự án">
-                        <nz-option *ngFor="let item of dtproject"
-                            [nzLabel]="item.ProjectCode + '--' + item.ProjectName"
+                        <nz-option *ngFor="let item of dtproject" [nzLabel]="item.ProjectCode + '--' + item.ProjectName"
                             [nzValue]="item.ID"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
+            <nz-form-item>
+                <nz-form-label class="fs-12">Tình trạng</nz-form-label>
+                <nz-form-control>
+                    <nz-select style="width: 100%" [(ngModel)]="filters.isDeleted" name="isDeleted" nzShowSearch
+                        nzAllowClear nzSize="small">
+                        <nz-option nzLabel="Tất cả" [nzValue]="-1"></nz-option>
+                        <nz-option nzLabel="Chưa xóa" [nzValue]="0"></nz-option>
+                        <nz-option nzLabel="Đã xóa" [nzValue]="1"></nz-option>
                     </nz-select>
                 </nz-form-control>
             </nz-form-item>
@@ -546,10 +203,9 @@
             <nz-form-item *ngIf="activeTabId == -1" class="mt-1">
                 <nz-form-label class="fs-12">PO</nz-form-label>
                 <nz-form-control>
-                    <nz-select style="width: 100%" nzShowSearch nzAllowClear nzPlaceHolder="Chọn PO"
-                        nzSize="small" [(ngModel)]="filters.poKHID" name="poKHID">
-                        <nz-option *ngFor="let item of dtPOKH" [nzLabel]="item.POCode"
-                            [nzValue]="item.ID"></nz-option>
+                    <nz-select style="width: 100%" nzShowSearch nzAllowClear nzPlaceHolder="Chọn PO" nzSize="small"
+                        [(ngModel)]="filters.poKHID" name="poKHID">
+                        <nz-option *ngFor="let item of dtPOKH" [nzLabel]="item.POCode" [nzValue]="item.ID"></nz-option>
                     </nz-select>
                 </nz-form-control>
             </nz-form-item>
@@ -557,10 +213,7 @@
     </div>
 </ng-template>
 
-<app-tabulator-popup *ngIf="showSupplierPopup" [data]="dtSupplierSale" [columns]="supplierColumns"
-    [searchFields]="supplierSearchFields" [height]="'300px'" (rowSelected)="onSupplierSelected($event)"
-    (closed)="onSupplierPopupClosed()" [style.position]="'absolute'" [style.top]="supplierPopupPosition.top"
-    [style.left]="supplierPopupPosition.left" [style.zIndex]="1000" [style.width]="'500px'"></app-tabulator-popup>
+<!-- Removed tabulator-popup - using single select editor instead -->
 
 <app-project-partlist-price-request-form *ngIf="showDetailModal" [dataInput]="modalData"
     (formSubmitted)="OnFormSubmit()" (closeModal)="showDetailModal = false">

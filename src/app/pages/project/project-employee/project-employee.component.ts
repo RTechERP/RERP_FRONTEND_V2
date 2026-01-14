@@ -41,6 +41,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { filter } from 'rxjs';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { AppUserService } from '../../../services/app-user.service';
 @Component({
   selector: 'app-project-employee',
   imports: [
@@ -87,6 +88,8 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
     { statusText: 'Đã xóa', ID: 1 },
   ];
   statusId = 0;
+  hasSavePermission: boolean = false; // Biến lưu quyền save
+  currentEmployeeId: number = 0; // EmployeeID của user hiện tại
 
   tb_employeeMain: any;
   tb_employeeSuggest: any;
@@ -99,8 +102,12 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    private viewContainerRef: ViewContainerRef
-  ) {}
+    private viewContainerRef: ViewContainerRef,
+    private appUserService: AppUserService
+  ) {
+    // Lấy employeeID của user hiện tại
+    this.currentEmployeeId = this.appUserService.employeeID || 0;
+  }
   //#endregion
 
   //#region hàm chạy khi mở chường trình
@@ -235,6 +242,31 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
       this.listIds = [];
       this.dataChange = false;
       this.projectIdOld = this.projectId;
+      // Kiểm tra quyền khi projectId thay đổi
+      this.checkSavePermission();
+    }
+  }
+
+  // Kiểm tra quyền save
+  checkSavePermission() {
+    if (this.projectId && this.projectId > 0 && this.currentEmployeeId >= 0) {
+      this.projectService.getEmployeePermission(this.projectId, this.currentEmployeeId).subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            // API trả về havePermission (có thể là true/false)
+            // Nhưng theo logic API, nếu có quyền thì trả về true
+            this.hasSavePermission = response.data === true || response.data === 1;
+          } else {
+            this.hasSavePermission = false;
+          }
+        },
+        error: (error: any) => {
+          console.error('Lỗi kiểm tra quyền:', error);
+          this.hasSavePermission = false;
+        }
+      });
+    } else {
+      this.hasSavePermission = false;
     }
   }
   //#endregion
@@ -628,6 +660,18 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
   //#region Lưu thông tin người tham gia
   saveProjectUser() {
+    // Kiểm tra quyền trước khi save
+    if (!this.hasSavePermission) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Bạn không có quyền lưu thông tin người tham gia dự án!',
+        {
+          nzStyle: { fontSize: '0.75rem' },
+        }
+      );
+      return;
+    }
+
     let dataEmployeeMain = this.tb_employeeMain
       .getData()
       .filter((row: any) => row['IsDeleted'] != true);

@@ -47,7 +47,7 @@ export class LoginComponent {
                 try {
                     const decoded: any = jwtDecode(this.token);
                 } catch (error) {
-                    console.error('Invalid token', error);
+                    // console.error('Invalid token', error);
                 }
                 this.router.navigate(['/home']);
             },

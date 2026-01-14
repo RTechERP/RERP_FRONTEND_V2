@@ -65,3 +65,21 @@
   overflow-x: hidden !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 } */
+
+/* Cho phép select text trong cell để copy */
+.tabulator-cell {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  cursor: text !important;
+}
+
+/* Style cho cell được highlight khi click */
+.tabulator-cell.cell-highlighted {
+  background-color: #b3d9ff !important;
+  outline: 2px solid #0066cc !important;
+  outline-offset: -1px !important;
+  position: relative;
+  z-index: 10;
+}

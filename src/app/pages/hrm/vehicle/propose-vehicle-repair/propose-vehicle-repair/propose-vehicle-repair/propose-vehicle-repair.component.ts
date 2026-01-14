@@ -18,33 +18,38 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import {
-  TabulatorFull as Tabulator,
-  CellComponent,
-  ColumnDefinition,
-  RowComponent,
-} from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 (window as any).luxon = { DateTime };
 declare var bootstrap: any;
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-//npm import { groupBy } from 'lodash';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { VehicleRepairService } from '../../../vehicle-repair/vehicle-repair-service/vehicle-repair.service';
-import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 import { VehicleManagementService } from '../../../vehicle-management/vehicle-management.service';
 import { ProposeVehicleRepairService } from '../propose-vehicle-repair-service/propose-vehicle-repair.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { AuthService } from '../../../../../../auth/auth.service';
 import { VehicleRepairHistoryService } from '../../vehicle-repair-history/vehicle-repair-history-service/vehicle-repair-history-service.service';
-import { VehicleRepairComponentFormComponent } from '../../../vehicle-repair/vehicle-repair-component-form/vehicle-repair-component-form.component';
 import { ProposeVehicleRepairFormComponent } from '../propose-vehicle-repair-form/propose-vehicle-repair-form.component';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../../../../services/permission.service';
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  GridOption,
+  OnClickEventArgs,
+  OnSelectedRowsChangedEventArgs
+} from 'angular-slickgrid';
+import { MultipleSelectOption } from '@slickgrid-universal/common';
+
 @Component({
   standalone: true,
   imports: [
@@ -69,9 +74,12 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
     NzTabsModule,
     NgbModalModule,
     NzModalModule,
+    Menubar,
+    AngularSlickgridModule,
+    NzFormModule,
+    NzSpinModule,
   ],
   selector: 'app-propose-vehicle-repair',
-
   templateUrl: './propose-vehicle-repair.component.html',
   styleUrl: './propose-vehicle-repair.component.css',
 })
@@ -82,26 +90,40 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
     private nzModal: NzModalService,
     private vehicleManagementService: VehicleManagementService,
     private authService: AuthService,
-    private vehicleRepairHistoryService: VehicleRepairHistoryService
-  ) {}
+    private vehicleRepairHistoryService: VehicleRepairHistoryService,
+    private permissionService: PermissionService,
+  ) { }
+
+  // SlickGrid instances
+  angularGrid!: AngularGridInstance;
+  angularGridDetail!: AngularGridInstance;
+  gridData: any;
+  gridDetailData: any;
+
+  // Column definitions
+  columnDefinitions: Column[] = [];
+  columnDefinitionsDetail: Column[] = [];
+
+  // Grid options
+  gridOptions: GridOption = {};
+  gridOptionsDetail: GridOption = {};
+
+  // Datasets
+  dataset: any[] = [];
+  datasetDetail: any[] = [];
+
   selectedDetailRow: any = null;
-  private detailCache = new Map<number, any[]>();
   dataInput: any = {};
-  vehicleRepairTable: Tabulator | null = null;
-  proposeDetailTable: Tabulator | null = null;
   proposeVehicleRepairDetailData: any[] = [];
   Size: number = 100000;
   Page: number = 1;
-  DateStart: Date = new Date(2000, 0, 1); // 2000-01-01
-  DateEnd: Date = new Date(2099, 0, 1); // 2099-01-01
+  DateStart: Date = new Date();
+  DateEnd: Date = new Date();
   EmployeeID: number = 0;
   TypeID: number = 0;
   FilterText: string = '';
   VehicleID: number = 0;
   selectedRow: any = null;
-  sizeTbDetail: any = '0';
-  isSearchVisible: boolean = false;
-  private debounceTimer: any;
   repairTypes: any[] = [];
   employeeList: any[] = [];
   vehicleList: any[] = [];
@@ -109,13 +131,45 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
   currentUser: any = [];
   private ngbModal = inject(NgbModal);
   employeeGroups: Array<{ department: string; items: any[] }> = [];
+  isLoading: boolean = false;
+  menuBars: any[] = [];
+
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
+
+  private getFirstDayOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  private getLastDayOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  }
+
   formatDate(value: string | null): string {
     if (!value) return '';
     return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
   }
+
   formatDateView(date: Date): string {
     return DateTime.fromJSDate(date).toFormat('dd/MM/yy');
   }
+
   formatCurrency(value: number | null): string {
     if (value == null) return '';
     return value.toLocaleString('vi-VN', {
@@ -123,55 +177,531 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       currency: 'VND',
     });
   }
+
   onEmployeeChange(value: any) {
     this.EmployeeID = value ?? 0;
+    this.loadData();
   }
+
+  onVehicleChange(value?: any) {
+    this.VehicleID = value ?? 0;
+    this.loadData();
+  }
+
+  onDateRangeChange() {
+    this.loadData();
+  }
+
+  onKeywordChange(value: string): void {
+    this.FilterText = value;
+  }
+
   private toIsoStart(d: Date) {
     const t = new Date(d);
     t.setHours(0, 0, 0, 0);
     return t.toISOString();
   }
+
   private toIsoEnd(d: Date) {
     const t = new Date(d);
     t.setHours(23, 59, 59, 999);
     return t.toISOString();
   }
+
   ngOnInit(): void {
-    const now = DateTime.now();
-    this.DateStart = now.startOf('month').toJSDate();
-    this.DateEnd = now.endOf('month').toJSDate();
+    this.DateStart = this.getFirstDayOfMonth();
+    this.DateEnd = this.getLastDayOfMonth();
+    this.initMenuBar();
+    this.initGrid();
+    this.initGridDetail();
   }
+
   ngAfterViewInit(): void {
-    this.drawTable();
-    // this.getRepairType();
+    this.loadData();
     this.getEmployee();
     this.getVehicle();
     this.getCurrentUser();
   }
-  toggleSearchPanel(): void {
-    this.isSearchVisible = !this.isSearchVisible;
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-circle-plus fa-lg text-success',
+        command: () => this.addProposeVehicleRepair(),
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-file-pen fa-lg text-primary',
+        command: () => this.editProposeVehicleRepair(),
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.deleteSelectedProposals(),
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportToExcelProduct(),
+      },
+      {
+        label: 'Phê duyệt',
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        items: [
+          {
+            label: 'Phê duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.approveSelectedDetail(),
+          },
+          {
+            label: 'Hủy phê duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.unapproveSelectedDetail(),
+          },
+        ],
+      },
+      {
+        label: 'Refresh',
+        icon: 'fa-solid fa-rotate fa-lg text-primary',
+        command: () => this.loadData(),
+      },
+    ];
   }
+
+  initGrid() {
+    const formatDate = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        const dateValue = DateTime.fromISO(value);
+        return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
+      } catch (e) {
+        return value;
+      }
+    };
+
+    this.columnDefinitions = [
+      { id: 'STT', name: 'STT', field: 'STT', type: 'number', width: 60, sortable: true, cssClass: 'text-center' },
+      { id: 'ID', name: 'ID', field: 'ID', type: 'number', width: 60, hidden: true },
+      {
+        id: 'VehicleName',
+        name: 'Tên xe',
+        field: 'VehicleName',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'LicensePlate',
+        name: 'Biển số xe',
+        field: 'LicensePlate',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Reason',
+        name: 'Lý do sửa chữa',
+        field: 'Reason',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.Reason}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+      },
+      {
+        id: 'RepairTypeName',
+        name: 'Loại sửa chữa',
+        field: 'RepairTypeName',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'DriverName',
+        name: 'Tên lái xe',
+        field: 'DriverName',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'EmployeeRepairName',
+        name: 'Người sửa chữa',
+        field: 'EmployeeRepairName',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'TimeStartRepair',
+        name: 'Thời gian bắt đầu',
+        field: 'TimeStartRepair',
+        width: 160,
+        sortable: true,
+        cssClass: 'text-center',
+        formatter: formatDate,
+        filterable: true,
+        filter: { model: Filters['compoundDate'] },
+      },
+      {
+        id: 'TimeEndRepair',
+        name: 'Thời gian kết thúc',
+        field: 'TimeEndRepair',
+        width: 160,
+        sortable: true,
+        cssClass: 'text-center',
+        formatter: formatDate,
+        filterable: true,
+        filter: { model: Filters['compoundDate'] },
+      },
+      {
+        id: 'KmPreviousPeriod',
+        name: 'Km kỳ trước',
+        field: 'KmPreviousPeriod',
+        width: 120,
+        sortable: true,
+        cssClass: 'text-right',
+        type: 'number',
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      {
+        id: 'KmCurrentPeriod',
+        name: 'Km kỳ này',
+        field: 'KmCurrentPeriod',
+        width: 120,
+        sortable: true,
+        cssClass: 'text-right',
+        type: 'number',
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      {
+        id: 'KMDifference',
+        name: 'Km chênh lệch',
+        field: 'KmDifference',
+        width: 120,
+        sortable: true,
+        cssClass: 'text-right',
+        type: 'number',
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      {
+        id: 'Note',
+        name: 'Ghi chú',
+        field: 'Note',
+        width: 300,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.Note}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+      },
+    ];
+
+    this.gridOptions = {
+      autoResize: {
+        container: '#grid-container-propose-vehicle',
+        calculateAvailableSizeBy: 'container',
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      forceFitColumns: false,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false,
+      },
+      checkboxSelector: {
+        hideInFilterHeaderRow: false,
+        hideInColumnTitleRow: false,
+        applySelectOnAllPages: true,
+      },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+    };
+  }
+
+  initGridDetail() {
+    const checkboxFormatter = (row: number, cell: number, value: any) => {
+      const v = Number(value);
+      if (v === 1) {
+        return `<input type="checkbox" checked onclick="return false;" />`;
+      } else if (v === 2) {
+        return `<span style="color: #dc3545; font-weight: bold; font-size: 14px;">X</span>`;
+      } else {
+        return `<input type="checkbox" onclick="return false;" />`;
+      }
+    };
+
+    const moneyFormatter = (row: number, cell: number, value: any) => {
+      if (value == null) return '';
+      return Number(value).toLocaleString('vi-VN') + 'đ';
+    };
+
+    this.columnDefinitionsDetail = [
+      { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true, cssClass: 'text-center' },
+      {
+        id: 'IsApprove',
+        name: 'Phê duyệt',
+        field: 'IsApprove',
+        width: 100,
+        sortable: true,
+        cssClass: 'text-center',
+        formatter: checkboxFormatter,
+      },
+      { id: 'ApproveName', name: 'Người duyệt', field: 'ApproveName', width: 120, sortable: true },
+      { id: 'GaraName', name: 'Tên NCC', field: 'GaraName', width: 200, sortable: true },
+      { id: 'AddressGara', name: 'Địa chỉ NCC', field: 'AddressGara', width: 250, sortable: true },
+      { id: 'SDTGara', name: 'SĐT NCC', field: 'SDTGara', width: 150, sortable: true },
+      {
+        id: 'Quantity',
+        name: 'Số lượng',
+        field: 'Quantity',
+        width: 100,
+        sortable: true,
+        cssClass: 'text-right',
+      },
+      { id: 'Unit', name: 'Đơn vị', field: 'Unit', width: 100, sortable: true },
+      {
+        id: 'UnitPrice',
+        name: 'Đơn giá',
+        field: 'UnitPrice',
+        width: 120,
+        sortable: true,
+        cssClass: 'text-right',
+        formatter: moneyFormatter,
+      },
+      {
+        id: 'TotalPrice',
+        name: 'Thành tiền',
+        field: 'TotalPrice',
+        width: 120,
+        sortable: true,
+        cssClass: 'text-right',
+        formatter: moneyFormatter,
+      },
+      {
+        id: 'WarrantyPeriod',
+        name: 'Bảo hành (tháng)',
+        field: 'WarrantyPeriod',
+        width: 120,
+        sortable: true,
+        cssClass: 'text-right',
+        formatter: (row: number, cell: number, value: any) => {
+          if (value == null || value === 0) return '';
+          return Number(value).toLocaleString('vi-VN') + ' tháng';
+        },
+      },
+      { id: 'Note', name: 'Ghi chú', field: 'Note', width: 250, sortable: true },
+    ];
+
+    this.gridOptionsDetail = {
+      autoResize: {
+        container: '#grid-container-propose-vehicle-detail',
+        calculateAvailableSizeBy: 'container',
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      forceFitColumns: false,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false,
+      },
+      checkboxSelector: {
+        hideInFilterHeaderRow: false,
+        hideInColumnTitleRow: false,
+        applySelectOnAllPages: true,
+      },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: false,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+    };
+  }
+
+  // SlickGrid event handlers
+  angularGridReady(angularGrid: AngularGridInstance) {
+    this.angularGrid = angularGrid;
+    this.gridData = angularGrid?.slickGrid || {};
+  }
+
+  angularGridDetailReady(angularGrid: AngularGridInstance) {
+    this.angularGridDetail = angularGrid;
+    this.gridDetailData = angularGrid?.slickGrid || {};
+  }
+
+  onCellClicked(e: any, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item) {
+      this.selectedRow = item;
+      const id = item['ID'];
+      this.proposeVehicleRepairService.getProposeVehicleRepairDetail(id).subscribe((res) => {
+        const details = res?.data?.dataList || [];
+        this.proposeVehicleRepairDetailData = details;
+        this.datasetDetail = details.map((d: any, index: number) => ({
+          ...d,
+          id: d.ID || index,
+          STT: index + 1,
+        }));
+      });
+    }
+  }
+
+  onCellDetailClicked(e: any, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item) {
+      this.selectedDetailRow = item;
+    }
+  }
+
+  handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
+    if (args && args.rows && args.rows.length > 0) {
+      const selectedRow = this.gridData.getDataItem(args.rows[0]);
+      this.selectedRow = selectedRow;
+    }
+  }
+
+  loadData(): void {
+    const request = {
+      size: this.Size,
+      page: this.Page,
+      dateStart: this.toIsoStart(this.DateStart),
+      dateEnd: this.toIsoEnd(this.DateEnd),
+      filterText: this.FilterText,
+      employeeID: this.EmployeeID,
+      vehicleID: this.VehicleID,
+      typeID: this.TypeID,
+    };
+
+    this.isLoading = true;
+    this.proposeVehicleRepairService.getProposeVehicleRepair(request).subscribe({
+      next: (response: any) => {
+        const data = response?.data?.propose || [];
+        this.dataset = data.map((item: any, index: number) => ({
+          ...item,
+          id: item.ID,
+          STT: index + 1,
+        }));
+        setTimeout(() => {
+          this.applyDistinctFilters();
+        }, 100);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Lỗi khi lấy dữ liệu:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
+      },
+    });
+  }
+
+  applyDistinctFilters(): void {
+    if (!this.angularGrid?.slickGrid) return;
+
+    const fieldsToFilter = ['VehicleName', 'LicensePlate', 'RepairTypeName', 'DriverName', 'EmployeeRepairName'];
+
+    // Lấy tất cả columns hiện tại từ grid (bao gồm cả checkbox selector column)
+    const currentColumns = this.angularGrid.slickGrid.getColumns();
+
+    fieldsToFilter.forEach((field) => {
+      // Tìm trong columnDefinitions để update
+      const defIndex = this.columnDefinitions.findIndex((c) => c.field === field);
+      // Tìm trong currentColumns để update
+      const colIndex = currentColumns.findIndex((c: any) => c.field === field);
+
+      if (defIndex >= 0) {
+        const distinctValues = [...new Set(this.dataset.map((item) => item[field]).filter((v) => v))];
+        const collection = distinctValues.map((val) => ({ value: val, label: val }));
+        const filterConfig = {
+          model: Filters['multipleSelect'],
+          collection: collection,
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        };
+
+        // Update trong columnDefinitions
+        this.columnDefinitions[defIndex].filter = filterConfig;
+
+        // Update trong currentColumns nếu tìm thấy
+        if (colIndex >= 0) {
+          currentColumns[colIndex].filter = filterConfig;
+        }
+      }
+    });
+
+    // Set lại columns đã có checkbox selector
+    this.angularGrid.slickGrid.setColumns(currentColumns);
+  }
+
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
       this.currentUser = res.data;
-      console.log('CurentUser:', this.currentUser);
     });
   }
-  getRepairType() {
-    this.proposeVehicleRepairService
-      .getProposeVehicleRepairDetail(1)
-      .subscribe((res) => {
-        this.repairTypes = res.data || [];
-        console.log('res', res);
-        console.log('repairTypes', this.repairTypes);
-      });
-  }
+
   getVehicle() {
     this.vehicleManagementService.getVehicleManagement().subscribe((res) => {
       var list: any = res.data || [];
       this.vehicleList = list.filter((x: any) => x.VehicleCategoryID === 1);
-      console.log('res', res);
-      console.log('vehicleList', this.vehicleList);
     });
   }
 
@@ -188,238 +718,25 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
         map.get(dept)!.push(emp);
       }
 
-      // sort nhóm theo tên phòng ban, và sort nhân viên theo Code
       this.employeeGroups = Array.from(map.entries())
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([department, items]) => ({
           department,
-          items: items.sort((x, y) =>
-            String(x.Code).localeCompare(String(y.Code))
-          ),
+          items: items.sort((x, y) => String(x.Code).localeCompare(String(y.Code))),
         }));
-
-      console.log('employeeGroups', this.employeeGroups);
     });
   }
-  drawTable() {
-    this.vehicleRepairTable = new Tabulator('#proposeVehicleRepair', {
-      ...DEFAULT_TABLE_CONFIG,
-      selectableRows: true,
-      groupBy: 'VehicleName',
 
-      ajaxURL: this.proposeVehicleRepairService.getProposeVehicleRepairAjax(),
-      ajaxConfig: 'POST',
-      ajaxRequestFunc: (url, config, params) => {
-        const request = {
-          size: params.size || 50,
-          page: params.page || 1,
-          dateStart: this.toIsoStart(this.DateStart),
-          dateEnd: this.toIsoEnd(this.DateEnd),
-          filterText: this.FilterText,
-          employeeID: this.EmployeeID,
-          vehicleID: this.VehicleID,
-          typeID: this.TypeID,
-        };
-        return this.proposeVehicleRepairService
-          .getProposeVehicleRepair(request)
-          .toPromise();
-      },
-      ajaxResponse: (url, params, response) => {
-        console.log('response', response);
-        return {
-          data: response.data.propose || [],
-          last_page: response.data.TotalPage?.[0]?.TotalPage || 1,
-        };
-      },
-      columns: [
-        {
-          title: 'STT',
-          field: 'STT',
-          width: 70,
-          hozAlign: 'center',
-          frozen: true,
-        },
-        {
-          title: 'ID',
-          field: 'ID',
-          width: 90,
-          hozAlign: 'center',
-          visible: false,
-          frozen: true,
-        },
-        {
-          title: 'Tên xe',
-          field: 'VehicleName',
-          minWidth: 200,
-          hozAlign: 'left',
-          frozen: true,
-        },
-        {
-          title: 'Biển số xe',
-          field: 'LicensePlate',
-          minWidth: 200,
-          hozAlign: 'left',
-          frozen: true,
-        },
-        {
-          title: 'Lý do sửa chữa',
-          field: 'Reason',
-          minWidth: 200,
-          hozAlign: 'left',
-        },
-        {
-          title: 'Loại sửa chữa',
-          field: 'RepairTypeName',
-          minWidth: 150,
-          hozAlign: 'left',
-        },
-        {
-          title: 'Tên lái xe',
-          field: 'DriverName',
-          minWidth: 150,
-          hozAlign: 'left',
-        },
-        {
-          title: 'Người sửa chữa',
-          field: 'EmployeeRepairName',
-          minWidth: 150,
-          hozAlign: 'left',
-        },
-        {
-          title: 'Thời gian bắt đầu',
-          field: 'TimeStartRepair',
-          minWidth: 180,
-          hozAlign: 'center',
-          formatter: (cell) => this.formatDate(cell.getValue()),
-        },
-        {
-          title: 'Thời gian kết thúc',
-          field: 'TimeEndRepair',
-          minWidth: 180,
-          hozAlign: 'center',
-          formatter: (cell) => this.formatDate(cell.getValue()),
-        },
-        { title: 'Ghi chú', field: 'Note', minWidth: 350, hozAlign: 'left' },
-      ],
-    });
-    this.vehicleRepairTable.on('rowDblClick', (e: any, row: any) => {
-      this.selectedRow = row.getData();
-      this.editProposeVehicleRepair();
-    });
-    this.vehicleRepairTable.on('rowClick', (evt, row: RowComponent) => {
-      const rowData = row.getData();
-      const ID = rowData['ID'];
-      this.proposeVehicleRepairService
-        .getProposeVehicleRepairDetail(ID)
-        .subscribe((respon) => {
-          this.proposeVehicleRepairDetailData = respon.data.dataList;
-          console.log('responseđw', respon);
-          console.log(
-            'proposeVehicleRepairDetailData',
-            this.proposeVehicleRepairDetailData
-          );
-          this.drawTableDetail();
-        });
-    });
-    this.vehicleRepairTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
-      this.selectedRow = row.getData();
-      this.sizeTbDetail = null;
-    });
-  }
-  drawTableDetail() {
-    if (this.proposeDetailTable) {
-      this.proposeDetailTable.setData(this.proposeVehicleRepairDetailData);
-    } else {
-      this.proposeDetailTable = new Tabulator('#proposeVehicleRepairDetail', {
-        data: this.proposeVehicleRepairDetailData,
-
-        selectableRows: 1,
-        paginationMode: 'local',
-        columns: [
-          { title: 'STT', field: 'STT', hozAlign: 'center', width: 60 },
-          {
-            title: 'Phê duyệt',
-            field: 'IsApprove',
-            formatter: (cell: any) => {
-              const value = Number(cell.getValue());
-              if (value === 1) {
-                return `<input type="checkbox" checked onclick="return false;" />`;
-              } else if (value === 2) {
-                return `<i class="fas fa-times" style="color: red;"></i>`;
-              } else {
-                return `<input type="checkbox" onclick="return false;" />`;
-              }
-            },
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-          },
-          { title: 'Người duyệt', field: 'ApproveName', width: 120 },
-          {
-            title: 'Ngày phê duyệt',
-            field: 'DateApprove',
-            width: 120,
-            visible: false,
-          },
-          { title: 'Tên NCC', field: 'GaraName', width: 200 },
-          { title: 'Địa chỉ NCC', field: 'AddressGara', width: 250 },
-          { title: 'SĐT NCC', field: 'SDTGara', width: 150 },
-          {
-            title: 'Số lượng',
-            field: 'Quantity',
-            hozAlign: 'right',
-            width: 100,
-          },
-          { title: 'Đơn vị', field: 'Unit', width: 100 },
-          {
-            title: 'Đơn giá',
-            field: 'UnitPrice',
-            hozAlign: 'right',
-            formatter: 'money',
-            width: 120,
-            formatterParams: {
-              decimal: ',',
-              thousand: '.',
-              symbol: 'đ',
-              symbolAfter: true,
-              precision: 0,
-            },
-          },
-          {
-            title: 'Thành tiền',
-            field: 'TotalPrice',
-            hozAlign: 'right',
-            formatter: 'money',
-            width: 120,
-            formatterParams: {
-              decimal: ',',
-              thousand: '.',
-              symbol: 'đ',
-              symbolAfter: true,
-              precision: 0,
-            },
-          },
-          { title: 'Ghi chú', field: 'Note', width: 250 },
-        ],
-      });
-
-      this.proposeDetailTable.on('rowClick', (_e, row) => {
-        this.selectedDetailRow = row.getData();
-      });
-    }
-  }
-  searchData(): void {
-    this.vehicleRepairTable?.setData();
-  }
   resetFilters(): void {
-    const now = DateTime.now();
+    this.DateStart = this.getFirstDayOfMonth();
+    this.DateEnd = this.getLastDayOfMonth();
     this.TypeID = 0;
     this.EmployeeID = 0;
     this.VehicleID = 0;
     this.FilterText = '';
-    this.DateStart = now.startOf('month').toJSDate();
-    this.DateEnd = now.endOf('month').toJSDate();
-    this.searchData();
+    this.loadData();
   }
+
   addProposeVehicleRepair() {
     const modalRef = this.ngbModal.open(ProposeVehicleRepairFormComponent, {
       size: 'xl',
@@ -427,23 +744,27 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       keyboard: false,
       centered: true,
     });
-    //     modalRef.componentInstance.dataInput =null;
     modalRef.result.then(
       (result) => {
-        this.vehicleRepairTable?.setData();
+        this.loadData();
       },
       (dismissed) => {
         console.log('Modal dismissed');
       }
     );
   }
+
   getSelectedIds(): number[] {
-    if (this.vehicleRepairTable) {
-      const selectedRows = this.vehicleRepairTable.getSelectedData();
-      return selectedRows.map((row: any) => row.ID);
+    if (this.angularGrid && this.angularGrid.gridService) {
+      const selectedRows = this.angularGrid.gridService.getSelectedRows();
+      return selectedRows.map((index: number) => {
+        const item = this.gridData.getDataItem(index);
+        return item.ID;
+      });
     }
     return [];
   }
+
   deleteSelectedProposals() {
     const ids = this.getSelectedIds();
     if (!ids.length) {
@@ -488,7 +809,6 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
         nzOkType: 'primary',
         nzOkDanger: true,
         nzCancelText: 'Hủy',
-        // Trả Promise để hiển thị trạng thái đang xử lý trong modal
         nzOnOk: () => {
           const calls = allowed.map((id) => {
             const payload = {
@@ -500,9 +820,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
                 ok: res?.status === 1,
                 msg: res?.message,
               })),
-              catchError((err) =>
-                of({ id, ok: false, msg: err?.message || 'Lỗi không xác định' })
-              )
+              catchError((err) => of({ id, ok: false, msg: err?.message || 'Lỗi không xác định' }))
             );
           });
 
@@ -515,20 +833,13 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
               const fail = results.filter((r) => !r.ok).map((r) => r.id);
 
               if (okCount) {
-                this.notification.success(
-                  'Thành công',
-                  `Đã xóa ${okCount}/${allowed.length} đề xuất.`
-                );
+                this.notification.success('Thành công', `Đã xóa ${okCount}/${allowed.length} đề xuất.`);
               }
               if (fail.length) {
-                this.notification.warning(
-                  'Cảnh báo',
-                  `Không xóa được ID: ${fail.join(', ')}`
-                );
+                this.notification.warning('Cảnh báo', `Không xóa được ID: ${fail.join(', ')}`);
               }
 
-              this.vehicleRepairTable?.deselectRow();
-              this.vehicleRepairTable?.setData();
+              this.loadData();
             });
         },
       });
@@ -536,13 +847,14 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
   }
 
   editProposeVehicleRepair() {
-    const sel = this.vehicleRepairTable?.getSelectedData() || [];
-    if (!sel.length) {
+    const selectedRows = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selectedData = selectedRows.map((index: number) => this.gridData.getDataItem(index));
+
+    if (!selectedData || selectedData.length === 0) {
       this.notification.warning('Thông báo', 'Chọn một dòng để sửa');
       return;
     }
-    const rowData = { ...sel[0] };
-    const details = this.detailCache.get(rowData.ID) || null;
+    const rowData = { ...selectedData[0] };
 
     const modalRef = this.ngbModal.open(ProposeVehicleRepairFormComponent, {
       size: 'xl',
@@ -551,49 +863,36 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       centered: true,
     });
     modalRef.componentInstance.dataInput = rowData;
-    modalRef.componentInstance.prefetchedDetails = details;
 
     modalRef.result.then(
-      () => this.vehicleRepairTable?.setData(),
-      () => {}
+      () => this.loadData(),
+      () => { }
     );
   }
+
   async exportToExcelProduct() {
-    if (!this.vehicleRepairTable) return;
-    const selectedData = this.vehicleRepairTable?.getData();
-    if (!selectedData || selectedData.length === 0) {
+    if (!this.dataset || this.dataset.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
       return;
     }
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách sửa chữa');
-    const columns = this.vehicleRepairTable
-      .getColumnDefinitions()
-      .filter(
-        (col: any) =>
-          col.visible !== false && col.field && col.field.trim() !== ''
-      );
-    const headerRow = worksheet.addRow(
-      columns.map((col) => col.title || col.field)
-    );
+    const columns = this.columnDefinitions.filter((col: any) => col.hidden !== true && col.field && col.field.trim() !== '');
+    const headerRow = worksheet.addRow(columns.map((col) => col.name || col.field));
     headerRow.font = { bold: true };
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
       fgColor: { argb: 'FFE0E0E0' },
     };
-    selectedData.forEach((row: any) => {
+    this.dataset.forEach((row: any) => {
       const rowData = columns.map((col: any) => {
         const value = row[col.field];
-        switch (col.field) {
-          case 'BorrowCustomer':
-            return value ? 'Có' : 'Không';
-          case 'CreateDate':
-            return value ? new Date(value).toLocaleDateString('vi-VN') : '';
-          default:
-            return value !== null && value !== undefined ? value : '';
+        if (col.field === 'TimeStartRepair' || col.field === 'TimeEndRepair') {
+          return value ? new Date(value).toLocaleDateString('vi-VN') : '';
         }
+        return value !== null && value !== undefined ? value : '';
       });
       worksheet.addRow(rowData);
     });
@@ -619,93 +918,32 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
     });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `danh-sach-sua-chua-${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    link.download = `danh-sach-sua-chua-${new Date().toISOString().split('T')[0]}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
   }
+
   private hasOtherApproved(detailId: number): boolean {
     return this.proposeVehicleRepairDetailData.some((x) => {
-      const ok =
-        x.IsApprove === true ||
-        x.IsApprove === 1 ||
-        x.IsApprove === '1' ||
-        x.IsApprove === 'true';
+      const ok = x.IsApprove === true || x.IsApprove === 1 || x.IsApprove === '1' || x.IsApprove === 'true';
       return ok && x.ID !== detailId;
     });
   }
-  // approveSelectedDetail() {
-  //   if (!this.selectedDetailRow) {
-  //     this.notification.warning('Cảnh báo', 'Chọn một dòng chi tiết để phê duyệt');
-  //     return;
-  //   }
-  //   if (!this.currentUser?.EmployeeID) {
-  //     this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được thông tin người dùng hiện tại');
-  //     return;
-  //   }
 
-  //   const detailId = this.selectedDetailRow.ID;
-  //   const alreadyApproved = this.selectedDetailRow.IsApprove === true || this.selectedDetailRow.IsApprove === 1;
-  //   if (alreadyApproved) {
-  //     this.notification.info('Thông báo', 'Dòng này đã được phê duyệt');
-  //     return;
-  //   }
-  //   if (this.hasOtherApproved(detailId)) {
-  //     this.notification.warning('Cảnh báo', 'Đã có 1 mục được duyệt. Hãy hủy duyệt mục đó trước');
-  //     return;
-  //   }
-
-  // const payloadApprove = [
-  //   {
-  //     ID: detailId,
-  //     IsApprove: 1,
-  //     ApproveID: this.currentUser?.EmployeeID || 0
-  //   }
-  // ];
-  // console.log("payloadApporve",payloadApprove);
-  //   this.nzModal.confirm({
-  //     nzTitle: 'Xác nhận phê duyệt',
-  //     nzContent: `Phê duyệt mục chi tiết #${detailId}?`,
-  //     nzOkText: 'Phê duyệt',
-  //     nzCancelText: 'Hủy',
-  //     nzOnOk: () =>
-  //       this.proposeVehicleRepairService.saveApprove(payloadApprove).toPromise().then((res: any) => {
-  //         if (res?.status === 1) {
-  //           this.notification.success('Thành công', 'Đã phê duyệt');
-  //           const masterId = this.selectedRow?.ID;
-  //           if (masterId) {
-  //             this.proposeVehicleRepairService.getProposeVehicleRepairDetail(masterId).subscribe(r => {
-  //               this.proposeVehicleRepairDetailData = r.data.dataList || [];
-  //               this.proposeDetailTable?.setData(this.proposeVehicleRepairDetailData);
-  //             });
-  //           }
-  //         } else {
-  //           this.notification.warning('Cảnh báo', res?.error.message || 'Không phê duyệt được');
-  //         }
-  //       })
-  //   });
-  // }
   approveSelectedDetail() {
     if (!this.selectedDetailRow) {
-      this.notification.warning(
-        'Cảnh báo',
-        'Chọn một dòng chi tiết để phê duyệt'
-      );
+      this.notification.warning('Cảnh báo', 'Chọn một dòng chi tiết để phê duyệt');
       return;
     }
     if (!this.currentUser?.EmployeeID) {
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        'Không lấy được thông tin người dùng hiện tại'
-      );
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được thông tin người dùng hiện tại');
       return;
     }
 
     const detail = this.selectedDetailRow;
-    const master = this.selectedRow; // dòng master đang chọn
+    const master = this.selectedRow;
     const detailId = detail.ID;
     const detailNCC = detail.GaraName;
     const alreadyApproved = detail.IsApprove === true || detail.IsApprove === 1;
@@ -714,10 +952,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       return;
     }
     if (this.hasOtherApproved(detailId)) {
-      this.notification.warning(
-        'Cảnh báo',
-        'Đã có 1 mục được duyệt. Hãy hủy duyệt mục đó trước'
-      );
+      this.notification.warning('Cảnh báo', 'Đã có 1 mục được duyệt. Hãy hủy duyệt mục đó trước');
       return;
     }
 
@@ -737,39 +972,32 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       nzCancelText: 'Hủy',
       nzOnOk: async () => {
         try {
-          const res = await this.proposeVehicleRepairService
-            .saveApprove(payloadApprove)
-            .toPromise();
+          const res = await this.proposeVehicleRepairService.saveApprove(payloadApprove).toPromise();
           if (res?.status !== 1) {
-            this.notification.warning(
-              'Cảnh báo',
-              res?.error?.message || 'Không phê duyệt được'
-            );
+            this.notification.warning('Cảnh báo', res?.error?.message || 'Không phê duyệt được');
             return;
           }
 
-          // 1) refresh detail list UI
           if (master?.ID) {
-            const r = await this.proposeVehicleRepairService
-              .getProposeVehicleRepairDetail(master.ID)
-              .toPromise();
+            const r = await this.proposeVehicleRepairService.getProposeVehicleRepairDetail(master.ID).toPromise();
             this.proposeVehicleRepairDetailData = r?.data?.dataList || [];
-            this.proposeDetailTable?.setData(
-              this.proposeVehicleRepairDetailData
-            );
+            this.datasetDetail = this.proposeVehicleRepairDetailData.map((d: any, index: number) => ({
+              ...d,
+              id: d.ID || index,
+              STT: index + 1,
+            }));
           }
 
-          // 2) build DTO vớt sang theo dõi
           const dto = {
             vehicleRepairHistory: {
               ID: 0,
-              STT: detail.STT, // server sẽ tự set nếu cần
+              STT: detail.STT,
               VehicleManagementID: master?.VehicleManagementID ?? 0,
               ProposeVehicleRepairID: master?.ID ?? 0,
               ProposeVehicleRepairDetailID: detail?.ID ?? 0,
               VehicleRepairTypeID: master?.VehicleRepairTypeID ?? null,
               ApproveID: this.currentUser.EmployeeID,
-              DateReport: master?.DatePropose || null, // "2025-10-29T00:00:00" OK
+              DateReport: master?.DatePropose || null,
               TimeStartRepair: master?.TimeStartRepair || null,
               TimeEndRepair: master?.TimeEndRepair || null,
               Reason: master?.Reason || '',
@@ -782,11 +1010,12 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
               Quantity: detail?.Quantity ?? 0,
               UnitPrice: detail?.UnitPrice ?? 0,
               DateApprove: detail?.DateApprove || new Date().toISOString(),
-              TotalPrice:
-                detail?.TotalPrice ??
-                (detail?.Quantity ?? 0) * (detail?.UnitPrice ?? 0),
+              TotalPrice: detail?.TotalPrice ?? (detail?.Quantity ?? 0) * (detail?.UnitPrice ?? 0),
               Note: detail?.Note || '',
-              CreatedDate: new Date().toISOString(), // server có thể override
+              KmPreviousPeriod: master?.KmPreviousPeriod ?? null,
+              KmCurrentPeriod: master?.KmCurrentPeriod ?? null,
+              WarrantyPeriod: detail?.WarrantyPeriod ?? null,
+              CreatedDate: new Date().toISOString(),
               CreatedBy: this.currentUser?.LoginName || null,
               UpdatedDate: null,
               UpdatedBy: null,
@@ -794,46 +1023,28 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
             },
             vehicleRepairHistoryFiles: [],
           };
-          const saveRes = await this.vehicleRepairHistoryService
-            .saveData(dto)
-            .toPromise();
+          const saveRes = await this.vehicleRepairHistoryService.saveData(dto).toPromise();
           if (saveRes?.status === 1) {
-            this.notification.success(
-              'Thành công',
-              'Đã phê duyệt và lưu theo dõi'
-            );
+            this.notification.success('Thành công', 'Đã phê duyệt và lưu theo dõi');
           } else {
-            this.notification.warning(
-              'Cảnh báo',
-              saveRes?.error.message || 'Lưu theo dõi thất bại'
-            );
+            this.notification.warning('Cảnh báo', saveRes?.error.message || 'Lưu theo dõi thất bại');
           }
         } catch (err: any) {
-          this.notification.error(
-            NOTIFICATION_TITLE.error,
-            err?.error?.message || 'Có lỗi khi phê duyệt/lưu theo dõi'
-          );
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Có lỗi khi phê duyệt/lưu theo dõi');
         }
       },
     });
   }
+
   unapproveSelectedDetail() {
     if (!this.selectedDetailRow) {
-      this.notification.warning(
-        'Cảnh báo',
-        'Chọn một dòng chi tiết để hủy duyệt'
-      );
+      this.notification.warning('Cảnh báo', 'Chọn một dòng chi tiết để hủy duyệt');
       return;
     }
     const detailId = this.selectedDetailRow.ID;
-    const isApproved =
-      this.selectedDetailRow.IsApprove === true ||
-      this.selectedDetailRow.IsApprove === 1;
+    const isApproved = this.selectedDetailRow.IsApprove === true || this.selectedDetailRow.IsApprove === 1;
     if (!isApproved) {
-      this.notification.info(
-        'Thông báo',
-        'Dòng này đang ở trạng thái chưa duyệt'
-      );
+      this.notification.info('Thông báo', 'Dòng này đang ở trạng thái chưa duyệt');
       return;
     }
     const payload = [
@@ -860,23 +1071,19 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
               this.notification.success('Thành công', 'Đã hủy duyệt');
               const masterId = this.selectedRow?.ID;
               if (masterId) {
-                this.proposeVehicleRepairService
-                  .getProposeVehicleRepairDetail(masterId)
-                  .subscribe((r) => {
-                    this.proposeVehicleRepairDetailData = r.data.dataList || [];
-                    this.proposeDetailTable?.setData(
-                      this.proposeVehicleRepairDetailData
-                    );
-                  });
+                this.proposeVehicleRepairService.getProposeVehicleRepairDetail(masterId).subscribe((r) => {
+                  this.proposeVehicleRepairDetailData = r.data.dataList || [];
+                  this.datasetDetail = this.proposeVehicleRepairDetailData.map((d: any, index: number) => ({
+                    ...d,
+                    id: d.ID || index,
+                    STT: index + 1,
+                  }));
+                });
               }
             } else {
-              this.notification.warning(
-                'Cảnh báo',
-                res?.message || 'Không hủy duyệt được'
-              );
+              this.notification.warning('Cảnh báo', res?.message || 'Không hủy duyệt được');
             }
           }),
     });
   }
 }
-

@@ -119,7 +119,7 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
 
     this.loadDepartment();
     this.loadEmployee();
-    this.loadPOKHProducts(this.pokhId, 0);
+    this.loadPOKHProducts(this.pokhId);
   }
   ngAfterViewInit(): void {
     this.initDataTable();
@@ -127,8 +127,9 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
   closeModal(): void {
     this.activeModal.close();
   }
-  loadPOKHProducts(id: number = 0, idDetail: number = 0): void {
-    this.PoRequestBuyService.getPOKHProduct(id, idDetail).subscribe({
+
+  loadPOKHProducts(id: number = 0): void {
+    this.PoRequestBuyService.getPOKHProductForRequestBuy(id).subscribe({
       next: (response) => {
         if (response.status === 1) {
           const gridData = response.data;
@@ -239,8 +240,8 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       EmployeeID: this.selectedEmployee,
       ProductCode: row.ProductCode,
       ProductName: row.ProductName,
-      DateRequest: this.dateRequest,
-      DateReturnExpected: this.dateReturnExpected,
+      DateRequest: this.formatLocalDate(this.dateRequest),
+      DateReturnExpected: this.formatLocalDate(this.dateReturnExpected),
       Quantity: row.QuantityRequestRemain,
       Note: row.Note,
       ProductSaleID: row.ProductID,
@@ -254,7 +255,6 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       UnitName: row.Unit,
       DateReceive: row.DeliveryRequestedDate,
       ParentProductCode: row.ParentProductCode,
-
     }));
     this.PoRequestBuyService.saveData(requestData).subscribe({
       next: (res) => {
@@ -273,6 +273,8 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       },
     });
   }
+
+  
   initDataTable(): void {
     this.dataTable = new Tabulator(this.dataTableElement.nativeElement, {
       data: this.gridData,
@@ -353,33 +355,34 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
-          sorter: 'number',
-          width: 100,
+          sorter: 'string',
+          width: 200,
         },
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
-          sorter: 'number',
-          width: 100,
+          sorter: 'string',
+          width: 200,
         },
         {
           title: 'Tên sản phẩm',
           field: 'ProductName',
-          sorter: 'number',
-          width: 100,
+          sorter: 'string',
+          formatter: 'textarea',
+          width: 250,
         },
         { title: 'Hãng', field: 'Maker', sorter: 'number', width: 100 },
         {
           title: 'Mã theo khách',
           field: 'GuestCode',
-          sorter: 'number',
-          width: 100,
+          sorter: 'string',
+          width: 150,
         },
         {
           title: 'Mã cha',
           field: 'ParentProductCode',
-          sorter: 'number',
-          width: 100,
+          sorter: 'string',
+          width: 150,
         },
         { title: 'Số lượng PO', field: 'Qty', sorter: 'number', width: 100 },
         {
@@ -392,6 +395,7 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           title: 'SL yêu cầu',
           field: 'QuantityRequestRemain',
           sorter: 'number',
+          editor: 'number',
           width: 100,
         },
         {
@@ -462,53 +466,103 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           title: 'Người nhận',
           field: 'UserReceiver',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         {
           title: 'Ngày y/c giao hàng',
           field: 'DeliveryRequestedDate',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
         },
         {
           title: 'Ngày giao hàng thực tế',
           field: 'ActualDeliveryDate',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
         },
         {
           title: 'Thanh toán dự kiến',
           field: 'EstimatedPay',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         {
           title: 'Ngày tiền về',
           field: 'RecivedMoneyDate',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
         },
         {
           title: 'Ngày hóa đơn',
           field: 'BillDate',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
         },
         {
           title: 'Số hóa đơn',
           field: 'BillNumber',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
-        { title: 'Công nợ', field: 'Debt', sorter: 'number', width: 100 },
+        { title: 'Công nợ', field: 'Debt', sorter: 'number', width: 200 },
         {
           title: 'Ngày y/c thanh toán',
           field: 'PayDate',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
         },
-        { title: 'Nhóm', field: 'GroupPO', sorter: 'number', width: 100 },
-        { title: 'Ghi chú', field: 'Note', sorter: 'number', width: 100 },
+        { title: 'Nhóm', field: 'GroupPO', sorter: 'number', width: 200 },
+        { title: 'Ghi chú', field: 'Note', sorter: 'number', width: 250, formatter: 'textarea' },
       ],
     });
     // Lắng nghe sự kiện rowSelectionChanged để đồng bộ selectedRows
@@ -538,6 +592,19 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
     this.dataTable.deselectRow();
     this.selectedRows = [];
     console.log('All Deselected');
+  }
+
+  private formatLocalDate(date: Date | null): string | null {
+    if (!date) {
+      return null;
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   }
 
   private updateHeaderCheckbox(): void {

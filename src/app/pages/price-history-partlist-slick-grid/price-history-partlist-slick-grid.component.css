@@ -1,0 +1,184 @@
+/* Sticky toggle button styling */
+.sticky-toggle-btn {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.sticky-toggle-btn:hover {
+  background-color: #f0f0f0 !important;
+}
+
+.sticky-toggle-btn:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+  
+  .tabulator-cell {
+    padding: 0px;
+  }
+  
+  .inner-content {
+    padding: 0 !important;
+  }
+  
+  .ant-tabs-tab-btn {
+    font-size: 0.75rem;
+  }
+  .ant-splitter {
+    height: 92vh !important;
+  }
+
+  /* Fix for SlickGrid container height */
+  .grid-container {
+    height: 100% !important;
+    overflow: hidden;
+  }
+    .slick-viewport {
+    height: calc(100% - 35px) !important; /* Subtract header row height */
+  }
+
+  /* Ensure card body fills available space */
+  .card-body {
+    flex: 1 !important;
+    min-height: 0 !important;
+  }
+
+
+  .slickgrid-container {
+    height: 100% !important;
+  }
+  ::ng-deep #grid-container-price-history {
+    height: 86vh !important; /* Subtract header row height */
+  }
+
+  /* Danh sách options */
+::ng-deep .ms-drop.bottom .ms-list {
+  overflow-y: auto !important;
+}
+
+::ng-deep .ms-drop.bottom .ms-list li {
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+/* Label và checkbox */
+::ng-deep .ms-drop.bottom .ms-list li label {
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 12px !important;
+  width: 100% !important;
+  cursor: pointer !important;
+}
+
+/* Text của option - ellipsis cho text dài */
+::ng-deep .ms-drop.bottom .ms-list li label span {
+  flex: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+/* Checkbox container */
+::ng-deep .ms-drop.bottom .ms-list li label .icon-checkbox-container {
+  margin-right: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Select All */
+::ng-deep .ms-drop.bottom .ms-select-all {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  background-color: #fafafa !important;
+}
+
+/* ✅ Fix dropdown width - tham khảo từ project-slick-grid2 */
+::ng-deep .ms-drop.bottom {
+  width: auto !important;
+  min-width: 350px !important;  /* ✅ Tăng từ 200px lên 350px */
+  max-width: 600px !important;  /* ✅ Tăng từ 400px lên 600px */
+}
+
+/* ✅ Ô tìm kiếm - tham khảo từ project-slick-grid2 */
+::ng-deep .ms-drop.bottom .ms-search {
+  padding: 8px !important;
+  border-bottom: 1px solid #e8e8e8 !important;
+}
+
+/* Cell wrap for long text */
+::ng-deep .cell-wrap {
+  white-space: normal !important;
+  line-height: 1.4 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-wrap: break-word !important;
+  padding: 4px !important;
+}
+
+/* Đảm bảo row có thể mở rộng chiều cao khi wrap */
+::ng-deep .slick-row {
+  min-height: 35px !important;
+}
+
+/* Cho phép cell tự động mở rộng chiều cao */
+::ng-deep .slick-cell {
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+/* Cell wrap - tự động tăng chiều cao theo nội dung */
+::ng-deep .cell-wrap {
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  padding: 6px 4px !important;
+  vertical-align: top !important;
+  height: auto !important;
+  min-height: 35px !important;
+}
+
+/* Đảm bảo row height tự động điều chỉnh theo cell cao nhất */
+::ng-deep .slick-row .slick-cell.cell-wrap {
+  display: table-cell !important;
+  vertical-align: top !important;
+}
+
+::ng-deep .ms-drop.bottom .ms-select-all label {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  cursor: pointer !important;
+}
+/* Text alignment */
+::ng-deep .text-center {
+  text-align: center !important;
+}
+
+::ng-deep .text-end {
+  text-align: right !important;
+}
+/* Hide time picker in date filters */
+::ng-deep .vc-time {
+  display: none !important;
+}
+  ::ng-deep #grid-container-price-history {
+    height: 80vh !important; /* Subtract header row height */
+  }
+angular-slickgrid,
+.grvPriceHistory{
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
+}

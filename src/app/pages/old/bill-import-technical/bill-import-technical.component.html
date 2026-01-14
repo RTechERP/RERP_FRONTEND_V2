@@ -91,6 +91,11 @@
                             (click)="exportBillImportTechnicalExcel()">
                             <img alt="img" src="assets/icon/action_export_excel_16.png" /> Xuất Phiếu
                         </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="openCheckHistoryTech()">
+                            <nz-icon nzType="history" nzTheme="outline"></nz-icon>Lịch sử mượn NCC
+                        </button>
+            
                     </div>
                 </div>
 
@@ -102,12 +107,12 @@
                         <!-- bảng chi tiết -->
                         <ng-template #tabClose>
                             <button nz-button nzType="text" class="btn-close-panel" style="color: red;" (click)="closePanel()">
-                                <i nz-icon nzType="close"></i>  
+                                <i nz-icon nzType="close"></i>
                             </button>
                         </ng-template>
                         <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
                             <nz-tab [nzTitle]="tabDetailTitle">
-                                
+
                                 <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
                                     <div #billImportTechnicalDetailTableRef style="height: 100%; "></div>
                                 </nz-spin>

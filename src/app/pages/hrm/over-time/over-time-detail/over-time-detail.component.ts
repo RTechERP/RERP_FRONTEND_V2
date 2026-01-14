@@ -147,7 +147,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
   }
 
   loadApprover() {
-    this.employeeService.getEmployeeApprove().subscribe({
+    this.employeeService.getEmployeeApproved().subscribe({
       next: (data) => {
         this.approverList = data.data;
       },
@@ -416,19 +416,25 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
     const employeeOverTime = this.tabulator?.getData() || [];
     const data = this.searchForm.value;
     const formData = {
-      EmployeeOvertimes: employeeOverTime.map(item => ({
-        ID: item.ID || 0,
-        EmployeeID: data.employeeId,
-        ApprovedID: data.approverId,
-        DateRegister: data.dateRegister,
-        TimeStart: item.TimeStart,
-        EndTime: item.EndTime,
-        Location: item.Location,
-        Overnight: item.Overnight, // Use the value from the tabulator
-        TypeID: item.TypeID,
-        Reason: item.Reason,
-        ReasonHREdit: item.ReasonHREdit,
-      }))
+      EmployeeOvertimes: employeeOverTime.map(item => {
+        const isEdit = item.ID && item.ID > 0;
+        return {
+          ID: item.ID || 0,
+          EmployeeID: data.employeeId,
+          ApprovedID: data.approverId,
+          DateRegister: data.dateRegister,
+          TimeStart: item.TimeStart,
+          EndTime: item.EndTime,
+          Location: item.Location,
+          Overnight: item.Overnight,
+          TypeID: item.TypeID,
+          Reason: item.Reason,
+          ReasonHREdit: item.ReasonHREdit,
+          // Reset trạng thái duyệt khi sửa
+          IsApproved: isEdit ? false : undefined,
+          IsApprovedHR: isEdit ? false : undefined,
+        };
+      })
     }
     this.overTimeService.saveEmployeeOverTime(formData).subscribe({
       next: (response) => {
@@ -438,8 +444,6 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký làm thêm thất bại');
-        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký làm thêm thất bại');
-
       }
     })
   }

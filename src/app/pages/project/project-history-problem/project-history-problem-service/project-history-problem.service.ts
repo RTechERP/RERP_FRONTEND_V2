@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { DateTime } from 'luxon';
 import { environment } from '../../../../../environments/environment';
 
 @Injectable({
@@ -40,6 +41,17 @@ export class ProjectHistoryProblemService {
       params,
       responseType: 'blob',
     });
+  }
+
+  // Get project history problem by project and date
+  getProjectHistoryProblemByProject(projectID: number, dateProblem: Date): Observable<any> {
+    // Format date thành yyyy-MM-dd để so sánh đúng (chỉ so sánh ngày, không so sánh giờ phút giây)
+    const dateStr = DateTime.fromJSDate(dateProblem).toFormat('yyyy-MM-dd');
+    const params = new HttpParams()
+      .set('projectID', projectID.toString())
+      .set('dateProblem', dateStr);
+    
+    return this.http.get<any>(this._urlProjectHistoryProblem + 'add-problem', { params });
   }
 }
 

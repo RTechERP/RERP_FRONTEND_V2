@@ -3,7 +3,7 @@ import {
     provideZoneChangeDetection,
     importProvidersFrom,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, RouteReuseStrategy, withRouterConfig } from '@angular/router';
 import { routes } from './app.routes';
 import { icons } from './icons-provider';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
@@ -22,6 +22,8 @@ import Aura from '@primeuix/themes/aura'
 
 import { AngularSlickgridModule } from 'angular-slickgrid';
 import { TranslateModule } from '@ngx-translate/core';
+import { CustomRouteReuseStrategy } from './custom-route-reuse.strategy';
+import { ExcelExportService } from '@slickgrid-universal/common';
 
 registerLocaleData(vi);
 
@@ -41,7 +43,7 @@ export const appConfig: ApplicationConfig = {
                 preset: Aura,
                 options: {
                     prefix: 'p',
-                    // darkModeSelector: undefined,
+                    darkModeSelector: false,
                     cssLayer: false
                 }
 
@@ -52,16 +54,20 @@ export const appConfig: ApplicationConfig = {
             defaultLanguage: 'vi',
         })),
 
+        // { provide: RouteReuseStrategy, useClass: CustomRouteReuseStrategy },
+
+
+
     ],
 };
-export const APP_LOGIN_NAME = 'admin';
-export const EMPLOYEE_ID = 0;
-export const ISADMIN = true;
-export const USER_NAME = 'ADMINSW';
-export const HOST = 'https://localhost:7187/';
+// export const APP_LOGIN_NAME = 'admin';
+// export const EMPLOYEE_ID = 0;
+// export const ISADMIN = true;
+// export const USER_NAME = 'ADMINSW';
+// export const HOST = 'https://localhost:7187/';
 // export const HOST = 'http://10.20.29.65:8088/rerpapi/';
 // export const HOST = 'http://192.168.1.2:8088/api/';
-export const LOGIN_NAME = 'ADMINSW';
+// export const LOGIN_NAME = 'ADMINSW';
 export const SERVER_PATH = 'D:/LeTheAnh/RTC/UPLOADFILE/TrainingRegistration/';
 export const NOTIFICATION_TITLE = {
     error: 'Lỗi',
@@ -69,3 +75,4 @@ export const NOTIFICATION_TITLE = {
     warning: 'Thông báo',
 };
 export const ID_ADMIN_DEMO_LIST: number[] = [24, 1434, 88, 1534, 1700];
+export const USER_ALL_REPORT_TECH: number[]=[1,23,24,78,88,1221,1313,1434,1431,53,51,1534,1700];

@@ -132,15 +132,9 @@ export class RegisterIdeaService {
    * Upload file cho ý tưởng
    * @param registerId ID ý tưởng
    * @param employeeId ID nhân viên
-   * @param files Danh sách file
+   * @param formData FormData đã có key, subPath, và files
    */
-  uploadFile(registerId: number, employeeId: number, files: File[]): Observable<any> {
-    const formData = new FormData();
-    
-    files.forEach((file) => {
-      formData.append('files', file);
-    });
-
+  uploadFile(registerId: number, employeeId: number, formData: FormData): Observable<any> {
     let params = new HttpParams()
       .set('registerId', registerId.toString())
       .set('employeeId', employeeId.toString());

@@ -1,0 +1,150 @@
+
+.modal-body {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .card-header {
+    background-color: #f5f5f5 !important;
+  }
+  
+  .fs-7 {
+    font-size: 0.875rem;
+  }
+  
+  .fs-12 {
+    font-size: 0.75rem;
+  }
+  fieldset.reset {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+  }
+  
+  legend.reset {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #333;
+    width: auto;
+    padding: 0 8px;
+    margin-bottom: 0;
+    border: none;
+  }
+  
+  /* Tham khảo từ project.component.css - Style cho tab button */
+  :host ::ng-deep .ant-tabs-tab-btn {
+    font-size: 0.65rem !important; /* Giảm font-size xuống 0.65rem */
+  }
+  
+  /* Giảm kích thước tab - padding và height nhỏ hơn */
+  :host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab,
+  :host ::ng-deep .ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab {
+    padding: 2px 8px !important; /* Giảm padding xuống 2px 8px */
+    min-height: 24px !important; /* Giảm chiều cao tối thiểu xuống 24px */
+  }
+  
+  /* Override CSS global cho tab trong component này - Màu riêng cho daily-report-tech-detail */
+  :host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active,
+  :host ::ng-deep .ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab-active {
+    background-color: #3b82f6 !important; /* blue-500 - màu riêng cho component này */
+    border-color: #3b82f6 !important;
+    padding: 2px 8px !important; /* Giảm padding cho tab active */
+  }
+  
+  :host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn,
+  :host ::ng-deep .ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #fff !important; /* buộc chữ trắng */
+  }
+  
+  /* Override màu tab không active */
+  :host ::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab:not(.ant-tabs-tab-active) {
+    background-color: transparent !important;
+    border: unset !important;
+    border-radius: unset !important;
+  }
+  
+  /* Override màu tab khi hover (không active) */
+  
+  
+  /* Override màu nút đóng tab */
+  :host ::ng-deep .ant-tabs-tab-remove {
+    color: #fff !important;
+  }
+  
+  /* Override style cho tab card - Tham khảo từ project component */
+  :host ::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
+    border: unset !important;
+    border-radius: unset !important;
+    font-size: 0.65rem !important; /* Giảm font-size xuống 0.65rem */
+  }
+  
+  /* Giảm kích thước nút đóng tab */
+  :host ::ng-deep .ant-tabs-tab-remove {
+    font-size: 10px !important; /* Giảm font-size nút đóng */
+    margin-left: 2px !important; /* Giảm margin */
+    width: 14px !important;
+    height: 14px !important;
+  }
+  
+  /* Giảm kích thước nav của tab */
+  :host ::ng-deep .ant-tabs-card > .ant-tabs-nav,
+  :host ::ng-deep .ant-tabs-card > div > .ant-tabs-nav {
+    min-height: 24px !important; /* Giảm chiều cao nav xuống 24px */
+  }
+  
+  /* Đảm bảo nội dung tab không bị ảnh hưởng - giữ nguyên kích thước */
+  /* Nội dung tab (ant-tabs-content-holder, ant-tabs-tabpane) sẽ giữ nguyên kích thước mặc định */
+  
+  /* Override margin giữa các tab */
+  :host ::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
+  :host ::ng-deep .ant-tabs-card.ant-tabs-bottom > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
+  :host ::ng-deep .ant-tabs-card.ant-tabs-top > div > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
+  :host ::ng-deep .ant-tabs-card.ant-tabs-bottom > div > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab {
+    margin: 0 !important;
+  }
+
+  /* Style cho preview modal */
+  .preview-modal-container {
+    position: relative;
+    height: calc(100vh - 280px);
+    min-height: 400px;
+    max-height: 600px;
+    margin: -24px;
+    padding: 24px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 12px;
+  }
+
+  .preview-modal-inner {
+    position: relative;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  }
+
+  .preview-modal-pre {
+    width: 100%;
+    padding: 24px;
+    margin: 0;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #2c3e50;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+    border: none;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+  }
+  
+  /* fix lỗi thừa boder */
+:host ::ng-deep .ant-tabs-top > .ant-tabs-nav::before, .ant-tabs-bottom > .ant-tabs-nav::before, .ant-tabs-top > div > .ant-tabs-nav::before, .ant-tabs-bottom > div > .ant-tabs-nav::before {
+    border-bottom: none !important;
+}
+:host ::ng-deep .ant-form-item  {
+  margin-bottom: 12px !important;
+}

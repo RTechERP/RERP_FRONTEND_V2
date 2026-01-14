@@ -1,23 +1,44 @@
 <div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
     <h6 class="modal-title text-white">Hồ sơ chứng từ phiếu nhập Sale {{code}}</h6>
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-  </div>
-  <div class="modal-body p-1 flex-grow-1 overflow-hidden">
-      <div class="tab-content">
-        <div class="card-body p-0" >
+</div>
+<div class="modal-body p-1 flex-grow-1 overflow-hidden">
+    <div class="tab-content">
+        <div class="card-body p-0">
             <nz-splitter nzLayout="vertical">
-                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" >
-                    <div #tableBillDocumentImport style="height: 30vh;"></div>
+                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                    <!-- <div #tableBillDocumentImport style="height: 30vh;"></div> -->
+                    <div id="grid-container" style="height: 35vh;">
+                        <angular-slickgrid gridId="gridBillDocumentImport" [columns]="columnDefinitionsMaster"
+                            [options]="gridOptionsMaster" [dataset]="dataBillDocumentImport"
+                            (onAngularGridCreated)="angularGridMasterReady($event.detail)"
+                            (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)"
+                            (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)">
+                        </angular-slickgrid>
+                    </div>
                 </nz-splitter-panel>
                 <!-- table productGroupWareHouse -->
                 <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-                    <div #tableBillDocumentImportLog style="height: 30vh;"></div>
+                    <!-- <div #tableBillDocumentImportLog style="height: 30vh;"></div> -->
+                    <div id="grid-container" style="height: 30vh;">
+                        <angular-slickgrid gridId="gridBillDocumentImportLog" 
+                            [columns]="columnDefinitionsLog"
+                            [options]="gridOptionsLog" 
+                            [dataset]="dataBillDocumentImportLog"
+                            (onAngularGridCreated)="angularGridLogReady($event.detail)"
+                            (onClick)="onCellLogClicked($event.detail.eventData, $event.detail.args)"
+                            (onSelectedRowsChanged)="handleRowLogSelection($event.detail.eventData, $event.detail.args)">
+                        </angular-slickgrid>
+                    </div>
                 </nz-splitter-panel>
             </nz-splitter>
         </div>
-      </div>
-  </div>
-  <div class="modal-footer flex-shrink-0">
+    </div>
+</div>
+<div class="modal-footer flex-shrink-0">
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-    <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N52,N36,N1,N34'" (click)="saveData()">Lưu</button>
-  </div>
+    <button class="fs-12 btn" nz-button nzType="default" *hasPermission="'N52,N36,N1,N34'"
+        (click)="saveOnly()">Lưu</button>
+    <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N52,N36,N1,N34'"
+        (click)="saveDataAndClose()">Lưu và đóng</button>
+</div>

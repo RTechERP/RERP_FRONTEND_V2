@@ -10,6 +10,7 @@ export class ProjectPartListService {
   private url = `${environment.host}`;
   private urlProjectPartListVersion = `${this.url}api/ProjectPartListVersion`;
   private urlProjectPartList = `${this.url}api/ProjectPartList`;
+  // private urlUnitCount = `${this.url}api/UnitCountKT/get-all`;
   private urlUnitCount = `${this.url}api/UnitCount`;
   constructor() { }
   getProjectPartListVersion(projectSolutionId: number, isPO: boolean): Observable<any> {
@@ -47,6 +48,10 @@ export class ProjectPartListService {
   applyDiff(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/apply-diff2`, payload);
   }
+  //check-exist-đơn vị / hãng khi import excel
+  checkExistImport(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/check-exits-import`, payload);
+  }
   approveProjectPartList(projectpartlistID: number[], approved: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approvedTBP`, {
       projectpartlistID: projectpartlistID,
@@ -69,6 +74,10 @@ export class ProjectPartListService {
   approveNewCode(payload: any[], isApprovedNew: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approved-newcode?isApprovedNew=${isApprovedNew}`, payload);
   }
+  //check duyệt mới
+  checkApproveNewCode(payload: any[]): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/check-approve-newcode`, payload);
+  }
   //duyệt/hủy duyệt tích xanh sản phẩm
   approveIsFix(payload: any[], isFix: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approved-fix?isFix=${isFix}`, payload);
@@ -81,9 +90,19 @@ export class ProjectPartListService {
   getSuggestions(): Observable<any> {
     return this.http.get<any>(`${this.urlProjectPartList}/get-suggestion-name-maker`);
   }
-  // Save ProjectPartList
+  // Save ProjectPartList (backward compatible)
   saveProjectPartListData(payload: any, overrideFix: boolean = false): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/save-projectpartlist?overrideFix=${overrideFix}`, payload);
+  }
+
+  // Update ProjectPartList with isLeaf parameter
+  // isLeaf = true: validate with ValidateUpdate (skip some validation for parent nodes)
+  // isLeaf = false: validate with full Validate
+  updateProjectPartList(payload: any, overrideFix: boolean = false, isLeaf: boolean = false): Observable<any> {
+    return this.http.post<any>(
+      `${this.urlProjectPartList}/update-projectpartlist?overrideFix=${overrideFix}&isLeaf=${isLeaf}`,
+      payload
+    );
   }
   // Get PartList by ID
   getPartListByID(partlistID: number): Observable<any> {
@@ -141,8 +160,8 @@ export class ProjectPartListService {
   saveImport(payload: any[], status: number): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/save-import?status=${status}`, payload);
   }
-   //LƯU MẪU EXCEL
-   downloadTemplate(fileName: string): Observable<Blob> {
+  //LƯU MẪU EXCEL
+  downloadTemplate(fileName: string): Observable<Blob> {
     const url = `${environment.host}api/share/software/Template/ImportExcel/${fileName}`;
     return this.http.get(url, {
       responseType: 'blob',
@@ -156,5 +175,11 @@ export class ProjectPartListService {
   // Cập nhật mã đặc biệt
   updateSpecialCode(partlistId: number, specialCode: string): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/update-special-code?partlistId=${partlistId}&specialCode=${encodeURIComponent(specialCode)}`, {});
+  }
+  // Download drawing file từ URL
+  downloadDrawingFile(url: string): Observable<Blob> {
+    return this.http.get(url, {
+      responseType: 'blob',
+    });
   }
 }

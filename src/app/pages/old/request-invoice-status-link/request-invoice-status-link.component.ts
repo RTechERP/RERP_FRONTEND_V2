@@ -294,6 +294,8 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitColumns',
       data: this.mainData,
+      paginationMode: 'local',
+      pagination: false,
       height: '100%',
       rowHeader: false,
       columns: [
@@ -326,13 +328,20 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
           width: "10%",
           editor: 'list',
           editorParams: {
-            values: this.approvedStatus.map(x => ({
-              value: x.value,
-              label: x.label
-            }))
+            values: [
+              { value: 0, label: '---' },
+              ...this.approvedStatus.map(x => ({
+                value: x.value,
+                label: x.label
+              }))
+            ],
+            allowEmpty: true
           },
           formatter: (cell) => {
             const val = cell.getValue();
+            if (val === 0 || val === undefined || val === '' || val === null) {
+              return '';
+            }
             const selected = this.approvedStatus.find(x => x.value === val);
             return selected ? selected.label : '';
           }
@@ -717,7 +726,7 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
       });
 
       // key: để backend nhận biết loại tài liệu
-      formData.append('key', 'TuanBeoTest');
+      formData.append('key', 'RequestInvoiceFile');
 
       // Tạo subPath dựa trên RequestInvoiceID
       const sanitize = (s: string) =>

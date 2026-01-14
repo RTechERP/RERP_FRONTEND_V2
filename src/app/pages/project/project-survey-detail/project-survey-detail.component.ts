@@ -192,7 +192,6 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     this.getUserTeams();
     this.getFileDetail();
     this.getCurrentUser();
-    this.getDetail();
     this.onUrgentChange(this.validateForm.get('isUrgent')?.value || false);
 
     // Subscribe to projectId changes
@@ -210,11 +209,13 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     this.authService.getCurrentUser().subscribe({
     next: (response: any) => {
       this.currentUser = response.data;
+      this.getDetail();
     },
     error: (error: any) => {
       const msg = error.message || 'Lỗi không xác định';
       this.notification.error(NOTIFICATION_TITLE.error, msg);
       console.error('Lỗi:', error.error);
+      this.getDetail();
     },
   })
   }
@@ -801,7 +802,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
             this.validateForm.patchValue({
               projectId: this.projectId || '',
-              leaderId: data.ApprovedUrgentID || '',
+              leaderId: data.ApprovedUrgentID || 0,
               reasonUrgent: data.ReasonUrgent || '',
               address: data.Address || '',
               customerName: data.PIC || '',
@@ -813,14 +814,13 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
               isUrgent: data.IsUrgent == 0 ? false : true,
             });
 
-            // Giữ các biến riêng cho các trường không có trong form
             this.userRequestId = data.EmployeeID;
             this.isDisSave =
+              data.CreatedBy == this.currentUser.Code ||
               data.EmployeeID == this.currentUser.ID ||
               this.projectSurveyId <= 0 ||
               !this.currentUser.isAdmin;
 
-            // Trigger validation cho isUrgent
             this.onUrgentChange(this.validateForm.get('isUrgent')?.value || false);
           }
         },
@@ -828,6 +828,9 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           console.error('Lỗi:', error);
         },
       });
+    } else {
+      this.userRequestId = this.currentUser.EmployeeID;
+      this.isDisSave = true;
     }
   }
   //#endregion
@@ -996,13 +999,13 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           }
         }
       }
-
+      debugger
       // Dữ liệu lưu master
       let projectSurvey = {
         ID: this.projectSurveyId ?? 0,
         ProjectID: this.projectId,
         EmployeeID: this.userRequestId ?? 0,
-        ApprovedUrgentID: formValue.leaderId ?? 0,
+        ApprovedUrgentID: formValue.leaderId === '' ? 0 : Number(formValue.leaderId),
         IsUrgent: formValue.isUrgent,
         ReasonUrgent: formValue.reasonUrgent ?? '',
         Address: formValue.address ?? '',

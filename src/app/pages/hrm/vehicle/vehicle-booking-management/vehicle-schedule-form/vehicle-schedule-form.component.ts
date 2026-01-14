@@ -328,6 +328,7 @@ export class VehicleScheduleFormComponent implements OnInit {
           VehicleManagementID: formValue.vehicleTypeID,
           Status: 2,
           ID: item.ID,
+          DepartureDateActual:item.DepartureDate,
           VehicleMoney: formValue.priceVehicle,
           DriverPhoneNumber: formValue.SDT,
           LicensePlate: formValue.licensePlates,
@@ -378,8 +379,9 @@ export class VehicleScheduleFormComponent implements OnInit {
   getVehicleManagement() {
     this.vehicleBookingManagementService.getVehicleManagement().subscribe({
       next: (response: any) => {
-        this.vehicleList = this.vehicleBookingManagementService.createdDataGroup(response.data, "VehicleCategoryText");
-        this.vihecleManagementlist = response.data;
+        const vehicleData = response.data?.data || [];
+        this.vehicleList = this.vehicleBookingManagementService.createdDataGroup(vehicleData, "VehicleCategoryText");
+        this.vihecleManagementlist = vehicleData;
         console.log(this.vehicleList);
       },
       error: (err: any) => {

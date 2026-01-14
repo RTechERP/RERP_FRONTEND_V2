@@ -1,0 +1,60 @@
+/* Đảm bảo modal có thể scroll khi nội dung dài */
+:host ::ng-deep .modal-dialog {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .modal-content {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+:host ::ng-deep .modal-header {
+  flex-shrink: 0;
+}
+
+:host ::ng-deep .modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(90vh - 120px); /* Trừ đi header và footer */
+}
+
+:host ::ng-deep .modal-footer {
+  flex-shrink: 0;
+}
+
+/* CSS cho modal khi được mở từ daily-report-thr component */
+::ng-deep .daily-report-hr-modal .modal-dialog {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .daily-report-hr-modal .modal-content {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+::ng-deep .daily-report-hr-modal .modal-header {
+  flex-shrink: 0;
+}
+
+::ng-deep .daily-report-hr-modal .modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(90vh - 120px); /* Trừ đi header và footer */
+}
+
+::ng-deep .daily-report-hr-modal .modal-footer {
+  flex-shrink: 0;
+}
+:host ::ng-deep .ant-form-item  {
+  margin-bottom: 12px !important;
+}

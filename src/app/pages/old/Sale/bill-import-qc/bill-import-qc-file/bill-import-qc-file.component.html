@@ -1,0 +1,87 @@
+<div style="display: flex; flex-direction: column; height: 50vh">
+  <!-- Modal Header -->
+  <div
+    class="bg-primary align-items-center ps-2 pe-2"
+    style="
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem;
+      border-top-left-radius: 0.25rem !important;
+      border-top-right-radius: 0.25rem !important;
+    "
+  >
+    <h6 class="text-light text-uppercase m-0">Chi tiết file {{ fileName }}</h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="activeModal.dismiss()"
+      aria-label="Close"
+    ></button>
+  </div>
+
+  <!-- Modal Body với Splitter -->
+  <div
+    class="p-0"
+    style="flex: 1; overflow: hidden; display: flex; flex-direction: column"
+  >
+    <div
+      class="card h-100 border-0 rounded-0"
+      style="display: flex; flex-direction: column"
+    >
+      <div
+        class="card-body p-0"
+        style="
+          flex: 1;
+          overflow: auto;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+        "
+      >
+        <div class="grid-container-detail-file">
+          <angular-slickgrid
+            gridId="gridFileDetail"
+            [columns]="columnDefinitionsMaster"
+            [options]="gridOptionsMaster"
+            [dataset]="fileData"
+            (onAngularGridCreated)="angularGridMasterReady($event.detail)"
+            (onHeaderClick)="
+              onGridMasterHeaderClick(
+                $event.detail.eventData,
+                $event.detail.args
+              )
+            "
+            (onClick)="
+              onGridMasterClick($event.detail.eventData, $event.detail.args)
+            "
+          >
+          </angular-slickgrid>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Footer -->
+  <div class="modal-footer py-1">
+    <button
+      nz-button
+      nzType="default"
+      nzSize="small"
+      nzDanger
+      (click)="activeModal.dismiss()"
+    >
+      Đóng
+    </button>
+    <button
+      nz-button
+      nzType="primary"
+      nzSize="small"
+      *hasPermission="'N33,N35,N1,N36'"
+      [nzLoading]="false"
+      (click)="saveFile()"
+    >
+      <i class="fas fa-save me-1"></i> Lưu
+    </button>
+  </div>
+</div>

@@ -1,0 +1,328 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white text-uppercase">Báo cáo công việc</h6>
+    <button type="button" class="btn-close me-1"  style="background-color:lightcyan !important; font-weight: bold;" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body p-2">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7">
+        <!-- Dòng 1: Họ tên, Chức vụ, Ngày báo cáo, button Làm thêm -->
+        <nz-row [nzGutter]="16">
+            <!-- Họ tên: Mobile 12, Tablet 12, Desktop 6 -->
+            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Họ tên</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input nz-input [value]="currentUser?.FullName || ''" disabled class="w-100" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Chức vụ: Mobile 12, Tablet 12, Desktop 6 -->
+            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Chức vụ</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input nz-input [value]="currentUser?.PositionName || ''" disabled class="w-100" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Ngày báo cáo: Mobile 12, Tablet 12, Desktop 6 -->
+            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Ngày báo cáo<span class="text-danger ps-1">*
+                        </span></nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('DateReport')?.hasError('required') &&
+              (formGroup.get('DateReport')?.dirty || formGroup.get('DateReport')?.touched)
+                ? 'Vui lòng chọn ngày báo cáo!'
+                : undefined
+            ">
+                        <nz-date-picker formControlName="DateReport" class="w-100" nzFormat="dd/MM/yyyy"
+                            nzPlaceHolder="Chọn ngày báo cáo" [nzDisabledDate]="disabledDate"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Button Làm thêm: Mobile 12, Tablet 12, Desktop 6 -->
+            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0" [style.visibility]="'hidden'">.</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <button nz-button nzType="primary" nzSize="default" class="w-100" (click)="openOverTimeModal()">
+                            Làm thêm
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <!-- Dòng 2: Tab dự án (trong fieldset) -->
+        <fieldset class="mt-2 border p-2" style="border-radius: 4px;">
+            <nz-tabset [(nzSelectedIndex)]="activeProjectTab" [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
+                (nzAdd)="mode === 'add' ? addProject() : null"
+                (nzClose)="mode === 'add' ? closeProjectTab($event) : null" [nzAnimated]="false">
+                @for (project of projectList; track $index) {
+                <nz-tab [nzTitle]="project.ProjectCode || ('Dự án ' + ($index + 1))"
+                    [nzClosable]="mode === 'add' && projectList.length > 1" [nzForceRender]="true">
+                    <!-- Nội dung tab dự án -->
+                    <!-- Dòng 1: Dropdown chọn dự án -->
+                    <nz-row [nzGutter]="16">
+                        <nz-col [nzSpan]="24">
+                            <nz-form-item class="mt-2">
+                                <nz-form-label class="fs-12 p-0">Dự án<span class="text-danger ps-1">*
+                                    </span></nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-select [ngModel]="project.ProjectID"
+                                        (ngModelChange)="onProjectChange($index + 1, $event)"
+                                        [ngModelOptions]="{standalone: true}" class="w-100" nzPlaceHolder="Chọn dự án"
+                                        nzShowSearch nzAllowClear>
+                                        @for (proj of projects; track proj.ID) {
+                                        <nz-option
+                                            [nzLabel]="proj.ProjectText || (proj.ProjectCode + ' - ' + proj.ProjectName)"
+                                            [nzValue]="proj.ID"></nz-option>
+                                        }
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+
+                    <!-- Dòng 2: Tab hạng mục -->
+                    <fieldset class="mt-2 border" style="border-radius: 4px;">
+                        <nz-tabset [nzSelectedIndex]="project.activeItemTab ?? 0"
+                            (nzSelectChange)="onProjectItemTabChange($index + 1, $event)"
+                            [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
+                            (nzAdd)="mode === 'add' ? addProjectItem($index + 1) : null"
+                            (nzClose)="mode === 'add' ? closeProjectItemTab($index + 1, $event) : null"
+                            [nzAnimated]="false">
+                            @for (item of project.ProjectItems; track $index) {
+                            <nz-tab [nzTitle]="item.ProjectItemCode || ('CV-' + ($index + 1))"
+                                [nzClosable]="mode === 'add' && project.ProjectItems.length > 1" [nzForceRender]="true">
+                                <!-- Nội dung hạng mục -->
+                                <!-- Dòng 1: Dropdown hạng mục, Tổng số giờ, Số giờ OT, % Hoàn thành -->
+                                <nz-row [nzGutter]="16" class="p-2">
+                                    <!-- Hạng mục công việc: Mobile 24 (full), Desktop 12 -->
+                                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                                        <nz-form-item>
+                                            <nz-form-label class="fs-12 p-0">Hạng mục công việc<span
+                                                    class="text-danger ps-1">*
+                                                </span><button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text"
+                                                nzSize="small" title="Thêm loại họp" (click)="onAddProjectItem()">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </nz-form-label>
+                                            
+                                            <nz-form-control [nzSpan]="24">
+                                                <nz-select [(ngModel)]="item.ProjectItemID"
+                                                    (ngModelChange)="onProjectItemChange(projectList.indexOf(project) + 1, $index + 1, $event)"
+                                                    [ngModelOptions]="{standalone: true}" class="w-100"
+                                                    nzPlaceHolder="Chọn hạng mục công việc" nzShowSearch nzAllowClear>
+                                                    @for (projItem of
+                                                    getProjectItemsForProject(projectList.indexOf(project) + 1); track
+                                                    projItem.ID) {
+                                                    <nz-option
+                                                        [nzLabel]="(projItem.Code || projItem.ProjectItemCode || '') + ' - ' + (projItem.Mission || projItem.ProjectItemName || '')"
+                                                        [nzValue]="projItem.ID"></nz-option>
+                                                    }
+                                                </nz-select>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </nz-col>
+                                    <!-- Tổng số giờ: Mobile 12, Desktop 4 -->
+                                    <nz-col [nzXs]="8" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="4">
+                                        <nz-form-item>
+                                            <nz-form-label class="fs-12 p-0">Tổng số giờ<span class="text-danger ps-1">*
+                                                </span></nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <nz-input-number [(ngModel)]="item.TotalHours"
+                                                    [ngModelOptions]="{standalone: true}" [nzMin]="0" [nzMax]="24"
+                                                    [nzStep]="0.5" class="w-100"></nz-input-number>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </nz-col>
+                                    <!-- Số giờ OT: Mobile 12, Desktop 4 -->
+                                    <nz-col [nzXs]="8" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="4">
+                                        <nz-form-item>
+                                            <nz-form-label class="fs-12 p-0">Số giờ OT</nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <nz-input-number [(ngModel)]="item.TotalHourOT"
+                                                    [ngModelOptions]="{standalone: true}" [nzMin]="0" [nzMax]="24"
+                                                    [nzStep]="0.5" class="w-100"></nz-input-number>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </nz-col>
+                                    <!-- % Hoàn thành: Mobile 12, Desktop 4 -->
+                                    <nz-col [nzXs]="8" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="4">
+                                        <nz-form-item>
+                                            <nz-form-label class="fs-12 p-0">% Hoàn thành<span
+                                                    class="text-danger ps-1">*
+                                                </span></nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <nz-input-number [(ngModel)]="item.PercentComplete"
+                                                    [ngModelOptions]="{standalone: true}" [nzMin]="0" [nzMax]="100"
+                                                    [nzStep]="5" class="w-100"></nz-input-number>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </nz-col>
+                                </nz-row>
+
+                                <!-- Dòng 2: Nội dung công việc, Kết quả -->
+                                <nz-row [nzGutter]="16" class="mt-2 px-2">
+                                    <!-- Nội dung công việc: Mobile 12 (2 cột/dòng), Desktop 12 -->
+                                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                                        <nz-form-item>
+                                            <nz-form-label class="fs-12 p-0">Nội dung cv<span class="text-danger ps-1">*
+                                                </span></nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <textarea nz-input [(ngModel)]="item.Content"
+                                                    [ngModelOptions]="{standalone: true}" rows="3"
+                                                    class="w-100"></textarea>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </nz-col>
+                                    <!-- Kết quả: Mobile 12 (2 cột/dòng), Desktop 12 -->
+                                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                                        <nz-form-item>
+                                            <nz-form-label class="fs-12 p-0">Kết quả<span class="text-danger ps-1">*
+                                                </span></nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <textarea nz-input [(ngModel)]="item.Results"
+                                                    [ngModelOptions]="{standalone: true}" rows="3"
+                                                    class="w-100"></textarea>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </nz-col>
+                                </nz-row>
+                            </nz-tab>
+                            }
+                        </nz-tabset>
+                    </fieldset>
+                </nz-tab>
+                }
+            </nz-tabset>
+        </fieldset>
+
+        <!-- Dòng 2.5: Nơi làm việc (fieldset) -->
+        <fieldset class="mt-2 border p-2" style="border-radius: 4px;">
+            <legend class="fs-12 mb-2" style="width: auto; padding: 0 10px;">
+                <span>Nơi làm việc<span class="text-danger ps-1">*</span></span>
+            </legend>
+            <div class="p-2">
+                <nz-row [nzGutter]="16">
+                    <!-- Radio buttons: VP RTC, Địa điểm khác -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-radio-group [(ngModel)]="workLocation"
+                                    (ngModelChange)="onWorkLocationChange($event)"
+                                    [ngModelOptions]="{standalone: true}">
+                                    <label nz-radio [nzValue]="1">VP RTC</label>
+                                    <label nz-radio [nzValue]="0">Địa điểm khác</label>
+                                </nz-radio-group>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                    <!-- Input nơi làm việc -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                            <nz-form-control [nzSpan]="24">
+                                <input nz-input [(ngModel)]="workLocationText" [ngModelOptions]="{standalone: true}"
+                                    [disabled]="workLocation === 1" placeholder="Nhập nơi làm việc..." class="w-100" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+            </div>
+        </fieldset>
+
+        <!-- Dòng 3: Thông tin thêm (fieldset) -->
+        <fieldset class="mt-2 border p-2" style="border-radius: 4px;">
+            <legend class="fs-12 mb-2" style="width: auto; padding: 0 10px;">
+                <button nz-button nzType="text" nzSize="small" (click)="toggleAccordion('additional_info')" class="p-0">
+                    <i nz-icon [nzType]="activeAccordion['additional_info'] ? 'down' : 'right'" nzTheme="outline"
+                        class="me-1"></i>
+                    <span>Thông tin thêm</span>
+                </button>
+            </legend>
+            @if (activeAccordion['additional_info']) {
+            <div class="p-2">
+                <!-- Dòng 1: Vấn đề phát sinh, Hướng giải quyết, Tồn đọng -->
+                <nz-row [nzGutter]="16">
+                    <!-- Vấn đề phát sinh: Mobile 12, Desktop 8 -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 p-0">Vấn đề phát sinh
+                                <span class="font-italic font-weight-normal">(nếu có)</span></nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input [(ngModel)]="additionalInfo.Problem"
+                                    [ngModelOptions]="{standalone: true}" rows="3" class="w-100"></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                    <!-- Hướng giải quyết: Mobile 12, Desktop 8 -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 p-0">Hướng giải quyết
+                                <span class="font-italic font-weight-normal">(nếu có)</span></nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input [(ngModel)]="additionalInfo.ProblemSolve"
+                                    [ngModelOptions]="{standalone: true}" rows="3" class="w-100"></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                    <!-- Tồn đọng: Mobile 12, Desktop 8 -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 p-0">Tồn đọng
+                                <span class="font-italic font-weight-normal">(nếu có)</span></nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input [(ngModel)]="additionalInfo.Backlog"
+                                    [ngModelOptions]="{standalone: true}" rows="3" class="w-100"></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+                <!-- Dòng 2: Ghi chú/Lý do tồn đọng -->
+                <nz-row [nzGutter]="16" class="mt-2">
+                    <nz-col [nzSpan]="24">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 p-0">Ghi chú/Lý do tồn đọng</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input [(ngModel)]="additionalInfo.Note"
+                                    [ngModelOptions]="{standalone: true}" rows="2" class="w-100"></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+            </div>
+            }
+        </fieldset>
+
+        <!-- Dòng 4: Kế hoạch ngày tiếp theo -->
+        <nz-form-item class="mt-2">
+            <nz-form-label class="fs-12 p-0">Kế hoạch ngày tiếp theo<span class="text-danger ps-1">*
+                </span></nz-form-label>
+            <nz-form-control [nzSpan]="24">
+                <textarea nz-input [(ngModel)]="planNextDay" [ngModelOptions]="{standalone: true}" rows="3"
+                    class="w-100" placeholder="Nhập kế hoạch ngày tiếp theo"></textarea>
+            </nz-form-control>
+        </nz-form-item>
+    </form>
+</div>
+
+<div class="modal-footer bg-light p-2">
+    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+        Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="saveDailyReport()" [disabled]="saving">
+        <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
+        {{ saving ? 'Đang lưu...' : mode === 'add' ? 'Lưu' : 'Cập nhật' }}
+    </button>
+</div>
+
+<!-- Template cho preview modal -->
+<ng-template #previewModalContent>
+    <div class="preview-modal-container">
+        <div class="preview-modal-inner">
+            <pre class="preview-modal-pre">{{ previewContent }}</pre>
+        </div>
+    </div>
+</ng-template>

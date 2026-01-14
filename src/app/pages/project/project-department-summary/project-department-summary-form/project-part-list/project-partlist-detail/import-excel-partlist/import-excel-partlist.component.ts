@@ -77,6 +77,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   showDiffModal: boolean = false; // Hiển thị modal diff chi tiết (BƯỚC 2) - để chọn Excel/Stock
   validDataToSaveForDiff: any[] = []; // Lưu validDataToSave để dùng khi mở modal 2
   dataDiff: any[] = []; // Lưu dataDiff để dùng khi mở modal 3
+  isSaving: boolean = false; // Trạng thái đang lưu - dùng để disable nút
   constructor(
     private notification: NzNotificationService,
     private modal: NzModalService,
@@ -331,8 +332,11 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           await this.workbook.xlsx.load(data);
           console.log('Workbook đã được tải bởi ExcelJS.');
 
-          this.excelSheets = this.workbook.worksheets.map(sheet => sheet.name);
-          console.log('Danh sách sheets tìm thấy:', this.excelSheets);
+          // Chỉ lấy các sheet visible (bỏ qua sheet ẩn)
+          this.excelSheets = this.workbook.worksheets
+            .filter(sheet => sheet.state === 'visible')
+            .map(sheet => sheet.name);
+          console.log('Danh sách sheets visible tìm thấy:', this.excelSheets);
 
           if (this.excelSheets.length > 0) {
             this.selectedSheet = this.excelSheets[0];
@@ -388,7 +392,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       // Đọc ô D2 và so sánh với projectCode
       let cellD2 = ws.getCell("D2");
       let projectCodeExcel = this.getCellText(cellD2.master ?? cellD2).trim();
-      
+      console.log('projectCodeExcel', projectCodeExcel);
       // So sánh với projectCode
       if (projectCodeExcel && this.projectCode && projectCodeExcel !== this.projectCode.trim()) {
         this.notification.error('Thông báo', `Mã dự án excel [${projectCodeExcel}] khác với [${this.projectCode}]. Vui lòng kiểm tra lại`);
@@ -420,18 +424,18 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           Manufacturer: this.getCellText(row.getCell(5)),
        
           Model: this.getCellText(row.getCell(6)),
-          QtyMin: this.parseNumber(row.getCell(7).value),
-          QtyFull: this.parseNumber(row.getCell(8).value),
+          QtyMin: this.parseNumber(row.getCell(7)),
+          QtyFull: this.parseNumber(row.getCell(8)),
           Unit: this.getCellText(row.getCell(9)),
-          Price: this.parseNumber(row.getCell(10).value),
-          Amount: this.parseNumber(row.getCell(11).value),
+          Price: this.parseNumber(row.getCell(10)),
+          Amount: this.parseNumber(row.getCell(11)),
           LeadTime: this.getCellText(row.getCell(12)),
           NCC: this.getCellText(row.getCell(13)),
           RequestDate: this.getCellText(row.getCell(14)),
           LeadTimeRequest: this.getCellText(row.getCell(15)),
-          QuantityReturn: this.parseNumber(row.getCell(16).value),
+          QuantityReturn: this.parseNumber(row.getCell(16)),
           NCCFinal: this.getCellText(row.getCell(17)),
-          PriceOrder: this.parseNumber(row.getCell(18).value),
+          PriceOrder: this.parseNumber(row.getCell(18)),
           OrderDate: this.getCellText(row.getCell(19)),
           ExpectedReturnDate: this.getCellText(row.getCell(20)),
           Status: this.getCellText(row.getCell(21)),
@@ -470,22 +474,38 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Helper function để lấy text từ cell Excel (xử lý cả RichText)
+  // Helper function để lấy text từ cell Excel (xử lý cả RichText và Formula)
   private getCellText(cell: any): string {
     if (!cell) return '';
     
     try {
-      if (cell.text !== undefined && cell.text !== null) {
+      // Ưu tiên 1: Lấy giá trị đã tính toán từ formula (cell.result)
+      if (cell.result !== undefined && cell.result !== null) {
+        return String(cell.result);
+      }
+      
+      // Ưu tiên 2: Lấy text hiển thị (đã được format, bao gồm cả giá trị từ formula)
+      if (cell.text !== undefined && cell.text !== null && cell.text !== '') {
         return String(cell.text);
       }
     } catch (e) {
-      // Bỏ qua lỗi nếu không thể đọc .text
+      // Bỏ qua lỗi nếu không thể đọc .result hoặc .text
     }
     
     try {
       const value = cell.value;
       if (value === null || value === undefined) return '';
       
+      // Xử lý formula object
+      if (typeof value === 'object' && value.formula) {
+        // Nếu có formula nhưng không có result, thử lấy từ text
+        if (cell.text !== undefined && cell.text !== null) {
+          return String(cell.text);
+        }
+        return '';
+      }
+      
+      // Xử lý richText
       if (typeof value === 'object' && value.richText) {
         if (Array.isArray(value.richText)) {
           return value.richText.map((rt: any) => rt?.text || '').join('');
@@ -502,13 +522,48 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Helper function để parse number
-  private parseNumber(value: any): number {
-    if (typeof value === 'number') return value;
-    if (!value) return 0;
-    const str = value.toString().replace(/[,\.]/g, '');
-    const num = parseFloat(str);
-    return isNaN(num) ? 0 : num;
+  // Helper function để parse number (xử lý cả Formula)
+  private parseNumber(cell: any): number {
+    if (!cell) return 0;
+    
+    try {
+      // Ưu tiên 1: Lấy giá trị đã tính toán từ formula (cell.result)
+      if (cell.result !== undefined && cell.result !== null) {
+        if (typeof cell.result === 'number') {
+          return cell.result;
+        }
+        // Nếu result là string, parse nó
+        const num = parseFloat(String(cell.result).replace(/[,\.]/g, ''));
+        if (!isNaN(num)) {
+          return num;
+        }
+      }
+      
+      // Ưu tiên 2: Lấy từ cell.value
+      let value = cell.value;
+      
+      // Xử lý formula object
+      if (typeof value === 'object' && value.formula) {
+        // Nếu có formula, thử lấy từ result hoặc text
+        if (cell.result !== undefined && cell.result !== null) {
+          value = cell.result;
+        } else if (cell.text !== undefined && cell.text !== null) {
+          value = cell.text;
+        } else {
+          return 0;
+        }
+      }
+      
+      if (typeof value === 'number') return value;
+      if (!value) return 0;
+      
+      // Xử lý string: loại bỏ dấu phẩy và dấu chấm (nếu là định dạng số)
+      const str = String(value).replace(/,/g, '');
+      const num = parseFloat(str);
+      return isNaN(num) ? 0 : num;
+    } catch (e) {
+      return 0;
+    }
   }
 
   // Helper function để parse date - trả về string ISO format hoặc null
@@ -561,29 +616,36 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   }
 
   saveExcelData() {
+    // Set trạng thái đang lưu
+    this.isSaving = true;
+
     // Validate phiên bản (theo logic WinForm dòng 110-114)
     if (!this.selectedVersion || this.selectedVersion <= 0) {
       this.notification.error('Lỗi', 'Vui lòng chọn Phiên bản!');
+      this.isSaving = false;
       return;
     }
 
     // Validate projectCode (required field)
     if (!this.projectCode || this.projectCode.trim() === '') {
       this.notification.error('Lỗi', 'Mã dự án (ProjectCode) là bắt buộc!');
+      this.isSaving = false;
       return;
     }
 
     // Lấy dữ liệu mới nhất từ bảng Tabulator (để đảm bảo có dữ liệu đã chỉnh sửa)
     if (!this.tableExcel) {
       this.notification.warning('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
+      this.isSaving = false;
       return;
     }
 
     // Lấy dữ liệu mới nhất từ bảng
     const currentTableData = this.tableExcel.getData();
-    
+
     if (!currentTableData || currentTableData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+      this.isSaving = false;
       return;
     }
 
@@ -599,16 +661,17 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
 
     if (validDataToSave.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ để lưu!');
+      this.isSaving = false;
       return;
     }
-    if (!this.currentUser.IsAdmin && currentTableData.length > 0) {
-      const excelProjectCode = currentTableData[0]?.OrderCode?.toString()?.trim() || '';
+    // if (!this.currentUser.IsAdmin && currentTableData.length > 0) {
+    //   const excelProjectCode = currentTableData[0]?.OrderCode?.toString()?.trim() || '';
       
-      if (excelProjectCode && excelProjectCode !== this.projectCode.trim()) {
-        this.notification.warning('Cảnh báo', 'Không đúng Mã dự án!');
-        return;
-      }
-    }
+    //   if (excelProjectCode && excelProjectCode !== this.projectCode.trim()) {
+    //     this.notification.warning('Cảnh báo', 'Không đúng Mã dự án!');
+    //     return;
+    //   }
+    // }
     //hàm check validate và check xem có vật tư tích xanh bị khác không
     this.proceedWithImportCheck(validDataToSave);
   }
@@ -773,15 +836,17 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
               console.log('Dữ liệu nhận được', res.data.DiffData);
               this.dataDiff = res.data.DiffData;
               this.openSaveModal();
+              this.isSaving = false;
               return;
-             } 
-        
+             }
+
           // Đóng modal và trả về kết quả
           setTimeout(() => {
             this.activeModal.close({ success: true });
           }, 500);
         } else {
           this.notification.error('Lỗi', res.message || 'Lưu dữ liệu thất bại!');
+          this.isSaving = false;
         }
       },
       error: (err: any) => {
@@ -790,52 +855,241 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
         this.notification.error('Thông báo', msg);
         this.displayText = 'Lỗi khi lưu dữ liệu!';
         this.displayProgress = 0;
+        this.isSaving = false;
       }
     });
   }
+  // checkExistData() {
+  //   const hasDiff = this.diffs && this.diffs.length > 0;
+  //   debugger;
+  // if( this.isProblemRow == true || this.isUpdate == true) {
+  //   if(hasDiff){
+  //     this.onConfirmDiff();
+  //   } else {
+  //     this.applyDiff(this.validDataToSaveForDiff, []);
+  //   }
+  //   return;
+  // }
+  // let message = '';
+  // this.partlistService.checkExistImport(this.validDataToSaveForDiff).subscribe({
+  //           next: (res: any) => {
+  //             if(res.status === 1 && res.data.length > 0){
+  //               message= res.message;
+  //             }
+  //           },
+  //           error: (err: any) => {
+  //             const msg = err.error?.message || err.message || 'Lỗi kết nối server khi kiểm tra dữ liệu!';
+  //             this.notification.error('Thông báo', msg);
+  //             this.displayText = 'Lỗi khi kiểm tra dữ liệu!';
+  //       this.displayProgress = 0;
+  //           }
+  //         });
+  //   this.partlistService.checkExist(this.checkPayload).subscribe({
+  //     next: (res: any) => {
+  //       let message = '';
+  //       // Có dữ liệu cũ
+  //       if (res.status === 1 && res.data.length > 0) {
+  //         this.modal.confirm({
+  //           nzTitle: 'Xác nhận',
+  //           nzContent: 'Danh mục đã tồn tại. Bạn có muốn ghi đè không?',
+  //           nzOkText: 'Có',
+  //           nzCancelText: 'Không',
+
+  //           nzOnOk: () => {
+  //             this.partlistService.overwriteData(this.checkPayload).subscribe({
+  //               next: () => {
+  //                 // Sau khi ghi đè
+  //                 if(hasDiff){
+  //                   this.onConfirmDiff();
+  //                 } else {
+  //                   this.applyDiff(this.validDataToSaveForDiff, []);
+  //                 }
+  //               }
+  //             });
+  //           },
+
+  //           nzOnCancel: () => {
+  //             this.displayText = 'Đã hủy';
+  //             this.displayProgress = 0;
+  //           }
+  //         });
+
+  //         return;
+  //       }
+
+  //       // Không có dữ liệu cũ
+  //       if (res.status === 1 && res.data.length === 0) {
+  //           this.applyDiff(this.validDataToSaveForDiff, []);
+  //       }
+  //     }
+  //   });
+  // }
+  setupPayload(validDataToSave: any[], diffsWithChoose: any[] = []) {
+    const totalRowsToSave = validDataToSave.length;
+    this.displayText = `Đã lưu: 0/${totalRowsToSave} bản ghi`;
+    this.displayProgress = 0;
+
+    // Chuẩn bị payload theo PartlistImportRequestDTO structure (match với user đã sửa)
+    const payload = {
+      projectID: this.projectId,
+      projectPartListVersionID: this.selectedVersion,
+      projectTypeID: this.projectTypeId,
+      projectCode: this.projectCode.trim(),
+      isProblem: this.isProblemRow,
+      checkIsStock: null, // Có thể set nếu cần
+      items: validDataToSave.map((row: any) => ({
+        TT: row.TT?.toString()?.trim() || "",
+        GroupMaterial: row.GroupMaterial?.toString()?.trim() || "",
+        ProductCode: row.ProductCode?.toString()?.trim() || "",
+        OrderCode: row.OrderCode?.toString()?.trim() || "",
+        Manufacturer: row.Manufacturer?.toString()?.trim() || "",
+        SpecialCode: row.SpecialCode?.toString()?.trim() || "",
+        Model: row.Model?.toString()?.trim() || "",
+        QtyMin: row.QtyMin || 0,
+        QtyFull: row.QtyFull || 0,
+        Unit: row.Unit?.toString()?.trim() || "",
+        Price: row.Price || 0,
+        Amount: row.Amount || 0,
+        LeadTime: row.LeadTime?.toString()?.trim() || "",
+        NCC: row.NCC?.toString()?.trim() || "",
+        RequestDate: this.parseDate(row.RequestDate),
+        LeadTimeRequest: row.LeadTimeRequest?.toString()?.trim() || "",
+        QuantityReturn: row.QuantityReturn || 0,
+        NCCFinal: row.NCCFinal?.toString()?.trim() || "",
+        PriceOrder: row.PriceOrder || 0,
+        OrderDate: this.parseDate(row.OrderDate),
+        ExpectedReturnDate: this.parseDate(row.ExpectedReturnDate),
+        Status: (isNaN(row.Status)) ? 0 : Number(row.Status),
+        Quality: row.Quality?.toString()?.trim() || "",
+        Note: row.Note?.toString()?.trim() || "",
+        ReasonProblem: row.ReasonProblem?.toString()?.trim() || "",
+      })),
+      diffs: diffsWithChoose && diffsWithChoose.length > 0 ? diffsWithChoose : null
+    };
+    
+    console.log('Dữ liệu gửi đi để apply-diff:', payload);
+    return payload;
+  }
   checkExistData() {
-    const hasDiff = this.diffs && this.diffs.length > 0;
+  const hasDiff = this.diffs && this.diffs.length > 0;
   
-    this.partlistService.checkExist(this.checkPayload).subscribe({
-      next: (res: any) => {
-  
-        // Có dữ liệu cũ
-        if (res.status === 1 && res.data.length > 0) {
-  
-          this.modal.confirm({
-            nzTitle: 'Xác nhận',
-            nzContent: 'Danh mục đã tồn tại. Bạn có muốn ghi đè không?',
-            nzOkText: 'Có',
-            nzCancelText: 'Không',
-  
-            nzOnOk: () => {
-              this.partlistService.overwriteData(this.checkPayload).subscribe({
-                next: () => {
-                  // Sau khi ghi đè
-                  if(hasDiff){
-                    this.onConfirmDiff();
-                  } else {
-                    this.applyDiff(this.validDataToSaveForDiff, []);
+  if (this.isProblemRow == true || this.isUpdate == true) {
+    if (hasDiff) {
+      this.onConfirmDiff();
+    } else {
+      this.applyDiff(this.validDataToSaveForDiff, []);
+    }
+    return;
+  }
+
+  // Bước 1: Kiểm tra Unit và Hãng TRƯỚC
+  this.partlistService.checkExistImport(this.setupPayload(this.validDataToSaveForDiff, [])).subscribe({
+    next: (importRes: any) => {
+      let warningMessage = '';
+      
+      // Lấy message cảnh báo
+      if (importRes.status === 1 && (importRes.data.firmIssues?.length > 0 || importRes.data.unitIssues?.length > 0)) {
+        debugger;
+        warningMessage = importRes.message;
+      }
+      
+      // Bước 2: Sau đó mới kiểm tra dữ liệu đã tồn tại
+      this.partlistService.checkExist(this.checkPayload).subscribe({
+        next: (res: any) => {
+          // Trường hợp 1: Có dữ liệu cũ - hiển thị modal ghi đè + warning
+          if (res.status === 1 && res.data.length > 0) {
+            const content = warningMessage 
+              ? `
+                  <div>
+                    <p>Danh mục đã tồn tại. Bạn có muốn ghi đè không?</p>
+                    <br>
+                    <div style="padding: 12px; background: #fff7e6; border-left: 4px solid #FF8C00; border-radius: 4px; max-height: 300px; overflow-y: auto;">
+                      ${warningMessage}
+                    </div>
+                  </div>
+                `
+              : 'Danh mục đã tồn tại. Bạn có muốn ghi đè không?';
+
+            this.modal.confirm({
+              nzTitle: 'Xác nhận',
+              nzContent: content,
+              nzOkText: 'Có',
+              nzCancelText: 'Không',
+              nzOnOk: () => {
+                this.partlistService.overwriteData(this.checkPayload).subscribe({
+                  next: () => {
+                    if (hasDiff) {
+                      this.onConfirmDiff();
+                    } else {
+                      this.applyDiff(this.validDataToSaveForDiff, []);
+                    }
+                  },
+                  error: (err: any) => {
+                    const msg = err.error?.message || err.message || 'Lỗi khi ghi đè dữ liệu!';
+                    this.notification.error('Thông báo', msg);
+                    this.isSaving = false;
                   }
+                });
+              },
+              nzOnCancel: () => {
+                this.displayText = 'Đã hủy';
+                this.displayProgress = 0;
+                this.isSaving = false;
+              }
+            });
+            return;
+          }
+
+          // Trường hợp 2: Không có dữ liệu cũ
+          if (res.status === 1 && res.data.length === 0) {
+            // Nếu có warning message -> hiển thị modal xác nhận
+            if (warningMessage) {
+              this.modal.confirm({
+                nzTitle: 'Xác nhận lưu',
+                nzContent: `
+                  <div>
+                    <p>Phát hiện dữ liệu sai thông tin. Bạn có muốn tiếp tục lưu không?</p>
+                    <br>
+                    <div style="padding: 12px; background: #fff7e6; border-left: 4px solid #FF8C00; border-radius: 4px; max-height: 300px; overflow-y: auto;">
+                      ${warningMessage}
+                    </div>
+                  </div>
+                `,
+                nzOkText: 'Tiếp tục',
+                nzCancelText: 'Hủy',
+                nzOkDanger: true,
+                nzOnOk: () => {
+                  this.applyDiff(this.validDataToSaveForDiff, []);
+                },
+                nzOnCancel: () => {
+                  this.displayText = 'Đã hủy';
+                  this.displayProgress = 0;
+                  this.isSaving = false;
                 }
               });
-            },
-  
-            nzOnCancel: () => {
-              this.displayText = 'Đã hủy';
-              this.displayProgress = 0;
+            } else {
+              // Không có warning -> lưu trực tiếp
+              this.applyDiff(this.validDataToSaveForDiff, []);
             }
-          });
-  
-          return;
+          }
+        },
+        error: (err: any) => {
+          const msg = err.error?.message || err.message || 'Lỗi kết nối server!';
+          this.notification.error('Thông báo', msg);
+          this.displayText = 'Lỗi khi kiểm tra dữ liệu!';
+          this.displayProgress = 0;
+          this.isSaving = false;
         }
-  
-        // Không có dữ liệu cũ
-        if (res.status === 1 && res.data.length === 0) {
-            this.applyDiff(this.validDataToSaveForDiff, []);
-        }
-      }
-    });
+      });
+    },
+    error: (err: any) => {
+      const msg = err.error?.message || err.message || 'Lỗi kết nối server khi kiểm tra dữ liệu!';
+      this.notification.error('Thông báo', msg);
+      this.displayText = 'Lỗi khi kiểm tra dữ liệu!';
+      this.displayProgress = 0;
+      this.isSaving = false;
+    }
+  });
   }
 
   // BƯỚC 2: Xử lý khi user confirm diff chi tiết (chọn Excel hoặc Stock cho từng dòng)

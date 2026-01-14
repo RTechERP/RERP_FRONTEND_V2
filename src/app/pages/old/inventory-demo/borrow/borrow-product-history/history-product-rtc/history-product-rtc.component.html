@@ -1,0 +1,203 @@
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0" style="background: transparent">
+    <div class="card-header bg-white p-1">
+      <div class="d-flex gap-1 align-items-center">
+        <p-menubar [model]="historyProductMenu" class="p-0 border-0">
+        </p-menubar>
+
+        <span class="ms-auto d-flex align-items-center gap-1">
+          <nz-form-label
+            class="mb-0"
+            style="text-align: right; padding-right: 5px"
+            ><span>Gia hạn đến: </span></nz-form-label
+          >
+          <nz-date-picker
+            name="dateExtend"
+            [(ngModel)]="dateExtend"
+            class="fs-12"
+            nzSize="small"
+            nzFormat="dd/MM/yyyy"
+            nzAllowClear="false"
+          ></nz-date-picker>
+          <button
+            type="button"
+            nz-button
+            nzType="primary"
+            nzSize="small"
+            (click)="extendBorrowing()"
+          >
+            Gia hạn
+          </button>
+        </span>
+        <!-- Nút đóng modal - chỉ hiển thị khi ở chế độ modal -->
+        <button
+          *ngIf="isModalMode && activeModal"
+          class="border-0 ms-2"
+          nz-button
+          nzSize="small"
+          nzType="default"
+          nzDanger
+          (click)="closeModal()"
+          title="Đóng"
+        >
+          <nz-icon nzType="close" nzTheme="outline" />
+        </button>
+      </div>
+    </div>
+    <div
+      class="filter-bar bg-light border-bottom p-2 py-0"
+      *ngIf="shouldShowSearchBar"
+      [class.mobile-modal]="true"
+    >
+      <form
+        nz-form
+        nzLayout="inline"
+        class="d-flex flex-wrap gap-2 align-items-center"
+      >
+        <nz-form-item>
+          <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              nzFormat="dd/MM/yyyy"
+              class="w-100"
+              [(ngModel)]="dateStart"
+              nzAllowClear="false"
+              name="dateStart"
+              nzSize="small"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item class="mt-0">
+          <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              nzFormat="dd/MM/yyyy"
+              class="w-100"
+              [(ngModel)]="dateEnd"
+              nzAllowClear="false"
+              name="dateEnd"
+              nzSize="small"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label class="fs-12">Nhân viên</nz-form-label>
+          <nz-form-control>
+            <nz-select
+              style="width: 250px"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn nhân viên"
+              [(ngModel)]="userID"
+              name="userID"
+              nzSize="small"
+              (ngModelChange)="onEmployeeChange($event)"
+            >
+              <ng-container *ngFor="let group of employees">
+                <nz-option-group [nzLabel]="'-- Phòng ban: ' + group.label">
+                  <nz-option
+                    *ngFor="let option of group.options"
+                    [nzLabel]="option.item.Code + ' - ' + option.item.FullName"
+                    [nzValue]="option.item.UserID"
+                  >
+                  </nz-option>
+                </nz-option-group>
+              </ng-container>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label class="fs-12">Trạng thái</nz-form-label>
+          <nz-form-control>
+            <nz-select
+              [(ngModel)]="selectedStatus"
+              nzAllowClear
+              nzShowSearch
+              (ngModelChange)="onStatusChange($event)"
+              [nzMode]="'multiple'"
+              [nzPlaceHolder]="'Chọn trạng thái'"
+              [nzMaxTagCount]="1"
+              style="width: 230px"
+              name="selectedStatus"
+              nzSize="small"
+            >
+              <nz-option nzLabel="Đã trả" nzValue="0"></nz-option>
+              <nz-option nzLabel="Đang mượn" nzValue="1"></nz-option>
+              <nz-option nzLabel="Thiết bị đã mất" nzValue="2"></nz-option>
+              <nz-option nzLabel="Thiết bị hỏng" nzValue="3"></nz-option>
+              <nz-option nzLabel="Đăng ký trả" nzValue="4"></nz-option>
+              <!-- <nz-option nzLabel="Quá hạn" nzValue="5"></nz-option> -->
+              <nz-option nzLabel="Sắp hết hạn" nzValue="6"></nz-option>
+              <nz-option nzLabel="Đăng ký mượn" nzValue="7"></nz-option>
+              <nz-option nzLabel="Đăng ký gia hạn" nzValue="8"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+          <nz-form-control>
+            <input
+              name="keyword"
+              nz-input
+              placeholder="Nhập từ khóa"
+              [(ngModel)]="keyWords"
+              nzSize="small"
+            />
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Nút tìm kiếm với dropdown cho filter bổ sung -->
+        <nz-form-item class="mb-0">
+          <nz-form-control>
+            <div class="btn-group">
+              <button
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                (click)="filter()"
+              >
+                Tìm kiếm
+              </button>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </div>
+    <div class="card-body p-0" style="height: calc(100vh - 200px)">
+      <div
+        *ngIf="isLoading"
+        style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.4);
+          z-index: 999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        <nz-spin [nzSpinning]="isLoading"></nz-spin>
+      </div>
+      <div class="grid-container" style="height: 100%">
+        <angular-slickgrid
+          [gridId]="
+            'historyProductRtcGrid-' + warehouseID + '-' + warehouseType
+          "
+          [columns]="columnDefinitions"
+          [options]="gridOptions"
+          [dataset]="dataset"
+          (onAngularGridCreated)="angularGridReady($event.detail)"
+          (onSelectedRowsChanged)="
+            onRowSelectionChanged($event.detail.eventData, $event.detail.args)
+          "
+          (onDblClick)="productHistoryBorrowDetail()"
+        >
+        </angular-slickgrid>
+      </div>
+    </div>
+  </div>
+</ng-container>

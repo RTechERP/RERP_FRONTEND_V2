@@ -1,5 +1,19 @@
-import { NzNotificationService } from 'ng-zorro-antd/notification'
-import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit, Optional, Inject, ViewChild, ElementRef } from '@angular/core';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  inject,
+  AfterViewInit,
+  Optional,
+  Inject,
+  ViewChild,
+  ElementRef,
+  ChangeDetectorRef,
+} from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,27 +26,35 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzFormModule } from 'ng-zorro-antd/form'; //
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-function formatDateCell(cell: CellComponent): string {
-  const val = cell.getValue();
-  return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
-}
-
+import {
+  AngularSlickgridModule,
+  AngularGridInstance,
+  Column,
+  GridOption,
+  Formatters,
+} from 'angular-slickgrid';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { SplitterModule } from 'primeng/splitter';
+import { CardModule } from 'primeng/card';
 import { BillImportTechnicalService } from '../../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
 import { InventoryDemoService } from '../inventory-demo-service/inventory-demo.service';
 import { filter, last } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { BillImportTechnicalFormComponent } from '../../bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 import { BillExportTechnicalFormComponent } from '../../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
+import { BillExportTechnicalService } from '../../bill-export-technical/bill-export-technical-service/bill-export-technical.service';
+import { NzCardModule } from 'ng-zorro-antd/card';
+
 @Component({
   standalone: true,
   imports: [
-    NzSplitterModule,
+    SplitterModule,
+    CardModule,
+    AngularSlickgridModule,
     NzCheckboxModule,
     ReactiveFormsModule,
     CommonModule,
@@ -46,20 +68,20 @@ import { BillExportTechnicalFormComponent } from '../../bill-export-technical/bi
     NzButtonModule,
     NzModalModule,
     NzFormModule,
-    NgbModalModule
-
+    NgbModalModule,
+    NzSplitterModule,
+    NzCardModule
   ],
   selector: 'app-material-detail-of-product-rtc',
   templateUrl: './material-detail-of-product-rtc.component.html',
-  styleUrls: ['./material-detail-of-product-rtc.component.css']
+  styleUrls: ['./material-detail-of-product-rtc.component.css'],
 })
-export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewInit {
-  @ViewChild('tbBorrowRef', { static: true }) tbBorrowRef!: ElementRef;
-  @ViewChild('tbExportRef', { static: true }) tbExportRef!: ElementRef;
-  @ViewChild('tbImportRef', { static: true }) tbImportRef!: ElementRef;
+export class MaterialDetailOfProductRtcComponent
+  implements OnInit, AfterViewInit {
   @Output() closeModal = new EventEmitter<void>();
   @Input() productRTCID1!: number;
   @Input() warehouseID1!: number;
+  @Input() warehouseType: number = 1; // Mặc định là 1 (DEMO), 2 là AGV
   formDeviceInfo!: FormGroup;
   // ds nhập
   listImport: any[] = [];
@@ -70,25 +92,46 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
   //ds sản phẩm
   productData: any[] = [];
   //requet gọi store
-@Input()  warehouseID: number = 0;
- @Input()  productRTCID: number = 0;
-@Input()   ProductCode: string = '';
-@Input()   ProductName: string = '';
- @Input()  NumberBegin: number = 0;
- @Input()  InventoryLatest: number = 0;
- @Input()  NumberImport: number = 0;
- @Input()  NumberExport: number = 0;
- @Input()  NumberBorrowing: number = 0;
- @Input()  InventoryReal: number = 0;
-  // Tabulator instances
-  tableBorrow: Tabulator | null = null;
-  tableImport: Tabulator | null = null;
-  tableExport: Tabulator | null = null;
+  @Input() warehouseID: number = 0;
+  @Input() productRTCID: number = 0;
+  @Input() ProductCode: string = '';
+  @Input() ProductName: string = '';
+  @Input() NumberBegin: number = 0;
+  @Input() InventoryLatest: number = 0;
+  @Input() NumberImport: number = 0;
+  @Input() NumberExport: number = 0;
+  @Input() NumberBorrowing: number = 0;
+  @Input() InventoryReal: number = 0;
+
+  // Angular SlickGrid instances
+  angularGridBorrow!: AngularGridInstance;
+  angularGridImport!: AngularGridInstance;
+  angularGridExport!: AngularGridInstance;
+
+  // Column definitions
+  columnDefinitionsBorrow: Column[] = [];
+  columnDefinitionsImport: Column[] = [];
+  columnDefinitionsExport: Column[] = [];
+
+  // Grid options
+  gridOptionsBorrow: GridOption = {};
+  gridOptionsImport: GridOption = {};
+  gridOptionsExport: GridOption = {};
+
+  // Datasets
+  datasetBorrow: any[] = [];
+  datasetImport: any[] = [];
+  datasetExport: any[] = [];
+
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(
     private notification: NzNotificationService,
     private inventoryDemoService: InventoryDemoService,
+    private billImportTechnicalService: BillImportTechnicalService,
+    private billExportTechnicalService: BillExportTechnicalService,
     private ngbModal: NgbModal,
+    private route: ActivatedRoute,
     @Optional() public activeModal: NgbActiveModal,
     @Optional() @Inject('tabData') private tabData: any
   ) { }
@@ -99,7 +142,23 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     });
   }
   ngOnInit() {
-    // Lấy dữ liệu từ tabData injector nếu có
+    // Read data from query params (when opened via window.open with route)
+    this.route.queryParams.subscribe((params) => {
+      if (Object.keys(params).length > 0) {
+        this.productRTCID1 = parseInt(params['productRTCID1'] || '0', 10);
+        this.warehouseID1 = parseInt(params['warehouseID1'] || '0', 10);
+        this.ProductCode = params['ProductCode'] || '';
+        this.ProductName = params['ProductName'] || '';
+        this.NumberBegin = parseFloat(params['NumberBegin'] || '0');
+        this.InventoryLatest = parseFloat(params['InventoryLatest'] || '0');
+        this.NumberImport = parseFloat(params['NumberImport'] || '0');
+        this.NumberExport = parseFloat(params['NumberExport'] || '0');
+        this.NumberBorrowing = parseFloat(params['NumberBorrowing'] || '0');
+        this.InventoryReal = parseFloat(params['InventoryReal'] || '0');
+      }
+    });
+
+    // Lấy dữ liệu từ tabData injector nếu có (override query params)
     if (this.tabData) {
       this.productRTCID1 = this.tabData.productRTCID1 || 0;
       this.warehouseID1 = this.tabData.warehouseID1 || 0;
@@ -112,12 +171,8 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       this.NumberBorrowing = this.tabData.NumberBorrowing || 0;
       this.InventoryReal = this.tabData.InventoryReal || 0;
     }
-
-    this.getBorrowImportExportProductRTC();
-    console.log("Received productRTCID:", this.productRTCID1);
-    console.log("Received warehouseID:", this.warehouseID1);
-    console.log("Received tabData:", this.tabData);
     this.initForm();
+    this.initColumns();
   }
 
   close() {
@@ -125,303 +180,424 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     this.activeModal?.dismiss('cancel');
   }
   ngAfterViewInit() {
+    this.getBorrowImportExportProductRTC();
+    this.getProduct();
+  }
 
-      this.drawTBBorrow();
-      this.drawTBExport();
-      this.drawTBImport();
-    // Không cần gọi getProduct() nữa vì dữ liệu đã được truyền từ parent qua tabData
-    // this.getProduct();
+  initColumns() {
+    // Borrow columns
+    this.columnDefinitionsBorrow = [
+      {
+        id: 'TT',
+        field: 'TT',
+        name: 'TT',
+        width: 60,
+        sortable: false,
+        filterable: false,
+        formatter: (row, _cell, _value, _column, _dataContext) => {
+          return (row + 1).toString();
+        },
+      },
+      {
+        id: 'DateBorrow',
+        field: 'DateBorrow',
+        name: 'Ngày mượn',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+      },
+      {
+        id: 'FullName',
+        field: 'FullName',
+        name: 'Người mượn',
+        width: 200,
+        sortable: true,
+        filterable: true,
+      },
+      {
+        id: 'StatusText',
+        field: 'StatusText',
+        name: 'Trạng thái',
+        width: 100,
+        sortable: true,
+        filterable: true,
+      },
+      {
+        id: 'NumberBorrow',
+        field: 'NumberBorrow',
+        name: 'Số mượn',
+        width: 60,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+      },
+      {
+        id: 'Project',
+        field: 'Project',
+        name: 'Dự án',
+        width: 200,
+        sortable: true,
+        filterable: true,
+      },
+      {
+        id: 'DateReturnExpected',
+        field: 'DateReturnExpected',
+        name: 'Ngày trả dự kiến',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+      },
+      {
+        id: 'DateReturn',
+        field: 'DateReturn',
+        name: 'Ngày trả',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+      },
+      {
+        id: 'Note',
+        field: 'Note',
+        name: 'Ghi chú',
+        width: 200,
+        sortable: true,
+        filterable: true,
+      },
 
+    ];
+
+    // Import columns
+    this.columnDefinitionsImport = [
+      {
+        id: 'TT',
+        field: 'TT',
+        name: 'TT',
+        width: 30,
+        sortable: false,
+        filterable: false,
+        formatter: (row, _cell, _value, _column, _dataContext) => {
+          return (row + 1).toString();
+        },
+      },
+      {
+        id: 'BillCode',
+        field: 'BillCode',
+        name: 'Mã phiếu nhập',
+        width: 100,
+        sortable: true,
+        filterable: true,
+      },
+      {
+        id: 'CreatDate',
+        field: 'CreatDate',
+        name: 'Ngày tạo',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY HH:mm:ss' },
+      },
+      {
+        id: 'Quantity',
+        field: 'Quantity',
+        name: 'Số lượng',
+        width: 80,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+      },
+      {
+        id: 'Deliver',
+        field: 'Deliver',
+        name: 'Người giao',
+        width: 120,
+        sortable: true,
+        filterable: true,
+      },
+      {
+        id: 'Suplier',
+        field: 'Suplier',
+        name: 'Nhà cung cấp',
+        width: 200,
+        sortable: true,
+        filterable: true,
+      },
+    ];
+
+    // Export columns
+    this.columnDefinitionsExport = [
+      {
+        id: 'TT',
+        field: 'TT',
+        name: 'TT',
+        width: 30,
+        sortable: false,
+        filterable: false,
+        formatter: (row, _cell, _value, _column, _dataContext) => {
+          return (row + 1).toString();
+        },
+      },
+      {
+        id: 'Code',
+        field: 'Code',
+        name: 'Mã phiếu xuất',
+        width: 100,
+        sortable: true,
+        filterable: true,
+      },
+      {
+        id: 'CreatedDate',
+        field: 'CreatedDate',
+        name: 'Ngày tạo',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY HH:mm:ss' },
+      },
+      {
+        id: 'Quantity',
+        field: 'Quantity',
+        name: 'Số lượng',
+        width: 80,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+      },
+      {
+        id: 'Receiver',
+        field: 'Receiver',
+        name: 'Người nhận',
+        width: 120,
+        sortable: true,
+        filterable: true,
+      },
+      {
+        id: 'SupplierName',
+        field: 'SupplierName',
+        name: 'Nhà cung cấp',
+        width: 200,
+        sortable: true,
+        filterable: true,
+      },
+      {
+        id: 'BillTypeText',
+        field: 'BillTypeText',
+        name: 'Loại phiếu',
+        width: 80,
+        sortable: true,
+        filterable: true,
+      },
+    ];
+
+    // Grid options
+    this.gridOptionsBorrow = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-borrow',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      enableEmptyDataWarningMessage: false,
+      enableFiltering: true,
+      enableSorting: true,
+      enableCellNavigation: true,
+      enableRowSelection: false,
+      datasetIdPropertyName: 'id',
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      forceFitColumns: true,
+    };
+
+    this.gridOptionsImport = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-import',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      enableEmptyDataWarningMessage: false,
+      enableFiltering: true,
+      enableSorting: true,
+      enableCellNavigation: true,
+      enableRowSelection: false,
+      datasetIdPropertyName: 'id',
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      forceFitColumns: true,
+    };
+
+    this.gridOptionsExport = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-export',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      enableEmptyDataWarningMessage: false,
+      enableFiltering: true,
+      enableSorting: true,
+      enableCellNavigation: true,
+      enableRowSelection: false,
+      datasetIdPropertyName: 'id',
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      forceFitColumns: true,
+    };
   }
   getProduct() {
     const request = {
       productGroupID: 0,
-      keyWord: "",
+      keyWord: '',
       checkAll: 1,
       warehouseID: this.warehouseID1 || 1,
       productRTCID: this.productRTCID1 || 1,
     };
-    console.log("request", request);
-    this.inventoryDemoService.getInventoryDemo(request).subscribe((response: any) => {
-      this.productData = response.products || [];
-      this.ProductCode = response.products?.[0]?.ProductCode || '';
-      this.ProductName = response.products?.[0]?.ProductName || '';
-      this.NumberBegin = response.products?.[0]?.Number || 0;
-      this.InventoryLatest = response.products?.[0]?.InventoryLatest || 0;
-      this.NumberImport = response.products?.[0]?.NumberImport || 0;
-      this.NumberExport = response.products?.[0]?.NumberExport || 0;
-      this.NumberBorrowing = response.products?.[0]?.NumberBorrowing || 0;
-      this.InventoryReal = response.products?.[0]?.InventoryReal || 0;
-    });
+    console.log('request', request);
+    this.inventoryDemoService
+      .getInventoryDemo(request)
+      .subscribe((response: any) => {
+        this.productData = response.products || [];
+        this.ProductCode = response.products?.[0]?.ProductCode || '';
+        this.ProductName = response.products?.[0]?.ProductName || '';
+        this.NumberBegin = response.products?.[0]?.Number || 0;
+        this.InventoryLatest = response.products?.[0]?.InventoryLatest || 0;
+        this.NumberImport = response.products?.[0]?.NumberImport || 0;
+        this.NumberExport = response.products?.[0]?.NumberExport || 0;
+        this.NumberBorrowing = response.products?.[0]?.NumberBorrowing || 0;
+        this.InventoryReal = response.products?.[0]?.InventoryReal || 0;
+      });
   }
-  getBorrowImportExportProductRTC(ProductID?: number, WarehouseID?: number): void {
-    this.inventoryDemoService.getBorrowImportExportProductRTC(this.productRTCID1, this.warehouseID1).subscribe((response: any) => {
-      this.listImport = response.listImport || [];
-      this.listExport = response.listExport || [];
-      this.listBorrow = response.listBorrow || [];
-      console.log('listImport', this.listImport);
-      console.log('listExport', this.listExport);
-      console.log('listBorrow', this.listBorrow);
-      this.tableImport?.replaceData(this.listImport);
-      this.tableExport?.replaceData(this.listExport);
-      this.tableBorrow?.replaceData(this.listBorrow);
-    });
-  }
-  drawTBImport() {
-    this.tableImport = new Tabulator(this.tbImportRef.nativeElement, {
-      data: this.listImport,
-      layout: 'fitData',
-      height: '41vh',
-      columns: [
-        {
-          title: "STT",
-          formatter: "rownum",
-          hozAlign: "center",
-          headerHozAlign: "center",
-          width: 60
-        },
-        {
-          title: "ID",
-          field: "ID",
-          visible: false
-        },
-        {
-          title: "Mã phiếu nhập",
-          field: "BillCode",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 150
-        },
-        {
-          title: "Ngày tạo",
-          field: "CreatDate",
-          formatter: "datetime",
-          formatterParams: {
-            inputFormat: "iso",
-            outputFormat: "dd/MM/yyyy HH:mm:ss",
-            timezone: "Asia/Ho_Chi_Minh",
-            invalidPlaceholder: "-"
-          },
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 150
-        },
-        {
-          title: "Số lượng",
-          field: "Quantity",
-          hozAlign: "right",
-          headerHozAlign: "center",
-          width: 150
-        },
-        {
-          title: "Người giao",
-          field: "Deliver",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 200
-        },
-        {
-          title: "Nhà cung cấp",
-          field: "Suplier",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 200
-        }
-      ]
-    });
+  getBorrowImportExportProductRTC(
+    ProductID?: number,
+    WarehouseID?: number
+  ): void {
+    this.inventoryDemoService
+      .getBorrowImportExportProductRTC(this.productRTCID1, this.warehouseID1)
+      .subscribe((response: any) => {
+        this.listImport = response.listImport || [];
+        this.listExport = response.listExport || [];
+        this.listBorrow = response.listBorrow || [];
 
-    // Double click to open Bill Import Detail
-    this.tableImport.on("rowDblClick", (_e, row) => {
-      const rowData = row.getData();
-      const importID = rowData['ID'];
+        // Format date fields and add unique IDs - tạo array mới để Angular detect thay đổi
+        this.datasetImport = this.formatDataWithIds(this.listImport);
+        this.datasetExport = this.formatDataWithIds(this.listExport);
+        this.datasetBorrow = this.formatDataWithIds(this.listBorrow);
+
+        // Force change detection trước
+        this.cdr.detectChanges();
+
+        // Refresh grids nếu đã ready - đợi một chút để đảm bảo Angular đã update dataset
+        setTimeout(() => {
+          this.refreshAllGrids();
+        }, 200);
+      });
+  }
+
+  private refreshAllGrids(): void {
+    if (
+      this.angularGridBorrow &&
+      this.angularGridBorrow.dataView &&
+      this.angularGridBorrow.slickGrid
+    ) {
+      this.angularGridBorrow.dataView.refresh();
+      this.angularGridBorrow.slickGrid.invalidate();
+      this.angularGridBorrow.slickGrid.render();
+      if (this.angularGridBorrow.resizerService) {
+        this.angularGridBorrow.resizerService.resizeGrid();
+      }
+    }
+    if (
+      this.angularGridImport &&
+      this.angularGridImport.dataView &&
+      this.angularGridImport.slickGrid
+    ) {
+      this.angularGridImport.dataView.setItems(this.datasetImport || []);
+      this.angularGridImport.dataView.refresh();
+      this.angularGridImport.slickGrid.invalidate();
+      this.angularGridImport.slickGrid.render();
+      if (this.angularGridImport.resizerService) {
+        this.angularGridImport.resizerService.resizeGrid();
+      }
+    }
+    if (
+      this.angularGridExport &&
+      this.angularGridExport.dataView &&
+      this.angularGridExport.slickGrid
+    ) {
+      this.angularGridExport.dataView.setItems(this.datasetExport || []);
+      this.angularGridExport.dataView.refresh();
+      this.angularGridExport.slickGrid.invalidate();
+      this.angularGridExport.slickGrid.render();
+      if (this.angularGridExport.resizerService) {
+        this.angularGridExport.resizerService.resizeGrid();
+      }
+    }
+    // Force change detection lại sau khi refresh
+    this.cdr.detectChanges();
+  }
+
+  private formatDataWithIds(data: any[]): any[] {
+    return data.map((item: any, index: number) => ({
+      ...item,
+      id: index++,
+    }));
+  }
+  // Double click handlers
+  onImportDblClick(event: any): void {
+    const args = event.detail?.args || event.args || event;
+    if (args && args.row !== undefined) {
+      const item = this.angularGridImport?.dataView?.getItem(args.row);
+      const importID = item?.['ID'];
       if (importID && importID > 0) {
         this.openBillImportTechnicalDetail(importID);
       }
-    });
+    }
   }
 
-  drawTBExport() {
-    this.tableExport = new Tabulator(this.tbExportRef.nativeElement, {
-      data: this.listExport,
-      layout: 'fitData',
-      height: '41vh',
-      columns: [
-        {
-          title: "STT",
-          formatter: "rownum",
-          hozAlign: "center",
-          headerHozAlign: "center",
-          width: 60
-        },
-        {
-          title: "ID",
-          field: "ID",
-          visible: false
-        },
-        {
-          title: "Mã phiếu xuất",
-          field: "Code",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 150
-        },
-        {
-          title: "Ngày tạo",
-          field: "CreatedDate",
-          formatter: "datetime",
-          formatterParams: {
-            inputFormat: "iso",
-            outputFormat: "dd/MM/yyyy HH:mm:ss",
-            timezone: "Asia/Ho_Chi_Minh",
-            invalidPlaceholder: "-"
-          },
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 150
-        },
-        {
-          title: "Số lượng",
-          field: "Quantity",
-          hozAlign: "right",
-          headerHozAlign: "center",
-          width: 150
-        },
-        {
-          title: "Người nhận",
-          field: "Receiver",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 200
-        },
-        {
-          title: "Nhà cung cấp",
-          field: "SupplierName",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 200
-        },
-        {
-          title: "Loại phiếu",
-          field: "BillTypeText",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 150
-        },
-      ]
-    });
-
-    // Double click to open Bill Export Detail
-    this.tableExport.on("rowDblClick", (_e, row) => {
-      const rowData = row.getData();
-      const exportID = rowData['ID'];
+  onExportDblClick(event: any): void {
+    const args = event.detail?.args || event.args || event;
+    if (args && args.row !== undefined) {
+      const item = this.angularGridExport?.dataView?.getItem(args.row);
+      const exportID = item?.['ID'];
       if (exportID && exportID > 0) {
         this.openBillExportTechnicalDetail(exportID);
       }
-    });
+    }
   }
-  drawTBBorrow() {
-    this.tableBorrow = new Tabulator(this.tbBorrowRef.nativeElement, {
-      data: this.listBorrow,
-      layout: 'fitData',
-      height: '78vh',
-      movableColumns: true,
-      reactiveData: true,
-      columns: [
-        {
-          title: "STT",
-          formatter: "rownum",
-          hozAlign: "center",
-          headerHozAlign: "center",
-          width: 60
-        },
-        {
-          title: "ID",
-          field: "ID",
-          hozAlign: "right",
-          headerHozAlign: "center",
-          width: 150,
-          visible: false
-        },
-        {
-          title: "Ngày mượn",
-          field: "DateBorrow",
-          hozAlign: "center",
-          headerHozAlign: "center",
-          formatter: "datetime",
-          formatterParams: {
-            inputFormat: "iso",
-            outputFormat: "dd/MM/yyyy ",
-            timezone: "Asia/Ho_Chi_Minh",
-            invalidPlaceholder: "-"
-          },
-          width: 150
-        },
-        {
-          title: "Ngày trả dự kiến",
-          field: "DateReturnExpected",
-          hozAlign: "center",
-          headerHozAlign: "center",
-          formatter: "datetime",
-          formatterParams: {
-            inputFormat: "iso",
-            outputFormat: "dd/MM/yyyy",
-            timezone: "Asia/Ho_Chi_Minh",
-            invalidPlaceholder: "-"
-          },
-          width: 150
-        },
-        {
-          title: "Ngày trả",
-          field: "DateReturn",
-          hozAlign: "center",
-          headerHozAlign: "center",
-          formatter: "datetime",
-          formatterParams: {
-            inputFormat: "iso",
-            outputFormat: "dd/MM/yyyy",
-            timezone: "Asia/Ho_Chi_Minh",
-            invalidPlaceholder: "-"
-          },
-          width: 150
-        },
 
-        {
-          title: "Dự án",
-          field: "Project",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 200
-        },
-        {
-          title: "Ghi chú",
-          field: "Note",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 200
-        },
-        {
-          title: "Số mượn",
-          field: "NumberBorrow",
-          hozAlign: "right",
-          headerHozAlign: "center",
-          width: 150
-        },
-        {
-          title: "Trạng thái",
-          field: "StatusText",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 150
-        },
-        {
-          title: "Người mượn",
-          field: "FullName",
-          hozAlign: "left",
-          headerHozAlign: "center",
-          width: 200
-        }
-      ]
-    });
+  // Angular Grid Ready handlers
+  angularGridReadyBorrow(angularGrid: AngularGridInstance): void {
+    this.angularGridBorrow = angularGrid;
+    // Đợi một chút để đảm bảo grid đã sẵn sàng, sau đó refresh
+    setTimeout(() => {
+      this.refreshAllGrids();
+    }, 150);
+  }
+
+  angularGridReadyImport(angularGrid: AngularGridInstance): void {
+    this.angularGridImport = angularGrid;
+    // Đợi một chút để đảm bảo grid đã sẵn sàng, sau đó refresh
+    setTimeout(() => {
+      this.refreshAllGrids();
+    }, 150);
+  }
+
+  angularGridReadyExport(angularGrid: AngularGridInstance): void {
+    this.angularGridExport = angularGrid;
+    // Đợi một chút để đảm bảo grid đã sẵn sàng, sau đó refresh
+    setTimeout(() => {
+      this.refreshAllGrids();
+    }, 150);
   }
 
   // Open Bill Import Technical Detail Modal (matching C# grvDataImport_DoubleClick)
@@ -431,30 +607,50 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       return;
     }
 
-    const modalRef = this.ngbModal.open(BillImportTechnicalFormComponent, {
-      centered: true,
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-    });
+    // Load dữ liệu phiếu nhập từ API để lấy thông tin đầy đủ
+    this.billImportTechnicalService.getBillImportDetail(importID).subscribe({
+      next: (response: any) => {
+        const billMaster = response.billMaster || {};
+        const billDetail = response.billDetail || [];
 
-    // Truyền dữ liệu vào modal
-    modalRef.componentInstance.IDDetail = importID;
-    modalRef.componentInstance.warehouseID = this.warehouseID1;
+        const modalRef = this.ngbModal.open(BillImportTechnicalFormComponent, {
+          centered: true,
+          size: 'xl',
+          backdrop: 'static',
+          keyboard: false,
+        });
 
-    // Xử lý kết quả khi modal đóng
-    modalRef.result.then(
-      (result) => {
-        if (result === true) {
-          // Reload data after save
-          this.getBorrowImportExportProductRTC();
-          this.getProduct();
-        }
+        // Truyền dữ liệu vào modal
+        modalRef.componentInstance.masterId = importID;
+        modalRef.componentInstance.warehouseID = this.warehouseID1;
+        modalRef.componentInstance.warehouseType = this.warehouseType;
+        modalRef.componentInstance.WarehouseCode =
+          billMaster.WarehouseCode || 'HN';
+        modalRef.componentInstance.dataEdit = billMaster; // Truyền master data để form tự fill
+        modalRef.componentInstance.dtDetails = billDetail; // Truyền detail data
+
+        // Xử lý kết quả khi modal đóng
+        modalRef.result.then(
+          (result) => {
+            if (result === true) {
+              // Reload data after save
+              this.getBorrowImportExportProductRTC();
+              this.getProduct();
+            }
+          },
+          (dismissed) => {
+            console.log('Modal dismissed:', dismissed);
+          }
+        );
       },
-      (dismissed) => {
-        console.log('Modal dismissed:', dismissed);
-      }
-    );
+      error: (error) => {
+        console.error('Error loading bill import detail:', error);
+        this.notification.error(
+          'Thông báo',
+          'Không thể tải thông tin phiếu nhập!'
+        );
+      },
+    });
   }
 
   // Open Bill Export Technical Detail Modal (matching C# grvDataExport_DoubleClick)
@@ -464,29 +660,48 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       return;
     }
 
-    const modalRef = this.ngbModal.open(BillExportTechnicalFormComponent, {
-      centered: true,
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-    });
+    // Load dữ liệu phiếu xuất từ API để lấy thông tin đầy đủ
+    this.billExportTechnicalService.getBillExportDetail(exportID).subscribe({
+      next: (response: any) => {
+        const billMaster = response.billMaster || {};
+        const billDetail = response.billDetail || [];
 
-    // Truyền dữ liệu vào modal
-    modalRef.componentInstance.IDDetail = exportID;
-    modalRef.componentInstance.warehouseID = this.warehouseID1;
+        const modalRef = this.ngbModal.open(BillExportTechnicalFormComponent, {
+          centered: true,
+          size: 'xl',
+          backdrop: 'static',
+          keyboard: false,
+        });
 
-    // Xử lý kết quả khi modal đóng
-    modalRef.result.then(
-      (result) => {
-        if (result === true) {
-          // Reload data after save
-          this.getBorrowImportExportProductRTC();
-          this.getProduct();
-        }
+        // Truyền dữ liệu vào modal
+        modalRef.componentInstance.masterId = exportID;
+        modalRef.componentInstance.IDDetail = exportID;
+        modalRef.componentInstance.warehouseID = this.warehouseID1;
+        modalRef.componentInstance.warehouseType = this.warehouseType;
+        modalRef.componentInstance.dataEdit = billMaster; // Truyền master data để form tự fill các trường: số phiếu, nhà cung cấp, ngày xuất, người nhận, người duyệt, khách hàng
+        modalRef.componentInstance.dataInput = { details: billDetail }; // Truyền detail data
+
+        // Xử lý kết quả khi modal đóng
+        modalRef.result.then(
+          (result) => {
+            if (result === true) {
+              // Reload data after save
+              this.getBorrowImportExportProductRTC();
+              this.getProduct();
+            }
+          },
+          (dismissed) => {
+            console.log('Modal dismissed:', dismissed);
+          }
+        );
       },
-      (dismissed) => {
-        console.log('Modal dismissed:', dismissed);
-      }
-    );
+      error: (error) => {
+        console.error('Error loading bill export detail:', error);
+        this.notification.error(
+          'Thông báo',
+          'Không thể tải thông tin phiếu xuất!'
+        );
+      },
+    });
   }
 }

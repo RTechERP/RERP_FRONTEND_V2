@@ -66,24 +66,12 @@
                   [nzFilterOption]="filterApproverOption"
                   [disabled]="isEditMode || isFormDisabled"
                 >
-                  <nz-option-group
-                    *ngFor="let group of approverGroups"
-                    [nzLabel]="group.label"
+                  <nz-option
+                    *ngFor="let appr of approverList"
+                    [nzLabel]="appr.Code + ' - ' + appr.FullName"
+                    [nzValue]="appr.EmployeeID"
                   >
-                    <nz-option
-                      *ngFor="let appr of group.options"
-                      [nzLabel]="appr.Code + ' - ' + appr.FullName"
-                      [nzValue]="appr.ID"
-                    >
-                      <div class="approver-option">
-                        <span class="approver-code">{{ appr.Code }}</span>
-                        <span class="approver-name"> - {{ appr.FullName }}</span>
-                        <small class="text-muted d-block">{{
-                          appr.DepartmentName
-                        }}</small>
-                      </div>
-                    </nz-option>
-                  </nz-option-group>
+                  </nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>

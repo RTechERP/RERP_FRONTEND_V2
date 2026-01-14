@@ -1591,6 +1591,16 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             nzOkType: 'primary',
             nzCancelText: 'Hủy',
             nzOnOk: () => {
+                // Cập nhật masterDetailsMap với các detail đã chọn hiện tại
+                // Nếu có detail được chọn thì chỉ lấy detail đã chọn
+                // Nếu không có detail nào được chọn thì giữ nguyên tất cả detail của master
+                if (this.lastMasterId) {
+                    const currentSelectedDetails = this.tableDetail?.getSelectedData() || [];
+                    if (currentSelectedDetails.length > 0) {
+                        this.masterDetailsMap.set(this.lastMasterId, currentSelectedDetails);
+                    }
+                }
+
                 const ids = selectedRows.map((x) => x.ID).join(',');
                 const idString = Array.from(this.masterDetailsMap.values())
                     .flat()
@@ -2129,6 +2139,8 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     }
     onCreatePDFLanguageEn(data: any, isShowSign: boolean, isShowSeal: boolean) {
         let po = data.po;
+        console.log('po:',po);
+        
         let poDetails = data.poDetails;
         let taxCompany = data.taxCompany;
 
@@ -2213,7 +2225,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                         body: [
                             [
                                 'Supplier name:',
-                                { text: po.NameNCC, bold: true },
+                                { text: po.ENameNCC ?? po.NameNCC, bold: true },
                                 'Date:',
                                 DateTime.fromISO(po.RequestDate).toFormat('dd/MM/yyyy'),
                             ],

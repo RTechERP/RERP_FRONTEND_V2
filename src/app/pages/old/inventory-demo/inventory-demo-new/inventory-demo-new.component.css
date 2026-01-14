@@ -1,0 +1,41 @@
+/* Row color classes for inventory status */
+.row-orange {
+  background-color: rgb(255, 231, 187) !important;
+}
+
+.row-pink {
+  background-color: #ffd3dd !important;
+}
+
+/* Optional: Add hover effect while maintaining row color */
+.row-orange:hover,
+.row-pink:hover {
+  filter: brightness(0.95);
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-text {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #666;
+}
+::ng-deep div[id^="inventoryDemoGrid-"] {
+  height: 85vh!important;
+}
+::ng-deep div[id^="productGroupGrid-"] {
+  height: 90vh!important;
+}

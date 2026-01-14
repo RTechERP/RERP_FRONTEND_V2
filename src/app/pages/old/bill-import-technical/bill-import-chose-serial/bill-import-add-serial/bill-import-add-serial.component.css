@@ -1,0 +1,17 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.modal-header {
+  border-top-left-radius: 0.25rem !important;
+  border-top-right-radius: 0.25rem !important;
+}
+
+::ng-deep #gridAddSerialDetail {
+  height: 61vh !important;
+}
+

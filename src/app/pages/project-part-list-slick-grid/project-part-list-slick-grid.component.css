@@ -1,0 +1,286 @@
+/* ==================== ROW COLORING STYLES ==================== */
+
+/* Dòng bị xóa → Red background */
+:host ::ng-deep .slick-row.row-deleted,
+:host ::ng-deep .slick-row .row-deleted {
+  background-color: #ff4d4f !important;
+  color: black !important;
+}
+
+/* Dòng có vấn đề → Orange background */
+:host ::ng-deep .slick-row.row-problem,
+:host ::ng-deep .slick-row .row-problem {
+  background-color: #ffa940 !important;
+}
+
+/* Dòng có số lượng trả về > 0 → LightGreen background */
+:host ::ng-deep .slick-row.row-return,
+:host ::ng-deep .slick-row .row-return {
+  background-color: #90ee90 !important;
+}
+
+/* Node cha (có children) → LightGray + Bold */
+:host ::ng-deep .slick-row.row-parent,
+:host ::ng-deep .slick-row .row-parent {
+  background-color: #d3d3d3 !important;
+  font-weight: bold !important;
+}
+
+/* ==================== CELL COLORING STYLES ==================== */
+/* Cell có IsFix = true → Xanh nước biển (steelblue) - giống WinForm */
+:host ::ng-deep .slick-cell.cell-is-fix {
+  background-color: #4682B4 !important;
+  color: white !important;
+}
+
+/* Cell có IsProductSale → Light yellow - giống WinForm */
+:host ::ng-deep .slick-cell.cell-product-sale {
+  background-color: #FFFFE0 !important;
+}
+
+/* Cell có giá trị trùng → Màu đỏ */
+:host ::ng-deep .slick-cell.cell-same-value {
+  color: #ff4d4f !important;
+  font-weight: bold !important;
+}
+
+/* Cell có IsNewCode = true VÀ totalSame = 0 → Màu HỒNG */
+:host ::ng-deep .slick-cell.cell-pink {
+  background-color: #ffc0cb !important;
+}
+
+/* Cell có IsApprovedTBP = true → Xanh lá cây */
+:host ::ng-deep .slick-cell.cell-approved-tbp {
+  background-color: #52c41a !important;
+  color: white !important;
+}
+
+/* Cell có IsApprovedTBPNewCode = true → Xanh dương nhạt */
+:host ::ng-deep .slick-cell.cell-approved-new-code {
+  background-color: #13c2c2 !important;
+  color: white !important;
+}
+
+/* Cell có IsNewCode = true → Tím */
+:host ::ng-deep .slick-cell.cell-new-code {
+  background-color: #722ed1 !important;
+  color: white !important;
+}
+
+/* Cell có IsCheckPrice = true → Cam */
+:host ::ng-deep .slick-cell.cell-check-price {
+  background-color: #fa8c16 !important;
+  color: white !important;
+}
+
+/* Cell có IsApprovedPurchase = true → Xanh lá đậm */
+:host ::ng-deep .slick-cell.cell-approved-purchase {
+  background-color: #389e0d !important;
+  color: white !important;
+}
+
+/* Cell có QuantityReturn > 0 → Xanh lá nhạt */
+:host ::ng-deep .slick-cell.cell-quantity-return {
+  background-color: #b7eb8f !important;
+}
+
+/* Cell có IsProblem = true → Đỏ nhạt */
+:host ::ng-deep .slick-cell.cell-problem {
+  background-color: #ffccc7 !important;
+}
+
+/* Cell có IsDeleted = true → Xám */
+:host ::ng-deep .slick-cell.cell-deleted {
+  background-color: #f5f5f5 !important;
+  text-decoration: line-through !important;
+}
+
+/* Cell có giá trị âm → Đỏ đậm */
+:host ::ng-deep .slick-cell.cell-negative-value {
+  color: #cf1322 !important;
+  font-weight: bold !important;
+}
+
+/* Cell có giá trị 0 → Xám nhạt */
+:host ::ng-deep .slick-cell.cell-zero-value {
+  color: #8c8c8c !important;
+}
+
+/* ==================== HEADER GROUP STYLES - Màu nền phân biệt từng nhóm ==================== */
+:host ::ng-deep .slick-preheader-panel {
+  background-color: #f0f0f0;
+  border-bottom: 2px solid #666;
+}
+
+/* Màu nền cho từng header group */
+:host ::ng-deep .slick-preheader-panel .slick-header-column {
+  border-right: 2px solid #999 !important;
+  font-weight: bold !important;
+  text-align: center !important;
+}
+
+/* Nhóm: Vật tư dự án - Xanh dương nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Vật tư dự án"],
+:host ::ng-deep .slick-header-column.l0,
+:host ::ng-deep .slick-header-column.l1,
+:host ::ng-deep .slick-header-column.l2,
+:host ::ng-deep .slick-header-column.l3,
+:host ::ng-deep .slick-header-column.l4,
+:host ::ng-deep .slick-header-column.l5,
+:host ::ng-deep .slick-header-column.l6,
+:host ::ng-deep .slick-header-column.l7,
+:host ::ng-deep .slick-header-column.l8,
+:host ::ng-deep .slick-header-column.l9,
+:host ::ng-deep .slick-header-column.l10 {
+  background-color: #e6f7ff !important;
+}
+
+:host ::ng-deep .slick-header-column {
+  background-color: #fafafa;
+  border-right: 1px solid #ddd !important;
+}
+
+/* Alternating header group colors for visual separation */
+:host ::ng-deep .slick-preheader-panel .ui-state-default:nth-child(odd) {
+  background-color: #e6f7ff !important;
+  /* Xanh dương nhạt */
+}
+
+:host ::ng-deep .slick-preheader-panel .ui-state-default:nth-child(even) {
+  background-color: #fff7e6 !important;
+  /* Cam nhạt */
+}
+/* ==================== CÁC GROUP KHÁC - MÀU SẮC PHÂN BIỆT ==================== */
+
+/* Nhóm: Yêu cầu báo giá - Xanh lá nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Yêu cầu báo giá"] {
+  background-color: #f6ffed !important;
+  color: #135200 !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Nhóm: Yêu cầu mua hàng - Tím nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Yêu cầu mua hàng"] {
+  background-color: #f9f0ff !important;
+  color: #391085 !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Nhóm: Mua hàng - Hồng nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Mua hàng"] {
+  background-color: #fff1f0 !important;
+  color: #a8071a !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Nhóm: Nhập kho - Xanh cyan nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Nhập kho"] {
+  background-color: #e6fffb !important;
+  color: #006d75 !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Nhóm: Xuất kho - Vàng nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Xuất kho"] {
+  background-color: #fffbe6 !important;
+  color: #ad6800 !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Nhóm: Tồn kho - Xám xanh nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Tồn kho"] {
+  background-color: #f0f5ff !important;
+  color: #002766 !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Đảm bảo tất cả header groups có text-align center */
+:host ::ng-deep .slick-preheader-panel .slick-header-column {
+  text-align: center !important;
+  font-weight: bold !important;
+  justify-content: center !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* ==================== TEXT ALIGNMENT ==================== */
+:host ::ng-deep .text-center {
+  text-align: center !important;
+}
+
+:host ::ng-deep .text-right {
+  text-align: right !important;
+}
+
+:host ::ng-deep .text-left {
+  text-align: left !important;
+}
+
+/* ==================== TREE DATA STYLES ==================== */
+:host ::ng-deep .slick-group-toggle {
+  cursor: pointer;
+}
+
+:host ::ng-deep .slick-cell {
+  padding: 4px 6px;
+}
+/* ==================== GRID CONTAINER STYLES ==================== */
+.grid-partlist-container {
+  width: 100%;
+  height: 100%;
+}
+
+.grid-solution-container,
+.grid-solution-version-container,
+.grid-po-version-container {
+  width: 100%;
+  height: 100%;
+}
+
+
+angular-slickgrid,
+.angular-slickgrid-container {
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
+}
+ ----
+/* ==================== FOOTER ROW STYLES ==================== */
+:host ::ng-deep .slick-footer-row {
+  background-color: #f0f0f0 !important;
+}
+
+:host ::ng-deep .slick-footerrow-column {
+  font-weight: bold !important;
+  color: #000 !important;
+  border-right: 1px solid #ddd !important;
+}
+
+/* ==================== HEADER STYLES ==================== */
+.slick-header-column {
+  white-space: normal !important;
+  word-wrap: break-word;
+  overflow: visible;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Fix font for dropdown menus */
+nz-dropdown-menu ul {
+  font-family: inherit;
+  font-size: inherit;
+}
+

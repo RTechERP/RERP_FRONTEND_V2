@@ -114,8 +114,36 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     this.authService.getCurrentUser().subscribe((res) => {
       this.currentUser = res.data;
       console.log(this.currentUser);
-    });
 
+      // Auto bind ngày đăng ký = ngày hôm nay nếu hợp lệ (ngày 1-5 của tháng)
+      // Chỉ bind nếu đang thêm mới (không có editData)
+      if (!this.editData) {
+        const today = new Date();
+        const currentDay = today.getDate();
+
+        // Kiểm tra có phải Admin hoặc EmployeeID = 395 không (được phép đăng ký bất kỳ ngày nào)
+        const isAdmin = this.currentUser?.IsAdmin || false;
+        const isSpecialUser = this.currentUser?.EmployeeID === 395;
+
+        if (currentDay <= 5 || isAdmin || isSpecialUser) {
+          this.dateRequest = today;
+        }
+
+        // Auto bind người đăng ký = currentUser
+        if (this.currentUser?.EmployeeID) {
+          this.requesterId = this.currentUser.EmployeeID;
+        }
+
+        // Auto bind phòng ban từ currentUser
+        if (this.currentUser?.DepartmentID) {
+          this.departmentId = this.currentUser.DepartmentID;
+          // Trigger filter nhân viên theo phòng ban
+          setTimeout(() => {
+            this.filterEmployeesByDepartment();
+          }, 500);
+        }
+      }
+    });
   }
 
   // Disable các ngày ngoài khoảng 1-5 cho user thường (không phải Admin và không phải EmployeeID 395)
@@ -134,7 +162,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     const currentYear = current.getFullYear();
     const currentMonth = current.getMonth();
     const currentDay = current.getDate();
-    
+
     const nowYear = now.getFullYear();
     const nowMonth = now.getMonth();
 
@@ -199,7 +227,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       });
       this.tbEmployee.replaceData(employeeRows);
       this.updateSelectedEmployeeList();
-      
+
       // Focus vào nhân viên đầu tiên sau khi load edit data
       setTimeout(() => {
         this.focusFirstEmployee();
@@ -417,7 +445,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
   updateOfficeSupplyListForSelect(): void {
     this.officeSupplyListForSelect = this.officeSupplyList.map((vpp: any) => ({
       value: vpp.ID,
-      label: vpp.NameRTC || vpp.NameNCC || ''
+      label: vpp.NameNCC || vpp.NameRTC || ''
     }));
   }
 
@@ -455,7 +483,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       ...DEFAULT_TABLE_CONFIG,
       data: this.employeeTableData,
       layout: 'fitDataStretch',
-      height: '100%',
+      height: '35vh',
       selectableRows: true, // Cho phép chọn nhiều dòng
       selectableRowsRangeMode: "click",
       rowHeader: {
@@ -488,17 +516,17 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
             const row = cell.getRow();
             const rowData = row.getData();
             const employeeId = parseInt(rowData['EmployeeID']) || 0;
-            
+
             // Nếu đang edit và nhân viên có EmployeeID hợp lệ, đánh dấu là đã xóa
             if (this.requestId > 0 && employeeId > 0) {
               this.deletedEmployeeIds.add(employeeId);
             }
-            
+
             // Xóa VPP data của nhân viên này khỏi employeeVPPData
             if (employeeId > 0) {
               this.employeeVPPData.delete(employeeId);
             }
-            
+
             // Nếu nhân viên đang được chọn, clear selectedEmployee và VPP table
             if (this.selectedEmployee && (this.selectedEmployee.EmployeeID === employeeId || this.selectedEmployee.ID === employeeId)) {
               this.selectedEmployee = null;
@@ -506,12 +534,12 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
                 this.tbRequestDetail.replaceData([]);
               }
             }
-            
+
             // Xóa khỏi selectedEmployeeList
-            this.selectedEmployeeList = this.selectedEmployeeList.filter((emp: any) => 
+            this.selectedEmployeeList = this.selectedEmployeeList.filter((emp: any) =>
               (emp.ID || emp.EmployeeID) !== employeeId
             );
-            
+
             row.delete();
             this.updateSelectedEmployeeList();
           }
@@ -533,7 +561,17 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
           headerSort: false,
           editor: 'list',
           editorParams: {
-            values: this.employeeListForSelect
+            values: this.employeeListForSelect,
+            autocomplete: true,
+            filterFunc: (term: string, label: string, value: any, item: any) => {
+              // Tìm kiếm không phân biệt hoa thường
+              if (!term) return true;
+              const searchTerm = term.toLowerCase();
+              return label.toLowerCase().includes(searchTerm);
+            },
+            allowEmpty: true,
+            listOnEmpty: true,
+            freetext: false
           },
           formatter: (cell: any) => {
             const empId = parseInt(cell.getValue()) || 0;
@@ -701,7 +739,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     });
 
     this.loadEmployees();
-    
+
     // Focus vào nhân viên đầu tiên sau khi khởi tạo bảng
     setTimeout(() => {
       this.focusFirstEmployee();
@@ -711,7 +749,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
   // Focus vào nhân viên đầu tiên
   focusFirstEmployee(): void {
     if (!this.tbEmployee) return;
-    
+
     const rows = this.tbEmployee.getRows();
     if (rows && rows.length > 0) {
       const firstRow = rows[0];
@@ -719,7 +757,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
         // Select và scroll đến dòng đầu tiên
         firstRow.select();
         this.tbEmployee.scrollToRow(firstRow, "top", false);
-        
+
         // Trigger row selection để load VPP nếu có
         const rowData = firstRow.getData();
         const empId = parseInt(rowData['EmployeeID']) || 0;
@@ -729,7 +767,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
           if (!emp) {
             emp = this.filteredEmployeeList.find((e: any) => (e.ID || e.EmployeeID) === empId);
           }
-          
+
           if (emp) {
             this.selectedEmployee = {
               ID: empId,
@@ -739,10 +777,10 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
               DepartmentName: rowData['DepartmentName'] || emp.DepartmentName || '',
               PositionName: rowData['PositionName'] || emp.ChucVuHD || ''
             };
-            
+
             // Cập nhật selectedEmployeeList
             this.selectedEmployeeList = [this.selectedEmployee];
-            
+
             // Load VPP cho nhân viên này
             this.loadVPPForEmployee(empId);
           }
@@ -899,7 +937,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       ...DEFAULT_TABLE_CONFIG,
       data: [],
 
-      height: '100%',
+      height: '35vh',
       selectableRows: false,
       rowHeader: false,
       columns: [
@@ -926,20 +964,20 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
             // Lưu OfficeSupplyID đã bị xóa
             const officeSupplyId = rowData['OfficeSupplyID'];
             const detailId = rowData['DetailID'] || 0;
-            
+
             // Nếu đang edit và có DetailID, đánh dấu detail này là deleted
             if (this.requestId > 0 && detailId > 0) {
               // Tìm detail trong originalDetailData
-              const originalDetail = this.originalDetailData.find((detail: any) => 
+              const originalDetail = this.originalDetailData.find((detail: any) =>
                 detail.ID === detailId && detail.OfficeSupplyID === officeSupplyId
               );
-              
+
               if (originalDetail) {
                 // Kiểm tra xem detail này đã được thêm vào deletedDetails chưa
-                const alreadyDeleted = this.deletedDetails.some((del: any) => 
+                const alreadyDeleted = this.deletedDetails.some((del: any) =>
                   del.ID === detailId && del.OfficeSupplyID === officeSupplyId
                 );
-                
+
                 if (!alreadyDeleted) {
                   const deletedDetail: any = {
                     ID: detailId,
@@ -957,7 +995,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
                 }
               }
             }
-            
+
             if (officeSupplyId && officeSupplyId > 0) {
               this.deletedOfficeSupplyIds.add(officeSupplyId);
             }
@@ -983,7 +1021,17 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
           headerSort: false,
           editor: 'list',
           editorParams: {
-            values: this.officeSupplyListForSelect
+            values: this.officeSupplyListForSelect,
+            autocomplete: true,
+            filterFunc: (term: string, label: string, value: any, item: any) => {
+              // Tìm kiếm không phân biệt hoa thường
+              if (!term) return true;
+              const searchTerm = term.toLowerCase();
+              return label.toLowerCase().includes(searchTerm);
+            },
+            allowEmpty: true,
+            listOnEmpty: true,
+            freetext: false
           },
           formatter: (cell: any) => {
             const vppId = parseInt(cell.getValue()) || 0;
@@ -1047,8 +1095,10 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
             const row = cell.getRow();
             const rowData = row.getData();
 
-            // Kiểm tra vượt định mức: nếu số lượng đăng ký > 1 thì tự động tích vượt định mức
-            if (quantity > 1) {
+
+            const requestLimit = parseFloat(rowData['RequestLimit']) || 0;// check số luowg
+            const limitToCompare = requestLimit > 0 ? requestLimit : 1;
+            if (quantity > limitToCompare) {
               row.update({
                 ExceedsLimit: true
               });
@@ -1180,7 +1230,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
 
       this.tbEmployee.replaceData(employeesInDept);
       this.updateSelectedEmployeeList();
-      
+
       // Focus vào nhân viên đầu tiên sau khi load nhân viên của phòng ban
       setTimeout(() => {
         this.focusFirstEmployee();
@@ -1248,7 +1298,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     // Kiểm tra nhân viên có VPP data hoặc có trong bảng employee
     // Lấy danh sách nhân viên có VPP data
     const employeeIdsWithVPP = Array.from(this.employeeVPPData.keys());
-    
+
     // Lấy danh sách nhân viên trong bảng employee
     const employeeTableData = this.tbEmployee?.getData() || [];
     const validEmployeeIds = employeeTableData
@@ -1260,7 +1310,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
 
     // Kiểm tra nhân viên đang được chọn
     const selectedEmployeeId = this.selectedEmployee ? (this.selectedEmployee.EmployeeID || this.selectedEmployee.ID) : null;
-    
+
     // Nếu có nhân viên đang được chọn và có VPP data trong table, thêm vào employeeIdsWithVPP
     if (selectedEmployeeId && this.tbRequestDetail) {
       const currentVPPData = this.tbRequestDetail.getData();
@@ -1289,15 +1339,19 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       const quantity = parseFloat(rowData['Quantity']) || 0;
       const exceedsLimit = rowData['ExceedsLimit'] === true || rowData['ExceedsLimit'] === 1 || rowData['ExceedsLimit'] === 'true' || rowData['ExceedsLimit'] === '1';
 
-      // Kiểm tra: nếu số lượng đăng ký > 1 thì phải tích vượt định mức và nhập lý do
-      if (quantity > 1) {
+      // Lấy RequestLimit, nếu = 0 hoặc không có thì dùng 1 để so sánh
+      const requestLimit = parseFloat(rowData['RequestLimit']) || 0;
+      const limitToCompare = requestLimit > 0 ? requestLimit : 1;
+
+      // Kiểm tra: nếu số lượng đăng ký > limit thì phải tích vượt định mức và nhập lý do
+      if (quantity > limitToCompare) {
         if (!exceedsLimit) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn 1 ở dòng ${i + 1}. Vui lòng tích "Vượt định mức" và nhập lý do`);
+          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn định mức ở dòng ${i + 1}. Vui lòng tích "Vượt định mức" và nhập lý do`);
           return false;
         }
         const reason = rowData['Reason'] || '';
         if (!reason || reason.trim() === '') {
-          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn 1 ở dòng ${i + 1}. Vui lòng nhập lý do vượt định mức`);
+          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn định mức ở dòng ${i + 1}. Vui lòng nhập lý do vượt định mức`);
           return false;
         }
       }
@@ -1495,8 +1549,12 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
         const quantityReceived = parseFloat(rowData['QuantityReceived']) || 0;
         const exceedsLimit = rowData['ExceedsLimit'] === true || rowData['ExceedsLimit'] === 1 || rowData['ExceedsLimit'] === 'true' || rowData['ExceedsLimit'] === '1';
 
-        // Nếu số lượng đăng ký > 1 thì tự động set vượt định mức
-        const actualExceedsLimit = quantity > 1;
+        // Lấy RequestLimit, nếu = 0 hoặc không có thì dùng 1 để so sánh
+        const requestLimit = parseFloat(rowData['RequestLimit']) || 0;
+        const limitToCompare = requestLimit > 0 ? requestLimit : 1;
+
+        // Nếu số lượng đăng ký > limit thì tự động set vượt định mức
+        const actualExceedsLimit = quantity > limitToCompare;
         const reason = actualExceedsLimit ? (rowData['Reason'] || '') : '';
 
         // Tìm DetailID từ mapping nếu đang edit
@@ -1563,20 +1621,20 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     if (this.requestId > 0 && this.originalDetailData.length > 0) {
       // Lấy danh sách EmployeeID hiện tại (từ employeesToProcess)
       const currentEmployeeIds = new Set(employeesToProcess.map((emp: any) => emp.ID || emp.EmployeeID));
-      
+
       // Kết hợp deletedEmployeeIds với currentEmployeeIds để tìm tất cả nhân viên không còn trong danh sách
       this.originalDetailData.forEach((originalDetail: any) => {
         const detailEmployeeId = originalDetail.EmployeeID;
         const detailId = originalDetail.ID;
-        
+
         // Nếu detail này có ID > 0 (đã tồn tại) và EmployeeID không còn trong danh sách hiện tại
         // (bao gồm cả nhân viên đã bị xóa hoặc không còn trong employeesToProcess)
         if (detailId > 0 && !currentEmployeeIds.has(detailEmployeeId)) {
           // Kiểm tra xem detail này đã được thêm vào deletedDetails chưa
-          const alreadyDeleted = this.deletedDetails.some((del: any) => 
+          const alreadyDeleted = this.deletedDetails.some((del: any) =>
             del.ID === detailId && del.EmployeeID === detailEmployeeId && del.OfficeSupplyID === originalDetail.OfficeSupplyID
           );
-          
+
           if (!alreadyDeleted) {
             const deletedDetail: any = {
               ID: detailId,

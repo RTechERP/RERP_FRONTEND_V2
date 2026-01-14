@@ -100,6 +100,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 export class CustomerDetailComponent implements OnInit, AfterViewInit {
   @Input() EditID!: number;
   @Input() isEditMode!: boolean;
+  @Input() warehouseId!: number;
 
   @ViewChild('tb_DataTable', { static: false })
   tb_DataTableElement!: ElementRef;
@@ -228,17 +229,17 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       next: (response) => {
         if (response.status === 1) {
           let province = this.provincesData.find(
-            (x) => x.Code == response.data.provinceCode
+            (x) => x.ProvinceCode == response.data.provinceCode
           );
 
           // Cập nhật form values
           this.formGroup.patchValue({
             fullName: response.data.model.CustomerName,
             address: response.data.model.Address,
-            businessField: response.data.business.BusinessFieldID,
+            businessField: response.data.business?.BusinessFieldID ?? 0,
             provinceCode: response.data.provinceCode,
             customerCode: response.data.customerCode,
-            province: province?.Name,
+            province: province?.ProvinceName,
             customerShortName: response.data.model.CustomerShortName,
             taxCode: response.data.model.TaxCode,
             customerType: response.data.model.CustomerType,
@@ -259,10 +260,10 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           this.formData = {
             fullName: response.data.model.CustomerName,
             address: response.data.model.Address,
-            businessField: response.data.business.BusinessFieldID,
+            businessField: response.data.business?.BusinessFieldID ?? 0,
             provinceCode: response.data.provinceCode,
             customerCode: response.data.customerCode,
-            province: province?.Name,
+            province: province?.ProvinceName,
             customerShortName: response.data.model.CustomerShortName,
             taxCode: response.data.model.TaxCode,
             customerType: response.data.model.CustomerType,
@@ -436,10 +437,10 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   onProvinceChange(provinceName: string): void {
     if (provinceName) {
       const selectedProvince = this.provincesData.find(
-        (province) => province.Name === provinceName
+        (province) => province.ProvinceName === provinceName
       );
-      if (selectedProvince && selectedProvince.Code) {
-        this.formGroup.patchValue({ provinceCode: selectedProvince.Code });
+      if (selectedProvince && selectedProvince.ProvinceCode) {
+        this.formGroup.patchValue({ provinceCode: selectedProvince.ProvinceCode });
       }
     } else {
       this.formGroup.patchValue({ provinceCode: '' });

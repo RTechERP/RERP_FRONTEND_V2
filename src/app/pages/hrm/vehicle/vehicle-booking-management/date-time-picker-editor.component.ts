@@ -11,7 +11,7 @@ import { DateTime } from 'luxon';
   template: `
     <nz-date-picker
       [(ngModel)]="dateValue"
-      [nzShowTime]="true"
+      [nzShowTime]="{ nzFormat: 'HH:mm' }"
       [nzFormat]="'dd/MM/yyyy HH:mm'"
       nzSize="small"
       style="width: 100%"
@@ -42,7 +42,10 @@ export class DateTimePickerEditorComponent implements OnInit {
   onDateChange(date: Date | null) {
     this.dateValue = date;
     if (date) {
-      this.valueChange.emit(date);
+      // Set giây về 0 trước khi emit
+      const dateWithoutSeconds = new Date(date);
+      dateWithoutSeconds.setSeconds(0, 0);
+      this.valueChange.emit(dateWithoutSeconds);
     }
   }
 

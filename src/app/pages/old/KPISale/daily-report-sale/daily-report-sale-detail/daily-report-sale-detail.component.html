@@ -48,21 +48,17 @@
                     <div class="row g-2 mt-1">
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
-                                <span>Dự án</span> 
-                                <span class="text-danger">*</span>
-                                <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
+                                <span>Dự án</span>
+                                <!-- <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
                                     title="Thêm dự án" (click)="onAddProject()">
                                     <i class="fas fa-plus"></i>
-                                </button>
+                                </button> -->
                             </label>
                             <nz-select nzShowSearch nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="small"
                                 class="w-100" formControlName="projectId">
                                 <nz-option *ngFor="let item of projects" [nzValue]="item.ID"
                                     [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
                             </nz-select>
-                            <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('projectId')?.invalid">
-                                Vui lòng chọn dự án
-                            </small>
                         </div>
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
@@ -140,7 +136,7 @@
                         <div class="col-md-6">
                             <label class="mb-0 fs-12">Ngày dự kiến thực hiện</label>
                             <nz-date-picker nzPlaceHolder="Chọn ngày" nzSize="small" class="w-100"
-                                formControlName="dateEnd" nzFormat="dd/MM/yyyy"></nz-date-picker>
+                                formControlName="dateEnd" nzFormat="dd/MM/yyyy" [nzAllowClear]="false"></nz-date-picker>
                         </div>
                     </div>
                     <div class="row g-2 mt-1">
@@ -298,3 +294,58 @@
     <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
     <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
 </div>
+
+<!-- Modal thêm trạng thái dự án -->
+<nz-modal 
+    [(nzVisible)]="showProjectStatusModal" 
+    nzTitle="CHI TIẾT TRẠNG THÁI DỰ ÁN" 
+    (nzOnCancel)="onProjectStatusModalCancel()"
+    [nzWidth]="350"
+    [nzFooter]="null">
+    <div *nzModalContent>
+        <form [formGroup]="projectStatusForm">
+            <div class="mb-3">
+                <label class="mb-2 d-block fs-12">
+                    <span>STT</span>
+                </label>
+                <nz-input-number 
+                    formControlName="stt" 
+                    class="w-100"
+                    nzPlaceHolder="Nhập STT"
+                    [nzMin]="1"
+                    [nzStep]="1"
+                    nzDisabled="true"
+                    nzSize="small"
+                    style="text-align: right;">
+                </nz-input-number>
+            </div>
+            
+            <div class="mb-3">
+                <label class="mb-2 d-block fs-12">
+                    <span>Trạng thái</span>
+                </label>
+                <input 
+                    nz-input 
+                    formControlName="statusName" 
+                    class="w-100"
+                    nzPlaceHolder="Nhập trạng thái"
+                    nzSize="small">
+            </div>
+            
+            <!-- Toolbar với các nút action -->
+            <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-3">
+                <div class="d-flex gap-1">
+                    <button 
+                        nz-button 
+                        nzType="primary" 
+                        nzSize="small"
+                        (click)="saveAndCloseProjectStatus()"
+                        [nzLoading]="isSavingProjectStatus">
+                        <i class="fas fa-save me-1"></i>
+                        Lưu
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</nz-modal>

@@ -59,13 +59,13 @@
           <div id="partlistTable" style="height: calc(95vh - 350px); min-height: 400px; overflow-y: auto;">
           </div>
         </div>
-        <div class="modal-footer">
-           <button class="fs-12 btn" nz-button nzDanger  (click)="closeExcelModal()">Đóng</button>
-          <button  class="fs-12 btn" nz-button (click)="downloadTemplate()">
+      </form>
+      <div class="modal-footer">
+          <button class="fs-12 btn" nz-button nzDanger  (click)="closeExcelModal()" [disabled]="isSaving">Đóng</button>
+          <button  class="fs-12 btn" nz-button (click)="downloadTemplate()" [disabled]="isSaving">
             <nz-icon nzType="download" nzTheme="outline"></nz-icon> Mẫu
           </button>
-          <button class="fs-12 btn" nz-button nzType="primary" (click)="saveExcelData()">Lưu</button>   
+          <button class="fs-12 btn" nz-button nzType="primary" (click)="saveExcelData()" [disabled]="isSaving" [nzLoading]="isSaving">Lưu</button>
         </div>
-      </form>
-    </div>   
+    </div>
   </div>

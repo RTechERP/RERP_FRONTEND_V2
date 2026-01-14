@@ -72,7 +72,7 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
   assetRecoveryDetailData: any[] = [];
   recoveryTable: Tabulator | null = null;
   recoveryCode: string = "";
-    deletedDetailIds: number[] = [];
+  deletedDetailIds: number[] = [];
   ngAfterViewInit(): void {
     this.drawDetail();
   }
@@ -108,7 +108,7 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
   }
   getListEmployee() {
     const request = {
-      status: 0,
+      status: -1,
       departmentid: 0,
       keyword: ''
     };
@@ -173,26 +173,26 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
       movableColumns: true,
       reactiveData: true,
       columns: [
-      {
-        title: "",
-        field: "addRow",
-        hozAlign: "center",
-        width: 40,
-        headerSort: false,
-        formatter: () => `<i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
-        cellClick: (e, cell) => {
-          const row = cell.getRow();
-          const data = row.getData();
+        {
+          title: "",
+          field: "addRow",
+          hozAlign: "center",
+          width: 40,
+          headerSort: false,
+          formatter: () => `<span style="color: #dc3545; font-weight: bold; font-size: 14px; cursor: pointer;" title="Xóa dòng">X</span>`,
+          cellClick: (e, cell) => {
+            const row = cell.getRow();
+            const data = row.getData();
 
-          // nếu là dòng cũ trong DB -> ghi nhớ ID để gửi về API
-          if (data['ID']) {
-            this.deletedDetailIds.push(data['ID']);
-          }
+            // nếu là dòng cũ trong DB -> ghi nhớ ID để gửi về API
+            if (data['ID']) {
+              this.deletedDetailIds.push(data['ID']);
+            }
 
-          // xóa trên UI
-          row.delete();
+            // xóa trên UI
+            row.delete();
+          },
         },
-      },
         {
           title: 'ID',
           field: 'ID',
@@ -204,10 +204,10 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
         { title: 'TSAssetRecoveryID', field: 'TSAssetRecoveryID', visible: false },
         { title: 'STT', field: 'STT', hozAlign: 'center', width: 60, headerHozAlign: 'center' },
         { title: 'Mã tài sản', field: 'TSCodeNCC', headerHozAlign: 'center' },
-        { title: 'Tên tài sản', field: 'TSAssetName' , width:300,formatter:'textarea'  },
+        { title: 'Tên tài sản', field: 'TSAssetName', width: 300, formatter: 'textarea' },
         { title: 'Số lượng', field: 'Quantity', headerHozAlign: 'center' },
         { title: 'Tình trạng', field: 'Status', headerHozAlign: 'center', visible: false },
-        { title: 'Ghi chú', field: 'Note', editor: 'input',formatter:'textarea'  }
+        { title: 'Ghi chú', field: 'Note', editor: 'input', formatter: 'textarea' }
       ]
     });
   }
@@ -302,42 +302,50 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
     }
     const rows = this.recoveryTable.getData();
 
-  const detailPayload = rows.map((item: any, index: number) => ({
-    ID: item.ID || 0,
-    STT: index + 1,
-    TSAssetRecoveryID: item.TSAssetRecoveryID || (this.dataInput.ID || 0),
-    AssetManagementID: item.AssetManagementID || 0,
-    Quantity: item.Quantity || 1,
-    Note: item.Note || "",
-    IsDeleted: false              // <-- THÊM
-  }));  
-  const deletedDetailPayload = this.deletedDetailIds.map(id => ({
-    ID: id,
-    STT: 0,
-    TSAssetRecoveryID: this.dataInput.ID || 0,
-    AssetManagementID: 0,
-    Quantity: 0,
-    Note: "",
-    IsDeleted: true           
-  }));
+    const detailPayload = rows.map((item: any, index: number) => ({
+      ID: item.ID || 0,
+      STT: index + 1,
+      TSAssetRecoveryID: item.TSAssetRecoveryID || (this.dataInput.ID || 0),
+      AssetManagementID: item.AssetManagementID || 0,
+      Quantity: item.Quantity || 1,
+      Note: item.Note || "",
+      IsDeleted: false
+    }));
+    const deletedDetailPayload = this.deletedDetailIds.map(id => ({
+      ID: id,
+      STT: 0,
+      TSAssetRecoveryID: this.dataInput.ID || 0,
+      AssetManagementID: 0,
+      Quantity: 0,
+      Note: "",
+      IsDeleted: true
+    }));
+    const assetManagements = rows.map(item => ({
+      ID: item.AssetManagementID,
+      IsAllocation: true,
+      StatusID: 1,
+      Status: "Chưa sử dụng",
+      EmployeeID: this.dataInput.EmployeeRecoveryID,
 
-  const payloadRecovery = {
-    tSAssetRecovery: {
-      ID: this.dataInput.ID || 0,
-      Code: this.dataInput.Code,
-      DateRecovery: this.dataInput.DateRecovery,
-      EmployeeReturnID: this.dataInput.EmployeeReturnID,
-      EmployeeRecoveryID: this.dataInput.EmployeeRecoveryID,
-      Status: 0,
-      Note: this.dataInput.Note,
-      IsApproveAccountant: false,
-      IsApprovedPersonalProperty: false
-    },
-    TSAssetRecoveryDetails: [
-      ...detailPayload,
-      ...deletedDetailPayload     
-    ]
-  };
+    }));
+    const payloadRecovery = {
+      tSAssetRecovery: {
+        ID: this.dataInput.ID || 0,
+        Code: this.dataInput.Code,
+        DateRecovery: this.dataInput.DateRecovery,
+        EmployeeReturnID: this.dataInput.EmployeeReturnID,
+        EmployeeRecoveryID: this.dataInput.EmployeeRecoveryID,
+        Status: 0,
+        Note: this.dataInput.Note,
+        IsApproveAccountant: false,
+        IsApprovedPersonalProperty: false
+      },
+      tSAssetManagements: assetManagements,
+      TSAssetRecoveryDetails: [
+        ...detailPayload,
+        ...deletedDetailPayload
+      ]
+    };
 
     console.log(payloadRecovery);
     this.assetsRecoveryService.saveAssetRecovery(payloadRecovery).subscribe({

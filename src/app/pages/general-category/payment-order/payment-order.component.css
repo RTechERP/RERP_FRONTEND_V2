@@ -1,0 +1,58 @@
+::ng-deep .ant-card-body{
+    padding: 0.5rem !important;
+}
+
+ .ant-form-item{
+    margin: 0 !important;
+}
+
+
+:host ::ng-deep .tabs-full {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .tabs-full .p-tabpanels {
+  flex: 1;
+  min-height: 0; /* ⚠️ CỰC KỲ QUAN TRỌNG */
+  display: flex;
+}
+
+
+:host ::ng-deep .tabs-full .p-tabpanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.grid-container,.grid-container-special {
+  flex: 1;
+  min-height: 0;
+}
+
+
+:host ::ng-deep .ant-splitter-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+:host ::ng-deep .grid-container-detail {
+  flex: 1;
+  min-height: 0;
+  height: 100% !important;
+}
+
+
+
+:host ::ng-deep .bg-isurgent{
+    background-color: orange !important;
+}
+
+:host ::ng-deep .slick-cell.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -24,6 +24,9 @@ export class TbProductRtcService {
     const url = `${this.url + `get-location`}?warehouseID=${id}`;
     return this.http.get<any>(url);
   }
+  getUnitCountKT(): Observable<any> {
+    return this.http.get<any>(`${this.url}get-unitcount-kt`);
+  }
   getProductRTCGroup(warehouseType: number): Observable<any> {
     return this.http.get<any>(
       `${this.url + `get-productRTC-group/${warehouseType}`}`
@@ -62,5 +65,12 @@ export class TbProductRtcService {
       params: { path },
       responseType: 'arraybuffer' as 'json',
     });
+  }
+  // Update location for a product
+  updateLocation(id: number, locationID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('id', id.toString())
+      .set('locationID', locationID.toString());
+    return this.http.post<any>(`${this.url}update-location`, null, { params });
   }
 }

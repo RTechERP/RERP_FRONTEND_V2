@@ -1,3 +1,144 @@
-::ng-deep .ant-modal-confirm .ant-modal-body{
+::ng-deep .ant-modal-confirm .ant-modal-body {
     padding: 01rem !important;
+}
+
+:host {
+    font-size: 12px !important;
+}
+
+.tabulator {
+    font-size: 12px;
+}
+
+.box {
+    height: 100%;
+    width: 100%;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Set font-size 12px for all elements in the component */
+:host *,
+:host ::ng-deep * {
+    font-size: 12px !important;
+}
+
+/* Specific overrides for ng-zorro components */
+:host ::ng-deep .ant-btn,
+:host ::ng-deep .ant-input,
+:host ::ng-deep .ant-select-selector,
+:host ::ng-deep .ant-picker,
+:host ::ng-deep .ant-form-item-label>label,
+:host ::ng-deep .ant-input-number,
+:host ::ng-deep .ant-select-item,
+:host ::ng-deep .ant-select-selection-item,
+:host ::ng-deep .ant-picker-input>input,
+:host ::ng-deep .ant-time-picker-input,
+:host ::ng-deep .ant-modal-title,
+:host ::ng-deep .ant-modal-body,
+:host ::ng-deep .card-header h6,
+:host ::ng-deep .card-body,
+:host ::ng-deep .card-footer,
+:host ::ng-deep textarea {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .tabulator-cell {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+}
+
+/* Search form positioning and z-index fixes */
+.filter-bar {
+    position: relative;
+    z-index: 10;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Ensure buttons stay above search form on desktop */
+.card-header {
+    position: relative;
+    z-index: 20;
+    background: white;
+}
+
+/* Mobile modal styles */
+@media (max-width: 768px) {
+    .filter-bar.mobile-modal {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 16px;
+        border-radius: 8px;
+    }
+
+    .filter-backdrop {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1040;
+    }
+
+    .early-late-actions-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+
+    .early-late-actions {
+        flex-wrap: nowrap !important;
+        width: max-content;
+        padding-bottom: 4px;
+    }
+
+    .early-late-actions>* {
+        flex: 0 0 auto;
+    }
+}
+
+/* Desktop - keep search form always visible */
+@media (min-width: 769px) {
+    .filter-backdrop {
+        display: none !important;
+    }
+
+    .filter-bar {
+        position: static !important;
+        z-index: 1 !important;
+    }
 }

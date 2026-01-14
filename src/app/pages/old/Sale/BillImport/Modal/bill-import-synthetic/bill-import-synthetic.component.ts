@@ -58,6 +58,12 @@ interface data {
   documentImportID: number;
   deliverID: number;
 }
+
+// Interface cho Document Import
+interface DocumentImport {
+  ID: number;
+  DocumentImportName: string;
+}
 @Component({
   selector: 'app-bill-import-synthetic',
   standalone: true,
@@ -125,6 +131,9 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
   };
 
   dataContextMenu: any[] = [];
+  
+  // Document columns (dynamic) - danh sách documents từ API
+  documents: DocumentImport[] = [];
 
   searchText: string = '';
   dateFormat = 'dd/MM/yyyy';
@@ -310,11 +319,13 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           const field = col.getField();
           let value = row[field];
 
-          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-            value = new Date(value);
+          // Xử lý giá trị boolean: true -> "X", false -> rỗng
+          if (typeof value === 'boolean') {
+            value = value === true ? 'X' : '';
           }
-          if (field === 'IsApproved') {
-            value = value === true ? '✓' : ''; // hoặc '✓' / '✗'
+          // Xử lý date string
+          else if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+            value = new Date(value);
           }
           return value;
         }),
@@ -488,14 +499,18 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
       next: (res) => {
         if (res?.data && Array.isArray(res.data)) {
           this.dataContextMenu = res.data;
+          // Lưu documents để tạo cột động
+          this.documents = res.data;
           this.drawTable(); // Chuyển drawTable vào đây
         } else {
           console.warn('Không có dữ liệu context menu');
+          this.documents = [];
           this.drawTable(); // Vẫn vẽ bảng nếu không có dữ liệu
         }
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu chứng từ:', err);
+        this.documents = [];
         this.drawTable(); // Vẫn vẽ bảng nếu có lỗi
       },
     });
@@ -875,55 +890,16 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
             maxHeight: 250,
           },
         },
-        // {
-        //   title: 'PO',
-        //   field: 'BillCodePO',
-        //   width: 250,
-        //   formatter: 'textarea',
-        //   formatterParams: {
-        //     maxHeight: 250,
-        //   },
-        // },
-        {
-          title: 'Biên bản bàn giao',
-          field: 'D1',
+        // Dynamic document columns - tạo từ API getDataContextMenu
+        ...this.documents.map((doc) => ({
+          title: doc.DocumentImportName,
+          field: `D${doc.ID}`,
           width: 250,
-          formatter: 'textarea',
+          formatter: 'textarea' as const,
           formatterParams: {
             maxHeight: 250,
           },
-          visible: false,
-        },
-        {
-          title: 'Phiếu Xuất Kho',
-          field: 'D2',
-          width: 250,
-          formatter: 'textarea',
-          formatterParams: {
-            maxHeight: 250,
-          },
-          visible: false,
-        },
-        {
-          title: 'Chứng Nhận Xuất xứ',
-          field: 'D3',
-          width: 250,
-          formatter: 'textarea',
-          formatterParams: {
-            maxHeight: 250,
-          },
-          visible: false,
-        },
-        {
-          title: 'Chứng nhận chất lượng',
-          field: 'D5',
-          width: 250,
-          formatter: 'textarea',
-          formatterParams: {
-            maxHeight: 250,
-          },
-          visible: false,
-        },
+        })),
       ],
     });
 

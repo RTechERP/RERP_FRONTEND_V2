@@ -143,8 +143,8 @@
     <div nz-row [nzGutter]="16">
       <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label class="fs-12">Nhà cung cấp<span class="text-danger">*</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="SupplierError">
+          <nz-form-label class="fs-12">Nhà cung cấp</nz-form-label>
+          <nz-form-control>
             <nz-select nzSize="default" formControlName="SupplierID" nzShowSearch [nzAllowClear]="false" nzPlaceHolder="Chọn nhà cung cấp">
               <nz-option *ngFor="let id of dataCbbSupplier" [nzValue]="id.ID" [nzLabel]="id.CodeNCC +'-'+ id.NameNCC" nzCustomContent>
                 {{ id.CodeNCC }} - {{ id.NameNCC }}
@@ -155,14 +155,6 @@
                 </nz-select-item>
               </nz-select-top-control>
             </nz-select>
-            <ng-template #SupplierError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
-                Vui lòng chọn nhà cung cấp!
-              </ng-container>
-              <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
-                Nhà cung cấp không hợp lệ!
-              </ng-container>
-            </ng-template>
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -171,7 +163,7 @@
         <nz-form-item>
           <nz-form-label class="fs-12">Loại kho<span class="text-danger">*</span></nz-form-label>
           <nz-form-control [nzErrorTip]="khoTypeIdError">
-            <nz-select nzSize="default" formControlName="KhoTypeID" nzShowSearch [nzAllowClear]="false" nzPlaceHolder="Chọn kho" (ngModelChange)="changeProductGroup($event)">
+            <nz-select nzSize="default" formControlName="KhoTypeID" nzShowSearch [nzAllowClear]="false" nzPlaceHolder="Chọn kho">
               <nz-option *ngFor="let id of dataCbbProductGroup" [nzValue]="id.ID" [nzLabel]="id.ProductGroupName"></nz-option>
             </nz-select>
             <ng-template #khoTypeIdError let-control>
@@ -220,9 +212,54 @@
         </nz-form-item>
       </div>
     </div>
+
+    <!-- Hàng 5: Chuyển kho (checkbox) | Tham chiếu (textbox) | Kho đích (select) -->
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="2">
+        <nz-form-item>
+          <nz-form-label class="fs-12">&nbsp;</nz-form-label>
+          <nz-form-control>
+            <label nz-checkbox formControlName="IsTransfer">Chuyển kho</label>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Tham chiếu</nz-form-label>
+          <nz-form-control>
+            <div class="reference-links-container d-flex"
+                style="min-height: 32px; max-height: 80px; overflow-y: auto; padding: 0px 11px; border: 1px solid #d9d9d9; border-radius: 2px; background-color: #f5f5f5;">
+                <div *ngIf="referenceLinks.length === 0"
+                    style="color: #999; font-size: 12px; margin-top: 0.4rem;">
+                    Không có tham chiếu
+                </div>
+                <div *ngFor="let link of referenceLinks" class="mt-1">
+                    <a href="javascript:void(0)"
+                        (click)="onReferenceLinkClick(link)"
+                        style="color: #1890ff; text-decoration: none; font-size: 12px;">
+                        {{ link.text }}
+                    </a><span>,</span>
+                </div>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col nzSpan="4">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Kho đích</nz-form-label>
+          <nz-form-control>
+            <nz-select nzSize="default" formControlName="WareHouseTranferID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn kho đích" [nzDisabled]="!validateForm.get('IsTransfer')?.value">
+              <nz-option *ngFor="let id of dataCbbWareHouseTransfer" [nzValue]="id.ID" [nzLabel]="id.Name"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
   </form>
   <div class="position-relative" style="min-height: 300px;">
-    <div id="table_BillExportDetails"></div>
+    <div #tableBillExportDetails></div>
   </div>
 
   <!-- Product Selection Popup -->
@@ -236,7 +273,9 @@
       [searchFields]="productSearchFields"
       [searchPlaceholder]="'Tìm kiếm sản phẩm...'"
       [height]="'350px'"
+      [showClearButton]="true"
       (rowSelected)="onProductSelected($event)"
+      (cleared)="onProductCleared()"
       (closed)="onPopupClosed()"
     ></app-tabulator-popup>
   </div>
@@ -252,7 +291,9 @@
       [searchFields]="projectSearchFields"
       [searchPlaceholder]="'Tìm kiếm dự án...'"
       [height]="'350px'"
+      [showClearButton]="true"
       (rowSelected)="onProjectSelected($event)"
+      (cleared)="onProjectCleared()"
       (closed)="onPopupClosed()"
     ></app-tabulator-popup>
   </div>
@@ -261,6 +302,24 @@
 <div class="modal-footer flex-shrink-0">
   <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
   <ng-container *ngIf="!newBillExport.IsApproved">
-    <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N27,N1,N33,N34,N69'" (click)="saveDataBillExport()">Lưu</button>
+    <button class="fs-12 btn" nz-button nzType="primary" [nzLoading]="isSaving" [disabled]="isSaving" (click)="saveDataBillExport()">Lưu</button>
   </ng-container>
+</div>
+
+<!-- Custom Error Notification Popup -->
+<div *ngIf="showErrorPopup" class="error-popup-overlay" (click)="closeErrorPopup()">
+  <div class="error-popup-container" (click)="$event.stopPropagation()">
+    <div class="error-popup-header">
+      <h5 class="error-popup-title">
+        <nz-icon nzType="warning" nzTheme="fill" class="text-warning me-2"></nz-icon>
+        Thông báo
+      </h5>
+    </div>
+    <div class="error-popup-body">
+      <div class="error-popup-message">{{ errorMessage }}</div>
+    </div>
+    <div class="error-popup-footer">
+      <button class="fs-12 btn" nz-button nzType="primary" (click)="closeErrorPopup()">OK</button>
+    </div>
+  </div>
 </div>

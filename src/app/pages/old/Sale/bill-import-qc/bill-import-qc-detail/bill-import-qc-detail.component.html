@@ -1,0 +1,254 @@
+<div style="display: flex; flex-direction: column; height: 100vh">
+  <!-- Modal Header -->
+  <div
+    class="bg-primary align-items-center ps-2 pe-2"
+    style="
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem;
+    "
+  >
+    <h6 class="text-light text-uppercase m-0">Chi tiết yêu cầu QC</h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="activeModal.dismiss()"
+      aria-label="Close"
+    ></button>
+  </div>
+
+  <!-- Modal Body với Splitter -->
+  <div
+    class="p-0"
+    style="flex: 1; overflow: hidden; display: flex; flex-direction: column"
+  >
+    <div *ngIf="isLoading">
+      <nz-spin
+        [nzSpinning]="isLoading"
+        nzSimple
+        [style]="{
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          width: '100%',
+          height: '100%',
+          background: 'rgba(255,255,255,0.4)',
+          zIndex: '999',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }"
+      ></nz-spin>
+    </div>
+    <div
+      class="card h-100 border-0 rounded-0"
+      style="display: flex; flex-direction: column; height: 100%"
+    >
+      <div class="card-header bg-white p-1" style="flex-shrink: 0">
+        <div class="d-flex gap-2 ms-1 align-items-center">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12" style="font-size: 12px"
+              >Mã yêu cầu
+              <span style="color: red" class="ms-1">(*)</span></nz-form-label
+            >
+            <nz-form-control>
+              <input
+                nz-input
+                name="requestCode"
+                [(ngModel)]="requestCode"
+                style="width: 150px; font-size: 12px"
+                disabled
+              />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12" style="font-size: 12px"
+              >Ngày yêu cầu
+              <span style="color: red" class="ms-1">(*)</span></nz-form-label
+            >
+            <nz-form-control>
+              <nz-date-picker
+                name="dateRequest"
+                [(ngModel)]="dateRequest"
+                nzFormat="dd/MM/yyyy"
+                style="width: 150px; font-size: 12px"
+                nzSize="small"
+                nzAllowClear="false"
+                [nzDisabled]="isDisabledDateRequest"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+          <div class="d-flex align-items-center gap-1">
+            <nz-form-label class="fs-12 mb-0"
+              >Người yêu cầu
+              <span style="color: red" class="ms-1">(*)</span></nz-form-label
+            >
+            <nz-form-item class="mb-0">
+              <nz-form-control>
+                <nz-select
+                  name="employeeId"
+                  [(ngModel)]="employeeRequestId"
+                  nzShowSearch
+                  nzAllowClear
+                  nzPlaceHolder="--Chọn nhân viên--"
+                  nzSize="small"
+                  style="width: 250px"
+                  [nzDisabled]="isDisabledEmployeeRequest"
+                >
+                  <ng-container *ngFor="let group of employeeRequests">
+                    <nz-option-group [nzLabel]="group.label">
+                      <nz-option
+                        *ngFor="let option of group.options"
+                        [nzLabel]="
+                          option.item.Code + ' - ' + option.item.FullName
+                        "
+                        [nzValue]="option.item.EmployeeID"
+                      >
+                      </nz-option>
+                    </nz-option-group>
+                  </ng-container>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12" style="font-size: 12px"
+              >Deadline
+              <span style="color: red" class="ms-1">(*)</span></nz-form-label
+            >
+            <nz-form-control>
+              <nz-date-picker
+                name="deadline"
+                [(ngModel)]="deadline"
+                nzFormat="dd/MM/yyyy"
+                style="width: 150px; font-size: 12px"
+                nzSize="small"
+                nzAllowClear="false"
+                [nzDisabled]="isDisabledDeadline"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div
+        class="card-body p-0"
+        style="
+          flex: 1;
+          overflow: auto;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+        "
+      >
+        <nz-splitter nzLayout="vertical">
+          <nz-splitter-panel nzSize="60%">
+            <div class="grid-container-master">
+              <angular-slickgrid
+                gridId="gridMaster"
+                [columns]="columnDefinitionsMaster"
+                [options]="gridOptionsMaster"
+                [dataset]="dataMaster"
+                (onAngularGridCreated)="angularGridMasterReady($event.detail)"
+                (onSelectedRowsChanged)="
+                  onSelectedRowsChangedMaster(
+                    $event.detail.eventData,
+                    $event.detail.args
+                  )
+                "
+                (onHeaderClick)="
+                  onGridMasterHeaderClick(
+                    $event.detail.eventData,
+                    $event.detail.args
+                  )
+                "
+                (onClick)="
+                  onGridMasterClick($event.detail.eventData, $event.detail.args)
+                "
+              >
+              </angular-slickgrid>
+            </div>
+          </nz-splitter-panel>
+          <nz-splitter-panel nzSize="40%">
+            <nz-splitter>
+              <nz-splitter-panel nzSize="49.5%">
+                <div
+                  style="
+                    padding: 4px 2px;
+                    background: #f5f5f5;
+                    color: #377ced;
+                    text-transform: uppercase;
+                  "
+                >
+                  File check sheet
+                </div>
+                <div class="grid-container-detail">
+                  <angular-slickgrid
+                    gridId="gridFileCheck"
+                    [columns]="columnDefinitionsFileCheck"
+                    [options]="gridOptionsFileCheck"
+                    [dataset]="dataFileCheck"
+                    (onAngularGridCreated)="
+                      angularGridFileCheckReady($event.detail)
+                    "
+                  >
+                  </angular-slickgrid>
+                </div>
+              </nz-splitter-panel>
+              <nz-splitter-panel nzSize="50.5%">
+                <div
+                  class="ms-1"
+                  style="
+                    padding: 4px 2px;
+                    background: #f5f5f5;
+                    color: #377ced;
+                    text-transform: uppercase;
+                  "
+                >
+                  File report
+                </div>
+                <div class="grid-container-detail ms-1">
+                  <angular-slickgrid
+                    gridId="gridFileReport"
+                    [columns]="columnDefinitionsFileReport"
+                    [options]="gridOptionsFileReport"
+                    [dataset]="dataFileReport"
+                    (onAngularGridCreated)="
+                      angularGridFileReportReady($event.detail)
+                    "
+                  >
+                  </angular-slickgrid>
+                </div>
+              </nz-splitter-panel>
+            </nz-splitter>
+          </nz-splitter-panel>
+        </nz-splitter>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Footer -->
+  <div class="modal-footer py-1">
+    <button
+      nz-button
+      nzType="default"
+      nzSize="small"
+      nzDanger
+      (click)="activeModal.dismiss()"
+    >
+      Đóng
+    </button>
+    <button
+      nz-button
+      nzType="primary"
+      nzSize="small"
+      [nzLoading]="false"
+      [disabled]="isDisabledSaveButton"
+      (click)="onSaveData()"
+    >
+      <i class="fas fa-save me-1"></i> Lưu
+    </button>
+  </div>
+</div>

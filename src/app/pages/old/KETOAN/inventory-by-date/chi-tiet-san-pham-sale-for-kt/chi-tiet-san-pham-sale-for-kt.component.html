@@ -1,0 +1,50 @@
+<!-- quotation-kh-detail.component.html -->
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">YÊU CẦU BÁO GIÁ</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body p-1">
+    <form>
+      <div class="container-fluid">
+        <div class="row g-2 align-items-end">
+
+          <div class="col">
+            <label class="mb-0 fs-12">Mã nội bộ</label>
+            <nz-input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="productCode" nzDisable="true"></nz-input>
+          </div>
+
+          <div class="col">
+            <label class="mb-0 fs-12">Tồn kho đầu kỳ</label>
+            <nz-input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="totalQuantityFirst" nzDisable="true"></nz-input>
+          </div>
+        </div>
+
+        <!-- Bảng sản phẩm chi tiết -->
+        <div class="row mt-3">
+          <div class="col-12">
+            <nz-splitter style="height: 200px;">
+              <nz-splitter-panel nzDefaultSize="50%" [nzResizable]="true">
+                  <div class="card-header text-white py-1">
+                    <h6 class="mb-0 fs-12">Nhập kho</h6>
+                  </div>
+                  <div #tb_ImportTable></div>
+              </nz-splitter-panel>
+              <nz-splitter-panel nzDefaultSize="50%" [nzResizable]="true">
+                  <div class="card-header text-white py-1">
+                    <h6 class="mb-0 fs-12">Xuất kho</h6>
+                  </div>
+                    <div #tb_ExportTable></div>
+              </nz-splitter-panel>
+            </nz-splitter>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <div class="modal-footer py-1 d-flex justify-content-end">
+      <div class="d-flex gap-2">
+        <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+      </div>
+    </div>
+  </div>

@@ -1,515 +1,392 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-// import { GridOption } from '@slickgrid-universal/common';
-import { AngularGridInstance, AngularSlickgridModule, Column, ContextMenu, ExtensionName, Filters, Formatters, GridOption } from 'angular-slickgrid';
+import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzLayoutModule } from 'ng-zorro-antd/layout';
-import { MenuItem } from 'primeng/api';
-import { Menubar } from 'primeng/menubar';
-import { WorkPlan, WorkPlanFields } from './WorkPlan';
-import { WorkplanService } from './workplan.service';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+import { WorkplanService } from './workplan.service';
+import { WorkplanFormComponent } from './workplan-form/workplan-form.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../app.config';
+import { DateTime } from 'luxon';
 
 @Component({
     selector: 'app-workplan',
     imports: [
-        Menubar,
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NgbModalModule,
         NzGridModule,
-        // FormsModule,
         NzInputModule,
         NzButtonModule,
         NzIconModule,
-        NzLayoutModule,
-        AngularSlickgridModule,
-        ReactiveFormsModule,
-        NzFormModule
+        NzCardModule,
+        NzDatePickerModule,
+        NzSelectModule,
+        NzFormModule,
+        NzSpinModule,
+        NzModalModule,
     ],
     templateUrl: './workplan.component.html',
     styleUrl: './workplan.component.css',
     standalone: true
 })
-export class WorkplanComponent implements OnInit {
+export class WorkplanComponent implements OnInit, AfterViewInit {
+    @ViewChild('workplanTable', { static: false }) workplanTableElement!: ElementRef;
 
-
-    items: MenuItem[] | undefined;
-
-    angularGrid!: AngularGridInstance;
-    gridData: any;
-    columnDefinitions: Column[] = [];
-    gridOptions: GridOption = {};
+    workplanTable: Tabulator | null = null;
+    isLoading: boolean = false;
     dataset: any[] = [];
 
-    workplan!: WorkPlan;
+    // Search params
+    dateStart: Date | null = null;
+    dateEnd: Date | null = null;
+    keyword: string = '';
+    selectedWorkPlanId: number = 0;
 
     constructor(
         private service: WorkplanService,
         private notification: NzNotificationService,
-
+        private modalService: NgbModal,
+        private modal: NzModalService
     ) {
-
+        // Set default dates: đầu tuần đến cuối tuần hiện tại
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        this.dateStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+        this.dateEnd = new Date(this.dateStart.getFullYear(), this.dateStart.getMonth(), this.dateStart.getDate() + 6);
     }
 
-    ngOnInit() {
-        this.items = [
-            {
-                label: 'Home',
-                icon: 'pi pi-home'
-            },
-            {
-                label: 'Features',
-                icon: 'pi pi-star'
-            },
-            {
-                label: 'Projects',
-                icon: 'pi pi-search',
-                items: [
-                    {
-                        label: 'Components',
-                        icon: 'pi pi-bolt'
-                    },
-                    {
-                        label: 'Blocks',
-                        icon: 'pi pi-server'
-                    },
-                    {
-                        label: 'UI Kit',
-                        icon: 'pi pi-pencil'
-                    },
-                    {
-                        label: 'Templates',
-                        icon: 'pi pi-palette',
-                        items: [
-                            {
-                                label: 'Apollo',
-                                icon: 'pi pi-palette'
-                            },
-                            {
-                                label: 'Ultima',
-                                icon: 'pi pi-palette'
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                label: 'Contact',
-                icon: 'pi pi-envelope'
-            }
-        ]
-
-        this.initializeGrid();
+    ngOnInit(): void {
+        // Data will be loaded after view init
     }
 
-
-
-    //Sự kiện tìm kiếm
-    onSearch() {
-        this.dataset = [];
+    ngAfterViewInit(): void {
+        this.drawTable();
+        this.loadData();
     }
 
-    angularGridReady(angularGrid: AngularGridInstance) {
-        this.angularGrid = angularGrid;
-        this.gridData = angularGrid?.slickGrid || {};
-        this.updateCount(WorkPlanFields.FullName.field);
-    }
+    loadData(): void {
+        if (!this.dateStart || !this.dateEnd) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn khoảng thời gian!');
+            return;
+        }
 
-    get contextMenuInstance() {
-        return this.angularGrid?.extensionService?.getExtensionInstanceByName(ExtensionName.contextMenu);
-    }
-
-
-    initializeGrid() {
-        this.columnDefinitions = [
-            {
-                id: WorkPlanFields.StartDate.field,
-                name: WorkPlanFields.StartDate.name,
-                field: WorkPlanFields.StartDate.field,
-                type: WorkPlanFields.StartDate.type,
-                sortable: true, filterable: true,
-                formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundDate'] }
-
-            },
-            {
-                id: WorkPlanFields.EndDate.field,
-                name: WorkPlanFields.EndDate.name,
-                field: WorkPlanFields.EndDate.field,
-                type: WorkPlanFields.EndDate.type,
-                sortable: true, filterable: true,
-                formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundDate'] }
-
-            },
-            {
-                id: WorkPlanFields.TotalDay.field,
-                name: WorkPlanFields.TotalDay.name,
-                field: WorkPlanFields.TotalDay.field,
-                type: WorkPlanFields.TotalDay.type,
-                sortable: true, filterable: true,
-                filter: { model: Filters['compoundInputNumber'] }
-            },
-            {
-                id: WorkPlanFields.FullName.field,
-                name: WorkPlanFields.FullName.name,
-                field: WorkPlanFields.FullName.field,
-                type: WorkPlanFields.FullName.type,
-                sortable: true, filterable: true,
-                customTooltip: {
-                    useRegularTooltip: true,
-                    useRegularTooltipFromCellTextOnly: true,
-                },
-                filter: { model: Filters['compoundInputText'] }
-            },
-            {
-                id: WorkPlanFields.Project.field,
-                name: WorkPlanFields.Project.name,
-                field: WorkPlanFields.Project.field,
-                type: WorkPlanFields.Project.type,
-                sortable: true, filterable: true,
-                customTooltip: {
-                    useRegularTooltip: true,
-                    useRegularTooltipFromCellTextOnly: true,
-                },
-                filter: { model: Filters['compoundInputText'] }
-            },
-            {
-                id: WorkPlanFields.Location.field,
-                name: WorkPlanFields.Location.name,
-                field: WorkPlanFields.Location.field,
-                type: WorkPlanFields.Location.type,
-                sortable: true, filterable: true,
-                customTooltip: {
-                    useRegularTooltip: true,
-                    useRegularTooltipFromCellTextOnly: true,
-                },
-                filter: { model: Filters['compoundInputText'] }
-            },
-            {
-                id: WorkPlanFields.WorkContent.field,
-                name: WorkPlanFields.WorkContent.name,
-                field: WorkPlanFields.WorkContent.field,
-                type: WorkPlanFields.WorkContent.type,
-                sortable: true, filterable: true,
-                customTooltip: {
-                    useRegularTooltip: true,
-                    useRegularTooltipFromCellTextOnly: true,
-                },
-                filter: { model: Filters['compoundInputText'] }
-            },
-
-        ];
-
-        this.gridOptions = {
-            enableAutoResize: true,
-            autoResize: {
-                container: '.grid-container',
-            },
-            enableFiltering: true,
-            gridWidth: '100%',
-            rowHeight: 50,
-            datasetIdPropertyName: '_id',
-            enableRowSelection: true,
-            enableCellNavigation: true,
-            customTooltip: {
-                // formatter: this.tooltipFormatter.bind(this) as Formatter,
-                // headerFormatter: this.headerFormatter,
-                headerRowFormatter: (row: number, cell: number, value: any, column: Column) => {
-                    const tooltipTitle = 'Custom Tooltip - Header Row (filter)';
-                    return `<div class="headerrow-tooltip-title">${tooltipTitle}</div>
-                            <div class="tooltip-2cols-row"><div>Column:</div> <div>${column.field}</div></div>`;
-                },
-                usabilityOverride: (args) => args.cell !== 0 && args?.column?.id !== 'action', // don't show on first/last columns
-                // hideArrow: true, // defaults to False
-            },
-            createFooterRow: true,
-            showFooterRow: true,
-
-            // enablePagination: true,
-            // pagination: {
-            //     pageSizes: [5, 10, 20, 25, 50],
-            //     pageSize: 50,
-            // },
-
-            // cellMenu: {
-            //     // all the Cell Menu callback methods (except the action callback)
-            //     // are available under the grid options as shown below
-            //     onCommand: (e, args) => this.executeCommand(e, args),
-            //     onOptionSelected: (e, args) => {
-            //         // change "Completed" property with new option selected from the Cell Menu
-            //         const dataContext = args && args.dataContext;
-            //         if (dataContext && 'completed' in dataContext) {
-            //             dataContext.completed = args.item.option;
-            //             this.angularGrid.gridService.updateItem(dataContext);
-            //         }
-            //     },
-            //     onBeforeMenuShow: (e, args) => {
-            //         // for example, you could select the row that the click originated
-            //         // this.angularGrid.gridService.setSelectedRows([args.row]);
-            //         console.log('Before the Cell Menu is shown', args);
-            //     },
-            //     onBeforeMenuClose: (e, args) => console.log('Cell Menu is closing', args),
-            // },
-
-            // load Context Menu structure
-            contextMenu: {
-                hideCloseButton: false,
-                commandTitle: 'Commands', // optional, add title
-                commandItems: [
-                    // 'divider',
-                    { divider: true, command: '', positionOrder: 60 },
-                    // {
-                    //     command: 'command1', title: 'Command 1', positionOrder: 61,
-                    //     // you can use the "action" callback and/or use "onCommand" callback from the grid options, they both have the same arguments
-                    //     action: (e, args) => {
-                    //         console.log(args.dataContext, args.column); // action callback.. do something
-                    //     }
-                    // },
-                    {
-                        command: 'edit', title: 'Sửa', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
-                        action: (e, args) => {
-                            console.log(args.dataContext, args.column);
-                            // this.handleRowSelection(e, args);
-                        }
-                    },
-
-                    {
-                        command: 'delete', title: 'Xóa', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
-                        action: (e, args) => {
-                            console.log(args.dataContext, args.column);
-                        }
-                    },
-
-                ],
-            }
-
+        this.isLoading = true;
+        const params = {
+            DateStart: this.dateStart,
+            DateEnd: this.dateEnd,
+            Keyword: this.keyword || '',
+            PageNumber: 1,
+            PageSize: 1000
         };
 
-        // fill the dataset with your data (or read it from the DB)
-        let params = {};
         this.service.getWorkPlans(params).subscribe({
-            next: (response) => {
-                console.log(response);
-                this.dataset = response.data;
-
-                this.dataset = this.dataset.map((x, i) => ({
-                    ...x,
-                    _id: i + 1   // dành riêng cho SlickGrid
-                }));
-
+            next: (response: any) => {
+                this.isLoading = false;
+                if (response && response.status === 1 && response.data) {
+                    this.dataset = Array.isArray(response.data) ? response.data : [];
+                } else {
+                    this.dataset = [];
+                }
+                if (this.workplanTable) {
+                    this.workplanTable.setData(this.dataset);
+                }
             },
-            error: (err) => {
-                console.log(err);
-                // this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            error: (error: any) => {
+                this.isLoading = false;
+                const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi khi tải dữ liệu!';
+                this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
             }
-        })
-    }
-
-    showContextCommandsAndOptions(showBothList: boolean) {
-        // when showing both Commands/Options, we can just pass an empty array to show over all columns
-        // else show on all columns except Priority
-        const showOverColumnIds = showBothList ? [] : ['id', 'title', 'complete', 'start', 'finish', 'completed', 'action'];
-        this.contextMenuInstance?.setOptions({
-            commandShownOverColumnIds: showOverColumnIds,
-            // hideCommandSection: !showBothList
         });
     }
 
-    handleRowSelection(e: Event, args: any) {
-        if (Array.isArray(args.rows) && this.gridData) {
-            const item = args.rows.map((idx: number) => {
-                const item = this.gridData.getDataItem(idx);
-                return item;
-            });
-
-            // console.log('selected item:', item);
-        }
+    onSearch(): void {
+        this.loadData();
     }
 
-    updateCount(cell: string) {
-        let column: any = this.angularGrid.slickGrid?.getColumns().find(x => x.id == cell);
-        let columnId = column.id as number;
-        console.log(columnId);
-
-
-        // let total = 0;
-        // let i = this.dataset.length;
-        // while (i--) {
-        //     total += parseInt(this.dataset[i][columnId], 10) || 0;
-        // }
-        const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
-        if (columnElement) {
-            columnElement.textContent = `${this.dataset.length}`;
-        }
+    resetSearch(): void {
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        this.dateStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+        this.dateEnd = new Date(this.dateStart.getFullYear(), this.dateStart.getMonth(), this.dateStart.getDate() + 6);
+        this.keyword = '';
+        this.loadData();
     }
 
+    onAddWorkPlan(): void {
+        const modalRef = this.modalService.open(WorkplanFormComponent, {
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.isEditMode = false;
+        modalRef.componentInstance.dataInput = null;
 
-    getContextMenuOptions(): ContextMenu {
-        return {
-            hideCloseButton: false,
-            // optionally and conditionally define when the the menu is usable,
-            // this should be used with a custom formatter to show/hide/disable the menu
-            menuUsabilityOverride: (args) => {
-                const dataContext = args && args.dataContext;
-                return dataContext.id < 21; // say we want to display the menu only from Task 0 to 20
-            },
-            // which column to show the command list? when not defined it will be shown over all columns
-            commandShownOverColumnIds: ['id', 'title', 'percentComplete', 'start', 'finish', 'completed' /*, 'priority', 'action' */],
-            commandTitleKey: 'COMMANDS', // this title is optional, you could also use "commandTitle" when not using Translate
-            commandItems: [
-                { divider: true, command: '', positionOrder: 61 },
-                {
-                    command: 'delete-row',
-                    titleKey: 'DELETE_ROW',
-                    iconCssClass: 'mdi mdi-close',
-                    cssClass: 'red',
-                    textCssClass: 'bold',
-                    positionOrder: 62,
-                },
-                // you can pass divider as a string or an object with a boolean (if sorting by position, then use the object)
-                // note you should use the "divider" string only when items array is already sorted and positionOrder are not specified
-                // 'divider',
-                { divider: true, command: '', positionOrder: 63 },
-                {
-                    command: 'help',
-                    titleKey: 'HELP',
-                    iconCssClass: 'mdi mdi-help-circle',
-                    positionOrder: 64,
-                    // you can use the 'action' callback and/or subscribe to the 'onCallback' event, they both have the same arguments
-                    action: (_e, _args) => {
-                        // action callback.. do something
-                    },
-                    // only show command to 'Help' when the task is Not Completed
-                    itemVisibilityOverride: (args) => {
-                        const dataContext = args && args.dataContext;
-                        return !dataContext.completed;
-                    },
-                },
-                { command: 'something', titleKey: 'DISABLED_COMMAND', disabled: true, positionOrder: 65 },
-                { command: '', divider: true, positionOrder: 98 },
-                {
-                    // we can also have multiple nested sub-menus
-                    command: 'export',
-                    title: 'Exports',
-                    positionOrder: 99,
-                    commandItems: [
-                        { command: 'exports-txt', title: 'Text (tab delimited)' },
-                        {
-                            command: 'sub-menu',
-                            title: 'Excel',
-                            cssClass: 'green',
-                            subMenuTitle: 'available formats',
-                            subMenuTitleCssClass: 'text-italic orange',
-                            commandItems: [
-                                { command: 'exports-csv', title: 'Excel (csv)' },
-                                { command: 'exports-xlsx', title: 'Excel (xlsx)' },
-                            ],
-                        },
-                    ],
-                },
-                {
-                    command: 'feedback',
-                    title: 'Feedback',
-                    positionOrder: 100,
-                    commandItems: [
-                        {
-                            command: 'request-update',
-                            title: 'Request update from supplier',
-                            iconCssClass: 'mdi mdi-star',
-                            tooltip: 'this will automatically send an alert to the shipping team to contact the user for an update',
-                        },
-                        'divider',
-                        {
-                            command: 'sub-menu',
-                            title: 'Contact Us',
-                            iconCssClass: 'mdi mdi-account',
-                            subMenuTitle: 'contact us...',
-                            subMenuTitleCssClass: 'italic',
-                            commandItems: [
-                                { command: 'contact-email', title: 'Email us', iconCssClass: 'mdi mdi-pencil-outline' },
-                                { command: 'contact-chat', title: 'Chat with us', iconCssClass: 'mdi mdi-message-text-outline' },
-                                { command: 'contact-meeting', title: 'Book an appointment', iconCssClass: 'mdi mdi-coffee' },
-                            ],
-                        },
-                    ],
-                },
-            ],
+        modalRef.result.then((result) => {
+            if (result === true) {
+                this.loadData();
+            }
+        }).catch(() => { });
+    }
 
-            // Options allows you to edit a column from an option chose a list
-            // for example, changing the Priority value
-            // you can also optionally define an array of column ids that you wish to display this option list (when not defined it will show over all columns)
-            optionTitleKey: 'CHANGE_PRIORITY',
-            optionShownOverColumnIds: ['priority'], // optional, when defined it will only show over the columns (column id) defined in the array
-            optionItems: [
-                {
-                    option: 0,
-                    title: 'n/a',
-                    textCssClass: 'italic',
-                    // only enable this option when the task is Not Completed
-                    itemUsabilityOverride: (args: any) => {
-                        const dataContext = args && args.dataContext;
-                        return !dataContext.completed;
-                    },
-                    // you can use the 'action' callback and/or subscribe to the 'onCallback' event, they both have the same arguments
-                    action: (_e: Event, _args: any) => {
-                        // action callback.. do something
-                    },
-                },
-                { option: 1, iconCssClass: 'mdi mdi-star-outline yellow', titleKey: 'LOW' },
-                { option: 2, iconCssClass: 'mdi mdi-star orange', titleKey: 'MEDIUM' },
-                { option: 3, iconCssClass: 'mdi mdi-star red', titleKey: 'HIGH' },
-                // you can pass divider as a string or an object with a boolean (if sorting by position, then use the object)
-                // note you should use the "divider" string only when items array is already sorted and positionOrder are not specified
-                'divider',
-                // { divider: true, option: '', positionOrder: 3 },
-                {
-                    option: 4,
-                    title: 'Extreme',
-                    iconCssClass: 'mdi mdi-fire',
-                    disabled: true,
-                    // only shown when the task is Not Completed
-                    itemVisibilityOverride: (args: any) => {
-                        const dataContext = args && args.dataContext;
-                        return !dataContext.completed;
-                    },
-                },
-                {
-                    // we can also have multiple nested sub-menus
-                    option: null,
-                    title: 'Sub-Options (demo)',
-                    subMenuTitleKey: 'CHANGE_PRIORITY',
-                    optionItems: [
-                        { option: 1, iconCssClass: 'mdi mdi-star-outline yellow', titleKey: 'LOW' },
-                        { option: 2, iconCssClass: 'mdi mdi-star orange', titleKey: 'MEDIUM' },
-                        { option: 3, iconCssClass: 'mdi mdi-star red', titleKey: 'HIGH' },
-                    ],
-                },
-            ],
-            // subscribe to Context Menu
-            // onBeforeMenuShow: (e, args) => {
-            //     // for example, you could select the row it was clicked with
-            //     // grid.setSelectedRows([args.row]); // select the entire row
-            //     this.angularGrid.slickGrid.setActiveCell(args.row, args.cell, false); // select the cell that the click originated
-            //     console.log('Before the global Context Menu is shown', args);
-            // },
-            // onBeforeMenuClose: (e, args) => console.log('Global Context Menu is closing', args),
+    onEditWorkPlan(): void {
+        if (!this.selectedWorkPlanId || this.selectedWorkPlanId <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một bản ghi để sửa!');
+            return;
+        }
 
-            // // subscribe to Context Menu onCommand event (or use the action callback on each command)
-            // onCommand: (e, args) => this.executeCommand(e, args),
+        const selectedData = this.workplanTable?.getSelectedData() || [];
+        if (selectedData.length === 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một bản ghi để sửa!');
+            return;
+        }
 
-            // // subscribe to Context Menu onOptionSelected event (or use the action callback on each option)
-            // onOptionSelected: (e, args) => {
-            //     // change Priority
-            //     const dataContext = args && args.dataContext;
-            //     if (dataContext && 'priority' in dataContext) {
-            //         dataContext.priority = args.item.option;
-            //         this.angularGrid.gridService.updateItem(dataContext);
-            //     }
-            // },
+        const modalRef = this.modalService.open(WorkplanFormComponent, {
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.isEditMode = true;
+        modalRef.componentInstance.dataInput = { ...selectedData[0] };
+
+        modalRef.result.then((result) => {
+            if (result === true) {
+                this.loadData();
+            }
+        }).catch(() => { });
+    }
+
+    onDeleteWorkPlan(): void {
+        if (!this.selectedWorkPlanId || this.selectedWorkPlanId <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một bản ghi để xóa!');
+            return;
+        }
+
+        // Tìm data của workplan được chọn
+        const selectedWorkPlan = this.dataset?.find((item: any) => item.ID === this.selectedWorkPlanId);
+        
+        if (!selectedWorkPlan) {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy kế hoạch đã chọn!');
+            return;
+        }
+
+        this.modal.confirm({
+            nzTitle: 'Xác nhận xóa',
+            nzContent: 'Bạn có chắc chắn muốn xóa kế hoạch này?',
+            nzOkText: 'Xóa',
+            nzOkType: 'primary',
+            nzOkDanger: true,
+            nzCancelText: 'Hủy',
+            nzOnOk: () => {
+          
+                const deletePayload = {
+                    ...selectedWorkPlan,
+                    IsDeleted: true
+                };
+                
+                this.service.saveWorkPlan(deletePayload).subscribe({
+                    next: (response: any) => {
+                        if (response && response.status === 1) {
+                            this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Xóa thành công!');
+                            this.selectedWorkPlanId = 0;
+                            this.loadData();
+                        } else {
+                            this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Xóa thất bại!');
+                        }
+                    },
+                    error: (error: any) => {
+                        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Xóa thất bại!';
+                        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+                    }
+                });
+            }
+        });
+    }
+    private drawTable(): void {
+        if (this.workplanTable) {
+            this.workplanTable.setData(this.dataset || []);
+            return;
+        }
+        // Date formatter
+        const dateFormatter = (cell: any) => {
+            const value = cell.getValue();
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
         };
+
+        this.workplanTable = new Tabulator(this.workplanTableElement.nativeElement, {
+            data: this.dataset || [],
+            ...DEFAULT_TABLE_CONFIG,
+            paginationMode: 'local',
+            height: '88vh',
+            layout: 'fitDataStretch',
+            selectableRows: 1,
+            rowHeader:false,
+            columns: [
+                {
+                    title: '<span style="font-size: 42px; font-weight: bold;">+</span>',
+                    formatter: (cell: any) => {
+                        return `<div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-primary btn-edit" title="Sửa"><i class="fas fa-pen"></i></button>
+                            <button class="btn btn-sm btn-danger btn-delete" title="Xóa"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                    },
+                    width: 80,
+                    hozAlign: 'center',
+                    headerSort: false,
+                    frozen: true,
+                    headerClick: (e: any, column: any) => {
+                        this.onAddWorkPlan();
+                    },
+                    cellClick: (e: any, cell: any) => {
+                        const target = e.target as HTMLElement;
+                        const row = cell.getRow();
+                        const data = row.getData();
+                        this.selectedWorkPlanId = data.ID;
+
+                        if (target.closest('.btn-edit')) {
+                            this.onEditWorkPlanRow(data);
+                        } else if (target.closest('.btn-delete')) {
+                            this.onDeleteWorkPlanRow(data);
+                        }
+                    }
+                },
+                {
+                    title: 'Ngày bắt đầu',
+                    field: 'StartDate',
+                    hozAlign: 'center',
+                    headerHozAlign: 'center',
+                    width: 120,
+                    formatter: dateFormatter,
+                },
+                {
+                    title: 'Ngày kết thúc',
+                    field: 'EndDate',
+                    hozAlign: 'center',
+                    headerHozAlign: 'center',
+                    width: 120,
+                    formatter: dateFormatter,
+                },
+                {
+                    title: 'Tổng số ngày',
+                    field: 'TotalDay',
+                    hozAlign: 'center',
+                    headerHozAlign: 'center',
+                    width: 100,
+                },
+                {
+                    title: 'Người phụ trách',
+                    field: 'FullName',
+                    headerHozAlign: 'center',
+                    width: 150,
+                    formatter: 'textarea',
+                },
+                {
+                    title: 'Dự án',
+                    field: 'Project',
+                    headerHozAlign: 'center',
+                    width: 200,
+                    formatter: 'textarea',
+                },
+                {
+                    title: 'Nơi làm việc',
+                    field: 'Location',
+                    headerHozAlign: 'center',
+                    width: 120,
+                    formatter: 'textarea',
+                },
+                {
+                    title: 'Nội dung công việc',
+                    field: 'WorkContent',
+                    headerHozAlign: 'center',
+                    widthGrow: 1,
+                    formatter: 'textarea',
+                },
+            ],
+        });
+
+        // Row selection event
+        this.workplanTable.on('rowSelected', (row: any) => {
+            const data = row.getData();
+            this.selectedWorkPlanId = data.ID;
+        });
+
+        this.workplanTable.on('rowDeselected', () => {
+            this.selectedWorkPlanId = 0;
+        });
+
+        // Double click to edit
+        this.workplanTable.on('rowDblClick', (e: any, row: any) => {
+            const data = row.getData();
+            this.selectedWorkPlanId = data.ID;
+            this.onEditWorkPlanRow(data);
+        });
     }
+
+    private onEditWorkPlanRow(data: any): void {
+        const modalRef = this.modalService.open(WorkplanFormComponent, {
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.isEditMode = true;
+        modalRef.componentInstance.dataInput = { ...data };
+
+        modalRef.result.then((result) => {
+            if (result === true) {
+                this.loadData();
+            }
+        }).catch(() => { });
+    }
+
+    private onDeleteWorkPlanRow(data: any): void {
+        this.modal.confirm({
+            nzTitle: 'Xác nhận xóa',
+            nzContent: `Bạn có chắc chắn muốn xóa kế hoạch: "${data.WorkContent?.substring(0, 50)}..."?`,
+            nzOkText: 'Xóa',
+            nzOkType: 'primary',
+            nzOkDanger: true,
+            nzCancelText: 'Hủy',
+            nzOnOk: () => {
+                // Tạo payload với IsDeleted = true
+                const deletePayload = {
+                    ...data,
+                    IsDeleted: true
+                };
+                
+                this.service.saveWorkPlan(deletePayload).subscribe({
+                    next: (response: any) => {
+                        if (response && response.status === 1) {
+                            this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Xóa thành công!');
+                            this.loadData();
+                        } else {
+                            this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Xóa thất bại!');
+                        }
+                    },
+                    error: (error: any) => {
+                        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Xóa thất bại!';
+                        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+                    }
+                });
+            }
+        });
+    }
+
 }

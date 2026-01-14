@@ -68,6 +68,7 @@ type ProposeDetail = {
   Unit?: string;
   UnitPrice?: number;
   TotalPrice?: number;
+  WarrantyPeriod?: number;
   Note?: string;
 };
 import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
@@ -102,8 +103,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config
   styleUrl: './propose-vehicle-repair-form.component.css',
 })
 export class ProposeVehicleRepairFormComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   @ViewChild('tblNcc', { static: false })
   tblNccRef!: ElementRef<HTMLDivElement>;
   private nccTable!: Tabulator;
@@ -124,6 +124,8 @@ export class ProposeVehicleRepairFormComponent
       VehicleRepairTypeID: ['', [Validators.required]],
       TimeStartRepair: ['', [Validators.required]],
       TimeEndRepair: [''],
+      KmPreviousPeriod: [0],
+      KmCurrentPeriod: [0],
       Reason: ['', [Validators.required, Validators.maxLength(500)]],
       ProposeContent: ['', [Validators.required, Validators.maxLength(500)]],
       EmployeeID: ['', [Validators.required]],
@@ -158,6 +160,26 @@ export class ProposeVehicleRepairFormComponent
   vehicleList: any[] = [];
   TypeList: any[] = [];
   fathSever: string = 'D:/RTC_Sw/RTC/VehicleRepair/';
+
+  // Getter để tính số KM trong kỳ (hiển thị, không lưu DB)
+  get kmDifference(): number {
+    const kmCurrent = Number(this.formGroup?.get('KmCurrentPeriod')?.value) || 0;
+    const kmPrevious = Number(this.formGroup?.get('KmPreviousPeriod')?.value) || 0;
+    return kmCurrent - kmPrevious;
+  }
+
+  // Formatter và Parser cho số Km với dấu phân cách nghìn
+  kmFormatter = (value: number | string): string => {
+    if (value == null || value === '') return '';
+    const num = typeof value === 'string' ? Number(value.replace(/\./g, '').replace(/,/g, '')) : value;
+    if (isNaN(num)) return '';
+    return num.toLocaleString('vi-VN');
+  };
+
+  kmParser = (value: string): number => {
+    if (!value) return 0;
+    return Number(value.replace(/\./g, '').replace(/,/g, '')) || 0;
+  };
   private syncEmployeeFields(id?: number) {
     if (!id) return;
     const emp = this.employeeList.find((x) => x.ID === id);
@@ -322,6 +344,15 @@ export class ProposeVehicleRepairFormComponent
             precision: 0,
           },
         },
+        {
+          title: 'Bảo hành (tháng)',
+          field: 'WarrantyPeriod',
+          width: 130,
+          hozAlign: 'right',
+          headerHozAlign: 'center',
+          editor: 'number',
+          editorParams: { min: 0, step: 1 },
+        },
         { title: 'Ghi chú', field: 'Note', width: 220, editor: 'textarea' },
       ],
     });
@@ -363,6 +394,7 @@ export class ProposeVehicleRepairFormComponent
         Unit: '',
         UnitPrice: 0,
         TotalPrice: 0,
+        WarrantyPeriod: 0,
         Note: '',
         IsDeleted: false,
       },
@@ -524,7 +556,7 @@ export class ProposeVehicleRepairFormComponent
   ngOnDestroy(): void {
     try {
       this.nccTable?.destroy();
-    } catch {}
+    } catch { }
   }
   private mapDetail(raw: any[]): ProposeDetail[] {
     return (raw || []).map((x: any, i: number) => {
@@ -541,6 +573,7 @@ export class ProposeVehicleRepairFormComponent
         Unit: x.Unit ?? '',
         UnitPrice: isNaN(u) ? 0 : u,
         TotalPrice: Number(x.TotalPrice ?? q * u) || 0,
+        WarrantyPeriod: Number(x.WarrantyPeriod) || 0,
         Note: x.Note ?? '',
       };
     });
@@ -732,6 +765,8 @@ export class ProposeVehicleRepairFormComponent
         VehicleRepairTypeID: formValue.VehicleRepairTypeID,
         TimeStartRepair: formValue.TimeStartRepair,
         TimeEndRepair: formValue.TimeEndRepair || null,
+        KmPreviousPeriod: Number(formValue.KmPreviousPeriod) || 0,
+        KmCurrentPeriod: Number(formValue.KmCurrentPeriod) || 0,
         Reason: formValue.Reason,
         CostRepairEstimate: Number(
           formValue.CostRepairEstimate.toString().replace(/\D/g, '')

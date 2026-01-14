@@ -1,0 +1,229 @@
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0">
+    <div class="card-header bg-white p-1 position-relative">
+      <div class="d-flex gap-1 horizontal-scroll-container" horizontalScroll>
+        <button
+          nz-button
+          nzType="default"
+          nzSize="small"
+          (click)="ToggleSearchPanelNew($event); $event.stopPropagation()"
+          (mousedown)="$event.stopPropagation()"
+          (touchstart)="$event.stopPropagation()"
+          (touchend)="$event.stopPropagation()"
+          class="sticky-toggle-btn"
+          [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+          [attr.aria-expanded]="showSearchBar"
+          type="button"
+        >
+          <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
+        </button>
+        <!-- Thêm - luôn hiển thị khi có quyền -->
+        <button
+          *hasPermission="''"
+          nz-button
+          class="btn-add"
+          nzType="default"
+          nzSize="small"
+          (click)="onAdd()"
+        >
+          <img src="assets/icon/action_add_item_16.png" /> Thêm
+        </button>
+        <!-- Sửa - luôn hiển thị khi có quyền -->
+        <button
+          *hasPermission="''"
+          nz-button
+          class="btn-edit"
+          nzType="default"
+          nzSize="small"
+          (click)="onEdit()"
+        >
+          <img src="assets/icon/action_edit_item_16.png" />Sửa
+        </button>
+        <!-- Xóa - luôn hiển thị khi có quyền -->
+        <button
+          nz-button
+          nzType="default"
+          class="btn-delete"
+          *hasPermission="''"
+          nzSize="small"
+          (click)="onDeleted()"
+        >
+          <img src="assets/icon/action_delete_item_16.png" />Xóa
+        </button>
+      </div>
+    </div>
+
+    <!-- Backdrop overlay cho mobile -->
+    <div
+      class="filter-backdrop"
+      *ngIf="shouldShowSearchBar"
+      (click)="ToggleSearchPanelNew()"
+      [class.mobile-only]="true"
+    ></div>
+
+    <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, modal trên mobile - ẩn khi isHRDept -->
+    <div
+      class="filter-bar bg-light border-bottom p-2"
+      *ngIf="shouldShowSearchBar"
+      [class.mobile-modal]="true"
+    >
+      <form
+        nz-form
+        nzLayout="inline"
+        class="d-flex flex-wrap gap-2 align-items-center"
+      >
+        <!-- Các filter mặc định hiển thị -->
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px"
+            >Từ ngày</nz-form-label
+          >
+          <nz-form-control>
+            <nz-date-picker
+              [(ngModel)]="dateStart"
+              name="dateStart"
+              nzFormat="dd/MM/yyyy"
+              style="width: 150px; font-size: 12px"
+              nzSize="small"
+              nzAllowClear="false"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px"
+            >Đến ngày</nz-form-label
+          >
+          <nz-form-control>
+            <nz-date-picker
+              [(ngModel)]="dateEnd"
+              name="dateEnd"
+              nzFormat="dd/MM/yyyy"
+              style="width: 150px; font-size: 12px"
+              nzSize="small"
+              nzAllowClear="false"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label class="fs-12">Nhân viên</nz-form-label>
+          <nz-form-control>
+            <nz-select
+              name="employeeId"
+              [(ngModel)]="employeeRequestId"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="--Chọn nhân viên--"
+              nzSize="small"
+              style="width: 250px"
+            >
+              <ng-container *ngFor="let group of employeeRequests">
+                <nz-option-group [nzLabel]="group.label">
+                  <nz-option
+                    *ngFor="let option of group.options"
+                    [nzLabel]="option.item.Code + ' - ' + option.item.FullName"
+                    [nzValue]="option.item.EmployeeID"
+                  >
+                  </nz-option>
+                </nz-option-group>
+              </ng-container>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px"
+            >Từ khóa</nz-form-label
+          >
+          <nz-form-control>
+            <input
+              nz-input
+              placeholder="Nhập từ khóa"
+              nzSize="small"
+              [(ngModel)]="keyword"
+              name="keyword"
+              style="width: 150px; font-size: 12px"
+            />
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Nút tìm kiếm với dropdown cho filter bổ sung -->
+        <nz-form-item class="mb-0">
+          <nz-form-control>
+            <div class="btn-group">
+              <button
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                (click)="onSearch()"
+              >
+                Tìm kiếm
+              </button>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </div>
+
+    <!-- Content với tabs động -->
+    <div
+      class="card-body p-0"
+      [class.with-search-bar]="shouldShowSearchBar"
+      [class.without-search-bar]="!shouldShowSearchBar"
+    >
+      <div *ngIf="isLoading">
+        <nz-spin
+          [nzSpinning]="isLoading"
+          nzSimple
+          [style]="{
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            background: 'rgba(255,255,255,0.4)',
+            zIndex: '999',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }"
+        ></nz-spin>
+      </div>
+      <nz-splitter nzLayout="vertical" class="h-100">
+        <nz-splitter-panel [nzSize]="">
+          <div class="grid-container-master">
+            <angular-slickgrid
+              style="height: 41vh"
+              [gridId]="gridIdMaster"
+              [columns]="columnDefinitionsMaster"
+              [options]="gridOptionsMaster"
+              [dataset]="dataMaster"
+              (onAngularGridCreated)="angularGridQCMasterReady($event.detail)"
+              (onClick)="
+                onCellClicked($event.detail.eventData, $event.detail.args)
+              "
+            >
+            </angular-slickgrid>
+          </div>
+        </nz-splitter-panel>
+
+        <!-- Panel dưới: chi tiết -->
+        <nz-splitter-panel [nzSize]="sizeTbDetail" nzResizable="false">
+          <div style="padding: 4px 2px; background: #f5f5f5; color: #377ced">
+            Chi tiết QC: {{ QCCode }}
+          </div>
+          <div class="grid-container-detail">
+            <angular-slickgrid
+              [gridId]="gridIdDetail"
+              [columns]="columnDefinitionsDetail"
+              [options]="gridOptionsDetail"
+              [dataset]="dataDetail"
+              (onAngularGridCreated)="angularGridDetailReady($event.detail)"
+            >
+            </angular-slickgrid>
+          </div>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </div>
+  </div>
+</ng-container>

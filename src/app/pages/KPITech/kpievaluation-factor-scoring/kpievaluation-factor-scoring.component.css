@@ -1,0 +1,116 @@
+/* Toolbar styling */
+.toolbar {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* ==================== GRID CONTAINER STYLES ==================== */
+.grid-exam-container,
+.grid-employee-container,
+.grid-evaluation-container,
+.grid-evaluation2-container,
+.grid-evaluation4-container,
+.grid-master-container,
+.grid-rule-container,
+.grid-team-container {
+    width: 100%;
+    height: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}
+
+/* Card headers matching partlist style */
+.card-header {
+    font-weight: bold !important;
+    background-color: #efebebe7 !important;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* ==================== TEXT ALIGNMENT ==================== */
+:host ::ng-deep .text-center {
+    text-align: center !important;
+}
+
+:host ::ng-deep .text-right {
+    text-align: right !important;
+}
+
+:host ::ng-deep .text-left {
+    text-align: left !important;
+}
+
+/* ==================== HEADER STYLES ==================== */
+:host ::ng-deep .slick-header-column {
+    background-color: #fafafa;
+    border-right: 1px solid #ddd !important;
+    font-weight: 600;
+}
+
+:host ::ng-deep .slick-row.active {
+    background-color: #e6f7ff;
+}
+
+/* ==================== TREE DATA STYLES ==================== */
+:host ::ng-deep .slick-group-toggle {
+    cursor: pointer;
+}
+
+:host ::ng-deep .slick-cell {
+    padding: 4px 6px;
+}
+
+/* Ensure tabs fill height */
+nz-tabset {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+::ng-deep .ant-tabs-content {
+    height: 100%;
+    overflow: hidden;
+}
+
+::ng-deep .ant-tabs-tabpane {
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Close panel button */
+.btn-close-panel {
+    padding: 0 4px;
+    height: auto;
+    line-height: 1;
+}
+
+/* Small font size utility */
+.fs-12 {
+    font-size: 0.75rem !important;
+}
+
+/* Button styles matching project-part-list */
+.button-success {
+    background-color: #52c41a;
+    border-color: #52c41a;
+    color: white;
+}
+
+.button-success:hover {
+    background-color: #389e0d;
+    border-color: #389e0d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .toolbar {
+        flex-wrap: wrap;
+    }
+}

@@ -157,7 +157,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -173,7 +174,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -189,7 +191,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -205,7 +208,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -221,7 +225,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -276,7 +281,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -292,7 +298,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -308,7 +315,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -324,7 +332,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -340,7 +349,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -356,7 +366,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true
           } as MultipleSelectOption
         }
       },
@@ -372,7 +383,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true  
           } as MultipleSelectOption
         }
       },
@@ -388,7 +400,8 @@ export class InventoryProjectNewComponent implements OnInit {
           collection: [],
           filterOptions: {
             autoAdjustDropHeight: true,
-            maxHeight: 250
+            maxHeight: 250,
+            filter: true  
           } as MultipleSelectOption
         }
       },
@@ -402,6 +415,37 @@ export class InventoryProjectNewComponent implements OnInit {
         formatter: Formatters.dateIso,
         params: { parseDateFormat: 'YYYY-MM-DD', outputFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] }
+      },
+      {
+        id: 'POKHDetailID',
+        name: 'POKHDetailID',
+        field: 'POKHDetailID',
+        sortable: true,
+        filterable: true,
+        width: 120,
+        hidden: true,
+        excludeFromColumnPicker: false
+      },
+            {
+        id: 'ProductSaleID',
+        name: 'ProductSaleID',
+        field: 'ProductSaleID',
+        sortable: true,
+        filterable: true,
+        width: 120,
+        hidden: true,
+        excludeFromColumnPicker: false
+              
+      },
+                {
+        id: 'ProjectID',
+        name: 'ProjectID',
+        field: 'ProjectID',
+        sortable: true,
+        filterable: true,
+        width: 120,
+        hidden: true,
+        excludeFromColumnPicker: false
       }
     ];
 
@@ -427,6 +471,14 @@ export class InventoryProjectNewComponent implements OnInit {
         hideInColumnTitleRow: true,
         applySelectOnAllPages: true
       },
+      enableColumnPicker: true,
+    columnPicker: {
+      hideForceFitButton: false,
+      hideSyncResizeButton: true,
+      onColumnsChanged: (e, args) => {
+        console.log('Columns changed:', args.columns);
+      }
+    },
       enableCheckboxSelector: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,

@@ -170,6 +170,8 @@ import { InventoryByDateComponent } from '../../../old/KETOAN/inventory-by-date/
 import { AccountingContractTypeMasterComponent } from '../../../old/KETOAN/accounting-contract-type-master/accounting-contract-type-master.component';
 import { AccountingContractComponent } from '../../../old/KETOAN/accounting-contract/accounting-contract.component';
 import { MenuAppService } from '../../menu-app/menu-app.service';
+import { WelcomeComponent } from '../../../old/welcome/welcome.component';
+import { COMPONENT_REGISTRY } from '../component-registry';
 
 @Injectable({
     providedIn: 'root',
@@ -3658,26 +3660,40 @@ export class MenuService {
                 // this.nodes = [];
                 // Tạo map trước
                 response.data.menus.forEach((item: any) => {
-                    const menuItem = {
-                        id: item.ID,
-                        stt: item.STT,
+                    // const menuItem = {
+                    //     id: item.ID,
+                    //     stt: item.STT,
+                    //     key: item.Code,
+                    //     title: item.Title,
+                    //     router: item.Router == '' ? '#' : `${item.Router}`,
+                    //     icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+                    //     isPermission: item.IsPermission,
+                    //     ParentID: item.ParentID,
+                    //     children: [],
+                    //     isOpen: item.ParentID > 0,
+                    //     queryParams: (item.QueryParam || ''),
+                    // };
+
+                    const menu: MenuItem = {
+                        kind: item.ParentID <= 0 ? 'group' : 'leaf',
                         key: item.Code,
+                        stt: item.STT,
                         title: item.Title,
-                        router: item.Router == '' ? '#' : `${item.Router}`,
-                        icon: `${environment.host}api/share/software/icon/${item.Icon}`,
-                        isPermission: item.IsPermission,
-                        ParentID: item.ParentID,
-                        children: [],
                         isOpen: item.ParentID > 0,
-                        queryParams: (item.QueryParam || ''),
-                    };
+                        isPermission: item.IsPermission,
+                        icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+                        children: [],
+                        router: item.Router == '' ? '#' : `${item.Router}`,
+                        data: (item.QueryParam || ''),
+                        comp: COMPONENT_REGISTRY[item.Router]
+                    }
 
                     // Log để debug queryParams từ database
                     if (item.QueryParam && item.QueryParam !== '') {
                         // console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
                     }
 
-                    map.set(item.ID, menuItem);
+                    map.set(item.ID, menu);
                 });
 
                 // Gắn cha – con

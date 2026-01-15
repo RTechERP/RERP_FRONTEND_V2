@@ -141,7 +141,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         private route: ActivatedRoute,
         // private tabService: TabServiceService
     ) {
-        this.menuComps = this.menuService.getMenus();
+        this.menuComps = this.menuService.getCompMenus();
+        // this.menuComps = this.menuService.getMenus();
     }
     notificationComponent = AppNotifycationDropdownComponent;
     //#region Khai báo biến
@@ -217,6 +218,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit(): void {
         this.getMenus();
+        console.log('this.menuComps:', this.menuComps);
+        console.log('this.getMenus:', this.menuService.getMenus());
 
 
         this.menuService.menuKey$.subscribe((x) => {
@@ -261,12 +264,6 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             parent: this.injector,
         });
 
-        this.dynamicTabComps = [...this.dynamicTabComps, { title, comp, injector, data }];
-        setTimeout(() => (this.selectedIndex = this.dynamicTabComps.length - 1));
-
-        // Lưu tabs vào localStorage
-        // this.saveTabs();
-
         const idx = this.dynamicTabComps.findIndex((t) => getTabKey(t) === currentTabKey);
 
         // console.log('currentTabKey:', currentTabKey);
@@ -277,6 +274,14 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.selectedCompIndex = idx;
             return;
         }
+
+        this.dynamicTabComps = [...this.dynamicTabComps, { title, comp, injector, data }];
+        setTimeout(() => (this.selectedIndex = this.dynamicTabComps.length - 1));
+
+        // Lưu tabs vào localStorage
+        // this.saveTabs();
+
+
     }
 
     closeTabComp({ index }: { index: number }) {

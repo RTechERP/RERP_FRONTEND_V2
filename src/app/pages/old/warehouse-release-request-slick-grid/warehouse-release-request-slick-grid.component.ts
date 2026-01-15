@@ -848,22 +848,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       IsTransfer: isTransfer,
     };
 
-    const modalRef = this.modalService.open(BillExportDetailComponent, {
-      centered: true,
-      // size: 'xl',
-      windowClass: 'full-screen-modal',
-      backdrop: 'static',
-      keyboard: false,
-    });
-
-    // Truyền dữ liệu vào modal
-    modalRef.componentInstance.newBillExport = billExportForModal;
-    modalRef.componentInstance.isCheckmode = false;
-    modalRef.componentInstance.isPOKH = true;
-    modalRef.componentInstance.id = 0;
-    modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
-    modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
-
+    // CRITICAL: Create detailsForModal BEFORE opening the modal
     const detailsForModal = billExport.Details.map((detail: any) => ({
       ID: 0,
       POKHDetailID: detail.POKHDetailID || 0,
@@ -888,21 +873,24 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       POKHID: detail.POKHID || 0,
     }));
 
-    setTimeout(() => {
-      modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
+    console.log('[WAREHOUSE RELEASE SLICKGRID] detailsForModal before modal open:', detailsForModal);
 
-      if (modalRef.componentInstance.table_billExportDetail) {
-        modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
+    const modalRef = this.modalService.open(BillExportDetailNewComponent, {
+      centered: true,
+      // size: 'xl',
+      windowClass: 'full-screen-modal',
+      backdrop: 'static',
+      keyboard: false,
+    });
 
-        // Update TotalInventory after data is set into table
-        // Wait a bit for productOptions to be loaded if not already
-        setTimeout(() => {
-          if (modalRef.componentInstance.updateTotalInventoryForExistingRows) {
-            modalRef.componentInstance.updateTotalInventoryForExistingRows();
-          }
-        }, 500);
-      }
-    }, 200);
+    // CRITICAL: Set selectedList FIRST after opening modal (before other properties)
+    modalRef.componentInstance.selectedList = detailsForModal;
+    modalRef.componentInstance.newBillExport = billExportForModal;
+    modalRef.componentInstance.isCheckmode = false;
+    modalRef.componentInstance.isPOKH = true;
+    modalRef.componentInstance.id = 0;
+    modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
+    modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
 
     modalRef.result.then(
       (result) => {

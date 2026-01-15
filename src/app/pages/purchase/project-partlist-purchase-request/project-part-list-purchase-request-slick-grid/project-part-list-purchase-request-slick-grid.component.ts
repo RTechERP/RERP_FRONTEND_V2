@@ -2119,8 +2119,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       },
       // DiscountPercent
       {
-        id: 'DiscountPercent',
-        field: 'DiscountPercent',
+        id: 'DiscountPercentPur',
+        field: 'DiscountPercentPur',
         name: '% giảm giá',
         width: 100,
         sortable: true,

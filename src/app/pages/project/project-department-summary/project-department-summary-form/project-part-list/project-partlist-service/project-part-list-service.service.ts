@@ -52,6 +52,10 @@ export class ProjectPartListService {
   checkExistImport(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/check-exits-import`, payload);
   }
+  // Update stock từ Excel import
+  updateStock(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/update-stock`, payload);
+  }
   approveProjectPartList(projectpartlistID: number[], approved: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approvedTBP`, {
       projectpartlistID: projectpartlistID,

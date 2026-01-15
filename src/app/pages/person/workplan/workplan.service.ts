@@ -79,7 +79,7 @@ export class WorkplanService {
     }
 
     getTeamByDepartmentId(departmentID: number): Observable<any> {
-        return this.http.get(this.url + '/get-team-by-department-id?departmentID=' + departmentID);
+        return this.http.get(environment.host + 'api/team/get-team-by-department-id?departmentID=' + departmentID);
     }
 
     // Lấy danh sách nhân viên theo team

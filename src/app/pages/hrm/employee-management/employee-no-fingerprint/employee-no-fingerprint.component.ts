@@ -106,14 +106,19 @@ export class EmployeeNoFingerprintComponent
 
   // Search filters
   selectedDepartmentFilter: number | null = null;
-  selectedTBPStatusFilter: number = -1;
+  selectedTBPStatusFilter: number | null = null;
   searchValue: string = '';
-  dateStart: Date = DateTime.local().startOf('month').toJSDate();
-  dateEnd: Date = DateTime.local().endOf('month').toJSDate();
+  dateStart: string = DateTime.local().toISODate() || ''; // Ngày hiện tại format YYYY-MM-DD
+  dateEnd: string = DateTime.local().toISODate() || ''; // Ngày hiện tại format YYYY-MM-DD
 
-  // Convert Date -> ISO khi build params
-  private toISODate(d: Date | null | undefined): string {
+  // Convert Date hoặc string -> ISO khi build params
+  private toISODate(d: Date | string | null | undefined): string {
     if (!d) return '';
+    if (typeof d === 'string') {
+      // Nếu đã là string format YYYY-MM-DD, return luôn
+      return d;
+    }
+    // Nếu là Date object, convert sang ISO
     return DateTime.fromJSDate(d).toISODate()!; // "YYYY-MM-DD"
   }
   // Data
@@ -376,6 +381,7 @@ export class EmployeeNoFingerprintComponent
         width: 100,
         headerHozAlign: 'center',
         hozAlign: 'center',
+        cssClass: 'approval-column-small-font',
         formatter: (cell: any) => {
           const value = cell.getValue();
           // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
@@ -401,6 +407,7 @@ export class EmployeeNoFingerprintComponent
         width: 100,
         headerHozAlign: 'center',
         hozAlign: 'center',
+        cssClass: 'approval-column-small-font',
         formatter: (cell: any) => {
           const value = cell.getValue();
           // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
@@ -590,8 +597,8 @@ export class EmployeeNoFingerprintComponent
     this.selectedDepartmentFilter = null;
     this.selectedTBPStatusFilter = -1;
     this.searchValue = '';
-    this.dateStart = DateTime.local().startOf('month').toJSDate();
-    this.dateEnd = DateTime.local().endOf('month').toJSDate();
+    this.dateStart = DateTime.local().toISODate() || ''; // Ngày hiện tại
+    this.dateEnd = DateTime.local().toISODate() || ''; // Ngày hiện tại
 
     if (this.tb_ENF) {
       this.tb_ENF.clearData();

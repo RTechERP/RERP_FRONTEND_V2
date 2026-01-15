@@ -566,6 +566,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         paginationMode: 'local',
         height: '200px',
+        pagination: false,
         selectableRows: 1,
         columns: [
           {

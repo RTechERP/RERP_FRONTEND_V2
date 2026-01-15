@@ -90,9 +90,8 @@ export class DocumentService {
         }
 
         // Encode path to handle Unicode characters properly
-        const encodedPath = encodeURIComponent(filePath);
         const params = new HttpParams()
-            .set('path', encodedPath)
+            .set('path', filePath)
             .set('key', key);
         return this.http.get(`${this.apiUrl}/home/download`, {
             params,

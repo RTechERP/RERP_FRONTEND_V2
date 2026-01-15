@@ -13,10 +13,10 @@
 
 }
 
-::ng-deep .p-menubar-root-list {
+/* ::ng-deep .p-menubar-root-list {
   position: relative;
 
-}
+} */
 
 /* Fix menu overlay z-index */
 ::ng-deep .p-menu {}
@@ -150,13 +150,6 @@
   
 } */
 
-::ng-deep .p-menubar-root-list {
-  position: absolute !important;
-  /* Thay đổi từ relative sang absolute */
-  /* z-index: 1051; */
-  background: white;
-  /* Đảm bảo có nền */
-}
 
 /* Fix menu overlay z-index */
 /* ::ng-deep .p-menu {

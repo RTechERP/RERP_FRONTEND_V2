@@ -304,25 +304,21 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     // Kiểm tra quyền N1, N2, N34 hoặc IsAdmin
     const hasAdminPermission = this.hasAdminPermission();
 
-    let dateStart: Date;
-    let dateEnd: Date;
+    let dateStart: string;
+    let dateEnd: string;
 
     if (hasAdminPermission) {
       // Người có quyền N1/N2: set về hôm nay
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      dateStart = today;
-      dateEnd = today;
+      const today = DateTime.local();
+      dateStart = today.toISODate() || '';
+      dateEnd = today.toISODate() || '';
     } else {
       // Người không có quyền: set từ đầu tháng đến cuối tháng
-      const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      firstDay.setHours(0, 0, 0, 0);
-      dateStart = firstDay;
-
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      lastDay.setHours(0, 0, 0, 0);
-      dateEnd = lastDay;
+      const now = DateTime.local();
+      const firstDay = now.startOf('month');
+      const lastDay = now.endOf('month');
+      dateStart = firstDay.toISODate() || '';
+      dateEnd = lastDay.toISODate() || '';
     }
 
     this.searchForm = this.fb.group({
@@ -1161,28 +1157,21 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     // Kiểm tra quyền N1, N2, N34 hoặc IsAdmin
     const hasAdminPermission = this.hasAdminPermission();
 
-    let dateStart: Date;
-    let dateEnd: Date;
+    let dateStart: string;
+    let dateEnd: string;
 
     if (hasAdminPermission) {
       // Người có quyền N1/N2: set về hôm nay
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      dateStart = today;
-
-      const todayEnd = new Date();
-      todayEnd.setHours(23, 59, 59, 999);
-      dateEnd = todayEnd;
+      const today = DateTime.local();
+      dateStart = today.toISODate() || '';
+      dateEnd = today.toISODate() || '';
     } else {
       // Người không có quyền: set từ đầu tháng đến cuối tháng
-      const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      firstDay.setHours(0, 0, 0, 0);
-      dateStart = firstDay;
-
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      lastDay.setHours(23, 59, 59, 999);
-      dateEnd = lastDay;
+      const now = DateTime.local();
+      const firstDay = now.startOf('month');
+      const lastDay = now.endOf('month');
+      dateStart = firstDay.toISODate() || '';
+      dateEnd = lastDay.toISODate() || '';
     }
 
     this.searchForm.patchValue({

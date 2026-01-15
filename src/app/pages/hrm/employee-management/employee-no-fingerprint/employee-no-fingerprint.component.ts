@@ -108,17 +108,16 @@ export class EmployeeNoFingerprintComponent
   selectedDepartmentFilter: number | null = null;
   selectedTBPStatusFilter: number | null = null;
   searchValue: string = '';
-  dateStart: string = DateTime.local().toISODate() || ''; // Ngày hiện tại format YYYY-MM-DD
-  dateEnd: string = DateTime.local().toISODate() || ''; // Ngày hiện tại format YYYY-MM-DD
+  // dùng string 'YYYY-MM-DD' để bind tốt với <input type="date">
+  dateStart: string = DateTime.local().startOf('month').toISODate()!;
+  dateEnd: string = DateTime.local().endOf('month').toISODate()!;
 
-  // Convert Date hoặc string -> ISO khi build params
+  // Convert Date/string -> ISO khi build params
   private toISODate(d: Date | string | null | undefined): string {
     if (!d) return '';
     if (typeof d === 'string') {
-      // Nếu đã là string format YYYY-MM-DD, return luôn
-      return d;
+      return d; // đã ở dạng "YYYY-MM-DD"
     }
-    // Nếu là Date object, convert sang ISO
     return DateTime.fromJSDate(d).toISODate()!; // "YYYY-MM-DD"
   }
   // Data
@@ -530,6 +529,8 @@ export class EmployeeNoFingerprintComponent
     this.tb_ENF.on('tableBuilt', () => {
       console.log('ENF table built successfully');
       this.isTableReady = true;
+      // Load dữ liệu mặc định theo khoảng từ ngày đầu đến cuối tháng hiện tại
+      this.searchenf();
     });
 
     this.tb_ENF.on('rowDblClick', (e: any, row: any) => {
@@ -597,8 +598,8 @@ export class EmployeeNoFingerprintComponent
     this.selectedDepartmentFilter = null;
     this.selectedTBPStatusFilter = -1;
     this.searchValue = '';
-    this.dateStart = DateTime.local().toISODate() || ''; // Ngày hiện tại
-    this.dateEnd = DateTime.local().toISODate() || ''; // Ngày hiện tại
+    this.dateStart = DateTime.local().startOf('month').toISODate()!;
+    this.dateEnd = DateTime.local().endOf('month').toISODate()!;
 
     if (this.tb_ENF) {
       this.tb_ENF.clearData();

@@ -10,7 +10,7 @@ import { environment } from '../../../../../../environments/environment';
   providedIn: 'root',
 })
 export class BillImportServiceService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
   getProductGroup(isadmin: boolean, deparmentID: number): Observable<any> {
     const params: any = {
       isAdmin: isadmin.toString(),
@@ -88,7 +88,7 @@ export class BillImportServiceService {
   getDocumentImport(PONCCID: number, BillImportID: number) {
     return this.http.get<any>(
       environment.host +
-        `api/documentimport?poNCCId=${PONCCID}&billImportID=${BillImportID}`
+      `api/documentimport?poNCCId=${PONCCID}&billImportID=${BillImportID}`
     );
   }
   saveBillImport(payload: any[]): Observable<any> {
@@ -123,7 +123,7 @@ export class BillImportServiceService {
   ): Observable<any> {
     return this.http.get<any>(
       environment.host +
-        `api/billdocumentimportlog/get-by-bdiid?bdiID=${id}&dcocumentImportID=${documentImportID}`
+      `api/billdocumentimportlog/get-by-bdiid?bdiID=${id}&dcocumentImportID=${documentImportID}`
     );
   }
   getDocumenImportPONCC(id: number): Observable<any> {
@@ -179,13 +179,13 @@ export class BillImportServiceService {
   getBillImportQR(warehouseID: number, code: string) {
     return this.http.get<any>(
       environment.host +
-        `api/billimport/scan-import?code=${code}&warehouseId=${warehouseID}`
+      `api/billimport/scan-import?code=${code}&warehouseId=${warehouseID}`
     );
   }
   getProductOption(warehouseID: number, productGroupID: number) {
     return this.http.get<any>(
       environment.host +
-        `api/billimport/get-product?warehouseID=${warehouseID}&ProductGroupID=${productGroupID}`
+      `api/billimport/get-product?warehouseID=${warehouseID}&ProductGroupID=${productGroupID}`
     );
   }
   convertImportToExport(billImportId: number): Observable<any> {
@@ -222,7 +222,17 @@ export class BillImportServiceService {
       payload
     );
   }
-  getPhieutra(productID:number){
-    return this.http.get(environment.host +`api/billimport/get-phieu-tra?productID=${productID}`);
+  getPhieutra(productID: number) {
+    return this.http.get(environment.host + `api/billimport/get-phieu-tra?productID=${productID}`);
+  }
+
+  exportFiles(billImportIds: number[]): Observable<Blob> {
+    return this.http.post(
+      environment.host + 'api/BillImport/export-files-sale',
+      billImportIds,
+      {
+        responseType: 'blob'
+      }
+    );
   }
 }

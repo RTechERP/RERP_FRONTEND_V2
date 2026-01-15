@@ -2078,6 +2078,18 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
     angularGridFileReady(angularGrid: AngularGridInstance): void {
         this.angularGridFile = angularGrid;
+
+        // Subscribe to double click event directly on slickGrid
+        if (this.angularGridFile?.slickGrid) {
+            this.angularGridFile.slickGrid.onDblClick.subscribe((e: any, args: any) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const dataContext = this.angularGridFile.dataView.getItem(args.row);
+                if (dataContext) {
+                    this.downloadFile(dataContext);
+                }
+            });
+        }
     }
 
     angularGridApprovedReady(angularGrid: AngularGridInstance): void {
@@ -2398,8 +2410,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             const fieldName = _column.field;
             return `
                 <span
-                    title="${dataContext[fieldName] || value}"
-                    style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                    title="Double click để tải file: ${dataContext[fieldName] || value}"
+                    style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-decoration: underline; color: #1890ff; cursor: pointer;"
                 >
                     ${value}
                 </span>
@@ -2426,6 +2438,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             enableAutoSizeColumns: false,
             autoFitColumnsOnFirstLoad: false,
             gridWidth: '100%',
+            editable: false,
+            autoEdit: false,
             enableContextMenu: true,
             contextMenu: {
                 commandItems: [
@@ -2448,6 +2462,20 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 ]
             }
         };
+    }
+
+    // Handle double click on file grid to download file
+    onFileGridDblClick(e: Event, args: any): void {
+        // Prevent default grid behavior (edit mode)
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        const dataContext = args?.dataContext;
+        if (dataContext) {
+            this.downloadFile(dataContext);
+        }
     }
 
     // Initialize approved grid

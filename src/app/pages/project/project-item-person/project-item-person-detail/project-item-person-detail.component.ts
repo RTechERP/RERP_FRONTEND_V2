@@ -657,10 +657,10 @@ export class ProjectItemPersonDetailComponent implements OnInit {
           return;
         }
         if (tab.ActualStartDate && tab.ActualEndDate) {
-          const start = DateTime.fromJSDate(new Date(tab.ActualStartDate));
-          const end = DateTime.fromJSDate(new Date(tab.ActualEndDate));
+          const start = DateTime.fromJSDate(new Date(tab.ActualStartDate)).startOf('day');
+          const end = DateTime.fromJSDate(new Date(tab.ActualEndDate)).startOf('day');
           if (start > end) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Ngày kết thúc thực tế phải lớn hơn ngày bắt đầu thực tế!`);
+            this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Ngày kết thúc thực tế phải lớn hơn hoặc bằng ngày bắt đầu thực tế!`);
             this.selectedTabIndex = i;
             return;
           }

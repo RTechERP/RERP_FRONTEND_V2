@@ -24,7 +24,8 @@
       <!-- Hình thức đặt -->
       <div class="form-group mb-1 p-1 col-sm-4">
         <label class="m-0">Hình thức đặt <span class="text-danger">(*)</span></label>
-        <nz-select class="w-100" nzSize="small" [(ngModel)]="category" name="category" (ngModelChange)="onCategoryChange()">
+        <nz-select class="w-100" nzSize="small" [(ngModel)]="category" name="category"
+          (ngModelChange)="onCategoryChange()">
           <nz-option-group *ngFor="let group of categoryGroups" [nzLabel]="group.label">
             <nz-option *ngFor="let cat of group.options" [nzValue]="cat.value" [nzLabel]="cat.label"></nz-option>
           </nz-option-group>
@@ -37,19 +38,14 @@
           <span *ngIf="category == 5">Thời gian cần về</span>
           <span *ngIf="category == 6 || category == 7">Thời gian cần đến lấy</span>
           <span *ngIf="category == 2 || category == 8">Thời gian cần giao đến</span>
-          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Thời gian cần đến</span>
+          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Thời gian cần
+            đến</span>
           <span class="text-danger">(*)</span>
         </label>
-        <nz-date-picker 
-          class="w-100" 
-          nzSize="small" 
-          nzFormat="dd/MM/yyyy HH:mm" 
-          [nzShowTime]="{ nzFormat: 'HH:mm' }"
-          [(ngModel)]="timeNeedPresent" 
-          name="timeNeedPresent"
-          (ngModelChange)="onTimeNeedPresentChange($event); errors.timeNeedPresent = ''">
-        </nz-date-picker>
-        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.timeNeedPresent">{{ errors.timeNeedPresent }}</span>
+        <input nz-input type="text" nzSize="small" class="flatpickr-datetime w-100" id="timeNeedPresent"
+          name="timeNeedPresent" placeholder="Chọn thời gian" />
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.timeNeedPresent">{{ errors.timeNeedPresent
+          }}</span>
       </div>
 
       <!-- Công ty cần đến -->
@@ -58,11 +54,14 @@
           <span *ngIf="category == 5">Công ty cần về</span>
           <span *ngIf="category == 6 || category == 7">Công ty đến lấy</span>
           <span *ngIf="category == 2 || category == 8">Công ty giao đến</span>
-          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Công ty cần đến</span>
+          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Công ty cần
+            đến</span>
           <span class="text-danger">(*)</span>
         </label>
-        <input nz-input type="text" nzSize="small" [(ngModel)]="companyNameArrives" name="companyNameArrives" (blur)="errors.companyNameArrives = ''" />
-        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.companyNameArrives">{{ errors.companyNameArrives }}</span>
+        <input nz-input type="text" nzSize="small" [(ngModel)]="companyNameArrives" name="companyNameArrives"
+          (blur)="errors.companyNameArrives = ''" />
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.companyNameArrives">{{
+          errors.companyNameArrives }}</span>
       </div>
 
       <!-- Tỉnh cần đến -->
@@ -71,10 +70,12 @@
           <span *ngIf="category == 5">Tỉnh cần về</span>
           <span *ngIf="category == 6 || category == 7">Tỉnh đến lấy</span>
           <span *ngIf="category == 2 || category == 8">Tỉnh giao đến</span>
-          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Tỉnh cần đến</span>
+          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Tỉnh cần
+            đến</span>
           <span class="text-danger">(*)</span>
         </label>
-        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="province" name="province" (ngModelChange)="errors.province = ''">
+        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="province" name="province"
+          (ngModelChange)="errors.province = ''">
           <nz-option *ngFor="let prov of provincesArrives" [nzLabel]="prov.label" [nzValue]="prov.label"></nz-option>
         </nz-select>
         <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.province">{{ errors.province }}</span>
@@ -86,33 +87,30 @@
           <span *ngIf="category == 5">Địa chỉ cụ thể cần về</span>
           <span *ngIf="category == 6 || category == 7">Địa chỉ cụ thể đến lấy</span>
           <span *ngIf="category == 2 || category == 8">Địa chỉ cụ thể giao đến</span>
-          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Địa chỉ cụ thể cần đến</span>
+          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Địa chỉ cụ thể
+            cần đến</span>
           <span class="text-danger">(*)</span>
         </label>
-        <input nz-input type="text" nzSize="small" [(ngModel)]="specificDestinationAddress" name="specificDestinationAddress" (blur)="errors.specificDestinationAddress = ''" />
-        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.specificDestinationAddress">{{ errors.specificDestinationAddress }}</span>
+        <input nz-input type="text" nzSize="small" [(ngModel)]="specificDestinationAddress"
+          name="specificDestinationAddress" (blur)="errors.specificDestinationAddress = ''" />
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.specificDestinationAddress">{{
+          errors.specificDestinationAddress }}</span>
       </div>
 
       <!-- Thời gian xuất phát -->
-      <div class="form-group mb-1 p-1" 
-           [ngClass]="{'col-sm-3': category != 6 && category != 7, 'col-sm-4': category == 6 || category == 7}" 
-           *ngIf="showPassenger || category == 2 || category == 6 || category == 7 || category == 8">
+      <div class="form-group mb-1 p-1"
+        [ngClass]="{'col-sm-3': category != 6 && category != 7, 'col-sm-4': category == 6 || category == 7}"
+        *ngIf="showPassenger || category == 2 || category == 6 || category == 7 || category == 8">
         <label class="m-0">
           <span *ngIf="category == 5">Thời gian đón</span>
           <span *ngIf="category == 2 || category == 8">Thời gian lấy hàng</span>
           <span *ngIf="category != 5 && category != 2 && category != 8">Thời gian xuất phát</span>
           <span class="text-danger">(*)</span>
         </label>
-        <nz-date-picker 
-          class="w-100" 
-          nzSize="small" 
-          nzFormat="dd/MM/yyyy HH:mm" 
-          [nzShowTime]="{ nzFormat: 'HH:mm' }"
-          [(ngModel)]="departureDate" 
-          name="departureDate"
-          (ngModelChange)="errors.departureDate = ''">
-        </nz-date-picker>
-        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureDate">{{ errors.departureDate }}</span>
+        <input nz-input type="text" nzSize="small" class="flatpickr-datetime w-100" id="departureDate"
+          name="departureDate" placeholder="Chọn thời gian" />
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureDate">{{ errors.departureDate
+          }}</span>
       </div>
 
       <!-- Điểm xuất phát -->
@@ -123,14 +121,8 @@
           <span *ngIf="category != 5 && category != 2 && category != 8">Điểm xuất phát</span>
           <span class="text-danger">(*)</span>
         </label>
-        <nz-select 
-          class="w-100" 
-          nzSize="small" 
-          nzShowSearch 
-          nzAllowClear 
-          [(ngModel)]="departureAddressSelect" 
-          name="departureAddressSelect"
-          (ngModelChange)="onDepartureAddressSelectChange($event)">
+        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="departureAddressSelect"
+          name="departureAddressSelect" (ngModelChange)="onDepartureAddressSelectChange($event)">
           <nz-option *ngFor="let prov of provinces" [nzLabel]="prov.label" [nzValue]="prov.value"></nz-option>
         </nz-select>
       </div>
@@ -143,64 +135,46 @@
           <span *ngIf="category != 5 && category != 2 && category != 8">Địa chỉ xuất phát cụ thể</span>
           <span class="text-danger">(*)</span>
         </label>
-        <input 
-          nz-input
-          type="text" 
-          nzSize="small" 
-          [(ngModel)]="departureAddress" 
-          name="departureAddress"
-          [disabled]="provinceDepartureIDs.includes(departureAddressSelect)"
-          (blur)="errors.departureAddress = ''" />
-        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureAddress">{{ errors.departureAddress }}</span>
+        <input nz-input type="text" nzSize="small" [(ngModel)]="departureAddress" name="departureAddress"
+          [disabled]="provinceDepartureIDs.includes(departureAddressSelect)" (blur)="errors.departureAddress = ''" />
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureAddress">{{ errors.departureAddress
+          }}</span>
       </div>
 
       <!-- Thời gian cần về -->
       <div class="form-group mb-1 p-1 col-sm-3" *ngIf="showTimeReturn && category == 1">
         <label class="m-0">Thời gian cần về <span class="font-italic font-weight-normal">(nếu có)</span></label>
-        <nz-date-picker 
-          class="w-100" 
-          nzSize="small" 
-          nzFormat="dd/MM/yyyy HH:mm" 
-          [nzShowTime]="{ nzFormat: 'HH:mm' }"
-          [(ngModel)]="timeReturn" 
-          name="timeReturn">
-        </nz-date-picker>
+        <input nz-input type="text" nzSize="small" class="flatpickr-datetime w-100" id="timeReturn" name="timeReturn"
+          placeholder="Chọn thời gian" />
       </div>
 
       <!-- Điểm về -->
       <div class="form-group mb-1 p-1 col-sm-3" *ngIf="showDepartureReturn && category == 1">
         <label class="m-0">Điểm về <span class="text-danger">(*)</span></label>
-        <nz-select 
-          class="w-100" 
-          nzSize="small" 
-          nzShowSearch 
-          nzAllowClear 
-          [(ngModel)]="departureReturnAddressSelect" 
+        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="departureReturnAddressSelect"
           name="departureReturnAddressSelect"
           (ngModelChange)="onDepartureReturnAddressSelectChange($event); errors.departureReturnAddressSelect = ''">
           <nz-option *ngFor="let prov of provinces" [nzLabel]="prov.label" [nzValue]="prov.value"></nz-option>
         </nz-select>
-        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureReturnAddressSelect">{{ errors.departureReturnAddressSelect }}</span>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureReturnAddressSelect">{{
+          errors.departureReturnAddressSelect }}</span>
       </div>
 
       <!-- Địa chỉ quay về cụ thể -->
       <div class="form-group mb-1 p-1 col-sm-6" *ngIf="showDepartureReturn && category == 1">
         <label class="m-0">Địa chỉ quay về cụ thể <span class="text-danger">(*)</span></label>
-        <input 
-          nz-input
-          type="text" 
-          nzSize="small" 
-          [(ngModel)]="departureReturnAddress" 
-          name="departureReturnAddress"
+        <input nz-input type="text" nzSize="small" [(ngModel)]="departureReturnAddress" name="departureReturnAddress"
           [disabled]="provinceDepartureIDs.includes(departureReturnAddressSelect)"
           (blur)="errors.departureReturnAddress = ''" />
-        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureReturnAddress">{{ errors.departureReturnAddress }}</span>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureReturnAddress">{{
+          errors.departureReturnAddress }}</span>
       </div>
 
       <!-- Dự án -->
       <div class="form-group mb-1 p-1 col-sm-8">
         <label class="m-0">Dự án <span class="text-danger">(*)</span></label>
-        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="projectId" name="projectId" (ngModelChange)="errors.projectId = ''">
+        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="projectId" name="projectId"
+          (ngModelChange)="errors.projectId = ''">
           <nz-option *ngFor="let proj of projects" [nzLabel]="proj.label" [nzValue]="proj.value"></nz-option>
         </nz-select>
         <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.projectId">{{ errors.projectId }}</span>
@@ -209,7 +183,8 @@
       <!-- Loại phương tiện -->
       <div class="form-group mb-1 p-1 col-sm-4">
         <label class="m-0">Loại phương tiện <span class="text-danger">(*)</span></label>
-        <nz-select class="w-100" nzSize="small" [(ngModel)]="vehicleType" name="vehicleType" (ngModelChange)="errors.vehicleType = ''">
+        <nz-select class="w-100" nzSize="small" [(ngModel)]="vehicleType" name="vehicleType"
+          (ngModelChange)="errors.vehicleType = ''">
           <nz-option *ngFor="let vt of vehicleTypes" [nzLabel]="vt.label" [nzValue]="vt.value"></nz-option>
         </nz-select>
         <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.vehicleType">{{ errors.vehicleType }}</span>
@@ -217,8 +192,10 @@
 
       <!-- Người duyệt -->
       <div class="form-group mb-1 p-1 col-sm-12" *ngIf="showApprovedTbp">
-        <label class="m-0">Người duyệt <span class="font-italic font-weight-normal">(nếu có vấn đề phát sinh)</span></label>
-        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="approvedTbp" name="approvedTbp" (ngModelChange)="errors.approvedTbp = ''">
+        <label class="m-0">Người duyệt <span class="font-italic font-weight-normal">(nếu có vấn đề phát
+            sinh)</span></label>
+        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="approvedTbp" name="approvedTbp"
+          (ngModelChange)="errors.approvedTbp = ''">
           <nz-option *ngFor="let app of approvedList" [nzLabel]="app.label" [nzValue]="app.value"></nz-option>
         </nz-select>
         <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.approvedTbp">{{ errors.approvedTbp }}</span>
@@ -232,8 +209,10 @@
             (Thời gian đặt xe ngoài khoảng từ 16h30' đến 20h sẽ tính là phát sinh)
           </span>
         </label>
-        <textarea nz-input nzSize="small" [(ngModel)]="problemArises" name="problemArises" rows="3" (blur)="errors.problemArises = ''"></textarea>
-        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.problemArises">{{ errors.problemArises }}</span>
+        <textarea nz-input nzSize="small" [(ngModel)]="problemArises" name="problemArises" rows="3"
+          (blur)="errors.problemArises = ''"></textarea>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.problemArises">{{ errors.problemArises
+          }}</span>
       </div>
     </div>
 
@@ -248,26 +227,18 @@
           <div class="card-header p-1 bg-whitesmoke" style="border-bottom-color: #dee2e6 !important;">
             <ul class="nav nav-pills" style="line-height: normal;">
               <li class="nav-item m-1">
-                <a class="nav-link bg-primary" style="cursor: pointer; padding: .25rem !important;" (click)="addPassenger()">
+                <a class="nav-link bg-primary" style="cursor: pointer; padding: .25rem !important;"
+                  (click)="addPassenger()">
                   <i nz-icon nzType="plus" nzTheme="outline" class="text-light"></i>
                 </a>
               </li>
               <li class="nav-item d-flex justify-content-end border rounded m-1" *ngFor="let passenger of passengers">
-                <a 
-                  class="nav-link p-1" 
-                  [class.active]="activePassengerTab === passenger.index"
-                  style="cursor: pointer;"
+                <a class="nav-link p-1" [class.active]="activePassengerTab === passenger.index" style="cursor: pointer;"
                   (click)="activePassengerTab = passenger.index">
                   {{ passenger.name || 'Người đi ' + passenger.index }}
                 </a>
-                <i 
-                  nz-icon 
-                  nzType="close" 
-                  nzTheme="outline" 
-                  class="text-danger p-1" 
-                  style="cursor: pointer;"
-                  *ngIf="passengers.length > 1"
-                  (click)="removePassenger(passenger.index)">
+                <i nz-icon nzType="close" nzTheme="outline" class="text-danger p-1" style="cursor: pointer;"
+                  *ngIf="passengers.length > 1" (click)="removePassenger(passenger.index)">
                 </i>
               </li>
             </ul>
@@ -277,17 +248,14 @@
               <div *ngIf="activePassengerTab === passenger.index" class="row m-0">
                 <!-- Chọn là nhân viên -->
                 <div class="form-group mb-1 p-1 col-sm-8">
-                  <label class="m-0">Chọn là nhân viên <span class="font-italic font-weight-normal">(nếu có)</span></label>
-                  <nz-select 
-                    class="w-100" 
-                    nzSize="small" 
-                    nzShowSearch 
-                    nzAllowClear 
-                    [(ngModel)]="passenger.employeeId" 
+                  <label class="m-0">Chọn là nhân viên <span class="font-italic font-weight-normal">(nếu
+                      có)</span></label>
+                  <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="passenger.employeeId"
                     [name]="'passenger_employee_' + passenger.index"
                     (ngModelChange)="onPassengerEmployeeChange(passenger.index, $event)">
                     <nz-option-group *ngFor="let group of employeesGrouped" [nzLabel]="group.department">
-                      <nz-option *ngFor="let emp of group.list" [nzValue]="emp.ID" [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                      <nz-option *ngFor="let emp of group.list" [nzValue]="emp.ID"
+                        [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
                     </nz-option-group>
                   </nz-select>
                 </div>
@@ -295,63 +263,44 @@
                 <!-- Phòng ban -->
                 <div class="form-group mb-1 p-1 col-sm-4">
                   <label class="m-0">Phòng ban <span class="font-italic font-weight-normal">(nếu có)</span></label>
-                  <input 
-                    nz-input
-                    type="text" 
-                    nzSize="small"
-                    [(ngModel)]="passenger.department" 
-                    [name]="'passenger_department_' + passenger.index"
-                    [disabled]="passenger.employeeId > 0" />
+                  <input nz-input type="text" nzSize="small" [(ngModel)]="passenger.department"
+                    [name]="'passenger_department_' + passenger.index" [disabled]="passenger.employeeId > 0" />
                 </div>
 
                 <!-- Mã người đi -->
                 <div class="form-group mb-1 p-1 col-sm-4">
                   <label class="m-0">Mã người đi <span class="font-italic font-weight-normal">(nếu có)</span></label>
-                  <input 
-                    nz-input
-                    type="text" 
-                    nzSize="small"
-                    [(ngModel)]="passenger.code" 
-                    [name]="'passenger_code_' + passenger.index"
-                    [disabled]="passenger.employeeId > 0" />
+                  <input nz-input type="text" nzSize="small" [(ngModel)]="passenger.code"
+                    [name]="'passenger_code_' + passenger.index" [disabled]="passenger.employeeId > 0" />
                 </div>
 
                 <!-- Tên người đi -->
                 <div class="form-group mb-1 p-1 col-sm-4">
                   <label class="m-0">Tên người đi <span class="text-danger">(*)</span></label>
-                  <input 
-                    nz-input
-                    type="text" 
-                    nzSize="small"
-                    [(ngModel)]="passenger.name" 
-                    [name]="'passenger_name_' + passenger.index"
-                    [disabled]="passenger.employeeId > 0"
+                  <input nz-input type="text" nzSize="small" [(ngModel)]="passenger.name"
+                    [name]="'passenger_name_' + passenger.index" [disabled]="passenger.employeeId > 0"
                     (blur)="clearPassengerError(passenger.index, 'name')" />
-                  <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.passengers[passenger.index]?.name">{{ errors.passengers[passenger.index].name }}</span>
+                  <span class="text-danger" style="font-size: 0.75rem;"
+                    *ngIf="errors.passengers[passenger.index]?.name">{{ errors.passengers[passenger.index].name
+                    }}</span>
                 </div>
 
                 <!-- SDT liên hệ -->
                 <div class="form-group mb-1 p-1 col-sm-4">
                   <label class="m-0">SDT liên hệ <span class="text-danger">(*)</span></label>
-                  <input 
-                    nz-input
-                    type="text" 
-                    nzSize="small"
-                    [(ngModel)]="passenger.phoneNumber" 
+                  <input nz-input type="text" nzSize="small" [(ngModel)]="passenger.phoneNumber"
                     [name]="'passenger_phone_' + passenger.index"
                     (blur)="clearPassengerError(passenger.index, 'phoneNumber')" />
-                  <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.passengers[passenger.index]?.phoneNumber">{{ errors.passengers[passenger.index].phoneNumber }}</span>
+                  <span class="text-danger" style="font-size: 0.75rem;"
+                    *ngIf="errors.passengers[passenger.index]?.phoneNumber">{{
+                    errors.passengers[passenger.index].phoneNumber }}</span>
                 </div>
 
                 <!-- Ghi chú -->
                 <div class="form-group mb-1 p-1 col-sm-12">
                   <label class="m-0">Ghi chú <span class="font-italic font-weight-normal">(nếu có)</span></label>
-                  <textarea 
-                    nz-input
-                    nzSize="small"
-                    [(ngModel)]="passenger.note" 
-                    [name]="'passenger_note_' + passenger.index"
-                    rows="2">
+                  <textarea nz-input nzSize="small" [(ngModel)]="passenger.note"
+                    [name]="'passenger_note_' + passenger.index" rows="2">
                   </textarea>
                 </div>
               </div>
@@ -372,26 +321,18 @@
           <div class="card-header p-1 bg-whitesmoke" style="border-bottom-color: #dee2e6 !important;">
             <ul class="nav nav-pills" style="line-height: normal;">
               <li class="nav-item m-1">
-                <a class="nav-link bg-primary" style="cursor: pointer; padding: .25rem !important;" (click)="addAttachedGoods()">
+                <a class="nav-link bg-primary" style="cursor: pointer; padding: .25rem !important;"
+                  (click)="addAttachedGoods()">
                   <i nz-icon nzType="plus" nzTheme="outline" class="text-light"></i>
                 </a>
               </li>
               <li class="nav-item d-flex justify-content-end border rounded m-1" *ngFor="let goods of attachedGoods">
-                <a 
-                  class="nav-link p-1" 
-                  [class.active]="activeAttachedGoodsTab === goods.index"
-                  style="cursor: pointer;"
+                <a class="nav-link p-1" [class.active]="activeAttachedGoodsTab === goods.index" style="cursor: pointer;"
                   (click)="activeAttachedGoodsTab = goods.index">
                   {{ goods.name || 'Người nhận hàng ' + goods.index }}
                 </a>
-                <i 
-                  nz-icon 
-                  nzType="close" 
-                  nzTheme="outline" 
-                  class="text-danger p-1" 
-                  style="cursor: pointer;"
-                  *ngIf="attachedGoods.length > 1"
-                  (click)="removeAttachedGoods(goods.index)">
+                <i nz-icon nzType="close" nzTheme="outline" class="text-danger p-1" style="cursor: pointer;"
+                  *ngIf="attachedGoods.length > 1" (click)="removeAttachedGoods(goods.index)">
                 </i>
               </li>
             </ul>
@@ -401,17 +342,14 @@
               <div *ngIf="activeAttachedGoodsTab === goods.index" class="row m-0">
                 <!-- Chọn là nhân viên -->
                 <div class="form-group mb-1 p-1 col-sm-4">
-                  <label class="m-0">Chọn là nhân viên <span class="font-italic font-weight-normal">(nếu có)</span></label>
-                  <nz-select 
-                    class="w-100" 
-                    nzSize="small" 
-                    nzShowSearch 
-                    nzAllowClear 
-                    [(ngModel)]="goods.employeeId" 
+                  <label class="m-0">Chọn là nhân viên <span class="font-italic font-weight-normal">(nếu
+                      có)</span></label>
+                  <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="goods.employeeId"
                     [name]="'goods_employee_' + goods.index"
                     (ngModelChange)="onAttachedGoodsEmployeeChange(goods.index, $event)">
                     <nz-option-group *ngFor="let group of employeesGrouped" [nzLabel]="group.department">
-                      <nz-option *ngFor="let emp of group.list" [nzValue]="emp.ID" [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                      <nz-option *ngFor="let emp of group.list" [nzValue]="emp.ID"
+                        [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
                     </nz-option-group>
                   </nz-select>
                 </div>
@@ -419,48 +357,30 @@
                 <!-- Tên người nhận -->
                 <div class="form-group mb-1 p-1 col-sm-4">
                   <label class="m-0">Tên người nhận <span class="text-danger">(*)</span></label>
-                  <input 
-                    nz-input
-                    type="text" 
-                    nzSize="small"
-                    [(ngModel)]="goods.name" 
-                    [name]="'goods_name_' + goods.index"
-                    [disabled]="goods.employeeId > 0" />
+                  <input nz-input type="text" nzSize="small" [(ngModel)]="goods.name"
+                    [name]="'goods_name_' + goods.index" [disabled]="goods.employeeId > 0" />
                 </div>
 
                 <!-- SDT liên hệ -->
                 <div class="form-group mb-1 p-1 col-sm-4">
                   <label class="m-0">SDT liên hệ <span class="text-danger">(*)</span></label>
-                  <input 
-                    nz-input
-                    type="text" 
-                    nzSize="small"
-                    [(ngModel)]="goods.phoneNumber" 
+                  <input nz-input type="text" nzSize="small" [(ngModel)]="goods.phoneNumber"
                     [name]="'goods_phone_' + goods.index" />
                 </div>
 
                 <!-- Tên kiện hàng -->
                 <div class="form-group mb-1 p-1 col-sm-6">
                   <label class="m-0">Tên kiện hàng <span class="text-danger">(*)</span></label>
-                  <textarea 
-                    nz-input
-                    nzSize="small"
-                    [(ngModel)]="goods.packageName" 
-                    [name]="'goods_package_' + goods.index"
-                    rows="6">
+                  <textarea nz-input nzSize="small" [(ngModel)]="goods.packageName"
+                    [name]="'goods_package_' + goods.index" rows="6">
                   </textarea>
                 </div>
 
                 <!-- Upload file -->
                 <div class="form-group mb-1 p-1 col-sm-6">
                   <label class="m-0">Ảnh kiện hàng</label>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    class="form-control form-control-sm" 
-                    multiple 
-                    [name]="'goods_files_' + goods.index"
-                    (change)="onFileChange($event, goods.index)" />
+                  <input type="file" accept="image/*" class="form-control form-control-sm" multiple
+                    [name]="'goods_files_' + goods.index" (change)="onFileChange($event, goods.index)" />
                   <div class="rounded border bg-whitesmoke mt-1" style="height: 93px; overflow: auto; padding: 5px;">
                     <p *ngFor="let file of goods.files" class="m-0 px-1 text-nowrap text-dark">
                       <span class="text-danger" style="cursor: pointer;" (click)="removeFile(goods.index, file.uid)">
@@ -474,45 +394,28 @@
                 <!-- Kích thước -->
                 <div class="form-group mb-1 p-1 col-sm-4">
                   <label class="m-0">Kích thước (cm) <span class="text-danger">(*)</span></label>
-                  <input 
-                    nz-input
-                    type="text" 
-                    nzSize="small"
-                    [(ngModel)]="goods.packageSize" 
+                  <input nz-input type="text" nzSize="small" [(ngModel)]="goods.packageSize"
                     [name]="'goods_size_' + goods.index" />
                 </div>
 
                 <!-- Cân nặng -->
                 <div class="form-group mb-1 p-1 col-sm-4">
                   <label class="m-0">Cân nặng (kg) <span class="text-danger">(*)</span></label>
-                  <input 
-                    nz-input
-                    type="text" 
-                    nzSize="small"
-                    [(ngModel)]="goods.packageWeight" 
+                  <input nz-input type="text" nzSize="small" [(ngModel)]="goods.packageWeight"
                     [name]="'goods_weight_' + goods.index" />
                 </div>
 
                 <!-- Số lượng kiện hàng -->
                 <div class="form-group mb-1 p-1 col-sm-4">
                   <label class="m-0">Số lượng kiện hàng <span class="text-danger">(*)</span></label>
-                  <input 
-                    nz-input
-                    type="number" 
-                    nzSize="small"
-                    [(ngModel)]="goods.packageQuantity" 
-                    [name]="'goods_quantity_' + goods.index"
-                    min="1" />
+                  <input nz-input type="number" nzSize="small" [(ngModel)]="goods.packageQuantity"
+                    [name]="'goods_quantity_' + goods.index" min="1" />
                 </div>
 
                 <!-- Ghi chú -->
                 <div class="form-group mb-1 p-1 col-sm-12">
                   <label class="m-0">Ghi chú <span class="font-italic font-weight-normal">(nếu có)</span></label>
-                  <textarea 
-                    nz-input
-                    nzSize="small"
-                    [(ngModel)]="goods.note" 
-                    [name]="'goods_note_' + goods.index"
+                  <textarea nz-input nzSize="small" [(ngModel)]="goods.note" [name]="'goods_note_' + goods.index"
                     rows="2">
                   </textarea>
                 </div>

@@ -75,6 +75,7 @@ import { ProductSaleDetailComponent } from '../Sale/ProductSale/product-sale-det
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
 import { ProductSaleComponent } from '../Sale/ProductSale/product-sale.component';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup';
+import { ProjectDetailComponent } from '../../project/project-detail/project-detail.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -1975,6 +1976,26 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       }
     );
   }
+
+  openProjectDetailModal() {
+    const modalRef = this.modalService.open(ProjectDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.projectId = 0
+
+    modalRef.result.catch((reason) => {
+      if (reason == true) {
+        this.notification.success('Thông báo', 'Đã thêm dự án thành công!', {
+          nzStyle: { fontSize: '0.75rem' },
+        });
+        this.loadProjects();
+      }
+    });
+  }
+
   openFollowProductReturnModal() {
     const modalRef = this.modalService.open(FollowProductReturnComponent, {
       centered: true,

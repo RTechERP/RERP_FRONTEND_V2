@@ -4565,6 +4565,7 @@ formatter: Formatters.date,
     }
 
     const products = (this.lastSelectedRowsForBuy || []).map((data: any) => ({
+      ID: Number(data['ID'] || 0),
       ProductCode: String(data['ProductCode'] || '').trim(),
       ProductName: String(data['ProductName'] || '').trim(),
       Quantity: Number(data['Quantity'] || 0),
@@ -4642,7 +4643,7 @@ formatter: Formatters.date,
       error: (err: any) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          err?.error?.message || 'Có lỗi xảy ra'
+          err?.error?.message || err?.message
         );
       },
     });

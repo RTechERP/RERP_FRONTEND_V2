@@ -294,7 +294,7 @@ export const routes: Routes = [
             { path: 'sale', component: SalesComponent, canActivate: [authGuard] },
             { path: 'accounting', component: AccountingComponent, canActivate: [authGuard] },
             { path: 'purchase', component: PurchaseComponent, canActivate: [authGuard] },
-            { path: 'projects', component: ProjectComponent, canActivate: [authGuard] },
+            { path: 'projects', component: ProjectSlickGrid2Component, canActivate: [authGuard] },
             { path: 'hrm', component: HrmComponent, canActivate: [authGuard] },
             //#endregion
 

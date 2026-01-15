@@ -179,3 +179,22 @@ angular-slickgrid,
 :host ::ng-deep .slickgrid-container {
   height: 100% !important;
 }
+
+/* Wrap text styles for cells - use line-clamp to limit lines */
+:host ::ng-deep .cell-wrap {
+  white-space: normal !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  /* Show max 3 lines */
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+:host ::ng-deep .cell-wrap .wrap-text {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}

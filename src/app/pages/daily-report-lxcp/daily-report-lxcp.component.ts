@@ -27,6 +27,7 @@ import { Subject } from 'rxjs';
 import { DailyReportLxDetailComponent } from './daily-report-lx-detail/daily-report-lx-detail.component';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { DailyReportTechComponent } from '../DailyReportTech/daily-report-tech/daily-report-tech.component';
 
 @Component({
   selector: 'app-daily-report-hr',
@@ -360,7 +361,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
         data: this.dailyReportHrData,
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-        rowHeader: false,
+        // rowHeader: false,
         selectableRows: 1,
         height: '87vh',
         paginationMode: 'local',
@@ -574,17 +575,23 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
 
   // Header actions
   addDailyReport(): void {
-    console.log('[LXCP] addDailyReport called on mobile:', this.isMobile);
-    console.log('[LXCP] Opening modal with currentUser:', this.currentUser);
-
     const modalRef = this.modalService.open(DailyReportLxDetailComponent, {
       size: 'xl',
       backdrop: 'static',
-      keyboard: true,
-      centered: true, // Changed to true for better mobile compatibility
-      windowClass: 'daily-report-lxcp-modal',
-      scrollable: true // Added for mobile scrolling
+      keyboard: true
     });
+
+    // console.log('[LXCP] addDailyReport called on mobile:', this.isMobile);
+    // console.log('[LXCP] Opening modal with currentUser:', this.currentUser);
+
+    // const modalRef = this.modalService.open(DailyReportLxDetailComponent, {
+    //   size: 'xl',
+    //   backdrop: 'static',
+    //   keyboard: true,
+    //   centered: true, // Changed to true for better mobile compatibility
+    //   windowClass: 'daily-report-lxcp-modal',
+    //   scrollable: true // Added for mobile scrolling
+    // });
 
     modalRef.componentInstance.mode = 'add';
     modalRef.componentInstance.currentUser = this.currentUser;

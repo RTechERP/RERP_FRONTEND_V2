@@ -1,12 +1,12 @@
 <div style="display: flex; flex-direction: column; position: relative;" [style.height]="tbp ? '95vh' : '95vh'">
   <!-- Modal Header -->
-  <!-- <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0" *ngIf="!tbp">
+  <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0" *ngIf="isPOKH">
     <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
       Danh mục vật tư dự án {{ projectCodex }}
     </h6>
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"
       style="background-color:lightcyan !important; font-weight: bold;"></button>
-  </div> -->
+  </div>
 
   <!-- Modal Body -->
   <div class="modal-body p-0" style="overflow: hidden; min-height: 0;">
@@ -73,7 +73,7 @@
                 style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                 <p class="m-0">Phiên bản</p>
               </div>
-            <!-- tích xanh -->
+              <!-- tích xanh -->
               <div class="card-header bg-white p-1 d-flex gap-1 flex-wrap" *ngIf="!tbp">
                 <!-- Nút Thêm - Dropdown with click trigger -->
                 <button nz-button nzSize="small" class="fs-12 button button-succes btn-add" nz-dropdown
@@ -88,7 +88,7 @@
                       <img src="assets/icon/add_version_16.png" />
                       <span class="ms-1">Thêm phiên bản GP</span>
                     </li>
-                      <li nz-menu-divider></li>
+                    <li nz-menu-divider></li>
                     <li nz-menu-item (click)="openProjectSolutionVersionDetail(2, false)">
                       <img src="assets/icon/add_version_16.png" />
                       <span class="ms-1">Thêm phiên bản PO</span>
@@ -121,8 +121,7 @@
                 <!-- Nút Chuyển PO - Chỉ cho GP -->
                 <ng-container *ngIf="type === 1">
                   <ng-container *hasPermission="'N38,N62,N1,N27,N28'">
-                    <button class="fs-12" nz-button nzType="default" nzSize="small"
-                      (click)="convertVersionToPO()">
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="convertVersionToPO()">
                       <img src="assets/icon/convert_po_16.png" alt="Chuyển thành PO" />
                       Chuyển PO
                     </button>
@@ -132,9 +131,8 @@
               <div class="card-body p-0 flex-grow-1 overflow-hidden grid-version-container"
                 style="min-height: 0; height: 100%;">
                 <angular-slickgrid *ngIf="gridsInitialized && versionColumns && versionGridOptions"
-                  gridId="grid-version" [columns]="versionColumns"
-                  [options]="versionGridOptions" [dataset]="dataVersion"
-                  (onAngularGridCreated)="onVersionGridReady($event)"
+                  gridId="grid-version" [columns]="versionColumns" [options]="versionGridOptions"
+                  [dataset]="dataVersion" (onAngularGridCreated)="onVersionGridReady($event)"
                   (onSelectedRowsChanged)="onVersionRowSelectionChanged($event)"></angular-slickgrid>
               </div>
             </div>
@@ -158,32 +156,27 @@
             <div class="d-flex align-items-center gap-1">
               <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
                 [style.background-color]="filterDeleted ? 'darkred' : 'red'"
-                [style.border]="filterDeleted ? '2px solid white' : 'none'"
-                (click)="toggleColorFilter('deleted')">
+                [style.border]="filterDeleted ? '2px solid white' : 'none'" (click)="toggleColorFilter('deleted')">
                 Đã xóa
               </button>
               <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
                 [style.background-color]="filterProblem ? 'darkorange' : 'orange'"
-                [style.border]="filterProblem ? '2px solid white' : 'none'"
-                (click)="toggleColorFilter('problem')">
+                [style.border]="filterProblem ? '2px solid white' : 'none'" (click)="toggleColorFilter('problem')">
                 Phát sinh
               </button>
               <button class="fs-12" nz-button nzType="text" nzSize="small"
                 [style.background-color]="filterNewCode ? 'deeppink' : 'pink'"
-                [style.border]="filterNewCode ? '2px solid black' : 'none'"
-                (click)="toggleColorFilter('newCode')">
+                [style.border]="filterNewCode ? '2px solid black' : 'none'" (click)="toggleColorFilter('newCode')">
                 Hàng mới
               </button>
               <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
                 [style.background-color]="filterFix ? '#2c5282' : '#4682B4'"
-                [style.border]="filterFix ? '2px solid white' : 'none'"
-                (click)="toggleColorFilter('fix')">
+                [style.border]="filterFix ? '2px solid white' : 'none'" (click)="toggleColorFilter('fix')">
                 Tích xanh
               </button>
               <button class="fs-12" nz-button nzType="text" nzSize="small"
                 [style.background-color]="filterReturn ? 'forestgreen' : 'lightgreen'"
-                [style.border]="filterReturn ? '2px solid black' : 'none'"
-                (click)="toggleColorFilter('return')">
+                [style.border]="filterReturn ? '2px solid black' : 'none'" (click)="toggleColorFilter('return')">
                 Hàng đã về
               </button>
               <button class="fs-12 border" nz-button nzType="text" nzSize="small"
@@ -368,45 +361,47 @@
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openFormExportExcelPartlist()">
               <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
             </button>
-            <button nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="partListContextMenu">
-              <nz-icon nzType="more"></nz-icon>
-            </button>
           </div>
           <div class="card-header bg-white p-3 d-flex gap-1">
             <div style="width: 100%;" class="d-flex gap-1 align-items-center">
               <ng-container>
                 <label class="fs-12 font-weight-bold" style="font-size: 0.75rem !important;">Dự án:</label>
-                <nz-select style="font-size: 0.75rem !important;" name="projectId" nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án" nzSize="small"
-                  [(ngModel)]="projectId" (ngModelChange)="onProjectIdChange($event)" style="width: 350px;">
+                <nz-select style="font-size: 0.75rem !important;" name="projectId" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn dự án" nzSize="small" [(ngModel)]="projectId"
+                  (ngModelChange)="onProjectIdChange($event)" style="width: 350px;">
                   @for (item of projects; track $index) {
                   <nz-option [nzValue]="item.ID" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
                   }
                 </nz-select>
                 <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái TBP</label>
-                <nz-select style="font-size: 0.75rem !important;" name="IsLateActual" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
-                  [(ngModel)]="isApprovedTBP" nzAllowClear="false" class="fs-12">
+                <nz-select style="font-size: 0.75rem !important;" name="IsLateActual" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn trạng thái" nzSize="small" [(ngModel)]="isApprovedTBP" nzAllowClear="false"
+                  class="fs-12">
                   <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
                   <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                 </nz-select>
 
                 <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái Y/c mua</label>
-                <nz-select style="font-size: 0.75rem !important;" name="IsApprovedPurchase" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái"
-                  nzSize="small" [(ngModel)]="isApprovedPurchase" nzAllowClear="false" class="fs-12">
+                <nz-select style="font-size: 0.75rem !important;" name="IsApprovedPurchase" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn trạng thái" nzSize="small" [(ngModel)]="isApprovedPurchase" nzAllowClear="false"
+                  class="fs-12">
                   <nz-option [nzValue]="-1" nzLabel="--Tất cả-- " class="fs-12"></nz-option>
                   <nz-option [nzValue]="0" nzLabel="Chưa Y/c mua" class="fs-12"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã yêu cầu mua" class="fs-12"></nz-option>
                 </nz-select>
                 <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái</label>
-                <nz-select style="font-size: 0.75rem !important;" name="IsDeleted" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
-                  [(ngModel)]="isDeleted" nzAllowClear="false" class="fs-12">
+                <nz-select style="font-size: 0.75rem !important;" name="IsDeleted" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn trạng thái" nzSize="small" [(ngModel)]="isDeleted" nzAllowClear="false"
+                  class="fs-12">
                   <nz-option [nzValue]="-1" nzLabel="--Tất cả--" class="fs-12"></nz-option>
                   <nz-option [nzValue]="0" nzLabel="Chưa xóa" class="fs-12"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã xóa" class="fs-12"></nz-option>
                 </nz-select>
                 <input nz-input nzSize="small" placeholder="Nhập từ khóa" style="width: 150px" [(ngModel)]="keyword"
                   (keyup.enter)="searchDataProjectWorker()" class="fs-12" />
-                <button style="font-size: 0.75rem !important;" type="button" nz-button nzType="primary" nzSize="small" (click)="searchDataProjectWorker()">
+                <button style="font-size: 0.75rem !important;" type="button" nz-button nzType="primary" nzSize="small"
+                  (click)="searchDataProjectWorker()">
                   <i nz-icon nzType="search"></i>
                   Tìm kiếm
                 </button>
@@ -431,32 +426,6 @@
   <!-- Modal Footer -->
 </div>
 
-<!-- Context Menu Template -->
-<nz-dropdown-menu #partListContextMenu="nzDropdownMenu">
-    <ul nz-menu>
-        <li nz-menu-item (click)="openProjectPartListHistory()">
-            <img src="assets/icon/price_history_16.png" class="me-1" /> Xem sản phẩm trong kho, lịch sử giá
-        </li>
-        <li nz-menu-item (click)="getPriceHistory()">
-            <img src="assets/icon/money_16.png" class="me-1" /> Lấy giá lịch sử
-        </li>
-        <li nz-menu-item (click)="restoreDelete()">
-            <img src="assets/icon/revert_16.png" class="me-1" /> Khôi phục
-        </li>
-        <li nz-menu-item (click)="additionalPartListPO()">
-            <img src="assets/icon/add_PO_16.png" class="me-1" /> Bổ sung vào PO
-        </li>
-        <li nz-menu-item (click)="downloadDrawing()">
-            <img src="assets/icon/download_draw_16.png" class="me-1" /> Tải bản vẽ
-        </li>
-        <li nz-menu-item (click)="techBought()" *ngIf="type === 2">
-            <img src="assets/icon/buy_16.png" class="me-1" /> Đã mua
-        </li>
-        <li nz-menu-item (click)="unTechBought()" *ngIf="type === 2">
-            <img src="assets/icon/unbuy_16.png" class="me-1" /> Hủy đã mua
-        </li>
-    </ul>
-</nz-dropdown-menu>
 
 <!-- Template cho modal yêu cầu báo giá -->
 <ng-template #priceRequestModalContent>

@@ -3675,6 +3675,7 @@ export class MenuService {
                     // };
 
                     const menu: MenuItem = {
+                        id: item.ID,
                         kind: item.ParentID <= 0 ? 'group' : 'leaf',
                         key: item.Code,
                         stt: item.STT,
@@ -3684,7 +3685,7 @@ export class MenuService {
                         icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         children: [],
                         router: item.Router == '' ? '#' : `${item.Router}`,
-                        data: (item.QueryParam || ''),
+                        data: JSON.parse((item.QueryParam || '')),
                         comp: COMPONENT_REGISTRY[item.Router]
                     }
 
@@ -3754,6 +3755,7 @@ export class MenuService {
     }
 }
 type BaseItem = {
+    id?: number,
     key: string;
     stt?: number;
     title: string;

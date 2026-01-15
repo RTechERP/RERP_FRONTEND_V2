@@ -219,7 +219,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     ngOnInit(): void {
         this.getMenus();
         console.log('this.menuComps:', this.menuComps);
-        console.log('this.getMenus:', this.menuService.getMenus());
+        // console.log('this.getMenus:', this.menuService.getMenus());
 
 
         this.menuService.menuKey$.subscribe((x) => {

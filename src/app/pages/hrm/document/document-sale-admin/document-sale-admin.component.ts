@@ -34,8 +34,6 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 import { PermissionService } from '../../../../services/permission.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
 import { Menubar } from 'primeng/menubar';
 import {
     AngularGridInstance,
@@ -169,8 +167,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         private message: NzMessageService,
         private permissionService: PermissionService,
         private appUserService: AppUserService,
-        private cdr: ChangeDetectorRef,
-        private http: HttpClient
+        private cdr: ChangeDetectorRef
     ) { }
 
     ngOnInit(): void {
@@ -787,9 +784,8 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // Tạo subPath dùng tên văn bản (giữ nguyên dấu tiếng Việt)
-        const safeName = this.selectedDocumentName
-            .replace(/[\\/:*?"<>|]/g, '_'); // Loại bỏ ký tự không hợp lệ cho file system
+        // Tạo subPath dùng tên văn bản để dễ hiểu
+        const safeName = this.selectedDocumentName.replace(/[\\/:*?"<>|]/g, '_'); // Loại bỏ ký tự không hợp lệ
         const subPath = `Documents/${safeName}`;
 
         const loadingMsg = this.message.loading(`Đang tải lên ${file.name}...`, {
@@ -919,8 +915,8 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
 
         const file = this.data[0];
 
-        if (!file.FileName) {
-            this.notification.error('Thông báo', 'Không có tên file để tải xuống!');
+        if (!file.FilePath) {
+            this.notification.error('Thông báo', 'Không có đường dẫn file để tải xuống!');
             return;
         }
 
@@ -928,32 +924,19 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
             nzDuration: 0,
         }).messageId;
 
-        // Xác định DocumentType dựa trên selectedDocumentTypeID
-        let documentType = '';
-        if (this.selectedDocumentTypeID === 57) {
-            documentType = 'Certificate';
-        } else if (this.selectedDocumentTypeID === 58) {
-            documentType = 'Critical';
-        }
-
-        const safeName = this.selectedDocumentName.replace(/[\\/:*?"<>|]/g, '_');
-
-        // Xây dựng URL với encodeURIComponent để encode Unicode
-        const host = environment.host + 'api/share';
-        const url = `${host}/Software/Test/${documentType}/Documents/${encodeURIComponent(safeName)}/${encodeURIComponent(file.FileName)}`;
-
-        this.http.get(url, { responseType: 'blob' }).subscribe({
+        this.documentService.downloadFile(file.FilePath, this.selectedDocumentTypeID).subscribe({
             next: (blob: Blob) => {
                 this.message.remove(loadingMsg);
+
                 if (blob && blob.size > 0) {
-                    const objectUrl = URL.createObjectURL(blob);
+                    const url = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
-                    link.href = objectUrl;
+                    link.href = url;
                     link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    URL.revokeObjectURL(objectUrl);
+                    window.URL.revokeObjectURL(url);
                     this.notification.success('Thông báo', 'Tải xuống thành công!');
                 } else {
                     this.notification.error('Thông báo', 'File tải về không hợp lệ!');

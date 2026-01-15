@@ -227,8 +227,13 @@
                                     <nz-form-item class="mb-0">
                                         <nz-form-label [nzSpan]="24">Đợn vị (BHXH)<span
                                                 class="text-danger ps-1">*</span></nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập đơn vị(BHXH)">
-                                            <input nz-input formControlName="DvBHXH" placeholder="Nhập đơn vị(BHXH)" />
+                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn đơn vị(BHXH)">
+                                            <nz-select formControlName="TaxCompanyID" nzPlaceHolder="Chọn đơn vị (BHXH)"
+                                                style="width: 100%" nzAllowClear nzShowSearch
+                                                (ngModelChange)="onTaxCompanyChange($event)">
+                                                <nz-option *ngFor="let tc of taxCompanyList" [nzValue]="tc.ID"
+                                                    [nzLabel]="tc.Code + ' - ' + tc.FullName"></nz-option>
+                                            </nz-select>
                                         </nz-form-control>
                                     </nz-form-item>
 
@@ -827,8 +832,8 @@
 </div>
 
 
-<div class="modal fade" id="positionContractModal" tabindex="-1" aria-labelledby="positionContractModalLabel" style="z-index: 1056 !important;"
-    aria-hidden="true">
+<div class="modal fade" id="positionContractModal" tabindex="-1" aria-labelledby="positionContractModalLabel"
+    style="z-index: 1056 !important;" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-primary">
@@ -864,8 +869,8 @@
     </div>
 </div>
 
-<div class="modal fade" id="positionInternalModal" tabindex="-1" aria-labelledby="positionInternalModalLabel" style="z-index: 1056 !important;"
-    aria-hidden="true">
+<div class="modal fade" id="positionInternalModal" tabindex="-1" aria-labelledby="positionInternalModalLabel"
+    style="z-index: 1056 !important;" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-primary">

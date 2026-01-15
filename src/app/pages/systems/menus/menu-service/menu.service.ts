@@ -171,7 +171,8 @@ import { AccountingContractTypeMasterComponent } from '../../../old/KETOAN/accou
 import { AccountingContractComponent } from '../../../old/KETOAN/accounting-contract/accounting-contract.component';
 import { MenuAppService } from '../../menu-app/menu-app.service';
 import { WelcomeComponent } from '../../../old/welcome/welcome.component';
-import { COMPONENT_REGISTRY } from '../component-registry';
+import { buildComponentRegistry } from '../component-registry';
+import { routes } from '../../../../app.routes';
 
 @Injectable({
     providedIn: 'root',
@@ -179,13 +180,17 @@ import { COMPONENT_REGISTRY } from '../component-registry';
 export class MenuService {
     private apiUrl = environment.host + 'api/menu/';
     //   private apiUrl = HOST + 'api/menu/';
+
+    private componentRegistry!: Record<string, any>;
     constructor(
         private http: HttpClient,
         private permissionService: PermissionService,
         private appUserService: AppUserService,
         private notification: NzNotificationService,
         public menuAppService: MenuAppService,
-    ) { }
+    ) {
+        this.componentRegistry = buildComponentRegistry(routes);
+    }
 
     private menuKeySource = new BehaviorSubject<string>('');
     menuKey$ = this.menuKeySource.asObservable();
@@ -3674,19 +3679,25 @@ export class MenuService {
                     //     queryParams: (item.QueryParam || ''),
                     // };
 
+
+                    const childrens = response.data.menus.filter((x: any) => x.ParentID == item.ID);
+                    // console.log(item.ID, isParent);
+
+                    console.log(this.componentRegistry['inventory'])
+
                     const menu: MenuItem = {
                         id: item.ID,
-                        kind: item.ParentID <= 0 ? 'group' : 'leaf',
+                        kind: childrens.length > 0 ? 'group' : 'leaf',
                         key: item.Code,
                         stt: item.STT,
                         title: item.Title,
-                        isOpen: item.ParentID > 0,
+                        isOpen: item.ParentID != 0,
                         isPermission: item.IsPermission,
                         icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         children: [],
                         router: item.Router == '' ? '#' : `${item.Router}`,
-                        data: JSON.parse((item.QueryParam || '')),
-                        comp: COMPONENT_REGISTRY[item.Router]
+                        data: (item.QueryParam || '') == '' ? {} : JSON.parse((item.QueryParam || '')),
+                        comp: this.componentRegistry[item.Router]
                     }
 
                     // Log để debug queryParams từ database
@@ -3710,6 +3721,24 @@ export class MenuService {
                 });
 
                 // console.log(this.menus);
+
+                // const updateKind = (items: MenuItem[]) => {
+                //     items.forEach(item => {
+                //         if (this.isGroupItem(item)) {
+                //             if (item.children.length === 0) {
+                //                 // không có con → chuyển thành leaf
+                //                 item.kind = 'leaf';
+                //                 delete (item as any).children;
+                //             }
+                //         } else {
+                //             // leaf thì không làm gì
+                //         }
+
+                //         if (this.isGroupItem(item)) {
+                //             updateKind(item.children);
+                //         }
+                //     });
+                // };
 
                 menus = this.menuAppService.sortBySTTImmutable(menus, i => i.STT ?? i.stt ?? 0);
 
@@ -3753,6 +3782,11 @@ export class MenuService {
 
         return menus;
     }
+
+    isGroupItem(item: MenuItem): item is GroupItem {
+        return item.kind === 'group';
+    }
+
 }
 type BaseItem = {
     id?: number,

@@ -103,8 +103,9 @@
                         <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
                         {{c1.title}}
 
-                        <!-- <a [routerLink]="c1.router">{{c1.title}}</a> -->
-                        <!-- <p>{{c1.isPermission }}- {{c1.isOpen}} - {{c1.children.length}}</p> -->
+                        <a [routerLink]="c1.router" style="margin-left: auto;">
+                            <nz-icon nzType="export" nzTheme="outline" />
+                        </a>
                     </li>
 
                     <ng-template #nzTitle1 style="padding: 0 16px;">
@@ -121,7 +122,9 @@
                                 <img [src]="c2.icon" class="menu-icon m-1" *ngIf="(c2.icon || '') != ''" width="24px" />
                                 <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
                                 {{c2.title}}
-                                <!-- <a [routerLink]="c2.router">{{c2.title}}</a> -->
+                                <a [routerLink]="c2.router" style="margin-left: auto;">
+                                    <nz-icon nzType="export" nzTheme="outline" />
+                                </a>
                             </li>
 
 
@@ -142,7 +145,9 @@
                                             width="24px" />
                                         <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c3.icon || '') == ''" />
                                         {{c3.title}}
-                                        <a [href]="c3.router">{{c3.title}}</a>
+                                        <a [routerLink]="c3.router" style="margin-left: auto;">
+                                            <nz-icon nzType="export" nzTheme="outline" />
+                                        </a>
                                     </li>
                                     }
 
@@ -240,7 +245,7 @@
             </nz-tabset> -->
 
 
-            <div class="content-host">
+            <div class="content-host" *ngIf="hasDynamicTabComp">
                 <ng-container *ngFor="let tab of dynamicTabComps; let i = index">
                     <div [hidden]="selectedCompIndex !== i" class="tab-pane">
                         <ng-container *ngComponentOutlet="tab.comp; injector: tab.injector">
@@ -248,7 +253,7 @@
                     </div>
                 </ng-container>
             </div>
-            <router-outlet></router-outlet>
+            <router-outlet *ngIf="!hasDynamicTabComp"></router-outlet>
         </nz-content>
         <!-- <nz-footer class="p-2 text-uppercase"> &copy; 2025, made by rtc technology việt nam</nz-footer> -->
     </nz-layout>

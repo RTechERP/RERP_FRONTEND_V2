@@ -1002,7 +1002,7 @@ export const routes: Routes = [
             { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
             // { path: 'summary-kpi-error-employee', component: SummaryKpiErrorEmployeeComponent, canActivate: [authGuard] },
 
-            { path: 'inventoryaa', component: InventoryComponent, canActivate: [authGuard] },
+            { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
         ],
     },
 ];

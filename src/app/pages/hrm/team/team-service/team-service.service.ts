@@ -16,7 +16,7 @@ export class TeamServiceService {
   }
 
   getTeamByDepartmentId(departmentID: number): Observable<any> {
-    return this.http.get(this.apiUrl + 'workplan/get-team-by-department-id?departmentID=' + departmentID);
+    return this.http.get(this.apiUrl + 'team/get-team-by-department-id?departmentID=' + departmentID);
   }
 
   getUserTeam(teamID: number, departmentID: number): Observable<any> {

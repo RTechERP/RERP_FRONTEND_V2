@@ -8,6 +8,8 @@ import {
     ChangeDetectorRef,
     OnDestroy,
     inject,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -36,7 +38,7 @@ import { DateTime } from 'luxon';
 import { saveAs } from 'file-saver';
 
 @Component({
-  selector: 'app-bill-export-technical-new',
+    selector: 'app-bill-export-technical-new',
     standalone: true,
     imports: [
         CommonModule,
@@ -55,8 +57,8 @@ import { saveAs } from 'file-saver';
         HasPermissionDirective,
         NgbModalModule,
     ],
-  templateUrl: './bill-export-technical-new.component.html',
-  styleUrls: ['./bill-export-technical-new.component.css']
+    templateUrl: './bill-export-technical-new.component.html',
+    styleUrls: ['./bill-export-technical-new.component.css']
 })
 export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, OnDestroy {
     // AngularSlickGrid for master table
@@ -99,13 +101,24 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
         private billExportTechnicalService: BillExportTechnicalService,
         private appUserService: AppUserService,
         private route: ActivatedRoute,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
-  ngOnInit() {
+    ngOnInit() {
         this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1;
-            this.warehouseType = params['warehouseType'] || 1;
+            // this.warehouseID = params['warehouseID'] || 1;
+            // this.warehouseType = params['warehouseType'] || 1;
+
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
         });
 
         // Khởi tạo giá trị mặc định cho các filter
@@ -498,7 +511,7 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
             enableHeaderMenu: false,
-            forceFitColumns:true,
+            forceFitColumns: true,
         };
     }
 

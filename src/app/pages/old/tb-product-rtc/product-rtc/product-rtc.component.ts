@@ -7,6 +7,8 @@ import {
     ElementRef,
     ChangeDetectorRef,
     OnDestroy,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -35,7 +37,7 @@ import { ProjectPartlistPriceRequestNewComponent } from '../../../../pages/purch
 import { AppUserService } from '../../../../services/app-user.service';
 
 @Component({
-  selector: 'app-product-rtc',
+    selector: 'app-product-rtc',
     standalone: true,
     imports: [
         CommonModule,
@@ -58,8 +60,8 @@ import { AppUserService } from '../../../../services/app-user.service';
         PurchaseRequestDemoComponent, // Component để xem danh sách yêu cầu mua hàng demo
         ProjectPartlistPriceRequestNewComponent, // Component để yêu cầu báo giá
     ],
-  templateUrl: './product-rtc.component.html',
-  styleUrls: ['./product-rtc.component.css']
+    templateUrl: './product-rtc.component.html',
+    styleUrls: ['./product-rtc.component.css']
 })
 export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
     warehouseCode: string = 'HN';
@@ -96,10 +98,11 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         private modalService: NgbModal,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        private appUserService: AppUserService
+        private appUserService: AppUserService,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
-  ngOnInit() {
+    ngOnInit() {
         this.initGridColumns();
         this.initGridOptions();
         this.initGroupGridColumns();
@@ -107,14 +110,29 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe(params => {
-            const newWarehouseID = Number(params['warehouseID']) || 1;
-            const newWarehouseCode = params['warehouseCode'] || 'HN';
-            const newWarehouseType = Number(params['warehouseType']) || 1;
+            // const newWarehouseID = Number(params['warehouseID']) || 1;
+            // const newWarehouseCode = params['warehouseCode'] || 'HN';
+            // const newWarehouseType = Number(params['warehouseType']) || 1;
+
+            const newWarehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            const newWarehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
+
+            const newWarehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
 
             // Kiểm tra xem params có thay đổi không
             const paramsChanged = this.warehouseID !== newWarehouseID ||
-                                  this.warehouseCode !== newWarehouseCode ||
-                                  this.warehouseType !== newWarehouseType;
+                this.warehouseCode !== newWarehouseCode ||
+                this.warehouseType !== newWarehouseType;
 
             // Nếu params thay đổi, reset và clear data trước
             if (paramsChanged) {

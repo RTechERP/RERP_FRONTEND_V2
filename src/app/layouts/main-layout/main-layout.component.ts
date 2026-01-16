@@ -142,7 +142,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         private route: ActivatedRoute,
         // private tabService: TabServiceService
     ) {
-        this.menuComps = this.menuService.getCompMenus();
+
         // this.menuComps = this.menuService.getMenus();
     }
     notificationComponent = AppNotifycationDropdownComponent;
@@ -221,33 +221,20 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        this.getMenus();
+
+        // console.log('this.menuComps ngOnInit:', this.menuComps);
+
+
+        // this.getMenus();
         // console.log('this.menuComps:', this.menuComps);
         // console.log('this.getMenus:', this.menuService.getMenus());
 
-
         this.menuService.menuKey$.subscribe((x) => {
-            console.log(x);
+            // console.log(x);
             this.menuCompKey = x;
             this.isCollapsed = x == '';
-
-            // console.log('this.menuComps menuKey:', x);
-            // this.menuComps.forEach(item => {
-            //     item.isOpen = item.key == x;
-            // });
-
-            // console.log('this.menuComps :', this.menuComps);
-
-            this.setOpenMenuComp(x);
-            this.isMenuCompOpen(x);
-            this.toggleMenuComp(x);
         });
-
-
-        // Subscribe vào event mở tab từ các component con
-        // this.menuEventService.onOpenTab$.subscribe((tabData) => {
-        //     this.newTabComp(tabData.comp, tabData.title, tabData.data);
-        // });
+        this.menuComps = this.menuService.getCompMenus(this.menuCompKey);
     }
 
     ngOnDestroy(): void {
@@ -288,13 +275,31 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     }
 
-    closeTabComp({ index }: { index: number }) {
-        this.dynamicTabComps.splice(index, 1);
-        if (this.selectedCompIndex >= this.dynamicTabComps.length)
-            this.selectedCompIndex = this.dynamicTabComps.length - 1;
+    // closeTabComp({ index }: { index: number }) {
+    //     this.dynamicTabComps.splice(index, 1);
+    //     if (this.selectedCompIndex >= this.dynamicTabComps.length)
+    //         this.selectedCompIndex = this.dynamicTabComps.length - 1;
 
-        // Lưu tabs vào localStorage sau khi đóng
-        // this.saveTabs();
+    //     // Lưu tabs vào localStorage sau khi đóng
+    //     // this.saveTabs();
+    // }
+
+    closeTabComp({ index }: { index: number }) {
+        // 1️⃣ Xóa tab → component tab bị destroy
+        this.dynamicTabComps.splice(index, 1);
+
+        // 2️⃣ Điều chỉnh selected index
+        if (this.dynamicTabComps.length === 0) {
+            // ❗ Không còn tab nào → clear router
+            this.selectedCompIndex = 0;
+            this.router.navigateByUrl('/app', { replaceUrl: true });
+            return;
+        }
+
+        // Nếu đóng tab đang active hoặc tab trước nó
+        if (this.selectedCompIndex >= index) {
+            this.selectedCompIndex = Math.max(0, this.selectedCompIndex - 1);
+        }
     }
 
     private setOpenMenuComp(key: string | null) {

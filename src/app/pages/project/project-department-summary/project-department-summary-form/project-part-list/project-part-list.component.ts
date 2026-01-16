@@ -137,7 +137,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         private appUserService: AppUserService,
         private billExportService: BillExportService,
         private authService: AuthService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
     sizeLeftPanel: string = ''; // Khởi tạo rỗng
     sizeRightPanel: string = ''; // Khởi tạo rỗng
@@ -215,7 +216,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.tbp = params['tbp'] || false;
+            // this.tbp = params['tbp'] || false;
+            this.tbp =
+                params['tbp']
+                ?? this.tabData?.tbp
+                ?? false;
         });
         this.isDeleted = 0;
         this.isApprovedTBP = -1;
@@ -6123,7 +6128,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         });
     }
     //Thực hiện yêu cầu chuyển kho 
-     executeRequestTransfer(selectedNodes: any[], warehouseCode: string): void {
+    executeRequestTransfer(selectedNodes: any[], warehouseCode: string): void {
         // Chuẩn bị payload theo ProjectPartListExportDTO structure mới
         // Chỉ gửi các field cần thiết theo DTO (không extends ProjectPartList nữa)
         const listItem = selectedNodes.map((node: any) => {
@@ -6165,7 +6170,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                         return;
                     }
                     // Mở modal BillExportDetail tuần tự cho từng bill
-                    this.openBillExportDetailModals(billsData, 0,true);
+                    this.openBillExportDetailModals(billsData, 0, true);
                     // Reload data sau khi hoàn thành (sẽ được gọi trong openBillExportDetailModals)
                 } else {
                     this.notification.error('Lỗi', response.message || 'Không thể yêu cầu xuất kho!');
@@ -6235,7 +6240,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         });
     }
     // Mở modal BillExportDetail tuần tự cho từng bill
-    private openBillExportDetailModals(billsData: any[], index: number, isTransfer:boolean): void {
+    private openBillExportDetailModals(billsData: any[], index: number, isTransfer: boolean): void {
         if (index >= billsData.length) {
             // Đã mở hết tất cả modal → reload data
             this.loadDataProjectPartList();
@@ -6345,7 +6350,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             (dismissed) => {
                 // Modal bị dismiss → vẫn tiếp tục mở modal tiếp theo nếu có
                 if (index < billsData.length - 1) {
-                    this.openBillExportDetailModals(billsData, index + 1,false);
+                    this.openBillExportDetailModals(billsData, index + 1, false);
                 } else {
                     // Modal cuối cùng bị dismiss → reload data
                     this.loadDataProjectPartList();

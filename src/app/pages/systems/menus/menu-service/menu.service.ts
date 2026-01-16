@@ -3654,7 +3654,7 @@ export class MenuService {
     }
 
 
-    getCompMenus(): MenuItem[] {
+    getCompMenus(menukey: string): MenuItem[] {
         let menus: MenuItem[] = [];
         this.menuAppService.getAll().subscribe({
             next: (response) => {
@@ -3683,7 +3683,7 @@ export class MenuService {
                     const childrens = response.data.menus.filter((x: any) => x.ParentID == item.ID);
                     // console.log(item.ID, isParent);
 
-                    console.log(this.componentRegistry['inventory'])
+                    // console.log(this.componentRegistry['inventory'])
 
                     const menu: MenuItem = {
                         id: item.ID,
@@ -3691,7 +3691,7 @@ export class MenuService {
                         key: item.Code,
                         stt: item.STT,
                         title: item.Title,
-                        isOpen: item.ParentID != 0,
+                        isOpen: item.ParentID > 0 || item.Code == menukey,
                         isPermission: item.IsPermission,
                         icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         children: [],

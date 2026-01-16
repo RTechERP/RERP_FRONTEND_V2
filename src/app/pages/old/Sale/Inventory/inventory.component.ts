@@ -173,10 +173,6 @@ export class InventoryComponent implements OnInit, AfterViewInit {
                 params['warehouseCode']
                 ?? this.tabData?.warehouseCode
                 ?? 'HN';
-
-            console.log('this.warehouseCode:', this.warehouseCode);
-
-
         });
     }
     ngAfterViewInit(): void {

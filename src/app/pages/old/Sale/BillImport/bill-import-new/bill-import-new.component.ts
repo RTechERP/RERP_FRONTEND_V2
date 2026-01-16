@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, Optional } from '@angular/core';
 import * as ExcelJS from 'exceljs';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -193,7 +193,8 @@ export class BillImportNewComponent implements OnInit {
         private permissionService: PermissionService,
         private route: ActivatedRoute,
         // private clipboardService: ClipboardService,
-        private message: NzMessageService
+        private message: NzMessageService,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
@@ -201,7 +202,11 @@ export class BillImportNewComponent implements OnInit {
         this.initMenuBar();
 
         this.route.queryParams.subscribe(params => {
-            this.wareHouseCode = params['warehouseCode'] || 'HN';
+            // this.wareHouseCode = params['warehouseCode'] || 'HN';
+            this.wareHouseCode =
+                params['wareHouseCode']
+                ?? this.tabData?.wareHouseCode
+                ?? 1;
             this.searchParams.warehousecode = this.wareHouseCode;
 
             this.getProductGroup();

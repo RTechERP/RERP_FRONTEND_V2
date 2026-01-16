@@ -138,14 +138,15 @@
                                 [nzOpen]="menuKey === c2.key || rootMenuKey === c2.key">
                                 <ul>
                                     @for (c3 of c2.children; track c3.key) {
-                                    <li nz-menu-item nzMatchRouter *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen"
+                                    <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen"
                                         (click)="newTabComp(c3.comp, c3.title,c3.data)"
                                         style="font-size: 10px !important;">
                                         <img [src]="c3.icon" class="menu-icon m-1" *ngIf="(c3.icon || '') != ''"
                                             width="24px" />
                                         <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c3.icon || '') == ''" />
                                         {{c3.title}}
-                                        <a [routerLink]="c3.router" style="margin-left: auto;">
+                                        <a [routerLink]="c3.router" (click)="$event.stopPropagation()"
+                                            style="margin-left: auto;">
                                             <nz-icon nzType="export" nzTheme="outline" />
                                         </a>
                                     </li>

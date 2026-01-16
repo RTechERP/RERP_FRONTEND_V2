@@ -624,7 +624,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsProductGroup = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-product-group',
+                container: '.grid-container-product-group' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -645,7 +645,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsPGWarehouse = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-pg-warehouse',
+                container: '.grid-container-pg-warehouse' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -661,7 +661,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsInventory = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-inventory',
+                container: '.grid-container-inventory' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -911,7 +911,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         // Map data với id unique cho SlickGrid
                         const mappedData = this.dataInventory.map((item: any, index: number) => ({
                             ...item,
-                            id: item.ID ,
+                            id: item.ID,
                         }));
 
                         this.datasetInventory = mappedData;
@@ -1039,8 +1039,11 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Set footer values cho từng column
         const columns = this.angularGridInventory.slickGrid.getColumns();
+
+        console.log('columns:', columns);
+
         columns.forEach((col: any) => {
-            const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn(col.id);
+            const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn('ProductName');
             if (!footerCell) return;
 
             // Count cho cột ProductName (Tên sản phẩm)

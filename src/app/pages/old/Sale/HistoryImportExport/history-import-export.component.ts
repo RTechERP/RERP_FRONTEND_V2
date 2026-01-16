@@ -63,7 +63,8 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
         private notification: NzNotificationService,
         private modal: NzModalService,
         private modalService: NgbModal,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
     warehouseCode: string = 'HN';
     cbbStatus: any = [
@@ -93,7 +94,11 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
         //   this.warehouseCode = this.tabData.warehouseCode;
         // }
         this.route.queryParams.subscribe(params => {
-            this.warehouseCode = params['warehouseCode'] || 'HN';
+            // this.warehouseCode = params['warehouseCode'] || 'HN';
+            this.warehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
         });
         this.loadData();
     }

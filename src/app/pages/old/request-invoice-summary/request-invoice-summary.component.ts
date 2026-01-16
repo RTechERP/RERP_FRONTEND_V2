@@ -1,13 +1,13 @@
 import {
-  Component,
-  ViewEncapsulation,
-  ViewChild,
-  TemplateRef,
-  ElementRef,
-  Input,
-  IterableDiffers,
-  Optional,
-  Inject,
+    Component,
+    ViewEncapsulation,
+    ViewChild,
+    TemplateRef,
+    ElementRef,
+    Input,
+    IterableDiffers,
+    Optional,
+    Inject,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -24,9 +24,9 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import {
-  NzUploadModule,
-  NzUploadFile,
-  NzUploadXHRArgs,
+    NzUploadModule,
+    NzUploadFile,
+    NzUploadXHRArgs,
 } from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -35,9 +35,9 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import {
-  TabulatorFull as Tabulator,
-  RowComponent,
-  CellComponent,
+    TabulatorFull as Tabulator,
+    RowComponent,
+    CellComponent,
 } from 'tabulator-tables';
 // import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 // import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -64,1031 +64,1036 @@ import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
 import { ActivatedRoute } from '@angular/router';
 @Component({
-  selector: 'app-request-invoice-summary',
-  standalone: true,
-  imports: [
-    NzCardModule,
-    FormsModule,
-    ReactiveFormsModule,
-    NzButtonModule,
-    NzIconModule,
-    NzRadioModule,
-    NzSpaceModule,
-    NzLayoutModule,
-    NzFlexModule,
-    NzDrawerModule,
-    NzSplitterModule,
-    NzGridModule,
-    NzDatePickerModule,
-    NzAutocompleteModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzSelectModule,
-    NzTableModule,
-    NzTabsModule,
-    NzModalModule,
-    NzUploadModule,
-    NzSwitchModule,
-    NzCheckboxModule,
-    CommonModule,
-  ],
-  templateUrl: './request-invoice-summary.component.html',
-  styleUrl: './request-invoice-summary.component.css'
+    selector: 'app-request-invoice-summary',
+    standalone: true,
+    imports: [
+        NzCardModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NzButtonModule,
+        NzIconModule,
+        NzRadioModule,
+        NzSpaceModule,
+        NzLayoutModule,
+        NzFlexModule,
+        NzDrawerModule,
+        NzSplitterModule,
+        NzGridModule,
+        NzDatePickerModule,
+        NzAutocompleteModule,
+        NzInputModule,
+        NzInputNumberModule,
+        NzSelectModule,
+        NzTableModule,
+        NzTabsModule,
+        NzModalModule,
+        NzUploadModule,
+        NzSwitchModule,
+        NzCheckboxModule,
+        CommonModule,
+    ],
+    templateUrl: './request-invoice-summary.component.html',
+    styleUrl: './request-invoice-summary.component.css'
 })
 export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
 
-  @ViewChild('tb_Table', { static: false }) tb_TableElement!: ElementRef;
-  private tb_Table!: Tabulator;
+    @ViewChild('tb_Table', { static: false }) tb_TableElement!: ElementRef;
+    private tb_Table!: Tabulator;
 
-  @ViewChild('tb_File', { static: false }) tb_FileElement!: ElementRef;
-  private tb_File!: Tabulator;
+    @ViewChild('tb_File', { static: false }) tb_FileElement!: ElementRef;
+    private tb_File!: Tabulator;
 
-  @ViewChild('tb_FilePO', { static: false }) tb_FilePOElement!: ElementRef;
-  private tb_FilePO!: Tabulator;
+    @ViewChild('tb_FilePO', { static: false }) tb_FilePOElement!: ElementRef;
+    private tb_FilePO!: Tabulator;
 
-  mainData: any[] = [];
-  dataFile: any[] = [];
-  dataFilePO: any[] = [];
-  customers: any[] = [];
-  users: any[] = [];
-  selectedFile: any = null;
-  selectedPOFile: any = null;
-  selectedId: number = 0;
-  dateStart: Date = new Date();
-  dateEnd: Date = new Date();
-  customerId: number = 0;
-  userId: number = 0;
-  status: number = 0;
-  keywords: string = '';
-  warehouseId: number = 0;
+    mainData: any[] = [];
+    dataFile: any[] = [];
+    dataFilePO: any[] = [];
+    customers: any[] = [];
+    users: any[] = [];
+    selectedFile: any = null;
+    selectedPOFile: any = null;
+    selectedId: number = 0;
+    dateStart: Date = new Date();
+    dateEnd: Date = new Date();
+    customerId: number = 0;
+    userId: number = 0;
+    status: number = 0;
+    keywords: string = '';
+    warehouseId: number = 0;
 
-  constructor(
-    @Optional() public activeModal: NgbActiveModal,
-    private modalService: NgbModal,
-    private notification: NzNotificationService,
-    private message: NzMessageService,
-    private modal: NzModalService,
-    private injector: EnvironmentInjector,
-    private appRef: ApplicationRef,
-    private requestInvoiceService: RequestInvoiceService,
-    private viewPokhService: ViewPokhService,
-    private route: ActivatedRoute,
-    @Optional() @Inject('tabData') private tabData: any
-  ) {
-    // Nhận data từ tab nếu có
-    if (this.tabData && this.tabData.warehouseId) {
-      this.warehouseId = this.tabData.warehouseId;
+    constructor(
+        @Optional() public activeModal: NgbActiveModal,
+        private modalService: NgbModal,
+        private notification: NzNotificationService,
+        private message: NzMessageService,
+        private modal: NzModalService,
+        private injector: EnvironmentInjector,
+        private appRef: ApplicationRef,
+        private requestInvoiceService: RequestInvoiceService,
+        private viewPokhService: ViewPokhService,
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
+    ) {
+        // Nhận data từ tab nếu có
+        // if (this.tabData && this.tabData.warehouseId) {
+        //     this.warehouseId = this.tabData.warehouseId;
+        // }
     }
-  }
 
-  sizeSearch: string = '0';
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
-  }
-
-  ngOnInit(): void {
-    // Set title cho trang
-    document.title = 'TỔNG HỢP YÊU CẦU XUẤT HÓA ĐƠN';
-
-    // Lấy warehouseId từ query params
-    this.route.queryParams.subscribe(params => {
-      if (params['warehouseId']) {
-        this.warehouseId = params['warehouseId'];
-      }
-    });
-
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 1); // Lấy dữ liệu 1 ngày trước
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(23, 59, 59, 999);
-    this.dateStart = startDate;
-    this.dateEnd = endDate;
-    this.loadMainData();
-  }
-
-  ngAfterViewInit(): void {
-    this.initTable();
-    this.initFileTable();
-    this.initPOFileTable();
-  }
-
-  closeModal() {
-    if (this.activeModal) {
-      this.activeModal.close({ success: true, reloadData: true });
+    sizeSearch: string = '0';
+    toggleSearchPanel() {
+        this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
     }
-  }
 
-  loadMainData() {
-    const start = new Date(this.dateStart);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(this.dateEnd);
-    end.setHours(23, 59, 59, 999);
+    ngOnInit(): void {
+        // Set title cho trang
+        document.title = 'TỔNG HỢP YÊU CẦU XUẤT HÓA ĐƠN';
 
-    this.requestInvoiceService.getRequestInvoiceSummary(
-      start,
-      end,
-      this.customerId,
-      this.userId,
-      0,
-      this.keywords
-    ).subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          this.mainData = response.data;
-          if (this.tb_Table) {
-            this.tb_Table.setData(this.mainData);
-          }
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, response.message);
-        }
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error);
-      },
-    });
-  }
+        // Lấy warehouseId từ query params
+        this.route.queryParams.subscribe(params => {
+            // if (params['warehouseId']) {
+            //     this.warehouseId = params['warehouseId'];
+            // }
 
-  loadFileData(requestInvoiceId: number): void {
-    this.requestInvoiceService.getDetail(requestInvoiceId).subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          this.dataFile = response.files;
-          this.selectedFile = null; // Reset selected file
-          if (this.tb_File) {
-            this.tb_File.setData(this.dataFile);
-          }
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, response.message);
-        }
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error);
-      },
-    });
-  }
-
-  loadFilePOData(pokhId: number): void {
-    this.requestInvoiceService.getPOKHFile(pokhId).subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.dataFilePO = response.data;
-          this.selectedPOFile = null; // Reset selected PO file
-          if (this.tb_FilePO) {
-            this.tb_FilePO.setData(this.dataFilePO);
-          }
-        }
-      },
-      (error) => {
-        console.error('Lỗi kết nối khi tải POKHFile:', error);
-      }
-    );
-  }
-
-
-  loadCustomer(): void {
-    this.requestInvoiceService.getCustomer().subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          this.customers = response.data;
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, response.message);
-        }
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error);
-      },
-    });
-  }
-
-  loadUser(): void {
-    this.viewPokhService.loadUser().subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          this.users = response.data;
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, response.message);
-        }
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error);
-      },
-    });
-  }
-
-  openRequestInvoiceStatusLinkModal(): void {
-    const modalRef = this.modalService.open(RequestInvoiceStatusLinkComponent, {
-      centered: true,
-      size: 'xl',
-      backdrop: 'static',
-    });
-    modalRef.componentInstance.requestInvoiceID = this.selectedId;
-
-    modalRef.result.then(
-      (result) => {
-        if (result.success && result.reloadData) {
-        }
-      },
-      (reason) => {
-        console.log('Modal closed');
-      }
-    );
-  }
-
-  exportToExcel(): void {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Data');
-
-    // Define columns (keys and widths only)
-    worksheet.columns = [
-      { key: 'IsUrgency', width: 15 },
-      { key: 'DealineUrgency', width: 15 },
-      { key: 'StatusText', width: 20 },
-      { key: 'Code', width: 20 },
-      { key: 'IsCustomsDeclared', width: 15 },
-      { key: 'AmendReason', width: 30 },
-      { key: 'FullName', width: 20 },
-      { key: 'CustomerName', width: 30 },
-      { key: 'Address', width: 40 },
-      { key: 'Name', width: 20 },
-      { key: 'Note', width: 30 },
-      { key: 'ProductNewCode', width: 15 },
-      { key: 'ProductCode', width: 20 },
-      { key: 'GuestCode', width: 20 },
-      { key: 'ProductName', width: 30 },
-      { key: 'Unit', width: 10 },
-      { key: 'Quantity', width: 15 },
-      { key: 'ProjectCode', width: 20 },
-      { key: 'ProjectName', width: 20 },
-      { key: 'NotePO', width: 30 },
-      { key: 'Specifications', width: 20 },
-      { key: 'InvoiceNumber', width: 20 },
-      { key: 'InvoiceDate', width: 15 },
-      { key: 'PONumber', width: 20 },
-      { key: 'POCode', width: 20 },
-      { key: 'RequestDate', width: 15 },
-      { key: 'DateRequestImport', width: 15 },
-      { key: 'SupplierName', width: 30 },
-      { key: 'SomeBill', width: 20 },
-      { key: 'ExpectedDate', width: 15 },
-      { key: 'BillImportCode', width: 20 },
-      { key: 'CompanyText', width: 20 },
-    ];
-
-    // Add Band Row (Row 1)
-    const bandValues = new Array(25).fill('');
-    bandValues.push('Thông tin đầu vào');
-    const bandRow = worksheet.addRow(bandValues);
-
-    // Merge cells for Band
-    worksheet.mergeCells('A1:Y1');
-    worksheet.mergeCells('Z1:AF1');
-
-    // Add Header Row (Row 2)
-    const headerRow = worksheet.addRow([
-      'Yêu cầu gấp', 'Deadline', 'Trạng thái', 'Mã lệnh', 'Tờ khai HQ',
-      'Lý do yêu cầu bổ sung', 'Người yêu cầu', 'Khách hàng', 'Địa chỉ', 'Công ty bán',
-      'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã theo khách', 'Tên sản phẩm',
-      'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (PO)',
-      'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Mã PO',
-      'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK', 'Công ty nhập'
-    ]);
-
-    // Style Band Row
-    bandRow.eachCell((cell) => {
-      cell.font = { bold: true, size: 12 };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFDCE6F1' }, // Light Blue
-      };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' },
-      };
-    });
-
-    // Style Header Row
-    headerRow.eachCell((cell) => {
-      cell.font = { bold: true };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFDCE6F1' }, // Light Blue
-      };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' },
-      };
-    });
-
-    // Add data
-    this.mainData.forEach((item) => {
-      const row = worksheet.addRow({
-        IsUrgency: item.IsUrgency ? 'Có' : '',
-        DealineUrgency: item.DealineUrgency ? DateTime.fromISO(item.DealineUrgency).toFormat('dd/MM/yyyy') : '',
-        StatusText: item.StatusText,
-        Code: item.Code,
-        IsCustomsDeclared: item.IsCustomsDeclared ? 'Có' : '',
-        AmendReason: item.AmendReason,
-        FullName: item.FullName,
-        CustomerName: item.CustomerName,
-        Address: item.Address,
-        Name: item.Name,
-        Note: item.Note,
-        ProductNewCode: item.ProductNewCode,
-        ProductCode: item.ProductCode,
-        GuestCode: item.GuestCode,
-        ProductName: item.ProductName,
-        Unit: item.Unit,
-        Quantity: item.Quantity,
-        ProjectCode: item.ProjectCode,
-        ProjectName: item.ProjectName,
-        NotePO: item.Note,
-        Specifications: item.Specifications,
-        InvoiceNumber: item.InvoiceNumber,
-        InvoiceDate: item.InvoiceDate ? DateTime.fromISO(item.InvoiceDate).toFormat('dd/MM/yyyy') : '',
-        PONumber: item.PONumber,
-        POCode: item.POCode,
-        RequestDate: item.RequestDate ? DateTime.fromISO(item.RequestDate).toFormat('dd/MM/yyyy') : '',
-        DateRequestImport: item.DateRequestImport ? DateTime.fromISO(item.DateRequestImport).toFormat('dd/MM/yyyy') : '',
-        SupplierName: item.SupplierName,
-        SomeBill: item.SomeBill,
-        ExpectedDate: item.ExpectedDate ? DateTime.fromISO(item.ExpectedDate).toFormat('dd/MM/yyyy') : '',
-        BillImportCode: item.BillImportCode,
-        CompanyText: item.CompanyText || '',
-      });
-
-      // Color row if IsUrgency is true
-      if (item.IsUrgency) {
-        row.eachCell({ includeEmpty: true }, (cell) => {
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFFFA500' }, // Orange
-          };
+            this.warehouseId =
+                params['warehouseId']
+                ?? this.tabData?.warehouseId
+                ?? 0;
         });
-      }
 
-      // Add borders to all cells
-      row.eachCell({ includeEmpty: true }, (cell) => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' },
-        };
-      });
-    });
-
-    // Save file
-    workbook.xlsx.writeBuffer().then((buffer) => {
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'TongHopYeuCauXuatHoaDon.xlsx';
-      a.click();
-      window.URL.revokeObjectURL(url);
-    });
-  }
-
-  private buildFullFilePath(file: any): string {
-    if (!file) {
-      return '';
-    }
-    const serverPath = (file.ServerPath || '').trim();
-    const fileName = (file.FileName || file.FileNameOrigin || '').trim();
-
-    if (!serverPath) {
-      return '';
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 1); // Lấy dữ liệu 1 ngày trước
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        this.dateStart = startDate;
+        this.dateEnd = endDate;
+        this.loadMainData();
     }
 
-    // Nếu ServerPath đã chứa tên file thì dùng luôn
-    if (fileName && serverPath.toLowerCase().includes(fileName.toLowerCase())) {
-      return serverPath;
+    ngAfterViewInit(): void {
+        this.initTable();
+        this.initFileTable();
+        this.initPOFileTable();
     }
 
-    if (!fileName) {
-      return serverPath;
-    }
-
-    const normalizedPath = serverPath.replace(/[\\/]+$/, '');
-    return `${normalizedPath}\\${fileName}`;
-  }
-
-  downloadFile(file: any): void {
-    if (!file || !file.ServerPath) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
-      return;
-    }
-
-    const fullPath = this.buildFullFilePath(file);
-    if (!fullPath) {
-      this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
-      return;
-    }
-
-    // Hiển thị loading message
-    const loadingMsg = this.message.loading('Đang tải xuống file...', {
-      nzDuration: 0,
-    }).messageId;
-
-    this.requestInvoiceService.downloadFile(fullPath).subscribe({
-      next: (blob: Blob) => {
-        this.message.remove(loadingMsg);
-
-        // Kiểm tra xem có phải là blob hợp lệ không
-        if (blob && blob.size > 0) {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-          this.notification.success('Thông báo', 'Tải xuống thành công!');
-        } else {
-          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+    closeModal() {
+        if (this.activeModal) {
+            this.activeModal.close({ success: true, reloadData: true });
         }
-      },
-      error: (res: any) => {
-        this.message.remove(loadingMsg);
-        console.error('Lỗi khi tải file:', res);
-
-        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
-        if (res.error instanceof Blob) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            try {
-              const errorText = JSON.parse(reader.result as string);
-              this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
-            } catch {
-              this.notification.error('Thông báo', 'Tải xuống thất bại!');
-            }
-          };
-          reader.readAsText(res.error);
-        } else {
-          const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
-          this.notification.error('Thông báo', errorMsg);
-        }
-      },
-    });
-  }
-
-  downloadPOFile(file: any): void {
-    if (!file || !file.ServerPath) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
-      return;
     }
 
-    const fullPath = this.buildFullFilePath(file);
-    if (!fullPath) {
-      this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
-      return;
-    }
+    loadMainData() {
+        const start = new Date(this.dateStart);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(this.dateEnd);
+        end.setHours(23, 59, 59, 999);
 
-    // Hiển thị loading message
-    const loadingMsg = this.message.loading('Đang tải xuống file...', {
-      nzDuration: 0,
-    }).messageId;
-
-    this.requestInvoiceService.downloadFile(fullPath).subscribe({
-      next: (blob: Blob) => {
-        this.message.remove(loadingMsg);
-
-        // Kiểm tra xem có phải là blob hợp lệ không
-        if (blob && blob.size > 0) {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-          this.notification.success('Thông báo', 'Tải xuống thành công!');
-        } else {
-          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
-        }
-      },
-      error: (res: any) => {
-        this.message.remove(loadingMsg);
-        console.error('Lỗi khi tải file:', res);
-
-        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
-        if (res.error instanceof Blob) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            try {
-              const errorText = JSON.parse(reader.result as string);
-              this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
-            } catch {
-              this.notification.error('Thông báo', 'Tải xuống thất bại!');
-            }
-          };
-          reader.readAsText(res.error);
-        } else {
-          const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
-          this.notification.error('Thông báo', errorMsg);
-        }
-      },
-    });
-  }
-
-  initTable(): void {
-    if (!this.tb_TableElement) {
-      console.error('tb_Table element not found');
-      return;
-    }
-    this.tb_Table = new Tabulator(this.tb_TableElement.nativeElement, {
-      ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitColumns',
-      data: this.mainData,
-      height: '100%',
-      rowHeader: false,
-      selectableRows: 1,
-      rowFormatter: (row: RowComponent) => {
-        const data = row.getData();
-        const element = row.getElement();
-        if (element) {
-          if (data['IsUrgency']) {
-            element.style.backgroundColor = '#FFA500';
-          } else {
-            element.style.backgroundColor = '';
-          }
-        }
-      },
-      columns: [
-        {
-          title: '',
-          columns: [
-            {
-              title: 'ID',
-              field: 'ID',
-              sorter: 'string',
-              visible: false,
-              frozen: true,
+        this.requestInvoiceService.getRequestInvoiceSummary(
+            start,
+            end,
+            this.customerId,
+            this.userId,
+            0,
+            this.keywords
+        ).subscribe({
+            next: (response) => {
+                if (response.status === 1) {
+                    this.mainData = response.data;
+                    if (this.tb_Table) {
+                        this.tb_Table.setData(this.mainData);
+                    }
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                }
             },
-            {
-              title: 'Yêu cầu gấp',
-              field: 'IsUrgency',
-              sorter: 'boolean',
-              width: 50,
-              hozAlign: 'center',
-              frozen: true,
-              formatter: (cell) => {
-                const checked = cell.getValue() ? 'checked' : '';
-                return `<div style="text-align: center;">
+            error: (error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error);
+            },
+        });
+    }
+
+    loadFileData(requestInvoiceId: number): void {
+        this.requestInvoiceService.getDetail(requestInvoiceId).subscribe({
+            next: (response) => {
+                if (response.status === 1) {
+                    this.dataFile = response.files;
+                    this.selectedFile = null; // Reset selected file
+                    if (this.tb_File) {
+                        this.tb_File.setData(this.dataFile);
+                    }
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                }
+            },
+            error: (error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error);
+            },
+        });
+    }
+
+    loadFilePOData(pokhId: number): void {
+        this.requestInvoiceService.getPOKHFile(pokhId).subscribe(
+            (response) => {
+                if (response.status === 1) {
+                    this.dataFilePO = response.data;
+                    this.selectedPOFile = null; // Reset selected PO file
+                    if (this.tb_FilePO) {
+                        this.tb_FilePO.setData(this.dataFilePO);
+                    }
+                }
+            },
+            (error) => {
+                console.error('Lỗi kết nối khi tải POKHFile:', error);
+            }
+        );
+    }
+
+
+    loadCustomer(): void {
+        this.requestInvoiceService.getCustomer().subscribe({
+            next: (response) => {
+                if (response.status === 1) {
+                    this.customers = response.data;
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                }
+            },
+            error: (error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error);
+            },
+        });
+    }
+
+    loadUser(): void {
+        this.viewPokhService.loadUser().subscribe({
+            next: (response) => {
+                if (response.status === 1) {
+                    this.users = response.data;
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                }
+            },
+            error: (error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error);
+            },
+        });
+    }
+
+    openRequestInvoiceStatusLinkModal(): void {
+        const modalRef = this.modalService.open(RequestInvoiceStatusLinkComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+        });
+        modalRef.componentInstance.requestInvoiceID = this.selectedId;
+
+        modalRef.result.then(
+            (result) => {
+                if (result.success && result.reloadData) {
+                }
+            },
+            (reason) => {
+                console.log('Modal closed');
+            }
+        );
+    }
+
+    exportToExcel(): void {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Data');
+
+        // Define columns (keys and widths only)
+        worksheet.columns = [
+            { key: 'IsUrgency', width: 15 },
+            { key: 'DealineUrgency', width: 15 },
+            { key: 'StatusText', width: 20 },
+            { key: 'Code', width: 20 },
+            { key: 'IsCustomsDeclared', width: 15 },
+            { key: 'AmendReason', width: 30 },
+            { key: 'FullName', width: 20 },
+            { key: 'CustomerName', width: 30 },
+            { key: 'Address', width: 40 },
+            { key: 'Name', width: 20 },
+            { key: 'Note', width: 30 },
+            { key: 'ProductNewCode', width: 15 },
+            { key: 'ProductCode', width: 20 },
+            { key: 'GuestCode', width: 20 },
+            { key: 'ProductName', width: 30 },
+            { key: 'Unit', width: 10 },
+            { key: 'Quantity', width: 15 },
+            { key: 'ProjectCode', width: 20 },
+            { key: 'ProjectName', width: 20 },
+            { key: 'NotePO', width: 30 },
+            { key: 'Specifications', width: 20 },
+            { key: 'InvoiceNumber', width: 20 },
+            { key: 'InvoiceDate', width: 15 },
+            { key: 'PONumber', width: 20 },
+            { key: 'POCode', width: 20 },
+            { key: 'RequestDate', width: 15 },
+            { key: 'DateRequestImport', width: 15 },
+            { key: 'SupplierName', width: 30 },
+            { key: 'SomeBill', width: 20 },
+            { key: 'ExpectedDate', width: 15 },
+            { key: 'BillImportCode', width: 20 },
+            { key: 'CompanyText', width: 20 },
+        ];
+
+        // Add Band Row (Row 1)
+        const bandValues = new Array(25).fill('');
+        bandValues.push('Thông tin đầu vào');
+        const bandRow = worksheet.addRow(bandValues);
+
+        // Merge cells for Band
+        worksheet.mergeCells('A1:Y1');
+        worksheet.mergeCells('Z1:AF1');
+
+        // Add Header Row (Row 2)
+        const headerRow = worksheet.addRow([
+            'Yêu cầu gấp', 'Deadline', 'Trạng thái', 'Mã lệnh', 'Tờ khai HQ',
+            'Lý do yêu cầu bổ sung', 'Người yêu cầu', 'Khách hàng', 'Địa chỉ', 'Công ty bán',
+            'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã theo khách', 'Tên sản phẩm',
+            'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (PO)',
+            'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Mã PO',
+            'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK', 'Công ty nhập'
+        ]);
+
+        // Style Band Row
+        bandRow.eachCell((cell) => {
+            cell.font = { bold: true, size: 12 };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFDCE6F1' }, // Light Blue
+            };
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' },
+            };
+        });
+
+        // Style Header Row
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFDCE6F1' }, // Light Blue
+            };
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' },
+            };
+        });
+
+        // Add data
+        this.mainData.forEach((item) => {
+            const row = worksheet.addRow({
+                IsUrgency: item.IsUrgency ? 'Có' : '',
+                DealineUrgency: item.DealineUrgency ? DateTime.fromISO(item.DealineUrgency).toFormat('dd/MM/yyyy') : '',
+                StatusText: item.StatusText,
+                Code: item.Code,
+                IsCustomsDeclared: item.IsCustomsDeclared ? 'Có' : '',
+                AmendReason: item.AmendReason,
+                FullName: item.FullName,
+                CustomerName: item.CustomerName,
+                Address: item.Address,
+                Name: item.Name,
+                Note: item.Note,
+                ProductNewCode: item.ProductNewCode,
+                ProductCode: item.ProductCode,
+                GuestCode: item.GuestCode,
+                ProductName: item.ProductName,
+                Unit: item.Unit,
+                Quantity: item.Quantity,
+                ProjectCode: item.ProjectCode,
+                ProjectName: item.ProjectName,
+                NotePO: item.Note,
+                Specifications: item.Specifications,
+                InvoiceNumber: item.InvoiceNumber,
+                InvoiceDate: item.InvoiceDate ? DateTime.fromISO(item.InvoiceDate).toFormat('dd/MM/yyyy') : '',
+                PONumber: item.PONumber,
+                POCode: item.POCode,
+                RequestDate: item.RequestDate ? DateTime.fromISO(item.RequestDate).toFormat('dd/MM/yyyy') : '',
+                DateRequestImport: item.DateRequestImport ? DateTime.fromISO(item.DateRequestImport).toFormat('dd/MM/yyyy') : '',
+                SupplierName: item.SupplierName,
+                SomeBill: item.SomeBill,
+                ExpectedDate: item.ExpectedDate ? DateTime.fromISO(item.ExpectedDate).toFormat('dd/MM/yyyy') : '',
+                BillImportCode: item.BillImportCode,
+                CompanyText: item.CompanyText || '',
+            });
+
+            // Color row if IsUrgency is true
+            if (item.IsUrgency) {
+                row.eachCell({ includeEmpty: true }, (cell) => {
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFFFA500' }, // Orange
+                    };
+                });
+            }
+
+            // Add borders to all cells
+            row.eachCell({ includeEmpty: true }, (cell) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' },
+                };
+            });
+        });
+
+        // Save file
+        workbook.xlsx.writeBuffer().then((buffer) => {
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'TongHopYeuCauXuatHoaDon.xlsx';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+    }
+
+    private buildFullFilePath(file: any): string {
+        if (!file) {
+            return '';
+        }
+        const serverPath = (file.ServerPath || '').trim();
+        const fileName = (file.FileName || file.FileNameOrigin || '').trim();
+
+        if (!serverPath) {
+            return '';
+        }
+
+        // Nếu ServerPath đã chứa tên file thì dùng luôn
+        if (fileName && serverPath.toLowerCase().includes(fileName.toLowerCase())) {
+            return serverPath;
+        }
+
+        if (!fileName) {
+            return serverPath;
+        }
+
+        const normalizedPath = serverPath.replace(/[\\/]+$/, '');
+        return `${normalizedPath}\\${fileName}`;
+    }
+
+    downloadFile(file: any): void {
+        if (!file || !file.ServerPath) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+            return;
+        }
+
+        const fullPath = this.buildFullFilePath(file);
+        if (!fullPath) {
+            this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
+            return;
+        }
+
+        // Hiển thị loading message
+        const loadingMsg = this.message.loading('Đang tải xuống file...', {
+            nzDuration: 0,
+        }).messageId;
+
+        this.requestInvoiceService.downloadFile(fullPath).subscribe({
+            next: (blob: Blob) => {
+                this.message.remove(loadingMsg);
+
+                // Kiểm tra xem có phải là blob hợp lệ không
+                if (blob && blob.size > 0) {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    this.notification.success('Thông báo', 'Tải xuống thành công!');
+                } else {
+                    this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+                }
+            },
+            error: (res: any) => {
+                this.message.remove(loadingMsg);
+                console.error('Lỗi khi tải file:', res);
+
+                // Nếu error response là blob (có thể server trả về lỗi dạng blob)
+                if (res.error instanceof Blob) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try {
+                            const errorText = JSON.parse(reader.result as string);
+                            this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+                        } catch {
+                            this.notification.error('Thông báo', 'Tải xuống thất bại!');
+                        }
+                    };
+                    reader.readAsText(res.error);
+                } else {
+                    const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
+                    this.notification.error('Thông báo', errorMsg);
+                }
+            },
+        });
+    }
+
+    downloadPOFile(file: any): void {
+        if (!file || !file.ServerPath) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+            return;
+        }
+
+        const fullPath = this.buildFullFilePath(file);
+        if (!fullPath) {
+            this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
+            return;
+        }
+
+        // Hiển thị loading message
+        const loadingMsg = this.message.loading('Đang tải xuống file...', {
+            nzDuration: 0,
+        }).messageId;
+
+        this.requestInvoiceService.downloadFile(fullPath).subscribe({
+            next: (blob: Blob) => {
+                this.message.remove(loadingMsg);
+
+                // Kiểm tra xem có phải là blob hợp lệ không
+                if (blob && blob.size > 0) {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    this.notification.success('Thông báo', 'Tải xuống thành công!');
+                } else {
+                    this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+                }
+            },
+            error: (res: any) => {
+                this.message.remove(loadingMsg);
+                console.error('Lỗi khi tải file:', res);
+
+                // Nếu error response là blob (có thể server trả về lỗi dạng blob)
+                if (res.error instanceof Blob) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try {
+                            const errorText = JSON.parse(reader.result as string);
+                            this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+                        } catch {
+                            this.notification.error('Thông báo', 'Tải xuống thất bại!');
+                        }
+                    };
+                    reader.readAsText(res.error);
+                } else {
+                    const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
+                    this.notification.error('Thông báo', errorMsg);
+                }
+            },
+        });
+    }
+
+    initTable(): void {
+        if (!this.tb_TableElement) {
+            console.error('tb_Table element not found');
+            return;
+        }
+        this.tb_Table = new Tabulator(this.tb_TableElement.nativeElement, {
+            ...DEFAULT_TABLE_CONFIG,
+            layout: 'fitColumns',
+            data: this.mainData,
+            height: '100%',
+            rowHeader: false,
+            selectableRows: 1,
+            rowFormatter: (row: RowComponent) => {
+                const data = row.getData();
+                const element = row.getElement();
+                if (element) {
+                    if (data['IsUrgency']) {
+                        element.style.backgroundColor = '#FFA500';
+                    } else {
+                        element.style.backgroundColor = '';
+                    }
+                }
+            },
+            columns: [
+                {
+                    title: '',
+                    columns: [
+                        {
+                            title: 'ID',
+                            field: 'ID',
+                            sorter: 'string',
+                            visible: false,
+                            frozen: true,
+                        },
+                        {
+                            title: 'Yêu cầu gấp',
+                            field: 'IsUrgency',
+                            sorter: 'boolean',
+                            width: 50,
+                            hozAlign: 'center',
+                            frozen: true,
+                            formatter: (cell) => {
+                                const checked = cell.getValue() ? 'checked' : '';
+                                return `<div style="text-align: center;">
             <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
           </div>`;
-              },
-            },
-            {
-              title: 'Deadline',
-              field: 'DealineUrgency',
-              sorter: 'date',
-              frozen: true,
-              width: 100,
-              formatter: (cell) => {
-                const value = cell.getValue();
-                return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-              },
-            },
-            {
-              title: 'Trạng thái',
-              field: 'StatusText',
-              sorter: 'string',
-              frozen: true,
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc trạng thái',
-            },
-            { 
-              title: 'Mã lệnh', 
-              frozen: true, 
-              field: 'Code', 
-              sorter: 'string', 
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc mã lệnh',
-            },
-            {
-              title: 'Tờ khai HQ',
-              field: 'IsCustomsDeclared',
-              sorter: 'boolean',
-              frozen: true,
-              width: 70,
-              hozAlign: 'center',
-              formatter: (cell) => {
-                const checked = cell.getValue() ? 'checked' : '';
-                return `<div style="text-align: center;">
+                            },
+                        },
+                        {
+                            title: 'Deadline',
+                            field: 'DealineUrgency',
+                            sorter: 'date',
+                            frozen: true,
+                            width: 100,
+                            formatter: (cell) => {
+                                const value = cell.getValue();
+                                return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+                            },
+                        },
+                        {
+                            title: 'Trạng thái',
+                            field: 'StatusText',
+                            sorter: 'string',
+                            frozen: true,
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc trạng thái',
+                        },
+                        {
+                            title: 'Mã lệnh',
+                            frozen: true,
+                            field: 'Code',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc mã lệnh',
+                        },
+                        {
+                            title: 'Tờ khai HQ',
+                            field: 'IsCustomsDeclared',
+                            sorter: 'boolean',
+                            frozen: true,
+                            width: 70,
+                            hozAlign: 'center',
+                            formatter: (cell) => {
+                                const checked = cell.getValue() ? 'checked' : '';
+                                return `<div style="text-align: center;">
             <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
           </div>`;
-              },
-            },
-            {
-              title: 'Lý do yêu cầu bổ sung',
-              field: 'AmendReason',
-              sorter: 'string',
-              width: 215,
-              formatter: 'textarea',
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc lý do',
-            },
-            {
-              title: 'Người yêu cầu',
-              field: 'FullName',
-              sorter: 'string',
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc người yêu cầu',
-            },
-            {
-              title: 'Khách hàng',
-              field: 'CustomerName',
-              sorter: 'string',
-              formatter: 'textarea',
-              width: 250,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc khách hàng',
-            },
-            { 
-              title: 'Địa chỉ', 
-              field: 'Address', 
-              sorter: 'string', 
-              width: 300, 
-              formatter: 'textarea',
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc địa chỉ',
-            },
-            { 
-              title: 'Công ty bán', 
-              field: 'Name', 
-              sorter: 'string', 
-              width: 140,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc công ty bán',
-            },
-            { 
-              title: 'Ghi chú', 
-              field: 'Note', 
-              sorter: 'string', 
-              width: 200, 
-              formatter: 'textarea',
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc ghi chú',
-            },
-            {
-              title: 'Mã nội bộ',
-              field: 'ProductNewCode',
-              sorter: 'string',
-              width: 100,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc mã nội bộ',
-            },
-            {
-              title: 'Mã sản phẩm',
-              field: 'ProductCode',
-              sorter: 'string',
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc mã sản phẩm',
-            },
-            {
-              title: 'Mã theo khách',
-              field: 'GuestCode',
-              sorter: 'string',
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc mã theo khách',
-            },
-            {
-              title: 'Tên sản phẩm',
-              field: 'ProductName',
-              sorter: 'string',
-              formatter: 'textarea',
-              width: 200,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc tên sản phẩm',
-            },
-            { 
-              title: 'ĐVT', 
-              field: 'Unit', 
-              sorter: 'string', 
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc ĐVT',
-            },
-            { 
-              title: 'Số lượng', 
-              field: 'Quantity', 
-              sorter: 'string', 
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc số lượng',
-            },
-            {
-              title: 'Mã dự án',
-              field: 'ProjectCode',
-              sorter: 'string',
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc mã dự án',
-            },
-            { 
-              title: 'Dự án', 
-              field: 'ProjectName', 
-              sorter: 'string', 
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc dự án',
-            },
-            { 
-              title: 'Ghi chú (PO)', 
-              field: 'Note', 
-              sorter: 'string', 
-              width: 150, 
-              formatter: 'textarea',
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc ghi chú PO',
-            },
-            {
-              title: 'Thông số kỹ thuật',
-              field: 'Specifications',
-              sorter: 'string',
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc thông số',
-            },
-            {
-              title: 'Số hóa đơn',
-              field: 'InvoiceNumber',
-              sorter: 'string',
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc số hóa đơn',
-            },
-            {
-              title: 'Ngày hóa đơn',
-              field: 'InvoiceDate',
-              sorter: 'date',
-              width: 150,
-              formatter: (cell) => {
-                const value = cell.getValue();
-                return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-              },
-            },
-            {
-              title: 'Số PO',
-              field: 'PONumber',
-              sorter: 'string',
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc số PO',
-            },
-            {
-              title: 'Mã PO',
-              field: 'POCode',
-              sorter: 'string',
-              width: 150,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc mã PO',
-            },
-          ]
-        },
-        {
-          title: 'Thông tin đầu vào',
-          field: '',
-          sorter: 'string',
-          width: 200,
-          columns: [
-            {
-              title: 'Ngày đặt hàng',
-              field: 'RequestDate',
-              sorter: 'string',
-              width: 150,
+                            },
+                        },
+                        {
+                            title: 'Lý do yêu cầu bổ sung',
+                            field: 'AmendReason',
+                            sorter: 'string',
+                            width: 215,
+                            formatter: 'textarea',
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc lý do',
+                        },
+                        {
+                            title: 'Người yêu cầu',
+                            field: 'FullName',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc người yêu cầu',
+                        },
+                        {
+                            title: 'Khách hàng',
+                            field: 'CustomerName',
+                            sorter: 'string',
+                            formatter: 'textarea',
+                            width: 250,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc khách hàng',
+                        },
+                        {
+                            title: 'Địa chỉ',
+                            field: 'Address',
+                            sorter: 'string',
+                            width: 300,
+                            formatter: 'textarea',
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc địa chỉ',
+                        },
+                        {
+                            title: 'Công ty bán',
+                            field: 'Name',
+                            sorter: 'string',
+                            width: 140,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc công ty bán',
+                        },
+                        {
+                            title: 'Ghi chú',
+                            field: 'Note',
+                            sorter: 'string',
+                            width: 200,
+                            formatter: 'textarea',
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc ghi chú',
+                        },
+                        {
+                            title: 'Mã nội bộ',
+                            field: 'ProductNewCode',
+                            sorter: 'string',
+                            width: 100,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc mã nội bộ',
+                        },
+                        {
+                            title: 'Mã sản phẩm',
+                            field: 'ProductCode',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc mã sản phẩm',
+                        },
+                        {
+                            title: 'Mã theo khách',
+                            field: 'GuestCode',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc mã theo khách',
+                        },
+                        {
+                            title: 'Tên sản phẩm',
+                            field: 'ProductName',
+                            sorter: 'string',
+                            formatter: 'textarea',
+                            width: 200,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc tên sản phẩm',
+                        },
+                        {
+                            title: 'ĐVT',
+                            field: 'Unit',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc ĐVT',
+                        },
+                        {
+                            title: 'Số lượng',
+                            field: 'Quantity',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc số lượng',
+                        },
+                        {
+                            title: 'Mã dự án',
+                            field: 'ProjectCode',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc mã dự án',
+                        },
+                        {
+                            title: 'Dự án',
+                            field: 'ProjectName',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc dự án',
+                        },
+                        {
+                            title: 'Ghi chú (PO)',
+                            field: 'Note',
+                            sorter: 'string',
+                            width: 150,
+                            formatter: 'textarea',
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc ghi chú PO',
+                        },
+                        {
+                            title: 'Thông số kỹ thuật',
+                            field: 'Specifications',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc thông số',
+                        },
+                        {
+                            title: 'Số hóa đơn',
+                            field: 'InvoiceNumber',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc số hóa đơn',
+                        },
+                        {
+                            title: 'Ngày hóa đơn',
+                            field: 'InvoiceDate',
+                            sorter: 'date',
+                            width: 150,
+                            formatter: (cell) => {
+                                const value = cell.getValue();
+                                return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+                            },
+                        },
+                        {
+                            title: 'Số PO',
+                            field: 'PONumber',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc số PO',
+                        },
+                        {
+                            title: 'Mã PO',
+                            field: 'POCode',
+                            sorter: 'string',
+                            width: 150,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc mã PO',
+                        },
+                    ]
+                },
+                {
+                    title: 'Thông tin đầu vào',
+                    field: '',
+                    sorter: 'string',
+                    width: 200,
+                    columns: [
+                        {
+                            title: 'Ngày đặt hàng',
+                            field: 'RequestDate',
+                            sorter: 'string',
+                            width: 150,
 
-            },
-            {
-              title: 'Ngày hàng về',
-              field: 'DateRequestImport',
-              sorter: 'string',
-              width: 150,
+                        },
+                        {
+                            title: 'Ngày hàng về',
+                            field: 'DateRequestImport',
+                            sorter: 'string',
+                            width: 150,
 
-            },
-            {
-              title: 'Nhà cung cấp',
-              field: 'SupplierName',
-              sorter: 'string',
-              formatter: 'textarea',
-              width: 250,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc nhà cung cấp',
-            },
-            {
-              title: 'Hóa đơn đầu vào',
-              field: 'SomeBill',
-              sorter: 'string',
-              width: 250,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc hóa đơn đầu vào',
-            },
-            {
-              title: 'Ngày hàng về dự kiến',
-              field: 'ExpectedDate',
-              sorter: 'string',
-              width: 150,
-            },
-            {
-              title: 'PNK',
-              field: 'BillImportCode',
-              sorter: 'string',
-              width: 250,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc PNK',
-            },
-            { 
-              title: 'Công ty nhập', 
-              field: 'CompanyText', 
-              sorter: 'string', 
-              width: 120,
-              headerFilter: 'input',
-              headerFilterPlaceholder: 'Lọc công ty nhập',
-            },
-          ]
+                        },
+                        {
+                            title: 'Nhà cung cấp',
+                            field: 'SupplierName',
+                            sorter: 'string',
+                            formatter: 'textarea',
+                            width: 250,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc nhà cung cấp',
+                        },
+                        {
+                            title: 'Hóa đơn đầu vào',
+                            field: 'SomeBill',
+                            sorter: 'string',
+                            width: 250,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc hóa đơn đầu vào',
+                        },
+                        {
+                            title: 'Ngày hàng về dự kiến',
+                            field: 'ExpectedDate',
+                            sorter: 'string',
+                            width: 150,
+                        },
+                        {
+                            title: 'PNK',
+                            field: 'BillImportCode',
+                            sorter: 'string',
+                            width: 250,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc PNK',
+                        },
+                        {
+                            title: 'Công ty nhập',
+                            field: 'CompanyText',
+                            sorter: 'string',
+                            width: 120,
+                            headerFilter: 'input',
+                            headerFilterPlaceholder: 'Lọc công ty nhập',
+                        },
+                    ]
+                }
+            ],
+        });
+
+        this.tb_Table.on('rowClick', (_event: Event, row: RowComponent) => {
+            this.handleMainRowSelection(row.getData());
+        });
+
+        setupTabulatorCellCopy(this.tb_Table, this.tb_TableElement.nativeElement);
+    }
+
+    private handleMainRowSelection(rowData: any): void {
+        this.selectedId = rowData.ID;
+        if (!rowData) {
+            return;
         }
-      ],
-    });
 
-    this.tb_Table.on('rowClick', (_event: Event, row: RowComponent) => {
-      this.handleMainRowSelection(row.getData());
-    });
-
-    setupTabulatorCellCopy(this.tb_Table, this.tb_TableElement.nativeElement);
-  }
-
-  private handleMainRowSelection(rowData: any): void {
-    this.selectedId = rowData.ID;
-    if (!rowData) {
-      return;
-    }
-
-    const requestInvoiceId = rowData.RequestInvoiceID ?? rowData.ID;
-    if (requestInvoiceId) {
-      this.loadFileData(requestInvoiceId);
-    } else {
-      this.dataFile = [];
-      if (this.tb_File) {
-        this.tb_File.setData(this.dataFile);
-      }
-    }
-
-    const pokhId = rowData.POKHID ?? rowData.PokhId ?? rowData.POKHId;
-    if (pokhId) {
-      this.loadFilePOData(pokhId);
-    } else {
-      this.dataFilePO = [];
-      if (this.tb_FilePO) {
-        this.tb_FilePO.setData(this.dataFilePO);
-      }
-    }
-  }
-
-  initFileTable(): void {
-    // Tạo context menu
-    const contextMenuItems: any[] = [
-      {
-        label: 'Tải xuống',
-        action: () => {
-          if (this.selectedFile) {
-            this.downloadFile(this.selectedFile);
-          } else {
-            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
-          }
-        }
-      }
-    ];
-
-    this.tb_File = new Tabulator(this.tb_FileElement.nativeElement, {
-      ...DEFAULT_TABLE_CONFIG,
-      data: this.dataFile,
-      layout: 'fitDataFill',
-      height: '100%',
-      selectableRows: 1,
-      pagination: false,
-      rowHeader: false,
-      rowContextMenu: contextMenuItems,
-      columns: [
-        {
-          title: 'Tên file',
-          field: 'FileName',
-          sorter: 'string',
-          width: '100%',
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            if (value) {
-              return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+        const requestInvoiceId = rowData.RequestInvoiceID ?? rowData.ID;
+        if (requestInvoiceId) {
+            this.loadFileData(requestInvoiceId);
+        } else {
+            this.dataFile = [];
+            if (this.tb_File) {
+                this.tb_File.setData(this.dataFile);
             }
-            return '';
-          }
-        },
-        {
-          title: 'Server Path',
-          field: 'ServerPath',
-          sorter: 'string',
-          visible: false,
-        },
-      ],
-    });
-
-    // Thêm sự kiện rowSelected để lưu file được chọn
-    this.tb_File.on('rowSelected', (row: RowComponent) => {
-      const rowData = row.getData();
-      this.selectedFile = rowData;
-    });
-
-    this.tb_File.on('rowDeselected', (row: RowComponent) => {
-      const selectedRows = this.tb_File!.getSelectedRows();
-      if (selectedRows.length === 0) {
-        this.selectedFile = null;
-      }
-    });
-
-    // Double click để tải file
-    this.tb_File.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-      const rowData = row.getData();
-      this.selectedFile = rowData;
-      this.downloadFile(rowData);
-    });
-  }
-
-  initPOFileTable(): void {
-    // Tạo context menu
-    const contextMenuItems: any[] = [
-      {
-        label: 'Tải xuống',
-        action: () => {
-          if (this.selectedPOFile) {
-            this.downloadPOFile(this.selectedPOFile);
-          } else {
-            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
-          }
         }
-      }
-    ];
 
-    this.tb_FilePO = new Tabulator(this.tb_FilePOElement.nativeElement, {
-      ...DEFAULT_TABLE_CONFIG,
-      data: this.dataFilePO,
-      layout: 'fitDataFill',
-      height: '100%',
-      selectableRows: 1,
-      pagination: false,
-      rowHeader: false,
-      rowContextMenu: contextMenuItems,
-      columns: [
-        {
-          title: 'Tên file',
-          field: 'FileName',
-          sorter: 'string',
-          width: '100%',
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            if (value) {
-              return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+        const pokhId = rowData.POKHID ?? rowData.PokhId ?? rowData.POKHId;
+        if (pokhId) {
+            this.loadFilePOData(pokhId);
+        } else {
+            this.dataFilePO = [];
+            if (this.tb_FilePO) {
+                this.tb_FilePO.setData(this.dataFilePO);
             }
-            return '';
-          }
-        },
-      ],
-    });
+        }
+    }
 
-    // Thêm sự kiện rowSelected để lưu file được chọn
-    this.tb_FilePO.on('rowSelected', (row: RowComponent) => {
-      const rowData = row.getData();
-      this.selectedPOFile = rowData;
-    });
+    initFileTable(): void {
+        // Tạo context menu
+        const contextMenuItems: any[] = [
+            {
+                label: 'Tải xuống',
+                action: () => {
+                    if (this.selectedFile) {
+                        this.downloadFile(this.selectedFile);
+                    } else {
+                        this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+                    }
+                }
+            }
+        ];
 
-    this.tb_FilePO.on('rowDeselected', (row: RowComponent) => {
-      const selectedRows = this.tb_FilePO!.getSelectedRows();
-      if (selectedRows.length === 0) {
-        this.selectedPOFile = null;
-      }
-    });
+        this.tb_File = new Tabulator(this.tb_FileElement.nativeElement, {
+            ...DEFAULT_TABLE_CONFIG,
+            data: this.dataFile,
+            layout: 'fitDataFill',
+            height: '100%',
+            selectableRows: 1,
+            pagination: false,
+            rowHeader: false,
+            rowContextMenu: contextMenuItems,
+            columns: [
+                {
+                    title: 'Tên file',
+                    field: 'FileName',
+                    sorter: 'string',
+                    width: '100%',
+                    formatter: (cell: any) => {
+                        const value = cell.getValue();
+                        if (value) {
+                            return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+                        }
+                        return '';
+                    }
+                },
+                {
+                    title: 'Server Path',
+                    field: 'ServerPath',
+                    sorter: 'string',
+                    visible: false,
+                },
+            ],
+        });
 
-    // Double click để tải file
-    this.tb_FilePO.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-      const rowData = row.getData();
-      this.selectedPOFile = rowData;
-      this.downloadPOFile(rowData);
-    });
-  }
+        // Thêm sự kiện rowSelected để lưu file được chọn
+        this.tb_File.on('rowSelected', (row: RowComponent) => {
+            const rowData = row.getData();
+            this.selectedFile = rowData;
+        });
+
+        this.tb_File.on('rowDeselected', (row: RowComponent) => {
+            const selectedRows = this.tb_File!.getSelectedRows();
+            if (selectedRows.length === 0) {
+                this.selectedFile = null;
+            }
+        });
+
+        // Double click để tải file
+        this.tb_File.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+            const rowData = row.getData();
+            this.selectedFile = rowData;
+            this.downloadFile(rowData);
+        });
+    }
+
+    initPOFileTable(): void {
+        // Tạo context menu
+        const contextMenuItems: any[] = [
+            {
+                label: 'Tải xuống',
+                action: () => {
+                    if (this.selectedPOFile) {
+                        this.downloadPOFile(this.selectedPOFile);
+                    } else {
+                        this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+                    }
+                }
+            }
+        ];
+
+        this.tb_FilePO = new Tabulator(this.tb_FilePOElement.nativeElement, {
+            ...DEFAULT_TABLE_CONFIG,
+            data: this.dataFilePO,
+            layout: 'fitDataFill',
+            height: '100%',
+            selectableRows: 1,
+            pagination: false,
+            rowHeader: false,
+            rowContextMenu: contextMenuItems,
+            columns: [
+                {
+                    title: 'Tên file',
+                    field: 'FileName',
+                    sorter: 'string',
+                    width: '100%',
+                    formatter: (cell: any) => {
+                        const value = cell.getValue();
+                        if (value) {
+                            return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+                        }
+                        return '';
+                    }
+                },
+            ],
+        });
+
+        // Thêm sự kiện rowSelected để lưu file được chọn
+        this.tb_FilePO.on('rowSelected', (row: RowComponent) => {
+            const rowData = row.getData();
+            this.selectedPOFile = rowData;
+        });
+
+        this.tb_FilePO.on('rowDeselected', (row: RowComponent) => {
+            const selectedRows = this.tb_FilePO!.getSelectedRows();
+            if (selectedRows.length === 0) {
+                this.selectedPOFile = null;
+            }
+        });
+
+        // Double click để tải file
+        this.tb_FilePO.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+            const rowData = row.getData();
+            this.selectedPOFile = rowData;
+            this.downloadPOFile(rowData);
+        });
+    }
 }

@@ -211,7 +211,11 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         this.initGridApproved();
 
         this.route.queryParams.subscribe(params => {
-            const typeApprove = params['typeApprove'] || 0;
+            // const typeApprove = params['typeApprove'] || 0;
+            const typeApprove =
+                params['typeApprove']
+                ?? this.tabData?.typeApprove
+                ?? 0;
 
             if (typeApprove === '2') {
                 this.approvalMode = 1;
@@ -438,6 +442,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         private authService: AuthService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
+        @Optional() @Inject('tabData') private tabData: any
     ) {
     }
     getCurrentUser(): void {

@@ -3,6 +3,8 @@ import {
     OnInit,
     AfterViewInit,
     CUSTOM_ELEMENTS_SCHEMA,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -79,12 +81,17 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
         private service: KpiErrorEmployeeSummaryMaxService,
         private notification: NzNotificationService,
         private excelExportService: ExcelExportService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
         this.route.queryParams.subscribe(params => {
-            this.departmentId = params['departmentId'] ? Number(params['departmentId']) : 0;
+            // this.departmentId = params['departmentId'] ? Number(params['departmentId']) : 0;
+            this.departmentId =
+                params['departmentId']
+                ?? this.tabData?.departmentId
+                ?? 0;
         });
 
         const today = new Date();

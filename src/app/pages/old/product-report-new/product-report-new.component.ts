@@ -138,8 +138,8 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
         private modalService: NgbModal,
         private billImportTechnicalService: BillImportTechnicalService,
         private billExportTechnicalService: BillExportTechnicalService,
-        private route: ActivatedRoute
-
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
     ngOnInit() {
         // Set filter mặc định là 0 (Phiếu Nhập)
@@ -150,8 +150,18 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
         //   this.warehouseType = this.tabData.warehouseType || 1;
         // }
         this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1
-            this.warehouseType = params['warehouseType'] || 1;
+            // this.warehouseID = params['warehouseID'] || 1
+            // this.warehouseType = params['warehouseType'] || 1;
+
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
         });
     }
     ngAfterViewInit(): void {

@@ -77,7 +77,8 @@ export class ProductExportAndBorrowComponent implements OnInit, AfterViewInit {
         private notification: NzNotificationService,
         private modalService: NgbModal,
         private productExportAndBorrowService: ProductExportAndBorrowService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
     ngOnInit() {
         // if (this.tabData?.warehouseID) {
@@ -85,8 +86,18 @@ export class ProductExportAndBorrowComponent implements OnInit, AfterViewInit {
         //   this.warehouseType = this.tabData.warehouseType;
         // }
         this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1
-            this.warehouseType = params['warehouseType'] || 1;
+            // this.warehouseID = params['warehouseID'] || 1
+            // this.warehouseType = params['warehouseType'] || 1;
+
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
         });
     }
     ngAfterViewInit(): void {

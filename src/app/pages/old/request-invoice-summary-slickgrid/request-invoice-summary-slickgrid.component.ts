@@ -177,9 +177,9 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         @Optional() @Inject('tabData') private tabData: any
     ) {
         // Nhận data từ tab nếu có
-        if (this.tabData && this.tabData.warehouseId) {
-            this.warehouseId = this.tabData.warehouseId;
-        }
+        // if (this.tabData && this.tabData.warehouseId) {
+        //     this.warehouseId = this.tabData.warehouseId;
+        // }
     }
 
     menuBars: any[] = [];
@@ -230,9 +230,14 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
 
         // Lấy warehouseId từ query params
         this.route.queryParams.subscribe(params => {
-            if (params['warehouseId']) {
-                this.warehouseId = params['warehouseId'];
-            }
+            // if (params['warehouseId']) {
+            //     this.warehouseId = params['warehouseId'];
+            // }
+
+            this.warehouseId =
+                params['warehouseId']
+                ?? this.tabData?.warehouseId
+                ?? 0;
         });
 
         const endDate = new Date();

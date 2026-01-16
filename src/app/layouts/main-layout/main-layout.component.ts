@@ -60,6 +60,14 @@ type TabItem = {
     key: string;
     // outlet: string; // 👈 RẤT QUAN TRỌNG
 };
+
+type TabItemComp = {
+    title: string;
+    comp: Type<any>;
+    injector?: Injector;
+    data?: any; // Lưu data để so sánh unique key
+};
+
 // export type BaseItem = {
 //   key: string;
 //   title: string;
@@ -83,16 +91,17 @@ type TabItem = {
 export const isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
 export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
 
-const COMPONENT_REGISTRY: Record<string, Type<any>> = {
-    customer: CustomerComponent,
-    productRTC: TbProductRtcComponent,
-    project: ProjectComponent,
-};
+// const COMPONENT_REGISTRY: Record<string, Type<any>> = {
+//     customer: CustomerComponent,
+//     productRTC: TbProductRtcComponent,
+//     project: ProjectComponent,
+// };
 
-// Reverse mapping để serialize component -> key
-const COMPONENT_TO_KEY: Map<Type<any>, string> = new Map(
-    Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
-);
+// // Reverse mapping để serialize component -> key
+// const COMPONENT_TO_KEY: Map<Type<any>, string> = new Map(
+//     Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
+// );
+
 @Component({
     selector: 'app-main-layout',
     imports: [
@@ -133,7 +142,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         private route: ActivatedRoute,
         // private tabService: TabServiceService
     ) {
-        // this.menus = this.menuService.getMenus();
+
+        // this.menuComps = this.menuService.getMenus();
     }
     notificationComponent = AppNotifycationDropdownComponent;
     //#region Khai báo biến
@@ -142,8 +152,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     isDatcom = false;
     selectedIndex = 0;
     trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
-    // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-    // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+
     menus: any[] = [];
     dynamicTabs: TabItem[] = [];
     private isNavigatingFromNewTab = false; // Flag để biết navigation có phải từ newTab không
@@ -200,43 +209,119 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     rootMenuKey: string = '';
 
+
+    menuComps: MenuItem[] = [];
+    dynamicTabComps: TabItemComp[] = [];
+    menuCompKey: string = '';
+    selectedCompIndex = 0;
+    isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+    get hasDynamicTabComp(): boolean {
+        return this.dynamicTabComps.length > 0;
+    }
+
     ngOnInit(): void {
-        // const saved = localStorage.getItem('openMenuKey') || '';
-        // console.log(this.menus);
-        // this.setOpenMenu(saved || null);
 
-        // this.isCollapsed = !this.isCollapsed;
-        this.getMenus();
+        // console.log('this.menuComps ngOnInit:', this.menuComps);
 
-        // console.log(' this.menuKey :', this.menuKey);
 
-        // this.menuService.menuKey$.subscribe((x) => {
-        //     this.menuKey = x;
-        //     console.log('menuKey$:', this.menuKey);
+        // this.getMenus();
+        // console.log('this.menuComps:', this.menuComps);
+        // console.log('this.getMenus:', this.menuService.getMenus());
 
-        //     this.setOpenMenu(this.menuKey);
-        //     this.toggleMenu(this.menuKey);
-        // });
-        // console.log('menuKey ngOnInit:', this.menuKey);
-        // this.setOpenMenu(this.menuKey);
-        // this.toggleMenu(this.menuKey);
-
-        // Khôi phục các tabs đã mở từ localStorage
-        // this.restoreTabs();
-
-        // // Subscribe vào event mở tab từ các component con
-        // this.menuEventService.onOpenTab$.subscribe((tabData) => {
-        //     // this.newTab(tabData.comp, tabData.title, tabData.data);
-        // });
-
-        // Subscribe vào router events để tự động tạo tab khi paste URL trực tiếp
-        // Subscribe sau khi menus đã load (sẽ được setup trong getMenus)
+        this.menuService.menuKey$.subscribe((x) => {
+            // console.log(x);
+            this.menuCompKey = x;
+            this.isCollapsed = x == '';
+        });
+        this.menuComps = this.menuService.getCompMenus(this.menuCompKey);
     }
 
     ngOnDestroy(): void {
         if (this.routerSubscription) {
             this.routerSubscription.unsubscribe();
         }
+    }
+
+
+    newTabComp(comp: Type<any>, title: string, data?: any) {
+        this.isCollapsed = true;
+
+        // Tạo unique key dựa trên component và data để phân biệt các tab cùng component nhưng khác data
+        const getTabKey = (tab: TabItemComp): string => {
+            const compName = tab.comp?.name || '';
+            const dataKey = tab.data ? JSON.stringify(tab.data) : '';
+            return `${compName}_${dataKey}`;
+        };
+
+        const currentTabKey = `${comp?.name || ''}_${data ? JSON.stringify(data) : ''}`;
+        const injector = Injector.create({
+            providers: [{ provide: 'tabData', useValue: data }],
+            parent: this.injector,
+        });
+
+        const idx = this.dynamicTabComps.findIndex((t) => getTabKey(t) === currentTabKey);
+        if (idx >= 0) {
+            this.selectedCompIndex = idx;
+            return;
+        }
+
+        this.dynamicTabComps = [...this.dynamicTabComps, { title, comp, injector, data }];
+        setTimeout(() => (this.selectedCompIndex = this.dynamicTabComps.length - 1));
+
+        // Lưu tabs vào localStorage
+        // this.saveTabs();
+
+
+    }
+
+    // closeTabComp({ index }: { index: number }) {
+    //     this.dynamicTabComps.splice(index, 1);
+    //     if (this.selectedCompIndex >= this.dynamicTabComps.length)
+    //         this.selectedCompIndex = this.dynamicTabComps.length - 1;
+
+    //     // Lưu tabs vào localStorage sau khi đóng
+    //     // this.saveTabs();
+    // }
+
+    closeTabComp({ index }: { index: number }) {
+        // 1️⃣ Xóa tab → component tab bị destroy
+        this.dynamicTabComps.splice(index, 1);
+
+        // 2️⃣ Điều chỉnh selected index
+        if (this.dynamicTabComps.length === 0) {
+            // ❗ Không còn tab nào → clear router
+            this.selectedCompIndex = 0;
+            this.router.navigateByUrl('/app', { replaceUrl: true });
+            return;
+        }
+
+        // Nếu đóng tab đang active hoặc tab trước nó
+        if (this.selectedCompIndex >= index) {
+            this.selectedCompIndex = Math.max(0, this.selectedCompIndex - 1);
+        }
+    }
+
+    private setOpenMenuComp(key: string | null) {
+        // console.log('setOpenMenuComp:', key);
+        this.menuComps.forEach((m) => (m.isOpen = key !== null && m.key === key));
+        // localStorage.setItem('openMenuKey', key ?? '');
+    }
+
+    isMenuCompOpen = (key: string) =>
+        this.menuComps.some((m) => m.key === key && m.isOpen);
+    toggleMenuComp(key: string) {
+        // this.menus.forEach((x) => (x.isOpen = false));
+
+        // console.log('this.menuComps:', this.menuComps);
+        // console.log('this.this.menuCompKey:', key);
+        // const m = this.menuComps.find((x) => x.key == key);
+        const m = Array.from(this.menuComps).find(x => x.key === key);
+        if (m) m.isOpen = !m.isOpen;
+
+        if (m?.isOpen) this.menuCompKey = key;
+
+        // console.log('toggleMenuComp:', m);
     }
 
     // Hàm check và tạo tab từ current route (khi paste URL trực tiếp lần đầu)
@@ -412,7 +497,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
     getMenus() {
-        console.log('this.is getMenus:', this.isCollapsed);
+        // console.log('this.is getMenus:', this.isCollapsed);
         this.menuAppService.getAll().subscribe({
             next: (response) => {
 

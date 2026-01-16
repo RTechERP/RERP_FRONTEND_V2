@@ -4,25 +4,36 @@
             <div class="card h-100 border-0 rounded-0">
                 <div class="card-header bg-white p-1">
                     <div class="d-flex gap-1">
-                        <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="openModalProductGroup()">
-                            <img class="btn-action-icon" src="assets/icon/action_add_item_16.png" alt="Thêm nhóm TB" /> Thêm nhóm TB
+                        <button class="btn-add" nz-button nzType="default" nzSize="small"
+                            (click)="openModalProductGroup()">
+                            <img class="btn-action-icon" src="assets/icon/action_add_item_16.png" alt="Thêm nhóm TB" />
+                            Thêm nhóm TB
                         </button>
                         <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                            <img class="btn-action-icon" src="assets/icon/export_warehouse.png" alt="Xuất tồn kho" /> Xuất tồn kho
+                            <img class="btn-action-icon" src="assets/icon/export_warehouse.png" alt="Xuất tồn kho" />
+                            Xuất tồn kho
                         </button>
                         <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/import_warehouse.png" alt="Nhập kho" /> Nhập kho
+                            <img class="btn-action-icon" src="assets/icon/import_warehouse.png" alt="Nhập kho" /> Nhập
+                            kho
                         </button>
-                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="openModalInventoryBorrowNCC()">
-                            <img class="btn-action-icon" src="assets/icon/report_ncc.png" alt="Báo cáo NCC" /> Báo cáo NCC
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small"
+                            (click)="openModalInventoryBorrowNCC()">
+                            <img class="btn-action-icon" src="assets/icon/report_ncc.png" alt="Báo cáo NCC" /> Báo cáo
+                            NCC
                         </button>
                         <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="requestBorrow()">
-                            <img class="btn-action-icon" src="assets/icon/purchase_request.png" alt="Yêu cầu mượn" /> Yêu cầu mượn
+                            <img class="btn-action-icon" src="assets/icon/purchase_request.png" alt="Yêu cầu mượn" />
+                            Yêu cầu mượn
                         </button>
                         <div style="display: flex; width: 40%;" class="ms-auto">
-                            <label nz-checkbox [(ngModel)]="searchParam.checkedStock" name="checkedStock" (nzCheckedChange)="getAllProductSale()">Stock</label>
-                            <label nz-checkbox [(ngModel)]="searchParam.checkedAll" name="checkedAll" (nzCheckedChange)="getAllProductSale()">Tất cả</label>
-                            <input type="text" nzSize="small" width="100px" [(ngModel)]="searchParam.Find" name="Find" nz-input class="fs-12" style="font-style: italic; flex: 1;" placeholder="Tìm kiếm" (keyup.enter)="getdataFind()" />
+                            <label nz-checkbox [(ngModel)]="searchParam.checkedStock" name="checkedStock"
+                                (nzCheckedChange)="getAllProductSale()">Stock</label>
+                            <label nz-checkbox [(ngModel)]="searchParam.checkedAll" name="checkedAll"
+                                (nzCheckedChange)="getAllProductSale()">Tất cả</label>
+                            <input type="text" nzSize="small" width="100px" [(ngModel)]="searchParam.Find" name="Find"
+                                nz-input class="fs-12" style="font-style: italic; flex: 1;" placeholder="Tìm kiếm"
+                                (keyup.enter)="getdataFind()" />
                             <button nz-button nzType="primary" nzSize="small" (click)="getdataFind()">
                                 <nz-icon nzType="search"></nz-icon>
                             </button>
@@ -35,15 +46,17 @@
                             <nz-splitter nzLayout="vertical">
                                 <!-- table productGroup -->
                                 <nz-splitter-panel nzSize="70%">
-                                    <div class="position-relative grid-container-product-group" style="height: 100%;">
-                                        <div *ngIf="isLoadingProductGroup" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75" style="z-index: 1000;">
+                                    <div class="position-relative"
+                                        [ngClass]="'grid-container-product-group' + warehouseCode"
+                                        style="height: 100%;">
+                                        <div *ngIf="isLoadingProductGroup"
+                                            class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
+                                            style="z-index: 1000;">
                                             <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
                                         </div>
-                                        <angular-slickgrid
-                                            [gridId]="'grid-product-group-'+warehouseCode"
+                                        <angular-slickgrid [gridId]="'grid-product-group-'+warehouseCode"
                                             [columns]="columnDefinitionsProductGroup"
-                                            [options]="gridOptionsProductGroup"
-                                            [dataset]="datasetProductGroup"
+                                            [options]="gridOptionsProductGroup" [dataset]="datasetProductGroup"
                                             (onAngularGridCreated)="angularGridReadyProductGroup($any($event).detail)"
                                             (onSelectedRowsChanged)="onRowSelectionChangedProductGroup($any($event).detail.eventData, $any($event).detail.args)"
                                             (onCellDoubleClick)="onRowDoubleClickProductGroup($any($event).detail.eventData, $any($event).detail.args)">
@@ -52,11 +65,10 @@
                                 </nz-splitter-panel>
                                 <!-- table productGroupWareHouse -->
                                 <nz-splitter-panel>
-                                    <div class="position-relative grid-container-pg-warehouse" style="height: 100%;">
-                                        <angular-slickgrid
-                                            [gridId]="'grid-pg-warehouse-'+warehouseCode"
-                                            [columns]="columnDefinitionsPGWarehouse"
-                                            [options]="gridOptionsPGWarehouse"
+                                    <div class="position-relative"
+                                        [ngClass]="'grid-container-pg-warehouse' + warehouseCode" style="height: 100%;">
+                                        <angular-slickgrid [gridId]="'grid-pg-warehouse-'+warehouseCode"
+                                            [columns]="columnDefinitionsPGWarehouse" [options]="gridOptionsPGWarehouse"
                                             [dataset]="datasetPGWarehouse"
                                             (onAngularGridCreated)="angularGridReadyPGWarehouse($any($event).detail)">
                                         </angular-slickgrid>
@@ -65,14 +77,14 @@
                             </nz-splitter>
                         </nz-splitter-panel>
                         <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="80%">
-                            <div class="grid-container-inventory" style="height: 98%;">
-                                <div *ngIf="isLoadingInventory" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75" style="z-index: 1000;">
+                            <div [ngClass]="'grid-container-inventory' + warehouseCode" style="height: 98%;">
+                                <div *ngIf="isLoadingInventory"
+                                    class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
+                                    style="z-index: 1000;">
                                     <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
                                 </div>
-                                <angular-slickgrid
-                                    [gridId]="'grid-inventory-'+warehouseCode"
-                                    [columns]="columnDefinitionsInventory"
-                                    [options]="gridOptionsInventory"
+                                <angular-slickgrid [gridId]="'grid-inventory-'+warehouseCode"
+                                    [columns]="columnDefinitionsInventory" [options]="gridOptionsInventory"
                                     [dataset]="datasetInventory"
                                     (onAngularGridCreated)="angularGridReadyInventory($any($event).detail)">
                                 </angular-slickgrid>

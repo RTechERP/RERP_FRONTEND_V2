@@ -108,14 +108,20 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
-        private appUserService: AppUserService
+        private appUserService: AppUserService,
+        @Optional() @Inject('tabData') private tabData: any
     ) {
         // if (this.tabData) {
         //     this.isSeniorMode = this.tabData.isSeniorMode || false;
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.isSeniorMode = params['isSeniorMode'];
+            // this.isSeniorMode = params['isSeniorMode'];
+            this.isSeniorMode =
+                params['isSeniorMode']
+                ?? this.tabData?.isSeniorMode
+                ?? false;
+
         });
     }
 

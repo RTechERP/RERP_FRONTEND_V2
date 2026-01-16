@@ -234,9 +234,17 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
     const dateStart = new Date(today.getFullYear(), today.getMonth(), 1);
     const dateEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
+    // Convert Date to yyyy-MM-dd format for HTML date input
+    const formatDateToString = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     this.searchForm = this.fb.group({
-      dateStart: dateStart,
-      dateEnd: dateEnd,
+      dateStart: formatDateToString(dateStart),
+      dateEnd: formatDateToString(dateEnd),
       departmentId: 0,
       pageNumber: 1,
       pageSize: 1000000,
@@ -271,7 +279,15 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
 
   loadEmployeeOverTime() {
     this.isLoading = true;
-    this.overTimeService.getEmployeeOverTime(this.searchForm.value).subscribe({
+    // Convert date strings to Date objects for backend compatibility
+    const formValue = { ...this.searchForm.value };
+    if (formValue.dateStart) {
+      formValue.dateStart = new Date(formValue.dateStart);
+    }
+    if (formValue.dateEnd) {
+      formValue.dateEnd = new Date(formValue.dateEnd);
+    }
+    this.overTimeService.getEmployeeOverTime(formValue).subscribe({
       next: (data) => {
         this.overTimeList = data.data;
         this.tabulator.setData(this.overTimeList);

@@ -33,6 +33,7 @@ import { KpiErrorService } from './kpi-error-service/kpi-error.service';
 import { KpiErrorDetailComponent } from './kpi-error-detail/kpi-error-detail.component';
 import { KpiErrorFineAmountComponent } from './kpi-error-fine-amount/kpi-error-fine-amount.component';
 import { KpiErrorTypeComponent } from './kpi-error-type/kpi-error-type.component';
+import { TbProductRtcImportExcelComponent } from '../../tb-product-rtc/tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
 
 @Component({
   selector: 'app-kpi-error',
@@ -86,7 +87,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
 
     this.route.queryParams.subscribe(params => {
-      this.departmentId = params['departmentId'] || 0;
+      this.departmentId = Number(params['departmentId']) || 0;
     });
     this.initMenuBar();
     this.initGrid();
@@ -395,7 +396,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
         field: 'Code',
         sortable: true,
         filterable: true,
-        minWidth: 120,
+        minWidth: 70,
       },
       {
         id: 'TypeName',
@@ -420,7 +421,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
         field: 'Quantity',
         sortable: true,
         filterable: true,
-        minWidth: 100,
+        minWidth: 70,
         formatter: Formatters.decimal,
         params: { minDecimal: 0, maxDecimal: 0 },
         filter: { model: Filters['compoundInputNumber'] },
@@ -538,6 +539,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
         calculateAvailableSizeBy: 'container',
       },
       enableAutoResize: true,
+      forceFitColumns: true,
       enableCellNavigation: true,
       enableColumnReorder: true,
       enableSorting: true,
@@ -545,7 +547,6 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
       createPreHeaderPanel: true,
       showPreHeaderPanel: true,
       preHeaderPanelHeight: 28,
-      rowHeight: 35,
       headerRowHeight: 40,
       enableRowSelection: true,
       enableCheckboxSelector: true,

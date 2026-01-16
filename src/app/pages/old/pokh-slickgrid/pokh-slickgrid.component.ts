@@ -875,6 +875,11 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
       const row = this.columnDefinitionsPOKHProduct.map((col: any) => {
         const value = rowData[col.field];
         if (typeof value === 'number') {
+          // Apply 2 decimal places for quantity and VAT columns
+          const quantityFields = ['Qty', 'QuantityReturn', 'QuantityExport', 'QuantityRemain', 'VAT'];
+          if (quantityFields.includes(col.field)) {
+            return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+          }
           return new Intl.NumberFormat('vi-VN').format(value);
         }
         return value ?? '';
@@ -1673,6 +1678,11 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     return new Intl.NumberFormat('vi-VN').format(value);
   }
 
+  quantityFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+    if (value === null || value === undefined) return '';
+    return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+  }
+
   checkboxFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
     const checked = value ? 'checked' : '';
     return `<div style="text-align: center;">
@@ -1835,15 +1845,15 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
       { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
-      { id: 'Qty', name: 'Số lượng', field: 'Qty', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
-      { id: 'QuantityReturn', name: 'SL đã về', field: 'QuantityReturn', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
-      { id: 'QuantityExport', name: 'SL đã xuất', field: 'QuantityExport', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
-      { id: 'QuantityRemain', name: 'SL còn lại', field: 'QuantityRemain', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'Qty', name: 'Số lượng', field: 'Qty', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.quantityFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'QuantityReturn', name: 'SL đã về', field: 'QuantityReturn', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.quantityFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'QuantityExport', name: 'SL đã xuất', field: 'QuantityExport', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.quantityFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'QuantityRemain', name: 'SL còn lại', field: 'QuantityRemain', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.quantityFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
       { id: 'FilmSize', name: 'Kích thước phim cắt/Model', field: 'FilmSize', width: 150, minWidth: 150, sortable: true, filterable: true },
       { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
       { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
       { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
-      { id: 'VAT', name: 'VAT (%)', field: 'VAT', width: 150, minWidth: 150, sortable: true, filterable: true, cssClass: 'text-end' },
+      { id: 'VAT', name: 'VAT (%)', field: 'VAT', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.quantityFormatter, cssClass: 'text-end' },
       { id: 'TotalPriceIncludeVAT', name: 'Tổng tiền sau VAT', field: 'TotalPriceIncludeVAT', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
       { id: 'UserReceiver', name: 'Người nhận', field: 'UserReceiver', width: 200, minWidth: 200, sortable: true, filterable: true },
       { id: 'DeliveryRequestedDate', name: 'Ngày yêu cầu giao hàng', field: 'DeliveryRequestedDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },

@@ -77,6 +77,10 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         enableFiltering: true,
         enableSorting: true,
         enableGrouping: true,
+        enableRowSelection: true,
+        rowSelectionOptions: {
+            selectActiveRow: true,
+        },
         rowHeight: 35,
         headerRowHeight: 40,
     };
@@ -303,7 +307,10 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     onGridReady_File(grid: AngularGridInstance) {
         this.gridFile = grid;
         grid.slickGrid?.onSelectedRowsChanged.subscribe((e, args) => {
-            if (args.rows.length) this.loadImage(this.datasetFile[args.rows[0]]);
+            if (args.rows.length) {
+                const item = grid.dataView?.getItem(args.rows[0]);
+                if (item) this.loadImage(item);
+            }
         });
     }
 
@@ -437,15 +444,18 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     onGridReady_Employee(grid: AngularGridInstance) {
         this.gridEmployee = grid;
         grid.slickGrid?.onSelectedRowsChanged.subscribe((e, args) => {
-            if (args.rows.length) this.loadImageEmployee(this.datasetEmployee[args.rows[0]]);
+            if (args.rows.length) {
+                const item = grid.dataView?.getItem(args.rows[0]);
+                if (item) this.loadImageEmployee(item);
+            }
         });
     }
 
     loadImageEmployee(item: any) {
-        if (!item || !item.FileImageName) { this.imageUrlEmployee = ''; return; }
+        if (!item || !item.FileName) { this.imageUrlEmployee = ''; return; }
         const d = new Date(item.ErrorDate);
         const path = `${d.getFullYear()}/T${d.getMonth() + 1}/N${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getFullYear()}`;
-        this.imageUrlEmployee = `http://113.190.234.64:8083/api/kpi/${path}/${item.FileImageName}`;
+        this.imageUrlEmployee = `http://113.190.234.64:8083/api/kpi/${path}/${item.FileName}`;
     }
 
     async exportExcel() {

@@ -135,7 +135,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
               DayBussiness: result.DayBussiness,
               ApprovedId: result.ApprovedID || result.ApprovedId || result.ApproverID || null,
               Location: result.Location || '',
-              NotCheckIn: result.NotChekIn || result.NotCheckIn || 0,
+              NotCheckIn: result.NotChekIn === true ? 1 : 0,
               Type: result.TypeBusiness || result.Type || result.TypeID || null,
               CostBussiness: result.CostBussiness || result.CostType || 0,
               VehicleID: result.VehicleID || result.VehicleId || null,
@@ -248,6 +248,18 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     const typeValue = data.Type || data.TypeID || data.TypeBusiness || null;
     const approvedId = data.ApprovedID || data.ApprovedId || data.ApproverID || null;
     const workEarlyValue = this.convertToBoolean(data.WorkEarly);
+    
+    // Convert NotCheckIn from boolean to number (1 or 0)
+    const convertNotCheckIn = (value: any): number => {
+      if (value === true || value === 1) return 1;
+      if (value === false || value === 0) return 0;
+      return 1; // default
+    };
+    const notCheckInValue = data.NotCheckIn !== undefined && data.NotCheckIn !== null 
+      ? convertNotCheckIn(data.NotCheckIn)
+      : (data.NotChekIn !== undefined && data.NotChekIn !== null 
+        ? convertNotCheckIn(data.NotChekIn)
+        : 1);
 
     this.bussinessForm.patchValue({
       ID: data.ID !== null && data.ID !== undefined ? data.ID : 0,
@@ -259,7 +271,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       CostBussiness: data.CostBussiness || data.CostType || 0,
       VehicleID: data.VehicleID || data.VehicleId || null,
       CostVehicle: data.CostVehicle || 0,
-      NotCheckIn: data.NotCheckIn || data.NotChekIn || 0,
+      NotCheckIn: notCheckInValue,
       WorkEarly: workEarlyValue,
       CostWorkEarly: data.CostWorkEarly || 0,
       Overnight: data.OvernightType !== undefined ? data.OvernightType : (data.Overnight === true ? 1 : 0),
@@ -291,7 +303,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       CostBussiness: 0,
       VehicleID: null,
       CostVehicle: 0,
-      NotCheckIn: 0,
+      NotCheckIn: 1,
       WorkEarly: false,
       CostWorkEarly: 0,
       Overnight: 0,
@@ -327,7 +339,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       CostBussiness: [0],
       VehicleID: [null],
       CostVehicle: [{ value: 0, disabled: true }],
-      NotCheckIn: [0],
+      NotCheckIn: [1],
       WorkEarly: [false],
       CostWorkEarly: [0],
       Overnight: [0],

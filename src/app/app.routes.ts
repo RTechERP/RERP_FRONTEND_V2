@@ -236,13 +236,17 @@ import { ReportImportExportNewComponent } from './pages/old/Sale/ReportImportExp
 // import { HistoryImportExportNewComponent } from './pages/old/Sale/HistoryImportExport/history-import-export-new/history-import-export-new.component';
 import { InventoryProjectNewComponent } from './pages/purchase/inventory-project/inventory-project-new/inventory-project-new.component';
 // import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
-// import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';
+// import { KpiErrorComponent} from './pages/old/Technical/kpi-error/kpi-error.component';
 // import { KpiErrorEmployeeComponent } from './pages/old/Technical/kpi-error-employee/kpi-error-employee.component';
 // import { KpiErrorEmployeeSummaryMaxComponent } from './pages/old/Technical/kpi-error-employee-summary-max/kpi-error-employee-summary-max.component';
 // import { SummaryKpiErrorEmployeeMonthComponent } from './pages/old/Technical/summary-kpi-error-employee-month/summary-kpi-error-employee-month.component';
 // import { SummaryKpiErrorEmployeeComponent } from './pages/old/Technical/summary-kpi-error-employee/summary-kpi-error-employee.component';
 import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
+// // import { SummaryKpiErrorEmployeeCloneComponent } from './pages/old/Technical/summary-kpi-error-employee-clone/summary-kpi-error-employee-clone.component';
+import { SummaryKpiErrorEmployeeNewComponent } from './pages/old/Technical/summary-kpi-error-employee/summary-kpi-error-employee-new/summary-kpi-error-employee-new.component';
 
+import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
+import { VehicleBookingManagementSlickgridComponent } from './pages/hrm/vehicle/vehicle-booking-management/vehicle-booking-management-slickgrid/vehicle-booking-management-slickgrid.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -504,7 +508,8 @@ export const routes: Routes = [
             //Đăng ký chung
             { path: 'booking-room', component: BookingRoomComponent, canActivate: [authGuard] },
             { path: 'tracking-mark', component: TrackingMarksComponent, canActivate: [authGuard] },
-            { path: 'booking-vehicle', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
+            { path: 'booking-vehicle', component: VehicleBookingManagementSlickgridComponent, canActivate: [authGuard] },
+            { path: 'booking-vehicle-backup', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
             { path: 'payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'payment-order-special', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
@@ -1000,7 +1005,8 @@ export const routes: Routes = [
             { path: 'kpi-error-employee', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
-            // { path: 'summary-kpi-error-employee', component: SummaryKpiErrorEmployeeComponent, canActivate: [authGuard] },
+            { path: 'summary-kpi-error-employee-new', component: SummaryKpiErrorEmployeeNewComponent, canActivate: [authGuard] },
+            // { path: 'summary-kpi-error-employee-clone', component: SummaryKpiErrorEmployeeCloneComponent, canActivate: [authGuard] },
 
 
         ],

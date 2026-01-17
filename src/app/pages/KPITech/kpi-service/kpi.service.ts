@@ -322,4 +322,17 @@ export class KPIService {
       .set('sessionID', sessionID.toString());
     return this.http.get<any>(this.apiUrl + 'load-kpi-rule-and-team', { params });
   }
+
+  /**
+   * Load employee position by KPI Session
+   * API: GET api/KPIEvaluationEmployee/get-position-employee?kpiSessionID={kpiSessionID}
+   * Returns: KPIPositionEmployee data with KPIPosiotionID if employee has position in this session
+   * @param kpiSessionID - KPI Session ID
+   */
+  getPositionEmployee(kpiSessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiSessionID', kpiSessionID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-position-employee', { params });
+  }
 }
+

@@ -13,7 +13,7 @@
                     [(ngModel)]="selectedKpiErrorId" (ngModelChange)="onKpiErrorChange($event)" class="w-100">
                     <nz-option-group *ngFor="let group of kpiErrorGroups" [nzLabel]="group.typeName">
                         <nz-option *ngFor="let error of group.errors" [nzValue]="error.ID"
-                            [nzLabel]="error.Code + ' - ' + error.Name"></nz-option>
+                            [nzLabel]="error.Code + ' - ' + error.Content"></nz-option>
                     </nz-option-group>
                 </nz-select>
             </div>

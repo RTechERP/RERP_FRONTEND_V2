@@ -384,6 +384,11 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   }
 
   disabledDate = (current: Date): boolean => {
+    // Người có quyền N1 hoặc N2 có thể chọn tất cả các ngày
+    if (this.permissionService.hasPermission('N1,N2')) {
+      return false;
+    }
+
     if (!current) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);

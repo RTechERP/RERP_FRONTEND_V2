@@ -15,15 +15,15 @@
                         </button>
 
                         <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
-                            (click)="updateProjectSurvey(0)" *hasPermission="'N1,N13,N27'">
+                            (click)="updateProjectSurvey(0)">
                             <img src="assets/icon/action_add_item_16.png" alt="Thêm mới" /> Thêm
                         </button>
                         <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small"
-                            (click)="updateProjectSurvey(1)" *hasPermission="'N1,N13,N27'">
+                            (click)="updateProjectSurvey(1)">
                             <img src="assets/icon/action_edit_item_16.png" alt="Sửa"> Sửa
                         </button>
                         <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger
-                            (click)="deletedProjectSurvey()" *hasPermission="'N1,N13,N27'">
+                            (click)="deletedProjectSurvey()">
                             <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
                         </button>
                         <button nz-button nzType="default" nzSize="small" (click)="openFolder()">
@@ -39,22 +39,14 @@
                 <div class="bg-light border-bottom" *ngIf="showSearchBar">
                     <div class="d-flex gap-1 align-items-center flex-wrap">
                         <nz-form-label class="fs-12" style="font-size: 12px !important;">Từ ngày</nz-form-label>
-                        <nz-date-picker
-                            [(ngModel)]="dateStart"
-                            [ngModelOptions]="{standalone: true}"
-                            nzSize="small"
-                            nzFormat="dd/MM/yyyy"
-                            style="width: 130px; font-size: 12px;"
+                        <nz-date-picker [(ngModel)]="dateStart" [ngModelOptions]="{standalone: true}" nzSize="small"
+                            nzFormat="dd/MM/yyyy" style="width: 130px; font-size: 12px;"
                             (ngModelChange)="getDataProjectSurvey()">
                         </nz-date-picker>
 
                         <nz-form-label class="fs-12" style="font-size: 12px !important;">Đến ngày</nz-form-label>
-                        <nz-date-picker
-                            [(ngModel)]="dateEnd"
-                            [ngModelOptions]="{standalone: true}"
-                            nzSize="small"
-                            nzFormat="dd/MM/yyyy"
-                            style="width: 130px; font-size: 12px;"
+                        <nz-date-picker [(ngModel)]="dateEnd" [ngModelOptions]="{standalone: true}" nzSize="small"
+                            nzFormat="dd/MM/yyyy" style="width: 130px; font-size: 12px;"
                             (ngModelChange)="getDataProjectSurvey()">
                         </nz-date-picker>
 
@@ -63,15 +55,14 @@
                             nzAllowClear nzSize="small" nzPlaceHolder="Dự án" style="width: 250px;"
                             (ngModelChange)="getDataProjectSurvey()">
                             @for (item of projects; track $index) {
-                            <nz-option nzCustomContent="true"
-                                [nzLabel]="item.ProjectName" [nzValue]="item.ID">
+                            <nz-option nzCustomContent="true" [nzLabel]="item.ProjectName" [nzValue]="item.ID">
                                 {{ item.ProjectName }}
                             </nz-option>
                             }
                         </nz-select>
 
                         <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 250px"
-                            [(ngModel)]="keyword" [ngModelOptions]="{standalone: true}" 
+                            [(ngModel)]="keyword" [ngModelOptions]="{standalone: true}"
                             (keyup.enter)="getDataProjectSurvey()" />
 
                         <button nz-button nzType="primary" nzSize="small" (click)="getDataProjectSurvey()">
@@ -88,31 +79,32 @@
                                 style="min-width: 320px; background-color: #ffffff; border: 1px solid #d9d9d9; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                                 <div class="mb-3">
                                     <label class="d-block mb-2" style="font-size: 12px; font-weight: 500;">Sale</label>
-                                    <nz-select [(ngModel)]="saleId" [ngModelOptions]="{standalone: true}" 
-                                        nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Sale" 
-                                        style="width: 100%;" (ngModelChange)="getDataProjectSurvey()">
+                                    <nz-select [(ngModel)]="saleId" [ngModelOptions]="{standalone: true}" nzShowSearch
+                                        nzAllowClear nzSize="small" nzPlaceHolder="Sale" style="width: 100%;"
+                                        (ngModelChange)="getDataProjectSurvey()">
                                         @for (item of employees; track $index) {
-                                        <nz-option nzCustomContent="true"
-                                            [nzLabel]="item.FullName" [nzValue]="item.EmployeeID">
+                                        <nz-option nzCustomContent="true" [nzLabel]="item.FullName"
+                                            [nzValue]="item.EmployeeID">
                                             {{ item.FullName }}
                                         </nz-option>
                                         }
                                     </nz-select>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="d-block mb-2" style="font-size: 12px; font-weight: 500;">Kỹ thuật</label>
-                                    <nz-select [(ngModel)]="technicalId" [ngModelOptions]="{standalone: true}" 
-                                        nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Kỹ thuật" 
+                                    <label class="d-block mb-2" style="font-size: 12px; font-weight: 500;">Kỹ
+                                        thuật</label>
+                                    <nz-select [(ngModel)]="technicalId" [ngModelOptions]="{standalone: true}"
+                                        nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Kỹ thuật"
                                         style="width: 100%;" (ngModelChange)="getDataProjectSurvey()">
                                         @for (item of employees; track $index) {
-                                        <nz-option nzCustomContent="true"
-                                            [nzLabel]="item.FullName" [nzValue]="item.EmployeeID">
+                                        <nz-option nzCustomContent="true" [nzLabel]="item.FullName"
+                                            [nzValue]="item.EmployeeID">
                                             {{ item.FullName }}
                                         </nz-option>
                                         }
                                     </nz-select>
                                 </div>
-                                                            </div>
+                            </div>
                         </nz-dropdown-menu>
 
                         <!-- <button nz-button nzType="default" nzSize="small" (click)="reset()">
@@ -138,24 +130,78 @@
 
 <!-- Approval Modal Template -->
 <ng-template #infoApproved>
-    <div [formGroup]="approvalForm">
-        <label class="required-field">Kỹ thuật thực hiện</label>
-        <nz-select formControlName="technicalRequestId" nzShowSearch nzAllowClear nzPlaceHolder="Chọn kỹ thuật"
-            class="w-100 mb-2">
-            <nz-option *ngFor="let item of employees" [nzLabel]="item.FullName" [nzValue]="item.EmployeeID">
-            </nz-option>
-        </nz-select>
+    <form nz-form nzLayout="vertical" [formGroup]="approvalForm">
+        <nz-row [nzGutter]="16">
+            <nz-col [nzSpan]="24">
+                <nz-form-item>
+                    <nz-form-label class="fs-12">
+                        Kỹ thuật phụ trách <span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="
+              approvalForm.get('technicalRequestId')?.invalid &&
+              (approvalForm.get('technicalRequestId')?.dirty || approvalForm.get('technicalRequestId')?.touched)
+                ? 'Vui lòng chọn kỹ thuật yêu cầu!'
+                : undefined
+            ">
+                        <nz-select formControlName="technicalRequestId" class="w-100" nzShowSearch nzAllowClear
+                            nzPlaceHolder="Chọn kỹ thuật">
+                            @for (parent of employeesGrouped; track $index) {
+                            <nz-option-group [nzLabel]="parent.label">
+                                @for (child of parent.options; track $index) {
+                                <nz-option [nzLabel]="child.item.FullName" [nzValue]="child.item.ID">
+                                    {{ child.item.Code + " - " + child.item.FullName }}
+                                </nz-option>
+                                }
+                            </nz-option-group>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
 
-        <label class="required-field">Ngày thực hiện</label>
-        <nz-date-picker formControlName="dateSurvey" nzFormat="dd/MM/yyyy" class="w-100 mb-2"></nz-date-picker>
+            <nz-col [nzSpan]="24">
+                <nz-form-item>
+                    <nz-form-label class="fs-12">
+                        Ngày khảo sát <span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="
+              approvalForm.get('dateSurvey')?.invalid &&
+              (approvalForm.get('dateSurvey')?.dirty || approvalForm.get('dateSurvey')?.touched)
+                ? 'Vui lòng chọn ngày khảo sát!'
+                : undefined
+            ">
+                        <nz-date-picker formControlName="dateSurvey" class="w-100" nzFormat="dd/MM/yyyy"
+                            nzAllowClear="false"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
 
-        <label>Buổi thực hiện</label>
-        <nz-select formControlName="partOfDayId" nzPlaceHolder="Chọn buổi" class="w-100 mb-2">
-            <nz-option [nzValue]="0" nzLabel="Sáng"></nz-option>
-            <nz-option [nzValue]="1" nzLabel="Chiều"></nz-option>
-        </nz-select>
+            <nz-col [nzSpan]="24">
+                <nz-form-item>
+                    <nz-radio-group formControlName="partOfDayId" class="d-block">
+                        <label nz-radio [nzValue]="1">Buổi sáng</label>
+                        <label nz-radio [nzValue]="2">Buổi chiều</label>
+                    </nz-radio-group>
+                </nz-form-item>
+            </nz-col>
 
-        <label [ngClass]="{'required-field': isDisableReason}">Lý do {{ isDisableReason ? 'hủy' : '' }}</label>
-        <textarea rows="3" nz-input formControlName="reason" placeholder="Nhập lý do..."></textarea>
-    </div>
+            @if (isDisableReasion) {
+            <nz-col [nzSpan]="24">
+                <nz-form-item>
+                    <nz-form-label class="fs-12">
+                        Lý do hủy <span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="
+                approvalForm.get('reason')?.invalid &&
+                (approvalForm.get('reason')?.dirty || approvalForm.get('reason')?.touched)
+                  ? 'Vui lòng nhập lý do hủy duyệt!'
+                  : undefined
+              ">
+                        <textarea formControlName="reason" rows="4" nz-input placeholder="Nhập lý do hủy"></textarea>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            }
+        </nz-row>
+    </form>
 </ng-template>

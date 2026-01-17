@@ -110,7 +110,8 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
   infoApprovedContainer!: TemplateRef<any>;
 
   approvalForm: any;
-  isDisableReason: boolean = false;
+  isDisableReasion: boolean = false;
+  employeesGrouped: any[] = [];
 
   constructor(
     private projectService: ProjectService,
@@ -187,7 +188,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
     // Initialize with empty dataset to prevent SlickGrid error
     this.dataset = [];
     this.gridData = [];
-    
+
     this.getCurrentUser();
     this.getEmployees();
     this.getProjects();
@@ -221,8 +222,13 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
   getEmployees() {
     this.projectService.getProjectEmployee(0).subscribe({
       next: (response: any) => {
-        // Flatten logic if needed, but assuming data is array
+        // Flatten list for grid filters
         this.employees = Array.isArray(response.data) ? response.data : [];
+        // Grouped list for modal (grouped by DepartmentName)
+        this.employeesGrouped = this.projectService.createdDataGroup(
+          response.data,
+          'DepartmentName'
+        );
       },
       error: (error: any) => {
         console.error('Lỗi getEmployees:', error);
@@ -377,43 +383,43 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
       next: (response: any) => {
         // Ensure response.data exists and is an array
         const responseData = response.data || [];
-        
+
         // Create a Set to track used ids and ensure uniqueness
         const usedIds = new Set<string>();
-        
+
         this.dataset = responseData.map((item: any, index: number) => {
           let uniqueId = item.ID || item.id || `survey_${index + 1}`;
-          
+
           // If the id is already used, create a truly unique one
           if (usedIds.has(String(uniqueId))) {
             uniqueId = `survey_${index + 1}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           }
-          
+
           usedIds.add(String(uniqueId));
-          
+
           return {
             ...item,
             id: uniqueId
           };
         });
-        
+
         // Create a new Set for gridData to ensure independence
         const usedIdsForGrid = new Set<string>();
         this.gridData = responseData.map((item: any, index: number) => {
           let uniqueId = item.ID || item.id || `survey_grid_${index + 1}`;
-          
+
           if (usedIdsForGrid.has(String(uniqueId))) {
             uniqueId = `survey_grid_${index + 1}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           }
-          
+
           usedIdsForGrid.add(String(uniqueId));
-          
+
           return {
             ...item,
             id: uniqueId
           };
         });
-        
+
         this.isLoading = false;
 
         setTimeout(() => {
@@ -989,7 +995,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
       ) {
         canEdit = false;
       }
-      else if (  selectedRows[0].EmployeeID1 !=null &&
+      else if (selectedRows[0].EmployeeID1 != null &&
         selectedRows[0].EmployeeID1 != this.currentUser.EmployeeID &&
         !this.currentUser.IsAdmin
       ) {
@@ -1042,7 +1048,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
             this.notification.success('Thông báo', 'Xóa thành công');
             this.getDataProjectSurvey();
           },
-        error: (error: any) => {
+          error: (error: any) => {
             console.error('Error deleting version:', error);
             const errorMessage = error?.error?.message || error?.message || 'Không thể xóa!';
             this.notification.error('Lỗi', errorMessage);
@@ -1076,6 +1082,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
     let requestIds = [...new Set(selectedRows.map((row: any) => row.ID))];
 
     if (select == 1) {
+      // Duyệt gấp / Hủy duyệt gấp
       this.modal.confirm({
         nzTitle: `Thông báo`,
         nzContent: `Bạn có chắc muốn ${statusText} yêu cầu đã chọn không?`,
@@ -1100,45 +1107,64 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         },
       });
     } else {
-      // Approval Request logic (select == 2)
-      if (approvedStatus == false) this.isDisableReason = true;
+      // Duyệt yêu cầu / Hủy duyệt yêu cầu (select == 2)
+      if (approvedStatus == false) this.isDisableReasion = true;
 
       if (selectedRows.length > 1) {
-        this.notification.error(NOTIFICATION_TITLE.error, `Vui lòng chỉ chọn 1 yêu cầu!`);
+        this.notification.error(NOTIFICATION_TITLE.error, `Vui lòng chỉ chọn 1 yêu cầu cần ${statusText}!`);
         return;
       }
 
-      // Handle Date initialization safely
-      let initialDateSurvey: string = new Date().toISOString();
+      // Khởi tạo form với giá trị từ selected row
+      // Nếu có DateSurvey thì dùng DateSurvey, nếu không thì dùng DateEnd, nếu không có DateEnd thì dùng ngày hiện tại
+      let initialDateSurvey: Date;
       if (selectedRows[0].DateSurvey) {
-        initialDateSurvey = selectedRows[0].DateSurvey;
+        initialDateSurvey = new Date(selectedRows[0].DateSurvey);
       } else if (selectedRows[0].DateEnd) {
-        initialDateSurvey = selectedRows[0].DateEnd;
+        initialDateSurvey = new Date(selectedRows[0].DateEnd);
+      } else {
+        initialDateSurvey = new Date();
       }
 
       this.approvalForm.patchValue({
         technicalRequestId: selectedRows[0].EmployeeID1 || null,
         partOfDayId: selectedRows[0].SurveySession || 0,
         reason: selectedRows[0].ReasonCancel || '',
-        dateSurvey: initialDateSurvey
+        dateSurvey: initialDateSurvey as any
       });
 
+      // Set required validator cho reason nếu là hủy duyệt
       if (approvedStatus === false) {
         this.approvalForm.get('reason')?.setValidators([Validators.required]);
-        this.isDisableReason = true;
+        this.isDisableReasion = true;
       } else {
         this.approvalForm.get('reason')?.clearValidators();
         this.approvalForm.get('reason')?.updateValueAndValidity();
-        this.isDisableReason = false;
+        this.isDisableReasion = false;
+      }
+
+      // Kiểm tra quyền leader
+      let leaderID = selectedRows[0].LeaderID;
+      let leaderName = selectedRows[0].FullNameLeaderTBP;
+      if (this.currentUser.EmployeeID != leaderID) {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          `Bạn không thể ${statusText} yêu cầu của leader [${leaderName}]!`
+        );
+        return;
       }
 
       // Open Modal
       const modalRef = this.modal.create({
         nzTitle: `${statusText.toUpperCase()} YÊU CẦU`,
         nzContent: this.infoApprovedContainer,
+        nzMaskClosable: false,
+        nzWrapClassName: 'modal-primary-header',
         nzFooter: [
           {
             label: 'Hủy',
+            type: 'default',
+            nzDanger: true,
             onClick: () => modalRef.close()
           },
           {
@@ -1154,30 +1180,90 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
   }
 
   submitApproval(modalRef: any, selectedRows: any[], approvedStatus: boolean, statusText: string) {
+    // Validate form
     if (this.approvalForm.invalid) {
       this.approvalForm.markAllAsTouched();
+      const technicalControl = this.approvalForm.get('technicalRequestId');
+      const dateControl = this.approvalForm.get('dateSurvey');
+      const reasonControl = this.approvalForm.get('reason');
+
+      if (technicalControl?.hasError('required')) {
+        this.notification.error('Thông báo', 'Vui lòng chọn kỹ thuật yêu cầu!');
+      } else if (dateControl?.hasError('required')) {
+        this.notification.error('Thông báo', 'Vui lòng chọn ngày khảo sát!');
+      } else if (reasonControl?.hasError('required')) {
+        this.notification.error('Thông báo', 'Vui lòng nhập lý do hủy duyệt!');
+      }
       return;
     }
 
     const formValue = this.approvalForm.getRawValue();
-    const data = {
-      approvedStatus: approvedStatus,
-      id: selectedRows[0].ID,
-      employeeId: formValue.technicalRequestId,
-      surveySession: formValue.partOfDayId,
-      reason: formValue.reason,
-      dateSurvey: formValue.dateSurvey,
-      loginName: this.currentUser.LoginName,
-      globalEmployeeId: this.currentUser.EmployeeID
+    // Xử lý dateSurvey: nz-date-picker trả về Date object
+    const dateSurveyRaw = formValue.dateSurvey as any;
+
+    // Validate và convert dateSurvey
+    if (!dateSurveyRaw) {
+      this.notification.error('Thông báo', 'Vui lòng chọn ngày khảo sát!');
+      return;
+    }
+
+    let dateSurveyValue: DateTime;
+    let dateSurveyISO: string;
+
+    if (dateSurveyRaw instanceof Date) {
+      dateSurveyValue = DateTime.fromJSDate(dateSurveyRaw).startOf('day');
+      dateSurveyISO = DateTime.fromJSDate(dateSurveyRaw).toISO() || '';
+    } else if (typeof dateSurveyRaw === 'string' && dateSurveyRaw) {
+      dateSurveyValue = DateTime.fromISO(dateSurveyRaw).startOf('day');
+      dateSurveyISO = DateTime.fromISO(dateSurveyRaw).toISO() || '';
+    } else {
+      this.notification.error('Thông báo', 'Ngày khảo sát không hợp lệ!');
+      return;
+    }
+
+    let dsv = dateSurveyValue;
+
+    let ds = selectedRows[0].DateStart
+      ? DateTime.fromJSDate(new Date(selectedRows[0].DateStart)).startOf('day')
+      : null;
+
+    let de = selectedRows[0].DateEnd
+      ? DateTime.fromJSDate(new Date(selectedRows[0].DateEnd)).startOf('day')
+      : null;
+
+    // Validate ngày khảo sát phải trong khoảng DateStart - DateEnd (chỉ khi duyệt, không validate khi hủy duyệt)
+    if (approvedStatus && ds && de) {
+      if (dsv < ds || dsv > de) {
+        this.notification.error(
+          'Thông báo',
+          `Ngày khảo sát phải trong khoảng từ [${ds.toFormat('dd/MM/yyyy')}] đến [${de.toFormat('dd/MM/yyyy')}]!`
+        );
+        return;
+      }
+    }
+
+    // Chuẩn bị data đúng format như component cũ
+    let dataSave = {
+      id: selectedRows[0].ProjectSurveyDetailID,
+      status: approvedStatus,
+      employeeID: formValue.technicalRequestId!,
+      dateSurvey: dateSurveyISO,
+      reasonCancel: formValue.reason ?? '',
+      updatedBy: this.currentUser.FullName,
+      surveySession: formValue.partOfDayId ?? 0,
     };
 
-    this.projectSurveyService.approved(data).subscribe({
-      next: () => {
-        this.notification.success('Thông báo', `Thành công`);
-        this.getDataProjectSurvey();
-        modalRef.close();
+    this.projectSurveyService.approved(dataSave).subscribe({
+      next: (response: any) => {
+        if (response.status == 1) {
+          this.notification.success('Thông báo', `Đã cập nhật trạng thái ${statusText}!`);
+          modalRef.close();
+          this.getDataProjectSurvey();
+        }
       },
-      error: (err) => console.error(err)
+      error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Có lỗi xảy ra!');
+      },
     });
   }
 
@@ -1260,7 +1346,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         if (column.filter && column.filter.model === Filters['multipleSelect']) {
           const field = column.field;
           if (!field) return;
-          
+
           // Use predefined collections for boolean fields
           if (field === 'IsUrgent' || field === 'IsApprovedUrgent') {
             column.filter.collection = booleanCollection;
@@ -1286,7 +1372,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         if (colDef.filter && colDef.filter.model === Filters['multipleSelect']) {
           const field = colDef.field;
           if (!field) return;
-          
+
           // Use predefined collections for boolean fields
           if (field === 'IsUrgent' || field === 'IsApprovedUrgent') {
             colDef.filter.collection = booleanCollection;
@@ -1294,7 +1380,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
             colDef.filter.collection = this.customers.map((c: any) => ({ value: c.CustomerName, label: c.CustomerName }));
           } else if (field === 'ProjectTypeName') {
             colDef.filter.collection = this.projectTypes.map((t: any) => ({ value: t.ProjectTypeName, label: t.ProjectTypeName }));
-          } 
+          }
           else {
             colDef.filter.collection = getUniqueValues(data, field);
           }

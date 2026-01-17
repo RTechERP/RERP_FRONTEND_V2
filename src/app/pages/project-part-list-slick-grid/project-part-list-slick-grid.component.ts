@@ -1953,13 +1953,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     if (isDeleted) {
       rowCssClass = 'row-deleted';
     }
-    // 2. Dòng có vấn đề → Orange
-    else if (isProblem) {
-      rowCssClass = 'row-problem';
-    }
-    // 3. Số lượng trả về > 0 → LightGreen
+    // 2. Số lượng trả về > 0 → LightGreen (Ưu tiên cao hơn màu cam)
     else if (quantityReturn > 0) {
       rowCssClass = 'row-return';
+    }
+    // 3. Dòng có vấn đề → Orange
+    else if (isProblem) {
+      rowCssClass = 'row-problem';
     }
     // 4. Node cha (có children) → LightGray + Bold
     else if (hasChildren) {

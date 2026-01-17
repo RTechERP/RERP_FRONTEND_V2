@@ -1814,18 +1814,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         // Xuất Excel trước
         const exportSuccess = await this.exportExcelPartlist();
         // Sau khi xuất thành công, mở modal
-        if (exportSuccess) {
-            const modalRef = this.ngbModal.open(FormExportExcelPartlistComponent, {
-                centered: true,
-                windowClass: 'full-screen-modal',
-                keyboard: false,
-            });
-            modalRef.componentInstance.projectId = this.projectId;
-            modalRef.componentInstance.projectCode = this.projectCodex || '';
-            modalRef.componentInstance.projectName = this.projectNameX || '';
-            modalRef.componentInstance.versionPOID = this.versionPOID;
-            modalRef.componentInstance.partListData = this.tb_projectWorker?.getData('tree') || [];
-        }
+        // if (exportSuccess) {
+        //     const modalRef = this.ngbModal.open(FormExportExcelPartlistComponent, {
+        //         centered: true,
+        //         windowClass: 'full-screen-modal',
+        //         keyboard: false,
+        //     });
+        //     modalRef.componentInstance.projectId = this.projectId;
+        //     modalRef.componentInstance.projectCode = this.projectCodex || '';
+        //     modalRef.componentInstance.projectName = this.projectNameX || '';
+        //     modalRef.componentInstance.versionPOID = this.versionPOID;
+        //     modalRef.componentInstance.partListData = this.tb_projectWorker?.getData('tree') || [];
+        // }
     }
     //#region open modal import excel
     openImportExcelProjectPartList(): void {
@@ -6565,6 +6565,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             { header: 'SL đã về', field: 'QuantityReturn', width: 12, isNumber: true },
             { header: 'SL đã xuất', field: 'TotalExport', width: 12, isNumber: true },
             { header: 'SL còn lại', field: 'RemainQuantity', width: 12, isNumber: true },
+            { header: 'Ngày nhập kho', field: 'DateImport', width: 12, isNumber: true },
+            { header: 'Mã phiếu nhập', field: 'BillImportCode', width: 12, isNumber: true },
+            { header: 'Kho nhập', field: 'KhoType', width: 12, isNumber: true },
         ];
 
         // Set column widths

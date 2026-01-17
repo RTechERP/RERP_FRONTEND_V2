@@ -24,7 +24,7 @@ import { ProjectPartlistPriceRequestService } from '../../old/project-partlist-p
 import { ProjectPartlistPriceRequestFormComponent } from '../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 import { ImportExcelProjectPartlistPriceRequestComponent } from '../../old/project-partlist-price-request/import-excel-project-partlist-price-request/import-excel-project-partlist-price-request.component';
 import { AngularSlickgridModule, AngularGridInstance, Column, GridOption, Filters, Formatters, Editors, OnClickEventArgs, OnCellChangeEventArgs, OnSelectedRowsChangedEventArgs, Aggregators, GroupTotalFormatters, SortComparers } from 'angular-slickgrid';
-import { MultipleSelectOption, SortDirectionNumber } from '@slickgrid-universal/common';
+import { AutocompleterOption, MultipleSelectOption, SortDirectionNumber } from '@slickgrid-universal/common';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -1542,6 +1542,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           // useRegularTooltipFromCellTextOnly: true,
         },
       },
+      // Cột Model (Thông số kỹ thuật) - sẽ được thêm vào đây nếu là tab demo
       {
         id: 'Manufacturer',
         field: 'Manufacturer',
@@ -1974,7 +1975,7 @@ formatter: Formatters.date,
         id: 'SupplierSaleID',
         field: 'SupplierSaleID',
         name: 'Nhà cung cấp',
-        width: 200,
+        width: 300,
         sortable: false,
         filterable: true,
         filter: {
@@ -1987,21 +1988,56 @@ formatter: Formatters.date,
             filter: true,
           } as MultipleSelectOption,
         },
-        editor: {
-          model: Editors['singleSelect'],
-          collection: this.getSupplierCollection(),
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          editorOptions: {
-            filter: true,
-          } as MultipleSelectOption,
-        },
-        formatter: (row: number, cell: number, value: any) => {
-          // Xử lý cả trường hợp value là array (từ multiselect) hoặc số đơn
+        formatter: (_row: number, _cell: number, value: any, _columnDef: any, dataContext: any) => {
+          if (!value) return '';
           const supplierId = Array.isArray(value) ? (value[0] || value) : value;
           const supplier = this.dtSupplierSale.find((s: any) => s.ID === supplierId);
-          return supplier ? supplier.NameNCC : '';
+          if (supplier) {
+            const codeNCC = supplier.CodeNCC || '';
+            const nameNCC = supplier.NameNCC || '';
+            const tooltipText = `Mã: ${codeNCC}\nTên: ${nameNCC}`;
+            return `<span title="${tooltipText.replace(/"/g, '&quot;')}">${codeNCC}</span>`;
+          }
+          return '';
+        },
+        editor: {
+          model: Editors['autocompleter'],
+          alwaysSaveOnEnterKey: true,
+          editorOptions: {
+            minLength: 0,
+            forceUserInput: false,
+            openSearchListOnFocus: true,
+            fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
+              const suppliers = this.dtSupplierSale || [];
+              if (!searchTerm || searchTerm.length === 0) {
+                callback(suppliers);
+              } else {
+                const filtered = suppliers.filter((s: any) => {
+                  const code = (s.CodeNCC || '').toLowerCase();
+                  const name = (s.NameNCC || '').toLowerCase();
+                  const term = searchTerm.toLowerCase();
+                  return code.includes(term) || name.includes(term);
+                });
+                callback(filtered);
+              }
+            },
+            renderItem: {
+              layout: 'twoRows',
+              templateCallback: (item: any) => {
+                const codeNCC = item?.CodeNCC || '';
+                const nameNCC = item?.NameNCC || '';
+                const ngayUpdate = item?.NgayUpdate ? new Date(item.NgayUpdate).toLocaleDateString('vi-VN') : '';
+                const tooltipText = `Mã: ${codeNCC}\nTên: ${nameNCC}\nNgày Update: ${ngayUpdate}`;
+                return `<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 4px 0; gap: 8px;" title="${tooltipText.replace(/"/g, '&quot;')}">
+                  <div style="flex: 1; min-width: 0; overflow: hidden;">
+                    <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${codeNCC}</div>
+                    <div style="font-size: 12px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; max-height: 2.8em;">${nameNCC}</div>
+                  </div>
+                  <div style="text-align: right; min-width: 80px; flex-shrink: 0; font-size: 11px; color: #999; padding-top: 2px;">${ngayUpdate}</div>
+                </div>`;
+              },
+            },
+          } as AutocompleterOption,
         },
       },
       {
@@ -2250,6 +2286,19 @@ formatter: Formatters.date,
         },
       },
     ];
+
+    // Nếu là tab Hàng demo (typeId === -4), di chuyển cột Model lên sau ProductName
+    if (typeId === -4) {
+      const modelColumnIndex = columns.findIndex(col => col.id === 'Model');
+      const productNameIndex = columns.findIndex(col => col.id === 'ProductName');
+
+      if (modelColumnIndex !== -1 && productNameIndex !== -1) {
+        // Lấy cột Model ra khỏi vị trí hiện tại
+        const modelColumn = columns.splice(modelColumnIndex, 1)[0];
+        // Chèn cột Model vào ngay sau ProductName
+        columns.splice(productNameIndex + 1, 0, modelColumn);
+      }
+    }
 
     return columns;
   }
@@ -2744,10 +2793,17 @@ formatter: Formatters.date,
 
     // Cập nhật giá trị mới vào item
     if (field && newValue !== undefined) {
-      // Xử lý đặc biệt cho SupplierSaleID: chuyển từ array (multiselect) sang giá trị đơn
-      if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
-        // Lấy giá trị đầu tiên từ array (vì chỉ cho phép chọn 1)
-        item[field] = newValue.length > 0 ? newValue[0] : null;
+      // Xử lý đặc biệt cho SupplierSaleID: autocompleter trả về object hoặc array
+      if (field === 'SupplierSaleID') {
+        if (Array.isArray(newValue)) {
+          // Từ multiselect - lấy giá trị đầu tiên
+          item[field] = newValue.length > 0 ? newValue[0] : null;
+        } else if (typeof newValue === 'object' && newValue !== null) {
+          // Từ autocompleter - lấy ID từ object
+          item[field] = newValue.ID || null;
+        } else {
+          item[field] = newValue;
+        }
       } else {
         item[field] = newValue;
       }
@@ -2785,9 +2841,15 @@ formatter: Formatters.date,
         if (!isAdmin && quoteEmployeeID !== currentEmployeeID) continue;
 
         // Fill giá trị vào dòng này
-        // Xử lý đặc biệt cho SupplierSaleID
-        if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
-          selectedItem[field] = newValue.length > 0 ? newValue[0] : null;
+        // Xử lý đặc biệt cho SupplierSaleID (autocompleter hoặc multiselect)
+        if (field === 'SupplierSaleID') {
+          if (Array.isArray(newValue)) {
+            selectedItem[field] = newValue.length > 0 ? newValue[0] : null;
+          } else if (typeof newValue === 'object' && newValue !== null) {
+            selectedItem[field] = newValue.ID || null;
+          } else {
+            selectedItem[field] = newValue;
+          }
         } else {
           selectedItem[field] = newValue;
         }
@@ -3081,7 +3143,7 @@ formatter: Formatters.date,
     // Đảm bảo data là array
     if (!Array.isArray(data)) {
       console.error('SaveDataCommon: data không phải là array', data);
-      this.notification.error('Thông báo', 'Dữ liệu không hợp lệ.');
+      this.notification.error('Thông báo', 'Data is not an Array');
       return;
     }
 
@@ -3119,7 +3181,7 @@ formatter: Formatters.date,
       },
       error: (error) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || 'Lỗi khi lưu dữ liệu.');
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
         // Swal.fire('Thông báo', 'Không thể lưu dữ liệu.', 'error');
       },
     });
@@ -4020,7 +4082,7 @@ formatter: Formatters.date,
           },
           error: (error) => {
             console.error('Error quoting price:', error);
-            this.notification.error('Lỗi', error?.error?.message || `Có lỗi xảy ra khi ${statusText}!`);
+            this.notification.error('Lỗi', error?.error?.message || error?.message);
           },
         });
       },
@@ -4113,7 +4175,7 @@ formatter: Formatters.date,
             console.error('Error checking price:', error);
             this.notification.error(
               'Lỗi',
-              error?.error?.message || `Có lỗi xảy ra khi ${isCheckText}!`
+              error?.error?.message || error?.message
             );
           },
         });
@@ -4248,7 +4310,7 @@ formatter: Formatters.date,
             }
           },
           error: (err: any) => {
-            const errorMsg = err?.error?.message || 'Có lỗi xảy ra';
+            const errorMsg = err?.error?.message || err?.message;
             const invalidProducts = err?.error?.invalidProducts;
             let fullMessage = errorMsg;
             if (invalidProducts && Array.isArray(invalidProducts) && invalidProducts.length > 0) {
@@ -4330,7 +4392,7 @@ formatter: Formatters.date,
         }
       },
       error: (err: any) => {
-        const errorMsg = err?.error?.message || 'Có lỗi xảy ra';
+        const errorMsg = err?.error?.message || err?.message;
         const invalidProducts = err?.error?.invalidProducts;
         let fullMessage = errorMsg;
         if (invalidProducts && Array.isArray(invalidProducts) && invalidProducts.length > 0) {
@@ -5247,11 +5309,11 @@ formatter: Formatters.date,
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(link.href);
-    } catch (error) {
+    } catch (error:any) {
       console.error(error);
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Đã xảy ra lỗi khi xuất Excel. Vui lòng thử lại sau.'
+        error?.error?.message || error?.message
       );
     }
   }

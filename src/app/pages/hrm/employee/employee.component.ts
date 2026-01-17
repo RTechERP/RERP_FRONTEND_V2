@@ -118,6 +118,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
 
   employees: any[] = [];
   departmentList: any[] = [];
+  taxCompanyList: any[] = [];
   positionContractList: any[] = [];
   positionInternalList: any[] = [];
   educationCreate: any[] = [];
@@ -196,6 +197,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       ChucVuHDID: [null, [Validators.required]],
       DepartmentID: [null, [Validators.required]],
       ChuVuID: [null, [Validators.required]],
+      TaxCompanyID: [null, [Validators.required]],
       DvBHXH: ['', [Validators.required]],
       DiaDiemLamViec: ['', [Validators.required]],
       StartWorking: ['', [Validators.required]],
@@ -337,6 +339,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     this.loadPositionContract();
     this.loadPositionInternal();
     this.loadEmployeeTeam();
+    this.loadTaxCompany();
     this.setupAutoFillAddress();
     this.employeeForm.get('allChecked')?.valueChanges.subscribe((checked) => {
       const checklistControls = [
@@ -489,6 +492,19 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       },
     });
   }
+  loadTaxCompany() {
+    this.employeeService.getEmployeeTaxCompany().subscribe({
+      next: (data: any) => {
+        this.taxCompanyList = data.data;
+      },
+      error: (error) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          error.error?.message || error.message || 'Lỗi khi tải danh sách thuế doanh nghiệp'
+        );
+      },
+    });
+  }
   loadPositionContract() {
     this.positionService.getPositionContract().subscribe({
       next: (data: any) => {
@@ -514,6 +530,29 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         );
       },
     });
+  }
+
+  // Hàm xử lý khi chọn TaxCompany từ dropdown
+  onTaxCompanyChange(taxCompanyId: number): void {
+    if (taxCompanyId) {
+      const selectedTaxCompany = this.taxCompanyList.find(tc => tc.ID === taxCompanyId);
+      if (selectedTaxCompany) {
+        this.employeeForm.patchValue({
+          DvBHXH: selectedTaxCompany.Code
+        });
+      }
+    } else {
+      this.employeeForm.patchValue({
+        DvBHXH: ''
+      });
+    }
+  }
+
+  // Hàm helper để tìm TaxCompanyID từ Code
+  getTaxCompanyIdByCode(code: string): number | null {
+    if (!code) return null;
+    const taxCompany = this.taxCompanyList.find(tc => tc.Code === code);
+    return taxCompany ? taxCompany.ID : null;
   }
   //#endregion
   //#region Hàm khởi tạo bảng nhân viên
@@ -2146,7 +2185,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       ChucVuHDID: this.selectedEmployee.ChucVuHDID,
       ChuVuID: this.selectedEmployee.ChuVuID,
       DepartmentID: this.selectedEmployee.DepartmentID,
-      DvBHXH: this.selectedEmployee.DvBHXH||"",
+      TaxCompanyID: this.selectedEmployee.TaxCompanyID || this.getTaxCompanyIdByCode(this.selectedEmployee.DvBHXH),
+      DvBHXH: this.selectedEmployee.DvBHXH || "",
       DiaDiemLamViec: this.selectedEmployee.DiaDiemLamViec,
       StartWorking: this.selectedEmployee.StartWorking,
       EmployeeTeamID: this.selectedEmployee.EmployeeTeamID,

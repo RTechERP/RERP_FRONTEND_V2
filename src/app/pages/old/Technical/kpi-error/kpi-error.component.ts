@@ -35,6 +35,7 @@ import { KpiErrorService } from './kpi-error-service/kpi-error.service';
 import { KpiErrorDetailComponent } from './kpi-error-detail/kpi-error-detail.component';
 import { KpiErrorFineAmountComponent } from './kpi-error-fine-amount/kpi-error-fine-amount.component';
 import { KpiErrorTypeComponent } from './kpi-error-type/kpi-error-type.component';
+import { TbProductRtcImportExcelComponent } from '../../tb-product-rtc/tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
 
 @Component({
     selector: 'app-kpi-error',

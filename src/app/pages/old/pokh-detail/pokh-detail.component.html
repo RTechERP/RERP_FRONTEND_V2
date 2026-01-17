@@ -33,6 +33,19 @@
                 </div>
 
                 <div class="col-md-4">
+                  <label class="mb-1 fs-12">Sales phụ trách</label>
+                  <nz-select nzShowSearch name="userId" [(ngModel)]="poFormData.userId"
+                    nzPlaceHolder="Chọn người phụ trách" nzAllowClear nzSize="default" class="w-100">
+                    <nz-option-group *ngFor="let group of userGroups" [nzLabel]="group.label">
+                      <nz-option *ngFor="let user of group.options" [nzValue]="user.UserID" [nzLabel]="user.FullName"
+                        [nzDisabled]="group.label === 'Team cũ'">
+                      </nz-option>
+                    </nz-option-group>
+                  </nz-select>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="col-md-4">
                   <label class="mb-1 fs-12">Khách hàng <span class="text-danger">*</span>
                     <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
                       (click)="openCustomerModal()" title="Thêm khách hàng">
@@ -50,19 +63,6 @@
                     *ngIf="(customerId.invalid && customerId.touched) || (isSubmitted && (!selectedCustomer || !selectedCustomer.ID || selectedCustomer.ID === 0))">
                     Vui lòng chọn khách hàng
                   </small>
-                </div>
-
-                <!-- Row 2 -->
-                <div class="col-md-4">
-                  <label class="mb-1 fs-12">Sales phụ trách</label>
-                  <nz-select nzShowSearch name="userId" [(ngModel)]="poFormData.userId"
-                    nzPlaceHolder="Chọn người phụ trách" nzAllowClear nzSize="default" class="w-100">
-                    <nz-option-group *ngFor="let group of userGroups" [nzLabel]="group.label">
-                      <nz-option *ngFor="let user of group.options" [nzValue]="user.UserID" [nzLabel]="user.FullName"
-                        [nzDisabled]="group.label === 'Team cũ'">
-                      </nz-option>
-                    </nz-option-group>
-                  </nz-select>
                 </div>
 
                 <div class="col-md-4">

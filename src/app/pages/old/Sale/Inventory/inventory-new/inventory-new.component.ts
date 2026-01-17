@@ -146,7 +146,6 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit(): void {
         this.initGridColumns();
-        this.initGridOptions();
 
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
@@ -155,8 +154,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             // Kiểm tra xem params có thay đổi không
             const paramsChanged = this.warehouseCode !== newWarehouseCode;
 
-            // Nếu params thay đổi, reset và clear data trước
-            if (paramsChanged) {
+            // Cập nhật warehouseCode TRƯỚC khi init grid options
+            this.warehouseCode = newWarehouseCode;
+
+            // Init grid options với ID selector unique dựa trên warehouseCode
+            this.initGridOptions();
+
+            // Nếu params thay đổi (và không phải lần đầu), reset và clear data trước
+            if (paramsChanged && this.angularGridProductGroup) {
                 // Reset productGroupID
                 this.productGroupID = 0;
                 this.searchParam.Find = '';
@@ -620,7 +625,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private initGridOptions(): void {
-        // Product Group grid options
+        // Product Group grid options - Sử dụng ID selector unique
         this.gridOptionsProductGroup = {
             enableAutoResize: true,
             autoResize: {
@@ -641,7 +646,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             enableHeaderMenu: false,
         };
 
-        // PG Warehouse grid options
+        // PG Warehouse grid options - Sử dụng ID selector unique
         this.gridOptionsPGWarehouse = {
             enableAutoResize: true,
             autoResize: {
@@ -657,7 +662,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             enableHeaderMenu: false,
         };
 
-        // Inventory grid options
+        // Inventory grid options - Sử dụng ID selector unique
         this.gridOptionsInventory = {
             enableAutoResize: true,
             autoResize: {
@@ -912,6 +917,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         const mappedData = this.dataInventory.map((item: any, index: number) => ({
                             ...item,
                             id: item.ID,
+                            id: item.ID,
                         }));
 
                         this.datasetInventory = mappedData;
@@ -997,7 +1003,18 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
      * Các cột: ProductName:count, và sum cho các cột số
      */
     updateInventoryFooterRow(): void {
-        if (!this.angularGridInventory || !this.angularGridInventory.slickGrid) return;
+        // Kiểm tra tất cả các điều kiện cần thiết trước khi tiếp tục
+        if (!this.angularGridInventory) return;
+        if (!this.angularGridInventory.slickGrid) return;
+
+        // Kiểm tra thêm để đảm bảo grid vẫn tồn tại (khi mở nhiều instance)
+        try {
+            const testColumns = this.angularGridInventory.slickGrid.getColumns();
+            if (!testColumns || testColumns.length === 0) return;
+        } catch (e) {
+            // Grid có thể đã bị destroy
+            return;
+        }
 
         // Lấy dữ liệu đã lọc trên view
         const items =
@@ -1030,37 +1047,42 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         const sums: { [key: string]: number } = {};
         sumFields.forEach(field => {
             sums[field] = items.reduce(
-                (sum, item) => sum + (Number(item[field]) || 0),
+                (sum, item) => sum + (Number(item?.[field]) || 0),
                 0
             );
         });
 
-        this.angularGridInventory.slickGrid.setFooterRowVisibility(true);
+        try {
+            this.angularGridInventory.slickGrid.setFooterRowVisibility(true);
 
-        // Set footer values cho từng column
-        const columns = this.angularGridInventory.slickGrid.getColumns();
+            // Set footer values cho từng column
+            const columns = this.angularGridInventory.slickGrid.getColumns();
 
-        console.log('columns:', columns);
+            console.log('columns:', columns);
 
-        columns.forEach((col: any) => {
-            const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn('ProductName');
-            if (!footerCell) return;
+            columns.forEach((col: any) => {
+                const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn('ProductName');
+                if (!footerCell) return;
 
-            // Count cho cột ProductName (Tên sản phẩm)
-            if (col.id === 'ProductName') {
-                footerCell.innerHTML = `<b style="display:block;text-align:right;">${productCount}</b>`;
-            }
-            // Sum cho các cột số
-            else if (sumFields.includes(col.id)) {
-                const formattedValue = new Intl.NumberFormat('en-US', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                }).format(sums[col.id]);
-                footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
-            } else {
-                footerCell.innerHTML = '';
-            }
-        });
+                // Count cho cột ProductName (Tên sản phẩm)
+                if (col.id === 'ProductName') {
+                    footerCell.innerHTML = `<b style="display:block;text-align:right;">${productCount}</b>`;
+                }
+                // Sum cho các cột số
+                else if (sumFields.includes(col.id)) {
+                    const formattedValue = new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                    }).format(sums[col.id] || 0);
+                    footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+                } else {
+                    footerCell.innerHTML = '';
+                }
+            });
+        } catch (e) {
+            // Ignore errors khi grid đã bị destroy hoặc không sẵn sàng
+            console.warn('updateInventoryFooterRow: Grid may have been destroyed', e);
+        }
     }
 
     //#endregion

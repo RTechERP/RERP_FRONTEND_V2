@@ -8,6 +8,7 @@
     <!-- Filter bar -->
     <div class="filter-bar bg-light border-bottom p-2">
       <form
+        [id]="'form-bill-export-search-' + warehouseCode"
         nz-form
         nzLayout="inline"
         (keyup.enter)="onSearch()"
@@ -139,7 +140,7 @@
     <!-- Grid Content -->
     <div class="card-body p-0">
       <!-- Master Grid -->
-      <div class="grid-container-master">
+      <div [id]="'grid-container-master-' + warehouseCode" class="grid-container-master">
         <angular-slickgrid
           [gridId]="'gridMaster-' + warehouseCode"
           [columns]="columnDefinitionsMaster"

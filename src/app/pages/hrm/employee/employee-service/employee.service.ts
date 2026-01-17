@@ -118,6 +118,9 @@ export class EmployeeService {
     );
   }
 
+  getEmployeeTaxCompany() {
+    return this.http.get<any>(this._url + 'Employee/get-tax-company');
+  }
   getEmployeeTeam() {
     return this.http.get<any>(this._url + 'EmployeeTeam');
   }

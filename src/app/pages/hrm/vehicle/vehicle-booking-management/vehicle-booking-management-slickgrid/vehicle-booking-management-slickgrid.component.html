@@ -1,0 +1,160 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
+
+    <ng-template #end>
+        <div class="flex items-center gap-2">
+            <button nz-button nzType="text" nzShape="circle"
+                (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
+                <nz-icon nzType="search" />
+            </button>
+        </div>
+    </ng-template>
+</p-menubar>
+
+<ng-container class="w-100">
+    <div class="card border-0 rounded-0" style="height: 89vh !important;">
+        <!-- Backdrop overlay cho mobile -->
+        <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
+
+        <!-- Filter bar - hiển thị dạng 2 hàng -->
+        <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+            <!-- Close button for mobile modal -->
+            <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile()">
+                <span class="fw-bold" style="font-size: 12px;">Tìm kiếm</span>
+                <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger
+                    (click)="ToggleSearchPanelNew()">
+                    <nz-icon nzType="close" />
+                </button>
+            </div>
+            <form nz-form>
+                <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+                    <!-- Từ ngày -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
+                            <nz-form-control>
+                                <input type="date" class="ant-input w-100" style="font-size: 12px; height: 24px;"
+                                    [(ngModel)]="dateStart" name="dateStart" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Đến ngày -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
+                            <nz-form-control>
+                                <input type="date" class="ant-input w-100" style="font-size: 12px; height: 24px;"
+                                    [(ngModel)]="dateEnd" name="dateEnd" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Lọc trạng thái -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="8">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
+                            <nz-form-control>
+                                <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn trạng thái..." [(ngModel)]="statusId"
+                                    (ngModelChange)="onStatusChange($event)" name="Status">
+                                    <nz-option *ngFor="let emp of lstStatus" [nzLabel]="emp.StatusText"
+                                        [nzValue]="emp.Status"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Lọc hình thức đặt -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="8">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Hình thức đặt</nz-form-label>
+                            <nz-form-control>
+                                <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn hình thức..." [(ngModel)]="categoryId"
+                                    (ngModelChange)="onCategoryChange($event)" name="CategoryList">
+                                    <nz-option *ngFor="let emp of lstCategory" [nzLabel]="emp.CategoryText"
+                                        [nzValue]="emp.Category"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Nhân viên đăng ký -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="5">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên đăng ký</nz-form-label>
+                            <nz-form-control>
+                                <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn nhân viên..." [(ngModel)]="employeeId"
+                                    [nzDisabled]="isEmployeeSelectDisabled" name="employeeId">
+                                    <nz-option *ngFor="let emp of employees" [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                                        [nzValue]="emp.ID"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Nhân viên lái xe -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="5">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên lái xe</nz-form-label>
+                            <nz-form-control>
+                                <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn nhân viên..." [(ngModel)]="driverEmployeeId"
+                                    name="driverEmployeeId">
+                                    <nz-option *ngFor="let emp of employeesDriver"
+                                        [nzLabel]="emp.Code + ' - ' + emp.FullName" [nzValue]="emp.ID"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Từ khóa và nút tìm kiếm -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="10">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
+                            <nz-form-control>
+                                <div class="d-flex gap-1">
+                                    <input nz-input placeholder="Nhập từ khóa..." nzSize="small" [(ngModel)]="keyWord"
+                                        name="keyword" class="flex-grow-1" (keyup.enter)="searchData()" />
+                                    <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
+                                        (click)="searchData()">
+                                        <nz-icon nzType="search" />
+                                    </button>
+                                </div>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Checkbox đơn đã hủy -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                        <nz-form-item class="mb-0">
+                            <nz-form-control>
+                                <label nz-checkbox name="statusCancel" [(ngModel)]="checked"
+                                    (ngModelChange)="updateChecked()" style="font-size: 12px;">
+                                    Đơn đăng ký đã hủy
+                                </label>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+            </form>
+        </div>
+
+        <!-- Content với bảng -->
+        <div class="card-body p-0 position-relative" [class.with-search-bar]="shouldShowSearchBar"
+            [class.without-search-bar]="!shouldShowSearchBar">
+            <nz-splitter>
+                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                    <div #dataTableVehicleBookingManagement style="height: 100%;"></div>
+                </nz-splitter-panel>
+            </nz-splitter>
+        </div>
+    </div>
+</ng-container>

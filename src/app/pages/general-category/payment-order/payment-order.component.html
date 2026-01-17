@@ -352,7 +352,7 @@
                                 [options]="gridOptionFiles" [dataset]="datasetFiles"
                                 (onAngularGridCreated)="angularGridFileReady($event.detail)"
                                 (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                                (onDblClick)="onDownloadFileAttach($event.detail.eventData, $event.detail.args,angularGridFile)">
                             </angular-slickgrid>
                         </p-tabpanel>
                         <p-tabpanel value="1" class="grid-container-filebankslip"
@@ -361,7 +361,7 @@
                                 [options]="gridOptionFileBankSlips" [dataset]="datasetFileBankslip"
                                 (onAngularGridCreated)="angularGridFileBankslipReady($event.detail)"
                                 (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                                (onDblClick)="onDownloadFileAttach($event.detail.eventData, $event.detail.args,angularGridFileBankslip)">
                             </angular-slickgrid>
                         </p-tabpanel>
 

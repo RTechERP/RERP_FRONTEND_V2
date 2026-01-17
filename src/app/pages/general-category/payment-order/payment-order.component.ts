@@ -21,6 +21,7 @@ import {
     Formatter,
     Formatters,
     GridOption,
+    MenuCommandItemCallbackArgs,
     MultipleSelectOption,
     OnClickEventArgs,
     OnDblClickEventArgs,
@@ -961,14 +962,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
             {
                 id: PaymentOrderField.SuplierName.field,
@@ -978,14 +980,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
             {
                 id: PaymentOrderField.StatusContractText.field,
@@ -1029,14 +1032,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
 
 
@@ -1072,14 +1076,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
             {
                 id: PaymentOrderField.EndLocation.field,
@@ -1089,23 +1094,16 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
-
-
-
-
-
-
-
-
             {
                 id: PaymentOrderField.StatusBankSlip.field,
                 name: 'Trạng thái Bank Slip',
@@ -1132,14 +1130,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
             {
                 id: PaymentOrderField.ReasonCancel.field,
@@ -1149,14 +1148,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
 
             {
@@ -1167,14 +1167,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 300,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
 
             {
@@ -1185,14 +1186,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
 
 
@@ -1215,11 +1217,6 @@ export class PaymentOrderComponent implements OnInit {
                 },
             },
 
-
-
-
-
-
             {
                 id: PaymentOrderField.ReasonRequestAppendFileAC.field,
                 name: 'Lý do KT Y/c bổ sung',
@@ -1228,14 +1225,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
 
             {
@@ -1246,14 +1244,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
 
             //Nhân viên đk
@@ -1755,8 +1754,17 @@ export class PaymentOrderComponent implements OnInit {
                 commandItems: [
 
                     {
-                        command: '', title: 'Xem file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 62,
                         action: (e, args) => {
+                            // console.log(args.row);
+                            // const row = args.row;
+
+                            // let selectedRows = args.grid.getSelectedRows();
+                            // if (selectedRows.length <= 0) selectedRows.push(row);
+
+                            // let selectedItems = selectedRows
+                            //     .map((i: any) => angularGrid.dataView?.getItem(i));
+
                             const filePath = args.dataContext?.ServerPath || '';
                             if (filePath) {
                                 const host = environment.host + 'api/share';
@@ -1766,7 +1774,7 @@ export class PaymentOrderComponent implements OnInit {
                                 const newWindow = window.open(
                                     urlImg,
                                     '_blank',
-                                    'width=1000,height=700'
+                                    // 'width=1000,height=700'
                                 );
 
                                 if (newWindow) {
@@ -1780,31 +1788,32 @@ export class PaymentOrderComponent implements OnInit {
                     },
 
                     {
-                        command: '', title: 'Tải file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
-                        action: (e, args) => {
-                            let selectedItems = args.grid.getSelectedRows()
-                                .map(i => this.angularGridFile.dataView?.getItem(i));
+                        command: '', title: 'Tải file', iconCssClass: 'fa-solid fa-download', positionOrder: 62,
+                        action: (e, args) => this.onDownloadFileAttach(e, args, this.angularGridFile)
+                        //         (e, args) => {
+                        //     let selectedItems = args.grid.getSelectedRows()
+                        //         .map(i => this.angularGridFile.dataView?.getItem(i));
 
 
-                            selectedItems.forEach(item => {
-                                const filePath = item?.ServerPath || '';
-                                if (filePath) {
-                                    const host = environment.host + 'api/share';
-                                    let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
+                        //     selectedItems.forEach(item => {
+                        //         const filePath = item?.ServerPath || '';
+                        //         if (filePath) {
+                        //             const host = environment.host + 'api/share';
+                        //             let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
 
-                                    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
-                                        const a = document.createElement('a');
-                                        const objectUrl = URL.createObjectURL(blob);
+                        //             this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+                        //                 const a = document.createElement('a');
+                        //                 const objectUrl = URL.createObjectURL(blob);
 
-                                        a.href = objectUrl;
-                                        a.download = item?.FileName;
-                                        a.click();
+                        //                 a.href = objectUrl;
+                        //                 a.download = item?.FileName;
+                        //                 a.click();
 
-                                        URL.revokeObjectURL(objectUrl);
-                                    });
-                                }
-                            });
-                        }
+                        //                 URL.revokeObjectURL(objectUrl);
+                        //             });
+                        //         }
+                        //     });
+                        // }
                     },
 
                 ],
@@ -1853,6 +1862,13 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         command: '', title: 'Xem file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
                         action: (e, args) => {
+
+                            // let selectedRows = args.grid.getSelectedRows();
+                            // if (selectedRows.length <= 0) selectedRows.push(args.row);
+
+                            // let selectedItems = selectedRows
+                            //     .map((i: any) => this.angularGridFile.dataView?.getItem(i));
+
                             const filePath = args.dataContext?.ServerPath || '';
                             if (filePath) {
                                 const host = environment.host + 'api/share';
@@ -1862,7 +1878,7 @@ export class PaymentOrderComponent implements OnInit {
                                 const newWindow = window.open(
                                     urlImg,
                                     '_blank',
-                                    'width=1000,height=700'
+                                    // 'width=1000,height=700'
                                 );
 
                                 if (newWindow) {
@@ -1877,29 +1893,30 @@ export class PaymentOrderComponent implements OnInit {
 
                     {
                         command: '', title: 'Tải file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
-                        action: (e, args) => {
-                            let selectedItems = args.grid.getSelectedRows()
-                                .map(i => this.angularGridFileBankslip.dataView?.getItem(i));
+                        action: (e, args) => this.onDownloadFileAttach(e, args, this.angularGridFileBankslip)
+                        // action: (e, args) => {
+                        //     let selectedItems = args.grid.getSelectedRows()
+                        //         .map(i => this.angularGridFileBankslip.dataView?.getItem(i));
 
-                            selectedItems.forEach(item => {
-                                const filePath = item?.ServerPath || '';
-                                if (filePath) {
-                                    const host = environment.host + 'api/share';
-                                    let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
+                        //     selectedItems.forEach(item => {
+                        //         const filePath = item?.ServerPath || '';
+                        //         if (filePath) {
+                        //             const host = environment.host + 'api/share';
+                        //             let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
 
-                                    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
-                                        const a = document.createElement('a');
-                                        const objectUrl = URL.createObjectURL(blob);
+                        //             this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+                        //                 const a = document.createElement('a');
+                        //                 const objectUrl = URL.createObjectURL(blob);
 
-                                        a.href = objectUrl;
-                                        a.download = item?.FileName;
-                                        a.click();
+                        //                 a.href = objectUrl;
+                        //                 a.download = item?.FileName;
+                        //                 a.click();
 
-                                        URL.revokeObjectURL(objectUrl);
-                                    });
-                                }
-                            });
-                        }
+                        //                 URL.revokeObjectURL(objectUrl);
+                        //             });
+                        //         }
+                        //     });
+                        // }
                     },
 
                 ],
@@ -1979,6 +1996,7 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
+                // filter: { model: Filters['compoundInputText'] },
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
@@ -2066,14 +2084,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 250,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
             {
                 id: 'POCodes',
@@ -2186,14 +2205,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
             {
                 id: PaymentOrderField.ReasonCancel.field,
@@ -2203,14 +2223,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
 
             {
@@ -2221,14 +2242,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 300,
                 // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             }
         ];
         this.gridOptionsSpecial = {
@@ -4121,7 +4143,8 @@ export class PaymentOrderComponent implements OnInit {
         // pdfMake.createPdf(docDefinition).open();
         pdfMake.createPdf(docDefinition).getBlob((blob: any) => {
             const url = URL.createObjectURL(blob);
-            window.open(url, '_blank', `width=${window.screen.width / 2},height=${window.screen.height}`);
+            // window.open(url, '_blank', `width=${window.screen.width / 2},height=${window.screen.height}`);
+            window.open(url, '_blank');
         });
     }
 
@@ -4432,7 +4455,37 @@ export class PaymentOrderComponent implements OnInit {
         // pdfMake.createPdf(docDefinition).open();
         pdfMake.createPdf(docDefinition).getBlob((blob: any) => {
             const url = URL.createObjectURL(blob);
-            window.open(url, '_blank', `width=${window.screen.width / 2},height=${window.screen.height}`);
+            // window.open(url, '_blank', `width=${window.screen.width / 2},height=${window.screen.height}`);
+            window.open(url, '_blank');
         });
+    }
+
+    onDownloadFileAttach(e: Event, args: any, angularGrid: AngularGridInstance) {
+        // console.log(args);
+        let selectedRows = args.grid.getSelectedRows();
+        if (selectedRows.length <= 0) selectedRows.push(args.row);
+
+        let selectedItems = selectedRows
+            .map((i: any) => angularGrid.dataView?.getItem(i));
+
+        selectedItems.forEach((item: any) => {
+            const filePath = item?.ServerPath || '';
+            if (filePath) {
+                const host = environment.host + 'api/share';
+                let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
+
+                this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+                    const a = document.createElement('a');
+                    const objectUrl = URL.createObjectURL(blob);
+
+                    a.href = objectUrl;
+                    a.download = item?.FileName;
+                    a.click();
+
+                    URL.revokeObjectURL(objectUrl);
+                });
+            }
+        });
+
     }
 }

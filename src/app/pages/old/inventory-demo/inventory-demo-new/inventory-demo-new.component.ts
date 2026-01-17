@@ -42,6 +42,7 @@ import { UpdateQrcodeFormComponent } from '../update-qrcode-form/update-qrcode-f
 import { InventoryBorrowSupplierDemoComponent } from '../inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { environment } from '../../../../../environments/environment';
+import { ClipboardService } from '../../../../services/clipboard.service';
 
 @Component({
     selector: 'app-inventory-demo-new',
@@ -169,8 +170,9 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         private modal: NzModalService,
         private ngbModal: NgbModal,
         private route: ActivatedRoute,
-        private cdr: ChangeDetectorRef
-    ) { }
+        private cdr: ChangeDetectorRef,
+        private clipboardService: ClipboardService
+    ) {}
 
     ngOnInit(): void {
         this.initGridColumns();
@@ -725,7 +727,20 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             frozenColumn: 2,
             enableHeaderMenu: false,
             enableContextMenu: true,
-            enableCellMenu: false,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.clipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
             contextMenu: {
                 hideCloseButton: false,
                 width: 200,

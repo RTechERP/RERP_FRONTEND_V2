@@ -1207,6 +1207,18 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         filterable: true,
         type: FieldType.string,
       },
+      {
+        id: 'CreatedDate',
+        name: 'Ngày tạo PO',
+        field: 'CreatedDate',
+        width: 200,
+        minWidth: 100,
+        sortable: true,
+        filterable: true,
+        type: FieldType.dateIso,
+        formatter: Formatters.dateEuro,
+        hidden: true,
+      },
     ];
 
     this.gridOptions = {
@@ -1222,7 +1234,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       enableSorting: true,
       multiColumnSort: false, // Required for Tree Data
       enableFiltering: true,
-      enableGrouping: true,
+      enableGrouping: false,
       enableRowSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {
@@ -1246,6 +1258,10 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         levelPropName: 'treeLevel',
         indentMarginLeft: 15,
         initiallyCollapsed: false,
+        initialSort: {
+          columnId: 'CreatedDate',
+          direction: 'DESC'
+        }
       },
       frozenColumn: 6,
     };
@@ -1253,16 +1269,6 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
 
   onAngularGridCreated(angularGrid: AngularGridInstance): void {
     this.angularGrid = angularGrid;
-
-    // Grouping theo số PO
-    if (this.angularGrid.dataView) {
-      this.angularGrid.dataView.setGrouping({
-        getter: 'PONumber',
-        formatter: (g) => `PO: ${g.value || 'Không có PO'} <span style="color:green">(${g.count} items)</span>`,
-        collapsed: false,
-        lazyTotalsCalculation: true,
-      } as Grouping);
-    }
 
     // Xử lý sự kiện khi selected rows thay đổi
     this.angularGrid.slickGrid?.onSelectedRowsChanged.subscribe((e: any, args: any) => {

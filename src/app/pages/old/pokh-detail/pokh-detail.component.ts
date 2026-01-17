@@ -76,6 +76,7 @@ import { MenuEventService } from '../../systems/menus/menu-service/menu-event.se
 import { ProductSaleComponent } from '../Sale/ProductSale/product-sale.component';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup';
 import { ProjectDetailComponent } from '../../project/project-detail/project-detail.component';
+import { ProjectPartListSlickGridComponent } from '../../project-part-list-slick-grid/project-part-list-slick-grid.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -2981,7 +2982,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     const dtTreeData = this.initialPOKHProductData;
     const minLevel = Math.min(...dtTreeData.map(r => r.level));
     const nodeMinLevelCount = dtTreeData.filter(r => r.level === minLevel).length;
-    const modalRef = this.modalService.open(ProjectPartListComponent, {
+    const modalRef = this.modalService.open(ProjectPartListSlickGridComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false,

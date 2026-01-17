@@ -478,8 +478,11 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
           e.stopImmediatePropagation();
           const isChecked = (target as HTMLInputElement).checked;
           this.handleRowSelect(dataContext, isChecked);
-          angularGrid.slickGrid?.invalidateRow(args.row);
-          angularGrid.slickGrid?.render();
+          // Chỉ update cell checkbox thay vì invalidate cả row để giữ nguyên row detail panel
+          const checkboxColumnIndex = angularGrid.slickGrid?.getColumnIndex('select');
+          if (checkboxColumnIndex !== undefined && checkboxColumnIndex >= 0) {
+            angularGrid.slickGrid?.updateCell(args.row, checkboxColumnIndex);
+          }
           return;
         }
       });
@@ -655,8 +658,12 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     if (this.angularGrid?.slickGrid && this.angularGrid?.dataView) {
       const rowIndex = this.angularGrid.dataView.getRowById(parentId);
       if (rowIndex !== undefined && rowIndex >= 0) {
-        this.angularGrid.slickGrid.invalidateRow(rowIndex);
-        this.angularGrid.slickGrid.render();
+        // Chỉ update cell checkbox thay vì invalidate cả row
+        // để tránh collapse row detail panel đang mở
+        const checkboxColumnIndex = this.angularGrid.slickGrid.getColumnIndex('select');
+        if (checkboxColumnIndex !== undefined && checkboxColumnIndex >= 0) {
+          this.angularGrid.slickGrid.updateCell(rowIndex, checkboxColumnIndex);
+        }
       }
     }
   }

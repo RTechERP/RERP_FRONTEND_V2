@@ -208,11 +208,11 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
       this.errors.timeNeedPresent = '';
     });
 
-    // DepartureDate
-    this.initializeFlatpickrField('departureDate', this.departureDate, (date: Date) => {
+    // DepartureDate - with minDate set to today
+    this.initializeFlatpickrFieldWithMinDate('departureDate', this.departureDate, (date: Date) => {
       this.departureDate = date;
       this.errors.departureDate = '';
-    });
+    }, new Date());
 
     // TimeReturn
     this.initializeFlatpickrField('timeReturn', this.timeReturn, (date: Date) => {
@@ -237,6 +237,36 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
       defaultDate: initialValue || undefined,
       allowInput: true,
       disableMobile: false,
+      onChange: (selectedDates: Date[]) => {
+        if (selectedDates.length > 0) {
+          const date = selectedDates[0];
+          date.setSeconds(0, 0);
+          onChange(date);
+        }
+      }
+    });
+
+    this.flatpickrInstances.set(fieldId, fpInstance);
+  }
+
+  private initializeFlatpickrFieldWithMinDate(fieldId: string, initialValue: Date | null, onChange: (date: Date) => void, minDate: Date): void {
+    const element = document.getElementById(fieldId);
+    if (!element) return;
+
+    // Destroy existing instance if any
+    if (this.flatpickrInstances.has(fieldId)) {
+      this.flatpickrInstances.get(fieldId)?.destroy();
+    }
+
+    const fpInstance = flatpickr(element, {
+      enableTime: true,
+      time_24hr: true,
+      dateFormat: 'd/m/Y H:i',
+      locale: Vietnamese,
+      defaultDate: initialValue || undefined,
+      allowInput: true,
+      disableMobile: false,
+      minDate: minDate,
       onChange: (selectedDates: Date[]) => {
         if (selectedDates.length > 0) {
           const date = selectedDates[0];

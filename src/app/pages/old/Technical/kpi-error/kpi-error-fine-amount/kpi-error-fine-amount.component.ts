@@ -119,7 +119,7 @@ export class KpiErrorFineAmountComponent implements OnInit {
             enableColumnReorder: false,
             enableSorting: false,
             editable: true,
-            autoEdit: false,
+            autoEdit: true,
             rowHeight: 35,
             headerRowHeight: 40,
             autoCommitEdit: true,
@@ -223,13 +223,15 @@ export class KpiErrorFineAmountComponent implements OnInit {
             next: (response: any) => {
                 if (response?.status === 1) {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu thành công');
+                    this.activeModal.close();
                 } else {
                     this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Lưu thất bại');
                 }
             },
             error: (error: any) => {
                 console.error('Error saving fine amount data:', error);
-                this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu');
+                const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra khi lưu dữ liệu';
+                this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
             }
         });
     }

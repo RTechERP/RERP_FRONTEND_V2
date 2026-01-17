@@ -167,6 +167,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
   isLoad: any = true;
   isDisSave: any = false;
+  isEmployeesLoaded: boolean = false; // Flag to check if employees are loaded
 
   currentUser: any;
   //#endregion
@@ -189,7 +190,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     this.getCustomers();
     this.getStatuses();
     this.getEmployees();
-    this.getUserTeams();
+    // this.getUserTeams();
     this.getFileDetail();
     this.getCurrentUser();
     this.onUrgentChange(this.validateForm.get('isUrgent')?.value || false);
@@ -266,6 +267,13 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           response.data,
           'DepartmentName'
         );
+        this.projectUserTeams = response.data.map((item: any) => ({
+          ...item,
+          EmployeeID: item.EmployeeID || item.ID,
+        }));
+        this.createLabelsFromData();
+        this.isEmployeesLoaded = true; // Set flag to true
+        this.getTbDetail();
         console.log(response.data);
       },
       error: (error: any) => {
@@ -277,6 +285,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   }
 
   getTbDetail() {
+    if (!this.isEmployeesLoaded) return; // Wait for employees to be loaded
     let data = {
       projectSurveyId: this.projectSurveyId ? this.projectSurveyId : 0,
       projectId: this.projectId ? this.projectId : 0,
@@ -1027,7 +1036,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         let item = {
           ID: row.ID ?? 0,
           ProjectSurveyID: this.projectSurveyId ?? 0,
-          ProjectTypeID: row.ProjectTypeID ?? 0,
+          ProjectTypeID: row.projectTypeID ?? 0,
           Note: row.Note ?? '',
           LeaderID: row.LeaderID ?? 0,
         };

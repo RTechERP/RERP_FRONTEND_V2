@@ -285,11 +285,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
@@ -317,11 +313,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
@@ -403,11 +395,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
@@ -490,11 +478,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {

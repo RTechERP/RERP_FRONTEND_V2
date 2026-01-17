@@ -90,17 +90,17 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     if (!value || value.trim().length === 0) {
       return { required: true };
     }
-    
+
     // Loại bỏ khoảng trắng, dấu gạch ngang, dấu ngoặc để validate
     const cleanPhone = value.replace(/[\s\-\(\)]/g, '');
-    
+
     // Pattern: 0[0-9]{9} hoặc (+84|84)[0-9]{9,10}
     const phonePattern = /^(0[0-9]{9}|(\+84|84)[0-9]{9,10})$/;
-    
+
     if (!phonePattern.test(cleanPhone)) {
       return { phoneInvalid: true };
     }
-    
+
     return null;
   };
 
@@ -130,7 +130,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     private appRef: ApplicationRef,
     private modalService: NgbModal,
     private authService: AuthService
-  ) {}
+  ) { }
 
   @Input() projectSurveyId: any = 0;
   @Input() projectId: any = 0;
@@ -175,7 +175,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     // this.isAdmin = !this.projectService.ISADMIN;
     // this.userRequestId =this.currentUser.ID ;
-   
+
   }
 
   ngAfterViewInit(): void {
@@ -205,21 +205,21 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       this.onUrgentChange(value || false);
     });
   }
-  getCurrentUser(){
+  getCurrentUser() {
     this.authService.getCurrentUser().subscribe({
-    next: (response: any) => {
-      this.currentUser = response.data;
-      this.getDetail();
-    },
-    error: (error: any) => {
-      const msg = error.message || 'Lỗi không xác định';
-      this.notification.error(NOTIFICATION_TITLE.error, msg);
-      console.error('Lỗi:', error.error);
-      this.getDetail();
-    },
-  })
+      next: (response: any) => {
+        this.currentUser = response.data;
+        this.getDetail();
+      },
+      error: (error: any) => {
+        const msg = error.message || 'Lỗi không xác định';
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
+        console.error('Lỗi:', error.error);
+        this.getDetail();
+      },
+    })
   }
-  
+
 
   getProjects() {
     this.projectService.getProjectModal().subscribe({
@@ -355,7 +355,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
                       this.fileDeletedIds.push(id);
                     }
                   }
-                  
+
                   // Xóa khỏi fileList
                   const index = this.fileList.findIndex(
                     (f) => f.name === fileName || f.FileName === fileName
@@ -363,7 +363,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
                   if (index > -1) {
                     this.fileList.splice(index, 1);
                   }
-                  
+
                   row.delete();
                 },
               });
@@ -395,8 +395,8 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     ];
     this.tb_projectSurveyDetail = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      pagination:false,
-      rowHeader:false,
+      pagination: false,
+      rowHeader: false,
       height: '50vh',
       layout: 'fitDataStretch',
       locale: 'vi',
@@ -559,17 +559,17 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   //#region Upload file
   beforeUpload = (file: any): boolean => {
     console.log('file', file);
-    
+
     // Check duplicate
-    const isDuplicate = this.fileList.some(f => 
+    const isDuplicate = this.fileList.some(f =>
       f.name === file.name && f.size === file.size
     );
-    
+
     if (isDuplicate) {
       console.warn('File đã tồn tại:', file.name);
       return false;
     }
-    
+
     const newFile = {
       uid: Math.random().toString(36).substring(2) + Date.now(),
       name: file.name,
@@ -581,10 +581,10 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       ServerPath: '',
       OriginName: file.name,
     };
-    
+
     this.fileList = [...this.fileList, newFile];
     this.updateFileTable();
-    
+
     return false; // Prevent auto upload
   };
 
@@ -592,11 +592,11 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     if (this.tb_projectSurveyFile) {
       // Clear table trước
       this.tb_projectSurveyFile.clearData();
-      
+
       const activeFiles = this.fileList.filter(
         (file: any) => !file.isDeleted && !file.IsDeleted
       );
-  
+
       const fileData = activeFiles.map((file: any, index: number) => ({
         ID: file.ID || 0,
         FileName: file.name || file.FileName,
@@ -605,7 +605,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         File: file.originFile || file.File,
         file: file,
       }));
-      
+
       this.tb_projectSurveyFile.addData(fileData);
     }
   }
@@ -623,10 +623,10 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
       Array.from(files).forEach((file) => {
         // Check duplicate
-        const isDuplicate = this.fileList.some(f => 
+        const isDuplicate = this.fileList.some(f =>
           f.name === file.name && f.size === file.size
         );
-        
+
         if (isDuplicate) {
           console.warn('File đã tồn tại:', file.name);
           return;
@@ -668,11 +668,11 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
   prepareFileData(): any[] {
     const fileData: any[] = [];
-    
+
     // Xử lý file đã có (có ID) - file đã tồn tại trên server
     this.fileList.forEach((file: any) => {
       if (!file) return;
-      
+
       if (file.ID && file.ID > 0) {
         // File đã tồn tại, cần update
         fileData.push({
@@ -739,7 +739,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       container.style.width = '100%';
       container.style.minWidth = '100%';
       container.style.boxSizing = 'border-box';
-      
+
       const componentRef = createComponent(component, {
         environmentInjector: injector,
       });
@@ -789,15 +789,15 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           if (data) {
             const dateStart = data.DateStart
               ? DateTime.fromISO(data.DateStart)
-                  .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                  .toUTC()
-                  .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+                .toUTC()
+                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
               : DateTime.local().plus({ day: 1 }).toISO();
             const dateEnd = data.DateEnd
               ? DateTime.fromISO(data.DateEnd)
-                  .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                  .toUTC()
-                  .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+                .toUTC()
+                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
               : DateTime.local().plus({ day: 1 }).toISO();
 
             this.validateForm.patchValue({
@@ -856,7 +856,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
               OriginName: file.FileNameOrigin || file.FileName || '',
               ID: file.ID || 0,
             }));
-            
+
             // Cập nhật bảng
             if (this.tb_projectSurveyFile) {
               this.updateFileTable();
@@ -914,64 +914,64 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   save(): void {
     // Trim tất cả string controls trước khi validate
     this.trimAllStringControls();
-    
+
     if (this.validateForm.valid) {
       const formValue = this.validateForm.getRawValue();
-      if(this.isEdit == 0){
-      let dateNow = DateTime.local();
-      let ds = DateTime.fromJSDate(new Date(formValue.dateStart));
-      let de = DateTime.fromJSDate(new Date(formValue.dateEnd));
+      if (this.isEdit == 0) {
+        let dateNow = DateTime.local();
+        let ds = DateTime.fromJSDate(new Date(formValue.dateStart));
+        let de = DateTime.fromJSDate(new Date(formValue.dateEnd));
 
-      if (ds > de) {
-        this.notification.error(NOTIFICATION_TITLE.error,
-          `Ngày bắt đầu phải nhỏ hơn bằng ngày kết thúc!`,
-          {
-            nzStyle: { fontSize: '0.75rem' },
-          }
-        );
-        return;
-      }
-
-      let timeSpan = ds
-        .startOf('day')
-        .diff(dateNow.startOf('day'), 'days').days;
-
-      if (timeSpan < 1) {
-        this.notification.error(NOTIFICATION_TITLE.error,
-          `Bạn không thể đăng ký trước ngày hiện tại!`,
-          {
-            nzStyle: { fontSize: '0.75rem' },
-          }
-        );
-        return;
-      }
-    
-
-      if (formValue.isUrgent == false) {
-        if (timeSpan > 1) {
-        } else if (timeSpan == 1) {
-          const now = new Date();
-          const currentHour = now.getHours();
-          const currentMinute = now.getMinutes();
-          if (currentHour > 17 || (currentHour === 17 && currentMinute > 0)) {
-            this.notification.error(
-              'Thông báo',
-              `Bạn phải đăng ký trước 17h!`,
-            );
-            return;
-          }
-        } else {
-          this.notification.error(
-            NOTIFICATION_TITLE.error,
-            `Bạn phải đăng ký trước ít nhất 1 ngày!`,
+        if (ds > de) {
+          this.notification.error(NOTIFICATION_TITLE.error,
+            `Ngày bắt đầu phải nhỏ hơn bằng ngày kết thúc!`,
             {
               nzStyle: { fontSize: '0.75rem' },
             }
           );
           return;
         }
+
+        let timeSpan = ds
+          .startOf('day')
+          .diff(dateNow.startOf('day'), 'days').days;
+
+        if (timeSpan < 1) {
+          this.notification.error(NOTIFICATION_TITLE.error,
+            `Bạn không thể đăng ký trước ngày hiện tại!`,
+            {
+              nzStyle: { fontSize: '0.75rem' },
+            }
+          );
+          return;
+        }
+
+
+        if (formValue.isUrgent == false) {
+          if (timeSpan > 1) {
+          } else if (timeSpan == 1) {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            if (currentHour > 17 || (currentHour === 17 && currentMinute > 0)) {
+              this.notification.error(
+                'Thông báo',
+                `Bạn phải đăng ký trước 17h!`,
+              );
+              return;
+            }
+          } else {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              `Bạn phải đăng ký trước ít nhất 1 ngày!`,
+              {
+                nzStyle: { fontSize: '0.75rem' },
+              }
+            );
+            return;
+          }
+        }
       }
-    }
 
       let prjTypeLinks = this.projectService
         .getSelectedRowsRecursive(this.tb_projectSurveyDetail.getData())
@@ -1038,9 +1038,9 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       const filesToUpload: File[] = this.fileList
         .filter((f) => (f.originFile || f.File) && !f.ServerPath)
         .map((f) => (f.originFile || f.File)!);
-      
+
       const subPath = this.getSubPath();
-      
+
       // Nếu có file mới cần upload
       if (filesToUpload.length > 0 && subPath) {
         this.notification.info('Đang upload', 'Đang tải file lên...');
@@ -1056,7 +1056,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
                 }
               });
             }
-            
+
             // Sau khi upload xong, chuẩn bị dữ liệu và save
             this.saveProjectSurveyData(projectSurvey, prjSurveyDetail);
           },
@@ -1092,7 +1092,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   saveProjectSurveyData(projectSurvey: any, prjSurveyDetail: any[]): void {
     // Chuẩn bị dữ liệu file với ServerPath đã có
     const fileData = this.prepareFileData();
-    
+
     let dataSave = {
       projectSurvey: projectSurvey,
       projectSurveyDetails: prjSurveyDetail,

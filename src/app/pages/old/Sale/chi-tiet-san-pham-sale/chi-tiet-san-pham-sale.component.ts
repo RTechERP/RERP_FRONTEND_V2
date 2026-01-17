@@ -46,6 +46,7 @@ import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detai
 import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
 import { NgZone } from '@angular/core';
 import { BillExportDetailNewComponent } from '../BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { ClipboardService } from '../../../../services/clipboard.service';
 @Component({
   selector: 'app-chi-tiet-san-pham-sale',
   imports: [
@@ -101,6 +102,7 @@ export class ChiTietSanPhamSaleComponent
     private menuEventService: MenuEventService,
     private zone: NgZone,
     private route: ActivatedRoute,
+    private clipboardService: ClipboardService,
     @Optional() @Inject('tabData') private tabData: any
   ) {
     // When opened from inventory via menuEventService, data comes through injector
@@ -141,21 +143,11 @@ export class ChiTietSanPhamSaleComponent
     if (event.ctrlKey && event.key === 'c' && this.selectedCellValue !== null) {
       // Prevent default browser copy behavior only if we have a selected cell
       event.preventDefault();
-      this.copyToClipboard(this.selectedCellValue);
+      this.clipboardService.copy(this.selectedCellValue);
     }
   }
 
-  // Copy text to clipboard
-  private copyToClipboard(text: string) {
-    navigator.clipboard.writeText(text).then(
-      () => {
-      },
-      (err) => {
-        console.error('Could not copy text: ', err);
-        this.notificationService.error('Lỗi', 'Không thể copy vào clipboard');
-      }
-    );
-  }
+
 
   // Setup cellClick event for a table to track selected cell
   private setupCellClickHandler(table: Tabulator) {

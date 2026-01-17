@@ -1677,8 +1677,26 @@ export class BillImportNewComponent implements OnInit {
     }
 
     openModalBillImportSynthetic() {
-        import('../Modal/bill-import-synthetic/bill-import-synthetic.component').then(m => {
-            const modalRef = this.modalService.open(m.BillImportSyntheticComponent, {
+        // OLD CODE - using BillImportSyntheticComponent
+        // import('../Modal/bill-import-synthetic/bill-import-synthetic.component').then(m => {
+        //     const modalRef = this.modalService.open(m.BillImportSyntheticComponent, {
+        //         centered: true,
+        //         backdrop: 'static',
+        //         keyboard: false,
+        //         fullscreen: true,
+        //     });
+        //     modalRef.componentInstance.warehouseCode = this.wareHouseCode;
+        //     modalRef.result.catch((result) => {
+        //         if (result == true) {
+        //             // this.id=0;
+        //             // this.loadDataBillImport();
+        //         }
+        //     });
+        // });
+
+        // NEW CODE - using BillImportSyntheticNewComponent
+        import('../Modal/bill-import-synthetic-new/bill-import-synthetic-new.component').then(m => {
+            const modalRef = this.modalService.open(m.BillImportSyntheticNewComponent, {
                 centered: true,
                 backdrop: 'static',
                 keyboard: false,
@@ -1687,8 +1705,7 @@ export class BillImportNewComponent implements OnInit {
             modalRef.componentInstance.warehouseCode = this.wareHouseCode;
             modalRef.result.catch((result) => {
                 if (result == true) {
-                    // this.id=0;
-                    // this.loadDataBillImport();
+                    this.loadDataBillImport();
                 }
             });
         });

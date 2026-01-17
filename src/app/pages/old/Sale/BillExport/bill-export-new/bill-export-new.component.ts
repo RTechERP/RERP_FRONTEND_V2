@@ -42,6 +42,7 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillExportDetailNewComponent } from '../bill-export-detail-new/bill-export-detail-new.component';
+import { ClipboardService } from '../../../../../services/clipboard.service';
 @Component({
   selector: 'app-bill-export-new',
   templateUrl: './bill-export-new.component.html',
@@ -92,7 +93,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
   isCheckmode: boolean = false;
   newBillExport: boolean = false;
   isModalOpening: boolean = false; // Flag để ngăn mở modal 2 lần
-  sizeTbDetail: number | string  = '0';
+  sizeTbDetail: number | string = '0';
   warehouseCode: string = '';
   checked: boolean = false;
   selectedKhoTypes: number[] = [];
@@ -131,8 +132,9 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     private modalService: NgbModal,
     private modal: NzModalService,
     private route: ActivatedRoute,
-    private appUserService: AppUserService
-  ) {}
+    private appUserService: AppUserService,
+    private clipboardService: ClipboardService
+  ) { }
 
   ngOnInit() {
     // Đọc wareHouseCode từ query params và reinit khi thay đổi
@@ -163,6 +165,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     this.initDetailGrid();
     this.initializeMenu();
     this.getProductGroup();
+    this.loadDataBillExport();
     this.isInitialized = true;
   }
 
@@ -193,10 +196,11 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         sortable: true,
         filterable: true,
         type: FieldType.boolean,
-        filter: { model: Filters['singleSelect'],
-          collection:[{value:'true', label:'Đã nhận'}, {value:'false', label:'Chưa nhận'}],
-          collectionOptions:{
-            addBlankEntry:true
+        filter: {
+          model: Filters['singleSelect'],
+          collection: [{ value: 'true', label: 'Đã nhận' }, { value: 'false', label: 'Chưa nhận' }],
+          collectionOptions: {
+            addBlankEntry: true
           }
         },
         formatter: Formatters.checkmarkMaterial,
@@ -410,6 +414,20 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
       autoHeight: false,
       gridHeight: 450,
       rowHeight: 66, // Height for 3 lines: 12px * 1.5 * 3 + padding
+      enableCellMenu: true,
+      cellMenu: {
+        commandItems: [
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 1,
+            action: (_e, args) => {
+              this.clipboardService.copy(args.value);
+            },
+          },
+        ],
+      },
     };
 
   }
@@ -787,59 +805,59 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
   //       });
   //   });
   // }
-// loadMasterData(): Promise<any> {
-//   return new Promise((resolve, reject) => {
-//     this.isLoadTable = true;
+  // loadMasterData(): Promise<any> {
+  //   return new Promise((resolve, reject) => {
+  //     this.isLoadTable = true;
 
-//     const params = {
-//       listproductgroupID: this.searchParams.listproductgroupID,
-//       status: this.searchParams.status,
-//       dateStart: this.searchParams.dateStart,
-//       dateEnd: this.searchParams.dateEnd,
-//       keyword: this.searchParams.keyword,
-//       checked: this.checked,
-//       warehousecode: this.searchParams.warehousecode,
-//     };
+  //     const params = {
+  //       listproductgroupID: this.searchParams.listproductgroupID,
+  //       status: this.searchParams.status,
+  //       dateStart: this.searchParams.dateStart,
+  //       dateEnd: this.searchParams.dateEnd,
+  //       keyword: this.searchParams.keyword,
+  //       checked: this.checked,
+  //       warehousecode: this.searchParams.warehousecode,
+  //     };
 
-//     this.billExportService
-//       .getBillExport(
-//         params.listproductgroupID,
-//         params.status,
-//         params.dateStart,
-//         params.dateEnd,
-//         params.keyword,
-//         params.checked,
-//         params.warehousecode,
-//         params.pageNumber,
-//         99999999
-//       )
-//       .subscribe({
-//         next: (res) => {
-//           this.isLoadTable = false;
+  //     this.billExportService
+  //       .getBillExport(
+  //         params.listproductgroupID,
+  //         params.status,
+  //         params.dateStart,
+  //         params.dateEnd,
+  //         params.keyword,
+  //         params.checked,
+  //         params.warehousecode,
+  //         params.pageNumber,
+  //         99999999
+  //       )
+  //       .subscribe({
+  //         next: (res) => {
+  //           this.isLoadTable = false;
 
-//           if (res.status === 1 && res.data?.length) {
-//             this.datasetMaster = res.data.map((item: any, index: number) => ({
-//               ...item,
-//               id: item.ID ?? index + 1, // 🔥 bắt buộc cho SlickGrid
-//             }));
+  //           if (res.status === 1 && res.data?.length) {
+  //             this.datasetMaster = res.data.map((item: any, index: number) => ({
+  //               ...item,
+  //               id: item.ID ?? index + 1, // 🔥 bắt buộc cho SlickGrid
+  //             }));
 
-//             resolve({ data: this.datasetMaster });
-//           } else {
-//             this.datasetMaster = [];
-//             resolve({ data: [] });
-//           }
-//         },
-//         error: (err) => {
-//           this.isLoadTable = false;
-//           this.notification.error(
-//             NOTIFICATION_TITLE.error,
-//             err?.error?.message || 'Không thể tải dữ liệu phiếu xuất'
-//           );
-//           reject(err);
-//         },
-//       });
-//   });
-// }
+  //             resolve({ data: this.datasetMaster });
+  //           } else {
+  //             this.datasetMaster = [];
+  //             resolve({ data: [] });
+  //           }
+  //         },
+  //         error: (err) => {
+  //           this.isLoadTable = false;
+  //           this.notification.error(
+  //             NOTIFICATION_TITLE.error,
+  //             err?.error?.message || 'Không thể tải dữ liệu phiếu xuất'
+  //           );
+  //           reject(err);
+  //         },
+  //       });
+  //   });
+  // }
 
   loadDataBillExport() {
     this.isLoadTable = true;
@@ -1095,12 +1113,12 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         } else {
           this.notification.error(
             'Thông báo',
-            res.message || 'Có lỗi xảy ra!'
+            res.message
           );
         }
       },
       error: (err) => {
-        const errorMsg = err?.error?.message;
+        const errorMsg = err?.error?.message || err?.message;
         this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
       },
     });
@@ -1714,7 +1732,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         // Close loading notification
         this.notification.remove(loadingNotification.messageId);
 
-        const errorMsg = err?.error?.message || 'Có lỗi xảy ra khi xuất file.';
+        const errorMsg = err?.error?.message || err?.message;
         this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
         console.error(err);
       },
@@ -1950,12 +1968,12 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         // {
         //   label: 'Xuất nhiều phiếu (Gộp)',
         //   icon: 'fa-solid fa-file-zipper fa-lg text-warning',
-        //   command: () => 
+        //   command: () =>
         // },
         // {
         //   label: 'Xuất nhiều phiếu (Tất cả mã)',
         //   icon: 'fa-solid fa-file-zipper fa-lg text-warning',
-        //   command: () => 
+        //   command: () =>
         // }
       ]
     });

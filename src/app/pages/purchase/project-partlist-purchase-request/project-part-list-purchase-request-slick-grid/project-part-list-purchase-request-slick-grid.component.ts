@@ -1075,7 +1075,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           }, 200);
         }
       },
-      error: (err) => this.notify.error('Lỗi', err.error.message),
+      error: (err) => this.notify.error('Lỗi', err.error.message || err?.message),
     });
 
     this.subscriptions.push(sub);
@@ -3921,7 +3921,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         this.isLoading = false;
       },
       error: (err) => {
-        this.notify.error('Lỗi', 'Không thể tải dữ liệu');
+        this.notify.error('Lỗi', err.error.message || err?.message);
         this.isLoading = false;
       },
     });
@@ -3991,7 +3991,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           error: (error) => {
             this.notify.error(
               NOTIFICATION_TITLE.error,
-              error.error?.message || `${textStatus} thất bại`
+              error.error?.message || error?.message
             );
             // Xóa selectedRowIds nếu có lỗi
             this.selectedRowIds = [];
@@ -4082,7 +4082,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           error: (error) => {
             this.notify.error(
               NOTIFICATION_TITLE.error,
-              error.error?.message || 'Lưu dữ liệu thất bại'
+              error.error?.message || error?.message
             );
             this.isLoading = false;
             this.selectedRowIds = [];
@@ -4357,7 +4357,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         this.isLoading = false;
         this.notify.error(
           NOTIFICATION_TITLE.error,
-          error.error?.message || 'Lỗi khi lấy dữ liệu chi tiết!'
+          error.error?.message || error?.message
         );
         this.selectedRowIds = [];
         this.selectedTabIndex = -1;
@@ -4401,7 +4401,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             error: (error) =>
               this.notify.error(
                 NOTIFICATION_TITLE.error,
-                error.error?.message || 'Hủy yêu cầu thất bại'
+                error.error?.message || error?.message
               ),
           });
         this.subscriptions.push(sub);
@@ -4473,7 +4473,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           error: (error) => {
             this.notify.error(
               NOTIFICATION_TITLE.error,
-              error.error?.message || `${textStatus} thất bại`
+              error.error?.message || error?.message
             );
             this.selectedRowIds = [];
             this.selectedTabIndex = -1;
@@ -4530,7 +4530,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           error: (error) => {
             this.notify.error(
               NOTIFICATION_TITLE.error,
-              error.error?.message || `${textStatus} thất bại`
+              error.error?.message || error?.message
             );
             this.selectedRowIds = [];
             this.selectedTabIndex = -1;
@@ -4610,7 +4610,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           error: (error) => {
             this.notify.error(
               NOTIFICATION_TITLE.error,
-              error.error?.message || `${textStatus} thất bại`
+              error.error?.message || error?.message
             );
             this.selectedRowIds = [];
             this.selectedTabIndex = -1;
@@ -4859,7 +4859,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
                           this.isLoading = false;
                           this.notify.error(
                             NOTIFICATION_TITLE.error,
-                            error.error?.message || 'Lỗi khi lấy số đơn hàng!'
+                            error.error?.message || error?.message
                           );
                         },
                       });
@@ -4869,7 +4869,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
                     this.isLoading = false;
                     this.notify.error(
                       NOTIFICATION_TITLE.error,
-                      error.error?.message || 'Lỗi khi validate dữ liệu!'
+                      error.error?.message || error?.message
                     );
                   },
                 });
@@ -4881,7 +4881,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           this.isLoading = false;
           this.notify.error(
             NOTIFICATION_TITLE.error,
-            error.error?.message || 'Lỗi khi validate dữ liệu!'
+            error.error?.message || error?.message
           );
         },
       });
@@ -5161,7 +5161,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           error: (error) => {
             this.notify.error(
               NOTIFICATION_TITLE.error,
-              error.error?.message || 'Sao chép thất bại'
+              error.error?.message || error?.message
             );
             this.isLoading = false;
           },
@@ -5381,7 +5381,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           error: (error) =>
             this.notify.error(
               NOTIFICATION_TITLE.error,
-              error.error?.message || 'Giữ hàng thất bại'
+              error.error?.message || error?.message
             ),
         });
         this.subscriptions.push(sub);
@@ -5439,7 +5439,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           error: (error) =>
             this.notify.error(
               NOTIFICATION_TITLE.error,
-              error.error?.message || `${isImportText} thất bại`
+              error.error?.message || error?.message
             ),
         });
         this.subscriptions.push(sub);
@@ -5652,7 +5652,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           error: (error) => {
             this.notify.error(
               NOTIFICATION_TITLE.error,
-              error.error?.message || 'Cập nhật thất bại'
+              error.error?.message || error?.message
             );
             this.isLoading = false;
           },

@@ -153,7 +153,7 @@
                         <nz-splitter nzLayout="vertical" style="height: 100%;">
                             <!-- Product Group Grid -->
                             <nz-splitter-panel nzDefaultSize="70%" >
-                                <div class="grid-container-product-group" style="height: 100%;">
+                                <div [id]="'grid-container-product-group-' + warehouseCode" class="grid-container-product-group" style="height: 100%;">
                                     <angular-slickgrid [gridId]="'grvProductGroup-'+ warehouseCode"
                                         [columns]="columnDefinitionsProductGroup"
                                         [options]="gridOptionsProductGroup"
@@ -167,7 +167,7 @@
 
                             <!-- Product Group Warehouse Grid -->
                             <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" style="overflow: auto;">
-                                <div class="grid-container-pg-warehouse" style="height: 100%;">
+                                <div [id]="'grid-container-pg-warehouse-' + warehouseCode" class="grid-container-pg-warehouse" style="height: 100%;">
                                     <angular-slickgrid [gridId]="'grvPGWarehouse-'+ warehouseCode"
                                         [columns]="columnDefinitionsPGWarehouse"
                                         [options]="gridOptionsPGWarehouse"
@@ -182,7 +182,7 @@
                     <!-- Cột phải: Product Sale Grid -->
                     <nz-splitter-panel [nzCollapsible]="true">
                         <div class="position-relative h-100">
-                            <div class="grid-container-product-sale" style="height: 100%;">
+                            <div [id]="'grid-container-product-sale-' + warehouseCode" class="grid-container-product-sale" style="height: 100%">
                                 <nz-spin [nzSpinning]="isLoading">
                                     <angular-slickgrid [gridId]="'grvProductSale-' + warehouseCode"
                                         [columns]="columnDefinitionsProductSale"

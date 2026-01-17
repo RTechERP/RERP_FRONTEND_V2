@@ -73,7 +73,6 @@ import { Menubar } from 'primeng/menubar';
     SummaryFoodOrderComponent,
     NgIf,
     NzSpinModule,
-    HasPermissionDirective,
     Menubar
   ],
 })
@@ -111,6 +110,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   selectedFoodOrderĐP: any = null;
 
   isLoading = false;
+  isSaving = false;
 
   @ViewChild('tb_foodOrder_HN', { static: false })
   tb_foodOrderHN!: ElementRef;
@@ -251,8 +251,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
 
   private initForm() {
     const canEditEmployee = this.permissionService.hasPermission('N80,N1,N34');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = this.formatDateForInput(new Date());
 
     this.foodOrderForm = this.fb.group({
       ID: [0],
@@ -265,7 +264,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       FullName: [''],
       IsDeleted: [false],
     });
-
 
     if (canEditEmployee) {
       this.foodOrderForm.get('EmployeeID')?.enable();
@@ -284,16 +282,13 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           // Xưởng Đan Phượng: set ngày mai
           const tomorrow = new Date();
           tomorrow.setDate(tomorrow.getDate() + 1);
-          tomorrow.setHours(0, 0, 0, 0);
           this.foodOrderForm.patchValue({
-            DateOrder: tomorrow
+            DateOrder: this.formatDateForInput(tomorrow)
           }, { emitEvent: false });
         } else if (location === '1') {
           // VP Hà Nội: set ngày hôm nay
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
           this.foodOrderForm.patchValue({
-            DateOrder: today
+            DateOrder: this.formatDateForInput(new Date())
           }, { emitEvent: false });
         }
       }
@@ -304,25 +299,21 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     // Kiểm tra quyền N1, N2, N34 hoặc IsAdmin
     const hasAdminPermission = this.hasAdminPermission();
 
-    let dateStart: Date;
-    let dateEnd: Date;
+    let dateStart: string;
+    let dateEnd: string;
 
     if (hasAdminPermission) {
       // Người có quyền N1/N2: set về hôm nay
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      dateStart = today;
-      dateEnd = today;
+      dateStart = this.formatDateForInput(today);
+      dateEnd = this.formatDateForInput(today);
     } else {
       // Người không có quyền: set từ đầu tháng đến cuối tháng
       const now = new Date();
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      firstDay.setHours(0, 0, 0, 0);
-      dateStart = firstDay;
-
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      lastDay.setHours(0, 0, 0, 0);
-      dateEnd = lastDay;
+      dateStart = this.formatDateForInput(firstDay);
+      dateEnd = this.formatDateForInput(lastDay);
     }
 
     this.searchForm = this.fb.group({
@@ -333,6 +324,14 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       pageSize: 100000,
       keyWord: '',
     });
+  }
+
+  // Helper function to format Date to yyyy-MM-dd for input type="date"
+  private formatDateForInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   ngAfterViewInit(): void {
@@ -596,14 +595,12 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   }
 
   openAddModal() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const defaultLocation = this.currentUser?.EmployeeID === 586 ? '2' : '1';
 
     this.foodOrderForm.reset({
       ID: 0,
       EmployeeID: this.currenEmployee?.EmployeeID,
-      DateOrder: today,
+      DateOrder: this.formatDateForInput(new Date()),
       Quantity: 1,
       IsApproved: false,
       Location: defaultLocation,
@@ -667,7 +664,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         ID: this.selectedFoodOrderHN.ID,
         EmployeeID: this.selectedFoodOrderHN.EmployeeID,
         FullName: this.selectedFoodOrderHN.FullName,
-        DateOrder: isNaN(dateOrderHN.getTime()) ? new Date() : dateOrderHN,
+        DateOrder: this.formatDateForInput(isNaN(dateOrderHN.getTime()) ? new Date() : dateOrderHN),
         Quantity: this.selectedFoodOrderHN.Quantity,
         IsApproved: this.selectedFoodOrderHN.IsApproved,
         Location: this.selectedFoodOrderHN.Location?.toString(),
@@ -684,7 +681,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         ID: this.selectedFoodOrderĐP.ID,
         EmployeeID: this.selectedFoodOrderĐP.EmployeeID,
         FullName: this.selectedFoodOrderĐP.FullName,
-        DateOrder: isNaN(dateOrderĐP.getTime()) ? new Date() : dateOrderĐP,
+        DateOrder: this.formatDateForInput(isNaN(dateOrderĐP.getTime()) ? new Date() : dateOrderĐP),
         Quantity: this.selectedFoodOrderĐP.Quantity,
         IsApproved: this.selectedFoodOrderĐP.IsApproved,
         Location: this.selectedFoodOrderĐP.Location?.toString(),
@@ -700,6 +697,10 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   }
 
   onSubmit() {
+    // Nếu đang lưu thì không cho submit tiếp
+    if (this.isSaving) {
+      return;
+    }
 
     if (this.foodOrderForm.invalid) {
       Object.values(this.foodOrderForm.controls).forEach((control) => {
@@ -805,8 +806,10 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       IsDeleted: formData.IsDeleted,
     };
 
+    this.isSaving = true;
     this.foodOrderService.saveEmployeeFoodOrder(foodOrderData).subscribe({
       next: (response) => {
+        this.isSaving = false;
         this.notification.success(
           NOTIFICATION_TITLE.success,
           formData.ID === 0
@@ -829,6 +832,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         });
       },
       error: (error: any) => {
+        this.isSaving = false;
         const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi khi lưu đơn đặt cơm';
         this.notification.error(
           NOTIFICATION_TITLE.error,

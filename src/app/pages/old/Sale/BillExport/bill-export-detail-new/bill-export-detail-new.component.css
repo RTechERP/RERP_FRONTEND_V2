@@ -141,5 +141,5 @@
   background-color: #fafafa;
 }
 ::ng-deep div[id^="billExportDetailGrid-"]{
-  height:40vh;
+  height: 40vh !important;;
 }

@@ -35,6 +35,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { BillImportDetailComponent } from '../../BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { ClipboardService } from '../../../../../services/clipboard.service';
 
 @Component({
     selector: 'app-history-import-export-new',
@@ -103,7 +104,8 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
         private notification: NzNotificationService,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        private modalService: NgbModal
+        private modalService: NgbModal,
+        private clipboardService: ClipboardService
     ) {}
 
     ngOnInit(): void {
@@ -436,6 +438,20 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
             enableAutoSizeColumns: false,
             frozenColumn: 3,
             enableHeaderMenu: false,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.clipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
             enableExcelExport: true,
             externalResources: [this.excelExportService],
             // Footer row configuration

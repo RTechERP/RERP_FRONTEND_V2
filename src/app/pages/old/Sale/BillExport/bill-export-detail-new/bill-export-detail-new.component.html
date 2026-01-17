@@ -70,7 +70,7 @@
 
         <div nz-col nzSpan="6">
           <nz-form-item>
-            <nz-form-label class="fs-12">Ngày xuất<span class="text-danger">*</span></nz-form-label>
+            <nz-form-label class="fs-12">Ngày xuất<span class="text-danger" *ngIf="validateForm.get('Status')?.value !== 6">*</span></nz-form-label>
             <nz-form-control [nzErrorTip]="creatDateError">
               <nz-date-picker nzSize="default" formControlName="CreatDate" [nzFormat]="dateFormat" class="w-100"></nz-date-picker>
               <ng-template #creatDateError let-control>
@@ -132,9 +132,14 @@
 
         <div nz-col nzSpan="6">
           <nz-form-item>
-            <nz-form-label class="fs-12">Ngày yêu cầu</nz-form-label>
-            <nz-form-control>
+            <nz-form-label class="fs-12">Ngày yêu cầu<span class="text-danger" *ngIf="validateForm.get('Status')?.value === 6">*</span></nz-form-label>
+            <nz-form-control [nzErrorTip]="requestDateError">
               <nz-date-picker nzSize="default" formControlName="RequestDate" [nzFormat]="dateFormat" class="w-100"></nz-date-picker>
+              <ng-template #requestDateError let-control>
+                <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
+                  Vui lòng chọn ngày yêu cầu!
+                </ng-container>
+              </ng-template>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -259,7 +264,7 @@
     <!-- SlickGrid for Bill Export Details -->
     <div class="grid-container-detail">
       <angular-slickgrid
-        [gridId]="'billExportDetailGrid-' + wareHouseCode + '-' + id"
+        [gridId]="gridUniqueId"
         [columns]="columnDefinitionsDetail"
         [options]="gridOptionsDetail"
         [dataset]="dataDetail"

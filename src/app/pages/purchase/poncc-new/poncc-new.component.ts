@@ -1496,10 +1496,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                   );
                   this.displayDetailsForMaster(previousSelectedMasterId);
                 },
-                error: () => {
+                error: (error) => {
                   this.notify.error(
                     'Lỗi',
-                    `Không tải được chi tiết cho PO ID: ${previousSelectedMasterId}`
+                  error.error?.message || error?.message
                   );
                 },
               });
@@ -1514,9 +1514,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
           }
         }, 100);
       },
-      error: () => {
+      error: (error) => {
         this.isLoading = false;
-        this.notify.error('Lỗi', 'Không tải được dữ liệu PO NCC');
+        this.notify.error('Lỗi', error.error?.message || error?.message);
       },
     });
   }
@@ -2229,7 +2229,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.notify.error('Lỗi', 'Không thể tải chi tiết PO');
+        this.notify.error('Lỗi', err.error?.message || err?.message);
       },
     });
   }
@@ -2430,7 +2430,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
               Status: 0 // Reset về trạng thái "Đang tiến hành"
             };
               console.log('copyPO:',copiedPO);
-              
+
             modalRef.componentInstance.poncc = copiedPO;
             modalRef.componentInstance.isCopy = true;
             modalRef.componentInstance.dtRef = [];
@@ -2442,13 +2442,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
           },
           error: (err) => {
             this.isLoading = false;
-            this.notify.error('Lỗi', 'Không thể tải mã mới cho PO');
+            this.notify.error('Lỗi', err.error?.message || err?.message);
           }
         });
       },
       error: (err) => {
         this.isLoading = false;
-        this.notify.error('Lỗi', 'Không thể tải chi tiết PO');
+        this.notify.error('Lỗi', err.error?.message || err?.message);
       },
     });
   }

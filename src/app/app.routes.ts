@@ -245,6 +245,8 @@ import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-rep
 // // import { SummaryKpiErrorEmployeeCloneComponent } from './pages/old/Technical/summary-kpi-error-employee-clone/summary-kpi-error-employee-clone.component';
 import { SummaryKpiErrorEmployeeNewComponent } from './pages/old/Technical/summary-kpi-error-employee/summary-kpi-error-employee-new/summary-kpi-error-employee-new.component';
 
+import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
+import { VehicleBookingManagementSlickgridComponent } from './pages/hrm/vehicle/vehicle-booking-management/vehicle-booking-management-slickgrid/vehicle-booking-management-slickgrid.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -506,7 +508,8 @@ export const routes: Routes = [
             //Đăng ký chung
             { path: 'booking-room', component: BookingRoomComponent, canActivate: [authGuard] },
             { path: 'tracking-mark', component: TrackingMarksComponent, canActivate: [authGuard] },
-            { path: 'booking-vehicle', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
+            { path: 'booking-vehicle', component: VehicleBookingManagementSlickgridComponent, canActivate: [authGuard] },
+            { path: 'booking-vehicle-backup', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
             { path: 'payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'payment-order-special', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },

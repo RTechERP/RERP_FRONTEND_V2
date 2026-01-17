@@ -4181,70 +4181,8 @@ export class PaymentOrderComponent implements OnInit {
         }
 
         const isVND = (paymentOrder.Unit?.toUpperCase() ?? '') == 'VND';
-
-        // let groupHeader3: any = {};
-        // let sumTotalFooter: any = [];
-        // if (paymentOrder.TypeOrder == 1) {
-        //     groupHeader3 = {
-        //         style: 'groupHeader3',
-        //         table: {
-        //             widths: [120, '*', 40, 70],
-        //             body: [
-        //                 [
-        //                     '3. Thời gian thanh quyết toán',
-        //                     { colSpan: 3, text: `:Ngày ${datePayment.getDate()} tháng ${datePayment.getMonth() + 1} năm ${datePayment.getFullYear()}` }
-        //                 ]
-        //             ],
-        //         },
-        //         layout: 'noBorders',
-        //     };
-
-
-
-        //     let totalQuantity = details.reduce((sum: number, x: any) => sum + x.Quantity, 0);
-        //     totalQuantity = totalQuantity <= 0 ? '' : totalQuantity;
-
-        //     let totalUnitPrice = details.reduce((sum: number, x: any) => sum + x.UnitPrice, 0);
-        //     totalUnitPrice = totalUnitPrice <= 0 ? '' : (isVND ? this.formatNumber(totalUnitPrice, 0) : this.formatNumber(totalUnitPrice));
-
         let totalMoneys = details.reduce((sum: number, x: any) => sum + x.TotalMoney, 0);
         totalMoneys = totalMoneys <= 0 ? '' : (isVND ? this.formatNumber(totalMoneys, 0) : this.formatNumber(totalMoneys));
-
-        //     sumTotalFooter = [
-        //         [
-        //             { colSpan: 2, text: 'Tổng cộng tạm ứng', bold: true, border: [true, false, true, true] }, {},
-        //             { colSpan: 1, text: '', bold: true, border: [true, false, true, true] },
-        //             { colSpan: 1, text: totalQuantity, bold: true, alignment: 'right', border: [true, false, true, true] },
-        //             { colSpan: 1, text: totalUnitPrice, bold: true, alignment: 'right', border: [true, false, true, true] },
-        //             { colSpan: 1, text: totalMoney, bold: true, alignment: 'right', border: [true, false, true, true] },
-        //             { colSpan: 3, text: '' }, {}, {},
-        //         ]
-        //     ]
-        // }
-
-        // let groupHeader4: any = {};
-        // if (paymentOrder.TypePayment == 1) {
-        //     groupHeader4 = {
-        //         style: 'groupHeader4',
-        //         table: {
-        //             widths: [120, '*', 40, 70],
-        //             body: [
-        //                 [
-        //                     '- Hình thức chuyển khoản',
-        //                     { colSpan: 3, text: `:${paymentOrder.TypeBankTransferText}` }, {}, {}
-        //                 ],
-        //                 [
-        //                     '- Nội dung chuyển khoản',
-        //                     { colSpan: 3, text: `:${paymentOrder.ContentBankTransfer}` }, {}, {}
-        //                 ]
-
-        //             ],
-        //         },
-        //         layout: 'noBorders',
-        //     }
-        // }
-
-
 
         let items: any = [];
         for (let i = 0; i < details.length; i++) {
@@ -4258,18 +4196,11 @@ export class PaymentOrderComponent implements OnInit {
             let item = [
                 { text: detail.Stt, alignment: 'center' },
                 { text: detail.ContentPayment, alignment: '' },
-
-                // { text: detail.Unit, alignment: '' },
-                // {
-                //     text: quantity,
-                //     alignment: 'right',
-                // },
-                // { text: unitPrice, alignment: 'right' },
                 { text: totalMoney, alignment: 'right' },
-                { text: detail.PaymentMethodsText, alignment: 'right' },
-                { text: detail.PaymentInfor, alignment: 'right' },
-                { text: detail.UserTeamName, alignment: 'right' },
-                { text: detail.Note, alignment: 'right' },
+                { text: detail.PaymentMethodsText, alignment: '' },
+                { text: detail.PaymentInfor, alignment: '' },
+                { text: detail.UserTeamName, alignment: '' },
+                { text: detail.Note, alignment: '' },
             ];
             items.push(item);
         }
@@ -4279,11 +4210,13 @@ export class PaymentOrderComponent implements OnInit {
 
         //Chữ ký
 
+        console.log('signs:', signs);
+
         const signEmp = signs.find((x: any) => x.Step == 1 && x.IsApproved == 1);
         const signTBP = signs.find((x: any) => x.Step == 2 && x.IsApproved == 1);
         // const signHR = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
-        const signKT = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
-        const signBGD = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
+        const signKT = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
+        const signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
 
         const dateApprovedEmp = signEmp?.DateApproved ? DateTime.fromISO(signEmp?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
         const dateApprovedTBP = (signTBP?.DateApproved || '') != '' ? DateTime.fromISO(signTBP?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
@@ -4429,16 +4362,16 @@ export class PaymentOrderComponent implements OnInit {
                         alignment: 'justify',
                         columns: [
                             {
-                                text: `${signEmp?.FullNameDefault || ''}\n${dateApprovedEmp}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                                text: `${signEmp?.FullName || ''}\n${dateApprovedEmp}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                             },
                             {
-                                text: `${signTBP?.FullNameDefault || ''}\n${dateApprovedTBP}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                                text: `${signTBP?.FullName || ''}\n${dateApprovedTBP}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                             },
                             {
-                                text: `${signKT?.FullNameDefault || ''}\n${dateApprovedKT}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                                text: `${signKT?.FullName || ''}\n${dateApprovedKT}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                             },
                             {
-                                text: `${signBGD?.FullNameDefault || ''}\n${dateApprovedBGD}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                                text: `${signBGD?.FullName || ''}\n${dateApprovedBGD}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                             },
                         ],
                     }

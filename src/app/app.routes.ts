@@ -241,7 +241,7 @@ import { InventoryProjectNewComponent } from './pages/purchase/inventory-project
 // import { KpiErrorEmployeeSummaryMaxComponent } from './pages/old/Technical/kpi-error-employee-summary-max/kpi-error-employee-summary-max.component';
 // import { SummaryKpiErrorEmployeeMonthComponent } from './pages/old/Technical/summary-kpi-error-employee-month/summary-kpi-error-employee-month.component';
 // import { SummaryKpiErrorEmployeeComponent } from './pages/old/Technical/summary-kpi-error-employee/summary-kpi-error-employee.component';
-import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
+// import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
 // // import { SummaryKpiErrorEmployeeCloneComponent } from './pages/old/Technical/summary-kpi-error-employee-clone/summary-kpi-error-employee-clone.component';
 import { SummaryKpiErrorEmployeeNewComponent } from './pages/old/Technical/summary-kpi-error-employee/summary-kpi-error-employee-new/summary-kpi-error-employee-new.component';
 

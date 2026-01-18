@@ -122,8 +122,6 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 ?? this.tabData?.warehouseID
                 ?? 1;
 
-
-
             this.searchParams.warehouseCode = this.warehouseCode;
             this.searchParams.warehouseID = this.warehouseID;
         });
@@ -534,7 +532,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
 
         this.gridOptions = {
             autoResize: {
-                container: '.grid-container',
+                container: '.grid-container' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },

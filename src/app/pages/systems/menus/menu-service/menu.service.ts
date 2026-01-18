@@ -3740,9 +3740,10 @@ export class MenuService {
                 //     });
                 // };
 
-                menus = this.menuAppService.sortBySTTImmutable(menus, i => i.STT ?? i.stt ?? 0);
+                // return 
 
-                // console.log('response.data.menus:', this.router.url.split('?')[0]);
+
+                // console.log('menus sortBySTTImmutable:', menus);
 
                 // const router = this.router.url.split('?')[0].replace('/', '');
                 // this.rootMenuKey = this.findRootKeyByRouter(this.menus, router) || '';
@@ -3780,6 +3781,8 @@ export class MenuService {
         })
 
 
+        menus = this.menuAppService.sortBySTTImmutable(menus, i => i.STT ?? i.stt ?? 0);
+        // console.log('menus:', menus);
         return menus;
     }
 

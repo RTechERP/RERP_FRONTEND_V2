@@ -4,6 +4,8 @@ import {
     AfterViewInit,
     OnDestroy,
     ChangeDetectorRef,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -105,12 +107,17 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
         private modalService: NgbModal,
-        private clipboardService: ClipboardService
-    ) {}
+        private clipboardService: ClipboardService,
+        @Optional() @Inject('tabData') private tabData: any
+    ) { }
 
     ngOnInit(): void {
         this.route.queryParams.subscribe((params) => {
-            this.warehouseCode = params['warehouseCode'] || 'HN';
+            // this.warehouseCode = params['warehouseCode'] || 'HN';
+            this.warehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
             this.searchParams.warehouseCode = this.warehouseCode;
         });
 
@@ -624,7 +631,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                         // Map data với id unique cho SlickGrid
                         const mappedData = this.dataTable.map((item: any, index: number) => ({
                             ...item,
-                            id:index,
+                            id: index,
                         }));
 
                         this.dataset = mappedData;

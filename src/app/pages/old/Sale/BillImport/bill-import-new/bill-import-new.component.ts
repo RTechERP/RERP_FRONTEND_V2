@@ -203,10 +203,14 @@ export class BillImportNewComponent implements OnInit {
 
         this.route.queryParams.subscribe(params => {
             // this.wareHouseCode = params['warehouseCode'] || 'HN';
+
+            // console.log('params:', params);
+            // console.log('this.tabData:', this.tabData);
+
             this.wareHouseCode =
-                params['wareHouseCode']
-                ?? this.tabData?.wareHouseCode
-                ?? 1;
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
             this.searchParams.warehousecode = this.wareHouseCode;
 
             this.getProductGroup();
@@ -361,7 +365,7 @@ export class BillImportNewComponent implements OnInit {
     initMasterGrid(): void {
         this.columnDefinitionsMaster = [
             {
-                id: 'Status',
+                id: 'Status' + this.wareHouseCode,
                 name: 'Nhận chứng từ',
                 field: 'Status',
                 sortable: true,
@@ -379,7 +383,7 @@ export class BillImportNewComponent implements OnInit {
                 cssClass: 'text-center'
             },
             {
-                id: 'DateStatus',
+                id: 'DateStatus' + this.wareHouseCode,
                 name: 'Ngày nhận / Hủy',
                 field: 'DateStatus',
                 sortable: true,
@@ -393,7 +397,7 @@ export class BillImportNewComponent implements OnInit {
                 cssClass: 'text-center'
             },
             {
-                id: 'BillTypeText',
+                id: 'BillTypeText' + this.wareHouseCode,
                 name: 'Loại phiếu',
                 field: 'BillTypeText',
                 sortable: true,
@@ -404,7 +408,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'DateRequestImport',
+                id: 'DateRequestImport' + this.wareHouseCode,
                 name: 'Ngày Y/c nhập',
                 field: 'DateRequestImport',
                 sortable: true,
@@ -422,7 +426,7 @@ export class BillImportNewComponent implements OnInit {
                 cssClass: 'text-center'
             },
             {
-                id: 'BillImportCode',
+                id: 'BillImportCode' + this.wareHouseCode,
                 name: 'Số phiếu',
                 field: 'BillImportCode',
                 sortable: true,
@@ -433,7 +437,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'Suplier',
+                id: 'Suplier' + this.wareHouseCode,
                 name: 'Nhà cung cấp / Bộ phận',
                 field: 'Suplier',
                 sortable: true,
@@ -445,7 +449,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'DepartmentName',
+                id: 'DepartmentName' + this.wareHouseCode,
                 name: 'Phòng ban',
                 field: 'DepartmentName',
                 sortable: true,
@@ -457,7 +461,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'Code',
+                id: 'Code' + this.wareHouseCode,
                 name: 'Mã NV',
                 field: 'Code',
                 sortable: true,
@@ -468,7 +472,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'Deliver',
+                id: 'Deliver' + this.wareHouseCode,
                 name: 'Người giao / Người trả',
                 field: 'Deliver',
                 sortable: true,
@@ -488,7 +492,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'Reciver',
+                id: 'Reciver' + this.wareHouseCode,
                 name: 'Người nhận',
                 field: 'Reciver',
                 sortable: true,
@@ -508,7 +512,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'KhoType',
+                id: 'KhoType' + this.wareHouseCode,
                 name: 'Loại vật tư',
                 field: 'KhoType',
                 sortable: true,
@@ -527,7 +531,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'WarehouseName',
+                id: 'WarehouseName' + this.wareHouseCode,
                 name: 'Kho',
                 field: 'WarehouseName',
                 sortable: true,
@@ -546,7 +550,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'IsSuccessText',
+                id: 'IsSuccessText' + this.wareHouseCode,
                 name: 'Tình trạng hồ sơ',
                 field: 'IsSuccessText',
                 sortable: true,
@@ -565,7 +569,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'CreatedDate',
+                id: 'CreatedDate' + this.wareHouseCode,
                 name: 'Ngày tạo',
                 field: 'CreatedDate',
                 sortable: true,
@@ -579,7 +583,7 @@ export class BillImportNewComponent implements OnInit {
                 cssClass: 'text-center'
             },
             {
-                id: 'CreatedBy',
+                id: 'CreatedBy' + this.wareHouseCode,
                 name: 'Người tạo',
                 field: 'CreatedBy',
                 sortable: true,
@@ -599,7 +603,7 @@ export class BillImportNewComponent implements OnInit {
                 },
             },
             {
-                id: 'DoccumentReceiver',
+                id: 'DoccumentReceiver' + this.wareHouseCode,
                 name: 'Người nhận / Hủy CT',
                 field: 'DoccumentReceiver',
                 sortable: true,
@@ -621,8 +625,13 @@ export class BillImportNewComponent implements OnInit {
 
         this.gridOptionsMaster = {
             enableAutoResize: true,
+            // autoResize: {
+            //     container: '.grid-container-master' + this.wareHouseCode,
+            //     calculateAvailableSizeBy: 'container',
+            //     resizeDetection: 'container',
+            // },
             autoResize: {
-                container: '.grid-container-master',
+                container: '.grid-container-master' + this.wareHouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -669,7 +678,7 @@ export class BillImportNewComponent implements OnInit {
     initDetailGrid(): void {
         this.columnDefinitionsDetail = [
             {
-                id: 'ProductNewCode',
+                id: 'ProductNewCode' + this.wareHouseCode,
                 name: 'Mã nội bộ',
                 field: 'ProductNewCode',
                 sortable: true,
@@ -678,7 +687,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'ProductCode',
+                id: 'ProductCode' + this.wareHouseCode,
                 name: 'Mã hàng',
                 field: 'ProductCode',
                 sortable: true,
@@ -687,7 +696,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'ProductName',
+                id: 'ProductName' + this.wareHouseCode,
                 name: 'Chi tiết sản phẩm',
                 field: 'ProductName',
                 sortable: true,
@@ -696,7 +705,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'SerialNumber',
+                id: 'SerialNumber' + this.wareHouseCode,
                 name: 'Serial Number',
                 field: 'SerialNumber',
                 sortable: true,
@@ -705,7 +714,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'Unit',
+                id: 'Unit' + this.wareHouseCode,
                 name: 'ĐVT',
                 field: 'Unit',
                 sortable: true,
@@ -715,7 +724,7 @@ export class BillImportNewComponent implements OnInit {
                 cssClass: 'text-center'
             },
             {
-                id: 'ProjectCode',
+                id: 'ProjectCode' + this.wareHouseCode,
                 name: 'Mã theo dự án',
                 field: 'ProjectCode',
                 sortable: true,
@@ -724,7 +733,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'Qty',
+                id: 'Qty' + this.wareHouseCode,
                 name: 'SL thực tế',
                 field: 'Qty',
                 sortable: true,
@@ -736,7 +745,7 @@ export class BillImportNewComponent implements OnInit {
                 cssClass: 'text-end'
             },
             {
-                id: 'SomeBill',
+                id: 'SomeBill' + this.wareHouseCode,
                 name: 'Hóa đơn',
                 field: 'SomeBill',
                 sortable: true,
@@ -745,7 +754,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'DateSomeBill',
+                id: 'DateSomeBill' + this.wareHouseCode,
                 name: 'Ngày hóa đơn',
                 field: 'DateSomeBill',
                 sortable: true,
@@ -759,7 +768,7 @@ export class BillImportNewComponent implements OnInit {
                 cssClass: 'text-center'
             },
             {
-                id: 'ProductGroupName',
+                id: 'ProductGroupName' + this.wareHouseCode,
                 name: 'Loại hàng',
                 field: 'ProductGroupName',
                 sortable: true,
@@ -768,7 +777,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'ProjectCodeText',
+                id: 'ProjectCodeText' + this.wareHouseCode,
                 name: 'Mã dự án',
                 field: 'ProjectCodeText',
                 sortable: true,
@@ -777,7 +786,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'ProjectNameText',
+                id: 'ProjectNameText' + this.wareHouseCode,
                 name: 'Tên dự án',
                 field: 'ProjectNameText',
                 sortable: true,
@@ -786,7 +795,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'CustomerFullName',
+                id: 'CustomerFullName' + this.wareHouseCode,
                 name: 'Khách hàng',
                 field: 'CustomerFullName',
                 sortable: true,
@@ -795,7 +804,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'BillCode',
+                id: 'BillCode' + this.wareHouseCode,
                 name: 'Đơn mua hàng',
                 field: 'BillCodePO',
                 sortable: true,
@@ -804,7 +813,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'Note',
+                id: 'Note' + this.wareHouseCode,
                 name: 'Ghi chú (PO)',
                 field: 'Note',
                 sortable: true,
@@ -813,7 +822,7 @@ export class BillImportNewComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'DealineQC',
+                id: 'DealineQC' + this.wareHouseCode,
                 name: 'Hạn QC',
                 field: 'DealineQC',
                 sortable: true,
@@ -826,7 +835,7 @@ export class BillImportNewComponent implements OnInit {
                 cssClass: 'text-center'
             },
             {
-                id: 'StatusQCText',
+                id: 'StatusQCText' + this.wareHouseCode,
                 name: 'Trạng thái QC',
                 field: 'StatusQCText',
                 sortable: true,
@@ -839,7 +848,7 @@ export class BillImportNewComponent implements OnInit {
         this.gridOptionsDetail = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-detail',
+                container: '.grid-container-detail' + this.wareHouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },

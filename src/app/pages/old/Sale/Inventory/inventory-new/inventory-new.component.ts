@@ -7,6 +7,8 @@ import {
     ElementRef,
     ChangeDetectorRef,
     NgZone,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -141,7 +143,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         private modal: NzModalService,
         private zone: NgZone,
         private route: ActivatedRoute,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
@@ -149,7 +152,13 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
-            const newWarehouseCode = params['warehouseCode'] || 'HN';
+            // const newWarehouseCode = params['warehouseCode'] || 'HN';
+
+
+            const newWarehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
 
             // Kiểm tra xem params có thay đổi không
             const paramsChanged = this.warehouseCode !== newWarehouseCode;
@@ -241,7 +250,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         // Product Group columns
         this.columnDefinitionsProductGroup = [
             {
-                id: 'ProductGroupID',
+                id: 'ProductGroupID' + this.warehouseCode,
                 field: 'ProductGroupID',
                 name: 'Mã nhóm',
                 width: 50,
@@ -256,7 +265,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
             },
             {
-                id: 'ProductGroupName',
+                id: 'ProductGroupName' + this.warehouseCode,
                 field: 'ProductGroupName',
                 name: 'Tên nhóm',
                 width: 120,
@@ -275,14 +284,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         // PG Warehouse columns
         this.columnDefinitionsPGWarehouse = [
             {
-                id: 'WarehouseCode',
+                id: 'WarehouseCode' + this.warehouseCode,
                 field: 'WarehouseCode',
                 name: 'Kho',
                 width: 50,
                 sortable: true,
             },
             {
-                id: 'FullName',
+                id: 'FullName' + this.warehouseCode,
                 field: 'FullName',
                 name: 'NV phụ trách',
                 width: 100,
@@ -299,7 +308,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsProductGroup = {
             enableAutoResize: true,
             autoResize: {
-                container: `#grid-container-product-group-${this.warehouseCode}`,
+                container: '.grid-container-product-group' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -320,7 +329,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsPGWarehouse = {
             enableAutoResize: true,
             autoResize: {
-                container: `#grid-container-pg-warehouse-${this.warehouseCode}`,
+                container: '.grid-container-pg-warehouse' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -336,7 +345,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsInventory = {
             enableAutoResize: true,
             autoResize: {
-                container: `#grid-container-inventory-${this.warehouseCode}`,
+                container: '.grid-container-inventory' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -726,13 +735,11 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
             // Set footer values cho từng column
             const columns = this.angularGridInventory.slickGrid.getColumns();
-            if (!columns || !Array.isArray(columns)) return;
+
+            // console.log('columns:', columns);
 
             columns.forEach((col: any) => {
-                // Skip null hoặc undefined columns
-                if (!col || !col.id) return;
-
-                const footerCell = this.angularGridInventory?.slickGrid?.getFooterRowColumn(col.id);
+                const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn('ProductName' + this.warehouseCode);
                 if (!footerCell) return;
 
                 // Count cho cột ProductName (Tên sản phẩm)
@@ -1078,9 +1085,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#endregion
 
-
-    //#region Ltanh sửa mapping cột cho mở nhiều tab
+    //#region Lt.anh mapping cột theo warehouse
     buildPGWarehouseColumns(warehouseCode: string): Column[] {
+        console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
         return [
             {
                 id: 'ProductGroupName' + warehouseCode,

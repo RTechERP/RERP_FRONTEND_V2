@@ -190,7 +190,8 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
         private appUserService: AppUserService,
         private modalService: NgbModal,
         private nzModalService: NzModalService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
@@ -198,7 +199,11 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
         this.initGrid();
 
         this.route.queryParams.subscribe(params => {
-            this.warehouseId = params['warehouseId'] || 1
+            // this.warehouseId = params['warehouseId'] || 1
+            this.warehouseId =
+                params['warehouseId']
+                ?? this.tabData?.warehouseId
+                ?? 1;
         });
         // Kiểm tra quyền admin và set employeeId
         const currentUser = this.appUserService.currentUser;

@@ -5,6 +5,8 @@ import {
     OnDestroy,
     NgZone,
     ChangeDetectorRef,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -161,12 +163,17 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
         private productsaleService: ProductsaleServiceService,
         private zone: NgZone,
         private route: ActivatedRoute,
-        private cdr: ChangeDetectorRef
-    ) {}
+        private cdr: ChangeDetectorRef,
+        @Optional() @Inject('tabData') private tabData: any
+    ) { }
 
     ngOnInit(): void {
         this.route.queryParams.subscribe((params) => {
-            this.warehouseCode = params['warehouseCode'] || 'HN';
+            // this.warehouseCode = params['warehouseCode'] || 'HN';
+            this.warehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
             this.searchParams.warehouseCode = this.warehouseCode;
         });
 
@@ -198,7 +205,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
         // Product Group columns
         this.columnDefinitionsProductGroup = [
             {
-                id: 'ProductGroupID',
+                id: 'ProductGroupID' + this.warehouseCode,
                 field: 'ProductGroupID',
                 name: 'Mã nhóm',
                 width: 120,
@@ -207,7 +214,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: { model: Filters['compoundInput'] },
             },
             {
-                id: 'ProductGroupName',
+                id: 'ProductGroupName' + this.warehouseCode,
                 field: 'ProductGroupName',
                 name: 'Tên nhóm',
                 width: 200,
@@ -220,7 +227,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
         // Report columns
         this.columnDefinitionsReport = [
             {
-                id: 'ProductGroupName',
+                id: 'ProductGroupName' + this.warehouseCode,
                 field: 'ProductGroupName',
                 name: 'Tên nhóm',
                 width: 150,
@@ -233,7 +240,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 },
             },
             {
-                id: 'ProductCode',
+                id: 'ProductCode' + this.warehouseCode,
                 field: 'ProductCode',
                 name: 'Mã sản phẩm',
                 width: 150,
@@ -242,7 +249,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: { model: Filters['compoundInput'] },
             },
             {
-                id: 'ProductNewCode',
+                id: 'ProductNewCode' + this.warehouseCode,
                 field: 'ProductNewCode',
                 name: 'Mã nội bộ',
                 width: 120,
@@ -251,7 +258,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: { model: Filters['compoundInput'] },
             },
             {
-                id: 'ProductName',
+                id: 'ProductName' + this.warehouseCode,
                 field: 'ProductName',
                 name: 'Tên sản phẩm',
                 width: 250,
@@ -260,7 +267,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: { model: Filters['compoundInput'] },
             },
             {
-                id: 'Maker',
+                id: 'Maker' + this.warehouseCode,
                 field: 'Maker',
                 name: 'Hãng',
                 width: 120,
@@ -269,7 +276,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: { model: Filters['compoundInput'] },
             },
             {
-                id: 'Unit',
+                id: 'Unit' + this.warehouseCode,
                 field: 'Unit',
                 name: 'ĐVT',
                 width: 80,
@@ -278,7 +285,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: { model: Filters['compoundInput'] },
             },
             {
-                id: 'TonDauKy',
+                id: 'TonDauKy' + this.warehouseCode,
                 field: 'TonDauKy',
                 name: 'Tồn ĐK',
                 width: 100,
@@ -290,7 +297,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
-                id: 'Import1',
+                id: 'Import1' + this.warehouseCode,
                 field: 'Import1',
                 name: 'Nhập',
                 width: 100,
@@ -302,7 +309,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
-                id: 'Export1',
+                id: 'Export1' + this.warehouseCode,
                 field: 'Export1',
                 name: 'Xuất',
                 width: 100,
@@ -314,7 +321,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
-                id: 'TonCuoiKy',
+                id: 'TonCuoiKy' + this.warehouseCode,
                 field: 'TonCuoiKy',
                 name: 'Tồn CK',
                 width: 100,
@@ -326,7 +333,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
-                id: 'AddressBox',
+                id: 'AddressBox' + this.warehouseCode,
                 field: 'AddressBox',
                 name: 'Vị trí',
                 width: 120,
@@ -339,7 +346,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                 },
             },
             {
-                id: 'Note',
+                id: 'Note' + this.warehouseCode,
                 field: 'Note',
                 name: 'Ghi chú',
                 width: 200,
@@ -694,7 +701,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
         const productCount = items.length;
 
         // Các cột cần tính tổng
-        const sumFields = ['TonDauKy', 'Import1', 'Export1', 'TonCuoiKy'];
+        const sumFields = ['TonDauKy' + this.warehouseCode, 'Import1' + this.warehouseCode, 'Export1' + this.warehouseCode, 'TonCuoiKy' + this.warehouseCode];
 
         // Tính tổng cho từng cột
         const sums: { [key: string]: number } = {};
@@ -711,7 +718,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
             if (!footerCell) return;
 
             // Count cho cột ProductName
-            if (col.id === 'ProductName') {
+            if (col.id === 'ProductName' + this.warehouseCode) {
                 footerCell.innerHTML = `<b style="display:block;text-align:right;">${productCount}</b>`;
             }
             // Sum cho các cột số
@@ -876,7 +883,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
             size: 'xl',
             backdrop: 'static',
             keyboard: false,
-            fullscreen:true
+            fullscreen: true
         });
         modalRef.componentInstance.productID = this.productID;
     }

@@ -73,7 +73,8 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private modalService: NgbModal,
         private billExportService: BillExportService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     newBillImport: any = {
@@ -138,7 +139,11 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
 
         this.route.queryParams.subscribe(params => {
-            this.warehouseCode = params['warehouseCode'] || 'HN';
+            // this.warehouseCode = params['warehouseCode'] || 'HN';
+            this.warehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 1;
         });
         this.getCbbEmployee();
         this.getCbbProductGroup();

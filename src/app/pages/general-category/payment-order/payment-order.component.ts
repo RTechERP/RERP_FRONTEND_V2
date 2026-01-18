@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, Optional } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -210,16 +210,20 @@ export class PaymentOrderComponent implements OnInit {
         private appUserService: AppUserService,
         private http: HttpClient,
         private route: ActivatedRoute,
-
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
 
         // console.log('this.route.queryParams:', this.route.queryParams);
         this.route.queryParams.subscribe(params => {
+            // this.activeTab = params['activeTab'] || '0';
+            this.activeTab =
+                params['activeTab']
+                ?? this.tabData?.activeTab
+                ?? '0';
 
-            // console.log('this.route.queryParams params:', params);
-            this.activeTab = params['activeTab'] || '0';
+            console.log('this.activeTab:', this.activeTab)
         });
 
         this.loadDataCombo();

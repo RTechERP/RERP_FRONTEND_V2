@@ -42,7 +42,8 @@ export class ProductLocationTechnicalComponent implements OnInit, AfterViewInit 
         private productLocationService: ProductLocationTechnicalService,
         private notification: NzNotificationService,
         private modal: NzModalService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit() {
@@ -53,8 +54,18 @@ export class ProductLocationTechnicalComponent implements OnInit, AfterViewInit 
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1
-            this.warehouseType = params['warehouseType'] || 1;
+            // this.warehouseID = params['warehouseID'] || 1
+            // this.warehouseType = params['warehouseType'] || 1;
+
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
         });
     }
 

@@ -1,112 +1,104 @@
-<div style="display: flex; flex-direction: column; height: 95vh;">
+<div style="display: flex; flex-direction: column; height: 94vh;">
     <!-- Toolbar với Action Buttons - theo thứ tự WinForms -->
-    <div class="card-header bg-white p-1 d-flex gap-1 flex-wrap" style="flex-shrink: 0;">
-        <!-- btnEmployeeCancel -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" nzDanger (click)="btnEmployeeCancel_Click()">
-            <i nz-icon nzType="close-circle"></i>
-            Huỷ đánh giá
-        </button>
+    <div class="card-header bg-white p-1 d-flex gap-1 align-items-center" style="flex-shrink: 0; flex-wrap: wrap;">
+        <!-- NV Đánh giá Group -->
+        <ng-container *ngIf="showNVGroup">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                [nzDropdownMenu]="menuNVDanhGia">
+                NV Đánh giá
+                <i nz-icon nzType="down"></i>
+            </button>
+            <nz-dropdown-menu #menuNVDanhGia="nzDropdownMenu">
+                <ul nz-menu>
+                    <li nz-menu-item (click)="btnEmployeeApproved_Click()">
+                        <img src="assets/icon/action_approved_16.png" /> NV đánh giá
+                    </li>
+                    <li nz-menu-item (click)="btnEmployeeCancel_Click()">
+                        <img src="assets/icon/action_unapproved_16.png" /> Huỷ đánh giá
+                    </li>
+                </ul>
+            </nz-dropdown-menu>
+        </ng-container>
 
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
+        <!-- TBP Group -->
+        <ng-container *ngIf="showTBPGroup">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnTBPApproved_Click()">
+                <img src="assets/icon/action_team_16.png" /> TBP đánh giá
+            </button>
 
-        <!-- btnTBPApproved -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnTBPApproved_Click()">
-            <i nz-icon nzType="team"></i>
-            TBP đánh giá
-        </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                [nzDropdownMenu]="menuTBPXacNhan">
+                <img src="assets/icon/action_confirm_tbp_16.png" /> TBP Xác nhận
+                <i nz-icon nzType="down"></i>
+            </button>
+            <nz-dropdown-menu #menuTBPXacNhan="nzDropdownMenu">
+                <ul nz-menu>
+                    <li nz-menu-item (click)="btnTBPAccess_Click()">
+                        <img src="assets/icon/action_approved_16.png" /> TBP xác nhận
+                    </li>
+                    <li nz-menu-item (click)="btnTBPCancleAccess_Click()">
+                        <img src="assets/icon/action_unapproved_16.png" /> TBP huỷ xác nhận
+                    </li>
+                </ul>
+            </nz-dropdown-menu>
+        </ng-container>
 
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
+        <!-- BGĐ Group -->
+        <ng-container *ngIf="showBGDGroup">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnBGDApproved_Click()">
+                <img src="assets/icon/action_confirm_bgd_16.png" /> GĐ đánh giá
+            </button>
 
-        <!-- btnTBPAccess -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnTBPAccess_Click()">
-            <i nz-icon nzType="check-circle"></i>
-            TBP xác nhận
-        </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                [nzDropdownMenu]="menuBGDXacNhan">
+                <img src="assets/icon/action_confirm_bgd_16.png" /> BGĐ Xác nhận
+                <i nz-icon nzType="down"></i>
+            </button>
+            <nz-dropdown-menu #menuBGDXacNhan="nzDropdownMenu">
+                <ul nz-menu>
+                    <li nz-menu-item (click)="btnBGDAccess_Click()">
+                        <img src="assets/icon/action_approved_16.png" /> BGĐ xác nhận
+                    </li>
+                    <li nz-menu-item (click)="btnBGDCancleAccess_Click()">
+                        <img src="assets/icon/action_unapproved_16.png" /> BGĐ huỷ xác nhận
+                    </li>
+                </ul>
+            </nz-dropdown-menu>
+        </ng-container>
 
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
-
-        <!-- btnTBPCancleAccess -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnTBPCancleAccess_Click()">
-            <i nz-icon nzType="close-square"></i>
-            TBP huỷ xác nhận
-        </button>
-
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
-
-        <!-- btnBGDApproved -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnBGDApproved_Click()">
-            <i nz-icon nzType="solution"></i>
-            GĐ đánh giá
-        </button>
-
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
-
-        <!-- btnBGDAccess -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnBGDAccess_Click()">
-            <i nz-icon nzType="check-square"></i>
-            BGĐ xác nhận
-        </button>
-
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
-
-        <!-- btnBGDCancleAccess -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnBGDCancleAccess_Click()">
-            <i nz-icon nzType="stop"></i>
-            BGĐ huỷ xác nhận
-        </button>
-
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
-
-        <!-- btnEvaluatedRule -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnEvaluatedRule_Click()">
-            <i nz-icon nzType="edit"></i>
+        <!-- Other Actions -->
+        <button *ngIf="showEvaluatedRule" class="fs-12" nz-button nzType="default" nzSize="small"
+            (click)="btnEvaluatedRule_Click()">
             Đánh giá Rule
         </button>
 
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
-
-        <!-- btnLoadDataTeam -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnLoadDataTeam_Click()">
-            <i nz-icon nzType="sync"></i>
-            Load KPI Team
+        <button *ngIf="showLoadTeam" class="fs-12" nz-button nzType="default" nzSize="small"
+            (click)="btnLoadDataTeam_Click()">
+            <img src="assets/icon/action_update_db_16.png" /> Load KPI Team
         </button>
 
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
-
-        <!-- btnAdminConfirm -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="btnAdminConfirm_Click()">
-            <i nz-icon nzType="safety-certificate"></i>
-            Admin Xác nhận
+        <button *ngIf="showAdminConfirm" class="fs-12" nz-button nzType="default" nzSize="small"
+            (click)="btnAdminConfirm_Click()">
+            <img src="assets/icon/action_confirm_hr_16.png" /> Admin Xác nhận
         </button>
-
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
-
-        <!-- btnEmployeeApproved -->
-        <button class="fs-12 button button-success" nz-button nzSize="small" (click)="btnEmployeeApproved_Click()">
-            <i nz-icon nzType="form"></i>
-            NV đánh giá
-        </button>
-
-        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
 
         <!-- toolStripDropDownButton1 - Xuất Excel -->
-        <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuExportExcel">
-            <i nz-icon nzType="file-excel"></i>
-            Xuất Excel
+        <button *ngIf="showExportExcel" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+            [nzDropdownMenu]="menuExportExcel">
+            <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
             <i nz-icon nzType="down"></i>
         </button>
         <nz-dropdown-menu #menuExportExcel="nzDropdownMenu">
             <ul nz-menu>
                 <li nz-menu-item (click)="btnExportExcelByTeam_Click()">
-                    <i nz-icon nzType="team"></i>
-                    <span class="ms-1">Xuất theo team</span>
+                    <img src="assets/icon/action_team_16.png" /> Xuất theo team
                 </li>
                 <li nz-menu-item (click)="btnExportExcelByEmployee_Click()">
-                    <i nz-icon nzType="user"></i>
-                    <span class="ms-1">Xuất theo nhân viên</span>
+                    <img src="assets/icon/action_info_16.png" /> Xuất theo nhân viên
                 </li>
             </ul>
         </nz-dropdown-menu>
+
 
         <!-- Button to toggle left panel -->
         <button nz-button nzType="text" nzSize="small" *ngIf="sizeLeftPanel === '0'" (click)="openLeftPanel()"
@@ -197,7 +189,7 @@
                                 <p class="m-0">DANH SÁCH NHÂN VIÊN</p>
                             </div>
                             <div class="card-body p-0 flex-grow-1 overflow-hidden grid-employee-container"
-                                style="min-height: 0;">
+                                style="min-height: 0; height: 100%;">
                                 <angular-slickgrid gridId="grid-employee" [columns]="employeeColumns"
                                     [options]="employeeGridOptions" [dataset]="dataEmployee"
                                     (onAngularGridCreated)="onEmployeeGridReady($event)"
@@ -213,15 +205,18 @@
             <nz-splitter-panel [nzSize]="sizeRightPanel" nzDefaultSize="70%" nzMin="50%" nzMax="90%" nzResizable="true">
                 <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                     <div class="card-body p-2 flex-grow-1" style="min-height: 0; overflow: hidden;">
-                        <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectedIndexChange)="onTabChange($event)"
-                            nzType="card" style="height: 83vh;">
+                        <nz-tabset class="approval-tabs" [(nzSelectedIndex)]="selectedTabIndex"
+                            (nzSelectedIndexChange)="onTabChange($event)" nzType="card"
+                            style="height: 85vh !important;">
                             <!-- Tab 1: Kỹ năng (treeData) -->
                             <nz-tab nzTitle="ĐÁNH GIÁ KỸ NĂNG">
                                 <div class="grid-evaluation-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 0"
                                         gridId="grid-evaluation" [columns]="evaluationColumns"
                                         [options]="evaluationGridOptions" [dataset]="dataEvaluation"
-                                        (onAngularGridCreated)="onEvaluationGridReady($event)">
+                                        (onAngularGridCreated)="onEvaluationGridReady($event)"
+                                        (onBeforeEditCell)="onBeforeEditCell($event)"
+                                        (onCellChange)="onEvaluationCellChange($event, 'evaluation')">
                                     </angular-slickgrid>
                                 </div>
                             </nz-tab>
@@ -232,7 +227,9 @@
                                     <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 1"
                                         gridId="grid-evaluation4" [columns]="evaluation4Columns"
                                         [options]="evaluation4GridOptions" [dataset]="dataEvaluation4"
-                                        (onAngularGridCreated)="onEvaluation4GridReady($event)">
+                                        (onAngularGridCreated)="onEvaluation4GridReady($event)"
+                                        (onBeforeEditCell)="onBeforeEditCell($event)"
+                                        (onCellChange)="onEvaluationCellChange($event, 'evaluation4')">
                                     </angular-slickgrid>
                                 </div>
                             </nz-tab>
@@ -243,7 +240,9 @@
                                     <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 2"
                                         gridId="grid-evaluation2" [columns]="evaluation2Columns"
                                         [options]="evaluation2GridOptions" [dataset]="dataEvaluation2"
-                                        (onAngularGridCreated)="onEvaluation2GridReady($event)">
+                                        (onAngularGridCreated)="onEvaluation2GridReady($event)"
+                                        (onBeforeEditCell)="onBeforeEditCell($event)"
+                                        (onCellChange)="onEvaluationCellChange($event, 'evaluation2')">
                                     </angular-slickgrid>
                                 </div>
                             </nz-tab>

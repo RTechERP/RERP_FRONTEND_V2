@@ -273,7 +273,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         this.dynamicTabComps = [...this.dynamicTabComps, { title, comp, injector, data }];
         setTimeout(() => (this.selectedCompIndex = this.dynamicTabComps.length - 1));
 
-        // console.log('this.dynamicTabComps:', this.dynamicTabComps);
+        console.log('this.dynamicTabComps:', this.dynamicTabComps);
 
         // Lưu tabs vào localStorage
         // this.saveTabs();

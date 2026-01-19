@@ -950,7 +950,7 @@ export const routes: Routes = [
             { path: 'asset-type-person', component: TsAssetManagementPersonalTypeComponent, canActivate: [authGuard] },
             { path: 'asset-allocation-person', component: TsAssetAllocationPersonalComponent, canActivate: [authGuard] },
             { path: 'asset-recovery-person', component: TsAssetRecoveryPersonalNewComponent, canActivate: [authGuard] },
-            { path: 'vehicle-management', component: VehicleBookingManagementSlickgridComponent, canActivate: [authGuard] },
+            { path: 'vehicle-management', component: VehicleManagementComponent, canActivate: [authGuard] },
             { path: 'vehicle-booking', component: VehicleBookingManagementSlickgridComponent, canActivate: [authGuard] },
             { path: 'vehicle-repair-type', component: VehicleRepairTypeComponent, canActivate: [authGuard] },
             { path: 'vehicle-repair-propose', component: ProposeVehicleRepairComponent, canActivate: [authGuard] },

@@ -100,6 +100,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
   currentDepartmentId: number = 0;
   currentDepartmentName: string = '';
   isAdmin: boolean = false;
+  hasN1N2Permission: boolean = false;
 
   constructor(
     private notification: NzNotificationService,
@@ -189,6 +190,8 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
         this.currentDepartmentId = data?.DepartmentID || 0;
         this.currentDepartmentName = data?.DepartmentName || '';
         this.isAdmin = data?.ISADMIN || false;
+        // Kiểm tra quyền N1 hoặc N2
+        this.hasN1N2Permission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
       }
     });
   }
@@ -607,6 +610,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     modalRef.componentInstance.mode = 'add';
     modalRef.componentInstance.userRole = 'employee';
     modalRef.componentInstance.currentEmployeeId = this.currentEmployeeId;
+    modalRef.componentInstance.hasN1N2Permission = this.hasN1N2Permission;
 
     modalRef.result.then(
       (result) => {
@@ -639,6 +643,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     modalRef.componentInstance.mode = 'edit';
     modalRef.componentInstance.userRole = 'employee';
     modalRef.componentInstance.currentEmployeeId = this.currentEmployeeId;
+    modalRef.componentInstance.hasN1N2Permission = this.hasN1N2Permission;
 
     modalRef.result.then(
       (result) => {
@@ -663,7 +668,8 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const deletableRows = selectedRows.filter(
+    // Lọc các bản ghi có thể xóa
+    let deletableRows = selectedRows.filter(
       (row) => row.StatusText !== 'Đã duyệt'
     );
 
@@ -671,11 +677,41 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       (row) => row.StatusText === 'Đã duyệt'
     );
 
+    // Nếu không có quyền N1/N2, kiểm tra thêm ngày WFH
+    let pastDateRows: any[] = [];
+    if (!this.hasN1N2Permission) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Lọc ra các bản ghi có ngày WFH <= ngày hiện tại (không thể xóa)
+      pastDateRows = deletableRows.filter((row) => {
+        if (!row.DateWFH) return false;
+        const wfhDate = new Date(row.DateWFH);
+        wfhDate.setHours(0, 0, 0, 0);
+        return wfhDate <= today;
+      });
+
+      // Chỉ giữ lại các bản ghi có ngày WFH > ngày hiện tại
+      deletableRows = deletableRows.filter((row) => {
+        if (!row.DateWFH) return true;
+        const wfhDate = new Date(row.DateWFH);
+        wfhDate.setHours(0, 0, 0, 0);
+        return wfhDate > today;
+      });
+    }
+
     if (deletableRows.length === 0) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        `${selectedRows.length} phiếu đã được TBP duyệt. Vui lòng hủy duyệt trước khi xóa!`
-      );
+      if (pastDateRows.length > 0 && !this.hasN1N2Permission) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Không thể xóa WFH có ngày đã qua hoặc ngày hiện tại! Bạn chỉ có thể xóa WFH từ sau ngày hiện tại.`
+        );
+      } else {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `${selectedRows.length} phiếu đã được TBP duyệt. Vui lòng hủy duyệt trước khi xóa!`
+        );
+      }
       return;
     }
 
@@ -690,6 +726,10 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       confirmMessage += `<br><br><span style="color: orange;">Lưu ý: ${approvedRows.length} phiếu đã được TBP duyệt sẽ bị bỏ qua. Vui lòng hủy duyệt trước khi xóa.</span>`;
     }
 
+    if (pastDateRows.length > 0 && !this.hasN1N2Permission) {
+      confirmMessage += `<br><br><span style="color: orange;">Lưu ý: ${pastDateRows.length} phiếu có ngày WFH đã qua hoặc ngày hiện tại sẽ bị bỏ qua.</span>`;
+    }
+
     this.nzModal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: confirmMessage,
@@ -697,7 +737,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       nzOkType: 'primary',
       nzOkDanger: true,
       nzCancelText: 'Hủy',
-      nzOnOk: () => this.confirmDeleteWFH(deletableRows, approvedRows.length),
+      nzOnOk: () => this.confirmDeleteWFH(deletableRows, approvedRows.length + pastDateRows.length),
     });
   }
 

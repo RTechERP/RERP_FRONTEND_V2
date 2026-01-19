@@ -132,9 +132,18 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
 
     dateStart.setMonth(dateEnd.getMonth() - 1);
     dateEnd.setMonth(dateStart.getMonth() + 1);
+    
+    // Convert Date to yyyy-MM-dd format for HTML date input
+    const formatDateToString = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     this.searchForm = this.fb.group({
-      dateStart: dateStart,
-      dateEnd: dateEnd,
+      dateStart: formatDateToString(dateStart),
+      dateEnd: formatDateToString(dateEnd),
       departmentId: 0,
       pageNumber: 1,
       pageSize: 1000000,
@@ -176,10 +185,17 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
 
   loadEmployeeBussiness() {
     this.isLoading = true;
-    this.searchForm.patchValue({
-      departmentId: this.searchForm.value.departmentId ?? 0,
-    });
-    this.employeeBussinessService.getEmployeeBussiness(this.searchForm.value).subscribe({
+    // Convert date strings to Date objects for backend compatibility
+    const formValue = { ...this.searchForm.value };
+    if (formValue.dateStart) {
+      formValue.dateStart = new Date(formValue.dateStart);
+    }
+    if (formValue.dateEnd) {
+      formValue.dateEnd = new Date(formValue.dateEnd);
+    }
+    formValue.departmentId = formValue.departmentId ?? 0;
+    
+    this.employeeBussinessService.getEmployeeBussiness(formValue).subscribe({
       next: (data) => {
         this.employeeBussinessList = data.data;
         this.tabulator.setData(this.employeeBussinessList);

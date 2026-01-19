@@ -119,8 +119,8 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   employees: any[] = [];
 
   // Filter params
-  dateStart: Date = new Date();
-  dateEnd: Date = new Date();
+  dateStart: string = '';
+  dateEnd: string = '';
   employeeID: number = 0;
   departmentID: number = 0;
   isApproved: number | null = null;
@@ -356,14 +356,14 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     this.getNightShift();
   }
 
-  private getFirstDayOfMonth(): Date {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+  private getFirstDayOfMonth(): string {
+    const now = DateTime.local();
+    return now.startOf('month').toISODate() || '';
   }
 
-  private getLastDayOfMonth(): Date {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  private getLastDayOfMonth(): string {
+    const now = DateTime.local();
+    return now.endOf('month').toISODate() || '';
   }
 
   getNightShift() {
@@ -384,10 +384,28 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
         return `<strong>Phòng ban: ${value || 'Không xác định'}</strong> <span style="color: #666; margin-left: 10px;">(${count} bản ghi)</span>`;
       },
       ajaxRequestFunc: (url, config, params) => {
+        // Convert string date (YYYY-MM-DD) to ISO format
+        let dateStartISO: string | null = null;
+        let dateEndISO: string | null = null;
+        
+        if (this.dateStart) {
+          const startDate = typeof this.dateStart === 'string' 
+            ? DateTime.fromISO(this.dateStart) 
+            : DateTime.fromJSDate(this.dateStart);
+          dateStartISO = startDate.isValid ? startDate.startOf('day').toISO() : null;
+        }
+        
+        if (this.dateEnd) {
+          const endDate = typeof this.dateEnd === 'string' 
+            ? DateTime.fromISO(this.dateEnd) 
+            : DateTime.fromJSDate(this.dateEnd);
+          dateEndISO = endDate.isValid ? endDate.endOf('day').toISO() : null;
+        }
+        
         const request = {
           EmployeeID: this.employeeID || 0,
-          DateStart: this.dateStart ? DateTime.fromJSDate(this.dateStart).startOf('day').toISO() : null,
-          DateEnd: this.dateEnd ? DateTime.fromJSDate(this.dateEnd).endOf('day').toISO() : null,
+          DateStart: dateStartISO,
+          DateEnd: dateEndISO,
           IsApproved: this.isApproved || -1,
           DepartmentID: this.departmentID || 0,
           KeyWord: this.keyWord || '',

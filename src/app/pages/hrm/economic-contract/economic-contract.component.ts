@@ -1063,7 +1063,9 @@ export class EconomicContractComponent implements OnInit {
       const templateBlob = await response.arrayBuffer();
 
       // Load template bằng ExcelJS
-      const ExcelJS = await import('exceljs');
+      const ExcelJSModule = await import('exceljs');
+      // Handle both ESM and CJS module formats (production vs development)
+      const ExcelJS = (ExcelJSModule as any).default || ExcelJSModule;
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(templateBlob);
 

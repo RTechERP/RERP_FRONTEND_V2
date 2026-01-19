@@ -106,14 +106,18 @@ export class EmployeeNoFingerprintComponent
 
   // Search filters
   selectedDepartmentFilter: number | null = null;
-  selectedTBPStatusFilter: number = -1;
+  selectedTBPStatusFilter: number | null = null;
   searchValue: string = '';
-  dateStart: Date = DateTime.local().startOf('month').toJSDate();
-  dateEnd: Date = DateTime.local().endOf('month').toJSDate();
+  // dùng string 'YYYY-MM-DD' để bind tốt với <input type="date">
+  dateStart: string = DateTime.local().startOf('month').toISODate()!;
+  dateEnd: string = DateTime.local().endOf('month').toISODate()!;
 
-  // Convert Date -> ISO khi build params
-  private toISODate(d: Date | null | undefined): string {
+  // Convert Date/string -> ISO khi build params
+  private toISODate(d: Date | string | null | undefined): string {
     if (!d) return '';
+    if (typeof d === 'string') {
+      return d; // đã ở dạng "YYYY-MM-DD"
+    }
     return DateTime.fromJSDate(d).toISODate()!; // "YYYY-MM-DD"
   }
   // Data
@@ -376,6 +380,7 @@ export class EmployeeNoFingerprintComponent
         width: 100,
         headerHozAlign: 'center',
         hozAlign: 'center',
+        cssClass: 'approval-column-small-font',
         formatter: (cell: any) => {
           const value = cell.getValue();
           // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
@@ -401,6 +406,7 @@ export class EmployeeNoFingerprintComponent
         width: 100,
         headerHozAlign: 'center',
         hozAlign: 'center',
+        cssClass: 'approval-column-small-font',
         formatter: (cell: any) => {
           const value = cell.getValue();
           // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
@@ -523,6 +529,8 @@ export class EmployeeNoFingerprintComponent
     this.tb_ENF.on('tableBuilt', () => {
       console.log('ENF table built successfully');
       this.isTableReady = true;
+      // Load dữ liệu mặc định theo khoảng từ ngày đầu đến cuối tháng hiện tại
+      this.searchenf();
     });
 
     this.tb_ENF.on('rowDblClick', (e: any, row: any) => {
@@ -590,8 +598,8 @@ export class EmployeeNoFingerprintComponent
     this.selectedDepartmentFilter = null;
     this.selectedTBPStatusFilter = -1;
     this.searchValue = '';
-    this.dateStart = DateTime.local().startOf('month').toJSDate();
-    this.dateEnd = DateTime.local().endOf('month').toJSDate();
+    this.dateStart = DateTime.local().startOf('month').toISODate()!;
+    this.dateEnd = DateTime.local().endOf('month').toISODate()!;
 
     if (this.tb_ENF) {
       this.tb_ENF.clearData();

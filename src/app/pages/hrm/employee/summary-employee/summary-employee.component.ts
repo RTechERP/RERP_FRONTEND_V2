@@ -62,8 +62,8 @@ import { MultipleSelectOption } from '@slickgrid-universal/common';
 })
 export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestroy {
   // Search params
-  DateStart: Date = new Date();
-  DateEnd: Date = new Date();
+  DateStart: string = '';
+  DateEnd: string = '';
   DepartmentID: number = 0;
   Keyword: string = '';
   IsApproved: number = -1;
@@ -168,15 +168,21 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
     this.showSearchBar = !this.showSearchBar;
   }
 
-  private getYesterday(): Date {
+  private getYesterday(): string {
     const now = new Date();
     now.setDate(now.getDate() - 1);
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
-  private getToday(): Date {
+  private getToday(): string {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   getCurrentUser(): void {
@@ -197,9 +203,13 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   loadData(): void {
+    // Convert YYYY-MM-DD format to Date object for API
+    const startDate = this.DateStart ? new Date(this.DateStart + 'T00:00:00') : null;
+    const endDate = this.DateEnd ? new Date(this.DateEnd + 'T23:59:59') : null;
+
     const request: SummaryPersonalRequest = {
-      DateStart: this.DateStart,
-      DateEnd: this.DateEnd,
+      DateStart: startDate || new Date(),
+      DateEnd: endDate || new Date(),
       DepartmentID: this.DepartmentID || 0,
       EmployeeID: 0,
       IsApproved: this.IsApproved,

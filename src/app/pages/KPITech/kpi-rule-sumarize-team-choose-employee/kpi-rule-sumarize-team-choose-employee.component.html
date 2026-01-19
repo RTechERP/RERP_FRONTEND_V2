@@ -1,0 +1,44 @@
+<div class="modal-dialog-scrollable h-100 d-flex flex-column">
+    <!-- Modal Header -->
+    <div class="modal-header bg-primary align-items-center ps-2">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem;">
+            CHỌN DANH SÁCH TEAM
+        </h6>
+        <button type="button" class="btn-close btn-close-white" (click)="activeModal.dismiss()"
+            aria-label="Close"></button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body p-2 d-flex flex-column" style="flex: 1; min-height: 0;">
+        <!-- Search Input -->
+        <div class="d-flex justify-content-end mb-2">
+            <nz-input-group class="fs-12" [nzSuffix]="suffixIconSearch" style="width: 250px;">
+                <input class="fs-12" type="text" nz-input placeholder="Tìm kiếm ..." [(ngModel)]="searchKeyword"
+                    (ngModelChange)="onSearchKeywordChange()" />
+            </nz-input-group>
+        </div>
+
+        <!-- SlickGrid Container -->
+        <div class="grid-employee-container flex-grow-1" style="min-height: 0;">
+            <angular-slickgrid gridId="grid-employee-choose" [columns]="employeeColumns" [options]="employeeGridOptions"
+                [dataset]="filteredEmployees" (onAngularGridCreated)="onGridReady($event)"
+                (onSelectedRowsChanged)="onSelectedRowsChanged($event)">
+            </angular-slickgrid>
+        </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer bg-light p-2">
+        <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+            <i nz-icon nzType="close"></i> Đóng
+        </button>
+        <button nz-button nzType="primary" (click)="onSaveAndClose()">
+            <i nz-icon nzType="save"></i> CẤT & ĐÓNG
+        </button>
+    </div>
+</div>
+
+<!-- Search Icon Template -->
+<ng-template #suffixIconSearch>
+    <i nz-icon nzType="search"></i>
+</ng-template>

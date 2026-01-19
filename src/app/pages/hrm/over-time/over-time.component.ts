@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -12,8 +12,6 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, Form } from '@angular/forms';
-import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { DateTime } from 'luxon';
@@ -37,6 +35,18 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { AuthService } from '../../../auth/auth.service';
 import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../services/permission.service';
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  Formatter,
+  Formatters,
+  GridOption,
+  MultipleSelectOption,
+  OnClickEventArgs,
+  OnSelectedRowsChangedEventArgs,
+} from 'angular-slickgrid';
 
 
 @Component({
@@ -70,12 +80,12 @@ import { PermissionService } from '../../../services/permission.service';
     SummaryOverTimeComponent,
     HasPermissionDirective,
     NzDropDownModule,
-    Menubar
+    Menubar,
+    AngularSlickgridModule
   ]
 })
-export class OverTimeComponent implements OnInit, AfterViewInit {
+export class OverTimeComponent implements OnInit {
 
-  private tabulator!: Tabulator;
   sizeSearch: string = '0';
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
   searchForm!: FormGroup;
@@ -89,6 +99,21 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
 
   // Menu bars
   menuBars: any[] = [];
+
+  // SlickGrid properties
+  angularGrid!: AngularGridInstance;
+  gridData: any;
+  columnDefinitions: Column[] = [];
+  gridOptions: GridOption = {};
+  dataset: any[] = [];
+
+  // List loại làm thêm cho filter select
+  overTimeTypeList: any[] = [
+    { value: '', label: 'Tất cả' },
+    { value: 'Ngày thường', label: 'Ngày thường' },
+    { value: 'Cuối tuần', label: 'Cuối tuần' },
+    { value: 'Ngày lễ', label: 'Ngày lễ' },
+  ];
 
   get shouldShowSearchBar(): boolean {
     return this.showSearchBar;
@@ -113,8 +138,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
     this.initMenuBar();
     this.initializeForm();
     this.loadDepartment();
-    this.loadEmployeeOverTime();
-    this.loadDepartment();
+    this.initGrid();
     this.loadEmployeeOverTime();
     this.getCurrentUser();
   }
@@ -225,18 +249,22 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  ngAfterViewInit(): void {
-    this.initializeTable();
-  }
-
   private initializeForm(): void {
     const today = new Date();
     const dateStart = new Date(today.getFullYear(), today.getMonth(), 1);
     const dateEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
+    // Convert Date to yyyy-MM-dd format for HTML date input
+    const formatDateToString = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     this.searchForm = this.fb.group({
-      dateStart: dateStart,
-      dateEnd: dateEnd,
+      dateStart: formatDateToString(dateStart),
+      dateEnd: formatDateToString(dateEnd),
       departmentId: 0,
       pageNumber: 1,
       pageSize: 1000000,
@@ -271,215 +299,460 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
 
   loadEmployeeOverTime() {
     this.isLoading = true;
-    this.overTimeService.getEmployeeOverTime(this.searchForm.value).subscribe({
+    // Convert date strings to Date objects for backend compatibility
+    const formValue = { ...this.searchForm.value };
+    if (formValue.dateStart) {
+      formValue.dateStart = new Date(formValue.dateStart);
+    }
+    if (formValue.dateEnd) {
+      formValue.dateEnd = new Date(formValue.dateEnd);
+    }
+    this.overTimeService.getEmployeeOverTime(formValue).subscribe({
       next: (data) => {
         this.overTimeList = data.data;
-        this.tabulator.setData(this.overTimeList);
+        // Add unique id property for SlickGrid (use index to ensure uniqueness)
+        this.dataset = this.overTimeList.map((item, index) => ({
+          ...item,
+          id: index // Use index as unique id since item.ID can be duplicated
+        }));
+        this.applyDistinctFilters();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, "Lỗi tải dữ liệu làm thêm");
         this.isLoading = false;
       }
     })
   }
 
-
-  private initializeTable(): void {
-    this.tabulator = new Tabulator('#tb_over_time', {
-      data: this.overTimeList,
-      layout: 'fitColumns',
-      columnCalcs: 'both',
-      selectableRows: true,
-      height: '88vh',
-      rowHeader: {
-        formatter: "rowSelection",
-        titleFormatter: "rowSelection",
-        headerSort: false,
-        width: 60,
-        frozen: true,
-        headerHozAlign: "center",
-        hozAlign: "center"
+  initGrid(): void {
+    this.columnDefinitions = [
+      {
+        id: 'IsSeniorApprovedText',
+        name: 'Senior duyệt',
+        field: 'IsSeniorApprovedText',
+        sortable: true,
+        filterable: true,
+        width: 110,
+        formatter: this.approvalBadgeFormatter,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
       },
-
-      groupBy: 'DepartmentName',
-      groupHeader: function (value, count, data, group) {
-        return "<span style='color:black'>Phòng ban: </span>" + value;
+      {
+        id: 'StatusText',
+        name: 'TBP duyệt',
+        field: 'StatusText',
+        sortable: true,
+        filterable: true,
+        width: 110,
+        formatter: this.approvalBadgeFormatter,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
       },
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
+      {
+        id: 'StatusHRText',
+        name: 'HR duyệt',
+        field: 'StatusHRText',
+        sortable: true,
+        filterable: true,
+        width: 110,
+        formatter: this.approvalBadgeFormatter,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'IsApprovedBGD',
+        name: 'BGD duyệt',
+        field: 'IsApprovedBGD',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        formatter: Formatters.checkmarkMaterial,
+        filter: {
+          collection: [
+            { value: '', label: 'Tất cả' },
+            { value: true, label: 'Đã duyệt' },
+            { value: false, label: 'Chưa duyệt' },
+          ],
+          model: Filters['singleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'FullName',
+        name: 'Tên',
+        field: 'FullName',
+        sortable: true,
+        filterable: true,
+        width: 200,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'NguoiDuyet',
+        name: 'Người duyệt',
+        field: 'NguoiDuyet',
+        sortable: true,
+        filterable: true,
+        width: 200,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'IsProblem',
+        name: 'Bổ sung',
+        field: 'IsProblem',
+        sortable: true,
+        filterable: true,
+        width: 90,
+        formatter: Formatters.checkmarkMaterial,
+        filter: {
+          collection: [
+            { value: '', label: 'Tất cả' },
+            { value: true, label: 'Có' },
+            { value: false, label: 'Không' },
+          ],
+          model: Filters['singleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'DateRegister',
+        name: 'Ngày',
+        field: 'DateRegister',
+        sortable: true,
+        filterable: true,
+        width: 120,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        type: 'date',
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'TimeStart',
+        name: 'Từ',
+        field: 'TimeStart',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        formatter: this.dateTimeFormatter,
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'EndTime',
+        name: 'Đến',
+        field: 'EndTime',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        formatter: this.dateTimeFormatter,
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'CheckIn',
+        name: 'CheckIn',
+        field: 'CheckIn',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        filter: { model: Filters['compoundInputText'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'CheckOut',
+        name: 'CheckOut',
+        field: 'CheckOut',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        filter: { model: Filters['compoundInputText'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'Overnight',
+        name: 'Ăn tối',
+        field: 'Overnight',
+        sortable: true,
+        filterable: true,
+        width: 80,
+        formatter: Formatters.checkmarkMaterial,
+        filter: {
+          collection: [
+            { value: '', label: 'Tất cả' },
+            { value: true, label: 'Có' },
+            { value: false, label: 'Không' },
+          ],
+          model: Filters['singleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'TimeReality',
+        name: 'Số giờ',
+        field: 'TimeReality',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-end'
+      },
+      {
+        id: 'LocationText',
+        name: 'Địa điểm',
+        field: 'LocationText',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
         },
       },
-      locale: 'vi',
-      columns: [
-        {
-          title: 'Senior duyệt', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 110,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
-            let numValue = 0;
-            if (value === null || value === undefined) {
-              numValue = 0;
-            } else if (typeof value === 'number') {
-              numValue = value;
-            } else if (typeof value === 'string') {
-              // Map string sang number
-              if (value === 'Đã duyệt') numValue = 1;
-              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
-              else numValue = 0; // Chưa duyệt hoặc giá trị khác
-            }
-            return this.formatApprovalBadge(numValue);
-          },
+      {
+        id: 'Type',
+        name: 'Loại',
+        field: 'Type',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
         },
-        {
-          title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 110,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
-            let numValue = 0;
-            if (value === null || value === undefined) {
-              numValue = 0;
-            } else if (typeof value === 'number') {
-              numValue = value;
-            } else if (typeof value === 'string') {
-              // Map string sang number
-              if (value === 'Đã duyệt') numValue = 1;
-              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
-              else numValue = 0; // Chưa duyệt hoặc giá trị khác
-            }
-            return this.formatApprovalBadge(numValue);
-          },
-        },
-        {
-          title: 'HR duyệt', field: 'StatusHRText', hozAlign: 'center', headerHozAlign: 'center', width: 110,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
-            let numValue = 0;
-            if (value === null || value === undefined) {
-              numValue = 0;
-            } else if (typeof value === 'number') {
-              numValue = value;
-            } else if (typeof value === 'string') {
-              // Map string sang number
-              if (value === 'Đã duyệt') numValue = 1;
-              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
-              else numValue = 0; // Chưa duyệt hoặc giá trị khác
-            }
-            return this.formatApprovalBadge(numValue);
-          },
-        },
-        {
-          title: 'BGD duyệt', field: 'IsApprovedBGD', hozAlign: 'center', headerHozAlign: 'center', width: 110,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-        },
-        {
-          title: 'Tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, bottomCalc: 'count'
-        },
-        {
-          title: 'Người duyệt', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 200
-        },
-        {
-          title: 'Bổ sung', field: 'IsProblem', hozAlign: 'center', headerHozAlign: 'center', width: 90,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} />`;
-          },
-        },
-        {
-          title: 'Ngày', field: 'DateRegister', hozAlign: 'center', headerHozAlign: 'center', width: 150,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-          }
-        },
-        {
-          title: 'Từ', field: 'TimeStart', hozAlign: 'center', headerHozAlign: 'center', width: 150,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm ') : '';
-          }
-        },
-        {
-          title: 'Đến', field: 'EndTime', hozAlign: 'center', headerHozAlign: 'center', width: 150,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat(' dd/MM/yyyy HH:mm') : '';
-          }
-        },
-        {
-          title: 'CheckIn', field: 'CheckIn', hozAlign: 'center', headerHozAlign: 'center', width: 100,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            const data = cell.getRow().getData();
+      },
+      {
+        id: 'Reason',
+        name: 'Lý do',
+        field: 'Reason',
+        sortable: true,
+        filterable: true,
+        width: 300,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'ReasonHREdit',
+        name: 'Lý do sửa',
+        field: 'ReasonHREdit',
+        sortable: true,
+        filterable: true,
+        width: 300,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'ReasonDeciline',
+        name: 'Lý do không đồng ý duyệt',
+        field: 'ReasonDeciline',
+        sortable: true,
+        filterable: true,
+        width: 300,
+        filter: { model: Filters['compoundInputText'] },
+      },
+    ];
 
-            if (data['IsNotValid'] === 1) {
-              const el = cell.getElement();
-              el.style.backgroundColor = '#fff3cd';
-              el.style.color = '#dc3545';
-              el.style.fontWeight = 'bold';
-            }
-
-            return value || '';
-          }
-        },
-        {
-          title: 'CheckOut', field: 'CheckOut', hozAlign: 'center', headerHozAlign: 'center', width: 100,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            const data = cell.getRow().getData();
-
-            if (data['IsNotValid'] === 1) {
-              const el = cell.getElement();
-              el.style.backgroundColor = '#fff3cd';
-              el.style.color = '#dc3545';
-              el.style.fontWeight = 'bold';
-            }
-
-            return value || '';
-          }
-        },
-        {
-          title: 'Ăn tối', field: 'Overnight', hozAlign: 'center', headerHozAlign: 'center', width: 80,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-        },
-        {
-          title: 'Số giờ', field: 'TimeReality', hozAlign: 'right', headerHozAlign: 'center', width: 100
-        },
-        {
-          title: 'Địa điểm', field: 'LocationText', hozAlign: 'left', headerHozAlign: 'center', width: 150
-        },
-        {
-          title: 'Loại', field: 'Type', hozAlign: 'left', headerHozAlign: 'center', width: 150
-        },
-        {
-          title: 'Lý do', field: 'Reason', hozAlign: 'left', headerHozAlign: 'center', width: 500
-        },
-        {
-          title: 'Lý do sửa', field: 'ReasonHREdit', hozAlign: 'left', headerHozAlign: 'center', width: 500
-        },
-        {
-          title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign: 'left', headerHozAlign: 'center', width: 500
-        },
-
-      ],
-      pagination: true,
-      paginationSize: 100,
-      paginationSizeSelector: [10, 20, 50, 100]
-    });
+    this.gridOptions = {
+      autoResize: {
+        container: '#grvOverTimeContainer',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false
+      },
+      checkboxSelector: {
+        hideInFilterHeaderRow: true,
+        hideInColumnTitleRow: false,
+        applySelectOnAllPages: true,
+      },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      frozenColumn: this.isMobile() ? 0 : 4,
+      showFooterRow: true,
+      createFooterRow: true,
+      formatterOptions: {
+        decimalSeparator: '.',
+        displayNegativeNumberWithParentheses: true,
+        minDecimal: 0,
+        maxDecimal: 2,
+        thousandSeparator: ','
+      },
+    };
   }
 
+  // Custom formatter for approval badge
+  approvalBadgeFormatter: Formatter = (row, cell, value, columnDef, dataContext) => {
+    let numValue = 0;
+    if (value === null || value === undefined) {
+      numValue = 0;
+    } else if (typeof value === 'number') {
+      numValue = value;
+    } else if (typeof value === 'string') {
+      if (value === 'Đã duyệt') numValue = 1;
+      else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+      else numValue = 0;
+    }
+    return this.formatApprovalBadge(numValue);
+  };
+
+  // Custom formatter for datetime
+  dateTimeFormatter: Formatter = (row, cell, value, columnDef, dataContext) => {
+    if (!value) return '';
+    return DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm');
+  };
+
+  angularGridReady(angularGrid: AngularGridInstance) {
+    this.angularGrid = angularGrid;
+    this.gridData = angularGrid?.slickGrid || {};
+
+    // Update footer row count and sum when data changes
+    angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      this.updateFooterTotals();
+    });
+
+    // Also update when filter changes
+    angularGrid.dataView.onRowsChanged.subscribe(() => {
+      this.updateFooterTotals();
+    });
+
+    // Apply distinct filters after grid is ready with a small delay
+    setTimeout(() => {
+      this.applyDistinctFilters();
+    }, 100);
+  }
+
+  private updateFooterTotals(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid || !this.angularGrid.dataView) return;
+
+    const totalCount = this.angularGrid.dataView.getLength();
+
+    // Update count for FullName column
+    const countElement = this.angularGrid.slickGrid?.getFooterRowColumn('FullName');
+    if (countElement) {
+      countElement.innerHTML = `<div style="font-weight: bold;">${totalCount}</div>`;
+    }
+
+    // Calculate and update sum for TimeReality column
+    const filteredItems = this.angularGrid.dataView.getFilteredItems() as any[];
+    const totalHours = filteredItems.reduce((sum, item) => {
+      const hours = parseFloat(item.TimeReality) || 0;
+      return sum + hours;
+    }, 0);
+
+    const hoursElement = this.angularGrid.slickGrid?.getFooterRowColumn('TimeReality');
+    if (hoursElement) {
+      hoursElement.innerHTML = `<div style="text-align: right; padding-right: 8px; font-weight: bold;">${totalHours.toFixed(2)}</div>`;
+    }
+  }
+
+  applyDistinctFilters(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid || !this.angularGrid.dataView) return;
+
+    // Update footer totals
+    this.updateFooterTotals();
+
+    // Update filter collections for multipleSelect columns based on actual data
+    const data = this.angularGrid.dataView.getItems() as any[];
+
+    if (!data || data.length === 0) return;
+
+    // Helper function to get unique values for a field
+    const getUniqueValues = (items: any[], field: string): Array<{ value: any; label: string }> => {
+      const map = new Map<string, { value: any; label: string }>();
+      items.forEach((row: any) => {
+        const value = row?.[field];
+        if (value === null || value === undefined || value === '') return;
+        const key = `${typeof value}:${String(value)}`;
+        if (!map.has(key)) {
+          map.set(key, { value, label: String(value) });
+        }
+      });
+      return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    // Update columns in the grid
+    const gridColumns = this.angularGrid.slickGrid.getColumns();
+    if (gridColumns) {
+      gridColumns.forEach((column: any) => {
+        if (column.filter && column.filter.model === Filters['multipleSelect']) {
+          const field = column.field;
+          if (!field) return;
+          column.filter.collection = getUniqueValues(data, field);
+        }
+      });
+    }
+
+    // Update columnDefinitions
+    if (this.columnDefinitions) {
+      this.columnDefinitions.forEach((colDef: any) => {
+        if (colDef.filter && colDef.filter.model === Filters['multipleSelect']) {
+          const field = colDef.field;
+          if (!field) return;
+          colDef.filter.collection = getUniqueValues(data, field);
+        }
+      });
+    }
+
+    // Re-set column definitions to apply new filter collections
+    const updatedColumns = this.angularGrid.slickGrid.getColumns();
+    this.angularGrid.slickGrid.setColumns(updatedColumns);
+
+    // Invalidate and render to refresh the grid
+    this.angularGrid.slickGrid.invalidate();
+    this.angularGrid.slickGrid.render();
+  }
+
+  handleRowSelection(e: Event, args: OnSelectedRowsChangedEventArgs) {
+    // Handle row selection if needed
+  }
+
+  onCellClicked(e: Event, args: OnClickEventArgs) {
+    // Handle cell click if needed
+  }
+
+  getSelectedRows(): any[] {
+    if (!this.angularGrid || !this.angularGrid.slickGrid) return [];
+    const selectedRowIndexes = this.angularGrid.slickGrid.getSelectedRows();
+    return selectedRowIndexes.map((idx: number) => this.angularGrid.dataView.getItem(idx));
+  }
 
   openAddModal() {
     // Reset detail data for add mode
@@ -489,19 +762,19 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
   }
 
   openEditModal() {
-    const selectedRows = this.tabulator.getSelectedRows();
-    if (selectedRows.length === 0) {
+    const selectedData = this.getSelectedRows();
+    if (selectedData.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký làm thêm cần chỉnh sửa');
       return;
     }
     // Kiểm tra trạng thái duyệt - cho phép người có quyền sửa bất kể đã duyệt
-    const selectedData = selectedRows[0].getData();
-    if (this.isApproved(selectedData) && !this.checkCanEditApproved()) {
+    const firstSelected = selectedData[0];
+    if (this.isApproved(firstSelected) && !this.checkCanEditApproved()) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
       return;
     }
 
-    const selectedOverTime = selectedRows[0].getData();
+    const selectedOverTime = firstSelected;
     this.selectedOverTime = selectedOverTime;
 
     // Call API to get detail data
@@ -527,14 +800,12 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
   }
 
   openDeleteModal() {
-    const selectedRows = this.tabulator.getSelectedRows() || [];
+    const selectedData = this.getSelectedRows();
 
-    if (selectedRows.length === 0) {
+    if (selectedData.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký nghỉ cần xóa');
       return;
     }
-
-    const selectedData = selectedRows.map(row => row.getData());
 
     // Kiểm tra xem có bản ghi nào đã được duyệt không - cho phép người có quyền xóa bất kể đã duyệt
     const approvedRecords = selectedData.filter(data => this.isApproved(data));
@@ -709,14 +980,13 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
 
 
   approved(isApproved: boolean, isTBP: boolean) {
-    const selectedRows = this.tabulator.getSelectedRows() || [];
+    const selectedData = this.getSelectedRows();
 
-    if (selectedRows.length === 0) {
+    if (selectedData.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký nghỉ cần duyệt');
       return;
     }
 
-    const selectedData = selectedRows.map(row => row.getData());
     let validRows: any[] = [];
     let message = '';
 
@@ -736,11 +1006,6 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
       // HR hủy duyệt - lấy tất cả các dòng có ID > 0
       validRows = selectedData.filter(data => data['ID'] > 0);
     }
-
-    // if (validRows.length === 0) {
-    //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dòng nào phù hợp để thực hiện thao tác');
-    //   return;
-    // }
 
     const approveText = isApproved ? 'duyệt' : 'hủy duyệt';
     const roleText = isTBP ? 'TBP' : 'HR';
@@ -864,4 +1129,3 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
   }
 
 }
-

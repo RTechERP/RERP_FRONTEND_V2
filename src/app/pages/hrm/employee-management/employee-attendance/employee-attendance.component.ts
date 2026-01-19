@@ -91,8 +91,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
   employees: any[] = []; // grouped theo DepartmentName (cho dropdown)
 
   // Query params
-  dateStart: Date = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  dateEnd: Date = new Date();
+  dateStart: string = DateTime.local().minus({ days: 7 }).toISODate() || '';
+  dateEnd: string = DateTime.local().toISODate() || '';
   departmentId = 0;
   employeeId = 0;
   searchValue = '';
@@ -152,9 +152,15 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
 
   // ---------- Helpers ----------
   private getDateTimeStart(): DateTime {
+    if (typeof this.dateStart === 'string') {
+      return DateTime.fromISO(this.dateStart);
+    }
     return DateTime.fromJSDate(this.dateStart);
   }
   private getDateTimeEnd(): DateTime {
+    if (typeof this.dateEnd === 'string') {
+      return DateTime.fromISO(this.dateEnd);
+    }
     return DateTime.fromJSDate(this.dateEnd);
   }
   private toBool(v: any): boolean {
@@ -245,8 +251,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
   }
 
   resetSearch(): void {
-    this.dateStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    this.dateEnd = new Date();
+    this.dateStart = DateTime.local().minus({ days: 7 }).toISODate() || '';
+    this.dateEnd = DateTime.local().toISODate() || '';
     this.departmentId = 0;
     this.employeeId = 0;
     this.searchValue = '';
@@ -571,8 +577,13 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const s = this.dateStart,
-      e = this.dateEnd;
+    // Convert string to Date for filename formatting
+    const s = typeof this.dateStart === 'string' 
+      ? DateTime.fromISO(this.dateStart).toJSDate() 
+      : this.dateStart;
+    const e = typeof this.dateEnd === 'string' 
+      ? DateTime.fromISO(this.dateEnd).toJSDate() 
+      : this.dateEnd;
     const filename = `DanhSachVanTay_${this.pad2(s.getDate())}${this.pad2(
       s.getMonth() + 1
     )}${s.getFullYear()}_${this.pad2(e.getDate())}${this.pad2(

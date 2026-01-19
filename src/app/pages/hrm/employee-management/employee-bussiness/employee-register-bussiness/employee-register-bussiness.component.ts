@@ -162,9 +162,17 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
+    // Convert Date to YYYY-MM-DD format for HTML date input
+    const formatDateForInput = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     this.searchForm = this.fb.group({
-      startDate: [firstDay],
-      endDate: [lastDay],
+      startDate: [formatDateForInput(firstDay)],
+      endDate: [formatDateForInput(lastDay)],
       status: [-1],
       type: [null],
       vehicleId: [null],
@@ -204,9 +212,17 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
+    // Convert Date to YYYY-MM-DD format for HTML date input
+    const formatDateForInput = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     this.searchForm.reset({
-      startDate: firstDay,
-      endDate: lastDay,
+      startDate: formatDateForInput(firstDay),
+      endDate: formatDateForInput(lastDay),
       status: -1,
       type: null,
       vehicleId: null,
@@ -998,8 +1014,9 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const startDate = this.searchForm.get('startDate')?.value;
       const endDate = this.searchForm.get('endDate')?.value;
-      const startDateStr = startDate ? DateTime.fromJSDate(new Date(startDate)).toFormat('ddMMyyyy') : '';
-      const endDateStr = endDate ? DateTime.fromJSDate(new Date(endDate)).toFormat('ddMMyyyy') : '';
+      // startDate/endDate are YYYY-MM-DD strings (HTML date input)
+      const startDateStr = startDate ? DateTime.fromISO(startDate).toFormat('ddMMyyyy') : '';
+      const endDateStr = endDate ? DateTime.fromISO(endDate).toFormat('ddMMyyyy') : '';
       saveAs(blob, `DangKyCongTac_${startDateStr}_${endDateStr}.xlsx`);
 
     } catch (error: any) {

@@ -28,4 +28,23 @@
   font-size: 0.75rem;
 }
 
+/* Header filter (year/keyword) responsive helpers - giống Payroll */
+.payroll-filter-year-group {
+  flex: 1 1 100%;
+}
+
+.payroll-filter-year-input {
+  width: 100%;
+}
+
+@media (min-width: 576px) {
+  .payroll-filter-year-group {
+    flex: 0 0 auto;
+  }
+
+  .payroll-filter-year-input {
+    width: 80px;
+  }
+}
+
 

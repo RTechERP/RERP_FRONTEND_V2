@@ -104,3 +104,13 @@
     z-index: 1 !important;
   }
 }
+
+/* Font-size 10px cho cột TBP Duyệt và HR Duyệt */
+:host ::ng-deep .tabulator-cell.approval-column-small-font,
+:host ::ng-deep .tabulator-cell.approval-column-small-font * {
+  font-size: 10px !important;
+}
+
+:host ::ng-deep .tabulator-cell.approval-column-small-font .badge {
+  font-size: 10px !important;
+}

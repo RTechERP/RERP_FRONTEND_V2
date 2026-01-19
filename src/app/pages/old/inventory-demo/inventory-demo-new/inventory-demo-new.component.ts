@@ -5,6 +5,8 @@ import {
     OnInit,
     OnDestroy,
     ChangeDetectorRef,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -42,6 +44,7 @@ import { UpdateQrcodeFormComponent } from '../update-qrcode-form/update-qrcode-f
 import { InventoryBorrowSupplierDemoComponent } from '../inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { environment } from '../../../../../environments/environment';
+import { ClipboardService } from '../../../../services/clipboard.service';
 
 @Component({
     selector: 'app-inventory-demo-new',
@@ -169,7 +172,9 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         private modal: NzModalService,
         private ngbModal: NgbModal,
         private route: ActivatedRoute,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private clipboardService: ClipboardService,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
@@ -181,16 +186,26 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
             // Parse string params to numbers (queryParams values are always strings)
-            const newWarehouseID = Number(params['warehouseID']) || 1;
-            const newWarehouseType = Number(params['warehouseType']) || 1;
+            // const newWarehouseID = Number(params['warehouseID']) || 1;
+            // const newWarehouseType = Number(params['warehouseType']) || 1;
 
-            console.log('QueryParams changed:', { newWarehouseID, newWarehouseType, currentWarehouseID: this.warehouseID, currentWarehouseType: this.warehouseType });
+            const newWarehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            const newWarehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
+
+            // console.log('QueryParams changed:', { newWarehouseID, newWarehouseType, currentWarehouseID: this.warehouseID, currentWarehouseType: this.warehouseType });
 
             // Kiểm tra xem params có thay đổi không (so sánh number với number)
             const paramsChanged = this.warehouseID !== newWarehouseID ||
                 this.warehouseType !== newWarehouseType;
 
-            console.log('Params changed:', paramsChanged);
+            // console.log('Params changed:', paramsChanged);
 
             // Nếu params thay đổi, reset và clear data trước
             if (paramsChanged) {
@@ -725,7 +740,20 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             frozenColumn: 2,
             enableHeaderMenu: false,
             enableContextMenu: true,
-            enableCellMenu: false,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.clipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
             contextMenu: {
                 hideCloseButton: false,
                 width: 200,

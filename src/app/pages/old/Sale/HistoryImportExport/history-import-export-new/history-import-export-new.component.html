@@ -1,24 +1,18 @@
-<div class="history-container h-100">
+<div [id]="'history-import-export-container-' + warehouseCode" class="history-container h-100">
     <!-- Header with filters and export button -->
-    <div class="header-section p-2 bg-white border-bottom">
+    <div [id]="'history-header-' + warehouseCode" class="header-section p-2 bg-white border-bottom">
         <div class="d-flex flex-wrap align-items-center gap-2">
             <!-- Date filters -->
             <div class="d-flex align-items-center gap-1">
                 <label class="fs-12 mb-0">Từ ngày:</label>
-                <nz-date-picker
-                    [nzFormat]="dateFormat"
-                    nzSize="small"
-                    [(ngModel)]="searchParams.dateStart"
+                <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateStart"
                     class="date-picker-input">
                 </nz-date-picker>
             </div>
 
             <div class="d-flex align-items-center gap-1">
                 <label class="fs-12 mb-0">Đến ngày:</label>
-                <nz-date-picker
-                    [nzFormat]="dateFormat"
-                    nzSize="small"
-                    [(ngModel)]="searchParams.dateEnd"
+                <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateEnd"
                     class="date-picker-input">
                 </nz-date-picker>
             </div>
@@ -26,36 +20,22 @@
             <!-- Keyword search -->
             <div class="d-flex align-items-center gap-1">
                 <label class="fs-12 mb-0">Từ khóa:</label>
-                <input
-                    nz-input
-                    placeholder="Nhập từ khóa"
-                    [(ngModel)]="searchParams.keyword"
-                    (keyup.enter)="searchData()"
-                    nzSize="small"
-                    class="keyword-input" />
+                <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword"
+                    (keyup.enter)="searchData()" nzSize="small" class="keyword-input" />
             </div>
 
             <!-- Status filter -->
             <div class="d-flex align-items-center gap-1">
                 <label class="fs-12 mb-0">Lọc phiếu:</label>
-                <nz-select
-                    nzSize="small"
-                    [(ngModel)]="searchParams.status"
-                    (keyup.enter)="searchData()"
+                <nz-select nzSize="small" [(ngModel)]="searchParams.status" (keyup.enter)="searchData()"
                     class="status-select">
-                    <nz-option
-                        *ngFor="let c of cbbStatus"
-                        [nzValue]="c.ID"
-                        [nzLabel]="c.Name">
+                    <nz-option *ngFor="let c of cbbStatus" [nzValue]="c.ID" [nzLabel]="c.Name">
                     </nz-option>
                 </nz-select>
             </div>
 
             <!-- Checkbox -->
-            <label
-                nz-checkbox
-                [(ngModel)]="checked"
-                (ngModelChange)="onCheckboxChange()">
+            <label nz-checkbox [(ngModel)]="checked" (ngModelChange)="onCheckboxChange()">
                 Tìm kiếm tất cả
             </label>
 
@@ -69,7 +49,8 @@
             </button>
 
             <button type="button" class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                <img class="btn-action-icon" src="assets/icon/action_export_excel_24.svg" alt="Export Excel" /> Xuất Excel
+                <img class="btn-action-icon" src="assets/icon/action_export_excel_24.svg" alt="Export Excel" /> Xuất
+                Excel
             </button>
         </div>
     </div>
@@ -78,12 +59,8 @@
     <div class="content-section">
         <div class="grid-container-{{warehouseCode}} grid-wrapper">
             <nz-spin [nzSpinning]="isLoading">
-                <angular-slickgrid
-                    [gridId]="gridId"
-                    [columns]="columnDefinitions"
-                    [options]="gridOptions"
-                    [dataset]="dataset"
-                    (onAngularGridCreated)="angularGridReady($event.detail)">
+                <angular-slickgrid [gridId]="gridId" [columns]="columnDefinitions" [options]="gridOptions"
+                    [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
                 </angular-slickgrid>
             </nz-spin>
         </div>

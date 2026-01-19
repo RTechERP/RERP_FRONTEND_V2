@@ -415,7 +415,7 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
       this.keyword ?? ''
     ).subscribe({
       next: (data: any) => {
-        
+
         this.employeeContractList = Array.isArray(data.data) ? data.data : [data.data];
         this.initializeTable();
         // this.tabulatorEmployeeContract.setData(data.data);
@@ -436,10 +436,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
 
     const selectedContract = selectedRows[0].getData();
 
-    if (selectedContract['StatusSign'] !== 2) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chỉ có thể in hợp đồng đã được ký');
-      return;
-    }
 
     this.isPrinting = true;
 
@@ -447,8 +443,10 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
       next: (response: any) => {
 
         if (response && response.data) {
+          console.log(response.data);
           const contractResponse = Array.isArray(response.data) ? response.data[0] : response.data;
           const contractRequest = {
+            // ===== Thông tin hợp đồng =====
             ID: contractResponse.ID,
             EmployeeID: contractResponse.EmployeeID,
             EmployeeLoaiHDLDID: contractResponse.EmployeeLoaiHDLDID,
@@ -468,8 +466,19 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
             Position: contractResponse.Position,
             Department: contractResponse.DepartmentName,
             Salary: contractResponse.MucDongBHXHHienTai,
-            NotificationDate: contractResponse.NotificationDate
+            NotificationDate: contractResponse.NotificationDate,
+
+            // ===== Thông tin công ty (BỔ SUNG) =====
+            CompanyNameHeader: contractResponse.CompanyName,
+            COMPANYCODE: contractResponse.COMPANYCODE,
+            CompanyName: contractResponse.CompanyName,
+            TaxCodeCom: contractResponse.TaxCodeCom,
+            AddressCom: contractResponse.AddressCom,
+            PhoneNumberCom: contractResponse.PhoneNumberCom,
+            DirectorCom: contractResponse.DirectorCom,
+            PositionCom: contractResponse.PositionCom
           };
+
           // 2. Gửi dữ liệu sang API generate để lấy file Word
           this.employeeService.generateWordDocument(contractRequest).subscribe({
             next: (fileBlob: Blob) => {

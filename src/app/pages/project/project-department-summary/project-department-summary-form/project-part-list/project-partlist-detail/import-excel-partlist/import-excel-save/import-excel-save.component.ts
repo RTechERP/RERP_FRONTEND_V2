@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -18,7 +18,7 @@ import { ProjectPartListService } from '../../../project-partlist-service/projec
 })
 export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
   @Input() dataDiff: any[] = [];
-  
+
   @ViewChild('partlistTableSave', { static: false }) partlistTableSaveContainer!: ElementRef;
   tableSave: any;
   isLoading: boolean = false;
@@ -27,10 +27,11 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
     public activeModal: NgbActiveModal,
     private partlistService: ProjectPartListService,
     private notification: NzNotificationService,
-    private modal: NzModalService
-  ) {}
+    private modal: NzModalService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   ngAfterViewInit() {
     setTimeout(() => {
@@ -88,7 +89,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
             cellElement.style.fontSize = '12px';
             cellElement.style.fontFamily = 'Arial, sans-serif';
             cellElement.style.fontWeight = 'bold';
-            
+
             // Kiểm tra IsSameProductCode, nếu = 0 thì bôi màu hồng
             const isSameProductCode = parseInt(rowData.IsSameProductCode) || 0;
             if (isSameProductCode === 0) {
@@ -109,7 +110,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
             const cellElement = cell.getElement();
-           
+
             // Kiểm tra IsSameProductName, nếu = 0 thì bôi màu hồng
             const isSameProductName = parseInt(rowData.IsSameProductName) || 0;
             if (isSameProductName === 0) {
@@ -130,7 +131,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
             const cellElement = cell.getElement();
-          
+
             // Kiểm tra IsSameProductName, nếu = 0 thì bôi màu hồng
             const isSameProductName = parseInt(rowData.IsSameProductName) || 0;
             if (isSameProductName === 0) {
@@ -151,7 +152,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
             const cellElement = cell.getElement();
-          
+
             // Kiểm tra IsSameMaker, nếu = 0 thì bôi màu hồng
             const isSameMaker = parseInt(rowData.IsSameMaker) || 0;
             if (isSameMaker === 0) {
@@ -172,7 +173,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
             const cellElement = cell.getElement();
-        
+
             // Kiểm tra IsSameMaker, nếu = 0 thì bôi màu hồng
             const isSameMaker = parseInt(rowData.IsSameMaker) || 0;
             if (isSameMaker === 0) {
@@ -193,7 +194,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
             const cellElement = cell.getElement();
-          
+
             // Kiểm tra IsSameUnit, nếu = 0 thì bôi màu hồng
             const isSameUnit = parseInt(rowData.IsSameUnit) || 0;
             if (isSameUnit === 0) {
@@ -214,7 +215,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
             const cellElement = cell.getElement();
-          
+
             // Kiểm tra IsSameUnit, nếu = 0 thì bôi màu hồng
             const isSameUnit = parseInt(rowData.IsSameUnit) || 0;
             if (isSameUnit === 0) {
@@ -258,12 +259,12 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
           const cellElement = cell.getElement();
           const column = cell.getColumn();
           const field = column.getField();
-          
+
           // Bỏ qua các cột đã có formatter riêng
           if (['ProductCode', 'GroupMaterial', 'GroupMaterialStock', 'Manufacturer', 'ManufacturerStock', 'UnitPartlist', 'UnitStock'].includes(field)) {
             return;
           }
-          
+
           // Áp dụng style mặc định cho các cột còn lại
           if (!cellElement.style.backgroundColor) {
             cellElement.style.border = '1px solid #d0d7e5';
@@ -304,7 +305,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
   // Cập nhật theo Partlist (status = 1)
   onSaveByPartlist() {
     const selectedRows = this.getSelectedRows();
-    
+
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn ít nhất một dòng để cập nhật!');
       return;
@@ -330,6 +331,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
     this.partlistService.saveImport(payload, 1).subscribe({
       next: (res: any) => {
         this.isLoading = false;
+        this.cdr.detectChanges(); // Force update UI
         if (res.status === 1 || res.success) {
           this.notification.success('Thành công', res.message || `Đã cập nhật ${selectedRows.length} bản ghi theo Partlist thành công!`);
           // Reload lại bảng thay vì đóng modal
@@ -340,6 +342,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         this.isLoading = false;
+        this.cdr.detectChanges(); // Force update UI
         console.error('Lỗi khi cập nhật theo Partlist:', err);
         const msg = err.error?.message || err.message || 'Lỗi kết nối server khi cập nhật dữ liệu!';
         this.notification.error('Lỗi', msg);
@@ -350,7 +353,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
   // Cập nhật theo Kho (status = 2)
   onSaveByStock() {
     const selectedRows = this.getSelectedRows();
-    
+
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn ít nhất một dòng để cập nhật!');
       return;
@@ -375,6 +378,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
     this.partlistService.saveImport(payload, 2).subscribe({
       next: (res: any) => {
         this.isLoading = false;
+        this.cdr.detectChanges(); // Force update UI
         if (res.status === 1 || res.success) {
           this.notification.success('Thành công', res.message || `Đã cập nhật ${selectedRows.length} bản ghi theo Kho thành công!`);
           // Reload lại bảng thay vì đóng modal
@@ -385,6 +389,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         this.isLoading = false;
+        this.cdr.detectChanges(); // Force update UI
         console.error('Lỗi khi cập nhật theo Kho:', err);
         const msg = err.error?.message || err.message || 'Lỗi kết nối server khi cập nhật dữ liệu!';
         this.notification.error('Lỗi', msg);

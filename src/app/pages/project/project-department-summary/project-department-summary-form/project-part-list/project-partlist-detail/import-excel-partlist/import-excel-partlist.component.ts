@@ -736,6 +736,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           this.notification.error('Lỗi', errorMessage);
           this.displayText = 'Đang kiểm tra dữ liệu...!';
           this.displayProgress = 0;
+          this.isSaving = false; // Reset trạng thái loading khi có lỗi validate
           return;
         }
 
@@ -773,6 +774,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
         this.notification.error('Lỗi', errorMessage);
         this.displayText = 'Kiểm tra thất bại!';
         this.displayProgress = 0;
+        this.isSaving = false; // Reset trạng thái loading khi có lỗi HTTP
       }
     });
   }

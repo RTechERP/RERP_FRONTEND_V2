@@ -6,6 +6,8 @@ import {
     Input,
     Output,
     EventEmitter,
+    Optional,
+    Inject,
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
@@ -82,6 +84,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
         private modalService: NgbModal,
         private route: ActivatedRoute,
         // private clipboardService: ClipboardService
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     listProductMenu: MenuItem[] = [];
@@ -113,7 +116,11 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
         // Get warehouseCode from query params
         // Note: RouteReuseStrategy will recreate component when queryParams change
         this.queryParamsSub = this.route.queryParams.subscribe((params) => {
-            this.warehouseCode = params['warehouseCode'] || 'HN';
+            // this.warehouseCode = params['warehouseCode'] || 'HN';
+            this.warehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
             this.sreachParam.WareHouseCode = this.warehouseCode;
         });
 

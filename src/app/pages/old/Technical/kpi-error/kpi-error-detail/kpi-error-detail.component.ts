@@ -169,7 +169,8 @@ export class KpiErrorDetailComponent implements OnInit {
             },
             error: (error: any) => {
                 console.error('Error saving KPI error:', error);
-                this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu');
+                const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra khi lưu dữ liệu';
+                this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
             }
         });
     }

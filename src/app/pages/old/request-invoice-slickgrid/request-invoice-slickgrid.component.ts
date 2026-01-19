@@ -151,7 +151,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         private RequestInvoiceDetailService: RequestInvoiceDetailService,
         private menuEventService: MenuEventService,
         private requestInvoiceStatusLinkService: RequestInvoiceStatusLinkService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     data: any[] = [];
@@ -250,7 +251,11 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     ngOnInit(): void {
         this.initMenuBar();
         this.route.queryParams.subscribe(params => {
-            this.warehouseId = params['warehouseId'] || 0;
+            // this.warehouseId = params['warehouseId'] || 0;
+            this.warehouseId =
+                params['warehouseId']
+                ?? this.tabData?.warehouseId
+                ?? 0;
         });
         const now = new Date();
         const startDate = new Date(now.getFullYear(), now.getMonth(), 1);

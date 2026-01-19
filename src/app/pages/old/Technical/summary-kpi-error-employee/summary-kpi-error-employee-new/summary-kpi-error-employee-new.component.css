@@ -1,0 +1,162 @@
+/* Host container - full height */
+:host {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Main tabset styling */
+:host ::ng-deep nz-tabset {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-tabs-content-holder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-tabs-content {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sub-tabs styling (inside Tab 1) */
+.sub-tabs {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .sub-tabs .ant-tabs-content {
+    flex: 1;
+    height: 100%;
+}
+
+:host ::ng-deep .sub-tabs .ant-tabs-tabpane {
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Filter bar styling */
+.filter-bar {
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #d9d9d9;
+    flex-shrink: 0;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+/* Align labels and inputs in filter bar */
+:host ::ng-deep .filter-bar nz-form-item {
+    display: flex;
+    align-items: center;
+}
+
+:host ::ng-deep .filter-bar nz-form-label {
+    padding: 0 8px 0 0;
+    line-height: 24px;
+}
+
+:host ::ng-deep .filter-bar nz-form-control {
+    line-height: 24px;
+}
+
+/* SlickGrid Container needs specific height management */
+.grid-container {
+    position: relative;
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .grid-container .slickgrid-container {
+    flex: 1;
+    min-height: 0;
+}
+
+:host ::ng-deep .slick-cell {
+    display: flex;
+    align-items: center;
+}
+
+/* Chart Container */
+.chart-container {
+    background-color: white;
+}
+
+/* Image Container */
+.image-container {
+    border: 1px solid #e8e8e8;
+    background-color: #fafafa;
+}
+
+/* NZ Splitter custom styles */
+:host ::ng-deep nz-splitter {
+    height: 100%;
+}
+
+:host ::ng-deep nz-splitter-panel {
+    overflow: hidden;
+}
+
+/* Gap utilities */
+.gap-1 {
+    gap: 0.25rem;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-3 {
+    gap: 1rem;
+}
+
+/* Width utilities */
+.w-80px {
+    width: 80px;
+}
+
+.w-60px {
+    width: 60px;
+}
+
+.w-150px {
+    width: 150px;
+}
+
+.w-200px {
+    width: 200px;
+}
+
+.mh-100 {
+    max-height: 100%;
+}
+
+.mw-100 {
+    max-width: 100%;
+}

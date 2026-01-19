@@ -118,7 +118,8 @@ export class FollowProjectBaseComponent implements OnInit {
         private modalService: NgbModal,
         private khoBaseService: KhoBaseService,
         private appUserService: AppUserService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit() {
@@ -127,7 +128,11 @@ export class FollowProjectBaseComponent implements OnInit {
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseId'] || 1
+            // this.warehouseID = params['warehouseId'] || 1
+            this.warehouseID =
+                params['warehouseId']
+                ?? this.tabData?.warehouseId
+                ?? 1;
         });
 
         this.isAdmin = this.appUserService.isAdmin;

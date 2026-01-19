@@ -5,6 +5,8 @@ import {
     OnInit,
     OnDestroy,
     ChangeDetectorRef,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -171,8 +173,9 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         private ngbModal: NgbModal,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        private clipboardService: ClipboardService
-    ) {}
+        private clipboardService: ClipboardService,
+        @Optional() @Inject('tabData') private tabData: any
+    ) { }
 
     ngOnInit(): void {
         this.initGridColumns();
@@ -183,16 +186,26 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
             // Parse string params to numbers (queryParams values are always strings)
-            const newWarehouseID = Number(params['warehouseID']) || 1;
-            const newWarehouseType = Number(params['warehouseType']) || 1;
+            // const newWarehouseID = Number(params['warehouseID']) || 1;
+            // const newWarehouseType = Number(params['warehouseType']) || 1;
 
-            console.log('QueryParams changed:', { newWarehouseID, newWarehouseType, currentWarehouseID: this.warehouseID, currentWarehouseType: this.warehouseType });
+            const newWarehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            const newWarehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
+
+            // console.log('QueryParams changed:', { newWarehouseID, newWarehouseType, currentWarehouseID: this.warehouseID, currentWarehouseType: this.warehouseType });
 
             // Kiểm tra xem params có thay đổi không (so sánh number với number)
             const paramsChanged = this.warehouseID !== newWarehouseID ||
                 this.warehouseType !== newWarehouseType;
 
-            console.log('Params changed:', paramsChanged);
+            // console.log('Params changed:', paramsChanged);
 
             // Nếu params thay đổi, reset và clear data trước
             if (paramsChanged) {

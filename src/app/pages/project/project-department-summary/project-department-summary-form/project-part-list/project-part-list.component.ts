@@ -137,7 +137,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         private appUserService: AppUserService,
         private billExportService: BillExportService,
         private authService: AuthService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
     sizeLeftPanel: string = ''; // Khởi tạo rỗng
     sizeRightPanel: string = ''; // Khởi tạo rỗng
@@ -215,7 +216,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.tbp = params['tbp'] || false;
+            // this.tbp = params['tbp'] || false;
+            this.tbp =
+                params['tbp']
+                ?? this.tabData?.tbp
+                ?? false;
         });
         this.isDeleted = 0;
         this.isApprovedTBP = -1;

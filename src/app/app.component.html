@@ -14,9 +14,8 @@
             <li nz-menu-item nzMatchRouter class="m-0 fw-bold">
                 <img src="assets/icon/home.svg" class="menu-icon m-1" width="24px" />
                 <a routerLink="/home">Trang chủ</a>
-                <!-- <p>{{c1.isPermission }}- {{c1.isOpen}} - {{c1.children.length}}</p> -->
             </li>
-            @for (m of menus; track m.id) {
+            <!-- @for (m of menus; track m.id) {
 
             <ng-template #nzTitle style="padding: 0 16px;">
                 <img [src]="m.icon" class="menu-icon m-1" *ngIf="(m.icon || '') != ''" width="24px" />
@@ -31,10 +30,7 @@
                         (click)="newTab((c1.router || ''), c1.title,c1.queryParams)">
                         <img [src]="c1.icon" class="menu-icon m-1" *ngIf="(c1.icon || '') != ''" width="24px" />
                         <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
-                        <!-- {{c1.title}} -->
-
                         <a [routerLink]="c1.router">{{c1.title}}</a>
-                        <!-- <p>{{c1.isPermission }}- {{c1.isOpen}} - {{c1.children.length}}</p> -->
                     </li>
 
                     <ng-template #nzTitle1 style="padding: 0 16px;">
@@ -52,7 +48,6 @@
                                 style="font-size: 11px !important;">
                                 <img [src]="c2.icon" class="menu-icon m-1" *ngIf="(c2.icon || '') != ''" width="24px" />
                                 <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
-                                <!-- {{c2.title}} -->
                                 <a [routerLink]="c2.router">{{c2.title}}</a>
                             </li>
 
@@ -75,8 +70,84 @@
                                         <img [src]="c3.icon" class="menu-icon m-1" *ngIf="(c3.icon || '') != ''"
                                             width="24px" />
                                         <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c3.icon || '') == ''" />
-                                        <!-- <a [href]="c3.router">{{c3.title}}</a> -->
                                         <a [routerLink]="c3.router">{{c3.title}}</a>
+                                    </li>
+                                    }
+
+                                </ul>
+                            </li>
+                            }
+
+                        </ul>
+                    </li>
+                    }
+                </ul>
+            </li>
+            } -->
+
+
+            @for (m of menuComps; track m.key) {
+
+            <ng-template #nzTitle style="padding: 0 16px;">
+                <img [src]="m.icon" class="menu-icon m-1" *ngIf="(m.icon || '') != ''" width="24px" />
+                <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(m.icon || '') == ''" />
+                <p class="m-0 fw-bold">{{ m.title }}</p>
+            </ng-template>
+            <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen"
+                [nzOpen]="menuCompKey === m.key">
+                <ul>
+                    @for (c1 of m.children; track c1.key) {
+                    <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen"
+                        (click)="newTabComp(c1.comp,c1.title,c1.data)">
+                        <img [src]="c1.icon" class="menu-icon m-1" *ngIf="(c1.icon || '') != ''" width="24px" />
+                        <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
+                        {{c1.title}}
+
+                        <a [routerLink]="c1.router" style="margin-left: auto;">
+                            <nz-icon nzType="export" nzTheme="outline" />
+                        </a>
+                    </li>
+
+                    <ng-template #nzTitle1 style="padding: 0 16px;">
+                        <img [src]="c1.icon" class="menu-icon m-1" *ngIf="(c1.icon || '') != ''" width="24px" />
+                        <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
+                        <p class="m-0" style="white-space: pre-line;">{{ c1.title }}</p>
+                    </ng-template>
+                    <li nz-submenu [nzTitle]="nzTitle1" *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen"
+                        [nzOpen]="menuCompKey === c1.key">
+                        <ul>
+                            @for (c2 of c1.children; track c2.key) {
+                            <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen"
+                                (click)="newTabComp(c2.comp, c2.title,c2.data)" style="font-size: 11px !important;">
+                                <img [src]="c2.icon" class="menu-icon m-1" *ngIf="(c2.icon || '') != ''" width="24px" />
+                                <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
+                                {{c2.title}}
+                                <a [routerLink]="c2.router" style="margin-left: auto;">
+                                    <nz-icon nzType="export" nzTheme="outline" />
+                                </a>
+                            </li>
+
+
+                            <ng-template #nzTitle2 style="padding: 0 16px;">
+                                <img [src]="c2.icon" class="menu-icon m-1" *ngIf="(c2.icon || '') != ''" width="24px" />
+                                <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
+                                <p class="m-0" style="white-space: pre-line !important;font-size: 11px !important;">{{
+                                    c2.title }} </p>
+                            </ng-template>
+                            <li nz-submenu [nzTitle]="nzTitle2" *ngIf="isGroup(c2) && c2.isPermission && c2.isOpen"
+                                [nzOpen]="menuKey === c2.key || rootMenuKey === c2.key">
+                                <ul>
+                                    @for (c3 of c2.children; track c3.key) {
+                                    <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen"
+                                        (click)="newTabComp(c3.comp, c3.title,c3.data)"
+                                        style="font-size: 10px !important;">
+                                        <img [src]="c3.icon" class="menu-icon m-1" *ngIf="(c3.icon || '') != ''"
+                                            width="24px" />
+                                        <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c3.icon || '') == ''" />
+                                        {{c3.title}}
+                                        <a [routerLink]="c3.router" style="margin-left: auto;">
+                                            <nz-icon nzType="export" nzTheme="outline" />
+                                        </a>
                                     </li>
                                     }
 
@@ -101,9 +172,17 @@
                 </span>
                 <div style="width: 100%; max-width: 100%; overflow: auto" class="app-header-tabs">
 
-                    <nz-tabset nzType="editable-card" nzHideAdd [(nzSelectedIndex)]="selectedIndex"
+                    <!-- <nz-tabset nzType="editable-card" nzHideAdd [(nzSelectedIndex)]="selectedIndex"
                         (nzSelectedIndexChange)="onTabChange($event)" (nzClose)="closeTab($event.index)">
                         <nz-tab *ngFor="let tab of dynamicTabs;let i = index" [nzTitle]="tab.title" [nzClosable]="true"
+                            class="text-uppercase">
+
+                        </nz-tab>
+                    </nz-tabset> -->
+
+                    <nz-tabset nzType="editable-card" nzHideAdd [(nzSelectedIndex)]="selectedCompIndex"
+                        (nzClose)="closeTabComp($event)">
+                        <nz-tab *ngFor="let tab of dynamicTabComps" [nzTitle]="tab.title" [nzClosable]="true"
                             class="text-uppercase">
 
                         </nz-tab>
@@ -117,11 +196,21 @@
 
                     <nz-dropdown-menu #appmenu="nzDropdownMenu">
                         <div class="app-launcher">
-                            <div class="app-launcher-inner">
+                            <!-- <div class="app-launcher-inner">
                                 @for (m of menus; track m.id) {
 
                                 <a [href]="m.router" (click)="toggleMenu($event, m.router, m.key)"
                                     [class.active]="isMenuOpen(m.key)" *ngIf="m.isPermission">
+                                    <img [src]="m.icon?.replace('24','64')" />
+                                    <span class="mt-1">{{m.title}}</span>
+                                </a>
+                                }
+                            </div> -->
+
+                            <div class="app-launcher-inner">
+                                @for (m of menuComps; track m.key) {
+                                <a (click)="toggleMenuComp(m.key)" [class.active]="isMenuCompOpen(m.key)"
+                                    *ngIf="m.isPermission">
                                     <img [src]="m.icon?.replace('24','64')" />
                                     <span class="mt-1">{{m.title}}</span>
                                 </a>
@@ -156,15 +245,15 @@
             </nz-tabset> -->
 
 
-            <!-- <div class="content-host">
-                <ng-container *ngFor="let tab of dynamicTabs; let i = index">
-                    <div [hidden]="selectedIndex !== i" class="tab-pane">
+            <div class="content-host" *ngIf="hasDynamicTabComp">
+                <ng-container *ngFor="let tab of dynamicTabComps; let i = index">
+                    <div [hidden]="selectedCompIndex !== i" class="tab-pane">
                         <ng-container *ngComponentOutlet="tab.comp; injector: tab.injector">
                         </ng-container>
                     </div>
                 </ng-container>
-            </div> -->
-            <router-outlet></router-outlet>
+            </div>
+            <router-outlet *ngIf="!hasDynamicTabComp"></router-outlet>
         </nz-content>
         <!-- <nz-footer class="p-2 text-uppercase"> &copy; 2025, made by rtc technology việt nam</nz-footer> -->
     </nz-layout>

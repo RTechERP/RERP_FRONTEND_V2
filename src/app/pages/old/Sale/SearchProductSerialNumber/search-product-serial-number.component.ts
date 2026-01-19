@@ -1,22 +1,22 @@
 import {
-  Component,
-  OnInit,
-  AfterViewInit,
-  ViewChild,
-  Input,
-  Inject,
-  Optional,
+    Component,
+    OnInit,
+    AfterViewInit,
+    ViewChild,
+    Input,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { CommonModule } from '@angular/common';
 import {
-  FormsModule,
-  Validators,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
+    FormsModule,
+    Validators,
+    FormBuilder,
+    FormGroup,
+    ReactiveFormsModule,
 } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -41,243 +41,245 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { ActivatedRoute } from '@angular/router';
 @Component({
-  selector: 'app-search-product-serial-number',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    NzModalModule,
-    NzSelectModule,
-    NzSplitterModule,
-    NzIconModule,
-    NzButtonModule,
-    NzProgressModule,
-    NzInputModule,
-    NzFormModule,
-    NzInputNumberModule,
-    NzCheckboxModule,
-    NgbModule,
-    NzDatePickerModule,
-    NzDropDownModule,
-    NzMenuModule,
-    NzSpinModule,
-  ],
-  templateUrl: './search-product-serial-number.component.html',
-  styleUrl: './search-product-serial-number.component.css',
+    selector: 'app-search-product-serial-number',
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NzModalModule,
+        NzSelectModule,
+        NzSplitterModule,
+        NzIconModule,
+        NzButtonModule,
+        NzProgressModule,
+        NzInputModule,
+        NzFormModule,
+        NzInputNumberModule,
+        NzCheckboxModule,
+        NgbModule,
+        NzDatePickerModule,
+        NzDropDownModule,
+        NzMenuModule,
+        NzSpinModule,
+    ],
+    templateUrl: './search-product-serial-number.component.html',
+    styleUrl: './search-product-serial-number.component.css',
 })
 export class SearchProductSerialNumberComponent
-  implements OnInit, AfterViewInit
-{
-  wearHouseID: number = 1;
-  constructor(
-    private searchProductSerialNumberService: SearchProductSerialNumberServiceService,
-    private notification: NzNotificationService,
-    private modal: NzModalService,
-    private modalService: NgbModal,
-    private route: ActivatedRoute
-  ) {}
+    implements OnInit, AfterViewInit {
+    wearHouseID: number = 1;
+    constructor(
+        private searchProductSerialNumberService: SearchProductSerialNumberServiceService,
+        private notification: NzNotificationService,
+        private modal: NzModalService,
+        private modalService: NgbModal,
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
+    ) { }
 
-  isLoading = false;
+    isLoading = false;
 
-  table_Import: any;
-  dataImport: any[] = [];
+    table_Import: any;
+    dataImport: any[] = [];
 
-  table_Export: any;
-  dataExport: any[] = [];
+    table_Export: any;
+    dataExport: any[] = [];
 
-  keyword: string = '';
-  ngOnInit(): void {
-    // if (this.tabData?.warehouseID) {
-    //   this.wearHouseID = this.tabData.warehouseID;
-    // }
+    keyword: string = '';
+    ngOnInit(): void {
+        // if (this.tabData?.warehouseID) {
+        //   this.wearHouseID = this.tabData.warehouseID;
+        // }
 
-    this.route.queryParams.subscribe((params) => {
-      this.wearHouseID = params['warehouseID'] || 'HN';
-    });
-    this.loadData();
-  }
-  ngAfterViewInit(): void {
-    this.drawTable();
-  }
-  loadData() {
-    this.isLoading = true; // <-- Thêm dòng này
-    this.searchProductSerialNumberService.getAll(this.keyword).subscribe({
-      next: (res: any) => {
-        this.dataImport = res.dataImport;
-        this.dataExport = res.dataExport;
-        if (this.dataImport) {
-          this.table_Import.replaceData(this.dataImport);
-        }
-        if (this.dataExport) {
-          this.table_Export.replaceData(this.dataExport);
-        }
-        this.isLoading = false;
-      },
-      error: (err: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Không thể tải dữ liệu lịch sử mượn/trả'
-        );
-        this.isLoading = false; // <-- Đổi thành false ở đây
-      },
-    });
-  }
-  drawTable() {
-    this.table_Import = new Tabulator('#table_import', {
-      data: this.dataImport,
-      ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataStretch',
-      height: '89vh',
-      selectableRows: true, // Cho phép checkbox chọn dòng
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      paginationMode: 'local',
-      paginationSize: 50,
-      columns: [
-        {
-          title: 'Duyệt',
-          field: 'Status',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 80,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return `<input type="checkbox" ${
-              value === true ? 'checked' : ''
-            } disabled />`;
-          },
-        },
-        {
-          title: 'Mã phiếu nhập',
-          field: 'BillImportCode',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 80,
-        },
-        {
-          title: 'Mã sản phẩm',
-          field: 'ProductCode',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Tên sản phẩm',
-          field: 'ProductName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 200,
-          formatter: 'textarea',
-          formatterParams: {
-            maxHeight: 100,
-          },
-          cssClass: 'content-cell',
-        },
-        {
-          title: 'Mã theo dự án',
-          field: 'ProjectName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Serial Number',
-          field: 'SerialNumber',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Mã dự án',
-          field: 'ProjectCode',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Ghi chú (PO)',
-          field: 'Note',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
-      ],
-    });
-    if (this.dataImport && this.dataImport.length > 0) {
-      this.table_Import.replaceData(this.dataImport);
+        this.route.queryParams.subscribe((params) => {
+            // this.wearHouseID = params['warehouseID'] || 'HN';
+            this.wearHouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 'HN';
+        });
+        this.loadData();
     }
-    //bang xuat
-    this.table_Export = new Tabulator('#table_export', {
-      data: this.dataExport,
-      ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataStretch',
-      height: '89vh',
-      selectableRows: true, // Cho phép checkbox chọn dòng
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      paginationMode: 'local',
-      paginationSize: 50,
-
-      columns: [
-        {
-          title: 'Duyệt',
-          field: 'Status',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 80,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return `<input type="checkbox" ${
-              value === true ? 'checked' : ''
-            } disabled />`;
-          },
-        },
-        {
-          title: 'Mã phiếu Xuất',
-          field: 'Code',
-          hozAlign: 'left',
-          width: 80,
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Tên sản phẩm',
-          field: 'ProductName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 200,
-          formatter: 'textarea',
-          formatterParams: {
-            maxHeight: 100,
-          },
-          cssClass: 'content-cell',
-        },
-        {
-          title: 'Mã theo dự án',
-          field: 'ProjectName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Serial Number',
-          field: 'SerialNumber1',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Mã dự án',
-          field: 'ProjectCode',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Ghi chú (PO)',
-          field: 'Note',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
-      ],
-    });
-
-    if (this.dataExport && this.dataExport.length > 0) {
-      this.table_Export.replaceData(this.dataExport);
+    ngAfterViewInit(): void {
+        this.drawTable();
     }
-  }
+    loadData() {
+        this.isLoading = true; // <-- Thêm dòng này
+        this.searchProductSerialNumberService.getAll(this.keyword).subscribe({
+            next: (res: any) => {
+                this.dataImport = res.dataImport;
+                this.dataExport = res.dataExport;
+                if (this.dataImport) {
+                    this.table_Import.replaceData(this.dataImport);
+                }
+                if (this.dataExport) {
+                    this.table_Export.replaceData(this.dataExport);
+                }
+                this.isLoading = false;
+            },
+            error: (err: any) => {
+                this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    'Không thể tải dữ liệu lịch sử mượn/trả'
+                );
+                this.isLoading = false; // <-- Đổi thành false ở đây
+            },
+        });
+    }
+    drawTable() {
+        this.table_Import = new Tabulator('#table_import', {
+            data: this.dataImport,
+            ...DEFAULT_TABLE_CONFIG,
+            layout: 'fitDataStretch',
+            height: '89vh',
+            selectableRows: true, // Cho phép checkbox chọn dòng
+            movableColumns: true,
+            resizableRows: true,
+            reactiveData: true,
+            paginationMode: 'local',
+            paginationSize: 50,
+            columns: [
+                {
+                    title: 'Duyệt',
+                    field: 'Status',
+                    hozAlign: 'center',
+                    headerHozAlign: 'center',
+                    width: 80,
+                    formatter: (cell) => {
+                        const value = cell.getValue();
+                        return `<input type="checkbox" ${value === true ? 'checked' : ''
+                            } disabled />`;
+                    },
+                },
+                {
+                    title: 'Mã phiếu nhập',
+                    field: 'BillImportCode',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                    width: 80,
+                },
+                {
+                    title: 'Mã sản phẩm',
+                    field: 'ProductCode',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                },
+                {
+                    title: 'Tên sản phẩm',
+                    field: 'ProductName',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                    width: 200,
+                    formatter: 'textarea',
+                    formatterParams: {
+                        maxHeight: 100,
+                    },
+                    cssClass: 'content-cell',
+                },
+                {
+                    title: 'Mã theo dự án',
+                    field: 'ProjectName',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                },
+                {
+                    title: 'Serial Number',
+                    field: 'SerialNumber',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                },
+                {
+                    title: 'Mã dự án',
+                    field: 'ProjectCode',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                },
+                {
+                    title: 'Ghi chú (PO)',
+                    field: 'Note',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                },
+            ],
+        });
+        if (this.dataImport && this.dataImport.length > 0) {
+            this.table_Import.replaceData(this.dataImport);
+        }
+        //bang xuat
+        this.table_Export = new Tabulator('#table_export', {
+            data: this.dataExport,
+            ...DEFAULT_TABLE_CONFIG,
+            layout: 'fitDataStretch',
+            height: '89vh',
+            selectableRows: true, // Cho phép checkbox chọn dòng
+            movableColumns: true,
+            resizableRows: true,
+            reactiveData: true,
+            paginationMode: 'local',
+            paginationSize: 50,
+
+            columns: [
+                {
+                    title: 'Duyệt',
+                    field: 'Status',
+                    hozAlign: 'center',
+                    headerHozAlign: 'center',
+                    width: 80,
+                    formatter: (cell) => {
+                        const value = cell.getValue();
+                        return `<input type="checkbox" ${value === true ? 'checked' : ''
+                            } disabled />`;
+                    },
+                },
+                {
+                    title: 'Mã phiếu Xuất',
+                    field: 'Code',
+                    hozAlign: 'left',
+                    width: 80,
+                    headerHozAlign: 'center',
+                },
+                {
+                    title: 'Tên sản phẩm',
+                    field: 'ProductName',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                    width: 200,
+                    formatter: 'textarea',
+                    formatterParams: {
+                        maxHeight: 100,
+                    },
+                    cssClass: 'content-cell',
+                },
+                {
+                    title: 'Mã theo dự án',
+                    field: 'ProjectName',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                },
+                {
+                    title: 'Serial Number',
+                    field: 'SerialNumber1',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                },
+                {
+                    title: 'Mã dự án',
+                    field: 'ProjectCode',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                },
+                {
+                    title: 'Ghi chú (PO)',
+                    field: 'Note',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                },
+            ],
+        });
+
+        if (this.dataExport && this.dataExport.length > 0) {
+            this.table_Export.replaceData(this.dataExport);
+        }
+    }
 }

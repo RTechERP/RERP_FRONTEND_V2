@@ -110,7 +110,8 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         private modalService: NgbModal,
         private appUserService: AppUserService,
         private permissionService: PermissionService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
     wareHouseCode: string = 'HN';
     newBillImport: BillImport = {
@@ -187,8 +188,12 @@ export class BillImportComponent implements OnInit, AfterViewInit {
 
         this.route.queryParams.subscribe(params => {
 
-            console.log('param:', params);
-            this.wareHouseCode = params['warehouseCode'] || 'HN';
+            // console.log('param:', params);
+            // this.wareHouseCode = params['warehouseCode'] || 'HN';
+            this.wareHouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
             this.searchParams.warehousecode = this.wareHouseCode;
         });
         this.getProductGroup();

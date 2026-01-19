@@ -107,7 +107,8 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private zone: NgZone,
         private menuEventService: MenuEventService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     id: number = 0;
@@ -159,14 +160,19 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         Note: '',
     };
     ngOnInit(): void {
+
+        // console.log('this.route.queryParams:', this.route.queryParams);
         // if (this.tabData?.warehouseCode) {
-        //     this.warehouseCode = this.tabData.warehouseCode;
+        //     this.warehouseCode = this.tabData.warehouseCode || 'HN';
+        //     console.log('this.tabData?.warehouseCode:', this.tabData.warehouseCode, this.warehouseCode);
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.warehouseCode = params['warehouseCode'] || 'HN';
-
-            console.log('this.warehouseCode:', this.warehouseCode);
+            // this.warehouseCode = params['warehouseCode'] || 'HN';
+            this.warehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
         });
     }
     ngAfterViewInit(): void {

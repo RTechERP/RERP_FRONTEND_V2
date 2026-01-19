@@ -7,6 +7,8 @@ import {
     ElementRef,
     ChangeDetectorRef,
     NgZone,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -141,7 +143,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         private modal: NzModalService,
         private zone: NgZone,
         private route: ActivatedRoute,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
@@ -149,7 +152,13 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
-            const newWarehouseCode = params['warehouseCode'] || 'HN';
+            // const newWarehouseCode = params['warehouseCode'] || 'HN';
+
+
+            const newWarehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
 
             // Kiểm tra xem params có thay đổi không
             const paramsChanged = this.warehouseCode !== newWarehouseCode;
@@ -241,7 +250,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         // Product Group columns
         this.columnDefinitionsProductGroup = [
             {
-                id: 'ProductGroupID',
+                id: 'ProductGroupID' + this.warehouseCode,
                 field: 'ProductGroupID',
                 name: 'Mã nhóm',
                 width: 50,
@@ -256,7 +265,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
             },
             {
-                id: 'ProductGroupName',
+                id: 'ProductGroupName' + this.warehouseCode,
                 field: 'ProductGroupName',
                 name: 'Tên nhóm',
                 width: 120,
@@ -275,14 +284,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         // PG Warehouse columns
         this.columnDefinitionsPGWarehouse = [
             {
-                id: 'WarehouseCode',
+                id: 'WarehouseCode' + this.warehouseCode,
                 field: 'WarehouseCode',
                 name: 'Kho',
                 width: 50,
                 sortable: true,
             },
             {
-                id: 'FullName',
+                id: 'FullName' + this.warehouseCode,
                 field: 'FullName',
                 name: 'NV phụ trách',
                 width: 100,
@@ -291,337 +300,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         ];
 
         // Inventory columns
-        this.columnDefinitionsInventory = [
-            {
-                id: 'ProductGroupName',
-                field: 'ProductGroupName',
-                name: 'Tên nhóm',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
-            {
-                id: 'IsFix',
-                field: 'IsFix',
-                name: 'Tích xanh',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.iconBoolean,
-                params: { cssClass: 'mdi mdi-check' },
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [
-                        { value: true, label: 'Có' },
-                        { value: false, label: 'Không' },
-                    ],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
-            {
-                id: 'ProductCode',
-                field: 'ProductCode',
-                name: 'Mã sản phẩm',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
-            {
-                id: 'ProductName',
-                field: 'ProductName',
-                name: 'Tên sản phẩm',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                formatter: this.wrapTextFormatter,
-                customTooltip: {
-                    useRegularTooltip: true,
-                },
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
-            {
-                id: 'ProductNewCode',
-                field: 'ProductNewCode',
-                name: 'Mã nội bộ',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
-            {
-                id: 'NameNCC',
-                field: 'NameNCC',
-                name: 'NCC',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                formatter: this.wrapTextFormatter,
-                customTooltip: {
-                    useRegularTooltip: true,
-                },
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
-            {
-                id: 'Deliver',
-                field: 'Deliver',
-                name: 'Người nhập',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
-            {
-                id: 'Maker',
-                field: 'Maker',
-                name: 'Hãng',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
-            {
-                id: 'Unit',
-                field: 'Unit',
-                name: 'ĐVT',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
-            {
-                id: 'TotalQuantityFirst',
-                field: 'TotalQuantityFirst',
-                name: 'Tồn đầu kỳ',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'Import',
-                field: 'Import',
-                name: 'Nhập',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'Export',
-                field: 'Export',
-                name: 'Xuất',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'TotalQuantityLastActual',
-                field: 'TotalQuantityLastActual',
-                name: 'SL tồn thực tế',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'QuantityRequestExport',
-                field: 'QuantityRequestExport',
-                name: 'SL yêu cầu xuất',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'TotalQuantityKeep',
-                field: 'TotalQuantityKeep',
-                name: 'SL giữ',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'TotalQuantityLast',
-                field: 'TotalQuantityLast',
-                name: 'Tồn CK(được sử dụng)',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'QuantityUse',
-                field: 'QuantityUse',
-                name: 'Tồn sử dụng',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'MinQuantity',
-                field: 'MinQuantity',
-                name: 'Tồn tối thiểu Y/c',
-                width: 130,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'MinQuantityActual',
-                field: 'MinQuantityActual',
-                name: 'Tồn tối thiểu thực tế',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'TotalQuantityReturnNCC',
-                field: 'TotalQuantityReturnNCC',
-                name: 'SL phải trả NCC',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'ImportPT',
-                field: 'ImportPT',
-                name: 'Tổng mượn',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'ExportPM',
-                field: 'ExportPM',
-                name: 'Tổng trả',
-                width: 90,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInputNumber'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'StillBorrowed',
-                field: 'StillBorrowed',
-                name: 'Đang mượn',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-                type: 'number',
-            },
-            {
-                id: 'AddressBox',
-                field: 'AddressBox',
-                name: 'Vị trí',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
-            {
-                id: 'Detail',
-                field: 'Detail',
-                name: 'Chi tiết nhập',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                formatter: this.wrapTextFormatter,
-                customTooltip: {
-                    useRegularTooltip: true,
-                },
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
-            {
-                id: 'Note',
-                field: 'Note',
-                name: 'Ghi chú',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                formatter: this.wrapTextFormatter,
-                customTooltip: {
-                    useRegularTooltip: true,
-                },
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
-        ];
+        this.columnDefinitionsInventory = this.buildPGWarehouseColumns(this.warehouseCode);
     }
 
     private initGridOptions(): void {
@@ -629,7 +308,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsProductGroup = {
             enableAutoResize: true,
             autoResize: {
-                container: `#grid-container-product-group-${this.warehouseCode}`,
+                container: '.grid-container-product-group' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -650,7 +329,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsPGWarehouse = {
             enableAutoResize: true,
             autoResize: {
-                container: `#grid-container-pg-warehouse-${this.warehouseCode}`,
+                container: '.grid-container-pg-warehouse' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -666,7 +345,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsInventory = {
             enableAutoResize: true,
             autoResize: {
-                container: `#grid-container-inventory-${this.warehouseCode}`,
+                container: '.grid-container-inventory' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -1056,13 +735,11 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
             // Set footer values cho từng column
             const columns = this.angularGridInventory.slickGrid.getColumns();
-            if (!columns || !Array.isArray(columns)) return;
+
+            // console.log('columns:', columns);
 
             columns.forEach((col: any) => {
-                // Skip null hoặc undefined columns
-                if (!col || !col.id) return;
-
-                const footerCell = this.angularGridInventory?.slickGrid?.getFooterRowColumn(col.id);
+                const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn('ProductName' + this.warehouseCode);
                 if (!footerCell) return;
 
                 // Count cho cột ProductName (Tên sản phẩm)
@@ -1404,6 +1081,344 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             '_blank',
             'width=1400,height=900,scrollbars=yes,resizable=yes'
         );
+    }
+
+    //#endregion
+
+    //#region Lt.anh mapping cột theo warehouse
+    buildPGWarehouseColumns(warehouseCode: string): Column[] {
+        console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
+        return [
+            {
+                id: 'ProductGroupName' + warehouseCode,
+                field: 'ProductGroupName',
+                name: 'Tên nhóm',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+            },
+            {
+                id: 'IsFix' + warehouseCode,
+                field: 'IsFix',
+                name: 'Tích xanh',
+                width: 80,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.iconBoolean,
+                params: { cssClass: 'mdi mdi-check' },
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [
+                        { value: true, label: 'Có' },
+                        { value: false, label: 'Không' },
+                    ],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'ProductCode' + warehouseCode,
+                field: 'ProductCode',
+                name: 'Mã sản phẩm',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+            },
+            {
+                id: 'ProductName' + warehouseCode,
+                field: 'ProductName',
+                name: 'Tên sản phẩm',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+            },
+            {
+                id: 'ProductNewCode' + warehouseCode,
+                field: 'ProductNewCode',
+                name: 'Mã nội bộ',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+            },
+            {
+                id: 'NameNCC' + warehouseCode,
+                field: 'NameNCC',
+                name: 'NCC',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+            },
+            {
+                id: 'Deliver' + warehouseCode,
+                field: 'Deliver',
+                name: 'Người nhập',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+            },
+            {
+                id: 'Maker' + warehouseCode,
+                field: 'Maker',
+                name: 'Hãng',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+            },
+            {
+                id: 'Unit' + warehouseCode,
+                field: 'Unit',
+                name: 'ĐVT',
+                width: 80,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+            },
+            {
+                id: 'TotalQuantityFirst' + warehouseCode,
+                field: 'TotalQuantityFirst',
+                name: 'Tồn đầu kỳ',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'Import' + warehouseCode,
+                field: 'Import',
+                name: 'Nhập',
+                width: 80,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'Export' + warehouseCode,
+                field: 'Export',
+                name: 'Xuất',
+                width: 80,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'TotalQuantityLastActual' + warehouseCode,
+                field: 'TotalQuantityLastActual',
+                name: 'SL tồn thực tế',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'QuantityRequestExport' + warehouseCode,
+                field: 'QuantityRequestExport',
+                name: 'SL yêu cầu xuất',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'TotalQuantityKeep' + warehouseCode,
+                field: 'TotalQuantityKeep',
+                name: 'SL giữ',
+                width: 80,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'TotalQuantityLast' + warehouseCode,
+                field: 'TotalQuantityLast',
+                name: 'Tồn CK(được sử dụng)',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'QuantityUse' + warehouseCode,
+                field: 'QuantityUse',
+                name: 'Tồn sử dụng',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'MinQuantity' + warehouseCode,
+                field: 'MinQuantity',
+                name: 'Tồn tối thiểu Y/c',
+                width: 130,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'MinQuantityActual' + warehouseCode,
+                field: 'MinQuantityActual',
+                name: 'Tồn tối thiểu thực tế',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'TotalQuantityReturnNCC' + warehouseCode,
+                field: 'TotalQuantityReturnNCC',
+                name: 'SL phải trả NCC',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'ImportPT' + warehouseCode,
+                field: 'ImportPT',
+                name: 'Tổng mượn',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'ExportPM' + warehouseCode,
+                field: 'ExportPM',
+                name: 'Tổng trả',
+                width: 90,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'StillBorrowed' + warehouseCode,
+                field: 'StillBorrowed',
+                name: 'Đang mượn',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+                type: 'number',
+            },
+            {
+                id: 'AddressBox' + warehouseCode,
+                field: 'AddressBox',
+                name: 'Vị trí',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'Detail' + warehouseCode,
+                field: 'Detail',
+                name: 'Chi tiết nhập',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+            },
+            {
+                id: 'Note' + warehouseCode,
+                field: 'Note',
+                name: 'Ghi chú',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+            },
+        ];
     }
 
     //#endregion

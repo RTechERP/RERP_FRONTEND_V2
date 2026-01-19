@@ -857,6 +857,41 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     // }
 
 
+    handleClickLink(route: string, queryParams?: any) {
+        // const outlet = route;
+        // let normalizedParams: any = null;
+        // if (queryParams) {
+        //     try {
+        //         normalizedParams = typeof queryParams === 'string' ? JSON.parse(queryParams) : queryParams;
+        //         normalizedParams = Object.keys(normalizedParams || {}).length ? normalizedParams : null;
+        //     } catch {
+        //         normalizedParams = null;
+        //     }
+        // }
+
+        // // Check nếu tab đã tồn tại
+        // const existingIndex = this.dynamicTabs.findIndex(t => t.route === route);
+        // if (existingIndex !== -1) {
+        //     this.selectedIndex = existingIndex;
+        // } else {
+        //     // this.dynamicTabs.push({
+        //     //     title,
+        //     //     route,
+        //     //     outlet,
+        //     //     queryParams: normalizedParams,
+        //     //     key: route
+        //     // });
+        //     // this.selectedIndex = this.dynamicTabs.length - 1;
+        // }
+
+        // Navigate
+        // this.router.navigateByUrl(route);
+        this.router.navigate([route], {
+            queryParams
+        });
+
+    }
+
 
 
     onTabChange(index: number) {

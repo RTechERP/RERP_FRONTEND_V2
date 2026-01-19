@@ -117,6 +117,10 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
         this.route.queryParams.subscribe(params => {
             // this.isSeniorMode = params['isSeniorMode'];
+
+            console.log('params:', params);
+            console.log('this.tabData:', this.tabData);
+
             this.isSeniorMode =
                 params['isSeniorMode']
                 ?? this.tabData?.isSeniorMode

@@ -290,6 +290,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     ) {
         this.isCollapsed = true;
 
+        console.log('newTabComp data:', data);
+
         // stringify ổn định (tránh khác thứ tự key)
         const normalize = (v: any): string =>
             v ? JSON.stringify(v, Object.keys(v).sort()) : '';

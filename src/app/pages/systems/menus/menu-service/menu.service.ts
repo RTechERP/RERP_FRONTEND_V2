@@ -3681,7 +3681,7 @@ export class MenuService {
 
 
                     const childrens = response.data.menus.filter((x: any) => x.ParentID == item.ID);
-                    console.log(item.Router, this.componentRegistry[item.Router]);
+                    // console.log(item.Router, this.componentRegistry[item.Router]);
                     const menu: MenuItem = {
                         id: item.ID,
                         kind: childrens.length > 0 ? 'group' : 'leaf',

@@ -99,6 +99,7 @@ export class WFHDetailComponent implements OnInit {
   @Input() mode: 'add' | 'edit' | 'approve' | 'view' = 'add';
   @Input() userRole: 'employee' | 'tbp' | 'hr' | 'bgd' = 'employee';
   @Input() currentEmployeeId: number | null = null;
+  @Input() hasN1N2Permission: boolean = false;
   // Form group
   wfhForm!: FormGroup;
 
@@ -230,6 +231,16 @@ export class WFHDetailComponent implements OnInit {
     this.initializeData();
     this.loadEmployeesAndApprovers();
     this.setupFormData();
+
+    // Enable/Disable employeeId dropdown dựa trên quyền N1/N2
+    const employeeIdControl = this.wfhForm.get('employeeId');
+    if (this.hasN1N2Permission) {
+      // Có quyền N1/N2 -> cho phép chọn người đăng ký khác
+      employeeIdControl?.enable();
+    } else {
+      // Không có quyền -> chỉ đăng ký cho chính mình
+      employeeIdControl?.disable();
+    }
   }
 
   constructor(
@@ -401,14 +412,18 @@ export class WFHDetailComponent implements OnInit {
     console.log('Time WFH changed:', this.wfhForm.get('timeWFH')?.value);
   }
 
-  // Disable dates before today
+  // Disable dates: Nếu có quyền N1/N2 thì không giới hạn, ngược lại chỉ được chọn ngày sau ngày hiện tại
   disabledDate = (current: Date): boolean => {
     if (!current) return false;
+    // Nếu có quyền N1 hoặc N2 thì không giới hạn ngày
+    if (this.hasN1N2Permission) return false;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const currentDate = new Date(current);
     currentDate.setHours(0, 0, 0, 0);
-    return currentDate < today;
+    // Nếu không có quyền thì chỉ cho phép chọn ngày sau ngày hiện tại (> today)
+    return currentDate <= today;
   }
 
   // Form validation - theo rule từ C#
@@ -422,6 +437,20 @@ export class WFHDetailComponent implements OnInit {
         control.updateValueAndValidity();
       }
     });
+    if (!this.hasN1N2Permission) {
+      const dateWFHValue = this.wfhForm.get('dateWFH')?.value;
+      if (dateWFHValue) {
+        const selectedDate = new Date(dateWFHValue);
+        selectedDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selectedDate <= today) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn chỉ có thể đăng ký WFH từ sau ngày hiện tại!');
+          return false;
+        }
+      }
+    }
 
     // Check Người đăng ký
     const employeeId = this.wfhForm.get('employeeId')?.value;

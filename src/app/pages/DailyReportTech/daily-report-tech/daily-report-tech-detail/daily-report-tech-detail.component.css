@@ -1,4 +1,3 @@
-
 .modal-body {
   max-height: 80vh;
   overflow-y: auto;
@@ -15,6 +14,7 @@
 .fs-12 {
   font-size: 0.75rem;
 }
+
 fieldset.reset {
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 6px;
@@ -34,31 +34,37 @@ legend.reset {
 
 /* Tham khảo từ project.component.css - Style cho tab button */
 :host ::ng-deep .ant-tabs-tab-btn {
-  font-size: 0.65rem !important; /* Giảm font-size xuống 0.65rem */
+  font-size: 0.65rem !important;
+  /* Giảm font-size xuống 0.65rem */
 }
 
 /* Giảm kích thước tab - padding và height nhỏ hơn */
-:host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab,
-:host ::ng-deep .ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab {
-  padding: 2px 8px !important; /* Giảm padding xuống 2px 8px */
-  min-height: 24px !important; /* Giảm chiều cao tối thiểu xuống 24px */
+:host ::ng-deep .ant-tabs-card>.ant-tabs-nav .ant-tabs-tab,
+:host ::ng-deep .ant-tabs-card>div>.ant-tabs-nav .ant-tabs-tab {
+  padding: 2px 8px !important;
+  /* Giảm padding xuống 2px 8px */
+  min-height: 24px !important;
+  /* Giảm chiều cao tối thiểu xuống 24px */
 }
 
 /* Override CSS global cho tab trong component này - Màu riêng cho daily-report-tech-detail */
-:host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active,
-:host ::ng-deep .ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab-active {
-  background-color: #3b82f6 !important; /* blue-500 - màu riêng cho component này */
+:host ::ng-deep .ant-tabs-card>.ant-tabs-nav .ant-tabs-tab-active,
+:host ::ng-deep .ant-tabs-card>div>.ant-tabs-nav .ant-tabs-tab-active {
+  background-color: #3b82f6 !important;
+  /* blue-500 - màu riêng cho component này */
   border-color: #3b82f6 !important;
-  padding: 2px 8px !important; /* Giảm padding cho tab active */
+  padding: 2px 8px !important;
+  /* Giảm padding cho tab active */
 }
 
-:host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn,
-:host ::ng-deep .ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: #fff !important; /* buộc chữ trắng */
+:host ::ng-deep .ant-tabs-card>.ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn,
+:host ::ng-deep .ant-tabs-card>div>.ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #fff !important;
+  /* buộc chữ trắng */
 }
 
 /* Override màu tab không active */
-:host ::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab:not(.ant-tabs-tab-active) {
+:host ::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab:not(.ant-tabs-tab-active) {
   background-color: transparent !important;
   border: unset !important;
   border-radius: unset !important;
@@ -73,34 +79,38 @@ legend.reset {
 }
 
 /* Override style cho tab card - Tham khảo từ project component */
-:host ::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
+:host ::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab {
   border: unset !important;
   border-radius: unset !important;
-  font-size: 0.65rem !important; /* Giảm font-size xuống 0.65rem */
+  font-size: 0.65rem !important;
+  /* Giảm font-size xuống 0.65rem */
 }
 
 /* Giảm kích thước nút đóng tab */
 :host ::ng-deep .ant-tabs-tab-remove {
-  font-size: 10px !important; /* Giảm font-size nút đóng */
-  margin-left: 2px !important; /* Giảm margin */
+  font-size: 10px !important;
+  /* Giảm font-size nút đóng */
+  margin-left: 2px !important;
+  /* Giảm margin */
   width: 14px !important;
   height: 14px !important;
 }
 
 /* Giảm kích thước nav của tab */
-:host ::ng-deep .ant-tabs-card > .ant-tabs-nav,
-:host ::ng-deep .ant-tabs-card > div > .ant-tabs-nav {
-  min-height: 24px !important; /* Giảm chiều cao nav xuống 24px */
+:host ::ng-deep .ant-tabs-card>.ant-tabs-nav,
+:host ::ng-deep .ant-tabs-card>div>.ant-tabs-nav {
+  min-height: 24px !important;
+  /* Giảm chiều cao nav xuống 24px */
 }
 
 /* Đảm bảo nội dung tab không bị ảnh hưởng - giữ nguyên kích thước */
 /* Nội dung tab (ant-tabs-content-holder, ant-tabs-tabpane) sẽ giữ nguyên kích thước mặc định */
 
 /* Override margin giữa các tab */
-:host ::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
-:host ::ng-deep .ant-tabs-card.ant-tabs-bottom > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
-:host ::ng-deep .ant-tabs-card.ant-tabs-top > div > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
-:host ::ng-deep .ant-tabs-card.ant-tabs-bottom > div > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab {
+:host ::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
+:host ::ng-deep .ant-tabs-card.ant-tabs-bottom>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
+:host ::ng-deep .ant-tabs-card.ant-tabs-top>div>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
+:host ::ng-deep .ant-tabs-card.ant-tabs-bottom>div>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab {
   margin: 0 !important;
 }
 
@@ -140,10 +150,45 @@ legend.reset {
   word-wrap: break-word;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
 }
+
 /* fix lỗi thừa boder */
-:host ::ng-deep .ant-tabs-top > .ant-tabs-nav::before, .ant-tabs-bottom > .ant-tabs-nav::before, .ant-tabs-top > div > .ant-tabs-nav::before, .ant-tabs-bottom > div > .ant-tabs-nav::before {
-    border-bottom: none !important;
+:host ::ng-deep .ant-tabs-top>.ant-tabs-nav::before,
+.ant-tabs-bottom>.ant-tabs-nav::before,
+.ant-tabs-top>div>.ant-tabs-nav::before,
+.ant-tabs-bottom>div>.ant-tabs-nav::before {
+  border-bottom: none !important;
 }
-:host ::ng-deep .ant-form-item  {
+
+:host ::ng-deep .ant-form-item {
   margin-bottom: 12px !important;
 }
+
+/* --- BẮT ĐẦU: CSS CHO DROPDOWN NHIỀU DÒNG & CAO HƠN --- */
+
+/* 1. Tăng chiều cao của khung danh sách (quan trọng) */
+.multi-line-select-dropdown .cdk-virtual-scroll-viewport {
+  height: 300px !important;
+  /* Tăng chiều cao lên (Mặc định của Ant là 256px) */
+  max-height: 60vh !important;
+  /* Giới hạn tối đa 60% chiều cao màn hình để không bị trôi */
+}
+
+/* 2. Chỉnh item để tự động co giãn theo nội dung */
+.multi-line-select-dropdown .ant-select-item {
+  height: auto !important;
+  /* Cho phép chiều cao tự động, không cố định 32px */
+  min-height: 32px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  align-items: flex-start;
+  /* Căn text lên trên cùng nếu icon bị lệch */
+}
+
+/* 3. Chỉnh nội dung text để xuống dòng */
+.multi-line-select-dropdown .ant-select-item-option-content {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+/* --- KẾT THÚC --- */

@@ -1026,14 +1026,14 @@ export class ProductRtcQrCodeComponent
           this.exportExcel();
         },
       },
-      {
-        label: 'Nhập excel',
-        visible: this.permissionService.hasPermission('N26,N1,N80'),
-        icon: 'fa-solid fa-file-import text-success',
-        command: () => {
-          this.openModalImportExcel();
-        },
-      },
+      // {
+      //   label: 'Nhập excel',
+      //   visible: this.permissionService.hasPermission('N26,N1,N80'),
+      //   icon: 'fa-solid fa-file-import text-success',
+      //   command: () => {
+      //     this.openModalImportExcel();
+      //   },
+      // },
       {
         label: 'Mượn thiết bị QRCode',
         icon: 'fa-solid fa-qrcode text-primary',

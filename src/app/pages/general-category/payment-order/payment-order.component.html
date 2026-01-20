@@ -282,7 +282,7 @@
         <p-tabs [(value)]="activeTab" class="tabs-full">
             <p-tablist>
                 <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
-                <p-tab value="1" class="p-2" [hidden]="!isPermisstionDB">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
+                <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
             </p-tablist>
             <p-tabpanels class="p-0">
                 <p-tabpanel value="0">
@@ -303,7 +303,7 @@
                         </angular-slickgrid>
                     </div>
                 </p-tabpanel>
-                <p-tabpanel value="1" [hidden]="!isPermisstionDB">
+                <p-tabpanel value="1">
                     <div class="grid-container-special" style="position: relative;">
                         <div *ngIf="isLoading">
                             <nz-spin [nzSpinning]="isLoading" nzSimple class="spinner"></nz-spin>

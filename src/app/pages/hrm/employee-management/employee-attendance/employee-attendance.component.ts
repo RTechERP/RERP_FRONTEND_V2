@@ -302,7 +302,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     if (!this.tbEAContainer?.nativeElement) return;
 
     this.tb_EA = new Tabulator(this.tbEAContainer.nativeElement, {
-      height: '70vh',
+      height: '85vh',
       layout: 'fitDataStretch',
       locale: 'vi',
       data: [],
@@ -578,11 +578,11 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     }
 
     // Convert string to Date for filename formatting
-    const s = typeof this.dateStart === 'string' 
-      ? DateTime.fromISO(this.dateStart).toJSDate() 
+    const s = typeof this.dateStart === 'string'
+      ? DateTime.fromISO(this.dateStart).toJSDate()
       : this.dateStart;
-    const e = typeof this.dateEnd === 'string' 
-      ? DateTime.fromISO(this.dateEnd).toJSDate() 
+    const e = typeof this.dateEnd === 'string'
+      ? DateTime.fromISO(this.dateEnd).toJSDate()
       : this.dateEnd;
     const filename = `DanhSachVanTay_${this.pad2(s.getDate())}${this.pad2(
       s.getMonth() + 1

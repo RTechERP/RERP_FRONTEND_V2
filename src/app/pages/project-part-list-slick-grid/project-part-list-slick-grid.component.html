@@ -60,7 +60,7 @@
                             </div>
                             <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container"
                                 style="min-height: 0;">
-                                <angular-slickgrid gridId="grid-solution" [columns]="solutionColumns"
+                                <angular-slickgrid [gridId]="solutionGridId" [columns]="solutionColumns"
                                     [options]="solutionGridOptions" [dataset]="dataSolution"
                                     (onAngularGridCreated)="onSolutionGridReady($event)"
                                     (onSelectedRowsChanged)="onSolutionRowSelectionChanged($event)"></angular-slickgrid>
@@ -136,7 +136,7 @@
                             <div class="card-body p-0 flex-grow-1 overflow-hidden grid-version-container"
                                 style="min-height: 0; height: 100%;">
                                 <angular-slickgrid *ngIf="gridsInitialized && versionColumns && versionGridOptions"
-                                    gridId="grid-version" [columns]="versionColumns" [options]="versionGridOptions"
+                                    [gridId]="versionGridId" [columns]="versionColumns" [options]="versionGridOptions"
                                     [dataset]="dataVersion" (onAngularGridCreated)="onVersionGridReady($event)"
                                     (onSelectedRowsChanged)="onVersionRowSelectionChanged($event)"></angular-slickgrid>
                             </div>
@@ -163,38 +163,33 @@
                         <div class="d-flex align-items-center gap-1">
                             <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
                                 [style.background-color]="filterDeleted ? 'darkred' : 'red'"
-                                [style.border]="filterDeleted ? '2px solid white' : 'none'"
-                                (click)="toggleColorFilter('deleted')">
+                                [ngClass]="{'btn-filter-active': filterDeleted}" (click)="toggleColorFilter('deleted')">
                                 Đã xóa
                             </button>
                             <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
                                 [style.background-color]="filterProblem ? 'darkorange' : 'orange'"
-                                [style.border]="filterProblem ? '2px solid white' : 'none'"
-                                (click)="toggleColorFilter('problem')">
+                                [ngClass]="{'btn-filter-active': filterProblem}" (click)="toggleColorFilter('problem')">
                                 Phát sinh
                             </button>
                             <button class="fs-12" nz-button nzType="text" nzSize="small"
                                 [style.background-color]="filterNewCode ? 'deeppink' : 'pink'"
-                                [style.border]="filterNewCode ? '2px solid black' : 'none'"
-                                (click)="toggleColorFilter('newCode')">
+                                [ngClass]="{'btn-filter-active': filterNewCode}" (click)="toggleColorFilter('newCode')">
                                 Hàng mới
                             </button>
                             <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
                                 [style.background-color]="filterFix ? '#2c5282' : '#4682B4'"
-                                [style.border]="filterFix ? '2px solid white' : 'none'"
-                                (click)="toggleColorFilter('fix')">
+                                [ngClass]="{'btn-filter-active': filterFix}" (click)="toggleColorFilter('fix')">
                                 Tích xanh
                             </button>
                             <button class="fs-12" nz-button nzType="text" nzSize="small"
                                 [style.background-color]="filterReturn ? 'forestgreen' : 'lightgreen'"
-                                [style.border]="filterReturn ? '2px solid black' : 'none'"
-                                (click)="toggleColorFilter('return')">
+                                [ngClass]="{'btn-filter-active': filterReturn}" (click)="toggleColorFilter('return')">
                                 Hàng đã về
                             </button>
                             <button class="fs-12 border" nz-button nzType="text" nzSize="small"
                                 [style.background-color]="filterProductSale ? '#ffd700' : 'lightyellow'"
                                 [style.color]="filterProductSale ? 'black' : 'black'"
-                                [style.border]="filterProductSale ? '2px solid black' : '1px solid #ccc'"
+                                [ngClass]="{'btn-filter-active': filterProductSale}"
                                 (click)="toggleColorFilter('productSale')">
                                 Có mã trên PM
                             </button>
@@ -434,7 +429,7 @@
                             style="z-index: 10;">
                             <nz-spin nzSimple></nz-spin>
                         </div>
-                        <angular-slickgrid gridId="grid-partlist" [columns]="partListColumns"
+                        <angular-slickgrid [gridId]="partListGridId" [columns]="partListColumns"
                             [options]="partListGridOptions" [dataset]="dataProjectPartList"
                             (onAngularGridCreated)="onPartListGridReady($event)"></angular-slickgrid>
                     </div>

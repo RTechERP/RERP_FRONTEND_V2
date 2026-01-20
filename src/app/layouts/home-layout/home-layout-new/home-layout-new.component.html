@@ -93,8 +93,7 @@
                                 style="display: flex; flex-flow: column;justify-content: center;align-items: center; height: 107px;">
                                 <img [style.width]="'70%'" [src]="m.Icon?.replace('24','64')" alt="">
                                 <p class="m-0 mt-2 fw-bold text-dark" style="line-height: normal;">{{m.Title}}</p>
-                                <!-- <a [href]="m.Router" (click)="openModule($event, m.Router, m.Code)">{{m.Title}}</a> -->
-                                <!-- {{m.Title}} -->
+
                             </div>
 
                         </a>
@@ -162,7 +161,6 @@
                     </div>
                 </div>
 
-                <!-- Newsletter List -->
                 <ul class="list-group list-group-flush">
                     @for (item of newsletters; track item.ID) {
                     <li class="list-group-item py-3">
@@ -265,73 +263,8 @@
     </div>
 
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
-        <!-- <div class="card">
-            <p-tabs value="0">
-                <p-tablist>
-                    <p-tab value="0" class="p-2">Nghỉ {{totalEmployeeOnleave == 0 ?'':`(${totalEmployeeOnleave}) -
-                        ${today | date:'dd/MM/yyyy'}`}}</p-tab>
-                    <p-tab value="1" class="p-2">WFH {{totalEmployeeWfh == 0 ?'':`(${totalEmployeeWfh}) - ${today |
-                        date:'dd/MM/yyyy'}`}}</p-tab>
-                </p-tablist>
-                <p-tabpanels class="p-0">
-                    <p-tabpanel value="0" style="display: block; height: 38vh; overflow: auto;">
-                        <div class="card-body p-0">
-                            <ul class="list-group list-group-flush">
-                                @for (item of employeeOnleaves; track $index) {
-                                <li class="list-group-item border-0 border-bottom py-1">
-                                    <details open>
-                                        <summary class="fw-bold" style="font-size: 12px;">{{item.DepartmentName}}
-                                            ({{item.Employees.length}})
-                                        </summary>
-                                        <ul class="list-group">
-                                            @for (e of item.Employees; track $index) {
-                                            <li class="list-group-item border-0 py-1" style="font-size: 12px;">
-                                                <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
-                                            </li>
-                                            }
-                                        </ul>
-                                    </details>
-
-                                </li>
-                                }
-                            </ul>
-                        </div>
-                    </p-tabpanel>
-                    <p-tabpanel value="1" style="display: block; height: 377px; overflow: auto;">
-                        <div class="card-body p-0">
-                            <ul class="list-group list-group-flush">
-                                @for (item of employeeWfhs; track $index) {
-                                <li class="list-group-item border-0 border-bottom py-1">
-                                    <details open>
-                                        <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
-                                        </summary>
-                                        <ul class="list-group">
-                                            @for (e of item.Employees; track $index) {
-                                            <li class="list-group-item border-0 py-1">
-                                                <span>{{$index + 1}}.{{e.EmployeeName}}
-                                                    {{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
-                                            </li>
-                                            }
-                                        </ul>
-                                    </details>
-
-                                </li>
-                                }
-                            </ul>
-                        </div>
-                    </p-tabpanel>
-
-                </p-tabpanels>
-            </p-tabs>
-
-        </div> -->
-
         <div class="card">
             <div class="card-header">
-                <!-- <h5 class="card-title m-0 text-uppercase fw-bold py-1">
-                    WFH {{totalEmployeeWfh == 0 ?'':`(${totalEmployeeWfh}) - ${today | date:'dd/MM/yyyy'}`}}
-                </h5> -->
-
                 <nz-tabset nzCentered [(nzSelectedIndex)]="activeTab">
                     <nz-tab [nzTitle]="titleTemplateOnleave"></nz-tab>
                     <nz-tab [nzTitle]="titleTemplateWFH"></nz-tab>
@@ -346,25 +279,6 @@
             </div>
 
             <div class="card-body p-0">
-                <!-- <ul class="list-group list-group-flush">
-                    @for (item of employeeOnleaves; track $index) {
-                    <li class="list-group-item border-0 border-bottom py-1">
-                        <details open>
-                            <summary class="fw-bold" style="font-size: 12px;">{{item.DepartmentName}}
-                                ({{item.Employees.length}})
-                            </summary>
-                            <ul class="list-group">
-                                @for (e of item.Employees; track $index) {
-                                <li class="list-group-item border-0 py-1" style="font-size: 12px;">
-                                    <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
-                                </li>
-                                }
-                            </ul>
-                        </details>
-
-                    </li>
-                    }
-                </ul> -->
                 <ng-container [ngSwitch]="activeTab">
 
                     <ng-container *ngSwitchCase="0">
@@ -437,3 +351,20 @@
     </div>
 
 </div>
+
+
+<!-- <nz-layout>
+    <nz-header>
+        <div class="logo"></div>
+        <ul nz-menu nzTheme="dark" nzMode="horizontal">
+            <li nz-menu-item>nav 1</li>
+            <li nz-menu-item>nav 2</li>
+            <li nz-menu-item>nav 3</li>
+        </ul>
+    </nz-header>
+    <nz-content>
+
+        <div class="inner-content">Content</div>
+    </nz-content>
+    <nz-footer>Ant Design ©{{ date.getFullYear() }} Implement By Angular</nz-footer>
+</nz-layout> -->

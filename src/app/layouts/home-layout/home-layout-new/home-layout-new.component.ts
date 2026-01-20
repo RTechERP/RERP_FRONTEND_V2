@@ -28,6 +28,7 @@ import { ApproveTpService } from '../../../pages/person/approve-tp/approve-tp-se
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newsletter/newsletter-detail/newsletter-detail.component';
+import { DateTime } from 'luxon';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -66,6 +67,8 @@ export class HomeLayoutNewComponent implements OnInit {
     // isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
     // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
     // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+
+    date = new Date();
 
     dynamicTabs: any[] = [];
     selectedIndex = 0;
@@ -296,7 +299,7 @@ export class HomeLayoutNewComponent implements OnInit {
                 this.menus = this.menuAppService.sortBySTTImmutable(this.menus, i => i.STT ?? i.stt ?? 0);
 
                 this.menuApproves = this.menus.find((x) => x.Code == 'appvovedperson');
-                console.log('this.menuApproves:', this.menuApproves);
+                // console.log('this.menuApproves:', this.menuApproves);
 
                 var pesons = this.menus.find((x) => x.Code == 'person');
                 this.menuPersons = pesons.Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');

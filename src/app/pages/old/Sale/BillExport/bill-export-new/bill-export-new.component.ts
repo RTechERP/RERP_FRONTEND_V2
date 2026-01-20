@@ -320,6 +320,11 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                     model: Filters['compoundInput'],
                 },
                 minWidth: 200,
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const text = String(value);
+                    return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
+                },
             },
             {
                 id: 'Address',

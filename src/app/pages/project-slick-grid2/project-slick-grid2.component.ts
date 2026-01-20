@@ -75,6 +75,7 @@ import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/project-report-slick-grid.component';
 import { ProjectWokerSlickGridComponent } from '../project-woker-slick-grid/project-woker-slick-grid.component';
+import { TabServiceService } from '../../layouts/tab-service.service';
 
 @Component({
     selector: 'app-project-slick-grid2',
@@ -137,6 +138,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         private route: ActivatedRoute,
         private authService: AuthService,
         private permissionService: PermissionService,
+        private tabService: TabServiceService,
     ) {
         this.excelExportService = new ExcelExportService();
         this.searchSubject
@@ -2772,6 +2774,31 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
         const url = `/rerpweb/project-part-list?projectId=${projectId}&projectName=${encodeURIComponent(projectName)}&projectCode=${encodeURIComponent(projectCode)}&tbp=false`;
         window.open(url, '_blank', 'width=1280,height=960,resizable=yes');
+    }
+    openProjectPartListTab() {
+        const selectedIDs = this.getSelectedIds();
+        const selectedRows = this.getSelectedRows();
+
+        if (selectedIDs.length != 1) {
+            this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+            return;
+        }
+
+        const projectName = selectedRows[0]?.ProjectName;
+        const projectCode = selectedRows[0]?.ProjectCode;
+
+        // Mở như tab thực sự thông qua TabService
+        this.tabService.openTabComp({
+            comp: ProjectPartListSlickGridComponent,
+            title: `Danh mục vật tư - ${projectCode}`,
+            key: `project-part-list-${this.projectId}`,
+            data: {
+                projectId: this.projectId,
+                projectNameX: projectName,
+                projectCodex: projectCode,
+                tbp: false
+            }
+        });
     }
 
     openProjectHistoryProblemModal() {

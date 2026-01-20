@@ -1,10 +1,7 @@
-.modal-body {
-  overflow-y: unset;
-}
-
 .grid-container-detail {
   min-height: 300px;
   height: 36vh;
+  flex-shrink: 0;
 }
 
 .reference-links-container {
@@ -140,6 +137,43 @@
   text-align: right;
   background-color: #fafafa;
 }
-::ng-deep div[id^="billExportDetailGrid-"]{
-  height: 40vh !important;;
+::ng-deep div[id^="billExportDetail_"]{
+  height: 49vh !important;;
 }
+::ng-deep .modal-body{
+  height: 89vh !important;
+}
+::ng-deep .modal-footer{
+  border-top: none !important;
+}
+.ant-form-item-label {
+  padding-bottom: 0 !important;
+}
+
+.ant-form-item-label > label {
+  font-size: 12px;
+}
+
+/* Đảm bảo modal footer ở dưới cùng */
+/* :host ::ng-deep .modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+:host ::ng-deep .modal-header {
+  flex-shrink: 0;
+}
+
+:host ::ng-deep .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+:host ::ng-deep .modal-footer {
+  flex-shrink: 0;
+  border-top: 1px solid #e8e8e8;
+  padding: 12px 16px;
+  background-color: #fafafa;
+} */

@@ -365,13 +365,16 @@ export class BillExportDetailNewComponent
       !this.isFromWarehouseRelease &&
       !this.isReturnToSupplier
     ) {
+      // Lấy UserID từ người đăng nhập hiện tại
+      const currentUserId = this.appUserService.id || 0;
+
       this.newBillExport = {
         TypeBill: false,
         Code: '',
         Address: '',
         CustomerID: 0,
-        UserID: 0,
-        SenderID: 0,
+        UserID: 0, // Người Nhận = người đăng nhập hiện tại
+        SenderID: currentUserId, // Người Giao = sẽ lấy từ ProductGroupWarehouse
         WarehouseType: '',
         GroupID: '',
         KhoTypeID: 0,
@@ -816,7 +819,7 @@ export class BillExportDetailNewComponent
         id: 'ProductID',
         name: 'Mã sản phẩm',
         field: 'ProductID',
-        width: 300,
+        width: 500,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
@@ -1694,6 +1697,30 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /**
+   * Load SenderID (Người Nhận) từ ProductGroupWarehouse khi ở chế độ thêm mới
+   */
+  private loadSenderFromProductGroupWarehouse(khoTypeID: number, warehouseID: number): void {
+    if (!khoTypeID || !warehouseID || khoTypeID <= 0 || warehouseID <= 0) {
+      return;
+    }
+
+    this.productSaleService
+      .getdataProductGroupWareHouse(khoTypeID, warehouseID)
+      .subscribe({
+        next: (res: any) => {
+          if (res?.data && res.data.length > 0) {
+            const userId = res.data[0].UserID || 0;
+            this.validateForm.patchValue({ UserID: userId });
+            this.newBillExport.UserID = userId;
+          }
+        },
+        error: (err: any) => {
+          console.error('Error loading sender from ProductGroupWarehouse:', err);
+        },
+      });
+  }
+
   changeProductGroup(ID: number): void {
     if (!ID) {
       this.productGridCollection = [];
@@ -1703,20 +1730,11 @@ export class BillExportDetailNewComponent
 
     const normalizedWareHouseCode = (this.wareHouseCode || '').trim() || 'HN';
 
+    // Load SenderID từ ProductGroupWarehouse khi thêm mới
     if (!this.newBillExport.Id || this.newBillExport.Id <= 0) {
       const warehouseID = this.newBillExport.WarehouseID || 0;
       if (warehouseID > 0) {
-        this.productSaleService
-          .getdataProductGroupWareHouse(ID, warehouseID)
-          .subscribe({
-            next: (res: any) => {
-              if (res?.data && res.data.length > 0) {
-                const userId = res.data[0].UserID || 0;
-                this.validateForm.patchValue({ SenderID: userId });
-                this.newBillExport.SenderID = userId;
-              }
-            },
-          });
+        this.loadSenderFromProductGroupWarehouse(ID, warehouseID);
       }
     }
 
@@ -1973,6 +1991,11 @@ export class BillExportDetailNewComponent
         );
         if (currentWarehouse) {
           this.newBillExport.WarehouseID = currentWarehouse.ID || 0;
+
+          // Nếu đang ở chế độ thêm mới và đã có KhoTypeID, load SenderID từ ProductGroupWarehouse
+          if ((!this.newBillExport.Id || this.newBillExport.Id <= 0) && this.newBillExport.KhoTypeID > 0) {
+            this.loadSenderFromProductGroupWarehouse(this.newBillExport.KhoTypeID, this.newBillExport.WarehouseID);
+          }
         }
       },
       error: (err: any) => {

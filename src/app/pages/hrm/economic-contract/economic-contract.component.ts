@@ -292,6 +292,21 @@ export class EconomicContractComponent implements OnInit {
         filterable: true,
         //  columnGroup: 'Thông tin hợp đồng',
         filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.ContractContent}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'TermName',
@@ -309,6 +324,21 @@ export class EconomicContractComponent implements OnInit {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
+        },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.TermName}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
         },
       },
       {
@@ -346,6 +376,21 @@ export class EconomicContractComponent implements OnInit {
             filter: true,
           } as MultipleSelectOption,
         },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.NameNcc}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'MSTNcc',
@@ -368,6 +413,21 @@ export class EconomicContractComponent implements OnInit {
         filterable: true,
         /// columnGroup: 'NCC/KH',
         filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.AddressNcc}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'SDTNcc',
@@ -489,6 +549,21 @@ export class EconomicContractComponent implements OnInit {
         filterable: true,
         //columnGroup: 'Chi tiết hợp đồng',
         filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.Adjustment}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'StatusContractText',
@@ -519,6 +594,21 @@ export class EconomicContractComponent implements OnInit {
         filterable: true,
         //    columnGroup: 'Chi tiết hợp đồng',
         filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.Note}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'CreatedDate',

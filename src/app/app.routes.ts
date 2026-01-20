@@ -453,7 +453,7 @@ export const routes: Routes = [
             { path: 'economic-contract-term', component: EconimicContractTermComponent, canActivate: [authGuard] },
             { path: 'economic-contract-type', component: EconomicContractTypeComponent, canActivate: [authGuard] },
             { path: 'economic-contract', component: EconomicContractComponent, canActivate: [authGuard] },
-            // { path: 'setting-hr-config', component: SettingHrConfigComponent, canActivate: [authGuard] },
+            { path: 'setting-hr-config', component: SettingHrConfigComponent, canActivate: [authGuard] },
 
 
 

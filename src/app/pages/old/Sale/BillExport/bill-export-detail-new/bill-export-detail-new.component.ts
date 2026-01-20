@@ -55,6 +55,7 @@ import { ProductSaleDetailComponent } from '../../ProductSale/product-sale-detai
 import { BillImportDetailComponent } from '../../BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { ClipboardService } from '../../../../../services/clipboard.service';
 import { BillImportChoseSerialComponent } from '../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
+import { AppUserService } from '../../../../../services/app-user.service';
 
 interface ProductSale {
   Id?: number;
@@ -258,7 +259,8 @@ export class BillExportDetailNewComponent
     private billImportService: BillImportServiceService,
     private productSaleService: ProductsaleServiceService,
     private permissionService: PermissionService,
-    private clipboardService: ClipboardService
+    private clipboardService: ClipboardService,
+    private appUserService: AppUserService
   ) {
     this.validateForm = this.fb.group({
       Code: [{ value: '', disabled: true }],
@@ -390,7 +392,8 @@ export class BillExportDetailNewComponent
         this.getBillExportDetailConvert(this.lstBillImportID);
         this.validateForm.patchValue({
           KhoTypeID: this.billImport.KhoTypeID,
-          UserID: this.billImport.ReciverID,
+          //UserID: this.billImport.ReciverID,
+          UserID: this.appUserService.employeeID,
           WarehouseID: this.billImport.WarehouseID,
           SenderID: this.billImport.DeliverID,
           SupplierID: this.billImport.SupplierID,

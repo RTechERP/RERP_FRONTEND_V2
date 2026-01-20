@@ -1,1 +1,116 @@
-<p>kpi-criteria works!</p>
+<ng-container class="w-100">
+    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+
+        <!-- Header với p-menubar -->
+        <div class="card-header bg-white p-0" style="flex-shrink: 0;">
+            <p-menubar [model]="menuBars">
+                <ng-template pTemplate="item" let-item>
+                    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                        <i [class]="item.icon"></i>
+                        <span class="p-menuitem-text">{{ item.label }}</span>
+                    </a>
+                </ng-template>
+            </p-menubar>
+        </div>
+
+        <!-- Filter bar - hiển thị dạng hàng ngang -->
+        <div class="filter-bar bg-light border-bottom p-2">
+            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12"
+                        style="font-size: 12px; display: flex; align-items: center;">Năm</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-number [(ngModel)]="filters.year" name="year" [nzMin]="2024" [nzMax]="9999"
+                            nzSize="small" style="width: 80px;" (ngModelChange)="onYearChange()"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12"
+                        style="font-size: 12px; display: flex; align-items: center;">Quý</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-number [(ngModel)]="filters.quarter" name="quarter" [nzMin]="1" [nzMax]="4"
+                            nzSize="small" style="width: 60px;" (ngModelChange)="onQuarterChange()"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">Từ
+                        khóa</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.filterText"
+                            name="filterText" style="width: 200px; font-size: 12px;" (keyup.enter)="searchCriteria()" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-control>
+                        <button nz-button nzType="primary" nzSize="small" (click)="searchCriteria()">
+                            Tìm kiếm
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </div>
+
+        <!-- Content với vertical splitter -->
+        <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
+            <nz-splitter nzLayout="vertical" class="h-100">
+                <!-- Master Grid: Danh sách tiêu chí -->
+                <nz-splitter-panel nzDefaultSize="50%" [nzCollapsible]="true" nzResizable="true">
+                    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                        <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+                            <h6 class="m-0 ms-2">Danh sách tiêu chí KPI</h6>
+                        </div>
+                        <div class="card-body p-0 flex-grow-1 grid-container-criteria" style="overflow: hidden;">
+                            <angular-slickgrid gridId="gridCriteria" [columns]="columnDefinitionsCriteria"
+                                [options]="gridOptionsCriteria" [dataset]="datasetCriteria"
+                                (onAngularGridCreated)="angularGridReadyCriteria($event.detail)"
+                                (onClick)="onCriteriaRowClick($event.detail.eventData, $event.detail.args)"
+                                (onDblClick)="onCriteriaRowDblClick($event.detail.eventData, $event.detail.args)">
+                            </angular-slickgrid>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+
+                <!-- Detail Grid: Chi tiết tiêu chí -->
+                <nz-splitter-panel nzDefaultSize="50%" [nzCollapsible]="true" nzResizable="true">
+                    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                        <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+                            <h6 class="m-0 ms-2">Chi tiết tiêu chí</h6>
+                        </div>
+                        <div class="card-body p-0 flex-grow-1 grid-container-criteria-detail" style="overflow: hidden;">
+                            <angular-slickgrid gridId="gridCriteriaDetail" [columns]="columnDefinitionsCriteriaDetail"
+                                [options]="gridOptionsCriteriaDetail" [dataset]="datasetCriteriaDetail"
+                                (onAngularGridCreated)="angularGridReadyCriteriaDetail($event.detail)">
+                            </angular-slickgrid>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+            </nz-splitter>
+        </div>
+    </div>
+</ng-container>
+
+<!-- Copy Criteria Modal Template -->
+<ng-template #copyModalTemplate>
+    <div>
+        <nz-form-item>
+            <nz-form-label nzRequired>Quý đích</nz-form-label>
+            <nz-form-control>
+                <nz-input-number [(ngModel)]="copyQuarter" [nzMin]="1" [nzMax]="4" nzSize="default" class="w-100">
+                </nz-input-number>
+            </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+            <nz-form-label nzRequired>Năm đích</nz-form-label>
+            <nz-form-control>
+                <nz-input-number [(ngModel)]="copyYear" [nzMin]="2024" [nzMax]="9999" nzSize="default" class="w-100">
+                </nz-input-number>
+            </nz-form-control>
+        </nz-form-item>
+        <nz-alert nzType="warning"
+            nzMessage="Lưu ý: Dữ liệu cũ ở quý/năm đích sẽ bị xóa và thay thế bằng dữ liệu được copy!"
+            nzShowIcon></nz-alert>
+    </div>
+</ng-template>

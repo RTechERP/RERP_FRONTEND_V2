@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import {
     Component,
@@ -36,6 +37,7 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 // @ts-ignore
 import { saveAs } from 'file-saver';
+import { ClipboardService } from '../../../../services/clipboard.service';
 
 @Component({
     selector: 'app-bill-export-technical-new',
@@ -102,6 +104,7 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
         private appUserService: AppUserService,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
+        private ClipboardService: ClipboardService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -412,6 +415,20 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
             enableAutoSizeColumns: false,
             frozenColumn: 1,
             enableHeaderMenu: false,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.ClipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
         };
     }
 

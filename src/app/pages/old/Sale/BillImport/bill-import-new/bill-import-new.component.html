@@ -103,8 +103,8 @@
             justifyContent: 'center'
           }"></nz-spin>
             </div>
-            <div [id]="'grid-container-master-' + wareHouseCode" [ngClass]="'grid-container-master' + wareHouseCode">
-                <angular-slickgrid [gridId]="'gridMaster-' + wareHouseCode" [columns]="columnDefinitionsMaster"
+            <div [id]="'grid-container-master-' + componentId" [ngClass]="'grid-container-master-' + componentId">
+                <angular-slickgrid [gridId]="'gridMaster-' + componentId" [columns]="columnDefinitionsMaster"
                     [options]="gridOptionsMaster" [dataset]="datasetMaster"
                     (onAngularGridCreated)="angularGridMasterReady($event.detail)"
                     (onSelectedRowsChanged)="onMasterRowSelectionChanged($event.detail.eventData,$event.detail.args)"
@@ -119,8 +119,8 @@
                     </legend>
 
                     <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
-                        <div [ngClass]="'grid-container-detail' + wareHouseCode" class="w-100">
-                            <angular-slickgrid [gridId]="'gridDetail-' + wareHouseCode"
+                        <div [ngClass]="'grid-container-detail-' + componentId" class="w-100">
+                            <angular-slickgrid [gridId]="'gridDetail-' + componentId"
                                 [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
                                 [dataset]="datasetDetail"
                                 (onAngularGridCreated)="angularGridDetailReady($event.detail)">

@@ -7,50 +7,19 @@
 
         <!-- Phần tìm kiếm và set vị trí bên phải -->
         <div class="d-flex gap-2 align-items-center">
-          <nz-select
-            [(ngModel)]="selectedModulaLocationID"
-            nzShowSearch
-            nzAllowClear
-            nzPlaceHolder="Chọn vị trí modula"
-            nzSize="small"
-            style="width: 250px"
-            [nzFilterOption]="filterOption"
-          >
-            <nz-option-group
-              *ngFor="let group of modulaLocationGroups"
-              [nzLabel]="group.label"
-            >
-              <nz-option
-                *ngFor="let option of group.options"
-                [nzValue]="option.value"
-                [nzLabel]="option.label"
-              >
+          <nz-select [(ngModel)]="selectedModulaLocationID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn vị trí modula"
+            nzSize="small" style="width: 250px" [nzFilterOption]="filterOption">
+            <nz-option-group *ngFor="let group of modulaLocationGroups" [nzLabel]="group.label">
+              <nz-option *ngFor="let option of group.options" [nzValue]="option.value" [nzLabel]="option.label">
               </nz-option>
             </nz-option-group>
           </nz-select>
-          <button
-            nz-button
-            nzType="default"
-            nzSize="small"
-            (click)="onSetModulaLocation()"
-            class="fs-12 btn-set"
-          >
+          <button nz-button nzType="default" nzSize="small" (click)="onSetModulaLocation()" class="fs-12 btn-set">
             Set
           </button>
-          <input
-            nz-input
-            placeholder="Nhập từ khóa tìm kiếm..."
-            [(ngModel)]="filterText"
-            nzSize="small"
-            style="width: 300px"
-            (ngModelChange)="searchQRCode()"
-          />
-          <button
-            nz-button
-            nzType="primary"
-            nzSize="small"
-            (click)="loadData()"
-          >
+          <input nz-input placeholder="Nhập từ khóa tìm kiếm..." [(ngModel)]="filterText" nzSize="small"
+            style="width: 300px" (ngModelChange)="searchQRCode()" />
+          <button nz-button nzType="primary" nzSize="small" (click)="loadData()">
             <nz-icon nzType="search"></nz-icon>
           </button>
         </div>
@@ -58,7 +27,19 @@
     </div>
 
     <div class="card-body p-0 d-flex flex-column flex-1 min-h-0">
-      <div #qrCodeTableRef></div>
+      <!-- Loading overlay -->
+      <div *ngIf="isLoading" class="loading-overlay">
+        <nz-spin [nzSpinning]="isLoading"></nz-spin>
+      </div>
+
+      <!-- SlickGrid container -->
+      <div class="grid-container">
+        <angular-slickgrid gridId="qrCodeGrid" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
+          (onAngularGridCreated)="angularGridReady($event.detail)"
+          (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+          (onClick)="onCellClick($event.detail.eventData, $event.detail.args)">
+        </angular-slickgrid>
+      </div>
     </div>
   </div>
 </ng-container>

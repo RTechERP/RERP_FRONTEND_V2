@@ -1,3 +1,4 @@
+import { ClipboardService } from './../../../../services/clipboard.service';
 import { CommonModule } from '@angular/common';
 import {
     Component,
@@ -99,6 +100,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
         private appUserService: AppUserService,
+        private ClipboardService: ClipboardService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -166,6 +168,12 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.angularGridGroup.slickGrid.scrollRowToTop(0);
                 }
 
+                // Re-initialize grids if warehouse code changed
+                this.initGridColumns();
+                this.initGridOptions();
+                this.initGroupGridColumns();
+                this.initGroupGridOptions();
+
                 // Trigger change detection
                 this.cdr.detectChanges();
             }
@@ -200,6 +208,11 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     ...item,
                     id: item.ID || `group_${index}`,
                 }));
+
+                // Resize grids after data is loaded
+                setTimeout(() => {
+                    this.resizeGrids();
+                }, 100);
             },
             error: (error: any) => {
                 this.notification.error(
@@ -490,6 +503,20 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             enableCheckboxSelector: true,
             enableCellNavigation: true,
             enableFiltering: true,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.ClipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
             frozenColumn: 2, // Freeze first 2 columns (ID and STT are not shown, so ProductCode and ProductName will be frozen)
@@ -528,6 +555,11 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.updateFilterCollections();
 
                 this.isLoading = false;
+
+                // Resize grids after data is loaded
+                setTimeout(() => {
+                    this.resizeGrids();
+                }, 100);
                 this.cdr.detectChanges();
 
                 // Resize grid sau khi data được load
@@ -739,12 +771,21 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         this.getProduct();
     }
 
+    resizeGrids(): void {
+        if (this.angularGrid?.resizerService) {
+            this.angularGrid.resizerService.resizeGrid();
+        }
+        if (this.angularGridGroup?.resizerService) {
+            this.angularGridGroup.resizerService.resizeGrid();
+        }
+    }
+
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
 
         // Resize grid sau khi container đã render
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
         }, 100);
     }
 
@@ -761,7 +802,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
         }, 100);
     }
 

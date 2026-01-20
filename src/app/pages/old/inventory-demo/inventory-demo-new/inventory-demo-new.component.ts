@@ -1,3 +1,4 @@
+import { ClipboardService } from './../../../../services/clipboard.service';
 import { CommonModule } from '@angular/common';
 import {
     Component,
@@ -44,7 +45,6 @@ import { UpdateQrcodeFormComponent } from '../update-qrcode-form/update-qrcode-f
 import { InventoryBorrowSupplierDemoComponent } from '../inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { environment } from '../../../../../environments/environment';
-import { ClipboardService } from '../../../../services/clipboard.service';
 
 @Component({
     selector: 'app-inventory-demo-new',
@@ -173,7 +173,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         private ngbModal: NgbModal,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        private clipboardService: ClipboardService,
+        private ClipboardService: ClipboardService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -749,7 +749,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                         iconCssClass: 'fa fa-copy',
                         positionOrder: 1,
                         action: (_e, args) => {
-                            this.clipboardService.copy(args.value);
+                            this.ClipboardService.copy(args.value);
                         },
                     },
                 ],

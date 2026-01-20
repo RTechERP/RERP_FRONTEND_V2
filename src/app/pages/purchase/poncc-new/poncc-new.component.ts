@@ -285,11 +285,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
@@ -317,11 +313,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
@@ -403,11 +395,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
@@ -490,11 +478,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
@@ -551,11 +535,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
       },
       {
@@ -1735,14 +1715,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     // List of all text fields that should have multipleSelect filter for Master grid
     const masterTextFields = [
       'StatusText',
-      'POCode',
-      'BillCode',
       'CurrencyText',
-      'NameNCC',
       'FullName',
-      'RulePayName',
       'CompanyText',
-      'FedexAccount',
       'RuleIncoterm',
       'SupplierVoucher',
       'OriginItem',

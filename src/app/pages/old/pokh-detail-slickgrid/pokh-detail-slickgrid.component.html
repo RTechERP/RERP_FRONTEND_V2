@@ -294,11 +294,12 @@
         <nz-icon nzType="file-excel"></nz-icon> Nhập Excel
       </button>
     </div>
-    <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+    <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()" [disabled]="isSaving">Đóng</button>
     <button nz-button nzType="primary" nzSize="default" (click)="savePOKH()"
-      [disabled]="(pokhForm.invalid && isSubmitted) || isSaving">
+      [disabled]="isSaving || (pokhForm.invalid && isSubmitted)">
       <nz-spin *ngIf="isSaving" nzSimple nzSize="small"></nz-spin>
       <span *ngIf="!isSaving">Lưu</span>
+      <span *ngIf="isSaving">Đang lưu...</span>
     </button>
   </div>
 </div>

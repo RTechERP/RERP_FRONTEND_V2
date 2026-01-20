@@ -865,6 +865,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       ProjectCodeExport: detail.ProjectCodeExport || '',
       ProjectNameText: detail.ProjectNameText || '',
       ProductFullName: detail.ProductFullName || '',
+      ProjectCode: detail.ProductFullName || '',  // Mã theo khách
       Note: detail.Note || '',
       UnitPricePOKH: detail.UnitPricePOKH || 0,
       UnitPricePurchase: detail.UnitPricePurchase || 0,

@@ -1,0 +1,99 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT CHỨC VỤ</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-2" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
+    <form>
+        <!-- Row 1: Mã chức vụ + STT -->
+        <div class="row g-2">
+            <div class="col-sm-8">
+                <div class="form-group mb-2">
+                    <label class="m-0">
+                        Mã chức vụ
+                        <span class="text-danger">(*)</span>
+                    </label>
+                    <input nz-input type="text" nzSize="small" [(ngModel)]="model.PositionCode" name="code" />
+                    <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.code">{{ errors.code }}</span>
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="form-group mb-2">
+                    <label class="m-0">STT</label>
+                    <nz-input-number nzSize="small" [(ngModel)]="model.STT" name="stt" [nzMin]="0"
+                        class="w-100"></nz-input-number>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Tên chức vụ -->
+        <div class="form-group mb-2">
+            <label class="m-0">
+                Tên chức vụ
+                <span class="text-danger">(*)</span>
+            </label>
+            <input nz-input type="text" nzSize="small" [(ngModel)]="model.PositionName" name="name" />
+            <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.name">{{ errors.name }}</span>
+        </div>
+
+        <!-- Row 3: Loại vị trí (TypePosition) -->
+        <div class="form-group mb-2">
+            <label class="m-0">
+                Loại vị trí
+                <span class="text-danger">(*)</span>
+            </label>
+            <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại vị trí"
+                [(ngModel)]="model.TypePosition" name="typePosition" (ngModelChange)="errors.typePosition = ''"
+                class="w-100">
+                <nz-option *ngFor="let type of typePositions" [nzValue]="type.ID" [nzLabel]="type.Name"></nz-option>
+            </nz-select>
+            <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.typePosition">{{ errors.typePosition
+                }}</span>
+        </div>
+
+        <!-- Row 4: Kỳ đánh giá (KPISessionID) -->
+        <div class="form-group mb-2">
+            <label class="m-0">
+                Kỳ đánh giá
+                <span class="text-danger">(*)</span>
+            </label>
+            <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn kỳ đánh giá"
+                [(ngModel)]="model.KPISessionID" name="kpiSessionId" (ngModelChange)="onKpiSessionChange()"
+                class="w-100">
+                <nz-option-group *ngFor="let group of groupedKpiSessions" [nzLabel]="'Năm ' + group.key">
+                    <nz-option *ngFor="let session of group.value" [nzValue]="session.ID"
+                        [nzLabel]="session.Code + ' - ' + session.Name"></nz-option>
+                </nz-option-group>
+            </nz-select>
+            <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.kpiSessionId">{{ errors.kpiSessionId
+                }}</span>
+        </div>
+
+        <!-- Row 5: Loại chuyên môn (KPIPositionTypeID) -->
+        <div class="form-group mb-2">
+            <label class="m-0">
+                Loại chuyên môn
+                <button type="button" class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
+                    (click)="onAddPositionType()" title="Thêm loại chuyên môn">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </label>
+            <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại chuyên môn"
+                [(ngModel)]="model.KPIPositionTypeID" name="positionTypeId" (ngModelChange)="onPositionTypeChange()"
+                class="w-100">
+                <nz-option *ngFor="let type of positionTypes" [nzValue]="type.ID"
+                    [nzLabel]="type.TypeCode + ' - ' + type.TypeName"></nz-option>
+            </nz-select>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer p-1">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">
+        <i class="fas fa-save"></i> Lưu
+    </button>
+</div>

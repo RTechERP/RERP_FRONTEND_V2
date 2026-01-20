@@ -1,0 +1,14 @@
+.modal-header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 4px;
+    display: block;
+}

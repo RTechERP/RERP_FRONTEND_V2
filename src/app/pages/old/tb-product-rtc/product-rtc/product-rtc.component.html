@@ -6,7 +6,7 @@
                 <div class="card-header bg-white p-1">
                     <h6 class="m-0 ms-2">Nhóm sản phẩm</h6>
                 </div>
-                <div class="card-body p-0 group-grid-container" style="height: calc(94vh - 40px);">
+                <div [id]="'group-grid-container-' + warehouseCode + warehouseType" class="card-body p-0 group-grid-container" style="height: calc(94vh - 40px);">
                     <angular-slickgrid
                         [gridId]="'productGroupGrid-' + warehouseCode + warehouseType"
                         [columns]="columnDefinitionsGroup"
@@ -112,7 +112,7 @@
                     <div *ngIf="isLoading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.4); z-index: 999; display: flex; align-items: center; justify-content: center;">
                         <nz-spin [nzSpinning]="isLoading"></nz-spin>
                     </div>
-                    <div class="grid-container" style="height: 100%;">
+                    <div [id]="'grid-container-' + warehouseCode + warehouseType" class="grid-container" style="height: 100%;">
                         <angular-slickgrid
                             [gridId]="'productRtcGrid-' + warehouseCode + warehouseType"
                             [columns]="columnDefinitions"

@@ -84,6 +84,7 @@ interface ProductGroup {
 })
 export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     warehouseCode: string = 'HN';
+    readonly componentId: string = 'inventory-' + Math.random().toString(36).substring(2, 11);
     productGroupID: number = 0;
 
     // Data
@@ -209,6 +210,10 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.angularGridInventory.slickGrid.scrollRowToTop(0);
                 }
 
+                // Re-initialize grids if warehouse code changed
+                this.initGridColumns();
+                this.initGridOptions();
+
                 // Trigger change detection
                 this.cdr.detectChanges();
             }
@@ -308,7 +313,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsProductGroup = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-product-group' + this.warehouseCode,
+                container: '.grid-container-product-group-' + this.componentId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -321,6 +326,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             enableCellNavigation: true,
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: true,
+            forceFitColumns: true,
             enableAutoSizeColumns: true,
             enableHeaderMenu: false,
         };
@@ -329,7 +335,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsPGWarehouse = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-pg-warehouse' + this.warehouseCode,
+                container: '.grid-container-pg-warehouse-' + this.componentId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -337,6 +343,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             datasetIdPropertyName: 'id',
             enableCellNavigation: true,
             autoFitColumnsOnFirstLoad: true,
+            forceFitColumns: true,
             enableAutoSizeColumns: true,
             enableHeaderMenu: false,
         };
@@ -345,7 +352,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsInventory = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-inventory' + this.warehouseCode,
+                container: '.grid-container-inventory-' + this.componentId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -404,24 +411,36 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#region Grid Ready Events
 
+    resizeGrids(): void {
+        if (this.angularGridProductGroup?.resizerService) {
+            this.angularGridProductGroup.resizerService.resizeGrid();
+        }
+        if (this.angularGridPGWarehouse?.resizerService) {
+            this.angularGridPGWarehouse.resizerService.resizeGrid();
+        }
+        if (this.angularGridInventory?.resizerService) {
+            this.angularGridInventory.resizerService.resizeGrid();
+        }
+    }
+
     angularGridReadyProductGroup(angularGrid: AngularGridInstance) {
         this.angularGridProductGroup = angularGrid;
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
         }, 100);
     }
 
     angularGridReadyPGWarehouse(angularGrid: AngularGridInstance) {
         this.angularGridPGWarehouse = angularGrid;
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
         }, 100);
     }
 
     angularGridReadyInventory(angularGrid: AngularGridInstance) {
         this.angularGridInventory = angularGrid;
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
             // Update footer row
             this.updateInventoryFooterRow();
         }, 100);
@@ -521,6 +540,11 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
                         this.cdr.detectChanges();
 
+                        // Resize grids after data is loaded
+                        setTimeout(() => {
+                            this.resizeGrids();
+                        }, 50);
+
                         // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
                         setTimeout(() => {
                             if (this.searchParam.checkedAll) {
@@ -563,9 +587,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.cdr.detectChanges();
 
                     setTimeout(() => {
-                        if (this.angularGridPGWarehouse) {
-                            this.angularGridPGWarehouse.resizerService.resizeGrid();
-                        }
+                        this.resizeGrids();
                     }, 100);
                 }
             },
@@ -606,11 +628,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.cdr.detectChanges();
 
                         setTimeout(() => {
-                            if (this.angularGridInventory) {
-                                this.angularGridInventory.resizerService.resizeGrid();
-                                // Update footer row sau khi dữ liệu được load
-                                this.updateInventoryFooterRow();
-                            }
+                            this.resizeGrids();
+                            // Update footer row sau khi dữ liệu được load
+                            this.updateInventoryFooterRow();
                         }, 100);
                     }
 

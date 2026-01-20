@@ -579,9 +579,10 @@ export class BillExportDetailNewComponent
         Qty: item.Qty || 0,
         QuantityRemain: item.QuantityRemain || 0,
         ProjectID: item.ProjectID || 0,
-        ProjectCodeExport: item.ProjectCodeExport || item.ProjectCode || '',
+        ProjectCodeExport: item.ProjectCodeExport || '',
         ProjectNameText: item.ProjectNameText || item.ProjectName || '',
         Note: item.Note || '',
+        ProjectCode:item.ProjectCode || '',
         ExpectReturnDate: item.ExpectReturnDate
           ? new Date(item.ExpectReturnDate)
           : new Date(),
@@ -901,6 +902,17 @@ export class BillExportDetailNewComponent
           return `<span style="display:block; text-align:right;">${formatted}</span>`;
         },
       },
+            {
+        id: 'ProjectCode',
+        name: 'Mã sp theo dự án',
+        field: 'ProjectCode',
+        width: 250,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        editor: { model: Editors['text'] }, // nvarchar(max) - không giới hạn
+
+      },
       {
         id: 'ProductName',
         name: 'Tên sản phẩm',
@@ -994,7 +1006,7 @@ export class BillExportDetailNewComponent
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] },
+        editor: { model: Editors['text'] }, // nvarchar(max) - không giới hạn
       },
       {
         id: 'ExpectReturnDate',
@@ -1066,7 +1078,7 @@ export class BillExportDetailNewComponent
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] },
+        editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
       },
       {
         id: 'GroupExport',
@@ -1076,7 +1088,7 @@ export class BillExportDetailNewComponent
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] },
+        editor: { model: Editors['text'], maxLength: 350 }, // nvarchar(350)
       },
       {
         id: 'UserReceiver',
@@ -1086,7 +1098,7 @@ export class BillExportDetailNewComponent
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] },
+        editor: { model: Editors['text'] }, // Không có trong DB schema, cần kiểm tra
       },
       {
         id: 'CustomerResponse',
@@ -1096,7 +1108,7 @@ export class BillExportDetailNewComponent
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] },
+        editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
       },
       {
         id: 'SerialNumber',
@@ -1110,6 +1122,7 @@ export class BillExportDetailNewComponent
         excludeFromGridMenu: true,
         excludeFromHeaderMenu: true,
         hidden: true,
+        editor: { model: Editors['text'], maxLength: 50 }, // nvarchar(50)
       },
       {
         id: 'AddSerial',
@@ -1152,12 +1165,15 @@ export class BillExportDetailNewComponent
   angularGridDetailReady(angularGrid: AngularGridInstance): void {
     this.angularGridDetail = angularGrid;
 
-    // Hide columns that should not be visible, but preserve checkbox selector
-    const hiddenColumnIds = ['SerialNumber', 'POKHDetailID'];
-    const visibleColumns = angularGrid.slickGrid.getColumns().filter(
-      (col: any) => col.id === '_checkbox_selector' || !hiddenColumnIds.includes(col.id)
-    );
-    angularGrid.slickGrid.setColumns(visibleColumns);
+    // Delay để đảm bảo checkbox selector đã được SlickGrid thêm vào
+    setTimeout(() => {
+      // Hide columns that should not be visible, but preserve checkbox selector
+      const hiddenColumnIds = ['SerialNumber', 'POKHDetailID'];
+      const visibleColumns = angularGrid.slickGrid.getColumns().filter(
+        (col: any) => col.id === '_checkbox_selector' || !hiddenColumnIds.includes(col.id)
+      );
+      angularGrid.slickGrid.setColumns(visibleColumns);
+    }, 0);
 
     // Subscribe to header click for add row
     angularGrid.slickGrid.onHeaderClick.subscribe((_e: any, args: any) => {
@@ -1409,9 +1425,32 @@ export class BillExportDetailNewComponent
 
   refreshGrid(): void {
     if (this.angularGridDetail?.dataView) {
+      // Lưu lại selected rows trước khi refresh
+      const selectedRows = this.angularGridDetail.slickGrid?.getSelectedRows() || [];
+      const selectedIds = selectedRows.map(rowIndex => {
+        const item = this.angularGridDetail.slickGrid.getDataItem(rowIndex);
+        return item?.ID;
+      }).filter(id => id != null);
+
+      // Refresh data
       this.angularGridDetail.dataView.setItems(this.dataDetail);
       this.angularGridDetail.slickGrid?.invalidate();
       this.angularGridDetail.slickGrid?.render();
+
+      // Restore selected rows dựa trên ID
+      if (selectedIds.length > 0) {
+        setTimeout(() => {
+          const rowsToSelect: number[] = [];
+          this.dataDetail.forEach((item: any, index: number) => {
+            if (selectedIds.includes(item.ID)) {
+              rowsToSelect.push(index);
+            }
+          });
+          if (rowsToSelect.length > 0) {
+            this.angularGridDetail.slickGrid?.setSelectedRows(rowsToSelect);
+          }
+        }, 0);
+      }
     }
   }
 
@@ -1803,6 +1842,9 @@ export class BillExportDetailNewComponent
     // Lưu lại checkbox column để đảm bảo không bị mất
     const checkboxColumn = currentColumns.find((col: any) => col.id === '_checkbox_selector');
 
+    // Loại bỏ checkbox column tạm thời khỏi danh sách để xử lý
+    currentColumns = currentColumns.filter((col: any) => col.id !== '_checkbox_selector');
+
     // Tìm index của cột ExpectReturnDate trong danh sách hiện tại
     const columnIndex = currentColumns.findIndex((col: any) => col.id === 'ExpectReturnDate');
 
@@ -1819,8 +1861,8 @@ export class BillExportDetailNewComponent
             currentColumns.push({ ...expectReturnDateColumn, hidden: false });
           }
 
-          // Đảm bảo checkbox column vẫn ở đầu
-          if (checkboxColumn && !currentColumns.some((col: any) => col.id === '_checkbox_selector')) {
+          // Thêm lại checkbox column vào đầu
+          if (checkboxColumn) {
             currentColumns = [checkboxColumn, ...currentColumns];
           }
 
@@ -1837,8 +1879,8 @@ export class BillExportDetailNewComponent
       if (isCurrentlyHidden !== shouldBeHidden) {
         column.hidden = shouldBeHidden;
 
-        // Đảm bảo checkbox column vẫn ở đầu
-        if (checkboxColumn && !currentColumns.some((col: any) => col.id === '_checkbox_selector')) {
+        // Thêm lại checkbox column vào đầu
+        if (checkboxColumn) {
           currentColumns = [checkboxColumn, ...currentColumns];
         }
 
@@ -2354,11 +2396,18 @@ export class BillExportDetailNewComponent
           locationInfo = ` (POKH Detail: ${group.pokhDetailID})`;
         }
 
+        const showKeepQty = group.projectID > 0 && group.pokhDetailID > 0;
+
+        const keepQtyText = showKeepQty
+          ? `SL giữ: ${invInfo.totalQuantityKeep.toFixed(2)} + `
+          : '';
+
         insufficientMessages.push(
           `[${productDisplay}]\n` +
           `SL xuất: ${group.totalQty.toFixed(2)} > Tổng tồn: ${totalStock.toFixed(2)}\n` +
-          `(SL giữ: ${invInfo.totalQuantityKeep.toFixed(2)} + SL còn lại: ${invInfo.totalQuantityRemain.toFixed(2)} + Tồn CK: ${invInfo.totalQuantityLast.toFixed(2)})`
+          `(${keepQtyText}SL còn lại: ${invInfo.totalQuantityRemain.toFixed(2)} + Tồn CK: ${invInfo.totalQuantityLast.toFixed(2)})`
         );
+
       }
     });
 

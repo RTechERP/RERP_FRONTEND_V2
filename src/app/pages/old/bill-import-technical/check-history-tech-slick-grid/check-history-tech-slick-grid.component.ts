@@ -686,10 +686,10 @@ export class CheckHistoryTechSlickGridComponent implements OnInit, OnDestroy {
 
   prepareExportData(rows: any[]): any[] {
     return rows.map((row, index) => ({
-      ID: 0,
       STT: index + 1,
       Note: row.BillCode,
       ...row,
+      ID: 0,
     }));
   }
 

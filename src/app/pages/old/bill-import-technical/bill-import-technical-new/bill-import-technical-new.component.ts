@@ -567,7 +567,8 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 // Map data với id unique cho SlickGrid
                 const mappedData = data.map((item: any, index: number) => ({
                     ...item,
-                    id: item.ID || `bill_${index}_${Date.now()}`,
+                    // id: item.ID || `bill_${index}_${Date.now()}`,
+                    id: index + 1,
                 }));
 
                 this.dataset = mappedData;
@@ -703,7 +704,8 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 // Map data với id unique cho SlickGrid
                 const mappedDetailData = details.map((item: any, index: number) => ({
                     ...item,
-                    id: item.ID || `detail_${index}_${Date.now()}`,
+                    // id: item.ID || `detail_${index}_${Date.now()}`,
+                    id: index + 1,
                 }));
 
                 this.datasetDetail = mappedDetailData;

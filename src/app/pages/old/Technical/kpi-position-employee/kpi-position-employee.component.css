@@ -1,0 +1,86 @@
+/* Filter bar styling */
+.filter-bar {
+    flex-shrink: 0;
+}
+
+/* Font size utility */
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+/* Splitter styling */
+.ant-splitter {
+    height: calc(100vh - 100px) !important;
+}
+
+/* Ensure splitter panels have proper height */
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Ensure cards in splitter panel have proper height */
+:host ::ng-deep .ant-splitter-panel .card {
+    min-height: 0;
+}
+
+/* Ensure card-body can scroll */
+:host ::ng-deep .ant-splitter-panel .card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* SlickGrid containers */
+.grid-container-master,
+.grid-container-detail {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-master angular-slickgrid,
+:host ::ng-deep .grid-container-master .slickgrid-container,
+:host ::ng-deep .grid-container-master .gridPane {
+    height: 100% !important;
+}
+
+:host ::ng-deep .grid-container-detail angular-slickgrid,
+:host ::ng-deep .grid-container-detail .slickgrid-container,
+:host ::ng-deep .grid-container-detail .gridPane {
+    height: 100% !important;
+}
+
+/* NZ Select dropdown styling */
+:host ::ng-deep .ant-select-selection-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+:host ::ng-deep .ant-select-item-option-content {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item {
+    white-space: nowrap !important;
+    overflow: visible !important;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item-option-content {
+    white-space: nowrap !important;
+    overflow-x: auto !important;
+    text-overflow: initial !important;
+    max-width: none !important;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar {
+    height: 4px;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 2px;
+}

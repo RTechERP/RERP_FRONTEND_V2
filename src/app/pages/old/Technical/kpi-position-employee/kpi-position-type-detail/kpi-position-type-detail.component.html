@@ -1,0 +1,80 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT LOẠI VỊ TRÍ</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-3">
+    <form>
+        <!-- Row 1: Mã loại -->
+        <div class="form-group mb-3">
+            <label class="m-0">
+                Mã loại
+                <span class="text-danger">(*)</span>
+            </label>
+            <input nz-input type="text" nzSize="small" [(ngModel)]="model.TypeCode" name="typeCode" />
+            <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.typeCode">{{ errors.typeCode }}</span>
+        </div>
+
+        <!-- Row 2: Tên loại + STT -->
+        <div class="row g-2">
+            <div class="col-sm-9">
+                <div class="form-group mb-3">
+                    <label class="m-0">
+                        Tên loại
+                        <span class="text-danger">(*)</span>
+                    </label>
+                    <input nz-input type="text" nzSize="small" [(ngModel)]="model.TypeName" name="typeName" />
+                    <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.typeName">{{ errors.typeName
+                        }}</span>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group mb-3">
+                    <label class="m-0">STT</label>
+                    <nz-input-number nzSize="small" [(ngModel)]="model.STT" name="stt" [nzMin]="0"
+                        class="w-100"></nz-input-number>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Loại dự án -->
+        <div class="form-group mb-3">
+            <label class="m-0">Loại dự án</label>
+            <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại dự án"
+                [(ngModel)]="model.ProjectTypeID" name="projectTypeId" class="w-100">
+                <nz-option *ngFor="let type of projectTypes" [nzValue]="type.ID"
+                    [nzLabel]="type.ProjectTypeName"></nz-option>
+            </nz-select>
+        </div>
+
+        <!-- Row 4: Năm + Quý -->
+        <div class="row g-2">
+            <div class="col-sm-6">
+                <div class="form-group mb-3">
+                    <label class="m-0">Năm</label>
+                    <nz-input-number nzSize="small" [(ngModel)]="model.YearValue" name="yearValue" [nzMin]="2000"
+                        [nzMax]="3000" class="w-100"></nz-input-number>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group mb-3">
+                    <label class="m-0">Quý</label>
+                    <nz-input-number nzSize="small" [(ngModel)]="model.QuaterValue" name="quaterValue" [nzMin]="1"
+                        [nzMax]="4" class="w-100"></nz-input-number>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer p-1">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" nzSize="default" (click)="saveAndNew()">
+        <i class="fas fa-save"></i> Cất & Thêm mới
+    </button>
+    <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">
+        <i class="fas fa-save"></i> Cất & Đóng
+    </button>
+</div>

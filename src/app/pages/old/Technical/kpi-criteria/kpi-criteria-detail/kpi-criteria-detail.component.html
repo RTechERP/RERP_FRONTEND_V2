@@ -1,0 +1,77 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT TIÊU CHUẨN</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-3">
+    <!-- Form -->
+    <form [formGroup]="criteriaForm">
+        <div class="row g-2 mb-3">
+            <!-- Năm -->
+            <div class="col-md-2">
+                <label class="mb-1 fs-12">
+                    <span>Năm</span>
+                </label>
+                <nz-input-number formControlName="year" class="w-100" [nzMin]="2024" [nzMax]="9999" nzSize="small"
+                    (ngModelChange)="onYearQuarterChange()"></nz-input-number>
+            </div>
+
+            <!-- Quý -->
+            <div class="col-md-2">
+                <label class="mb-1 fs-12">
+                    <span>Quý</span>
+                </label>
+                <nz-input-number formControlName="quarter" class="w-100" [nzMin]="1" [nzMax]="4" nzSize="small"
+                    (ngModelChange)="onYearQuarterChange()"></nz-input-number>
+            </div>
+
+            <!-- STT -->
+            <div class="col-md-2">
+                <label class="mb-1 fs-12">
+                    <span>STT</span>
+                </label>
+                <nz-input-number formControlName="stt" class="w-100" [nzMin]="1" nzSize="small"></nz-input-number>
+            </div>
+
+            <!-- Mã tiêu chí -->
+            <div class="col-md-3">
+                <label class="mb-1 fs-12">
+                    <span>Mã tiêu chí</span>
+                    <span class="text-danger">*</span>
+                </label>
+                <input nz-input formControlName="criteriaCode" placeholder="Nhập mã tiêu chí" nzSize="small"
+                    class="w-100" />
+                <small class="text-danger" *ngIf="isSubmitted && criteriaForm.get('criteriaCode')?.invalid">
+                    Vui lòng nhập mã tiêu chí
+                </small>
+            </div>
+
+            <!-- Tên tiêu chí -->
+            <div class="col-md-3">
+                <label class="mb-1 fs-12">
+                    <span>Tên tiêu chí</span>
+                    <span class="text-danger">*</span>
+                </label>
+                <input nz-input formControlName="criteriaName" placeholder="Nhập tên tiêu chí" nzSize="small"
+                    class="w-100" />
+                <small class="text-danger" *ngIf="isSubmitted && criteriaForm.get('criteriaName')?.invalid">
+                    Vui lòng nhập tên tiêu chí
+                </small>
+            </div>
+        </div>
+    </form>
+
+    <!-- SlickGrid for Details -->
+    <div class="grid-container-detail" style="height: 450px;">
+        <angular-slickgrid gridId="kpi-criteria-detail-grid" [columns]="columnDefinitionsDetail"
+            [options]="gridOptionsDetail" [dataset]="datasetDetail"
+            (onAngularGridCreated)="angularGridReadyDetail($event.detail)"
+            (onHeaderClick)="onHeaderClick($event.detail.eventData, $event.detail.args)"
+            (onClick)="onDetailCellClick($event.detail.eventData, $event.detail.args)"></angular-slickgrid>
+    </div>
+</div>
+
+<div class="modal-footer py-1">
+    <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+    <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()" [nzLoading]="isSaving">Lưu</button>
+</div>

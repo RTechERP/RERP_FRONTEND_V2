@@ -156,6 +156,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
 
   // Flatpickr instances
   private flatpickrInstances: Map<string, flatpickr.Instance> = new Map();
+  private documentClickHandler: ((e: MouseEvent) => void) | null = null;
 
   provinceDepartureIDs: number[] = [1, 2, 3, 4];
 
@@ -193,6 +194,11 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   }
 
   ngOnDestroy(): void {
+    // Remove document click listener
+    if (this.documentClickHandler) {
+      document.removeEventListener('mousedown', this.documentClickHandler, true);
+      this.documentClickHandler = null;
+    }
     // Cleanup flatpickr instances
     this.flatpickrInstances.forEach((instance) => {
       instance.destroy();
@@ -201,6 +207,34 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   }
 
   private initializeFlatpickr(): void {
+    // Add document click listener để bắt sự kiện click ra ngoài flatpickr
+    if (!this.documentClickHandler) {
+      this.documentClickHandler = (e: MouseEvent) => {
+        this.flatpickrInstances.forEach((instance, fieldId) => {
+          if (instance.isOpen && instance.calendarContainer) {
+            const target = e.target as HTMLElement;
+            const isInsideCalendar = instance.calendarContainer.contains(target);
+            const isInput = instance.input === target;
+
+            if (!isInsideCalendar && !isInput) {
+              // Click outside - force commit time values
+              const hourInput = instance.calendarContainer.querySelector('.flatpickr-hour') as HTMLInputElement;
+              const minuteInput = instance.calendarContainer.querySelector('.flatpickr-minute') as HTMLInputElement;
+
+              if (hourInput && minuteInput && instance.selectedDates.length > 0) {
+                const finalDate = new Date(instance.selectedDates[0]);
+                const hour = parseInt(hourInput.value, 10) || 0;
+                const minute = parseInt(minuteInput.value, 10) || 0;
+                finalDate.setHours(hour, minute, 0, 0);
+                instance.setDate(finalDate, true);
+              }
+            }
+          }
+        });
+      };
+      document.addEventListener('mousedown', this.documentClickHandler, true);
+    }
+
     // TimeNeedPresent
     this.initializeFlatpickrField('timeNeedPresent', this.timeNeedPresent, (date: Date) => {
       this.timeNeedPresent = date;
@@ -237,6 +271,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
       defaultDate: initialValue || undefined,
       allowInput: true,
       disableMobile: false,
+      clickOpens: true,
       onChange: (selectedDates: Date[]) => {
         if (selectedDates.length > 0) {
           const date = selectedDates[0];
@@ -267,6 +302,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
       allowInput: true,
       disableMobile: false,
       minDate: minDate,
+      clickOpens: true,
       onChange: (selectedDates: Date[]) => {
         if (selectedDates.length > 0) {
           const date = selectedDates[0];

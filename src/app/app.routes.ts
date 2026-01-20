@@ -244,9 +244,11 @@ import { InventoryProjectNewComponent } from './pages/purchase/inventory-project
 // import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
 // // import { SummaryKpiErrorEmployeeCloneComponent } from './pages/old/Technical/summary-kpi-error-employee-clone/summary-kpi-error-employee-clone.component';
 import { SummaryKpiErrorEmployeeNewComponent } from './pages/old/Technical/summary-kpi-error-employee/summary-kpi-error-employee-new/summary-kpi-error-employee-new.component';
+import { KpiCriteriaComponent } from './pages/old/Technical/kpi-criteria/kpi-criteria.component';
 
 import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
 import { VehicleBookingManagementSlickgridComponent } from './pages/hrm/vehicle/vehicle-booking-management/vehicle-booking-management-slickgrid/vehicle-booking-management-slickgrid.component';
+import { KpiPositionEmployeeComponent } from './pages/old/Technical/kpi-position-employee/kpi-position-employee.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -608,6 +610,8 @@ export const routes: Routes = [
             { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
             { path: 'kpi-tech', component: KPIEvaluationEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
+
 
 
             //Mua hàng
@@ -1006,7 +1010,9 @@ export const routes: Routes = [
             { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-new', component: SummaryKpiErrorEmployeeNewComponent, canActivate: [authGuard] },
-            // { path: 'summary-kpi-error-employee-clone', component: SummaryKpiErrorEmployeeCloneComponent, canActivate: [authGuard] },
+            //Cài đặt phòng kỹ thuật
+            { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
+            { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },
 
             { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
         ],

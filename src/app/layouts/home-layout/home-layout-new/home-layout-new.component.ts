@@ -436,7 +436,7 @@ export class HomeLayoutNewComponent implements OnInit {
 
 
         let parsedParams: any = null;
-        console.log('queryParams:', queryParams);
+        // console.log('queryParams:', queryParams);
         if (queryParams && queryParams !== '') {
             if (typeof queryParams === 'string') {
                 try {
@@ -475,7 +475,7 @@ export class HomeLayoutNewComponent implements OnInit {
         }
 
         // this.router.navigateByUrl(route);
-        console.log('navigateByUrl(url):', url);
+        // console.log('navigateByUrl(url):', url);
         this.router.navigateByUrl(url).then(() => {
             // Reset flag sau khi navigation xong
             setTimeout(() => {

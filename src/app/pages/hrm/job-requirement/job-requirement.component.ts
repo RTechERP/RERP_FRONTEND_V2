@@ -2351,7 +2351,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             enableRowSelection: true,
             enableCheckboxSelector: true,
             checkboxSelector: { hideSelectAllCheckbox: false },
-            rowSelectionOptions: { selectActiveRow: true },
+            rowSelectionOptions: { selectActiveRow: false },
             multiSelect: true,
             rowHeight: 35,
             headerRowHeight: 40,
@@ -2537,24 +2537,12 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         };
     }
 
-    // Handle row click
+    // Handle row click - chỉ load detail khi click vào cell không phải checkbox (cột 0)
     onCellClicked(e: Event, args: OnClickEventArgs): void {
-        const item = (args as any)?.dataContext;
-        if (item) {
-            this.JobrequirementID = item.ID || 0;
-            this.data = [item];
-            if (this.JobrequirementID) {
-                this.getJobrequirementDetails(this.JobrequirementID);
-                this.getHCNSData(this.JobrequirementID);
-            }
-        }
-    }
-
-    // Handle row selection changed
-    onSelectedRowsChanged(e: Event, args: OnSelectedRowsChangedEventArgs): void {
-        if (args?.rows?.length > 0 && this.angularGrid?.dataView) {
-            const selectedIdx = args.rows[0];
-            const item = this.angularGrid.dataView.getItem(selectedIdx);
+        // Khi click vào bất kỳ cell nào, ta sẽ load detail của dòng đó
+        // Tuy nhiên, không xử lý khi click vào checkbox (cột 0) để không ảnh hưởng đến việc chọn nhiều dòng
+        if (args.cell !== 0) {
+            const item = args.grid.getDataItem(args.row);
             if (item) {
                 this.JobrequirementID = item.ID || 0;
                 this.data = [item];
@@ -2563,10 +2551,14 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     this.getHCNSData(this.JobrequirementID);
                 }
             }
-        } else {
-            this.JobrequirementID = 0;
-            this.data = [];
         }
+    }
+
+    // Handle row selection changed - chỉ đồng bộ trạng thái selected, không load detail
+    // Việc load detail sẽ do onCellClicked xử lý khi click vào dòng
+    onSelectedRowsChanged(e: Event, args: OnSelectedRowsChangedEventArgs): void {
+        // Không cần làm gì ở đây vì onCellClicked đã xử lý việc load detail
+        // Method này chỉ được giữ lại để đồng bộ với HTML template
     }
 
     // Get selected data from grid

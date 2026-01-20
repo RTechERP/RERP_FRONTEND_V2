@@ -37,13 +37,17 @@
                 <nz-form-item>
                     <nz-form-label class="fs-12">Lọc kho</nz-form-label>
                     <nz-form-control>
-                        <nz-select nzAllowClear="true" nzAllowClear="true" [(ngModel)]="selectedKhoTypes"
+                        <nz-select nzAllowClear="true" [(ngModel)]="selectedKhoTypes"
                             (ngModelChange)="onKhoTypeChange($event)" [nzMode]="'multiple'"
                             [nzPlaceHolder]="'Chọn nhóm kho'" [nzMaxTagCount]="3" name="selectedKhoTypes" nzSize="small"
                             style="width: 20vw">
                             <nz-option *ngFor="let item of dataProductGroup" [nzLabel]="item.ProductGroupName"
                                 [nzValue]="item.ID"></nz-option>
                         </nz-select>
+
+                        <ng-template #tagPlaceHolder let-selectedList>
+                            {{selectedList}} Đã chọn
+                        </ng-template>
                     </nz-form-control>
                 </nz-form-item>
 

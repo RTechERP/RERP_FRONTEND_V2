@@ -49,6 +49,7 @@ import { CustomRouteReuseStrategy } from '../../custom-route-reuse.strategy';
 // import { LayoutEventService } from '../layout-event.service';
 import { take, filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { TabServiceService, TabCompPayload } from '../tab-service.service';
 
 type TabItem = {
     title: string;
@@ -141,7 +142,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // private layoutEvent: LayoutEventService,
         private cd: ChangeDetectorRef,
         private route: ActivatedRoute,
-        // private tabService: TabServiceService
+        private tabService: TabServiceService
     ) {
 
         // this.menuComps = this.menuService.getMenus();
@@ -236,6 +237,12 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.isCollapsed = x == '';
         });
         this.menuComps = this.menuService.getCompMenus(this.menuCompKey);
+
+        // Subscribe to TabService for opening component tabs from other components
+        this.tabService.tabCompRequest$.subscribe((payload: TabCompPayload) => {
+            console.log('[MainLayout] Received tabCompRequest:', payload);
+            this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
+        });
         // console.log('menucomps:', menucomps);
         // this.menuComps = this.sortBySTTImmutable(menucomps, i => i.stt ?? 0);
     }

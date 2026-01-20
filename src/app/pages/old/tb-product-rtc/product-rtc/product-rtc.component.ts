@@ -36,6 +36,7 @@ import { ProductRtcPurchaseRequestComponent } from '../../../../pages/purchase/p
 import { PurchaseRequestDemoComponent } from '../../../../pages/purchase/project-partlist-purchase-request/purchase-request-demo/purchase-request-demo.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../../pages/purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { AppUserService } from '../../../../services/app-user.service';
+import { TbProductRtcImportExcelComponent } from '../tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
 
 @Component({
     selector: 'app-product-rtc',
@@ -60,6 +61,7 @@ import { AppUserService } from '../../../../services/app-user.service';
         ProductRtcPurchaseRequestComponent, // Component để tạo yêu cầu mua hàng ProductRTC
         PurchaseRequestDemoComponent, // Component để xem danh sách yêu cầu mua hàng demo
         ProjectPartlistPriceRequestNewComponent, // Component để yêu cầu báo giá
+        TbProductRtcImportExcelComponent, // Component để import Excel
     ],
     templateUrl: './product-rtc.component.html',
     styleUrls: ['./product-rtc.component.css']
@@ -1171,5 +1173,98 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 console.log('Modal dismissed');
             }
         );
+    }
+
+    openModalImportExcel() {
+        const modalRef = this.modalService.open(TbProductRtcImportExcelComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.warehouseType = this.warehouseType;
+        modalRef.componentInstance.warehouseID = this.warehouseID;
+        modalRef.result.then(
+            (result) => {
+                this.getProduct();
+            },
+            () => {
+                console.log('Modal dismissed');
+            }
+        );
+    }
+
+    async exportToExcelProduct() {
+        if (!this.angularGrid) return;
+
+        const selectedData = this.dataset;
+        if (!selectedData || selectedData.length === 0) {
+            this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+            return;
+        }
+
+        const ExcelJS = await import('exceljs');
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Danh sách thiết bị');
+
+        // Get visible columns from SlickGrid
+        const columns = this.angularGrid.slickGrid.getColumns().filter(
+            (col: any) => !col.hidden && col.field && col.field.trim() !== '' && col.id !== '_checkbox_selector'
+        );
+
+        const headerRow = worksheet.addRow(
+            columns.map((col: any) => col.name || col.field)
+        );
+        headerRow.font = { bold: true };
+        headerRow.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFE0E0E0' },
+        };
+
+        selectedData.forEach((row: any) => {
+            const rowData = columns.map((col: any) => {
+                const value = row[col.field];
+                switch (col.field) {
+                    case 'BorrowCustomer':
+                        return value ? 'Có' : 'Không';
+                    case 'CreateDate':
+                        return value ? new Date(value).toLocaleDateString('vi-VN') : '';
+                    default:
+                        return value !== null && value !== undefined ? value : '';
+                }
+            });
+            worksheet.addRow(rowData);
+        });
+
+        worksheet.columns.forEach((col) => {
+            col.width = 20;
+        });
+
+        worksheet.eachRow((row, rowNumber) => {
+            row.eachCell((cell) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' },
+                };
+                if (rowNumber === 1) {
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                }
+            });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `danh-sach-thiet-bi-${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
     }
 }

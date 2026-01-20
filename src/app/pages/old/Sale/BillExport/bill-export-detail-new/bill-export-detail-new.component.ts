@@ -393,7 +393,7 @@ export class BillExportDetailNewComponent
         this.validateForm.patchValue({
           KhoTypeID: this.billImport.KhoTypeID,
           //UserID: this.billImport.ReciverID,
-          UserID: this.appUserService.employeeID,
+          UserID: this.id > 0 ? this.billImport.ReciverID : this.appUserService.employeeID,
           WarehouseID: this.billImport.WarehouseID,
           SenderID: this.billImport.DeliverID,
           SupplierID: this.billImport.SupplierID,

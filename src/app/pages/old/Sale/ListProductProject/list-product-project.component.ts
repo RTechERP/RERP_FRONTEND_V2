@@ -117,11 +117,20 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
         // Note: RouteReuseStrategy will recreate component when queryParams change
         this.queryParamsSub = this.route.queryParams.subscribe((params) => {
             // this.warehouseCode = params['warehouseCode'] || 'HN';
-            this.warehouseCode =
+            const newWarehouseCode =
                 params['warehouseCode']
                 ?? this.tabData?.warehouseCode
                 ?? 'HN';
+
+            // Check if warehouse code changed
+            const warehouseCodeChanged = this.warehouseCode !== newWarehouseCode;
+            this.warehouseCode = newWarehouseCode;
             this.sreachParam.WareHouseCode = this.warehouseCode;
+
+            // Re-initialize grid if warehouse code changed
+            if (warehouseCodeChanged && this.angularGrid) {
+                this.initAngularGrid();
+            }
         });
 
         this.loadMenu();
@@ -149,6 +158,12 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
         }
     }
     ngAfterViewInit(): void { }
+
+    resizeGrids(): void {
+        if (this.angularGrid?.resizerService) {
+            this.angularGrid.resizerService.resizeGrid();
+        }
+    }
 
     loadMenu() {
         this.listProductMenu = [
@@ -191,7 +206,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
 
                     console.log(this.dataset);
                     setTimeout(() => {
-                        this.angularGrid?.resizerService.resizeGrid();
+                        this.resizeGrids();
                         this.applyGrouping();
                         this.applyDistinctFilters();
                     }, 100);

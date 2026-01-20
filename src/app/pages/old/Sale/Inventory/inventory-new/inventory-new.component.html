@@ -47,14 +47,14 @@
                                 <!-- table productGroup -->
                                 <nz-splitter-panel nzSize="70%">
                                     <div class="position-relative"
-                                        [ngClass]="'grid-container-product-group' + warehouseCode"
+                                        [ngClass]="'grid-container-product-group-' + componentId"
                                         style="height: 100%;">
                                         <div *ngIf="isLoadingProductGroup"
                                             class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
                                             style="z-index: 1000;">
                                             <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
                                         </div>
-                                        <angular-slickgrid [gridId]="'grid-product-group-'+warehouseCode"
+                                        <angular-slickgrid [gridId]="'grid-product-group-' + componentId"
                                             [columns]="columnDefinitionsProductGroup"
                                             [options]="gridOptionsProductGroup" [dataset]="datasetProductGroup"
                                             (onAngularGridCreated)="angularGridReadyProductGroup($any($event).detail)"
@@ -66,8 +66,8 @@
                                 <!-- table productGroupWareHouse -->
                                 <nz-splitter-panel>
                                     <div class="position-relative"
-                                        [ngClass]="'grid-container-pg-warehouse' + warehouseCode" style="height: 100%;">
-                                        <angular-slickgrid [gridId]="'grid-pg-warehouse-'+warehouseCode"
+                                        [ngClass]="'grid-container-pg-warehouse-' + componentId" style="height: 100%;">
+                                        <angular-slickgrid [gridId]="'grid-pg-warehouse-' + componentId"
                                             [columns]="columnDefinitionsPGWarehouse" [options]="gridOptionsPGWarehouse"
                                             [dataset]="datasetPGWarehouse"
                                             (onAngularGridCreated)="angularGridReadyPGWarehouse($any($event).detail)">
@@ -77,13 +77,13 @@
                             </nz-splitter>
                         </nz-splitter-panel>
                         <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="80%">
-                            <div [ngClass]="'grid-container-inventory' + warehouseCode" style="height: 98%;">
+                            <div [ngClass]="'grid-container-inventory-' + componentId" style="height: 98%;">
                                 <div *ngIf="isLoadingInventory"
                                     class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
                                     style="z-index: 1000;">
                                     <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
                                 </div>
-                                <angular-slickgrid [gridId]="'grid-inventory-'+warehouseCode"
+                                <angular-slickgrid [gridId]="'grid-inventory-' + componentId"
                                     [columns]="columnDefinitionsInventory" [options]="gridOptionsInventory"
                                     [dataset]="datasetInventory"
                                     (onAngularGridCreated)="angularGridReadyInventory($any($event).detail)">

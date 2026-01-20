@@ -1,3 +1,4 @@
+import { ClipboardService } from './../../../../services/clipboard.service';
 import { CommonModule } from '@angular/common';
 import {
     Component,
@@ -108,6 +109,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
         private injector: Injector,
+        private ClipboardService: ClipboardService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -375,6 +377,20 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
             enableAutoSizeColumns: false,
             frozenColumn: 1,
             enableHeaderMenu: false,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.ClipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
         };
     }
     openSummaryModal() {

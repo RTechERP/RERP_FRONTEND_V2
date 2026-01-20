@@ -29,17 +29,28 @@
                     </nz-form-control>
                 </nz-form-item>
 
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Lọc kho</nz-form-label>
-                    <nz-form-control>
-                        <nz-select [(ngModel)]="selectedKhoTypes" (ngModelChange)="onKhoTypeChange($event)"
-                            [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn nhóm kho'" [nzMaxTagCount]="2"
-                            name="selectedKhoTypes" nzSize="small" style="width: 200px" nzAllowClear>
-                            <nz-option *ngFor="let item of dataProductGroup" [nzLabel]="item.ProductGroupName"
-                                [nzValue]="item.ID"></nz-option>
-                        </nz-select>
-                    </nz-form-control>
-                </nz-form-item>
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12">Lọc kho</nz-form-label>
+          <nz-form-control>
+            <nz-select
+              [(ngModel)]="selectedKhoTypes"
+              (ngModelChange)="onKhoTypeChange($event)"
+              [nzMode]="'multiple'"
+              [nzPlaceHolder]="'Chọn nhóm kho'"
+              [nzMaxTagCount]="1"
+              name="selectedKhoTypes"
+              nzSize="small"
+              style="width: 200px"
+              nzAllowClear
+            >
+              <nz-option
+                *ngFor="let item of dataProductGroup"
+                [nzLabel]="item.ProductGroupName"
+                [nzValue]="item.ID"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
 
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">Lọc phiếu</nz-form-label>
@@ -84,8 +95,8 @@
         <!-- Grid Content -->
         <div class="card-body p-0">
             <!-- Master Grid -->
-            <div [id]="'grid-container-master-' + warehouseCode" [ngClass]="'grid-container-master' + warehouseCode">
-                <angular-slickgrid [gridId]="'gridMaster-' + warehouseCode" [columns]="columnDefinitionsMaster"
+            <div [id]="'grid-container-master-' + componentId" [ngClass]="'grid-container-master-' + componentId">
+                <angular-slickgrid [gridId]="'gridMaster-' + componentId" [columns]="columnDefinitionsMaster"
                     [options]="gridOptionsMaster" [dataset]="datasetMaster"
                     (onAngularGridCreated)="angularGridMasterReady($event.detail)"
                     (onDblClick)="onMasterDoubleClick($event)">
@@ -97,8 +108,8 @@
                 <nz-tabset class="main-tab" style="padding-left: 10px !important">
                     <nz-tab [nzTitle]="tabDetailTitle">
                         <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
-                            <div [ngClass]="'grid-container-detail' +warehouseCode">
-                                <angular-slickgrid [gridId]="'gridDetail-' + warehouseCode"
+                            <div [ngClass]="'grid-container-detail-' + componentId">
+                                <angular-slickgrid [gridId]="'gridDetail-' + componentId"
                                     [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
                                     [dataset]="datasetDetail"
                                     (onAngularGridCreated)="angularGridDetailReady($event.detail)">

@@ -1,3 +1,4 @@
+
 import {
     Component,
     OnInit,
@@ -107,18 +108,28 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
         private modalService: NgbModal,
-        private clipboardService: ClipboardService,
+        private ClipboardService: ClipboardService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
         this.route.queryParams.subscribe((params) => {
             // this.warehouseCode = params['warehouseCode'] || 'HN';
-            this.warehouseCode =
+            const newWarehouseCode =
                 params['warehouseCode']
                 ?? this.tabData?.warehouseCode
                 ?? 'HN';
+
+            // Check if warehouse code changed
+            const warehouseCodeChanged = this.warehouseCode !== newWarehouseCode;
+            this.warehouseCode = newWarehouseCode;
             this.searchParams.warehouseCode = this.warehouseCode;
+
+            // Re-initialize grids if warehouse code changed
+            if (warehouseCodeChanged && this.angularGrid) {
+                this.initGridColumns();
+                this.initGridOptions();
+            }
         });
 
         this.initGridColumns();
@@ -454,7 +465,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                         iconCssClass: 'fa fa-copy',
                         positionOrder: 1,
                         action: (_e, args) => {
-                            this.clipboardService.copy(args.value);
+                            this.ClipboardService.copy(args.value);
                         },
                     },
                 ],
@@ -541,10 +552,16 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
 
     //#region Grid Ready Events
 
+    resizeGrids(): void {
+        if (this.angularGrid?.resizerService) {
+            this.angularGrid.resizerService.resizeGrid();
+        }
+    }
+
     angularGridReady(angularGrid: AngularGridInstance): void {
         this.angularGrid = angularGrid;
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
             this.updateFooterRow();
         }, 100);
 
@@ -645,10 +662,8 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                         this.cdr.detectChanges();
 
                         setTimeout(() => {
-                            if (this.angularGrid) {
-                                this.angularGrid.resizerService.resizeGrid();
-                                this.updateFooterRow();
-                            }
+                            this.resizeGrids();
+                            this.updateFooterRow();
                         }, 100);
                     }
                 },

@@ -73,6 +73,25 @@
                                     <img src="assets/icon/purchase.png" alt="Yêu cầu báo giá"
                                         style="width:16px; height:16px; object-fit:contain" />Yêu cầu báo giá
                                 </button>
+
+                                <span class="mx-2"
+                                    style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+
+                                <button nz-button nzType="default" nzSize="small" class="me-1"
+                                    *hasPermission="'N26,N1,N80'">
+                                    <img src="assets/icon/action_add_qr_code_16.png" alt="Thêm QRCode"
+                                        style="width:16px; height:16px; object-fit:contain" />Thêm QRCode
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="me-1"
+                                    (click)="openModalImportExcel()" *hasPermission="'N26,N1,N80'">
+                                    <img src="assets/icon/action_import_16.png" alt="Nhập Excel"
+                                        style="width:16px; height:16px; object-fit:contain" />Nhập excel
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="me-1"
+                                    (click)="exportToExcelProduct()">
+                                    <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel"
+                                        style="width:16px; height:16px; object-fit:contain" />Xuất excel
+                                </button>
                             </div>
                         </div>
                     </div>

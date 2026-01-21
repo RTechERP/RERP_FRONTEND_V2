@@ -1107,7 +1107,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#region Lt.anh mapping cột theo warehouse
     buildPGWarehouseColumns(warehouseCode: string): Column[] {
-        console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
+        // console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
         return [
             {
                 id: 'ProductGroupName' + warehouseCode,
@@ -1119,6 +1119,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'IsFix' + warehouseCode,
@@ -1150,6 +1151,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductName' + warehouseCode,
@@ -1165,6 +1167,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductNewCode' + warehouseCode,
@@ -1191,6 +1194,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Deliver' + warehouseCode,
@@ -1407,6 +1411,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Detail' + warehouseCode,
@@ -1422,6 +1427,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Note' + warehouseCode,
@@ -1437,9 +1443,24 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
         ];
     }
 
     //#endregion
+
+
+    cleanXml(value: any): string {
+        if (value === null || value === undefined) return '';
+
+        return String(value)
+            // remove invalid XML chars
+            .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+            // remove nbsp
+            .replace(/\u00A0/g, ' ')
+            // remove emoji (optional nhưng nên)
+            .replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
+    }
+
 }

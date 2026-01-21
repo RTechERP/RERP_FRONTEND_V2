@@ -65,26 +65,27 @@ import { ViewPokhSlickgridComponent } from './view-pokh-slickgrid.component';
   `,
     styles: [`
     .row-detail-container {
-      padding: 10px;
+      padding: 6px 10px;
       background-color: #f5f5f5;
       border-radius: 4px;
     }
     .row-detail-tab-header {
       display: flex;
       gap: 4px;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
     .row-detail-tab-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 6px 16px;
-      font-size: 12px;
+      padding: 1px 8px;
+      font-size: 11px;
+      line-height: 1.3;
       font-weight: 500;
       color: #595959;
       background-color: #fff;
       border: 1px solid #d9d9d9;
-      border-radius: 4px;
+      border-radius: 3px;
       cursor: pointer;
       transition: all 0.2s ease;
     }
@@ -98,7 +99,7 @@ import { ViewPokhSlickgridComponent } from './view-pokh-slickgrid.component';
       border-color: #1890ff;
     }
     .inner-grid-container {
-      height: 180px;
+      height: 130px;
       max-width: 700px;
       background-color: #fff;
       border: 1px solid #e8e8e8;
@@ -227,11 +228,11 @@ export class ViewPokhRowDetailViewComponent implements OnInit, OnDestroy {
                 calculateAvailableSizeBy: 'container',
             },
             enableAutoResize: true,
-            gridHeight: 170,
+            gridHeight: 120,
             enableCellNavigation: true,
             enableFiltering: false,
             rowHeight: 30,
-            headerRowHeight: 35,
+            headerRowHeight: 15,
         };
     }
 
@@ -266,13 +267,13 @@ export class ViewPokhRowDetailViewComponent implements OnInit, OnDestroy {
                 calculateAvailableSizeBy: 'container',
             },
             enableAutoResize: true,
-            gridHeight: 170,
+            gridHeight: 120,
             enableCellNavigation: true,
             enableFiltering: false,
             editable: true,
             autoEdit: false,
             rowHeight: 30,
-            headerRowHeight: 35,
+            headerRowHeight: 15,
         };
     }
 

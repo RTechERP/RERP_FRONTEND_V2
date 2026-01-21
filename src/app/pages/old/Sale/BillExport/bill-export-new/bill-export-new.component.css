@@ -39,13 +39,100 @@
   label[nz-checkbox] {
     font-size: 12px !important;
   }
+
+  /* PrimeNG Components styling */
+  .filter-label {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  ::ng-deep .w-130 {
+    width: 130px;
+  }
+
+  ::ng-deep .w-150 {
+    width: 150px;
+  }
+
+  ::ng-deep .w-200 {
+    width: 200px;
+  }
+
+  /* PrimeNG MultiSelect */
+  ::ng-deep p-multiselect {
+    font-size: 12px !important;
+
+    .p-multiselect {
+      font-size: 12px !important;
+    }
+
+    .p-multiselect-label {
+      font-size: 12px !important;
+    }
+
+    .p-multiselect-item {
+      font-size: 12px !important;
+    }
+  }
+
+  /* PrimeNG DatePicker */
+  ::ng-deep p-datepicker {
+    font-size: 12px !important;
+
+    .p-datepicker {
+      font-size: 12px !important;
+    }
+
+    .p-datepicker-input {
+      font-size: 12px !important;
+      padding: 0.25rem 0.5rem !important;
+    }
+
+    .p-datepicker-panel {
+      font-size: 12px !important;
+    }
+
+    .p-datepicker table td {
+      font-size: 12px !important;
+      padding: 0.25rem !important;
+    }
+  }
+
+  /* PrimeNG Select */
+  ::ng-deep p-select {
+    font-size: 12px !important;
+
+    .p-select {
+      font-size: 12px !important;
+    }
+
+    .p-select-label {
+      font-size: 12px !important;
+      padding: 0.25rem 0.5rem !important;
+    }
+
+    .p-select-option {
+      font-size: 12px !important;
+      padding: 0.25rem 0.5rem !important;
+    }
+
+    .p-select-trigger {
+      width: 2rem !important;
+    }
+  }
+
+  /* PrimeNG InputText */
+  ::ng-deep input.p-inputtext {
+    font-size: 12px !important;
+    padding: 0.25rem 0.5rem !important;
+  }
 }
 
-::ng-deep div[id^="gridMaster-"]{
+::ng-deep div[id^="gridMaster-"][id*="billexport"]{
   height: 45vh !important;
 }
-::ng-deep div[id^="gridDetail-"]{
-  height: 30vh !important;
+::ng-deep div[id^="gridDetail-"][id*="billexport"]{
+  height: 35vh !important;
 }
 
 /* Multiline cell - wrap up to 3 lines with ellipsis */
@@ -65,12 +152,12 @@
 
 /* Increase row height for master grid to accommodate multiline (3 lines) */
 /* Calculation: 12px font * 1.5 line-height * 3 lines + 12px padding = ~66px */
-::ng-deep div[id^="gridMaster-"] .slick-row {
+::ng-deep div[id^="gridMaster-"][id*="billexport"] .slick-row {
   height: auto !important;
   min-height: 66px !important;
 }
 
-::ng-deep div[id^="gridMaster-"] .slick-cell {
+::ng-deep div[id^="gridMaster-"][id*="billexport"] .slick-cell {
   padding: 6px 8px !important;
   line-height: 1.5 !important;
   overflow: visible !important;

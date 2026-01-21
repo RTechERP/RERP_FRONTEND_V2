@@ -196,7 +196,8 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private cdr: ChangeDetectorRef,
         private message: NzMessageService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) {
         // Khi mở từ new tab, data được truyền qua injector
         //   if (this.tabData) {
@@ -206,9 +207,23 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
         //   }
 
         this.route.queryParams.subscribe(params => {
-            this.JobrequirementID = params['JobrequirementID'] || 1
-            this.searchParams = params['JobrequirementID'] || 1;
-            this.isCheckmode = params['isCheckmode'] || 1;
+            // this.JobrequirementID = params['JobrequirementID'] || 1
+            // this.searchParams = params['JobrequirementID'] || 1;
+            // this.isCheckmode = params['isCheckmode'] || 1;
+            this.JobrequirementID =
+                params['JobrequirementID']
+                ?? this.tabData?.JobrequirementID
+                ?? 1;
+
+            this.searchParams =
+                params['JobrequirementID']
+                ?? this.tabData?.JobrequirementID
+                ?? 1;
+
+            this.isCheckmode =
+                params['isCheckmode']
+                ?? this.tabData?.isCheckmode
+                ?? 1;
         });
     }
 

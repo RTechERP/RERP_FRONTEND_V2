@@ -49,6 +49,7 @@ import { CustomRouteReuseStrategy } from '../../custom-route-reuse.strategy';
 // import { LayoutEventService } from '../layout-event.service';
 import { take, filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { TabServiceService, TabCompPayload } from '../tab-service.service';
 
 type TabItem = {
     title: string;
@@ -60,6 +61,15 @@ type TabItem = {
     key: string;
     // outlet: string; // 👈 RẤT QUAN TRỌNG
 };
+
+type TabItemComp = {
+    title: string;
+    comp: Type<any>;
+    injector?: Injector;
+    data?: any; // Lưu data để so sánh unique key
+    key: string;
+};
+
 // export type BaseItem = {
 //   key: string;
 //   title: string;
@@ -83,16 +93,17 @@ type TabItem = {
 export const isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
 export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
 
-const COMPONENT_REGISTRY: Record<string, Type<any>> = {
-    customer: CustomerComponent,
-    productRTC: TbProductRtcComponent,
-    project: ProjectComponent,
-};
+// const COMPONENT_REGISTRY: Record<string, Type<any>> = {
+//     customer: CustomerComponent,
+//     productRTC: TbProductRtcComponent,
+//     project: ProjectComponent,
+// };
 
-// Reverse mapping để serialize component -> key
-const COMPONENT_TO_KEY: Map<Type<any>, string> = new Map(
-    Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
-);
+// // Reverse mapping để serialize component -> key
+// const COMPONENT_TO_KEY: Map<Type<any>, string> = new Map(
+//     Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
+// );
+
 @Component({
     selector: 'app-main-layout',
     imports: [
@@ -131,9 +142,10 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // private layoutEvent: LayoutEventService,
         private cd: ChangeDetectorRef,
         private route: ActivatedRoute,
-        // private tabService: TabServiceService
+        private tabService: TabServiceService
     ) {
-        // this.menus = this.menuService.getMenus();
+
+        // this.menuComps = this.menuService.getMenus();
     }
     notificationComponent = AppNotifycationDropdownComponent;
     //#region Khai báo biến
@@ -142,8 +154,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     isDatcom = false;
     selectedIndex = 0;
     trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
-    // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-    // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+
     menus: any[] = [];
     dynamicTabs: TabItem[] = [];
     private isNavigatingFromNewTab = false; // Flag để biết navigation có phải từ newTab không
@@ -200,43 +211,182 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     rootMenuKey: string = '';
 
+
+    menuComps: MenuItem[] = [];
+    dynamicTabComps: TabItemComp[] = [];
+    menuCompKey: string = '';
+    selectedCompIndex = 0;
+    isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+    get hasDynamicTabComp(): boolean {
+        return this.dynamicTabComps.length > 0;
+    }
+
     ngOnInit(): void {
-        // const saved = localStorage.getItem('openMenuKey') || '';
-        // console.log(this.menus);
-        // this.setOpenMenu(saved || null);
 
-        // this.isCollapsed = !this.isCollapsed;
-        this.getMenus();
+        // console.log('this.menuComps ngOnInit:', this.menuComps);
 
-        // console.log(' this.menuKey :', this.menuKey);
 
-        // this.menuService.menuKey$.subscribe((x) => {
-        //     this.menuKey = x;
-        //     console.log('menuKey$:', this.menuKey);
+        // this.getMenus();
+        // console.log('this.menuComps:', this.menuComps);
+        // console.log('this.getMenus:', this.menuService.getMenus());
 
-        //     this.setOpenMenu(this.menuKey);
-        //     this.toggleMenu(this.menuKey);
-        // });
-        // console.log('menuKey ngOnInit:', this.menuKey);
-        // this.setOpenMenu(this.menuKey);
-        // this.toggleMenu(this.menuKey);
+        this.menuService.menuKey$.subscribe((x) => {
+            // console.log(x);
+            this.menuCompKey = x;
+            this.isCollapsed = x == '';
+        });
+        this.menuComps = this.menuService.getCompMenus(this.menuCompKey);
 
-        // Khôi phục các tabs đã mở từ localStorage
-        // this.restoreTabs();
-
-        // // Subscribe vào event mở tab từ các component con
-        // this.menuEventService.onOpenTab$.subscribe((tabData) => {
-        //     // this.newTab(tabData.comp, tabData.title, tabData.data);
-        // });
-
-        // Subscribe vào router events để tự động tạo tab khi paste URL trực tiếp
-        // Subscribe sau khi menus đã load (sẽ được setup trong getMenus)
+        // Subscribe to TabService for opening component tabs from other components
+        this.tabService.tabCompRequest$.subscribe((payload: TabCompPayload) => {
+            console.log('[MainLayout] Received tabCompRequest:', payload);
+            this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
+        });
+        // console.log('menucomps:', menucomps);
+        // this.menuComps = this.sortBySTTImmutable(menucomps, i => i.stt ?? 0);
     }
 
     ngOnDestroy(): void {
         if (this.routerSubscription) {
             this.routerSubscription.unsubscribe();
         }
+    }
+
+
+
+
+    // newTabComp(comp: Type<any>, title: string, data?: any, key: string,) {
+    //     this.isCollapsed = true;
+
+    //     // Tạo unique key dựa trên component và data để phân biệt các tab cùng component nhưng khác data
+    //     const getTabKey = (tab: TabItemComp): string => {
+    //         const compName = tab.comp?.name || '';
+    //         const dataKey = tab.data ? JSON.stringify(tab.data) : '';
+    //         return `${compName}_${dataKey}`;
+    //     };
+
+    //     const currentTabKey = `${comp?.name || ''}_${data ? JSON.stringify(data) : ''}`;
+    //     const injector = Injector.create({
+    //         providers: [{ provide: 'tabData', useValue: data }],
+    //         parent: this.injector,
+    //     });
+
+    //     const idx = this.dynamicTabComps.findIndex((t) => getTabKey(t) === currentTabKey);
+    //     if (idx >= 0) {
+    //         this.selectedCompIndex = idx;
+    //         return;
+    //     }
+
+    //     this.dynamicTabComps = [...this.dynamicTabComps, { title, comp, injector, data }];
+    //     setTimeout(() => (this.selectedCompIndex = this.dynamicTabComps.length - 1));
+
+    //     // console.log('this.dynamicTabComps:', this.dynamicTabComps);
+
+    //     // Lưu tabs vào localStorage
+    //     // this.saveTabs();
+
+
+    // }
+
+    newTabComp(
+        comp: Type<any>,
+        title: string,
+        key: string,
+        data?: any
+    ) {
+        this.isCollapsed = true;
+
+        console.log('newTabComp data:', data);
+
+        // stringify ổn định (tránh khác thứ tự key)
+        const normalize = (v: any): string =>
+            v ? JSON.stringify(v, Object.keys(v).sort()) : '';
+
+        const getTabKey = (tab: TabItemComp): string =>
+            `${tab.key}_${normalize(tab.data)}`;
+
+        const currentTabKey = `${key}_${normalize(data)}`;
+
+        const injector = Injector.create({
+            providers: [{ provide: 'tabData', useValue: data }],
+            parent: this.injector,
+        });
+
+        const idx = this.dynamicTabComps.findIndex(
+            t => getTabKey(t) === currentTabKey
+        );
+
+        // Nếu tab đã tồn tại → focus
+        if (idx >= 0) {
+            this.selectedCompIndex = idx;
+            return;
+        }
+
+        // Thêm tab mới
+        this.dynamicTabComps = [
+            ...this.dynamicTabComps,
+            {
+                title,
+                comp,
+                key,
+                injector,
+                data,
+            },
+        ];
+
+        setTimeout(() => {
+            this.selectedCompIndex = this.dynamicTabComps.length - 1;
+        });
+    }
+
+    // closeTabComp({ index }: { index: number }) {
+    //     this.dynamicTabComps.splice(index, 1);
+    //     if (this.selectedCompIndex >= this.dynamicTabComps.length)
+    //         this.selectedCompIndex = this.dynamicTabComps.length - 1;
+
+    //     // Lưu tabs vào localStorage sau khi đóng
+    //     // this.saveTabs();
+    // }
+
+    closeTabComp({ index }: { index: number }) {
+        // 1️⃣ Xóa tab → component tab bị destroy
+        this.dynamicTabComps.splice(index, 1);
+
+        // 2️⃣ Điều chỉnh selected index
+        if (this.dynamicTabComps.length === 0) {
+            // ❗ Không còn tab nào → clear router
+            this.selectedCompIndex = 0;
+            this.router.navigateByUrl('/app', { replaceUrl: true });
+            return;
+        }
+
+        // Nếu đóng tab đang active hoặc tab trước nó
+        if (this.selectedCompIndex >= index) {
+            this.selectedCompIndex = Math.max(0, this.selectedCompIndex - 1);
+        }
+    }
+
+    private setOpenMenuComp(key: string | null) {
+        // console.log('setOpenMenuComp:', key);
+        this.menuComps.forEach((m) => (m.isOpen = key !== null && m.key === key));
+        // localStorage.setItem('openMenuKey', key ?? '');
+    }
+
+    isMenuCompOpen = (key: string) =>
+        this.menuComps.some((m) => m.key === key && m.isOpen);
+    toggleMenuComp(key: string) {
+        // this.menus.forEach((x) => (x.isOpen = false));
+
+        // console.log('this.menuComps:', this.menuComps);
+        // console.log('this.this.menuCompKey:', key);
+        // const m = this.menuComps.find((x) => x.key == key);
+        const m = Array.from(this.menuComps).find(x => x.key === key);
+        if (m) m.isOpen = !m.isOpen;
+
+        if (m?.isOpen) this.menuCompKey = key;
+
+        // console.log('toggleMenuComp:', m);
     }
 
     // Hàm check và tạo tab từ current route (khi paste URL trực tiếp lần đầu)
@@ -411,97 +561,97 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-    getMenus() {
-        console.log('this.is getMenus:', this.isCollapsed);
-        this.menuAppService.getAll().subscribe({
-            next: (response) => {
+    // getMenus() {
+    //     // console.log('this.is getMenus:', this.isCollapsed);
+    //     this.menuAppService.getAll().subscribe({
+    //         next: (response) => {
 
-                // console.log(response);
+    //             // console.log(response);
 
-                this.menuService.menuKey$.subscribe((x) => {
-                    this.menuKey = x;
-                    this.isCollapsed = x == '';
-                });
+    //             this.menuService.menuKey$.subscribe((x) => {
+    //                 this.menuKey = x;
+    //                 this.isCollapsed = x == '';
+    //             });
 
-                const map = new Map<number, any>();
-                // this.nodes = [];
-                // Tạo map trước
-                response.data.menus.forEach((item: any) => {
-                    const menuItem = {
-                        id: item.ID,
-                        stt: item.STT,
-                        key: item.Code,
-                        title: item.Title,
-                        router: item.Router == '' ? '#' : `${item.Router}`,
-                        icon: `${environment.host}api/share/software/icon/${item.Icon}`,
-                        isPermission: item.IsPermission,
-                        ParentID: item.ParentID,
-                        children: [],
-                        isOpen: item.ParentID > 0 || item.Code == this.menuKey,
-                        queryParams: (item.QueryParam || ''),
-                    };
+    //             const map = new Map<number, any>();
+    //             // this.nodes = [];
+    //             // Tạo map trước
+    //             response.data.menus.forEach((item: any) => {
+    //                 const menuItem = {
+    //                     id: item.ID,
+    //                     stt: item.STT,
+    //                     key: item.Code,
+    //                     title: item.Title,
+    //                     router: item.Router == '' ? '#' : `${item.Router}`,
+    //                     icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+    //                     isPermission: item.IsPermission,
+    //                     ParentID: item.ParentID,
+    //                     children: [],
+    //                     isOpen: item.ParentID > 0 || item.Code == this.menuKey,
+    //                     queryParams: (item.QueryParam || ''),
+    //                 };
 
-                    // Log để debug queryParams từ database
-                    if (item.QueryParam && item.QueryParam !== '') {
-                        // console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
-                    }
+    //                 // Log để debug queryParams từ database
+    //                 if (item.QueryParam && item.QueryParam !== '') {
+    //                     // console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
+    //                 }
 
-                    map.set(item.ID, menuItem);
-                });
+    //                 map.set(item.ID, menuItem);
+    //             });
 
-                // Gắn cha – con
-                response.data.menus.forEach((item: any) => {
-                    const node = map.get(item.ID);
+    //             // Gắn cha – con
+    //             response.data.menus.forEach((item: any) => {
+    //                 const node = map.get(item.ID);
 
-                    if (item.ParentID && map.has(item.ParentID)) {
-                        const parent = map.get(item.ParentID);
-                        parent.children.push(node);
-                    } else {
-                        this.menus.push(node);
-                    }
-                });
+    //                 if (item.ParentID && map.has(item.ParentID)) {
+    //                     const parent = map.get(item.ParentID);
+    //                     parent.children.push(node);
+    //                 } else {
+    //                     this.menus.push(node);
+    //                 }
+    //             });
 
-                // console.log(this.menus);
+    //             // console.log(this.menus);
 
-                this.menus = this.menuAppService.sortBySTTImmutable(this.menus, i => i.STT ?? i.stt ?? 0);
+    //             this.menus = this.menuAppService.sortBySTTImmutable(this.menus, i => i.STT ?? i.stt ?? 0);
 
-                // console.log('response.data.menus:', this.router.url.split('?')[0]);
+    //             // console.log('response.data.menus:', this.router.url.split('?')[0]);
 
-                const router = this.router.url.split('?')[0].replace('/', '');
-                this.rootMenuKey = this.findRootKeyByRouter(this.menus, router) || '';
-                if (this.rootMenuKey) {
-                    this.menus.forEach(item => {
-                        item.isOpen = item.key === this.rootMenuKey
-                    });
-                }
+    //             const router = this.router.url.split('?')[0].replace('/', '');
+    //             this.rootMenuKey = this.findRootKeyByRouter(this.menus, router) || '';
+    //             if (this.rootMenuKey) {
+    //                 this.menus.forEach(item => {
+    //                     item.isOpen = item.key === this.rootMenuKey
+    //                 });
+    //             }
 
-                // Sau khi menus đã load, check current route và tự động tạo tab nếu cần
-                // (khi paste URL trực tiếp)
-                setTimeout(() => {
-                    this.checkAndCreateTabFromCurrentRoute();
-                }, 0);
+    //             // Sau khi menus đã load, check current route và tự động tạo tab nếu cần
+    //             // (khi paste URL trực tiếp)
+    //             setTimeout(() => {
+    //                 this.checkAndCreateTabFromCurrentRoute();
+    //             }, 0);
 
-                // Subscribe vào router events để tự động tạo tab khi navigate trực tiếp
-                if (!this.routerSubscription) {
-                    this.routerSubscription = this.router.events
-                        .pipe(filter(event => event instanceof NavigationEnd))
-                        .subscribe((event: any) => {
-                            if (event instanceof NavigationEnd) {
-                                // Delay một chút để đảm bảo menus đã load
-                                setTimeout(() => {
-                                    this.handleDirectNavigation(event.url);
-                                }, 100);
-                            }
-                        });
-                }
+    //             // Subscribe vào router events để tự động tạo tab khi navigate trực tiếp
+    //             if (!this.routerSubscription) {
+    //                 this.routerSubscription = this.router.events
+    //                     .pipe(filter(event => event instanceof NavigationEnd))
+    //                     .subscribe((event: any) => {
+    //                         if (event instanceof NavigationEnd) {
+    //                             // Delay một chút để đảm bảo menus đã load
+    //                             setTimeout(() => {
+    //                                 this.handleDirectNavigation(event.url);
+    //                             }, 100);
+    //                         }
+    //                     });
+    //             }
 
 
-            },
-            error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-            },
-        })
-    }
+    //         },
+    //         error: (err) => {
+    //             this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+    //         },
+    //     })
+    // }
 
     get currentTab() {
         return this.dynamicTabs[this.selectedIndex];
@@ -713,6 +863,41 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     //     );
     // }
 
+
+    handleClickLink(route: string, queryParams?: any) {
+        // const outlet = route;
+        // let normalizedParams: any = null;
+        // if (queryParams) {
+        //     try {
+        //         normalizedParams = typeof queryParams === 'string' ? JSON.parse(queryParams) : queryParams;
+        //         normalizedParams = Object.keys(normalizedParams || {}).length ? normalizedParams : null;
+        //     } catch {
+        //         normalizedParams = null;
+        //     }
+        // }
+
+        // // Check nếu tab đã tồn tại
+        // const existingIndex = this.dynamicTabs.findIndex(t => t.route === route);
+        // if (existingIndex !== -1) {
+        //     this.selectedIndex = existingIndex;
+        // } else {
+        //     // this.dynamicTabs.push({
+        //     //     title,
+        //     //     route,
+        //     //     outlet,
+        //     //     queryParams: normalizedParams,
+        //     //     key: route
+        //     // });
+        //     // this.selectedIndex = this.dynamicTabs.length - 1;
+        // }
+
+        // Navigate
+        // this.router.navigateByUrl(route);
+        this.router.navigate([route], {
+            queryParams
+        });
+
+    }
 
 
 

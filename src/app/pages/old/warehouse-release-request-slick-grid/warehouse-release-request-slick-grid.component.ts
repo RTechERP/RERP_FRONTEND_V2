@@ -848,22 +848,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       IsTransfer: isTransfer,
     };
 
-    const modalRef = this.modalService.open(BillExportDetailComponent, {
-      centered: true,
-      // size: 'xl',
-      windowClass: 'full-screen-modal',
-      backdrop: 'static',
-      keyboard: false,
-    });
-
-    // Truyền dữ liệu vào modal
-    modalRef.componentInstance.newBillExport = billExportForModal;
-    modalRef.componentInstance.isCheckmode = false;
-    modalRef.componentInstance.isPOKH = true;
-    modalRef.componentInstance.id = 0;
-    modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
-    modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
-
+    // CRITICAL: Create detailsForModal BEFORE opening the modal
     const detailsForModal = billExport.Details.map((detail: any) => ({
       ID: 0,
       POKHDetailID: detail.POKHDetailID || 0,
@@ -880,6 +865,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       ProjectCodeExport: detail.ProjectCodeExport || '',
       ProjectNameText: detail.ProjectNameText || '',
       ProductFullName: detail.ProductFullName || '',
+      ProjectCode: detail.ProductFullName || '',  // Mã theo khách
       Note: detail.Note || '',
       UnitPricePOKH: detail.UnitPricePOKH || 0,
       UnitPricePurchase: detail.UnitPricePurchase || 0,
@@ -888,21 +874,24 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       POKHID: detail.POKHID || 0,
     }));
 
-    setTimeout(() => {
-      modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
+    console.log('[WAREHOUSE RELEASE SLICKGRID] detailsForModal before modal open:', detailsForModal);
 
-      if (modalRef.componentInstance.table_billExportDetail) {
-        modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
+    const modalRef = this.modalService.open(BillExportDetailNewComponent, {
+      centered: true,
+      // size: 'xl',
+      windowClass: 'full-screen-modal',
+      backdrop: 'static',
+      keyboard: false,
+    });
 
-        // Update TotalInventory after data is set into table
-        // Wait a bit for productOptions to be loaded if not already
-        setTimeout(() => {
-          if (modalRef.componentInstance.updateTotalInventoryForExistingRows) {
-            modalRef.componentInstance.updateTotalInventoryForExistingRows();
-          }
-        }, 500);
-      }
-    }, 200);
+    // CRITICAL: Set selectedList FIRST after opening modal (before other properties)
+    modalRef.componentInstance.selectedList = detailsForModal;
+    modalRef.componentInstance.newBillExport = billExportForModal;
+    modalRef.componentInstance.isCheckmode = false;
+    modalRef.componentInstance.isPOKH = true;
+    modalRef.componentInstance.id = 0;
+    modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
+    modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
 
     modalRef.result.then(
       (result) => {
@@ -1219,6 +1208,18 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         filterable: true,
         type: FieldType.string,
       },
+      {
+        id: 'CreatedDate',
+        name: 'Ngày tạo PO',
+        field: 'CreatedDate',
+        width: 200,
+        minWidth: 100,
+        sortable: true,
+        filterable: true,
+        type: FieldType.dateIso,
+        formatter: Formatters.dateEuro,
+        hidden: true,
+      },
     ];
 
     this.gridOptions = {
@@ -1234,7 +1235,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       enableSorting: true,
       multiColumnSort: false, // Required for Tree Data
       enableFiltering: true,
-      enableGrouping: true,
+      enableGrouping: false,
       enableRowSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {
@@ -1258,6 +1259,10 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         levelPropName: 'treeLevel',
         indentMarginLeft: 15,
         initiallyCollapsed: false,
+        initialSort: {
+          columnId: 'CreatedDate',
+          direction: 'DESC'
+        }
       },
       frozenColumn: 6,
     };
@@ -1265,16 +1270,6 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
 
   onAngularGridCreated(angularGrid: AngularGridInstance): void {
     this.angularGrid = angularGrid;
-
-    // Grouping theo số PO
-    if (this.angularGrid.dataView) {
-      this.angularGrid.dataView.setGrouping({
-        getter: 'PONumber',
-        formatter: (g) => `PO: ${g.value || 'Không có PO'} <span style="color:green">(${g.count} items)</span>`,
-        collapsed: false,
-        lazyTotalsCalculation: true,
-      } as Grouping);
-    }
 
     // Xử lý sự kiện khi selected rows thay đổi
     this.angularGrid.slickGrid?.onSelectedRowsChanged.subscribe((e: any, args: any) => {

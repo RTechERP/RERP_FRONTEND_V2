@@ -3,7 +3,7 @@
 }
 
 .tabulator {
-  font-size: 0.75rem;
+  font-size: 12px;
 }
 
 .tabulator-cell {
@@ -11,18 +11,55 @@
 }
 
 .fs-12 {
-  font-size: 0.75rem;
+  font-size: 12px;
 }
 
 .btn {
   font-weight: bold;
   height: 2.5vh;
-  font-size: 0.75rem;
+  font-size: 12px;
   border: none;
 }
-.ant splitter{
+
+.ant splitter {
   height: 93vh !important;
 }
-.tabulator-row.tabulator-row-even.row-focused {
-  background-color: #eb1e1e !important;
+
+.tabulator-row.tabulator-row-even.row-focused,
+.tabulator-row.tabulator-row-odd.row-focused {
+  background-color: #bae7ff !important;
+}
+
+/* Detail toolbar styling */
+.detail-toolbar {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  min-height: 40px;
+}
+
+.detail-toolbar input,
+.detail-toolbar nz-select {
+  font-size: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .detail-toolbar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .detail-toolbar>div {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Đổi màu chữ trong headerFilter thành đen */
+::ng-deep .tabulator-header-filter input {
+  color: #000000 !important;
+}
+
+::ng-deep .tabulator-header-filter select {
+  color: #000000 !important;
 }

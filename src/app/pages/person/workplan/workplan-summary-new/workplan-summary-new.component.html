@@ -53,7 +53,7 @@
                         <nz-select nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
                             (ngModelChange)="onTeamChange()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
-                            <nz-option *ngFor="let item of teamList" [nzLabel]="item.Leader || ''" [nzValue]="item.ID">
+                            <nz-option *ngFor="let item of teamList" [nzLabel]="item.Name || ''" [nzValue]="item.ID">
                             </nz-option>
                         </nz-select>
                     </div>

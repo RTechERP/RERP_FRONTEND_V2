@@ -70,6 +70,7 @@ import { ProjectPartlistPurchaseRequestDetailComponent } from '../purchase/proje
 import { environment } from '../../../environments/environment';
 import * as ExcelJS from 'exceljs';
 import { BillExportDetailNewComponent } from '../old/Sale/BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { TabServiceService } from '../../layouts/tab-service.service';
 
 @Component({
   selector: 'app-project-part-list-slick-grid',
@@ -150,6 +151,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   // Grid ready flags
   gridsInitialized = false;
+
+  // Dynamic Grid IDs to avoid collisions in tabs
+  solutionGridId: string = 'grid-solution';
+  versionGridId: string = 'grid-version';
+  partListGridId: string = 'grid-partlist';
 
   // Data
   dataSolution: any[] = [];
@@ -235,9 +241,21 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     private billExportService: BillExportService,
     private authService: AuthService,
     private route: ActivatedRoute,  //nhận param
+    @Optional() private tabService?: TabServiceService,
     @Optional() private translateService?: TranslateService,
     @Optional() @Inject('tabData') private tabData?: any
   ) { }
+
+  // Helper function to escape HTML special characters for title attributes
+  private escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
   updatePageTitle(): void {
     const typeText = this.type === 1 ? '-Giải pháp-' : this.type === 2 ? '-PO-' : '';
@@ -246,6 +264,28 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
 
   ngOnInit(): void {
+
+    // Đọc data từ tabData nếu được mở như tab
+    if (this.tabData) {
+      console.log('[LIFECYCLE] tabData received:', this.tabData);
+      if (this.tabData.projectId !== undefined) {
+        this.projectId = this.tabData.projectId;
+
+        // Initialize unique grid IDs based on projectId
+        this.solutionGridId = `grid-solution-${this.projectId}`;
+        this.versionGridId = `grid-version-${this.projectId}`;
+        this.partListGridId = `grid-partlist-${this.projectId}`;
+      }
+      if (this.tabData.projectNameX !== undefined) {
+        this.projectNameX = this.tabData.projectNameX;
+      }
+      if (this.tabData.projectCodex !== undefined) {
+        this.projectCodex = this.tabData.projectCodex;
+      }
+      if (this.tabData.tbp !== undefined) {
+        this.tbp = this.tabData.tbp;
+      }
+    }
 
     // Đọc query parameter tbp, projectId, projectName, projectCode
     this.route.queryParams.subscribe((params: any) => {
@@ -256,6 +296,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       if (params['projectId'] !== undefined) {
         this.projectId = Number(params['projectId']);
         console.log('[LIFECYCLE] projectId from query params:', this.projectId);
+
+        // Update unique grid IDs based on projectId if not already set from tabData
+        // Update unique grid IDs based on projectId if not already set from tabData
+        if (!this.solutionGridId.includes('-')) {
+          this.solutionGridId = `grid-solution-${this.projectId}`;
+          this.versionGridId = `grid-version-${this.projectId}`;
+          this.partListGridId = `grid-partlist-${this.projectId}`;
+        }
       }
       if (params['projectName'] !== undefined) {
         this.projectNameX = decodeURIComponent(params['projectName']);
@@ -434,6 +482,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      rowHeight: 40,
+      headerRowHeight: 40,
     };
   }
 
@@ -507,6 +557,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      rowHeight: 40,
+      headerRowHeight: 40,
     };
   }
 
@@ -572,6 +624,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      rowHeight: 40,
+      headerRowHeight: 40,
     };
   }
 
@@ -636,6 +690,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      rowHeight: 40,
+      headerRowHeight: 40,
     };
   }
 
@@ -729,12 +785,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.GroupMaterial);
           return `
             <span
-              title="${dataContext.GroupMaterial}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -766,12 +823,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProductCode);
           return `
             <span
-              title="${dataContext.ProductCode}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -792,12 +850,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'Model', field: 'Model', name: 'Thông số kỹ thuật', width: 200, columnGroup: 'Vật tư dự án',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Model);
           return `
             <span
-              title="${dataContext.Model}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -840,12 +899,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.SpecialCode);
           return `
             <span
-              title="${dataContext.SpecialCode}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -877,12 +937,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Manufacturer);
           return `
             <span
-              title="${dataContext.Manufacturer}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -914,12 +975,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Unit);
           return `
             <span
-              title="${dataContext.Unit}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1075,12 +1137,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'Note', field: 'Note', name: 'Ghi chú', width: 200, columnGroup: ' ', filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Note);
           return `
             <span
-              title="${dataContext.Note}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1101,12 +1164,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'ReasonProblem', field: 'ReasonProblem', name: 'Lý do phát sinh', width: 200, columnGroup: ' ', filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ReasonProblem);
           return `
             <span
-              title="${dataContext.ReasonProblem}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1132,7 +1196,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.ReasonDeleted}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1200,7 +1264,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.FullNameQuote}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1229,7 +1293,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.FullNameRequestPrice}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1316,7 +1380,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.NameNCCPriceQuote}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1348,7 +1412,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.NoteQuote}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1402,7 +1466,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.FullNameRequestPurchase}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1452,7 +1516,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.FullNamePurchase}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1496,7 +1560,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.BillCodePurchase}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1565,7 +1629,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.SupplierNamePurchase}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1642,7 +1706,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.NotePurchase}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1681,7 +1745,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.BillImportCode}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1708,7 +1772,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.Reciver}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1799,8 +1863,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       multiColumnSort: false,
       enablePagination: false,
       // Row height - tăng để text wrap không bị đè
-      // rowHeight: 40,
-      // headerRowHeight: 40,
+      rowHeight: 45,
+      headerRowHeight: 40,
       // Checkbox Selector - thêm cột dấu tích ở đầu
       enableCheckboxSelector: true,
       // checkboxSelector: {
@@ -1839,6 +1903,71 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           getRowMetadata: (item: any, row: number) => this.getPartListRowMetadata(item, row),
         },
       },
+      // Context Menu - Menu khi click chuột phải trên grid
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'openHistory',
+            title: 'Xem sản phẩm trong kho, lịch sử giá',
+            iconCssClass: 'fa fa-history',
+            action: (_e: any, args: any) => {
+              const productCode = args.dataContext?.ProductCode;
+              this.openProjectPartListHistory(productCode);
+            },
+          },
+          {
+            command: 'getPriceHistory',
+            title: 'Lấy giá lịch sử',
+            iconCssClass: 'fa fa-money-bill',
+            action: () => {
+              this.getPriceHistory();
+            },
+          },
+          {
+            command: 'restoreDelete',
+            title: 'Khôi phục',
+            iconCssClass: 'fa fa-undo',
+            action: () => {
+              this.restoreDelete();
+            },
+          },
+          {
+            command: 'additionalPartListPO',
+            title: 'Bổ sung vào PO',
+            iconCssClass: 'fa fa-plus-circle',
+            action: () => {
+              this.additionalPartListPO();
+            },
+          },
+          {
+            command: 'downloadDrawing',
+            title: 'Tải bản vẽ',
+            iconCssClass: 'fa fa-download',
+            action: () => {
+              this.downloadDrawing();
+            },
+          },
+          {
+            command: 'techBought',
+            title: 'Đã mua',
+            iconCssClass: 'fa fa-check-circle',
+            itemVisibilityOverride: () => this.type === 2,
+            action: () => {
+              this.techBought();
+            },
+          },
+          {
+            command: 'unTechBought',
+            title: 'Hủy đã mua',
+            iconCssClass: 'fa fa-times-circle',
+            itemVisibilityOverride: () => this.type === 2,
+            action: () => {
+              this.unTechBought();
+            },
+          },
+        ],
+      },
     };
 
     console.log('[INIT PARTLIST] PartList grid options configured with tree data, header grouping, checkbox selector and row coloring');
@@ -1869,13 +1998,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     if (isDeleted) {
       rowCssClass = 'row-deleted';
     }
-    // 2. Dòng có vấn đề → Orange
-    else if (isProblem) {
-      rowCssClass = 'row-problem';
-    }
-    // 3. Số lượng trả về > 0 → LightGreen
+    // 2. Số lượng trả về > 0 → LightGreen (Ưu tiên cao hơn màu cam)
     else if (quantityReturn > 0) {
       rowCssClass = 'row-return';
+    }
+    // 3. Dòng có vấn đề → Orange
+    else if (isProblem) {
+      rowCssClass = 'row-problem';
     }
     // 4. Node cha (có children) → LightGray + Bold
     else if (hasChildren) {
@@ -2312,6 +2441,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         // Thêm event handler cho checkbox selection
         slickGrid.onSelectedRowsChanged.subscribe((e: any, args: any) => {
           this.onPartListRowSelectionChanged(e, args);
+        });
+
+        // Event double click vào dòng để sửa
+        slickGrid.onDblClick.subscribe((e: any, args: any) => {
+          console.log('[GRID EVENT] onDblClick fired', args);
+          // Đảm bảo click vào dòng dữ liệu (không phải header)
+          if (args.row !== undefined && args.row >= 0) {
+            this.openProjectPartlistDetail(true);
+          }
         });
 
 
@@ -2959,15 +3097,72 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       }
     });
 
-    // Bước 3: Hàm đệ quy tính tổng từ dưới lên (bottom-up)
-    const calculateNodeTotals = (nodeId: number): void => {
+    // Bước 3: Kiểm tra và loại bỏ circular references + self-referencing
+    // Trước tiên, xử lý self-referencing (ParentID = ID)
+    flatData.forEach(item => {
+      if (item.ParentID === item.ID) {
+        console.warn(`[CALC TOTALS] Self-referencing detected: ID=${item.ID} has ParentID=${item.ParentID}, fixing...`);
+        const node = dataMap.get(item.ID);
+        if (node) {
+          node.ParentID = 0; // Fix by making it root
+        }
+      }
+    });
+
+    // Rebuild childrenMap sau khi sửa self-referencing
+    childrenMap.clear();
+    dataMap.forEach((item, id) => {
+      const parentId = item.ParentID || 0;
+      if (parentId !== 0 && parentId !== id) { // Skip self-referencing
+        if (!childrenMap.has(parentId)) {
+          childrenMap.set(parentId, []);
+        }
+        childrenMap.get(parentId)!.push(item);
+      }
+    });
+
+    // Sau đó kiểm tra circular chain (A→B→A)
+    const hasCircularRef = (nodeId: number, visited: Set<number> = new Set()): boolean => {
+      if (visited.has(nodeId)) return true;
+      visited.add(nodeId);
+
+      const node = dataMap.get(nodeId);
+      if (!node || !node.ParentID || node.ParentID === 0) return false;
+
+      return hasCircularRef(node.ParentID, visited);
+    };
+
+    // Tìm và xử lý các node có circular reference
+    dataMap.forEach((item, id) => {
+      if (item.ParentID && item.ParentID !== 0 && hasCircularRef(id)) {
+        console.warn(`[CALC TOTALS] Circular chain detected for ID=${id}, breaking chain`);
+        item.ParentID = 0;
+      }
+    });
+
+    // Bước 4: Hàm đệ quy tính tổng từ dưới lên (bottom-up) với bảo vệ circular
+    const calculatedNodes = new Set<number>();
+
+    const calculateNodeTotals = (nodeId: number, depth: number = 0): void => {
+      // Giới hạn độ sâu đệ quy để tránh stack overflow
+      if (depth > 100) {
+        console.warn(`[CALC TOTALS] Max depth exceeded for nodeId=${nodeId}`);
+        return;
+      }
+
+      // Skip nếu đã tính rồi
+      if (calculatedNodes.has(nodeId)) return;
+
       const children = childrenMap.get(nodeId) || [];
       if (children.length === 0) return;
 
       // Đệ quy tính con trước
       children.forEach(child => {
-        calculateNodeTotals(child.ID);
+        calculateNodeTotals(child.ID, depth + 1);
       });
+
+      // Đánh dấu đã tính
+      calculatedNodes.add(nodeId);
 
       // Tính tổng từ tất cả children
       let totalAmount = 0;
@@ -2998,14 +3193,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         parentNode.IsNewCode = false;
         parentNode.IsApprovedTBPNewCode = false;
         parentNode.IsFix = false;
-
-        console.log(`[CALC TOTALS] Parent ID=${nodeId}: Amount=${totalAmount}, TotalPriceExchangePurchase=${totalPriceExchangePurchase}`);
       }
     };
 
-    // Bước 4: Tính toán cho tất cả parent nodes (những node có children)
+    // Bước 5: Tính toán cho tất cả parent nodes (những node có children)
     childrenMap.forEach((_, parentId) => {
-      calculateNodeTotals(parentId);
+      calculateNodeTotals(parentId, 0);
     });
 
     // Trả về mảng kết quả
@@ -4675,6 +4868,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   // Hàm xác nhận và gọi API yêu cầu mua hàng
   confirmPurchaseRequest(requestItems: any[], projectTypeID: number): void {
+    if (this.projectSolutionId === 0 || this.projectSolutionId == null) {
+      this.notification.error('Lỗi', 'Vui lòng chọn lại giải pháp và thao tác yêu cầu mua lại!');
+      return;
+    }
     this.projectPartListService.approvePurchaseRequest(requestItems, true, projectTypeID, this.projectSolutionId, this.projectId).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
@@ -5638,22 +5835,22 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
 
   // Chọn sản phẩm cho POKH
-  SelectProroduct(): void {
-    const selectedRows = this.getSelectedPartListRows();
-    if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn vật tư!');
-      return;
-    }
-    const listIDInsert = selectedRows.map((row: any) => row.ID);
-    const processedData = selectedRows;
-    if (this.onSelectProductPOCallback) {
-      this.onSelectProductPOCallback({ listIDInsert, processedData });
-    }
-    this.selectProductPOData = { listIDInsert, processedData };
-    if (this.activeModal) {
-      this.activeModal.close(this.selectProductPOData);
-    }
-  }
+  // SelectProroduct(): void {
+  //   const selectedRows = this.getSelectedPartListRows();
+  //   if (!selectedRows || selectedRows.length === 0) {
+  //     this.notification.warning('Thông báo', 'Vui lòng chọn vật tư!');
+  //     return;
+  //   }
+  //   const listIDInsert = selectedRows.map((row: any) => row.ID);
+  //   const processedData = selectedRows;
+  //   if (this.onSelectProductPOCallback) {
+  //     this.onSelectProductPOCallback({ listIDInsert, processedData });
+  //   }
+  //   this.selectProductPOData = { listIDInsert, processedData };
+  //   if (this.activeModal) {
+  //     this.activeModal.close(this.selectProductPOData);
+  //   }
+  // }
 
   // Disable ngày trong date picker
   disabledDate = (current: Date): boolean => {
@@ -6194,12 +6391,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       return;
     }
     let selectedVersion: any = null;
-    const versionRows = this.angularGridSolutionVersion?.slickGrid?.getSelectedRows() || [];
+    // Sử dụng angularGridVersion (merged version grid) thay vì angularGridSolutionVersion
+    const versionRows = this.angularGridVersion?.slickGrid?.getSelectedRows() || [];
     if (versionRows.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản giải pháp để bổ sung vào PO');
       return;
     }
-    selectedVersion = this.angularGridSolutionVersion?.dataView?.getItem(versionRows[0]);
+    selectedVersion = this.angularGridVersion?.dataView?.getItem(versionRows[0]);
     if (!selectedVersion || selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
       this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản [${selectedVersion?.Code}] trước!`);
       return;
@@ -6271,7 +6469,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   confirmAdditionalPartListPO(requestItems: any[], selectedVersion: any): void {
     const payload = {
       ListItem: requestItems,
-      VersionID: selectedVersion.ID || 0,
+      // Sử dụng originalId vì merged version grid transform ID thành originalId
+      VersionID: selectedVersion.originalId || selectedVersion.ID || 0,
       ProjectTypeID: selectedVersion.ProjectTypeID || 0,
       ProjectTypeName: selectedVersion.ProjectTypeName || '',
       ProjectSolutionID: this.projectSolutionId || 0,
@@ -6458,7 +6657,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               completedCount++;
               errorCount++;
               console.error(`Error downloading file ${fileName}:`, error);
-              this.notification.error('Thông báo', `File [${fileName}] không tồn tại!\n${error?.message || error?.error?.message || 'Lỗi không xác định'}`);
+              this.notification.error('Thông báo', `File [${fileName}] không tồn tại!`);
               if (completedCount === totalFiles) {
                 if (downloadCount > 0) {
                   this.notification.success('Thông báo', `Đã tải xuống thành công ${downloadCount}/${totalFiles} file!`);
@@ -6536,5 +6735,196 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       }
     });
   }
+  //#endregion
+
+  //#region Bổ sung PO - SelectProroduct
+  SelectProroduct(): void {
+    // Lấy tất cả các row đã chọn từ SlickGrid
+    const selectedRowIndices = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
+    if (!selectedRowIndices || selectedRowIndices.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần bổ sung PO!');
+      return;
+    }
+
+    // Lấy dữ liệu từ tất cả các row đã chọn
+    const allSelectedNodes: any[] = [];
+    selectedRowIndices.forEach((rowIndex: number) => {
+      const rowData = this.angularGridPartList?.dataView?.getItem(rowIndex);
+      if (rowData && !rowData.__group && !rowData.__groupTotals) {
+        allSelectedNodes.push(rowData);
+      }
+    });
+
+    if (allSelectedNodes.length === 0) {
+      this.notification.warning('Thông báo', 'Không có vật tư nào được chọn!');
+      return;
+    }
+
+    // Lấy tất cả dữ liệu từ dtAddDetail (nếu có) hoặc từ bảng để tính max STT
+    const allTableData = this.dataProjectPartList || [];
+
+    // Tính max STT từ dtAddDetail hoặc từ tất cả dữ liệu (bao gồm cả nested children)
+    let maxSTT = 0;
+    if (this.dtAddDetail && Array.isArray(this.dtAddDetail)) {
+      // Nếu có dtAddDetail, tính max STT từ đó
+      this.dtAddDetail.forEach((row: any) => {
+        const stt = Number(row.STT || 0);
+        if (stt > maxSTT) {
+          maxSTT = stt;
+        }
+      });
+    } else {
+      // Nếu không có dtAddDetail, tính từ bảng
+      const getAllRowsRecursive = (data: any[]): void => {
+        data.forEach((item: any) => {
+          if (item.STT && Number(item.STT) > maxSTT) {
+            maxSTT = Number(item.STT);
+          }
+          if (item._children && Array.isArray(item._children) && item._children.length > 0) {
+            getAllRowsRecursive(item._children);
+          }
+        });
+      };
+      getAllRowsRecursive(allTableData);
+    }
+
+    // Tính minLevel từ các node đã chọn
+    const getNodeLevel = (tt: string): number => {
+      if (!tt) return 0;
+      return (tt.match(/\./g) || []).length;
+    };
+
+    const minLevel = Math.min(...allSelectedNodes.map((node: any) => getNodeLevel(node.TT || '')));
+
+    // Biến đếm STT cho mỗi level (khởi tạo mảng 10 phần tử với giá trị 0)
+    const nodeLevelSTT: number[] = new Array(10).fill(0);
+
+    // Sử dụng nodeMinLevelCount từ Input, nếu không có thì dùng maxSTT
+    let nodeMinLevelCount = this.nodeMinLevelCount || maxSTT;
+
+    // Xử lý từng node đã chọn
+    const processedData: any[] = [];
+    const listIDInsert: number[] = [];
+
+    allSelectedNodes.forEach((node: any) => {
+      const nodeLevel = getNodeLevel(node.TT || '');
+
+      // Tạo object dữ liệu mới
+      const newRow: any = {
+        ProductID: node.ProductID || 0,
+        ProductCode: node.ProductCode || '',
+        ProductName: node.GroupMaterial || '',
+        GuestCode: node.ProductCode || '',
+        Maker: node.Manufacturer || '',
+        Qty: node.QtyFull || 0,
+        Unit: node.Unit || '',
+        TT: node.TT || '',
+        ProjectPartListID: node.ID || 0,
+        ID: node.ID || 0,
+      };
+
+      // Tính STT dựa trên level (giống logic C# chính xác)
+      if (nodeLevel === minLevel) {
+        // Với node có level = minLevel: STT = nodeMinLevelCount + 1, sau đó tăng nodeMinLevelCount
+        newRow.STT = nodeMinLevelCount + 1;
+        nodeMinLevelCount++;
+      } else {
+        // Với node khác: sử dụng nodeLevelSTT để đếm theo level
+        if (nodeLevelSTT[nodeLevel] === 0) {
+          newRow.STT = 1;
+          nodeLevelSTT[nodeLevel] = 1;
+        } else {
+          nodeLevelSTT[nodeLevel]++;
+          newRow.STT = nodeLevelSTT[nodeLevel];
+        }
+      }
+
+      // Xử lý ParentID (giống logic C# chính xác)
+      const childTT = (node.TT || '').toString();
+      const indexLast = childTT.lastIndexOf('.');
+      if (indexLast >= 0) {
+        // Có dấu chấm trong TT, extract parentTT
+        const parentTT = childTT.substring(0, indexLast);
+        // Kiểm tra nếu childTT === parentTT (trường hợp đặc biệt)
+        if (childTT === parentTT) {
+          newRow.ParentID = 0;
+        } else {
+          // Sử dụng ParentID từ node nếu có, ngược lại tìm parent
+          if (node.ParentID !== undefined && node.ParentID !== null && node.ParentID !== 0) {
+            newRow.ParentID = node.ParentID;
+          } else {
+            // Tìm parent trong danh sách đã chọn trước (đã được processed)
+            const parentNode = processedData.find((n: any) => n.TT === parentTT);
+            if (parentNode) {
+              newRow.ParentID = parentNode.ID || 0;
+            } else {
+              // Tìm parent trong danh sách allSelectedNodes (chưa processed)
+              const parentInSelected = allSelectedNodes.find((n: any) => n.TT === parentTT);
+              if (parentInSelected) {
+                newRow.ParentID = parentInSelected.ID || 0;
+              } else {
+                // Tìm parent trong tất cả dữ liệu bảng
+                const findParentInData = (data: any[], parentTTToFind: string): any => {
+                  for (const item of data) {
+                    if (item.TT === parentTTToFind) {
+                      return item;
+                    }
+                    if (item._children && item._children.length > 0) {
+                      const found = findParentInData(item._children, parentTTToFind);
+                      if (found) return found;
+                    }
+                  }
+                  return null;
+                };
+                const parentInTable = findParentInData(allTableData, parentTT);
+                newRow.ParentID = parentInTable ? (parentInTable.ID || 0) : 0;
+              }
+            }
+          }
+        }
+      } else {
+        // Không có dấu chấm trong TT, là root node
+        newRow.ParentID = 0;
+      }
+
+      // Thêm ID vào danh sách insert
+      if (newRow.ID > 0) {
+        listIDInsert.push(newRow.ID);
+      }
+
+      processedData.push(newRow);
+    });
+
+    // Gộp dữ liệu cũ và dữ liệu mới đã xử lý
+    const mergedData = [
+      ...(this.dtAddDetail || []), // dữ liệu cũ
+      ...processedData     // dữ liệu mới
+    ];
+
+    // Lưu dữ liệu để trả về khi đóng modal
+    this.selectProductPOData = {
+      listIDInsert: listIDInsert,
+      processedData: mergedData
+    };
+
+    // Truyền dữ liệu về component cha (nếu có callback)
+    if (this.onSelectProductPOCallback) {
+      this.onSelectProductPOCallback(this.selectProductPOData);
+    }
+
+    console.log("Dữ liệu trả về POKHDetail: ", this.selectProductPOData);
+
+    // Đóng modal và trả dữ liệu về POKHDetail
+    if (this.activeModal) {
+      this.activeModal.close({
+        success: true,
+        dtAddDetail: mergedData,
+        listIDInsert: listIDInsert,
+        isPartlist: true
+      });
+    }
+  }
+  //#endregion
+
   //#endregion
 }

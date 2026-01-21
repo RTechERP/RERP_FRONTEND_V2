@@ -117,7 +117,7 @@
                     @for (item of menuApproves.Children; track $index) {
                     <li class="list-group-item border-0 border-bottom py-1" *ngIf="item.IsPermission">
                         <a class=" text-dark" [attr.href]="item.Router ? item.Router : null"
-                            (click)="handleClickLink($event, item.Router, item.Title)">
+                            (click)="handleClickLink($event, item.Router, item.Title,item.QueryParam)">
                             <img [src]="item.Icon">
                             <span>{{item.Title}}</span>
                         </a>
@@ -126,7 +126,7 @@
                             <li class="list-group-item border-0 py-1" *ngIf="item.IsPermission"
                                 [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
                                 <a [attr.href]="c.Router ? c.Router : null"
-                                    (click)="handleClickLink($event, c.Router, c.Title)">
+                                    (click)="handleClickLink($event, c.Router, c.Title,c.QueryParam)">
                                     <img [src]="c.Icon">
                                     <span> {{c.Title}}</span>
                                 </a>
@@ -217,7 +217,7 @@
 
                             <li class="list-group-item border-0 border-bottom py-1" *ngIf="c1.IsPermission">
                                 <a class=" text-dark" [attr.href]="c1.Router ? c1.Router : null"
-                                    (click)="handleClickLink($event, c1.Router, c1.Title)">
+                                    (click)="handleClickLink($event, c1.Router, c1.Title,c1.QueryParam)">
                                     <img [src]="c1.Icon">
                                     <span> {{c1.Title}}</span>
                                 </a>
@@ -226,7 +226,7 @@
                                     <li class="list-group-item border-0 py-1" *ngIf="c2.IsPermission"
                                         [ngClass]="{'border-bottom':$index < c1.Children.length - 1,'':$index == c1.Children.length - 1}">
                                         <a [attr.href]="c2.Router ? c2.Router : null"
-                                            (click)="handleClickLink($event, c2.Router, c2.Title)">
+                                            (click)="handleClickLink($event, c2.Router, c2.Title,c2.QueryParam)">
                                             <img [src]="c2.Icon">
                                             <span> {{c2.Title}}</span>
                                         </a>
@@ -252,7 +252,7 @@
                     @for (item of menuWeekplans.Children; track $index) {
                     <li class="list-group-item border-0 py-1">
                         <a [href]="item.Router == '' ? '#' : item.Router"
-                            (click)="handleClickLink($event, item.Router, item.Title)">
+                            (click)="handleClickLink($event, item.Router, item.Title,item.QueryParam)">
                             <img [src]="item.Icon">
                             <span> {{item.Title}}</span>
                         </a>

@@ -130,7 +130,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     private appRef: ApplicationRef,
     private modalService: NgbModal,
     private authService: AuthService
-  ) {}
+  ) { }
 
   @Input() projectSurveyId: any = 0;
   @Input() projectId: any = 0;
@@ -167,6 +167,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
   isLoad: any = true;
   isDisSave: any = false;
+  isEmployeesLoaded: boolean = false; // Flag to check if employees are loaded
 
   currentUser: any;
   //#endregion
@@ -189,7 +190,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     this.getCustomers();
     this.getStatuses();
     this.getEmployees();
-    this.getUserTeams();
+    // this.getUserTeams();
     this.getFileDetail();
     this.getCurrentUser();
     this.onUrgentChange(this.validateForm.get('isUrgent')?.value || false);
@@ -205,7 +206,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       this.onUrgentChange(value || false);
     });
   }
-  getCurrentUser(){
+  getCurrentUser() {
     this.authService.getCurrentUser().subscribe({
       next: (response: any) => {
         this.currentUser = response.data;
@@ -266,6 +267,13 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           response.data,
           'DepartmentName'
         );
+        this.projectUserTeams = response.data.map((item: any) => ({
+          ...item,
+          EmployeeID: item.EmployeeID || item.ID,
+        }));
+        this.createLabelsFromData();
+        this.isEmployeesLoaded = true; // Set flag to true
+        this.getTbDetail();
         console.log(response.data);
       },
       error: (error: any) => {
@@ -277,6 +285,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   }
 
   getTbDetail() {
+    if (!this.isEmployeesLoaded) return; // Wait for employees to be loaded
     let data = {
       projectSurveyId: this.projectSurveyId ? this.projectSurveyId : 0,
       projectId: this.projectId ? this.projectId : 0,
@@ -395,8 +404,8 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     ];
     this.tb_projectSurveyDetail = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      pagination:false,
-      rowHeader:false,
+      pagination: false,
+      rowHeader: false,
       height: '50vh',
       layout: 'fitDataStretch',
       locale: 'vi',
@@ -788,11 +797,17 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           let data = response.data;
           if (data) {
             const dateStart = data.DateStart
-              ? DateTime.fromISO(data.DateStart).toFormat('yyyy-MM-dd')
-              : DateTime.local().plus({ day: 1 }).toFormat('yyyy-MM-dd');
+              ? DateTime.fromISO(data.DateStart)
+                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+                .toUTC()
+                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+              : DateTime.local().plus({ day: 1 }).toISO();
             const dateEnd = data.DateEnd
-              ? DateTime.fromISO(data.DateEnd).toFormat('yyyy-MM-dd')
-              : DateTime.local().plus({ day: 1 }).toFormat('yyyy-MM-dd');
+              ? DateTime.fromISO(data.DateEnd)
+                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+                .toUTC()
+                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+              : DateTime.local().plus({ day: 1 }).toISO();
 
             this.validateForm.patchValue({
               projectId: this.projectId || '',
@@ -911,7 +926,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
     if (this.validateForm.valid) {
       const formValue = this.validateForm.getRawValue();
-      if(this.isEdit == 0){
+      if (this.isEdit == 0) {
         let dateNow = DateTime.local();
         let ds = DateTime.fromJSDate(new Date(formValue.dateStart));
         let de = DateTime.fromJSDate(new Date(formValue.dateEnd));
@@ -1021,7 +1036,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         let item = {
           ID: row.ID ?? 0,
           ProjectSurveyID: this.projectSurveyId ?? 0,
-          ProjectTypeID: row.ProjectTypeID ?? 0,
+          ProjectTypeID: row.projectTypeID ?? 0,
           Note: row.Note ?? '',
           LeaderID: row.LeaderID ?? 0,
         };

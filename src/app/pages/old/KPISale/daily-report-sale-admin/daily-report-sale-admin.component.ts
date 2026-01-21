@@ -129,7 +129,8 @@ export class DailyReportSaleAdminComponent implements OnInit, AfterViewInit {
         private fb: FormBuilder,
         private modal: NzModalService,
         private dailyReportSaleAdminService: DailyReportSaleAdminService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
@@ -137,7 +138,12 @@ export class DailyReportSaleAdminComponent implements OnInit, AfterViewInit {
         //   this.warehouseId = this.tabData.warehouseId;
         // }
         this.route.queryParams.subscribe(params => {
-            this.warehouseId = params['warehouseId'] || 1
+            // this.warehouseId = params['warehouseId'] || 1
+
+            this.warehouseId =
+                params['warehouseId']
+                ?? this.tabData?.warehouseId
+                ?? 1;
         });
         this.loadEmployees();
         this.loadCustomers();

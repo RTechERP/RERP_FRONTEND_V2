@@ -392,6 +392,21 @@ export class HistoryProductRtcComponent
         },
       },
       {
+        id: 'DepartmentName',
+        field: 'DepartmentName',
+        name: 'Phòng ban',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
         id: 'FullName',
         field: 'FullName',
         name: 'Người mượn',

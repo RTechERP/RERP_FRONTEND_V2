@@ -1,6 +1,7 @@
 <div class="modal-header bg-primary p-2">
     <h6 class="modal-title text-white text-uppercase">Báo cáo công việc</h6>
-    <button type="button" class="btn-close me-1"  style="background-color:lightcyan !important; font-weight: bold;" aria-label="Close" (click)="close()"></button>
+    <button type="button" class="btn-close me-1" style="background-color:lightcyan !important; font-weight: bold;"
+        aria-label="Close" (click)="close()"></button>
 </div>
 
 <div class="modal-body p-2">
@@ -113,7 +114,8 @@
                                                 <nz-select [(ngModel)]="item.ProjectItemID"
                                                     (ngModelChange)="onProjectItemChange(projectList.indexOf(project) + 1, $index + 1, $event)"
                                                     [ngModelOptions]="{standalone: true}" class="w-100"
-                                                    nzPlaceHolder="Chọn hạng mục công việc" nzShowSearch nzAllowClear>
+                                                    nzPlaceHolder="Chọn hạng mục công việc" nzShowSearch nzAllowClear
+                                                    nzDropdownClassName="multi-line-select-dropdown">
                                                     @for (projItem of
                                                     getProjectItemsForProject(projectList.indexOf(project) + 1); track
                                                     projItem.ID) {

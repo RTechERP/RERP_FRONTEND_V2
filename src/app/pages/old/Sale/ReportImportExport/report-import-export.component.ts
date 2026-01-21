@@ -146,7 +146,8 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private productsaleService: ProductsaleServiceService,
         private zone: NgZone,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
     ngOnInit(): void {
         // if (this.tabData?.warehousecode) {
@@ -156,7 +157,11 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.warehousecode = params['warehouseCode'] || 'HN';
+            // this.warehousecode = params['warehouseCode'] || 'HN';
+            this.warehousecode =
+                params['warehouseCode']
+                ?? this.tabData?.wareHouseCode
+                ?? 'HN';
         });
 
         this.searchParams.warehouseCode = this.warehousecode;

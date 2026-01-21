@@ -27,6 +27,7 @@ import { Subject } from 'rxjs';
 import { DailyReportLxDetailComponent } from './daily-report-lx-detail/daily-report-lx-detail.component';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { DailyReportTechComponent } from '../DailyReportTech/daily-report-tech/daily-report-tech.component';
 
 @Component({
   selector: 'app-daily-report-hr',
@@ -61,7 +62,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
   showSearchBar: boolean = true; // Mặc định ẩn, sẽ được set trong ngOnInit
   isMobile: boolean = false;
   menuBars: MenuItem[] = [];
-  
+
   // Search filters
   dateStart: string = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
   dateEnd: string = DateTime.local().toFormat('yyyy-MM-dd');
@@ -134,7 +135,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
         });
       }
 
-      
+
       // Sau khi có currentUser (hoặc không có), vẽ bảng và load data
       if (this.tb_daily_report_hrContainer?.nativeElement) {
         this.drawTbDailyReportHr(this.tb_daily_report_hrContainer.nativeElement);
@@ -146,12 +147,12 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
   loadUsers(callback?: () => void): void {
     const userTeamID = this.teamId > 0 ? this.teamId : 0;
     const departmentid = this.departmentId > 0 ? this.departmentId : 0;
-    
+
     this.dailyReportTechService.getEmployees(userTeamID, departmentid).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
           const employees = Array.isArray(response.data) ? response.data : [];
-          
+
           if (employees.length > 0 && employees[0].DepartmentName) {
             this.users = this.groupEmployeesByDepartment(employees);
           } else {
@@ -165,7 +166,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
         } else {
           this.users = [];
         }
-        
+
         if (callback) {
           callback();
         }
@@ -182,7 +183,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
 
   groupEmployeesByDepartment(employees: any[]): any[] {
     const grouped: { [key: string]: any[] } = {};
-    
+
     employees.forEach(emp => {
       const deptName = emp.DepartmentName || 'Khác';
       if (!grouped[deptName]) {
@@ -263,7 +264,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
 
   getDailyReportHrData(): void {
     const searchParams = this.getSearchParams();
-    
+
     this.dailyReportTechService.getDailyReportLXCP(searchParams).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
@@ -271,7 +272,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
         } else {
           this.dailyReportHrData = [];
         }
-        
+
         if (this.tb_daily_report_hr) {
           this.tb_daily_report_hr.replaceData(this.dailyReportHrData);
         }
@@ -298,7 +299,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
       }
     });
   }
- 
+
 
   setDefaultSearch(): void {
     this.dateStart = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
@@ -332,8 +333,8 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
     // Xác định columns dựa trên PositionID của currentUser
     // PositionID == 6: Lái xe -> dùng DAILY_REPORT_LX_COLUMNS
     // Ngược lại: Cắt phim -> dùng DAILY_REPORT_CP_COLUMNS
-    const columns = this.currentUser?.PositionID == 6 
-      ? this.DAILY_REPORT_LX_COLUMNS 
+    const columns = this.currentUser?.PositionID == 6
+      ? this.DAILY_REPORT_LX_COLUMNS
       : this.DAILY_REPORT_CP_COLUMNS;
 
     if (this.tb_daily_report_hr) {
@@ -343,7 +344,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
         data: this.dailyReportHrData,
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-        rowHeader: false,
+        // rowHeader: false,
         selectableRows: 1,
         height: '87vh',
         paginationMode: 'local',
@@ -460,7 +461,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
     {
       title: 'Năng suất trung bình(phút/đơn vị sản phẩm)',
       field: 'PerformanceAVG',
-      width:150,
+      width: 150,
       hozAlign: 'right',
       formatter: 'textarea',
     },
@@ -473,26 +474,26 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
     {
       title: 'Thời gian thực hiện(Phút)',
       field: 'TimeActual',
-      width:150,
+      width: 150,
       hozAlign: 'right',
       formatter: 'textarea',
     },
     {
       title: 'Năng suất thực tế (Phút) / Đơn vị sản phẩm)',
       field: 'PerformanceActual',
-      width:150,
+      width: 150,
       formatter: 'textarea',
       hozAlign: 'right',
     },
     {
       title: 'Năng suất trung bình / Năng suất thực tế',
       field: 'Percentage',
-      width:150,
+      width: 150,
       hozAlign: 'right',
       formatter: 'textarea',
     },
   ];
-  
+
   //#endregion
 
   editDailyReportById(id: number): void {
@@ -560,27 +561,42 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
     const modalRef = this.modalService.open(DailyReportLxDetailComponent, {
       size: 'xl',
       backdrop: 'static',
-      keyboard: true,
-      centered: false,
-      windowClass: 'daily-report-lxcp-modal'
+      keyboard: true
     });
+
+    // console.log('[LXCP] addDailyReport called on mobile:', this.isMobile);
+    // console.log('[LXCP] Opening modal with currentUser:', this.currentUser);
+
+    // const modalRef = this.modalService.open(DailyReportLxDetailComponent, {
+    //   size: 'xl',
+    //   backdrop: 'static',
+    //   keyboard: true,
+    //   centered: true, // Changed to true for better mobile compatibility
+    //   windowClass: 'daily-report-lxcp-modal',
+    //   scrollable: true // Added for mobile scrolling
+    // });
 
     modalRef.componentInstance.mode = 'add';
     modalRef.componentInstance.currentUser = this.currentUser;
 
+    console.log('[LXCP] Modal opened, ref:', modalRef);
+
     modalRef.result.then(
       (result) => {
+        console.log('[LXCP] Modal closed with result:', result);
         if (result) {
           this.getDailyReportHrData();
         }
       },
       (reason) => {
+        console.log('[LXCP] Modal dismissed, reason:', reason);
         // Modal bị đóng mà không có kết quả
       }
     );
   }
 
   editDailyReport(): void {
+    console.log('[LXCP] editDailyReport called');
     const selectedRows = this.tb_daily_report_hr.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.error('Thông báo', 'Vui lòng chọn 1 báo cáo để sửa!');
@@ -599,8 +615,9 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
-      centered: false,
-      windowClass: 'daily-report-lxcp-modal'
+      centered: true, // Changed to true for better mobile compatibility
+      windowClass: 'daily-report-lxcp-modal',
+      scrollable: true // Added for mobile scrolling
     });
 
     modalRef.componentInstance.mode = 'edit';

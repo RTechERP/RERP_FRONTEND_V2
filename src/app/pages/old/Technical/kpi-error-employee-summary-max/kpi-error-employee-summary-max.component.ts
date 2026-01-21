@@ -3,6 +3,8 @@ import {
     OnInit,
     AfterViewInit,
     CUSTOM_ELEMENTS_SCHEMA,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -79,20 +81,20 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
         private service: KpiErrorEmployeeSummaryMaxService,
         private notification: NzNotificationService,
         private excelExportService: ExcelExportService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
         this.route.queryParams.subscribe(params => {
-            this.departmentId = params['departmentId'] ? Number(params['departmentId']) : 0;
+            // this.departmentId = params['departmentId'] ? Number(params['departmentId']) : 0;
+            this.departmentId =
+                params['departmentId']
+                ?? this.tabData?.departmentId
+                ?? 0;
         });
 
         const today = new Date();
-        // WinForm logic: dtpDateStart.Value = dateNow.AddMonths(-2); dtpDateEnd.Value = dateNow.AddMonths(+1).AddDays(-1);
-        // Assuming user wants the same as WinForm or similar default.
-        // Applying the WinForm logic: Start = 2 months ago, End = End of current month?
-        // Let's stick to what was there or adjust if user complains, but user specifically pasted winform logic.
-        // "DateTime dateNow = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 01);"
         const dateNow = new Date(today.getFullYear(), today.getMonth(), 1);
         this.startDate = new Date(dateNow.getFullYear(), dateNow.getMonth() - 2, 1);
         this.endDate = new Date(dateNow.getFullYear(), dateNow.getMonth() + 1, 0, 23, 59, 59);

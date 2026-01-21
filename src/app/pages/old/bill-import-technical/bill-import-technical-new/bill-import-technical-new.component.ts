@@ -1,3 +1,4 @@
+import { ClipboardService } from './../../../../services/clipboard.service';
 import { CommonModule } from '@angular/common';
 import {
     Component,
@@ -7,6 +8,8 @@ import {
     OnDestroy,
     inject,
     Injector,
+    Optional,
+    Inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -105,13 +108,25 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
         private modal: NzModalService,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        private injector: Injector
+        private injector: Injector,
+        private ClipboardService: ClipboardService,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit() {
         this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1;
-            this.warehouseType = params['warehouseType'] || 1;
+            // this.warehouseID = params['warehouseID'] || 1;
+            // this.warehouseType = params['warehouseType'] || 1;
+
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
         });
 
         // Khởi tạo giá trị mặc định cho dateStart (đầu tháng hiện tại) và dateEnd (hôm nay)
@@ -362,6 +377,20 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
             enableAutoSizeColumns: false,
             frozenColumn: 1,
             enableHeaderMenu: false,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.ClipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
         };
     }
     openSummaryModal() {

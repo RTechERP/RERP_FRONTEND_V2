@@ -479,7 +479,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
               return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
             },
             hozAlign: 'center',
-            width: 120,
+            width: 100,
           },
           {
             title: 'Ngày tạo',
@@ -490,7 +490,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
               return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy HH:mm:ss') : '';
             },
             hozAlign: 'center',
-            width: 120,
+            width: 100,
           },
           {
             title: 'Dự án',
@@ -507,21 +507,21 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             title: 'Tổng giờ',
             field: 'TotalHours',
             hozAlign: 'right',
-            width: 70,
+            width: 60,
             headerSort: false,
           },
           {
             title: 'Giờ OT',
             field: 'TotalHourOT',
             hozAlign: 'right',
-            width: 70,
+            width: 60,
             headerSort: false,
           },
           {
             title: '% Hoàn thành',
             field: 'PercentComplete',
             hozAlign: 'right',
-            width: 70,
+            width: 55,
             headerSort: false,
             formatter: (cell: any) => {
               const value = cell.getValue() || 0;

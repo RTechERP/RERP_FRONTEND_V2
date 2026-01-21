@@ -177,9 +177,9 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         @Optional() @Inject('tabData') private tabData: any
     ) {
         // Nhận data từ tab nếu có
-        if (this.tabData && this.tabData.warehouseId) {
-            this.warehouseId = this.tabData.warehouseId;
-        }
+        // if (this.tabData && this.tabData.warehouseId) {
+        //     this.warehouseId = this.tabData.warehouseId;
+        // }
     }
 
     menuBars: any[] = [];
@@ -230,9 +230,14 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
 
         // Lấy warehouseId từ query params
         this.route.queryParams.subscribe(params => {
-            if (params['warehouseId']) {
-                this.warehouseId = params['warehouseId'];
-            }
+            // if (params['warehouseId']) {
+            //     this.warehouseId = params['warehouseId'];
+            // }
+
+            this.warehouseId =
+                params['warehouseId']
+                ?? this.tabData?.warehouseId
+                ?? 0;
         });
 
         const endDate = new Date();
@@ -413,7 +418,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             { key: 'Quantity', width: 15 },
             { key: 'ProjectCode', width: 20 },
             { key: 'ProjectName', width: 20 },
-            { key: 'NotePO', width: 30 },
+            { key: 'Note1', width: 30 },
             { key: 'Specifications', width: 20 },
             { key: 'InvoiceNumber', width: 20 },
             { key: 'InvoiceDate', width: 15 },
@@ -442,7 +447,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             'Yêu cầu gấp', 'Deadline', 'Trạng thái', 'Mã lệnh', 'Tờ khai HQ',
             'Lý do yêu cầu bổ sung', 'Người yêu cầu', 'Khách hàng', 'Địa chỉ', 'Công ty bán',
             'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã theo khách', 'Tên sản phẩm',
-            'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (PO)',
+            'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (Chi tiết)',
             'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Mã PO',
             'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK', 'Công ty nhập'
         ]);
@@ -503,7 +508,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 Quantity: item.Quantity,
                 ProjectCode: item.ProjectCode,
                 ProjectName: item.ProjectName,
-                NotePO: item.Note,
+                Note1: item.Note1,
                 Specifications: item.Specifications,
                 InvoiceNumber: item.InvoiceNumber,
                 InvoiceDate: item.InvoiceDate ? DateTime.fromISO(item.InvoiceDate).toFormat('dd/MM/yyyy') : '',
@@ -839,6 +844,19 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 filter: { model: Filters['compoundInputText'] },
             },
             {
+                id: 'NotePO',
+                name: 'Ghi chú (Chi tiết)',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
+                field: 'Note1',
+                width: 150,
+                minWidth: 150,
+                sortable: true,
+                filterable: true,
+                type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
                 id: 'ProductNewCode',
                 name: 'Mã nội bộ',
                 field: 'ProductNewCode',
@@ -934,19 +952,6 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 field: 'ProjectName',
                 columnGroup: 'Chung',
                 columnGroupKey: 'Chung',
-                width: 150,
-                minWidth: 150,
-                sortable: true,
-                filterable: true,
-                type: FieldType.string,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            {
-                id: 'NotePO',
-                name: 'Ghi chú (PO)',
-                columnGroup: 'Chung',
-                columnGroupKey: 'Chung',
-                field: 'Note',
                 width: 150,
                 minWidth: 150,
                 sortable: true,

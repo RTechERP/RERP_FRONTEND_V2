@@ -35,6 +35,8 @@ import {
 import { MultipleSelectOption } from '@slickgrid-universal/common';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { DateTime } from 'luxon';
+import * as ExcelJS from 'exceljs';
+import { format, isValid, parseISO } from 'date-fns';
 import { MeetingMinuteService } from '../project/meeting-minute/meeting-minute-service/meeting-minute.service';
 import { MeetingMinuteFormComponent } from '../project/meeting-minute/meeting-minute-form/meeting-minute-form.component';
 import { NOTIFICATION_TITLE } from '../../app.config';
@@ -528,12 +530,16 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
     const columns = angularGrid.slickGrid.getColumns();
     if (columns) {
       columns.forEach((column: any) => {
-        if (column.filter && column.filter.model === Filters['multipleSelect']) {
+        if (column && column.filter && column.filter.model === Filters['multipleSelect']) {
           const field = column.field;
           if (!field) return;
           column.filter.collection = getUniqueValues(data, field);
         }
       });
+
+      // Filter out any null columns before setting back
+      const validColumns = columns.filter((col: any) => col !== null && col !== undefined);
+      angularGrid.slickGrid.setColumns(validColumns);
     }
 
     if (columnDefinitions) {
@@ -546,10 +552,10 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
       });
     }
 
-    const updatedColumns = angularGrid.slickGrid.getColumns();
-    angularGrid.slickGrid.setColumns(updatedColumns);
-    angularGrid.slickGrid.invalidate();
-    angularGrid.slickGrid.render();
+    if (angularGrid.slickGrid) {
+      angularGrid.slickGrid.invalidate();
+      angularGrid.slickGrid.render();
+    }
   }
 
   downloadFile(serverPath: string): void {
@@ -654,22 +660,182 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
     });
   }
 
-  exportExcel(): void {
-    if (!this.angularGridMeetingMinutes) {
-      this.notification.error('Lỗi', 'Grid chưa sẵn sàng để export');
+  async exportExcel() {
+    console.log('Export Excel');
+
+    // Kiểm tra xem có dòng được chọn không
+    if (!this.angularGridMeetingMinutes || !this.angularGridMeetingMinutes.slickGrid) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn một biên bản họp để xuất Excel');
       return;
     }
-    const data = this.angularGridMeetingMinutes.dataView?.getItems();
-    if (!data || data.length === 0) {
-      this.notification.warning('Cảnh báo', 'Không có dữ liệu để export');
+
+    const selectedRows = this.angularGridMeetingMinutes.slickGrid.getSelectedRows();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn một biên bản họp để xuất Excel');
       return;
     }
+
+    // Lấy dữ liệu dòng được chọn
+    const selectedRowData = this.angularGridMeetingMinutes.dataView?.getItem(selectedRows[0]);
+    if (!selectedRowData) {
+      this.notification.warning('Cảnh báo', 'Không thể lấy dữ liệu dòng được chọn');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+
+    // === Định nghĩa style ===
+    const headerStyle: Partial<ExcelJS.Style> = {
+      font: { bold: true, size: 12, color: { argb: 'FFFFFFFF' } },
+      fill: {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF1E90FF' },
+      },
+      alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+      border: {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      },
+    };
+
+    const cellStyle: Partial<ExcelJS.Style> = {
+      font: { size: 11 },
+      alignment: { vertical: 'middle', horizontal: 'center', wrapText: true },
+      border: {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      },
+    };
+
+    // === Hàm xuất từng grid vào worksheet riêng ===
+    const exportGridToWorksheet = (title: string, columns: any[], data: any[]) => {
+      console.log(`Processing worksheet: ${title}, Data length: ${data?.length ?? 0}`);
+
+      // Skip nếu không có dữ liệu (như logic cũ)
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        console.warn(`Skipping worksheet "${title}" do thiếu dữ liệu`);
+        return;
+      }
+
+      const ws = workbook.addWorksheet(title);
+
+      // Header
+      const headers = ['STT', ...columns.map((col: any) => col.name)];
+      const headerRow = ws.addRow(headers);
+      headers.forEach((_, idx) => {
+        const cell = headerRow.getCell(idx + 1);
+        cell.style = headerStyle;
+      });
+
+      // Định dạng cột
+      const columnWidths: number[] = headers.map(() => 10);
+      ws.columns = headers.map(() => ({ width: 10 }));
+
+      // Data
+      data.forEach((row: any, index: number) => {
+        const rowData = [
+          index + 1,
+          ...columns.map((col: any) => {
+            const field = col.field;
+            let value = row[field];
+
+            // Format date fields
+            if (typeof value === 'string' && value.match(/\d{4}-\d{2}-\d{2}/)) {
+              try {
+                const parsedDate = parseISO(value);
+                if (isValid(parsedDate)) {
+                  return format(parsedDate, 'dd/MM/yyyy');
+                }
+              } catch (error) {
+                console.warn(`Invalid date format for value: ${value} in field: ${field}`);
+              }
+            }
+            return value || '';
+          }),
+        ];
+
+        const dataRow = ws.addRow(rowData);
+        rowData.forEach((value, idx) => {
+          const cell = dataRow.getCell(idx + 1);
+          cell.style = typeof value === 'object' && value.style ? value.style : cellStyle;
+          const contentLength = String(value && typeof value === 'object' ? value.value : value).length;
+          columnWidths[idx] = Math.max(columnWidths[idx], Math.min(contentLength + 2, 50));
+        });
+      });
+
+      // Áp dụng độ rộng cột và chiều cao hàng
+      ws.columns.forEach((column, index) => {
+        column.width = columnWidths[index];
+      });
+      ws.eachRow((row) => {
+        row.height = 25;
+      });
+    };
+
+    // === Danh sách grid cần xuất thành từng sheet ===
+    const gridsToExport = [
+      {
+        title: 'Biên bản họp',
+        columns: this.columnsMeetingMinutes,
+        data: [selectedRowData], // Chỉ xuất dòng được chọn
+      },
+      {
+        title: 'Nhân viên tham gia',
+        columns: this.columnsEmployee,
+        data: this.datasetEmployee || [],
+      },
+      {
+        title: 'Nội dung nhân viên',
+        columns: this.columnsEmployeeContent,
+        data: this.datasetEmployeeContent || [],
+      },
+      {
+        title: 'Khách hàng',
+        columns: this.columnsCustomer,
+        data: this.datasetCustomer || [],
+      },
+      {
+        title: 'Nội dung khách hàng',
+        columns: this.columnsCustomerContent,
+        data: this.datasetCustomerContent || [],
+      },
+      {
+        title: 'File đính kèm',
+        columns: this.columnsFile,
+        data: this.datasetFile || [],
+      },
+    ];
+
+    console.log('=== Debug Export Data ===');
+    gridsToExport.forEach(({ title, data }) => {
+      console.log(`${title}: ${data?.length ?? 0} rows`);
+    });
+
+    gridsToExport.forEach(({ title, columns, data }) => exportGridToWorksheet(title, columns, data));
+
+    // === Xuất file ===
     try {
-      const exportOptions = { filename: `DanhSachBienBanCuocHop_${new Date().toISOString().split('T')[0]}`, sheetName: 'Biên bản cuộc họp', sanitizeDataExport: true };
-      this.excelExportService.exportToExcel(exportOptions);
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `BienBanCuocHop_${selectedRowData.Title || 'Export'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+
       this.notification.success('Thành công', 'Xuất excel thành công!');
     } catch (error) {
-      console.error('Excel export error:', error);
+      console.error('Error exporting Excel file:', error);
       this.notification.error('Lỗi', 'Không thể export file Excel');
     }
   }
@@ -678,15 +844,19 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
   //#region Tab Events
   onMainTabChange(index: number): void {
     this.mainTabIndex = index;
-    setTimeout(() => this.resizeAllGrids(), 100);
+    setTimeout(() => {
+      if (this.gridsReady) {
+        this.resizeAllGrids();
+      }
+    }, 100);
   }
 
   onTabChange(index: number): void {
     this.activeTab = index;
     setTimeout(() => {
-      if (index === 0 && this.angularGridEmployee) {
+      if (index === 0 && this.angularGridEmployee?.slickGrid) {
         this.angularGridEmployee.resizerService?.resizeGrid();
-      } else if (index === 1 && this.angularGridEmployeeContent) {
+      } else if (index === 1 && this.angularGridEmployeeContent?.slickGrid) {
         this.angularGridEmployeeContent.resizerService?.resizeGrid();
       }
     }, 100);
@@ -695,21 +865,33 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
   onCustomerTabChange(index: number): void {
     this.activeCustomerTab = index;
     setTimeout(() => {
-      if (index === 0 && this.angularGridCustomer) {
+      if (index === 0 && this.angularGridCustomer?.slickGrid) {
         this.angularGridCustomer.resizerService?.resizeGrid();
-      } else if (index === 1 && this.angularGridCustomerContent) {
+      } else if (index === 1 && this.angularGridCustomerContent?.slickGrid) {
         this.angularGridCustomerContent.resizerService?.resizeGrid();
       }
     }, 100);
   }
 
   private resizeAllGrids(): void {
-    this.angularGridMeetingMinutes?.resizerService?.resizeGrid();
-    this.angularGridEmployee?.resizerService?.resizeGrid();
-    this.angularGridEmployeeContent?.resizerService?.resizeGrid();
-    this.angularGridCustomer?.resizerService?.resizeGrid();
-    this.angularGridCustomerContent?.resizerService?.resizeGrid();
-    this.angularGridFile?.resizerService?.resizeGrid();
+    if (this.angularGridMeetingMinutes?.slickGrid) {
+      this.angularGridMeetingMinutes.resizerService?.resizeGrid();
+    }
+    if (this.angularGridEmployee?.slickGrid) {
+      this.angularGridEmployee.resizerService?.resizeGrid();
+    }
+    if (this.angularGridEmployeeContent?.slickGrid) {
+      this.angularGridEmployeeContent.resizerService?.resizeGrid();
+    }
+    if (this.angularGridCustomer?.slickGrid) {
+      this.angularGridCustomer.resizerService?.resizeGrid();
+    }
+    if (this.angularGridCustomerContent?.slickGrid) {
+      this.angularGridCustomerContent.resizerService?.resizeGrid();
+    }
+    if (this.angularGridFile?.slickGrid) {
+      this.angularGridFile.resizerService?.resizeGrid();
+    }
   }
   //#endregion
 }

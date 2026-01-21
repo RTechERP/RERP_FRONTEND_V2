@@ -1,7 +1,6 @@
 <ng-container class="w-100">
     <div class="card border-0 rounded-0 h-100">
-        <div class="card-header bg-white p-1 d-flex align-items-center justify-content-between"
-            >
+        <div class="card-header bg-white p-1 d-flex align-items-center justify-content-between">
             <!-- Bên trái: Các nút hành động -->
             <div class="d-flex gap-1">
                 <button nz-button nzType="default" nzSize="small" (click)="toggleSearchBar(); $event.stopPropagation()"
@@ -93,7 +92,7 @@
                             <nz-form-control>
                                 <input nz-input nzSize="small" nzAllowClear placeholder="Nhập từ khóa"
                                     style="width: 250px" [(ngModel)]="searchParams.Keywords"
-                                    (keyup.enter)="searchData()" />
+                                    (keyup.enter)="searchData()" name="keywords" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>

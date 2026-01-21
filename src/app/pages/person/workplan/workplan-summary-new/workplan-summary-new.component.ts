@@ -79,7 +79,9 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
 
         this.loadDepartments();
         this.loadEmployees();
-        this.loadUserTeams();
+        if (this.departmentId > 0) {
+            this.loadTeamsByDepartment(this.departmentId);
+        }
     }
 
     ngAfterViewInit(): void {
@@ -108,7 +110,13 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
 
     onDepartmentChange(): void {
         this.userId = 0;
+        this.teamId = 0;
         this.loadEmployees();
+        if (this.departmentId > 0) {
+            this.loadTeamsByDepartment(this.departmentId);
+        } else {
+            this.teamList = [];
+        }
         this.loadData();
     }
 
@@ -116,15 +124,19 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
         this.userId = 0;
         this.loadData();
     }
-    loadUserTeams(): void {
-        this.TeamService.getTeams(2).subscribe({
+    loadTeamsByDepartment(deptId: number): void {
+        this.workplanService.getTeamByDepartmentId(deptId).subscribe({
             next: (response: any) => {
                 if (response && response.status === 1 && response.data) {
-                    this.teamList = Array.isArray(response.data) ? response.data : [];
+                    const data = Array.isArray(response.data) ? response.data : [];
+                    this.teamList = data.filter((x: any) => x.IsDeleted !== true);
+                } else {
+                    this.teamList = [];
                 }
             },
             error: (error: any) => {
-                console.error('Error loading user teams:', error);
+                console.error('Error loading teams by department:', error);
+                this.teamList = [];
             }
         });
     }
@@ -202,11 +214,16 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
         this.dateStart = startOfWeek.toFormat('yyyy-MM-dd');
         this.dateEnd = endOfWeek.toFormat('yyyy-MM-dd');
         this.keyword = '';
-        this.departmentId = 0;
+        this.departmentId = this.appUserService.departmentID || 0;
         this.teamId = 0;
         this.userId = 0;
-        this.teamList = [];
-        this.userList = [];
+
+        if (this.departmentId > 0) {
+            this.loadTeamsByDepartment(this.departmentId);
+        } else {
+            this.teamList = [];
+        }
+        this.loadEmployees();
         this.loadData();
     }
 

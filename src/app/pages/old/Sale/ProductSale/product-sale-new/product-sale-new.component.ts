@@ -458,6 +458,19 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             .replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
     }
 
+    // Formatter cho phép wrap text tối đa 3 dòng với tooltip
+    wrapTextFormatter: Formatter = (_row, _cell, value, _column, dataContext) => {
+        if (!value) return '';
+        return `
+            <span
+                title="${String(value).replace(/"/g, '&quot;')}"
+                style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3;"
+            >
+                ${value}
+            </span>
+        `;
+    };
+
     excelBooleanFormatter: Formatter = (_row, _cell, value) => {
         if (value === true) return 'x';
         if (value === false) return '';
@@ -559,7 +572,10 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
@@ -624,7 +640,10 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
@@ -635,7 +654,10 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
         ];
@@ -666,6 +688,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
             frozenColumn: this.isMobile ? 0 : 3,
+            rowHeight: 55, // Điều chỉnh row height cho 3 dòng text (khoảng 18px/dòng + padding)
 
             // Excel export configuration
             externalResources: [this.excelExportService],

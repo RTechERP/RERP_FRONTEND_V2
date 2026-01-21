@@ -1,7 +1,7 @@
 <!-- Sửa HTML template - WFH.component.html -->
 <ng-container class="w-100">
   <nz-splitter>
-    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+    <!-- <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
       <div class="card h-100 border-0 rounded-0">
         <div class="card-header bg-white p-1">
           <div class="d-flex justify-content-between align-items-center">
@@ -19,11 +19,17 @@
                 Năm
               </nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker class="w-100" name="year" [(ngModel)]="year" [nzMode]="'year'" [nzFormat]="'YYYY'"
-                  (ngModelChange)="searchET()" nzAllowClear="false"></nz-date-picker>
+                <input
+                  type="number"
+                  class="w-100"
+                  name="year"
+                  [(ngModel)]="year"
+                  nz-input
+                  placeholder="Nhập năm..."
+                  (keyup.enter)="onSearch()"
+                />
               </nz-form-control>
             </nz-form-item>
-            <!-- Từ khóa -->
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
@@ -42,15 +48,15 @@
           </button>
         </div>
       </div>
-    </nz-splitter-panel>
+    </nz-splitter-panel> -->
 
     <nz-splitter-panel nzDefaultSize="100%">
       <div class="card h-100 border-0 rounded-0">
         <div class="card-header bg-white p-1">
-          <div class="d-flex gap-1">
-            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+          <div class="d-flex gap-1 align-items-center flex-wrap">
+            <!-- <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
-            </button>
+            </button> -->
 
             <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="addET()">
               <img src="assets/icon/action_add_item_16.png" />Thêm
@@ -72,6 +78,51 @@
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openManagement()">
               <nz-icon nzType="table" nzTheme="outline" /> Bảng chấm công chi tiết
             </button>
+
+            <!-- Tìm kiếm đẩy ra bên phải (giống Bảng lương) -->
+            <div class="ms-auto" style="width: 100%; max-width: 560px;">
+              <form nz-form class="w-100">
+                <div class="d-flex gap-2 flex-wrap justify-content-end align-items-end" style="min-width: 240px;">
+                  <!-- Năm -->
+                  <div class="d-flex align-items-center gap-1 payroll-filter-year-group">
+                    <span class="fs-12" style="white-space: nowrap;">Năm: </span>
+                    <input
+                      type="number"
+                      name="yearHeader"
+                      [(ngModel)]="year"
+                      class="payroll-filter-year-input"
+                      style="padding: 2px 2px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 2px;"
+                      (keyup.enter)="onSearch()"
+                    />
+                  </div>
+
+                  <!-- Từ khóa + nút tìm kiếm -->
+                  <div class="d-flex align-items-center gap-1 flex-grow-1" style="min-width: 240px;">
+                    <span class="fs-12" style="white-space: nowrap;">Từ khóa: </span>
+                    <div class="d-flex gap-1 flex-grow-1">
+                      <input
+                        name="searchValueHeader"
+                        nz-input
+                        placeholder="Tìm tên nhân viên, mã nhân viên, lý do..."
+                        nzSize="small"
+                        [(ngModel)]="searchValue"
+                        (keyup.enter)="onSearch()"
+                        class="flex-grow-1"
+                      />
+                      <button
+                        nz-button
+                        nzType="primary"
+                        nzSize="small"
+                        style="width: 40px;"
+                        (click)="onSearch()"
+                      >
+                        <nz-icon nzType="search" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
 

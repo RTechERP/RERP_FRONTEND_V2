@@ -598,7 +598,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   // Hàm xử lý thêm/bỏ prefix
   private updateProjectCodePrefix(currentCode: string, projectTypeId: number): string {
     // Loại bỏ các prefix hiện có (TM. hoặc F.)
-    let coreCode = currentCode.replace(/^(TM\.|F\.)/, '');
+    let coreCode = currentCode.replace(/^(TM\.|F\.|NB\.|)/, '');
 
     // Thêm prefix mới dựa trên projectTypeId
     switch (projectTypeId) {
@@ -606,6 +606,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         return `TM.${coreCode}`;
       case 3: // Loại F
         return `F.${coreCode}`;
+      case 4: // Loại NB
+        return `NB.${coreCode}`;
       default: // Loại thường (1 hoặc các giá trị khác)
         return coreCode;
     }

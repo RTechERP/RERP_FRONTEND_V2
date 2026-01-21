@@ -70,7 +70,7 @@ export class EmployeeTimekeepingComponent
   sizeSearch: string = '0';
 
   // Search filters
-  year: Date = new Date();
+  year: number = new Date().getFullYear();
   searchValue: string = '';
 
   // Selection tracking
@@ -338,7 +338,7 @@ export class EmployeeTimekeepingComponent
     });
   }
   private getETAjaxParams(): any {
-    const y = this.year ? this.year.getFullYear() : null;
+    const y = this.year ?? new Date().getFullYear();
     const kw = (this.searchValue || '').trim();
     return { year: y, keyword: kw };
   }
@@ -355,7 +355,7 @@ export class EmployeeTimekeepingComponent
   }
 
   resetSearch(): void {
-    this.year = new Date();
+    this.year = new Date().getFullYear();
     this.searchValue = '';
     if (this.tb_ET) {
       this.tb_ET.clearData();

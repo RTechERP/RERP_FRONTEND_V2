@@ -53,6 +53,9 @@ import { BillImportServiceService } from '../../BillImport/bill-import-service/b
 import { PermissionService } from '../../../../../services/permission.service';
 import { ProductSaleDetailComponent } from '../../ProductSale/product-sale-detail/product-sale-detail.component';
 import { BillImportDetailComponent } from '../../BillImport/Modal/bill-import-detail/bill-import-detail.component';
+import { ClipboardService } from '../../../../../services/clipboard.service';
+import { BillImportChoseSerialComponent } from '../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
+import { AppUserService } from '../../../../../services/app-user.service';
 
 interface ProductSale {
   Id?: number;
@@ -116,12 +119,14 @@ interface BillExport {
   styleUrls: ['./bill-export-detail-new.component.css'],
 })
 export class BillExportDetailNewComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   //#region Khai bao
   isLoading: boolean = false;
   isSaving: boolean = false;
   isFormDisabled: boolean = false;
+
+  // Unique grid ID for this component instance
+  gridUniqueId: string = `billExportDetail_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   dataCbbUser: any[] = [];
   dataCbbCustomer: any[] = [];
@@ -230,12 +235,13 @@ export class BillExportDetailNewComponent
   //   generalStock: number;
   // }> = new Map();
   // ✅ Key = "ProductID-ProjectID-POKHDetailID"
-private productInventoryDetailMap: Map<string, {
-  totalQuantityKeep: number;      // SL giữ
-  totalQuantityRemain: number;    // SL còn lại (Import - Export)
-  totalQuantityLast: number;      // Tồn CK
-}> = new Map();
+  private productInventoryDetailMap: Map<string, {
+    totalQuantityKeep: number;      // SL giữ
+    totalQuantityRemain: number;    // SL còn lại (Import - Export)
+    totalQuantityLast: number;      // Tồn CK
+  }> = new Map();
   private originalInventoryRelatedData: Map<number, any> = new Map();
+  private hasInventoryRelatedChange: boolean = false;
 
   // Error popup
   showErrorPopup: boolean = false;
@@ -252,7 +258,9 @@ private productInventoryDetailMap: Map<string, {
     private billExportService: BillExportService,
     private billImportService: BillImportServiceService,
     private productSaleService: ProductsaleServiceService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private clipboardService: ClipboardService,
+    private appUserService: AppUserService
   ) {
     this.validateForm = this.fb.group({
       Code: [{ value: '', disabled: true }],
@@ -271,6 +279,9 @@ private productInventoryDetailMap: Map<string, {
       Reference: [''],
       WareHouseTranferID: [null],
     });
+
+    // Setup initial date validators based on default status
+    this.updateDateValidators(0);
   }
 
   //#region Lifecycle hooks
@@ -354,13 +365,16 @@ private productInventoryDetailMap: Map<string, {
       !this.isFromWarehouseRelease &&
       !this.isReturnToSupplier
     ) {
+      // Lấy UserID từ người đăng nhập hiện tại
+      const currentUserId = this.appUserService.id || 0;
+
       this.newBillExport = {
         TypeBill: false,
         Code: '',
         Address: '',
         CustomerID: 0,
-        UserID: 0,
-        SenderID: 0,
+        UserID: 0, // Người Nhận = người đăng nhập hiện tại
+        SenderID: currentUserId, // Người Giao = sẽ lấy từ ProductGroupWarehouse
         WarehouseType: '',
         GroupID: '',
         KhoTypeID: 0,
@@ -381,7 +395,8 @@ private productInventoryDetailMap: Map<string, {
         this.getBillExportDetailConvert(this.lstBillImportID);
         this.validateForm.patchValue({
           KhoTypeID: this.billImport.KhoTypeID,
-          UserID: this.billImport.ReciverID,
+          //UserID: this.billImport.ReciverID,
+          UserID: this.id > 0 ? this.billImport.ReciverID : this.appUserService.employeeID,
           WarehouseID: this.billImport.WarehouseID,
           SenderID: this.billImport.DeliverID,
           SupplierID: this.billImport.SupplierID,
@@ -570,9 +585,10 @@ private productInventoryDetailMap: Map<string, {
         Qty: item.Qty || 0,
         QuantityRemain: item.QuantityRemain || 0,
         ProjectID: item.ProjectID || 0,
-        ProjectCodeExport: item.ProjectCodeExport || item.ProjectCode || '',
+        ProjectCodeExport: item.ProjectCodeExport || '',
         ProjectNameText: item.ProjectNameText || item.ProjectName || '',
         Note: item.Note || '',
+        ProjectCode:item.ProjectCode || '',
         ExpectReturnDate: item.ExpectReturnDate
           ? new Date(item.ExpectReturnDate)
           : new Date(),
@@ -747,6 +763,19 @@ private productInventoryDetailMap: Map<string, {
         selectActiveRow: false,
       },
       enableCellMenu: true,
+      cellMenu: {
+        commandItems: [
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 1,
+            action: (_e, args) => {
+              this.clipboardService.copy(args.value);
+            },
+          },
+        ],
+      },
     };
   }
 
@@ -790,7 +819,7 @@ private productInventoryDetailMap: Map<string, {
         id: 'ProductID',
         name: 'Mã sản phẩm',
         field: 'ProductID',
-        width: 300,
+        width: 500,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
@@ -878,6 +907,17 @@ private productInventoryDetailMap: Map<string, {
           }).format(value);
           return `<span style="display:block; text-align:right;">${formatted}</span>`;
         },
+      },
+            {
+        id: 'ProjectCode',
+        name: 'Mã sp theo dự án',
+        field: 'ProjectCode',
+        width: 250,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        editor: { model: Editors['text'] }, // nvarchar(max) - không giới hạn
+
       },
       {
         id: 'ProductName',
@@ -972,7 +1012,7 @@ private productInventoryDetailMap: Map<string, {
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] },
+        editor: { model: Editors['text'] }, // nvarchar(max) - không giới hạn
       },
       {
         id: 'ExpectReturnDate',
@@ -981,6 +1021,7 @@ private productInventoryDetailMap: Map<string, {
         width: 140,
         sortable: true,
         filterable: true,
+        hidden: true, // Mặc định ẩn, chỉ hiển thị khi Status = 0 (Mượn) hoặc Status = 7 (Yêu cầu mượn)
         formatter: (_row, _cell, value) => {
           if (!value) return '';
           const date = new Date(value);
@@ -1043,7 +1084,7 @@ private productInventoryDetailMap: Map<string, {
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] },
+        editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
       },
       {
         id: 'GroupExport',
@@ -1053,7 +1094,7 @@ private productInventoryDetailMap: Map<string, {
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] },
+        editor: { model: Editors['text'], maxLength: 350 }, // nvarchar(350)
       },
       {
         id: 'UserReceiver',
@@ -1063,7 +1104,7 @@ private productInventoryDetailMap: Map<string, {
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] },
+        editor: { model: Editors['text'] }, // Không có trong DB schema, cần kiểm tra
       },
       {
         id: 'CustomerResponse',
@@ -1073,7 +1114,7 @@ private productInventoryDetailMap: Map<string, {
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] },
+        editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
       },
       {
         id: 'SerialNumber',
@@ -1087,35 +1128,30 @@ private productInventoryDetailMap: Map<string, {
         excludeFromGridMenu: true,
         excludeFromHeaderMenu: true,
         hidden: true,
+        editor: { model: Editors['text'], maxLength: 50 }, // nvarchar(50)
+      },
+      {
+        id: 'AddSerial',
+        name: '<i class="fas fa-plus" style="color:#52c41a;" title=""></i>',
+        field: 'AddSerial',
+        width: 40,
+        sortable: false,
+        filterable: false,
+        excludeFromHeaderMenu: true,
+        formatter: () => {
+          return `<div style="text-align:center;"><i class="fas fa-plus" style="cursor:pointer; color:#52c41a;" title="Thêm serial"></i></div>`;
+        },
       },
       {
         id: 'POKHID',
-        name: 'Action',
+        name: '<i class="fas fa-download" style="color:#1890ff;" title=""></i>',
         field: 'POKHID',
-        width: 100,
+        width: 40,
         sortable: false,
         filterable: false,
-        formatter: () => `<div style="cursor:pointer; text-align: center; color: #1890ff; font-size: 12px;">Action <i class="fas fa-caret-down"></i></div>`,
-        cellMenu: {
-          commandItems: [
-            {
-              command: 'download-po',
-              title: 'Tải File PO',
-              iconCssClass: 'fas fa-download text-primary',
-              positionOrder: 1,
-              // Removed itemVisibilityOverride to ensure option is visible for testing
-              // itemVisibilityOverride: (args: any) => !!args.dataContext.PONumber,
-              action: (_event, args) => {
-                const poNumber = args.dataContext.PONumber;
-                console.log('Download PO clicked, PONumber:', poNumber, 'Data:', args.dataContext);
-                if (poNumber) {
-                  this.downloadPOFiles(poNumber);
-                } else {
-                  this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy số PO');
-                }
-              },
-            },
-          ],
+        excludeFromHeaderMenu: true,
+        formatter: () => {
+          return `<div style="text-align:center;"><i class="fas fa-download" style="cursor:pointer; color:#1890ff;" title="Tải File PO"></i></div>`;
         },
       },
 
@@ -1135,12 +1171,15 @@ private productInventoryDetailMap: Map<string, {
   angularGridDetailReady(angularGrid: AngularGridInstance): void {
     this.angularGridDetail = angularGrid;
 
-    // Hide columns that should not be visible
-    const hiddenColumnIds = ['SerialNumber', 'POKHDetailID'];
-    const visibleColumns = angularGrid.slickGrid.getColumns().filter(
-      (col: any) => !hiddenColumnIds.includes(col.id)
-    );
-    angularGrid.slickGrid.setColumns(visibleColumns);
+    // Delay để đảm bảo checkbox selector đã được SlickGrid thêm vào
+    setTimeout(() => {
+      // Hide columns that should not be visible, but preserve checkbox selector
+      const hiddenColumnIds = ['SerialNumber', 'POKHDetailID'];
+      const visibleColumns = angularGrid.slickGrid.getColumns().filter(
+        (col: any) => col.id === '_checkbox_selector' || !hiddenColumnIds.includes(col.id)
+      );
+      angularGrid.slickGrid.setColumns(visibleColumns);
+    }, 0);
 
     // Subscribe to header click for add row
     angularGrid.slickGrid.onHeaderClick.subscribe((_e: any, args: any) => {
@@ -1159,14 +1198,11 @@ private productInventoryDetailMap: Map<string, {
 
     // CRITICAL: If dataDetail already has data (from warehouserelease/projectpartlist flows),
     // populate the grid with this data now that the grid is ready
-    console.log('🟣 [angularGridDetailReady] Grid is ready, dataDetail length:', this.dataDetail?.length || 0);
-    console.log('🟣 [angularGridDetailReady] dataDetail:', this.dataDetail);
+
     if (this.dataDetail && this.dataDetail.length > 0) {
-      console.log('🟣 [angularGridDetailReady] Populating grid with dataDetail');
       this.angularGridDetail.dataView.setItems(this.dataDetail);
       this.angularGridDetail.slickGrid.invalidate();
       this.angularGridDetail.slickGrid.render();
-      console.log('🟣 [angularGridDetailReady] Grid populated successfully');
     }
 
     // Resize grid after render and update footer
@@ -1175,7 +1211,6 @@ private productInventoryDetailMap: Map<string, {
       this.updateDetailFooter();
       // Apply initial column visibility based on current Status
       this.updateColumnVisibility();
-      console.log('🟣 [angularGridDetailReady] Grid resized and footer updated');
     }, 100);
   }
 
@@ -1186,6 +1221,7 @@ private productInventoryDetailMap: Map<string, {
     if (column.id === 'action') {
       const clickedElement = e.target as HTMLElement;
       if (clickedElement.classList.contains('fa-plus')) {
+        this.hasInventoryRelatedChange = true;
         this.addNewRow();
       }
     }
@@ -1209,8 +1245,27 @@ private productInventoryDetailMap: Map<string, {
       }
     }
 
-    // Handle POKHID download click - OBSOLETE (Replaced by CellMenu)
-    // if (column.id === 'POKHID') { ... }
+    // Handle Add Serial click
+    if (column.id === 'AddSerial') {
+      if (clickedElement.classList.contains('fa-plus')) {
+        const item = args.grid.getDataItem(args.row);
+        this.openAddSerialModal(item);
+      }
+    }
+
+    // Handle POKHID download click
+    if (column.id === 'POKHID') {
+      if (clickedElement.classList.contains('fa-download')) {
+        const item = args.grid.getDataItem(args.row);
+        const poNumber = item.PONumber;
+        console.log('Download PO clicked, PONumber:', poNumber, 'Data:', item);
+        if (poNumber) {
+          this.downloadPOFiles(poNumber);
+        } else {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy số PO');
+        }
+      }
+    }
   }
 
   onCellChange(args: any): void {
@@ -1248,6 +1303,12 @@ private productInventoryDetailMap: Map<string, {
         args.item.Unit = '';
         args.item.TotalInventory = 0;
       }
+
+      // ✅ Clear inventory allocation when ProductID changes
+      args.item.ChosenInventoryProject = '';
+      args.item.ProductCodeExport = '';
+      this.hasInventoryRelatedChange = true;
+
       this.angularGridDetail.gridService.updateItem(args.item);
     }
 
@@ -1305,6 +1366,13 @@ private productInventoryDetailMap: Map<string, {
     }
 
     if (columnDef.field === 'ProductID' || columnDef.field === 'Qty') {
+      if (columnDef.field === 'Qty') {
+        // ✅ Clear inventory allocation when Qty changes
+        args.item.ChosenInventoryProject = '';
+        args.item.ProductCodeExport = '';
+        this.hasInventoryRelatedChange = true;
+        this.angularGridDetail.gridService.updateItem(args.item);
+      }
       this.updateDetailFooter();
     }
   }
@@ -1363,9 +1431,32 @@ private productInventoryDetailMap: Map<string, {
 
   refreshGrid(): void {
     if (this.angularGridDetail?.dataView) {
+      // Lưu lại selected rows trước khi refresh
+      const selectedRows = this.angularGridDetail.slickGrid?.getSelectedRows() || [];
+      const selectedIds = selectedRows.map(rowIndex => {
+        const item = this.angularGridDetail.slickGrid.getDataItem(rowIndex);
+        return item?.ID;
+      }).filter(id => id != null);
+
+      // Refresh data
       this.angularGridDetail.dataView.setItems(this.dataDetail);
       this.angularGridDetail.slickGrid?.invalidate();
       this.angularGridDetail.slickGrid?.render();
+
+      // Restore selected rows dựa trên ID
+      if (selectedIds.length > 0) {
+        setTimeout(() => {
+          const rowsToSelect: number[] = [];
+          this.dataDetail.forEach((item: any, index: number) => {
+            if (selectedIds.includes(item.ID)) {
+              rowsToSelect.push(index);
+            }
+          });
+          if (rowsToSelect.length > 0) {
+            this.angularGridDetail.slickGrid?.setSelectedRows(rowsToSelect);
+          }
+        }, 0);
+      }
     }
   }
 
@@ -1606,6 +1697,30 @@ private productInventoryDetailMap: Map<string, {
     });
   }
 
+  /**
+   * Load SenderID (Người Nhận) từ ProductGroupWarehouse khi ở chế độ thêm mới
+   */
+  private loadSenderFromProductGroupWarehouse(khoTypeID: number, warehouseID: number): void {
+    if (!khoTypeID || !warehouseID || khoTypeID <= 0 || warehouseID <= 0) {
+      return;
+    }
+
+    this.productSaleService
+      .getdataProductGroupWareHouse(khoTypeID, warehouseID)
+      .subscribe({
+        next: (res: any) => {
+          if (res?.data && res.data.length > 0) {
+            const userId = res.data[0].UserID || 0;
+            this.validateForm.patchValue({ UserID: userId });
+            this.newBillExport.UserID = userId;
+          }
+        },
+        error: (err: any) => {
+          console.error('Error loading sender from ProductGroupWarehouse:', err);
+        },
+      });
+  }
+
   changeProductGroup(ID: number): void {
     if (!ID) {
       this.productGridCollection = [];
@@ -1615,20 +1730,11 @@ private productInventoryDetailMap: Map<string, {
 
     const normalizedWareHouseCode = (this.wareHouseCode || '').trim() || 'HN';
 
+    // Load SenderID từ ProductGroupWarehouse khi thêm mới
     if (!this.newBillExport.Id || this.newBillExport.Id <= 0) {
       const warehouseID = this.newBillExport.WarehouseID || 0;
       if (warehouseID > 0) {
-        this.productSaleService
-          .getdataProductGroupWareHouse(ID, warehouseID)
-          .subscribe({
-            next: (res: any) => {
-              if (res?.data && res.data.length > 0) {
-                const userId = res.data[0].UserID || 0;
-                this.validateForm.patchValue({ SenderID: userId });
-                this.newBillExport.SenderID = userId;
-              }
-            },
-          });
+        this.loadSenderFromProductGroupWarehouse(ID, warehouseID);
       }
     }
 
@@ -1714,6 +1820,31 @@ private productInventoryDetailMap: Map<string, {
     this.newBillExport.Status = value;
     // Update ExpectReturnDate column visibility based on status
     this.updateColumnVisibility();
+    // Update date validators based on status
+    this.updateDateValidators(value);
+  }
+
+  /**
+   * Cập nhật validators cho CreatDate và RequestDate dựa trên Status
+   * - Status = 6 (Yêu cầu xuất kho): RequestDate bắt buộc, CreatDate không bắt buộc
+   * - Các status khác: CreatDate bắt buộc, RequestDate không bắt buộc
+   */
+  private updateDateValidators(status: number): void {
+    const creatDateControl = this.validateForm.get('CreatDate');
+    const requestDateControl = this.validateForm.get('RequestDate');
+
+    if (status === 6) {
+      // Status = 6 (Yêu cầu xuất kho): RequestDate bắt buộc, CreatDate không bắt buộc
+      creatDateControl?.clearValidators();
+      requestDateControl?.setValidators([Validators.required]);
+    } else {
+      // Các status khác: CreatDate bắt buộc, RequestDate không bắt buộc
+      creatDateControl?.setValidators([Validators.required]);
+      requestDateControl?.clearValidators();
+    }
+
+    creatDateControl?.updateValueAndValidity();
+    requestDateControl?.updateValueAndValidity();
   }
 
   /**
@@ -1727,30 +1858,56 @@ private productInventoryDetailMap: Map<string, {
     const shouldShowExpectReturnDate = this.isBorrow || status === 0 || status === 7;
 
     const grid = this.angularGridDetail.slickGrid;
-    const currentColumns = grid.getColumns();
+    let currentColumns = grid.getColumns();
 
-    // Tìm cột ExpectReturnDate trong danh sách columns
-    const expectReturnDateColumn = this.columnDefinitionsDetail.find(col => col.id === 'ExpectReturnDate');
-    if (!expectReturnDateColumn) return;
+    // Lưu lại checkbox column để đảm bảo không bị mất
+    const checkboxColumn = currentColumns.find((col: any) => col.id === '_checkbox_selector');
 
-    // Kiểm tra xem cột đã có trong grid chưa
-    const columnExists = currentColumns.some((col: any) => col.id === 'ExpectReturnDate');
+    // Loại bỏ checkbox column tạm thời khỏi danh sách để xử lý
+    currentColumns = currentColumns.filter((col: any) => col.id !== '_checkbox_selector');
 
-    if (shouldShowExpectReturnDate && !columnExists) {
-      // Thêm cột vào grid
-      const insertIndex = currentColumns.findIndex((col: any) => col.id === 'UnitPricePOKH');
-      if (insertIndex > -1) {
-        currentColumns.splice(insertIndex, 0, expectReturnDateColumn);
-      } else {
-        currentColumns.push(expectReturnDateColumn);
+    // Tìm index của cột ExpectReturnDate trong danh sách hiện tại
+    const columnIndex = currentColumns.findIndex((col: any) => col.id === 'ExpectReturnDate');
+
+    if (columnIndex === -1) {
+      // Cột chưa có trong grid, cần thêm vào nếu shouldShow = true
+      if (shouldShowExpectReturnDate) {
+        const expectReturnDateColumn = this.columnDefinitionsDetail.find(col => col.id === 'ExpectReturnDate');
+        if (expectReturnDateColumn) {
+          // Thêm cột vào vị trí trước UnitPricePOKH
+          const insertIndex = currentColumns.findIndex((col: any) => col.id === 'UnitPricePOKH');
+          if (insertIndex > -1) {
+            currentColumns.splice(insertIndex, 0, { ...expectReturnDateColumn, hidden: false });
+          } else {
+            currentColumns.push({ ...expectReturnDateColumn, hidden: false });
+          }
+
+          // Thêm lại checkbox column vào đầu
+          if (checkboxColumn) {
+            currentColumns = [checkboxColumn, ...currentColumns];
+          }
+
+          grid.setColumns(currentColumns);
+          grid.invalidate();
+        }
       }
-      grid.setColumns(currentColumns);
-      grid.invalidate();
-    } else if (!shouldShowExpectReturnDate && columnExists) {
-      // Xóa cột khỏi grid
-      const filteredColumns = currentColumns.filter((col: any) => col.id !== 'ExpectReturnDate');
-      grid.setColumns(filteredColumns);
-      grid.invalidate();
+    } else {
+      // Cột đã có trong grid, chỉ cần update hidden property
+      const column = currentColumns[columnIndex];
+      const isCurrentlyHidden = column.hidden === true;
+      const shouldBeHidden = !shouldShowExpectReturnDate;
+
+      if (isCurrentlyHidden !== shouldBeHidden) {
+        column.hidden = shouldBeHidden;
+
+        // Thêm lại checkbox column vào đầu
+        if (checkboxColumn) {
+          currentColumns = [checkboxColumn, ...currentColumns];
+        }
+
+        grid.setColumns(currentColumns);
+        grid.invalidate();
+      }
     }
   }
 
@@ -1817,7 +1974,7 @@ private productInventoryDetailMap: Map<string, {
           this.loadReferenceLinks();
         }
       },
-      () => {}
+      () => { }
     );
   }
   //#endregion
@@ -1834,6 +1991,11 @@ private productInventoryDetailMap: Map<string, {
         );
         if (currentWarehouse) {
           this.newBillExport.WarehouseID = currentWarehouse.ID || 0;
+
+          // Nếu đang ở chế độ thêm mới và đã có KhoTypeID, load SenderID từ ProductGroupWarehouse
+          if ((!this.newBillExport.Id || this.newBillExport.Id <= 0) && this.newBillExport.KhoTypeID > 0) {
+            this.loadSenderFromProductGroupWarehouse(this.newBillExport.KhoTypeID, this.newBillExport.WarehouseID);
+          }
         }
       },
       error: (err: any) => {
@@ -2194,190 +2356,197 @@ private productInventoryDetailMap: Map<string, {
   //   }
   // }
   private validateInventoryStock(): { isValid: boolean; message: string } {
-  const tableData = this.dataDetail || [];
-  if (tableData.length === 0) return { isValid: true, message: '' };
+    const tableData = this.dataDetail || [];
+    if (tableData.length === 0) return { isValid: true, message: '' };
 
-  const insufficientMessages: string[] = [];
-  const skipUnitNames = ['m', 'mét', 'met'];
+    const insufficientMessages: string[] = [];
+    const skipUnitNames = ['m', 'mét', 'met'];
 
-  // ✅ Nhóm theo ProductID + ProjectID + POKHDetailID
-  const groups = new Map<string, {
-    productID: number;
-    projectID: number;
-    pokhDetailID: number;
-    totalQty: number;
-    sampleRow: any;
-  }>();
+    // ✅ Nhóm theo ProductID + ProjectID + POKHDetailID
+    const groups = new Map<string, {
+      productID: number;
+      projectID: number;
+      pokhDetailID: number;
+      totalQty: number;
+      sampleRow: any;
+    }>();
 
-  tableData.forEach((row: any) => {
-    const productID = Number(row.ProductID || 0);
-    const projectID = Number(row.ProjectID || 0);
-    const pokhDetailID = Number(row.POKHDetailIDActual || row.POKHDetailID || 0);
-    const qty = parseFloat(row.Qty || 0);
-    
-    if (productID <= 0 || qty <= 0) return;
-    
-    // ✅ Nếu có POKHDetailID thì ProjectID = 0
-    const finalProjectID = pokhDetailID > 0 ? 0 : projectID;
-    const key = `${productID}-${finalProjectID}-${pokhDetailID}`;
-    
-    if (!groups.has(key)) {
-      groups.set(key, {
-        productID,
-        projectID: finalProjectID,
-        pokhDetailID,
-        totalQty: 0,
-        sampleRow: row
-      });
-    }
-    
-    groups.get(key)!.totalQty += qty;
-  });
+    tableData.forEach((row: any) => {
+      const productID = Number(row.ProductID || 0);
+      const projectID = Number(row.ProjectID || 0);
+      const pokhDetailID = Number(row.POKHDetailIDActual || row.POKHDetailID || 0);
+      const qty = parseFloat(row.Qty || 0);
 
-  // ✅ Kiểm tra từng nhóm
-  groups.forEach((group, key) => {
-    const invInfo = this.productInventoryDetailMap.get(key);
-    
-    if (!invInfo) {
-      insufficientMessages.push(`Nhóm [${key}]: Chưa nạp được dữ liệu tồn kho.`);
-      return;
-    }
+      if (productID <= 0 || qty <= 0) return;
 
-    // ✅ Skip đơn vị mét
-    const unit = (group.sampleRow?.Unit || '').toLowerCase().trim();
-    if (skipUnitNames.includes(unit)) return;
+      // ✅ Nếu có POKHDetailID thì ProjectID = 0
+      const finalProjectID = pokhDetailID > 0 ? 0 : projectID;
+      const key = `${productID}-${finalProjectID}-${pokhDetailID}`;
 
-    // ✅ Tổng tồn = Giữ + Còn lại + Tồn CK
-    const totalStock = invInfo.totalQuantityKeep + invInfo.totalQuantityRemain + invInfo.totalQuantityLast;
-
-    if (group.totalQty > totalStock) {
-      const productDisplay = group.sampleRow?.ProductNewCode || group.sampleRow?.ProductCode || `ID:${group.productID}`;
-      
-      let locationInfo = '';
-      if (group.projectID > 0) {
-        locationInfo = ` (Dự án: ${group.projectID})`;
-      } else if (group.pokhDetailID > 0) {
-        locationInfo = ` (POKH Detail: ${group.pokhDetailID})`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          productID,
+          projectID: finalProjectID,
+          pokhDetailID,
+          totalQty: 0,
+          sampleRow: row
+        });
       }
-      
-      insufficientMessages.push(
-        `[${productDisplay}]\n` +
-        `SL xuất: ${group.totalQty.toFixed(2)} > Tổng tồn: ${totalStock.toFixed(2)}\n` +
-        `(SL giữ: ${invInfo.totalQuantityKeep.toFixed(2)} + SL còn lại: ${invInfo.totalQuantityRemain.toFixed(2)} + Tồn CK: ${invInfo.totalQuantityLast.toFixed(2)})`
-      );
-    }
-  });
 
-  return {
-    isValid: insufficientMessages.length === 0,
-    message: insufficientMessages.join('\n\n')
-  };
-}
-private async loadInventoryForValidation(): Promise<void> {
-  const tableData = this.dataDetail || [];
-  const warehouseID = this.newBillExport.WarehouseID || 0;
+      groups.get(key)!.totalQty += qty;
+    });
 
-  // ✅ Nhóm theo ProductID + ProjectID + POKHDetailID
-  const groups = new Map<string, {
-    productID: number;
-    projectID: number;
-    pokhDetailID: number;
-    billExportDetailIDs: number[];
-  }>();
+    // ✅ Kiểm tra từng nhóm
+    groups.forEach((group, key) => {
+      const invInfo = this.productInventoryDetailMap.get(key);
 
-  tableData.forEach((row: any) => {
-    const productID = Number(row.ProductID || 0);
-    const projectID = Number(row.ProjectID || 0);
-    const pokhDetailID = Number(row.POKHDetailIDActual || row.POKHDetailID || 0);
-    
-    if (productID <= 0) return;
-    
-    // ✅ Nếu có POKHDetailID thì ProjectID = 0
-    const finalProjectID = pokhDetailID > 0 ? 0 : projectID;
-    const key = `${productID}-${finalProjectID}-${pokhDetailID}`;
-    
-    if (!groups.has(key)) {
-      groups.set(key, {
-        productID,
-        projectID: finalProjectID,
-        pokhDetailID,
-        billExportDetailIDs: []
-      });
-    }
-    
-    // ✅ Chỉ thêm ID > 0 (detail đang sửa)
-    if (row.ID > 0) {
-      groups.get(key)!.billExportDetailIDs.push(row.ID);
-    }
-  });
+      if (!invInfo) {
+        insufficientMessages.push(`Nhóm [${key}]: Chưa nạp được dữ liệu tồn kho.`);
+        return;
+      }
 
-  // ✅ Gọi API cho từng nhóm
-  for (const [key, group] of groups) {
-    try {
-      // ✅ Chuyển array thành CSV: [123, 456] → "123,456"
-      const billExportDetailIDs = group.billExportDetailIDs.join(',');
-      
-      const res: any = await firstValueFrom(
-        this.billExportService.getInventoryProjectImportExport(
-          warehouseID,
-          group.productID,
-          group.projectID,
-          group.pokhDetailID,
-          billExportDetailIDs  // ✅ Truyền CSV
-        )
-      );
+      // ✅ Skip đơn vị mét
+      const unit = (group.sampleRow?.Unit || '').toLowerCase().trim();
+      if (skipUnitNames.includes(unit)) return;
 
-      if (res && res.status === 1) {
-        // ✅ Lấy 4 bảng từ API
-        const inventoryProjects = res.inventoryProjects || []; // Bảng 0: Keep
-        const dtImport = res.import || [];                     // Bảng 1: Import
-        const dtExport = res.export || [];                     // Bảng 2: Export
-        const dtStock = res.stock || [];                       // Bảng 3: Stock
+      // ✅ Tổng tồn = Giữ + Còn lại + Tồn CK
+      const totalStock = invInfo.totalQuantityKeep + invInfo.totalQuantityRemain + invInfo.totalQuantityLast;
 
-        // ✅ Tính toán tồn kho
-        const totalQuantityKeep = inventoryProjects.length > 0 
-          ? Number(inventoryProjects[0].TotalQuantity || 0) 
-          : 0;
-        
-        const totalImport = dtImport.length > 0 
-          ? Number(dtImport[0].TotalImport || 0) 
-          : 0;
-        
-        const totalExport = dtExport.length > 0 
-          ? Number(dtExport[0].TotalExport || 0) 
-          : 0;
-        
-        const totalQuantityLast = dtStock.length > 0 
-          ? Number(dtStock[0].TotalQuantityLast || 0) 
-          : 0;
+      if (group.totalQty > totalStock) {
+        const productDisplay = group.sampleRow?.ProductNewCode || group.sampleRow?.ProductCode || `ID:${group.productID}`;
 
-        const totalQuantityRemain = Math.max(totalImport - totalExport, 0);
+        let locationInfo = '';
+        if (group.projectID > 0) {
+          locationInfo = ` (Dự án: ${group.projectID})`;
+        } else if (group.pokhDetailID > 0) {
+          locationInfo = ` (POKH Detail: ${group.pokhDetailID})`;
+        }
 
-        // ✅ Lưu vào Map với key là string
+        const showKeepQty = group.projectID > 0 && group.pokhDetailID > 0;
+
+        const keepQtyText = showKeepQty
+          ? `SL giữ: ${invInfo.totalQuantityKeep.toFixed(2)} + `
+          : '';
+
+        insufficientMessages.push(
+          `[${productDisplay}]\n` +
+          `SL xuất: ${group.totalQty.toFixed(2)} > Tổng tồn: ${totalStock.toFixed(2)}\n` +
+          `(${keepQtyText}SL còn lại: ${invInfo.totalQuantityRemain.toFixed(2)} + Tồn CK: ${invInfo.totalQuantityLast.toFixed(2)})`
+        );
+
+      }
+    });
+
+    return {
+      isValid: insufficientMessages.length === 0,
+      message: insufficientMessages.join('\n\n')
+    };
+  }
+  private async loadInventoryForValidation(): Promise<void> {
+    const tableData = this.dataDetail || [];
+    const warehouseID = this.newBillExport.WarehouseID || 0;
+
+    // ✅ Nhóm theo ProductID + ProjectID + POKHDetailID
+    const groups = new Map<string, {
+      productID: number;
+      projectID: number;
+      pokhDetailID: number;
+      billExportDetailIDs: number[];
+    }>();
+
+    tableData.forEach((row: any) => {
+      const productID = Number(row.ProductID || 0);
+      const projectID = Number(row.ProjectID || 0);
+      const pokhDetailID = Number(row.POKHDetailIDActual || row.POKHDetailID || 0);
+
+      if (productID <= 0) return;
+
+      // ✅ Nếu có POKHDetailID thì ProjectID = 0
+      const finalProjectID = pokhDetailID > 0 ? 0 : projectID;
+      const key = `${productID}-${finalProjectID}-${pokhDetailID}`;
+
+      if (!groups.has(key)) {
+        groups.set(key, {
+          productID,
+          projectID: finalProjectID,
+          pokhDetailID,
+          billExportDetailIDs: []
+        });
+      }
+
+      // ✅ Chỉ thêm ID > 0 (detail đang sửa)
+      if (row.ID > 0) {
+        groups.get(key)!.billExportDetailIDs.push(row.ID);
+      }
+    });
+
+    // ✅ Gọi API cho từng nhóm
+    for (const [key, group] of groups) {
+      try {
+        // ✅ Chuyển array thành CSV: [123, 456] → "123,456"
+        const billExportDetailIDs = group.billExportDetailIDs.join(',');
+
+        const res: any = await firstValueFrom(
+          this.billExportService.getInventoryProjectImportExport(
+            warehouseID,
+            group.productID,
+            group.projectID,
+            group.pokhDetailID,
+            billExportDetailIDs  // ✅ Truyền CSV
+          )
+        );
+
+        if (res && res.status === 1) {
+          // ✅ Lấy 4 bảng từ API
+          const inventoryProjects = res.inventoryProjects || []; // Bảng 0: Keep
+          const dtImport = res.import || [];                     // Bảng 1: Import
+          const dtExport = res.export || [];                     // Bảng 2: Export
+          const dtStock = res.stock || [];                       // Bảng 3: Stock
+
+          // ✅ Tính toán tồn kho
+          const totalQuantityKeep = inventoryProjects.length > 0
+            ? Number(inventoryProjects[0].TotalQuantity || 0)
+            : 0;
+
+          const totalImport = dtImport.length > 0
+            ? Number(dtImport[0].TotalImport || 0)
+            : 0;
+
+          const totalExport = dtExport.length > 0
+            ? Number(dtExport[0].TotalExport || 0)
+            : 0;
+
+          const totalQuantityLast = dtStock.length > 0
+            ? Number(dtStock[0].TotalQuantityLast || 0)
+            : 0;
+
+          const totalQuantityRemain = Math.max(totalImport - totalExport, 0);
+
+          // ✅ Lưu vào Map với key là string
+          this.productInventoryDetailMap.set(key, {
+            totalQuantityKeep: Math.max(totalQuantityKeep, 0),
+            totalQuantityRemain,
+            totalQuantityLast: Math.max(totalQuantityLast, 0)
+          });
+
+          console.log(`✅ Nạp tồn kho [${key}]:`, {
+            Giữ: totalQuantityKeep,
+            'Còn lại': totalQuantityRemain,
+            'Tồn CK': totalQuantityLast,
+            'Tổng': totalQuantityKeep + totalQuantityRemain + totalQuantityLast
+          });
+        }
+      } catch (err) {
+        console.error(`❌ Lỗi API tồn kho [${key}]:`, err);
+        // ✅ Lưu giá trị 0 nếu lỗi
         this.productInventoryDetailMap.set(key, {
-          totalQuantityKeep: Math.max(totalQuantityKeep, 0),
-          totalQuantityRemain,
-          totalQuantityLast: Math.max(totalQuantityLast, 0)
-        });
-
-        console.log(`✅ Nạp tồn kho [${key}]:`, {
-          Giữ: totalQuantityKeep,
-          'Còn lại': totalQuantityRemain,
-          'Tồn CK': totalQuantityLast,
-          'Tổng': totalQuantityKeep + totalQuantityRemain + totalQuantityLast
+          totalQuantityKeep: 0,
+          totalQuantityRemain: 0,
+          totalQuantityLast: 0
         });
       }
-    } catch (err) {
-      console.error(`❌ Lỗi API tồn kho [${key}]:`, err);
-      // ✅ Lưu giá trị 0 nếu lỗi
-      this.productInventoryDetailMap.set(key, {
-        totalQuantityKeep: 0,
-        totalQuantityRemain: 0,
-        totalQuantityLast: 0
-      });
     }
   }
-}
   private mapTableDataToBillExportDetails(tableData: any[]): any[] {
     return tableData.map((row: any, index: number) => {
       const rowKey = row.ID || index;
@@ -2553,7 +2722,7 @@ private async loadInventoryForValidation(): Promise<void> {
         },
       });
 
-    } catch (error:any) {
+    } catch (error: any) {
       console.error('Lỗi quy trình lưu:', error);
       this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
       this.isSaving = false;
@@ -2646,5 +2815,138 @@ private async loadInventoryForValidation(): Promise<void> {
     });
   }
   //#endregion
+
+  //#region Serial Management
+  /**
+   * Open modal to add/edit serial numbers for a bill export detail row
+   * @param rowData - The row data from the grid
+   */
+  openAddSerialModal(rowData: any): void {
+    // Validate that the row has valid data
+    if (!rowData || !rowData.ID) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn dòng hợp lệ để thêm Serial!'
+      );
+      return;
+    }
+
+    // Check if the bill is approved - if so, don't allow editing
+    if (this.newBillExport.IsApproved) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
+      );
+      return;
+    }
+
+    // Get quantity and product code from row data
+    const quantity = rowData.Qty || 0;
+    const productCode = rowData.ProductID || '';
+    const serialIDsRaw = rowData.SerialNumber;
+    const type = 2;
+
+    // Validate quantity
+    if (quantity <= 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng nhập số lượng xuất lớn hơn 0 trước khi chọn Serial!'
+      );
+      return;
+    }
+
+    // Helper function to open modal with serial data
+    const openModal = (existingSerials: { ID: number; Serial: string }[]) => {
+      const modalRef = this.modalService.open(BillImportChoseSerialComponent, {
+        size: 'md',
+        centered: true,
+        backdrop: 'static',
+        keyboard: false,
+      });
+
+      modalRef.componentInstance.quantity = quantity;
+      modalRef.componentInstance.productCode = productCode;
+      modalRef.componentInstance.existingSerials = existingSerials;
+      modalRef.componentInstance.type = type;
+      modalRef.componentInstance.dataBillDetail = rowData;
+
+      // Handle modal result
+      modalRef.result.then(
+        (result) => {
+          if (result) {
+            // Reload detail data after serial is saved
+            this.notification.success(
+              NOTIFICATION_TITLE.success,
+              'Đã lưu Serial thành công!'
+            );
+            // Optionally refresh the grid or specific row data
+            if (this.id > 0) {
+              this.getBillExportDetailID();
+            }
+          }
+        },
+        (reason) => {
+          // Modal dismissed without saving
+          console.log('Serial modal dismissed:', reason);
+        }
+      );
+    };
+
+    // Check if there are existing serial IDs to fetch
+    if (serialIDsRaw && typeof serialIDsRaw === 'string') {
+      const serialIDs = serialIDsRaw
+        .split(',')
+        .map((id: string) => parseInt(id.trim()))
+        .filter((id: number) => !isNaN(id) && id > 0);
+
+      if (serialIDs.length === 0) {
+        // No valid serial IDs, open modal with empty array
+        openModal([]);
+        return;
+      }
+
+      // Fetch serial details from API
+      const payload = {
+        Ids: serialIDs,
+        Type: type,
+      };
+
+      this.billExportService.getSerialByIDs(payload).subscribe({
+        next: (res) => {
+          if (res?.status === 1 && res.data) {
+            const existingSerials = res.data.map((item: any) => ({
+              ID: item.ID,
+              Serial: item.SerialNumber || item.Serial || '',
+            }));
+            openModal(existingSerials);
+          } else {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Không tải được serial!'
+            );
+            console.error('Lỗi response:', res);
+            openModal([]);
+          }
+        },
+        error: (err) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải serial!'
+          );
+          console.error('Lỗi API:', err);
+          openModal([]);
+        },
+      });
+    } else {
+      // No serial IDs, open modal with empty array
+      openModal([]);
+    }
+  }
+  // /**
+  //  * Close the current modal
+  //  */
+  // closeModal(): void {
+  //   this.activeModal.close();
+  // }
   //#endregion
 }

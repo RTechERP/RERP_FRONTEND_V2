@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, OnInit, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -12,13 +12,10 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { DateTime } from 'luxon';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { FormControl } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
@@ -31,14 +28,23 @@ import { DeclareDayOffComponent } from './declare-day-off/declare-day-off.compon
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from "../../../directives/has-permission.directive";
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { AuthService } from '../../../auth/auth.service';
 import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.service';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../services/permission.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-
+import { Menubar } from 'primeng/menubar';
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  Formatter,
+  Formatters,
+  GridOption,
+  MultipleSelectOption,
+  OnClickEventArgs,
+  OnSelectedRowsChangedEventArgs,
+} from 'angular-slickgrid';
 
 @Component({
   selector: 'app-day-off',
@@ -56,38 +62,38 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
     NzInputModule,
     NzNotificationModule,
     ReactiveFormsModule,
-    NzIconModule,
     NzCheckboxModule,
     NzInputNumberModule,
     NzDatePickerModule,
-    NzTabsModule,
     NzSplitterModule,
     NzGridModule,
     SummaryDayOffComponent,
     NgIf,
     NzSpinModule,
-    NzDropDownModule,
-    Menubar
+    Menubar,
+    AngularSlickgridModule
   ]
 })
-export class DayOffComponent implements OnInit, AfterViewInit {
+export class DayOffComponent implements OnInit {
 
   @ViewChild('listSummaryTable') tableRef!: ElementRef;
-  private tabulator!: Tabulator;
   searchForm!: FormGroup;
   dayOffForm!: FormGroup;
   employeeList: any[] = [];
   approverList: any[] = [];
   departmentList: any[] = [];
   dayOffList: any[] = [];
-  approvers: { department: string, list: any[] }[] = [];
-
-  sizeSearch: string = '0';
-  sizeTbDetail: any = '0';
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
   // Menu bars
   menuBars: any[] = [];
+
+  // SlickGrid properties
+  angularGrid!: AngularGridInstance;
+  gridData: any;
+  columnDefinitions: Column[] = [];
+  gridOptions: GridOption = {};
+  dataset: any[] = [];
 
   get shouldShowSearchBar(): boolean {
     return this.showSearchBar;
@@ -124,10 +130,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   };
 
   listSummaryData: any;
-  listSummaryTable: Tabulator | null = null;
   private employeeIdSubscription: any;
-
-
 
   constructor(
     private fb: FormBuilder,
@@ -145,11 +148,11 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.initMenuBar();
     this.initializeForm();
+    this.initGrid();
     this.loadEmployeeOnLeave();
     this.loadDepartments();
     this.loadApprovers();
     this.loadEmployees();
-    this.getSummaryEmployee();
 
     this.authService.getCurrentUser().subscribe((res: any) => {
       const data = res?.data;
@@ -250,16 +253,6 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     ];
   }
 
-  ngAfterViewInit(): void {
-    this.initializeTable();
-    this.draw_listSummaryTable();
-
-  }
-
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '20%' : '0';
-  }
-
   private initializeForm(): void {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1;
@@ -268,8 +261,8 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     this.searchForm = this.fb.group({
       month: [currentMonth, [Validators.required, Validators.min(1), Validators.max(12)]],
       year: [currentYear, [Validators.required, Validators.min(1), Validators.max(3000)]],
-      departmentId: 0,
-      status: -1,
+      departmentId: null,
+      status: null,
       keyWord: '',
       pageNumber: 1,
       pageSize: 1000000,
@@ -287,64 +280,441 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       ReasonHREdit: [''],
       EndDate: [null]
     })
+  }
 
+  initGrid(): void {
+    const frozenOn = !this.isMobile();
+
+    this.columnDefinitions = [
+      {
+        id: 'IsApprovedTP',
+        name: 'TBP duyệt',
+        field: 'IsApprovedTP',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        formatter: Formatters.checkmarkMaterial,
+        filter: {
+          collection: [
+            { value: '', label: 'Tất cả' },
+            { value: true, label: 'Đã duyệt' },
+            { value: false, label: 'Chưa duyệt' },
+          ],
+          model: Filters['singleSelect'],
+          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'IsApprovedHR',
+        name: 'HR duyệt',
+        field: 'IsApprovedHR',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        formatter: Formatters.checkmarkMaterial,
+        filter: {
+          collection: [
+            { value: '', label: 'Tất cả' },
+            { value: true, label: 'Đã duyệt' },
+            { value: false, label: 'Chưa duyệt' },
+          ],
+          model: Filters['singleSelect'],
+          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'IsApprovedBGD',
+        name: 'BGĐ duyệt',
+        field: 'IsApprovedBGD',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        formatter: Formatters.checkmarkMaterial,
+        filter: {
+          collection: [
+            { value: '', label: 'Tất cả' },
+            { value: true, label: 'Đã duyệt' },
+            { value: false, label: 'Chưa duyệt' },
+          ],
+          model: Filters['singleSelect'],
+          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'Code',
+        name: 'Mã NV',
+        field: 'Code',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'FullName',
+        name: 'Họ và tên',
+        field: 'FullName',
+        sortable: true,
+        filterable: true,
+        width: 180,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'DepartmentName',
+        name: 'Phòng ban',
+        field: 'DepartmentName',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'ApprovedName',
+        name: 'Người duyệt',
+        field: 'ApprovedName',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'TimeOnLeaveText',
+        name: 'Thời gian nghỉ',
+        field: 'TimeOnLeaveText',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'StartDate',
+        name: 'Ngày bắt đầu',
+        field: 'StartDate',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        formatter: this.dateTimeFormatter,
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'EndDate',
+        name: 'Ngày kết thúc',
+        field: 'EndDate',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        formatter: this.dateTimeFormatter,
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'TotalDay',
+        name: 'Số ngày',
+        field: 'TotalDay',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-end'
+      },
+      {
+        id: 'TypeHR',
+        name: 'Loại',
+        field: 'TypeHR',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Reason',
+        name: 'Lý do',
+        field: 'Reason',
+        sortable: true,
+        filterable: true,
+        width: 300,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'ReasonHREdit',
+        name: 'Lý do sửa',
+        field: 'ReasonHREdit',
+        sortable: true,
+        filterable: true,
+        width: 200,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'ReasonCancel',
+        name: 'Lý do hủy',
+        field: 'ReasonCancel',
+        sortable: true,
+        filterable: true,
+        width: 200,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'ReasonDeciline',
+        name: 'Lý do không đồng ý duyệt',
+        field: 'ReasonDeciline',
+        sortable: true,
+        filterable: true,
+        width: 200,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'DateCancel',
+        name: 'Ngày hủy',
+        field: 'DateCancel',
+        sortable: true,
+        filterable: true,
+        width: 120,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'IsCancelRegister',
+        name: 'NV hủy đăng ký',
+        field: 'IsCancelRegister',
+        sortable: true,
+        filterable: true,
+        width: 130,
+        formatter: Formatters.checkmarkMaterial,
+        cssClass: 'text-center'
+      },
+      {
+        id: 'IsCancelTP',
+        name: 'TBP duyệt hủy ĐK',
+        field: 'IsCancelTP',
+        sortable: true,
+        filterable: true,
+        width: 140,
+        formatter: Formatters.checkmarkMaterial,
+        cssClass: 'text-center'
+      },
+      {
+        id: 'IsCancelHR',
+        name: 'HR duyệt hủy ĐK',
+        field: 'IsCancelHR',
+        sortable: true,
+        filterable: true,
+        width: 140,
+        formatter: Formatters.checkmarkMaterial,
+        cssClass: 'text-center'
+      },
+    ];
+
+    this.gridOptions = {
+      autoResize: {
+        container: '#grvDayOffContainer',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false
+      },
+      checkboxSelector: {
+        hideInFilterHeaderRow: true,
+        hideInColumnTitleRow: false,
+        applySelectOnAllPages: true,
+      },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      frozenColumn: frozenOn ? 5 : 0,
+      showFooterRow: true,
+      createFooterRow: true,
+      formatterOptions: {
+        decimalSeparator: '.',
+        displayNegativeNumberWithParentheses: true,
+        minDecimal: 0,
+        maxDecimal: 2,
+        thousandSeparator: ','
+      },
+    };
+  }
+
+  // Custom formatter for datetime
+  dateTimeFormatter: Formatter = (row, cell, value, columnDef, dataContext) => {
+    if (!value) return '';
+    try {
+      return DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm');
+    } catch {
+      return '';
+    }
+  };
+
+  angularGridReady(angularGrid: AngularGridInstance) {
+    this.angularGrid = angularGrid;
+    this.gridData = angularGrid?.slickGrid || {};
+
+    // Update footer row count when data changes
+    angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      this.updateFooterTotals();
+    });
+
+    angularGrid.dataView.onRowsChanged.subscribe(() => {
+      this.updateFooterTotals();
+    });
+
+    setTimeout(() => {
+      this.applyDistinctFilters();
+    }, 100);
+  }
+
+  private updateFooterTotals(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid || !this.angularGrid.dataView) return;
+
+    const totalCount = this.angularGrid.dataView.getLength();
+
+    const countElement = this.angularGrid.slickGrid?.getFooterRowColumn('FullName');
+    if (countElement) {
+      countElement.innerHTML = `<div style="font-weight: bold;">${totalCount}</div>`;
+    }
+
+    const filteredItems = this.angularGrid.dataView.getFilteredItems() as any[];
+    const totalDays = filteredItems.reduce((sum, item) => {
+      const days = parseFloat(item.TotalDay) || 0;
+      return sum + days;
+    }, 0);
+
+    const daysElement = this.angularGrid.slickGrid?.getFooterRowColumn('TotalDay');
+    if (daysElement) {
+      daysElement.innerHTML = `<div style="text-align: right; padding-right: 8px; font-weight: bold;">${totalDays.toFixed(2)}</div>`;
+    }
+  }
+
+  applyDistinctFilters(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid || !this.angularGrid.dataView) return;
+
+    this.updateFooterTotals();
+
+    const data = this.angularGrid.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (items: any[], field: string): Array<{ value: any; label: string }> => {
+      const map = new Map<string, { value: any; label: string }>();
+      items.forEach((row: any) => {
+        const value = row?.[field];
+        if (value === null || value === undefined || value === '') return;
+        const key = `${typeof value}:${String(value)}`;
+        if (!map.has(key)) {
+          map.set(key, { value, label: String(value) });
+        }
+      });
+      return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const gridColumns = this.angularGrid.slickGrid.getColumns();
+    if (gridColumns) {
+      gridColumns.forEach((column: any) => {
+        if (column.filter && column.filter.model === Filters['multipleSelect']) {
+          const field = column.field;
+          if (!field) return;
+          column.filter.collection = getUniqueValues(data, field);
+        }
+      });
+    }
+
+    if (this.columnDefinitions) {
+      this.columnDefinitions.forEach((colDef: any) => {
+        if (colDef.filter && colDef.filter.model === Filters['multipleSelect']) {
+          const field = colDef.field;
+          if (!field) return;
+          colDef.filter.collection = getUniqueValues(data, field);
+        }
+      });
+    }
+
+    const updatedColumns = this.angularGrid.slickGrid.getColumns();
+    this.angularGrid.slickGrid.setColumns(updatedColumns);
+    this.angularGrid.slickGrid.invalidate();
+    this.angularGrid.slickGrid.render();
+
+    // Update footer totals AFTER invalidate/render to avoid being cleared
+    setTimeout(() => {
+      this.updateFooterTotals();
+    }, 50);
+  }
+
+  handleRowSelection(e: Event, args: OnSelectedRowsChangedEventArgs) {
+    // Handle row selection if needed
+  }
+
+  onCellClicked(e: Event, args: OnClickEventArgs) {
+    // Handle cell click if needed
+  }
+
+  getSelectedRows(): any[] {
+    if (!this.angularGrid || !this.angularGrid.slickGrid) return [];
+    const selectedRowIndexes = this.angularGrid.slickGrid.getSelectedRows();
+    return selectedRowIndexes.map((idx: number) => this.angularGrid.dataView.getItem(idx));
   }
 
   loadEmployeeOnLeave() {
     this.isLoading = true;
-    this.searchForm.patchValue({
-      month: this.searchForm.value.month ?? new Date().getMonth() + 1,
-      year: this.searchForm.value.year ?? new Date().getFullYear(),
-      departmentId: this.searchForm.value.departmentId ?? 0,
-      status: this.searchForm.value.status ?? -1,
-      IDApprovedTP: this.searchForm.value.IDApprovedTP ?? 0,
+
+    // Prepare data for API - convert null to default values for backend
+    const formValue = this.searchForm.value;
+    const data = {
+      month: formValue.month ?? new Date().getMonth() + 1,
+      year: formValue.year ?? new Date().getFullYear(),
+      departmentId: formValue.departmentId ?? 0,  // null -> 0 for API
+      status: formValue.status ?? -1,  // null -> -1 for API (all statuses)
+      IDApprovedTP: formValue.IDApprovedTP ?? 0,
       pageNumber: 1,
       pageSize: 1000000,
-      keyWord: this.searchForm.value.keyWord ?? ""
-    });
+      keyWord: formValue.keyWord ?? ""
+    };
 
-    let data = this.searchForm.value;
     this.dayOffService.getEmployeeOnLeave(data).subscribe({
-      next: (data) => {
+      next: (response: any) => {
         this.isLoading = false;
-        this.dayOffList = data.data;
-        this.tabulator.setData(this.dayOffList);
+        this.dayOffList = response.data || [];
+        this.dataset = this.dayOffList.map((item, index) => ({
+          ...item,
+          id: index
+        }));
+        this.applyDistinctFilters();
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách ngày nghỉ của nhân viên: ' + error.message);
+        this.isLoading = false;
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu: ' + (error.error?.message || error.message));
       }
-    })
+    });
   }
 
-  loadEmployees() {
+  loadEmployees(): void {
     this.employeeService.getAllEmployee().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.employeeList = data.data;
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + (error.error?.message || error.message));
       }
     })
-  }
-
-  getSummaryEmployee(): void {
-    this.dayOffService.getEmployeeOnLeaveSummary(
-      this.listParams.DepartmentID,
-      this.listParams.EmployeeID,
-      this.listParams.IsApproved,
-      this.listParams.Type,
-      this.listParams.Keyword,
-      this.listParams.DateStart,
-      this.listParams.DateEnd
-
-    ).subscribe((response: any) => {
-      this.listSummaryData = response.data?.data || [];
-      if (this.listSummaryTable) {
-        this.listSummaryTable.setData(this.listSummaryData || []);
-      } else {
-        this.draw_listSummaryTable();
-      }
-    });
   }
 
   filterOption = (input: string, option: any): boolean => {
@@ -360,7 +730,6 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     return permissionList.includes('N1') || permissionList.includes('N2');
   }
 
-  // Kiểm tra user có quyền sửa bản ghi đã duyệt (N1, N2 hoặc IsAdmin)
   checkCanEditApproved(): boolean {
     const hasN1Permission = this.permissionService.hasPermission('N1');
     const hasN2Permission = this.permissionService.hasPermission('N2');
@@ -368,7 +737,6 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     return hasN1Permission || hasN2Permission || isAdmin;
   }
 
-  // Kiểm tra user có phải là Admin không
   checkIsAdmin(): boolean {
     return this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
   }
@@ -384,6 +752,9 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   }
 
   disabledDate = (current: Date): boolean => {
+    if (this.permissionService.hasPermission('N1,N2')) {
+      return false;
+    }
     if (!current) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -414,308 +785,6 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private initializeTable(): void {
-    const frozenOn = !window.matchMedia('(max-width: 768px)').matches;
-    this.tabulator = new Tabulator('#tb_day_off', {
-      ...DEFAULT_TABLE_CONFIG,
-      data: this.dayOffList,
-      paginationMode: 'local',
-      layout: 'fitColumns',
-      selectableRows: true,
-
-
-
-      rowContextMenu: [
-        {
-          label: "TBP hủy duyệt hủy đăng ký",
-          action: () => {
-
-
-          }
-        },
-        {
-          label: "HR hủy duyệt hủy đăng ký",
-          action: () => {
-
-          }
-        }
-
-
-      ],
-      groupBy: 'DepartmentName',
-      groupHeader: function (value, count, data, group) {
-        return value + "<span style='color:#d00; margin-left:10px;'>(" + count + " nhân viên)</span>";
-      },
-      columns: [
-        {
-          title: 'TBP duyệt', field: 'IsApprovedTP', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: frozenOn,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-        },
-        {
-          title: 'HR duyệt', field: 'IsApprovedHR', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: frozenOn,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-
-        },
-        {
-          title: 'BGĐ duyệt', field: 'IsApprovedBGD', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: frozenOn,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-        },
-        {
-          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, headerSort: false, frozen: frozenOn,
-        },
-        {
-          title: 'Họ và tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: frozenOn, bottomCalc: 'count',
-        },
-        {
-          title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: frozenOn,
-        },
-        {
-          title: 'Thời gian nghỉ', field: 'TimeOnLeaveText', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
-        },
-        {
-          title: 'Ngày bắt đầu', field: 'StartDate', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm ') : '';
-          }
-        },
-        {
-          title: 'Ngày kết thúc', field: 'EndDate', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat(' dd/MM/yyyy HH:mm') : '';
-          }
-        },
-        {
-          title: 'Số ngày', field: 'TotalDay', hozAlign: 'right', headerHozAlign: 'center', width: 100, headerSort: false,
-        },
-        {
-          title: 'Loại', field: 'TypeHR', hozAlign: 'left', headerHozAlign: 'center', width: 150, headerSort: false,
-        },
-        {
-          title: 'Lý do', field: 'Reason', hozAlign: 'left', headerHozAlign: 'center', width: 500, formatter: 'textarea', headerSort: false,
-        },
-        {
-          title: 'Lý do sửa', field: 'ReasonHREdit', hozAlign: 'left', headerHozAlign: 'center', width: 300, formatter: 'textarea', headerSort: false,
-        },
-        {
-          title: 'Lý do hủy', field: 'ReasonCancel', hozAlign: 'left', headerHozAlign: 'center', width: 300, formatter: 'textarea', headerSort: false,
-        },
-        {
-          title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign: 'left', headerHozAlign: 'center', width: 300, formatter: 'textarea', headerSort: false,
-        },
-        {
-          title: 'Ngày hủy', field: 'DateCancel', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-          }
-        },
-        {
-          title: 'NV hủy đăng ký', field: 'IsCancelRegister', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-        },
-        {
-          title: 'TBP duyệt hủy đăng ký', field: 'IsCancelTP', hozAlign: 'center', headerHozAlign: 'center', width: 200, headerSort: false,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-        },
-        {
-          title: 'HR duyệt hủy đăng ký', field: 'IsCancelHR', hozAlign: 'center', headerHozAlign: 'center', width: 200, headerSort: false,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-        },
-      ],
-
-    });
-    this.tabulator.on("pageLoaded", () => {
-      this.tabulator.redraw();
-    });
-  }
-
-  draw_listSummaryTable() {
-    if (this.listSummaryTable) {
-      this.listSummaryTable.replaceData(
-        this.listSummaryData
-      );
-    } else {
-      this.listSummaryTable = new Tabulator(this.tableRef.nativeElement, {
-        data: this.listSummaryData,
-        ...DEFAULT_TABLE_CONFIG,
-        paginationMode: 'local',
-        height: '200px',
-        selectableRows: 1,
-        columns: [
-          {
-            title: 'STT',
-            hozAlign: 'center',
-            formatter: 'rownum',
-            headerHozAlign: 'center',
-            field: 'STT',
-          },
-          {
-            title: 'Họ tên',
-            field: 'FullName',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Tổng số ngày xin nghỉ phép trong tháng',
-            field: 'TotalDay',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Số ngày đã duyệt trong tháng',
-            field: 'TotalDayApproved',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Số ngày chưa duyệt trong tháng',
-            field: 'TotalDayUnApproved',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Số ngày còn lại dự kiến trong tháng',
-            field: 'TotalDayRemain',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Số ngày phép còn lại dự kiến trong năm',
-            field: 'TotalDayOnleaveActual',
-            headerHozAlign: 'center',
-          },
-        ],
-      });
-    }
-  }
-
-
-  resetSearch() {
-    this.searchForm.reset();
-    this.loadEmployeeOnLeave();
-  }
-
-  closeModal() {
-    const modal = document.getElementById('addDayOffModal');
-    if (modal) {
-      (window as any).bootstrap.Modal.getInstance(modal).hide();
-    }
-    this.dayOffForm.reset();
-    this.dayOffForm.get('ReasonHREdit')?.clearValidators();
-    this.dayOffForm.get('ReasonHREdit')?.updateValueAndValidity();
-    this.isEditModal = false;
-    if (this.employeeIdSubscription) {
-      this.employeeIdSubscription.unsubscribe();
-      this.employeeIdSubscription = null;
-    }
-  }
-
-  openAddModal() {
-    this.isEditModal = false;
-    this.dayOffForm.reset({
-      ID: 0,
-      EmployeeID: this.currentEmployee.EmployeeID,
-      ApprovedTP: null,
-      StartDate: new Date(),
-      TimeOnLeave: 1,
-      TypeIsReal: 1,
-      Reason: '',
-      ReasonHREdit: ''
-    });
-    if (this.canEditOthers) {
-      this.dayOffForm.get('EmployeeID')?.enable();
-      if (this.employeeIdSubscription) {
-        this.employeeIdSubscription.unsubscribe();
-      }
-      this.employeeIdSubscription = this.dayOffForm.get('EmployeeID')?.valueChanges.subscribe(() => {
-        this.updateReasonHREditValidation();
-      });
-    } else {
-      this.dayOffForm.get('EmployeeID')?.disable();
-      if (this.employeeIdSubscription) {
-        this.employeeIdSubscription.unsubscribe();
-        this.employeeIdSubscription = null;
-      }
-    }
-    this.updateReasonHREditValidation();
-
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('addDayOffModal'));
-    modal.show();
-  }
-
-
-  openEditModal() {
-    this.isEditModal = true;
-    const selectedRows = this.tabulator.getSelectedRows();
-    if (selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày nghỉ cần sửa');
-      return;
-    }
-
-    const selectedData = selectedRows[0].getData();
-    const isApproved = selectedData['IsApprovedTP'] === true && selectedData['IsApprovedHR'] === true;
-
-    // Nếu đã duyệt và người dùng không có quyền sửa, thông báo lỗi
-    if (isApproved && !this.checkCanEditApproved()) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký nghỉ đã được duyệt. Bạn không có quyền sửa!');
-      return;
-    }
-
-    this.selectedDayOff = selectedData;
-    this.dayOffForm.patchValue({
-      ID: this.selectedDayOff.ID,
-      EmployeeID: this.selectedDayOff.EmployeeID,
-      ApprovedTP: this.selectedDayOff.ApprovedTP,
-      StartDate: this.selectedDayOff.StartDate,
-      TimeOnLeave: this.selectedDayOff.TimeOnLeave,
-      TypeIsReal: this.selectedDayOff.TypeIsReal,
-      Reason: this.selectedDayOff.Reason,
-      ReasonHREdit: this.selectedDayOff.ReasonHREdit
-    });
-
-    if (this.canEditOthers) {
-      this.dayOffForm.get('EmployeeID')?.enable();
-      if (this.employeeIdSubscription) {
-        this.employeeIdSubscription.unsubscribe();
-      }
-      this.employeeIdSubscription = this.dayOffForm.get('EmployeeID')?.valueChanges.subscribe(() => {
-        this.updateReasonHREditValidation();
-      });
-    } else {
-      this.dayOffForm.get('EmployeeID')?.disable();
-      if (this.employeeIdSubscription) {
-        this.employeeIdSubscription.unsubscribe();
-        this.employeeIdSubscription = null;
-      }
-    }
-    this.dayOffForm.get('ApprovedTP')?.disable();
-    this.updateReasonHREditValidation();
-
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('addDayOffModal'));
-    modal.show();
-  }
-
   updateReasonHREditValidation(): void {
     if (this.shouldShowReasonHREdit()) {
       this.dayOffForm.get('ReasonHREdit')?.setValidators([Validators.required]);
@@ -726,17 +795,77 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     this.dayOffForm.get('ReasonHREdit')?.updateValueAndValidity();
   }
 
+  openAddModal() {
+    this.isEditModal = false;
+    this.dayOffForm.reset({
+      ID: 0,
+      EmployeeID: this.currentEmployee?.EmployeeID || null,
+      ApprovedTP: null,
+      StartDate: new Date(),
+      TimeOnLeave: 1,
+      TypeIsReal: 1,
+      Reason: '',
+      ReasonHREdit: '',
+      EndDate: null
+    });
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('addDayOffModal'));
+    modal.show();
+  }
+
+  openEditModal() {
+    const selectedRows = this.getSelectedRows();
+    if (selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày nghỉ cần chỉnh sửa');
+      return;
+    }
+
+    const selectedData = selectedRows[0];
+    const isApproved = selectedData['IsApprovedTP'] === true && selectedData['IsApprovedHR'] === true;
+
+    if (isApproved && !this.checkCanEditApproved()) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký nghỉ đã được duyệt. Bạn không có quyền sửa!');
+      return;
+    }
+
+    this.isEditModal = true;
+    this.selectedDayOff = selectedData;
+
+    this.dayOffForm.patchValue({
+      ID: selectedData['ID'],
+      EmployeeID: selectedData['EmployeeID'],
+      ApprovedTP: selectedData['ApprovedTP'],
+      StartDate: selectedData['StartDate'] ? new Date(selectedData['StartDate']) : new Date(),
+      TimeOnLeave: selectedData['TimeOnLeave'],
+      TypeIsReal: selectedData['TypeIsReal'] || selectedData['Type'],
+      Reason: selectedData['Reason'],
+      ReasonHREdit: selectedData['ReasonHREdit'] || '',
+      EndDate: selectedData['EndDate'] ? new Date(selectedData['EndDate']) : null
+    });
+
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('addDayOffModal'));
+    modal.show();
+  }
+
+  closeModal() {
+    const modalElement = document.getElementById('addDayOffModal');
+    if (modalElement) {
+      const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
+  }
+
   openDeleteModal() {
-    const selectedRows = this.tabulator.getSelectedRows();
+    const selectedRows = this.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày nghỉ cần xóa');
       return;
     }
 
-    const selectedData = selectedRows[0].getData();
+    const selectedData = selectedRows[0];
     const isApproved = selectedData['IsApprovedTP'] === true && selectedData['IsApprovedHR'] === true;
 
-    // Nếu đã duyệt và người dùng không có quyền xóa, thông báo lỗi
     if (isApproved && !this.checkCanEditApproved()) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký nghỉ đã được duyệt. Bạn không có quyền xóa!');
       return;
@@ -750,9 +879,8 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       nzOkDanger: true,
       nzOnOk: () => {
         for (let row of selectedRows) {
-          let selectedDayOff = row.getData();
           this.dayOffService.saveEmployeeOnLeave({
-            ...selectedDayOff,
+            ...row,
             DeleteFlag: true
           }).subscribe({
             next: (response) => {
@@ -760,11 +888,10 @@ export class DayOffComponent implements OnInit, AfterViewInit {
               this.loadEmployeeOnLeave();
             },
             error: (error) => {
-              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngày nghỉ đã đăng ký thất bại: ' + error.message);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngày nghỉ đã đăng ký thất bại: ' + (error.error?.message || error.message));
             }
           });
         }
-
       },
       nzCancelText: 'Hủy'
     });
@@ -796,8 +923,6 @@ export class DayOffComponent implements OnInit, AfterViewInit {
 
     const dateNow = new Date();
     const dateRegister = new Date(formData.StartDate);
-
-    // Lấy EmployeeID từ form (combobox), không lấy từ currentEmployee
     const employeeId = formData.EmployeeID;
 
     if (!employeeId || employeeId === 0) {
@@ -807,9 +932,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     }
 
     const loginName = this.currentUser?.LoginName || '';
-    const fullName = this.currentEmployee?.FullName || '';
 
-    // Set các giá trị mặc định - giữ nguyên EmployeeID từ form
     formData.EmployeeID = employeeId;
     formData.ApprovedHr = 0;
     formData.IsApprovedTP = false;
@@ -822,10 +945,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     formData.IsCancelHR = false;
     formData.IsCancelTP = false;
     formData.DecilineApprove = 1;
-    formData.ApprovedTP = formData.ApprovedTP;
-    formData.TimeOnLeave = formData.TimeOnLeave;
     formData.Type = formData.TypeIsReal || formData.Type;
-    formData.Reason = formData.Reason;
 
     let startDate: Date, endDate: Date, totalTime: number, totalDay: number;
 
@@ -846,7 +966,6 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       totalDay = 1;
     }
 
-    // Convert to local ISO string to prevent timezone conversion
     const toLocalISOString = (date: Date): string => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -918,7 +1037,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   }
 
   private saveEmployeeOnLeave(formData: any): void {
-    if (this.isLoading) return; // Prevent spam click
+    if (this.isLoading) return;
     this.isLoading = true;
 
     this.dayOffService.saveEmployeeOnLeave(formData).subscribe({
@@ -936,8 +1055,8 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   }
 
   async exportToExcel() {
-    let data = this.tabulator.getData();
-    if (data == null) {
+    let data = this.dataset;
+    if (data == null || data.length === 0) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
       return;
     }
@@ -996,7 +1115,6 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       { header: 'NV hủy đăng kí', key: 'NV hủy đăng kí', width: 15 },
       { header: 'TBP duyệt hủy đăng kí', key: 'TBP duyệt hủy đăng kí', width: 15 },
       { header: 'HR duyệt hủy đăng kí', key: 'HR duyệt hủy đăng kí', width: 15 },
-
     ];
 
     exportData.forEach((row: any) => worksheet.addRow(row));
@@ -1032,10 +1150,8 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     saveAs(blob, `DangKyNghi_T${month}_${year}.xlsx`);
   }
 
-
-
   approved(isApproved: boolean, isTBP: boolean) {
-    const selectedRows = this.tabulator.getSelectedRows();
+    const selectedRows = this.getSelectedRows();
     const listID: number[] = [];
     let message = '';
 
@@ -1046,8 +1162,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
 
     if (isTBP && isApproved) {
       for (const row of selectedRows) {
-        const data = row.getData();
-        const id = data['ID'];
+        const id = row['ID'];
         if (id > 0) {
           listID.push(id);
         }
@@ -1055,9 +1170,8 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     } else if (isTBP && !isApproved) {
       message = 'Nhân viên đã được HR duyệt sẽ không thể hủy duyệt.\nBạn có muốn tiếp tục?';
       for (const row of selectedRows) {
-        const data = row.getData();
-        const id = data['ID'];
-        const isApprovedHR = data['IsApprovedHR'];
+        const id = row['ID'];
+        const isApprovedHR = row['IsApprovedHR'];
         if (id > 0 && !isApprovedHR) {
           listID.push(id);
         }
@@ -1065,9 +1179,8 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     } else if (!isTBP && isApproved) {
       message = 'Nhân viên chưa được TBP duyệt sẽ không thể duyệt.\nBạn có muốn tiếp tục?';
       for (const row of selectedRows) {
-        const data = row.getData();
-        const id = data['ID'];
-        const isApprovedTP = data['IsApprovedTP'];
+        const id = row['ID'];
+        const isApprovedTP = row['IsApprovedTP'];
         if (id <= 0 || !isApprovedTP) {
           continue;
         }
@@ -1075,8 +1188,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       }
     } else if (!isTBP && !isApproved) {
       for (const row of selectedRows) {
-        const data = row.getData();
-        const id = data['ID'];
+        const id = row['ID'];
         if (id <= 0) {
           continue;
         }
@@ -1086,7 +1198,6 @@ export class DayOffComponent implements OnInit, AfterViewInit {
 
     const approveText = isApproved ? 'duyệt' : 'hủy duyệt';
 
-
     this.modal.confirm({
       nzTitle: 'Thông báo',
       nzContent: `Bạn có chắc muốn ${approveText} danh sách nhân viên đã chọn.\n${message}`,
@@ -1095,16 +1206,12 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       nzOnOk: () => {
         if (listID.length > 0) {
           const updatePromises = listID.map(id => {
-            const updateData: any = {
-              ID: id
-            };
-
+            const updateData: any = { ID: id };
             if (isTBP) {
               updateData['IsApprovedTP'] = isApproved;
             } else {
               updateData['IsApprovedHR'] = isApproved;
             }
-
             return this.dayOffService.saveEmployeeOnLeave(updateData).toPromise();
           });
 
@@ -1114,7 +1221,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
               this.loadEmployeeOnLeave();
             })
             .catch((error) => {
-              this.notification.error(NOTIFICATION_TITLE.error, `Cập nhật trạng thái duyệt thất bại: ${error.message}`);
+              this.notification.error(NOTIFICATION_TITLE.error, `Cập nhật trạng thái duyệt thất bại: ${error.error?.message || error.message}`);
             });
         }
       }
@@ -1122,25 +1229,24 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   }
 
   isApproveCancelHR() {
-    const selectedRows = this.tabulator.getSelectedRows();
+    const selectedRows = this.getSelectedRows();
     if (selectedRows.length <= 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn chưa chọn nhân viên. Vui lòng chọn nhân viên');
       return;
     }
 
     for (let row of selectedRows) {
-      const data = row.getData();
-      if (data['ID'] <= 0) {
+      if (row['ID'] <= 0) {
         continue;
       }
 
-      if (!data['IsCancelTP']) {
+      if (!row['IsCancelTP']) {
         this.notification.warning(NOTIFICATION_TITLE.warning, 'TBP chưa duyệt hủy đăng ký. Vui lòng kiểm tra lại');
         return;
       }
 
       this.dayOffService.saveEmployeeOnLeave({
-        ...data,
+        ...row,
         IsCancelHR: true
       }).subscribe({
         next: (response) => {
@@ -1148,33 +1254,32 @@ export class DayOffComponent implements OnInit, AfterViewInit {
           this.loadEmployeeOnLeave();
         },
         error: (error) => {
-          this.notification.error('Thất bại', 'HR hủy duyệt đăng ký thất bại' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'HR hủy duyệt đăng ký thất bại: ' + (error.error?.message || error.message));
         }
       })
     }
   }
 
   isApproveCancelTP() {
-    const selectedRows = this.tabulator.getSelectedRows();
+    const selectedRows = this.getSelectedRows();
     if (selectedRows.length <= 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn chưa chọn nhân viên. Vui lòng chọn nhân viên');
       return;
     }
 
     for (let row of selectedRows) {
-      const data = row.getData();
-      if (data['ID'] <= 0) {
+      if (row['ID'] <= 0) {
         continue;
       }
 
-      const code = data['Code'];
-      const fullName = data['FullName'];
+      const code = row['Code'];
+      const fullName = row['FullName'];
 
-      if (!data['IsCancelTP'] || !data['IsCancelRegister']) {
+      if (!row['IsCancelTP'] || !row['IsCancelRegister']) {
         this.notification.warning(NOTIFICATION_TITLE.warning, `Nhân viên ${code} - ${fullName} chưa đăng ký hủy duyệt. Vui lòng kiểm tra lại`);
       } else {
         this.dayOffService.saveEmployeeOnLeave({
-          ...data,
+          ...row,
           IsCancelTP: true
         }).subscribe({
           next: (response) => {
@@ -1182,76 +1287,10 @@ export class DayOffComponent implements OnInit, AfterViewInit {
             this.loadEmployeeOnLeave();
           },
           error: (error) => {
-            this.notification.error('Thất bại', 'TBP hủy duyệt đăng ký thất bại' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'TBP hủy duyệt đăng ký thất bại: ' + (error.error?.message || error.message));
           }
         })
       }
-
-    }
-  }
-
-  isDisapproveCancelHR() {
-    const selectedRows = this.tabulator.getSelectedRows();
-    if (selectedRows.length <= 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn chưa chọn nhân viên. Vui lòng chọn nhân viên');
-      return;
-    }
-
-    for (let row of selectedRows) {
-      const data = row.getData();
-      if (data['ID'] <= 0) {
-        continue;
-      }
-
-      this.dayOffService.saveEmployeeOnLeave({
-        ...data,
-        IsCancelHR: true
-      }).subscribe({
-        next: (response) => {
-          this.notification.success(NOTIFICATION_TITLE.success, 'HR hủy duyệt hủy đăng ký thành công');
-          this.loadEmployeeOnLeave();
-        },
-        error: (error) => {
-          this.notification.error('Thất bại', 'HR hủy duyệt hủy đăng ký thất bại' + error.message);
-        }
-      })
-
-    }
-  }
-
-  isDisapproveCancelTP() {
-    const selectedRows = this.tabulator.getSelectedRows();
-    if (selectedRows.length <= 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn chưa chọn nhân viên. Vui lòng chọn nhân viên');
-      return;
-    }
-
-    for (let row of selectedRows) {
-      const data = row.getData();
-      if (data['ID'] <= 0) {
-        continue;
-      }
-
-      const code = data['Code'];
-      const fullName = data['FullName'];
-
-      if (data['IsCancelHR']) {
-        this.notification.warning(NOTIFICATION_TITLE.warning, `HR chưa hủy duyệt nhân viên ${code} - ${fullName}. Vui lòng kiểm tra lại`);
-      } else {
-        this.dayOffService.saveEmployeeOnLeave({
-          ...data,
-          IsCancelTP: false
-        }).subscribe({
-          next: (response) => {
-            this.notification.success(NOTIFICATION_TITLE.success, 'TBP hủy duyệt hủy đăng ký thành công');
-            this.loadEmployeeOnLeave();
-          },
-          error: (error) => {
-            this.notification.error('Thất bại', 'TBP hủy duyệt hủy đăng ký thất bại' + error.message);
-          }
-        })
-      }
-
     }
   }
 
@@ -1271,11 +1310,8 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     });
 
     modalRef.result.then(
-      (result) => {
-        // Modal closed successfully
-      },
+      (result) => { },
       () => { }
     );
   }
-
 }

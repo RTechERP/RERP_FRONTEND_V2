@@ -11,7 +11,7 @@ import { DateTime } from 'luxon';
   providedIn: 'root',
 })
 export class DocumentService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
   apiUrl: string = environment.host + 'api';
   private urlEmployee = `${environment.host}api/employee/`;
 

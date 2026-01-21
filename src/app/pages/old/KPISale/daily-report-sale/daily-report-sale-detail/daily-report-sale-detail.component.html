@@ -13,33 +13,35 @@
                     <div class="row g-2">
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
-                                <span>Người phụ trách</span> 
+                                <span>Người phụ trách</span>
                                 <span class="text-danger">*</span>
                             </label>
                             <nz-select nzShowSearch nzPlaceHolder="Chọn người phụ trách" nzAllowClear nzSize="small"
                                 class="w-100" formControlName="userId" [nzDisabled]="isUserIdDisabled">
-                                <nz-option *ngFor="let item of users" [nzValue]="item.UserID" 
+                                <nz-option *ngFor="let item of users" [nzValue]="item.UserID"
                                     [nzLabel]="item.FullName"></nz-option>
                             </nz-select>
-                            <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('userId')?.invalid">
+                            <small class="text-danger"
+                                *ngIf="isSubmitted && dailyReportSaleForm.get('userId')?.invalid">
                                 Vui lòng chọn người phụ trách
                             </small>
                         </div>
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
-                                <span>Hãng</span> 
+                                <span>Hãng</span>
                                 <span class="text-danger">*</span>
                                 <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
                                     title="Thêm hãng" (click)="onAddFirm()">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </label>
-                            <nz-select nzShowSearch nzPlaceHolder="Chọn hãng" nzAllowClear nzSize="small"
-                                class="w-100" formControlName="firmId">
+                            <nz-select nzShowSearch nzPlaceHolder="Chọn hãng" nzAllowClear nzSize="small" class="w-100"
+                                formControlName="firmId">
                                 <nz-option *ngFor="let item of firms" [nzValue]="item.ID"
                                     [nzLabel]="item.FirmName"></nz-option>
                             </nz-select>
-                            <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('firmId')?.invalid">
+                            <small class="text-danger"
+                                *ngIf="isSubmitted && dailyReportSaleForm.get('firmId')?.invalid">
                                 Vui lòng chọn hãng
                             </small>
                         </div>
@@ -54,15 +56,15 @@
                                     <i class="fas fa-plus"></i>
                                 </button> -->
                             </label>
-                            <nz-select nzShowSearch nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="small"
-                                class="w-100" formControlName="projectId">
+                            <nz-select nzShowSearch nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="small" class="w-100"
+                                formControlName="projectId">
                                 <nz-option *ngFor="let item of projects" [nzValue]="item.ID"
                                     [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
                             </nz-select>
                         </div>
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
-                                <span>Loại dự án</span> 
+                                <span>Loại dự án</span>
                                 <span class="text-danger">*</span>
                                 <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
                                     title="Thêm loại dự án" (click)="onAddProjectType()">
@@ -74,7 +76,8 @@
                                 <nz-option *ngFor="let item of projectTypes" [nzValue]="item.ID"
                                     [nzLabel]="item.ProjectTypeName"></nz-option>
                             </nz-select>
-                            <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('projectTypeId')?.invalid">
+                            <small class="text-danger"
+                                *ngIf="isSubmitted && dailyReportSaleForm.get('projectTypeId')?.invalid">
                                 Vui lòng chọn loại dự án
                             </small>
                         </div>
@@ -82,7 +85,7 @@
                     <div class="row g-2 mt-1">
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
-                                <span>Khách hàng</span> 
+                                <span>Khách hàng</span>
                                 <span class="text-danger">*</span>
                                 <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
                                     title="Thêm khách hàng" (click)="onAddCustomer()">
@@ -94,13 +97,14 @@
                                 <nz-option *ngFor="let item of customers" [nzValue]="item.ID"
                                     [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"></nz-option>
                             </nz-select>
-                            <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('customerId')?.invalid">
+                            <small class="text-danger"
+                                *ngIf="isSubmitted && dailyReportSaleForm.get('customerId')?.invalid">
                                 Vui lòng chọn khách hàng
                             </small>
                         </div>
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
-                                <span>Trạng thái dự án</span> 
+                                <span>Trạng thái dự án</span>
                                 <span class="text-danger">*</span>
                                 <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
                                     title="Thêm trạng thái dự án" (click)="onAddProjectStatus()">
@@ -112,7 +116,8 @@
                                 <nz-option *ngFor="let item of projectStatuses" [nzValue]="item.ID"
                                     [nzLabel]="item.StatusName"></nz-option>
                             </nz-select>
-                            <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('projectStatusId')?.invalid">
+                            <small class="text-danger"
+                                *ngIf="isSubmitted && dailyReportSaleForm.get('projectStatusId')?.invalid">
                                 Vui lòng chọn trạng thái dự án
                             </small>
                         </div>
@@ -124,12 +129,13 @@
                     <div class="row g-2">
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
-                                <span>Ngày thực hiện gần nhất</span> 
+                                <span>Ngày thực hiện gần nhất</span>
                                 <span class="text-danger">*</span>
                             </label>
                             <nz-date-picker nzPlaceHolder="Chọn ngày" nzSize="small" class="w-100"
                                 formControlName="dateStart" nzFormat="dd/MM/yyyy"></nz-date-picker>
-                            <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('dateStart')?.invalid">
+                            <small class="text-danger"
+                                *ngIf="isSubmitted && dailyReportSaleForm.get('dateStart')?.invalid">
                                 Vui lòng chọn ngày thực hiện
                             </small>
                         </div>
@@ -142,7 +148,7 @@
                     <div class="row g-2 mt-1">
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
-                                <span>Người liên hệ</span> 
+                                <span>Người liên hệ</span>
                                 <span class="text-danger">*</span>
                                 <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
                                     title="Thêm người liên hệ" (click)="onAddContact()">
@@ -154,13 +160,14 @@
                                 <nz-option *ngFor="let item of contacts" [nzValue]="item.ID"
                                     [nzLabel]="item.ContactName +  ' - ' + item.CustomerPosition"></nz-option>
                             </nz-select>
-                            <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('contactId')?.invalid">
+                            <small class="text-danger"
+                                *ngIf="isSubmitted && dailyReportSaleForm.get('contactId')?.invalid">
                                 Vui lòng chọn người liên hệ
                             </small>
                         </div>
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
-                                <span>Loại nhóm</span> 
+                                <span>Loại nhóm</span>
                                 <span class="text-danger">*</span>
                             </label>
                             <nz-select nzShowSearch nzPlaceHolder="Chọn loại nhóm" nzAllowClear nzSize="small"
@@ -168,7 +175,8 @@
                                 <nz-option *ngFor="let item of groupTypes" [nzValue]="item.value || item.ID"
                                     [nzLabel]="item.label || item.MainIndex"></nz-option>
                             </nz-select>
-                            <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('groupTypeId')?.invalid">
+                            <small class="text-danger"
+                                *ngIf="isSubmitted && dailyReportSaleForm.get('groupTypeId')?.invalid">
                                 Vui lòng chọn loại nhóm
                             </small>
                         </div>
@@ -177,9 +185,9 @@
                         <div class="col-md-6">
                             <label class="mb-0 fs-12">EndUser
                                 <button class="p-0 m-0 px-1 fs-12 h-auto ms-1" nz-button nzType="text" nzSize="small"
-                                title="Thêm EndUser" (click)="onAddPart()">
-                                <i class="fas fa-plus"></i>
-                            </button>
+                                    title="Thêm EndUser" (click)="onAddPart()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
                             </label>
                             <div class="d-flex align-items-center">
                                 <nz-select nzShowSearch nzPlaceHolder="Chọn EndUser" nzAllowClear nzSize="small"
@@ -191,8 +199,10 @@
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex align-items-center mt-4" style="flex-wrap: nowrap;">
-                                <label nz-checkbox formControlName="bigAccount" class="me-2 fs-12" style="white-space: nowrap;">Big Account</label>
-                                <label nz-checkbox formControlName="saleOpportunity" class="fs-12" style="white-space: nowrap;">Cơ hội bán</label>
+                                <label nz-checkbox formControlName="bigAccount" class="me-2 fs-12"
+                                    style="white-space: nowrap;">Big Account</label>
+                                <label nz-checkbox formControlName="saleOpportunity" class="fs-12"
+                                    style="white-space: nowrap;">Cơ hội bán</label>
                             </div>
                         </div>
                     </div>
@@ -203,7 +213,7 @@
             <div class="row g-2 mt-2">
                 <div class="col-md-6">
                     <label class="mb-0 fs-12 d-inline">
-                        <span>Việc đã làm</span> 
+                        <span>Việc đã làm</span>
                         <span class="text-danger">*</span>
                     </label>
                     <textarea nz-input formControlName="content" rows="3" class="w-100 fs-12"
@@ -214,7 +224,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="mb-0 fs-12 d-inline">
-                        <span>Kết quả mong đợi</span> 
+                        <span>Kết quả mong đợi</span>
                         <span class="text-danger">*</span>
                     </label>
                     <textarea nz-input formControlName="result" rows="3" class="w-100 fs-12"
@@ -234,7 +244,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="mb-0 fs-12 d-inline">
-                        <span>Kế hoạch tiếp theo</span> 
+                        <span>Kế hoạch tiếp theo</span>
                         <span class="text-danger">*</span>
                     </label>
                     <textarea nz-input formControlName="planNext" rows="3" class="w-100 fs-12"
@@ -249,12 +259,13 @@
             <div class="row g-2 mt-2">
                 <div class="col-12">
                     <label class="mb-0 fs-12 d-inline">
-                        <span>Sản phẩm của KH</span> 
+                        <span>Sản phẩm của KH</span>
                         <span class="text-danger">*</span>
                     </label>
                     <textarea nz-input formControlName="productOfCustomer" rows="3" class="w-100 fs-12"
                         placeholder="Nhập sản phẩm của khách hàng"></textarea>
-                    <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('productOfCustomer')?.invalid">
+                    <small class="text-danger"
+                        *ngIf="isSubmitted && dailyReportSaleForm.get('productOfCustomer')?.invalid">
                         Vui lòng nhập sản phẩm của khách hàng
                     </small>
                 </div>
@@ -264,22 +275,15 @@
 </div>
 
 <!-- Modal chọn ngày thay đổi trạng thái -->
-<nz-modal 
-    [(nzVisible)]="showDateStatusLogModal" 
-    nzTitle="Ngày thay đổi trạng thái" 
-    (nzOnCancel)="onDateStatusLogCancel()"
-    [nzFooter]="null">
+<nz-modal [(nzVisible)]="showDateStatusLogModal" nzTitle="Ngày thay đổi trạng thái"
+    (nzOnCancel)="onDateStatusLogCancel()" [nzFooter]="null">
     <div *nzModalContent>
         <div class="mb-3">
             <label class="mb-2 d-block">
-                <span>Ngày thay đổi trạng thái</span> 
+                <span>Ngày thay đổi trạng thái</span>
                 <span class="text-danger">*</span>
             </label>
-            <nz-date-picker 
-                nzPlaceHolder="Chọn ngày" 
-                nzSize="default" 
-                class="w-100"
-                formControlName="dateStatusLog" 
+            <nz-date-picker nzPlaceHolder="Chọn ngày" nzSize="default" class="w-100" formControlName="dateStatusLog"
                 nzFormat="dd/MM/yyyy">
             </nz-date-picker>
         </div>
@@ -292,54 +296,35 @@
 
 <div class="modal-footer py-1">
     <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
-    <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
+    <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()" [nzLoading]="isSaving">Lưu</button>
 </div>
 
 <!-- Modal thêm trạng thái dự án -->
-<nz-modal 
-    [(nzVisible)]="showProjectStatusModal" 
-    nzTitle="CHI TIẾT TRẠNG THÁI DỰ ÁN" 
-    (nzOnCancel)="onProjectStatusModalCancel()"
-    [nzWidth]="350"
-    [nzFooter]="null">
+<nz-modal [(nzVisible)]="showProjectStatusModal" nzTitle="CHI TIẾT TRẠNG THÁI DỰ ÁN"
+    (nzOnCancel)="onProjectStatusModalCancel()" [nzWidth]="350" [nzFooter]="null">
     <div *nzModalContent>
         <form [formGroup]="projectStatusForm">
             <div class="mb-3">
                 <label class="mb-2 d-block fs-12">
                     <span>STT</span>
                 </label>
-                <nz-input-number 
-                    formControlName="stt" 
-                    class="w-100"
-                    nzPlaceHolder="Nhập STT"
-                    [nzMin]="1"
-                    [nzStep]="1"
-                    nzDisabled="true"
-                    nzSize="small"
-                    style="text-align: right;">
+                <nz-input-number formControlName="stt" class="w-100" nzPlaceHolder="Nhập STT" [nzMin]="1" [nzStep]="1"
+                    nzDisabled="true" nzSize="small" style="text-align: right;">
                 </nz-input-number>
             </div>
-            
+
             <div class="mb-3">
                 <label class="mb-2 d-block fs-12">
                     <span>Trạng thái</span>
                 </label>
-                <input 
-                    nz-input 
-                    formControlName="statusName" 
-                    class="w-100"
-                    nzPlaceHolder="Nhập trạng thái"
+                <input nz-input formControlName="statusName" class="w-100" nzPlaceHolder="Nhập trạng thái"
                     nzSize="small">
             </div>
-            
+
             <!-- Toolbar với các nút action -->
             <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-3">
                 <div class="d-flex gap-1">
-                    <button 
-                        nz-button 
-                        nzType="primary" 
-                        nzSize="small"
-                        (click)="saveAndCloseProjectStatus()"
+                    <button nz-button nzType="primary" nzSize="small" (click)="saveAndCloseProjectStatus()"
                         [nzLoading]="isSavingProjectStatus">
                         <i class="fas fa-save me-1"></i>
                         Lưu

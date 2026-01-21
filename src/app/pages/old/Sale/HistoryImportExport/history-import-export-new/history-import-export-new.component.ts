@@ -1,9 +1,12 @@
+
 import {
     Component,
     OnInit,
     AfterViewInit,
     OnDestroy,
     ChangeDetectorRef,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -35,6 +38,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { BillImportDetailComponent } from '../../BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { ClipboardService } from '../../../../../services/clipboard.service';
 
 @Component({
     selector: 'app-history-import-export-new',
@@ -103,13 +107,29 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
         private notification: NzNotificationService,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        private modalService: NgbModal
-    ) {}
+        private modalService: NgbModal,
+        private ClipboardService: ClipboardService,
+        @Optional() @Inject('tabData') private tabData: any
+    ) { }
 
     ngOnInit(): void {
         this.route.queryParams.subscribe((params) => {
-            this.warehouseCode = params['warehouseCode'] || 'HN';
+            // this.warehouseCode = params['warehouseCode'] || 'HN';
+            const newWarehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
+
+            // Check if warehouse code changed
+            const warehouseCodeChanged = this.warehouseCode !== newWarehouseCode;
+            this.warehouseCode = newWarehouseCode;
             this.searchParams.warehouseCode = this.warehouseCode;
+
+            // Re-initialize grids if warehouse code changed
+            if (warehouseCodeChanged && this.angularGrid) {
+                this.initGridColumns();
+                this.initGridOptions();
+            }
         });
 
         this.initGridColumns();
@@ -436,6 +456,20 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
             enableAutoSizeColumns: false,
             frozenColumn: 3,
             enableHeaderMenu: false,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.ClipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
             enableExcelExport: true,
             externalResources: [this.excelExportService],
             // Footer row configuration
@@ -518,10 +552,16 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
 
     //#region Grid Ready Events
 
+    resizeGrids(): void {
+        if (this.angularGrid?.resizerService) {
+            this.angularGrid.resizerService.resizeGrid();
+        }
+    }
+
     angularGridReady(angularGrid: AngularGridInstance): void {
         this.angularGrid = angularGrid;
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
             this.updateFooterRow();
         }, 100);
 
@@ -608,7 +648,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                         // Map data với id unique cho SlickGrid
                         const mappedData = this.dataTable.map((item: any, index: number) => ({
                             ...item,
-                            id:index,
+                            id: index,
                         }));
 
                         this.dataset = mappedData;
@@ -622,10 +662,8 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
                         this.cdr.detectChanges();
 
                         setTimeout(() => {
-                            if (this.angularGrid) {
-                                this.angularGrid.resizerService.resizeGrid();
-                                this.updateFooterRow();
-                            }
+                            this.resizeGrids();
+                            this.updateFooterRow();
                         }, 100);
                     }
                 },

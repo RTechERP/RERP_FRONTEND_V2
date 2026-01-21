@@ -205,12 +205,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     currentUser: any = null;
     savedPage: number = 1;
     selectedStatusDate: Date | null = null;
-    dateStart: any = DateTime.local()
-        .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
-        .toISO();
-    dateEnd: any = DateTime.local()
-        .set({ hour: 0, minute: 0, second: 0 })
-        .toISO();
+   dateStart: string = DateTime.local()
+    .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
+    .toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local()
+    .set({ hour: 0, minute: 0, second: 0 })
+    .toFormat('yyyy-MM-dd');
     //#endregion
 
     // Helper function to escape HTML special characters for title attributes
@@ -2078,35 +2078,35 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         });
     }
 
-    getDay() {
-        console.log(
-            DateTime.fromJSDate(new Date(this.dateStart))
-                .set({ hour: 23, minute: 59, second: 59 })
-                .toFormat('yyyy-MM-dd HH:mm:ss'),
-            DateTime.fromJSDate(this.dateStart)
-                .set({ hour: 23, minute: 59, second: 59 })
-                .toFormat('yyyy-MM-dd HH:mm:ss')
-        );
-    }
+  getDay() {
+    console.log(
+      DateTime.fromJSDate(new Date(this.dateStart))
+        .set({ hour: 23, minute: 59, second: 59 })
+        .toFormat('yyyy-MM-dd HH:mm:ss'),
+      DateTime.fromJSDate(new Date(this.dateStart))
+        .set({ hour: 23, minute: 59, second: 59 })
+        .toFormat('yyyy-MM-dd HH:mm:ss')
+    );
+  }
 
-    setDefautSearch() {
-        this.dateStart = DateTime.local()
-            .minus({ years: 1 })
-            .set({ hour: 0, minute: 0, second: 0 })
-            .toISO();
-        this.dateEnd = DateTime.local()
-            .set({ hour: 0, minute: 0, second: 0 })
-            .toISO();
-        this.projectTypeIds = [];
-        this.projecStatusIds = [];
-        this.userId = 0;
-        this.pmId = 0;
-        this.businessFieldId = 0;
-        this.technicalId = 0;
-        this.customerId = 0;
-        this.keyword = '';
-        this.savedPage = 0;
-    }
+  setDefautSearch() {
+    this.dateStart = DateTime.local()
+      .minus({ years: 1 })
+      .set({ hour: 0, minute: 0, second: 0 })
+      .toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local()
+      .set({ hour: 0, minute: 0, second: 0 })
+      .toFormat('yyyy-MM-dd');
+    this.projectTypeIds = [];
+    this.projecStatusIds = [];
+    this.userId = 0;
+    this.pmId = 0;
+    this.businessFieldId = 0;
+    this.technicalId = 0;
+    this.customerId = 0;
+    this.keyword = '';
+    this.savedPage = 0;
+  }
 
     onSearchChange(value: string) {
         this.searchSubject.next(value);

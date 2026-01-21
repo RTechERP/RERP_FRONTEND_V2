@@ -70,11 +70,11 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
     private modalService: NzModalService,
     private dailyReportTechService: DailyReportTechService,
     private ngbModal: NgbModal,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initForm();
-    
+
     // Load film list trước nếu là PositionID = 7 hoặc 72 (cần cho dropdown)
     if (this.currentUser?.PositionID === 7 || this.currentUser?.PositionID === 72) {
       this.loadFilmList(() => {
@@ -106,7 +106,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
   private setDefaultDateReport(): void {
     const now = DateTime.local();
     const currentHour = now.hour;
-    
+
     if (currentHour >= 0 && currentHour <= 9) {
       this.formGroup.patchValue({ DateReport: null });
     } else {
@@ -114,7 +114,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   private initForm(): void {
     if (this.currentUser?.PositionID === 6) {
@@ -232,7 +232,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
     return this.fb.group({
       ID: [0],
       FilmManagementDetailId: [null], // Không bắt buộc vì đã comment trong HTML
-     // WorkContent: ['', [Validators.required]],
+      // WorkContent: ['', [Validators.required]],
       PerformanceAVG: [{ value: 0, disabled: true }],
       Quantity: [null, [Validators.required, Validators.min(0)]],
       TimeActual: [null, [Validators.required, Validators.min(0)]],
@@ -272,7 +272,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
     // Tỷ lệ = Năng suất trung bình / Năng suất thực tế * 100
     let percentage = 0;
     if (performanceActual > 0 && performanceAVG > 0) {
-      percentage = Math.round((performanceAVG / performanceActual)*100 ) / 100;
+      percentage = Math.round((performanceAVG / performanceActual) * 100) / 100;
     }
     row.get('Percentage')?.setValue(percentage);
   }
@@ -309,7 +309,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
+
 
   loadDataForEdit(dailyID: number): void {
     this.dailyReportTechService.getDailyReportHRByID(dailyID).subscribe({
@@ -331,14 +331,14 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
   private populateForm(data: any): void {
     // Xử lý nếu data là array (lấy phần tử đầu tiên)
     const reportData = Array.isArray(data) ? data[0] : data;
-    
+
     if (!reportData) {
       this.notification.error('Lỗi', 'Dữ liệu báo cáo không hợp lệ!');
       return;
     }
 
     const dateReport = reportData.DateReport ? DateTime.fromISO(reportData.DateReport).toJSDate() : null;
-    
+
     if (this.currentUser?.PositionID === 6) {
       // Populate form cho Lái xe (PositionID = 6)
       this.formGroup.patchValue({
@@ -350,21 +350,21 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
         StatusVehicle: reportData.StatusVehicle || '',
         Propose: reportData.Propose || '',
       });
-      
+
       // Lưu ID để dùng khi save
       if (reportData.ID) {
         this.dataInput = { ID: reportData.ID };
       }
-      
+
       // Cập nhật validation cho ReasonLate sau khi populate
       this.updateReasonLateValidation();
     } else if (this.currentUser?.PositionID === 7 || this.currentUser?.PositionID === 72) {
       // Populate form cho Cắt phim
       this.formGroup.patchValue({ DateReport: dateReport });
-      
+
       // Clear existing rows và add từ data
       this.filmRows.clear();
-      
+
       // Kiểm tra nếu có filmDetails (nhiều dòng)
       if (reportData.filmDetails && Array.isArray(reportData.filmDetails) && reportData.filmDetails.length > 0) {
         reportData.filmDetails.forEach((detail: any) => {
@@ -442,7 +442,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
       const filmDetailIds: number[] = [];
       let hasDuplicate = false;
       let duplicateIndex = -1;
-      
+
       this.filmRows.controls.forEach((row: any, index: number) => {
         const filmManagementDetailId = row.get('FilmManagementDetailId')?.value;
         if (filmManagementDetailId && filmManagementDetailId > 0) {
@@ -470,7 +470,9 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
 
     this.saving = true;
     const dateReport = this.formGroup.get('DateReport')?.value;
-    const dateReportStr = DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
+    const dateReportStr = typeof dateReport === 'string'
+      ? dateReport
+      : DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
     const employeeID = this.currentUser?.EmployeeID || 0;
 
     let reportList: any[] = [];
@@ -501,7 +503,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
         const filmManagementDetailId = row.get('FilmManagementDetailId')?.value;
         const quantity = row.get('Quantity')?.value || 0;
         const timeActual = row.get('TimeActual')?.value || 0;
-        
+
         return {
           ID: row.get('ID')?.value || 0,
           EmployeeID: employeeID,
@@ -609,20 +611,20 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
         keyboard: false,
         windowClass: 'overtime-modal-custom'
       });
-      
+
       if (!modalRef) {
         this.notification.error('Lỗi', 'Không thể mở modal làm thêm!');
         return;
       }
-      
+
       if (modalRef.componentInstance) {
         modalRef.componentInstance.data = null;
         modalRef.componentInstance.isEditMode = false;
       }
-      
+
       modalRef.result.then(
-        (result) => {},
-        (reason) => {}
+        (result) => { },
+        (reason) => { }
       ).catch((error) => {
         console.error('Error in modal result:', error);
       });

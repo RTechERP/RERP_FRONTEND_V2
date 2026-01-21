@@ -576,7 +576,11 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
   // Tạo nội dung summary
   generateSummary(): string {
     const dateReport = this.formGroup.get('DateReport')?.value;
-    const dateReportStr = dateReport ? DateTime.fromJSDate(dateReport).toFormat('dd/MM/yyyy') : '';
+    const dateReportStr = dateReport
+      ? (typeof dateReport === 'string'
+        ? DateTime.fromISO(dateReport).toFormat('dd/MM/yyyy')
+        : DateTime.fromJSDate(dateReport).toFormat('dd/MM/yyyy'))
+      : '';
 
     let project = '';
     let projectItemContent = '';
@@ -764,8 +768,10 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
       return [];
     }
 
-    // Format date thành YYYY-MM-DD
-    const dateReportStr = DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
+    // Format date thành YYYY-MM-DD - dateReport có thể là string (từ input type="date") hoặc Date object (từ nz-date-picker)
+    const dateReportStr = typeof dateReport === 'string'
+      ? dateReport
+      : DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
     const userReport = this.currentUser?.ID || 0;
 
     const reports: any[] = [];

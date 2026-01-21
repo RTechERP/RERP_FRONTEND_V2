@@ -58,6 +58,7 @@ export class PhaseAllocationPersonFormComponent
   employeeList: any[] = [];
   employeeEditorValues: any[] = [];
   deletedRows: any[] = [];
+  changedRowIds: Set<number> = new Set(); // Track các row ID đã thay đổi
   private ngbModal = inject(NgbModal);
   isEditMode: boolean = false;
 
@@ -324,6 +325,7 @@ export class PhaseAllocationPersonFormComponent
 
           cellEdited: (cell) => {
             const row = cell.getRow();
+            const rowData = row.getData();
             const code = cell.getValue()?.trim();
 
             if (!code) {
@@ -370,6 +372,9 @@ export class PhaseAllocationPersonFormComponent
               EmployeeName: emp.FullName,
               DepartmentName: emp.DepartmentName,
             });
+
+            // Đánh dấu row đã thay đổi
+            this.markRowAsChanged(rowData);
           },
         },
         {
@@ -396,10 +401,15 @@ export class PhaseAllocationPersonFormComponent
             const table = cell.getTable();
             const selectedRows = table.getSelectedRows();
             const content = cell.getValue();
+            const rowData = cell.getRow().getData();
+
+            // Đánh dấu row đã thay đổi
+            this.markRowAsChanged(rowData);
 
             if (selectedRows.length > 0) {
               selectedRows.forEach((row) => {
                 row.update({ ContentReceive: content });
+                this.markRowAsChanged(row.getData());
               });
               table.deselectRow();
             }
@@ -422,10 +432,15 @@ export class PhaseAllocationPersonFormComponent
             const table = cell.getTable();
             const selectedRows = table.getSelectedRows();
             const content = cell.getValue();
+            const rowData = cell.getRow().getData();
+
+            // Đánh dấu row đã thay đổi
+            this.markRowAsChanged(rowData);
 
             if (selectedRows.length > 0) {
               selectedRows.forEach((row) => {
                 row.update({ Quantity: content });
+                this.markRowAsChanged(row.getData());
               });
               table.deselectRow();
             }
@@ -440,10 +455,15 @@ export class PhaseAllocationPersonFormComponent
             const table = cell.getTable();
             const selectedRows = table.getSelectedRows();
             const newUnit = cell.getValue();
+            const rowData = cell.getRow().getData();
+
+            // Đánh dấu row đã thay đổi
+            this.markRowAsChanged(rowData);
 
             if (selectedRows.length > 0) {
               selectedRows.forEach((row) => {
                 row.update({ UnitName: newUnit });
+                this.markRowAsChanged(row.getData());
               });
               table.deselectRow();
             }
@@ -469,10 +489,15 @@ export class PhaseAllocationPersonFormComponent
             const table = cell.getTable();
             const selectedRows = table.getSelectedRows();
             const newUnit = cell.getValue();
+            const rowData = cell.getRow().getData();
+
+            // Đánh dấu row đã thay đổi
+            this.markRowAsChanged(rowData);
 
             if (selectedRows.length > 0) {
               selectedRows.forEach((row) => {
                 row.update({ StatusReceive: newUnit });
+                this.markRowAsChanged(row.getData());
               });
               table.deselectRow();
             }
@@ -480,6 +505,13 @@ export class PhaseAllocationPersonFormComponent
         },
       ],
     });
+  }
+
+  // Đánh dấu row đã thay đổi (chỉ cho row đã tồn tại - ID > 0)
+  markRowAsChanged(rowData: any): void {
+    if (rowData && rowData.ID && rowData.ID > 0) {
+      this.changedRowIds.add(rowData.ID);
+    }
   }
 
   addRow() {
@@ -582,9 +614,12 @@ export class PhaseAllocationPersonFormComponent
     const tableRows = this.detailTable ? this.detailTable.getData() : [];
 
 
+    // Chỉ validate những row mới hoặc đã thay đổi
     const invalidIndex = tableRows.findIndex(
       (row: any) =>
         !row.IsDeleted &&
+        // Chỉ check row mới hoặc row có thay đổi
+        (row.ID === 0 || !row.ID || this.changedRowIds.has(row.ID)) &&
         (!row.EmployeeCode || row.EmployeeCode.toString().trim() === '')
     );
 
@@ -596,9 +631,12 @@ export class PhaseAllocationPersonFormComponent
       );
       return;
     }
-
     const invalidEmployees: string[] = [];
     tableRows.forEach((row: any, idx: number) => {
+      // Bỏ qua row không thay đổi (đã có ID và không nằm trong changedRowIds)
+      const isNewOrChanged = !row.ID || row.ID === 0 || this.changedRowIds.has(row.ID);
+      if (!isNewOrChanged) return;
+
       if (!row.IsDeleted && row.EmployeeCode) {
         const employee = this.employeeList.find(
           (emp: any) => emp.Code === row.EmployeeCode
@@ -615,7 +653,6 @@ export class PhaseAllocationPersonFormComponent
       this.notification.warning('Cảnh báo', invalidEmployees.join('\n'));
       return;
     }
-
     const masterPayload = {
       ID: formValue.ID || 0,
       Code: formValue.Code,
@@ -634,10 +671,21 @@ export class PhaseAllocationPersonFormComponent
           const masterID = savedMaster?.ID || formValue.ID || 0;
 
           const deletedIds = new Set(this.deletedRows.map((r: any) => r.ID));
-          const activeRows = tableRows.filter((row: any) => !deletedIds.has(row.ID));
-          const allRows = [...activeRows, ...this.deletedRows];
 
-          const detailPayload = allRows.map((row: any) => {
+          // Chỉ lấy các row cần lưu: row mới (ID=0), row đã thay đổi, hoặc row đã xóa
+          const rowsToSave = tableRows.filter((row: any) => {
+            // Row mới (chưa có ID)
+            if (!row.ID || row.ID === 0) return true;
+            // Row đã thay đổi
+            if (this.changedRowIds.has(row.ID)) return true;
+            // Row đã xóa (không cần vì sẽ thêm từ deletedRows)
+            return false;
+          });
+
+          // Thêm các row đã xóa vào danh sách
+          const allRowsToSave = [...rowsToSave, ...this.deletedRows];
+
+          const detailPayload = allRowsToSave.map((row: any) => {
             const isDeleted = deletedIds.has(row.ID);
             return {
               ID: row.ID || 0,

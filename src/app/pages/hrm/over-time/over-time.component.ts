@@ -267,7 +267,7 @@ export class OverTimeComponent implements OnInit {
       dateEnd: formatDateToString(dateEnd),
       departmentId: 0,
       pageNumber: 1,
-      pageSize: 1000000,
+      pageSize: 100000,
       keyWord: '',
       status: 0,
       IDApprovedTP: 0
@@ -653,9 +653,15 @@ export class OverTimeComponent implements OnInit {
       this.updateFooterTotals();
     });
 
+    // Update footer after grid render (to prevent footer being cleared)
+    angularGrid.slickGrid.onRendered.subscribe(() => {
+      setTimeout(() => this.updateFooterTotals(), 0);
+    });
+
     // Apply distinct filters after grid is ready with a small delay
     setTimeout(() => {
       this.applyDistinctFilters();
+      this.updateFooterTotals();
     }, 100);
   }
 
@@ -738,6 +744,9 @@ export class OverTimeComponent implements OnInit {
     // Invalidate and render to refresh the grid
     this.angularGrid.slickGrid.invalidate();
     this.angularGrid.slickGrid.render();
+
+    // Re-update footer totals after render (in case onRendered doesn't catch it)
+    setTimeout(() => this.updateFooterTotals(), 50);
   }
 
   handleRowSelection(e: Event, args: OnSelectedRowsChangedEventArgs) {

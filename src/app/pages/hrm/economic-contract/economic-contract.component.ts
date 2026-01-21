@@ -845,20 +845,19 @@ export class EconomicContractComponent implements OnInit {
       return;
     }
 
-    // ServerPath format: \\192.168.1.190\Software\Teast\...
-    // Cần lấy phần từ Software trở đi: Software/Teast/...
-    const serverPath = item.ServerPath.replace(/\\/g, '/'); // Replace all \ with /
+    // ServerPath đã bao gồm tên file: \\192.168.1.190\hc-rtc\...\file.pdf
+    // Replace \\192.168.1.190 thành api/share host
+    const host = environment.host + 'api/share';
+    let fileUrl = item.ServerPath.replace("\\\\192.168.1.190", host);
+    // Replace các \ còn lại thành /
+    fileUrl = fileUrl.replace(/\\/g, '/');
 
-    // Tìm vị trí của 'Software' và lấy từ đó
-    const softwareIndex = serverPath.indexOf('Software');
-    if (softwareIndex === -1) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Đường dẫn file không hợp lệ!');
-      return;
+    const newWindow = window.open(fileUrl, '_blank');
+    if (newWindow) {
+      newWindow.onload = () => {
+        newWindow.document.title = item.FileName || 'File';
+      };
     }
-
-    const path = serverPath.substring(softwareIndex);
-    const fileUrl = environment.host + 'api/share/' + path;
-    window.open(fileUrl, '_blank');
   }
 
   // Tải file về
@@ -868,18 +867,12 @@ export class EconomicContractComponent implements OnInit {
       return;
     }
 
-    // ServerPath format: \\192.168.1.190\Software\Teast\...
-    const serverPath = item.ServerPath.replace(/\\/g, '/');
-
-    // Tìm vị trí của 'Software' và lấy từ đó
-    const softwareIndex = serverPath.indexOf('Software');
-    if (softwareIndex === -1) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Đường dẫn file không hợp lệ!');
-      return;
-    }
-
-    const path = serverPath.substring(softwareIndex);
-    const fileUrl = environment.host + 'api/share/' + path;
+    // ServerPath đã bao gồm tên file: \\192.168.1.190\hc-rtc\...\file.pdf
+    // Replace \\192.168.1.190 thành api/share host
+    const host = environment.host + 'api/share';
+    let fileUrl = item.ServerPath.replace("\\\\192.168.1.190", host);
+    // Replace các \ còn lại thành /
+    fileUrl = fileUrl.replace(/\\/g, '/');
 
     // Tạo link tải file
     const fileName = item.FileName || item.OriginPath || 'file';

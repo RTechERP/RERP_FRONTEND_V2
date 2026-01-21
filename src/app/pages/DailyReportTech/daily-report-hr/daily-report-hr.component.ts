@@ -55,8 +55,8 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
   sizeSearch: string = '22%';
   
   // Search filters
-  dateStart: any = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
-  dateEnd: any = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
+  dateStart: string = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local().toFormat('yyyy-MM-dd');
   departmentId: number = 0;
   teamId: number = 0;
   userId: number = 0;
@@ -293,8 +293,8 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
   }
 
   setDefaultSearch(): void {
-    this.dateStart = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
-    this.dateEnd = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
+    this.dateStart = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local().toFormat('yyyy-MM-dd');
     this.departmentId = 0;
     this.teamId = 0;
     this.keyword = '';
@@ -303,24 +303,6 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
   }
 
   getSearchParams(): any {
-    let dateStart: DateTime;
-    if (this.dateStart instanceof Date) {
-      dateStart = DateTime.fromJSDate(this.dateStart);
-    } else if (typeof this.dateStart === 'string') {
-      dateStart = DateTime.fromISO(this.dateStart);
-    } else {
-      dateStart = DateTime.local().minus({ days: 1 });
-    }
-
-    let dateEnd: DateTime;
-    if (this.dateEnd instanceof Date) {
-      dateEnd = DateTime.fromJSDate(this.dateEnd);
-    } else if (typeof this.dateEnd === 'string') {
-      dateEnd = DateTime.fromISO(this.dateEnd);
-    } else {
-      dateEnd = DateTime.local();
-    }
-
     let userID = 0;
     if (this.currentUser) {
       if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true) {
@@ -331,8 +313,8 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
     }
 
     return {
-      dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null,
-      dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null,
+      dateStart: this.dateStart || DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd'),
+      dateEnd: this.dateEnd || DateTime.local().toFormat('yyyy-MM-dd'),
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
       userID: userID,

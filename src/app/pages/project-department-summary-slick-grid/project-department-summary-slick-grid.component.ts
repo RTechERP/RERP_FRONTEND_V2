@@ -160,8 +160,8 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   savedPage: number = 1;
 
   searchParams: any = {
-    dateTimeS: new Date('2024-02-02'),
-    dateTimeE: new Date(),
+    dateTimeS: '2024-02-02',
+    dateTimeE: DateTime.local().toFormat('yyyy-MM-dd'),
     keyword: '',
     userID: 0,
     projectTypeID: '',
@@ -1914,7 +1914,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   // Helper methods cho export Excel
   private getCurrentFilterInfo(): string {
     const filters: string[] = [];
-    
+
     // Lấy filter từ các cột
     const columns = this.angularGrid?.slickGrid?.getColumns() || [];
     columns.forEach(col => {
@@ -1950,7 +1950,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   private getStatsInfo(): string {
     const totalItems = this.angularGrid?.dataView?.getItems()?.length || 0;
     const filteredItems = this.angularGrid?.dataView?.getFilteredItems()?.length || 0;
-    
+
     return `Tổng số dự án: ${filteredItems} ${filteredItems < totalItems ? `(trên ${totalItems})` : ''}`;
   }
 
@@ -1985,93 +1985,93 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
     });
   }
   //#endregion
-   // Apply distinct filters for multiple columns after data is loaded
-    private applyDistinctFilters(): void {
-      const fieldsToFilter = [
-        'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
-        'FullNameSale', 'FullNameTech', 'FullNamePM', 'BussinessField',
-        'CurrentSituation', 'CustomerName', 'CreatedBy', 'UpdatedBy'
-      ];
-      this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
-    }
-  
-    private applyDistinctFiltersWorkReport(): void {
-      const fieldsToFilter = [
-        'Code', 'StatusText', 'ProjectTypeName', 'FullName',
-        'Mission', 'EmployeeRequest', 'Note', 'ProjectEmployeeName'
-      ];
-      this.applyDistinctFiltersToGrid(this.angularGridWorkReport, this.columnDefinitionsWorkReport, fieldsToFilter);
-    }
-  
-    private applyDistinctFiltersTypeLink(): void {
-      const fieldsToFilter = ['ProjectTypeName', 'FullName'];
-      this.applyDistinctFiltersToGrid(this.angularGridTypeLink, this.columnDefinitionsTypeLink, fieldsToFilter);
-    }
-  
-    private applyDistinctFiltersToGrid(
-      angularGrid: AngularGridInstance | undefined,
-      columnDefs: Column[],
-      fieldsToFilter: string[]
-    ): void {
-      if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
-  
-      const data = angularGrid.dataView.getItems();
-      if (!data || data.length === 0) return;
-  
-      const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
-        const map = new Map<string, string>();
-        dataArray.forEach((row: any) => {
-          const value = String(row?.[field] ?? '');
-          if (value && !map.has(value)) {
-            map.set(value, value);
-          }
-        });
-        return Array.from(map.entries())
-          .map(([value, label]) => ({ value, label }))
-          .sort((a, b) => a.label.localeCompare(b.label));
-      };
-  
-      const columns = angularGrid.slickGrid.getColumns();
-      if (!columns) return;
-  
-      // Update runtime columns
-      columns.forEach((column: any) => {
-        if (column?.filter && column.filter.model === Filters['multipleSelect']) {
-          const field = column.field;
-          if (!field || !fieldsToFilter.includes(field)) return;
-          column.filter.collection = getUniqueValues(data, field);
+  // Apply distinct filters for multiple columns after data is loaded
+  private applyDistinctFilters(): void {
+    const fieldsToFilter = [
+      'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
+      'FullNameSale', 'FullNameTech', 'FullNamePM', 'BussinessField',
+      'CurrentSituation', 'CustomerName', 'CreatedBy', 'UpdatedBy'
+    ];
+    this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersWorkReport(): void {
+    const fieldsToFilter = [
+      'Code', 'StatusText', 'ProjectTypeName', 'FullName',
+      'Mission', 'EmployeeRequest', 'Note', 'ProjectEmployeeName'
+    ];
+    this.applyDistinctFiltersToGrid(this.angularGridWorkReport, this.columnDefinitionsWorkReport, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersTypeLink(): void {
+    const fieldsToFilter = ['ProjectTypeName', 'FullName'];
+    this.applyDistinctFiltersToGrid(this.angularGridTypeLink, this.columnDefinitionsTypeLink, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersToGrid(
+    angularGrid: AngularGridInstance | undefined,
+    columnDefs: Column[],
+    fieldsToFilter: string[]
+  ): void {
+    if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+    const data = angularGrid.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
         }
       });
-  
-      // Update column definitions (so when grid re-renders, it keeps the collections)
-      columnDefs.forEach((colDef: any) => {
-        if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
-          const field = colDef.field;
-          if (!field || !fieldsToFilter.includes(field)) return;
-          colDef.filter.collection = getUniqueValues(data, field);
-        }
-      });
-  
-      angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
-      angularGrid.slickGrid.invalidate();
-      angularGrid.slickGrid.render();
-  
-      // Thêm tooltip cho dropdown options sau khi render
-      setTimeout(() => {
-        this.addTooltipsToDropdownOptions();
-      }, 100);
-    }
-  
-    private addTooltipsToDropdownOptions(): void {
-      // Tìm tất cả dropdown options và thêm title attribute
-      const dropdownOptions = document.querySelectorAll('.ms-drop.bottom .ms-list li label span');
-      dropdownOptions.forEach((span: Element) => {
-        const text = span.textContent || '';
-        if (text && text.length > 30) { // Chỉ thêm tooltip cho text dài
-          (span as HTMLElement).setAttribute('title', text);
-        }
-      });
-    }
-    //#endregion
-    
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions (so when grid re-renders, it keeps the collections)
+    columnDefs.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
+
+    // Thêm tooltip cho dropdown options sau khi render
+    setTimeout(() => {
+      this.addTooltipsToDropdownOptions();
+    }, 100);
+  }
+
+  private addTooltipsToDropdownOptions(): void {
+    // Tìm tất cả dropdown options và thêm title attribute
+    const dropdownOptions = document.querySelectorAll('.ms-drop.bottom .ms-list li label span');
+    dropdownOptions.forEach((span: Element) => {
+      const text = span.textContent || '';
+      if (text && text.length > 30) { // Chỉ thêm tooltip cho text dài
+        (span as HTMLElement).setAttribute('title', text);
+      }
+    });
+  }
+  //#endregion
+
 }

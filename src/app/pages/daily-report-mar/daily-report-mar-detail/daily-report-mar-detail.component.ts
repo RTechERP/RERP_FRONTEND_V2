@@ -74,9 +74,9 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
         this.loadDataForEdit(dailyID);
       }
     } else {
-      // mặc định ngày báo cáo = hôm nay
+      // mặc định ngày báo cáo = hôm nay (format yyyy-MM-dd cho input type="date")
       this.formGroup.patchValue({
-        DateReport: DateTime.local().toJSDate(),
+        DateReport: DateTime.local().toFormat('yyyy-MM-dd'),
       });
     }
   }
@@ -115,7 +115,8 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
   }
 
   private populateForm(data: any, fileData?: any[]): void {
-    const dateReport = data?.DateReport ? DateTime.fromISO(data.DateReport).toJSDate() : null;
+    // Format yyyy-MM-dd cho input type="date"
+    const dateReport = data?.DateReport ? DateTime.fromISO(data.DateReport).toFormat('yyyy-MM-dd') : null;
     this.formGroup.patchValue({
       DateReport: dateReport,
       Content: data?.Content || '',
@@ -232,10 +233,10 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
   private prepareFileData(dailyId: number): any[] {
     const fileData: any[] = [];
     const activeFiles = this.fileData.filter((f: any) => !f?.IsDeleted);
-  
+
     activeFiles.forEach((file: any) => {
       if (!file) return;
-  
+
       let extension = '';
       const fileName = file.FileNameOrigin || file.FileName || file.OriginName || '';
       if (fileName) {
@@ -244,7 +245,7 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
           extension = '.' + parts.pop();
         }
       }
-  
+
       if (file.ID && file.ID > 0) {
         fileData.push({
           ID: file.ID,
@@ -267,7 +268,7 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
         });
       }
     });
-  
+
     return fileData;
   }
 

@@ -100,8 +100,8 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
 
   // Search params
   searchParams = {
-    DateStart: new Date(),
-    DateEnd: new Date(),
+    DateStart: DateTime.local().minus({ month: 1 }).toFormat('yyyy-MM-dd'),
+    DateEnd: DateTime.local().toFormat('yyyy-MM-dd'),
     Keywords: '',
     MeetingTypeID: 0,
   };
@@ -184,11 +184,6 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-    // Set date range (start = 1 month ago)
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 1);
-    this.searchParams.DateStart = startDate;
-
     // Initialize all grids
     this.initGridMeetingMinutes();
     this.initGridEmployee();
@@ -585,9 +580,12 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
   }
 
   resetForm(): void {
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 1);
-    this.searchParams = { DateStart: startDate, DateEnd: new Date(), Keywords: '', MeetingTypeID: 0 };
+    this.searchParams = {
+      DateStart: DateTime.local().minus({ month: 1 }).toFormat('yyyy-MM-dd'),
+      DateEnd: DateTime.local().toFormat('yyyy-MM-dd'),
+      Keywords: '',
+      MeetingTypeID: 0
+    };
   }
 
   onAddMeetingMinutes(isEditmode: boolean): void {

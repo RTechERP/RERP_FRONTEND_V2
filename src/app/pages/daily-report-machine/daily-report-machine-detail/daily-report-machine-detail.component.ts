@@ -118,25 +118,25 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
     // Load dữ liệu nếu là chế độ edit
     if (this.mode === 'edit' && this.dataInput) {
       const dailyID = typeof this.dataInput === 'number' ? this.dataInput : (this.dataInput?.ID || this.dataInput?.dailyID);
-      
+
       if (dailyID) {
         this.loadDataForEdit(dailyID);
       }
     } else {
       // Khởi tạo dự án đầu tiên cho chế độ add
       this.addProject();
-      
+
       // Set ngày báo cáo mặc định theo quy tắc 9h sáng
       const now = DateTime.local();
       const currentHour = now.hour;
-      
+
       if (currentHour >= 0 && currentHour <= 9) {
         this.formGroup.patchValue({
           DateReport: null
         });
       } else {
         this.formGroup.patchValue({
-          DateReport: now.toJSDate()
+          DateReport: now.toFormat('yyyy-MM-dd')
         });
       }
     }
@@ -149,40 +149,40 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
         if (response && response.status === 1 && response.data) {
           // API có thể trả về 1 report hoặc nhiều reports
           const reports = Array.isArray(response.data) ? response.data : [response.data];
-          
+
           // Reset projectList
           this.projectList = [];
-          
+
           // Chuyển đổi dữ liệu từ flat sang nested structure
           reports.forEach((report: any) => {
             if (report && report.ProjectID) {
               const selectedProject = this.projects.find(p => p.ID === report.ProjectID);
-              
-          const project: Project = {
-            ID: report.ID || 0,
-            ProjectID: report.ProjectID || 0,
-            ProjectCode: selectedProject?.ProjectCode || '',
-            ProjectName: selectedProject?.ProjectName || '',
-            ProjectText: selectedProject?.ProjectText || `${selectedProject?.ProjectCode || ''} - ${selectedProject?.ProjectName || ''}`,
-            TotalHours: report.TotalHours || 0,
-            TotalHourOT: report.TotalHourOT || 0,
-            Content: report.Content || '',
-            Results: report.Results || '',
-            AdditionalInfo: {
-              Problem: report.Problem || '',
-              ProblemSolve: report.ProblemSolve || '',
-              Backlog: report.Backlog || '',
-              Note: report.Note || ''
-            }
-          };
-              
+
+              const project: Project = {
+                ID: report.ID || 0,
+                ProjectID: report.ProjectID || 0,
+                ProjectCode: selectedProject?.ProjectCode || '',
+                ProjectName: selectedProject?.ProjectName || '',
+                ProjectText: selectedProject?.ProjectText || `${selectedProject?.ProjectCode || ''} - ${selectedProject?.ProjectName || ''}`,
+                TotalHours: report.TotalHours || 0,
+                TotalHourOT: report.TotalHourOT || 0,
+                Content: report.Content || '',
+                Results: report.Results || '',
+                AdditionalInfo: {
+                  Problem: report.Problem || '',
+                  ProblemSolve: report.ProblemSolve || '',
+                  Backlog: report.Backlog || '',
+                  Note: report.Note || ''
+                }
+              };
+
               this.projectList.push(project);
             }
           });
 
-          // Set DateReport từ report đầu tiên
+          // Set DateReport từ report đầu tiên (format yyyy-MM-dd cho input type="date")
           if (reports.length > 0 && reports[0].DateReport) {
-            const dateReport = DateTime.fromISO(reports[0].DateReport).toJSDate();
+            const dateReport = DateTime.fromISO(reports[0].DateReport).toFormat('yyyy-MM-dd');
             this.formGroup.patchValue({
               DateReport: dateReport
             });
@@ -219,7 +219,7 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
   }
 
   ngAfterViewInit(): void {
-    
+
   }
 
   // Disable các ngày trước 1 ngày so với hôm nay
@@ -280,7 +280,7 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
         project.ProjectCode = selectedProject.ProjectCode || '';
         project.ProjectName = selectedProject.ProjectName || '';
         project.ProjectText = selectedProject.ProjectText || `${selectedProject.ProjectCode} - ${selectedProject.ProjectName}`;
-        
+
         // Load vấn đề phát sinh và hướng giải quyết từ API
         this.loadProjectHistoryProblem(projectIndex, projectId);
       }
@@ -315,12 +315,12 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
           const data = Array.isArray(response.data) ? response.data : [];
-          
+
           if (data.length > 0) {
             // Nối chuỗi các vấn đề phát sinh (contentError) và hướng giải quyết (remedies)
             const problems: string[] = [];
             const remedies: string[] = [];
-            
+
             data.forEach((item: any) => {
               if (item.contentError && item.contentError.trim() !== '') {
                 problems.push(item.contentError.trim());
@@ -329,13 +329,13 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
                 remedies.push(item.remedies.trim());
               }
             });
-            
+
             // Nối chuỗi với dấu 
             if (project.AdditionalInfo) {
               project.AdditionalInfo.Problem = problems
                 .map((item, index) => `${index + 1}.${item}`)
                 .join('\n');
-            
+
               project.AdditionalInfo.ProblemSolve = remedies
                 .map((item, index) => `${index + 1}.${item}`)
                 .join('\n');
@@ -503,14 +503,14 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
   // Mở modal preview
   openPreviewModal(): void {
     const summaryContent = this.generateSummary();
-   
+
     if (!summaryContent || summaryContent.trim() === '') {
       return;
     }
-   
+
     // Set nội dung để bind vào template
     this.previewContent = summaryContent;
-   
+
     const modal = this.modalService.create({
       nzTitle: 'Tổng hợp báo cáo',
       nzContent: this.previewModalTemplate,
@@ -529,7 +529,7 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
             } else {
               this.notification.warning('Thông báo', 'Không thể copy vào clipboard. Vui lòng copy thủ công.');
             }
-            
+
             this.submitDailyReport();
             modal.destroy();
           }
@@ -546,25 +546,25 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
       }
     });
   }
-  
+
   // Chuyển đổi dữ liệu sang format API (nhiều reports - 1 report cho mỗi dự án)
   private convertToFlatData(): any[] {
     const dateReport = this.formGroup.get('DateReport')?.value;
     if (!dateReport) {
       return [];
     }
-  
+
     const dateReportStr = DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
     const userReport = this.currentUser?.ID || 0;
-  
+
     const reports: any[] = [];
-  
+
     // Duyệt qua từng dự án
     for (const project of this.projectList) {
       if (!project.ProjectID || project.ProjectID === 0) {
         continue;
       }
-  
+
       // Tạo 1 báo cáo cho mỗi dự án
       const report: any = {
         ID: (this.mode === 'edit' && project.ID > 0) ? project.ID : 0,
@@ -592,10 +592,10 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
         DeleteFlag: 0,
         Confirm: false
       };
-  
+
       reports.push(report);
     }
-  
+
     return reports;
   }
 
@@ -750,13 +750,13 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
 
     if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
-      
+
       const errors: string[] = [];
-      
+
       if (this.formGroup.get('DateReport')?.hasError('required')) {
         errors.push('Ngày báo cáo');
       }
-      
+
       if (errors.length > 0) {
         this.notification.warning('Thông báo', `Vui lòng điền đầy đủ các trường bắt buộc: ${errors.join(', ')}`);
       } else {
@@ -791,17 +791,17 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
         keyboard: false,
         windowClass: 'overtime-modal-custom'
       });
-      
+
       if (!modalRef) {
         this.notification.error('Lỗi', 'Không thể mở modal làm thêm!');
         return;
       }
-      
+
       if (modalRef.componentInstance) {
         modalRef.componentInstance.data = null;
         modalRef.componentInstance.isEditMode = false;
       }
-      
+
       modalRef.result.then(
         (result) => {
           // Xử lý khi đóng modal
@@ -836,7 +836,7 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
     const projectId = activeProject.ProjectID;
     // Lấy projectCode từ activeProject hoặc tìm từ danh sách projects
     let projectCode = activeProject.ProjectCode || '';
-    
+
     if (!projectCode) {
       const selectedProject = this.projects.find(p => p.ID === projectId);
       if (selectedProject) {

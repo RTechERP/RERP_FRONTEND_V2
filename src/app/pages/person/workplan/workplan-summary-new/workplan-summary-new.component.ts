@@ -75,6 +75,7 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
     ngOnInit(): void {
         // Set default departmentId theo phòng ban của user hiện tại
         this.departmentId = this.appUserService.departmentID || 0;
+        this.teamId = this.appUserService.currentUser?.TeamOfUser || 0;
 
         this.loadDepartments();
         this.loadEmployees();
@@ -420,7 +421,12 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
                 const pe = r.PlanEndDate ? new Date(r.PlanEndDate) : null;
                 const planCells = dayCols.map(c => {
                     let bg = '';
-                    if (ps && pe && c.dt) {
+                    // Check for day off first (value 2)
+                    const v = r[c.field];
+                    const n = v == null ? null : parseInt(String(v).trim(), 10);
+                    if (Number.isFinite(n) && n === 2) {
+                        bg = 'background:#DD0000;color:#fff;'; // Ngày nghỉ
+                    } else if (ps && pe && c.dt) {
                         const d0 = new Date(c.dt.getFullYear(), c.dt.getMonth(), c.dt.getDate());
                         const ps0 = new Date(ps.getFullYear(), ps.getMonth(), ps.getDate());
                         const pe0 = new Date(pe.getFullYear(), pe.getMonth(), pe.getDate());

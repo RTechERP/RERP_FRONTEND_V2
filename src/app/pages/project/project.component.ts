@@ -167,12 +167,12 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     currentUser: any = null;
     savedPage: number = 1; // Lưu page hiện tại khi reload
     selectedStatusDate: Date | null = null; // Biến lưu ngày được chọn trong modal
-    dateStart: any = DateTime.local()
+    dateStart: string = DateTime.local()
         .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
-        .toISO();
-    dateEnd: any = DateTime.local()
+        .toFormat('yyyy-MM-dd');
+    dateEnd: string = DateTime.local()
         .set({ hour: 0, minute: 0, second: 0 })
-        .toISO();
+        .toFormat('yyyy-MM-dd');
     //#endregion
 
     //#region chạy khi mở chương trình
@@ -751,7 +751,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
             DateTime.fromJSDate(new Date(this.dateStart))
                 .set({ hour: 23, minute: 59, second: 59 })
                 .toFormat('yyyy-MM-dd HH:mm:ss'),
-            DateTime.fromJSDate(this.dateStart)
+            DateTime.fromJSDate(new Date(this.dateStart))
                 .set({ hour: 23, minute: 59, second: 59 })
                 .toFormat('yyyy-MM-dd HH:mm:ss')
         );

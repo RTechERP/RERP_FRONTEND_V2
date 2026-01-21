@@ -57,12 +57,7 @@
     overflow: visible !important;
 }
 
-/* Enable proper horizontal scrolling for slickgrid */
-::ng-deep #grvOverTimePersonContainer .slick-viewport {
-    overflow-x: auto !important;
-    overflow-y: auto !important;
-    width: 100% !important;
-}
+
 
 /* Allow grid canvas to expand horizontally */
 ::ng-deep #grvOverTimePersonContainer .slick-grid {

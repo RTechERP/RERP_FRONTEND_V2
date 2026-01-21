@@ -21,22 +21,12 @@
                 <div class="bg-light border-bottom p-2" *ngIf="showSearchPanel">
                     <div class="d-flex gap-1 align-items-center flex-wrap">
                         <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
-                        <nz-date-picker
-                            [(ngModel)]="dateStart"
-                            [ngModelOptions]="{standalone: true}"
-                            nzSize="small"
-                            nzFormat="dd/MM/yyyy"
-                            style="width: 130px;">
-                        </nz-date-picker>
+                        <input nz-input type="date" [(ngModel)]="dateStart" [ngModelOptions]="{standalone: true}"
+                            style="width: 130px;" />
 
                         <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
-                        <nz-date-picker
-                            [(ngModel)]="dateEnd"
-                            [ngModelOptions]="{standalone: true}"
-                            nzSize="small"
-                            nzFormat="dd/MM/yyyy"
-                            style="width: 130px;">
-                        </nz-date-picker>
+                        <input nz-input type="date" [(ngModel)]="dateEnd" [ngModelOptions]="{standalone: true}"
+                            style="width: 130px;" />
 
                         <nz-form-label class="fs-12" style="font-size: 12px;">Dự án</nz-form-label>
                         <nz-select [(ngModel)]="projectId" [ngModelOptions]="{standalone: true}" nzShowSearch

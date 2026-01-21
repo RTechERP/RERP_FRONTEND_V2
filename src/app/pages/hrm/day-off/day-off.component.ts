@@ -940,46 +940,47 @@ export class DayOffComponent implements OnInit {
         data: this.listSummaryData,
         ...DEFAULT_TABLE_CONFIG,
         paginationMode: 'local',
-        height: '200px',
+        height: '100px',
         pagination: false,
         selectableRows: 1,
+        rowHeader: false,
         columns: [
-          {
-            title: 'STT',
-            hozAlign: 'center',
-            formatter: 'rownum',
-            headerHozAlign: 'center',
-            field: 'STT',
-          },
+
           {
             title: 'Họ tên',
             field: 'FullName',
             headerHozAlign: 'center',
+            width: 120,
           },
           {
-            title: 'Tổng số ngày xin nghỉ phép trong tháng',
+            title: 'Số ngày phép xin nghỉ trong tháng',
             field: 'TotalDay',
             headerHozAlign: 'center',
+            hozAlign: 'center',
           },
           {
             title: 'Số ngày đã duyệt trong tháng',
             field: 'TotalDayApproved',
             headerHozAlign: 'center',
+            hozAlign: 'center',
           },
           {
             title: 'Số ngày chưa duyệt trong tháng',
             field: 'TotalDayUnApproved',
             headerHozAlign: 'center',
+            hozAlign: 'center',
           },
           {
             title: 'Số ngày còn lại dự kiến trong tháng',
             field: 'TotalDayRemain',
             headerHozAlign: 'center',
+            hozAlign: 'center',
           },
           {
             title: 'Số ngày phép còn lại dự kiến trong năm',
             field: 'TotalDayOnleaveActual',
             headerHozAlign: 'center',
+            hozAlign: 'center',
           },
         ],
       });

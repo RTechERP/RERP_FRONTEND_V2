@@ -51,10 +51,8 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
                             <nz-form-control>
-                                <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small"
-                                    [(ngModel)]="searchParams.DateStart" [ngModelOptions]="{ standalone: true }"
-                                    name="dateStart">
-                                </nz-date-picker>
+                                <input nz-input type="date" class="w-100" [(ngModel)]="searchParams.DateStart"
+                                    [ngModelOptions]="{ standalone: true }" name="dateStart" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -64,10 +62,8 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
                             <nz-form-control>
-                                <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small"
-                                    [(ngModel)]="searchParams.DateEnd" [ngModelOptions]="{ standalone: true }"
-                                    name="dateEnd">
-                                </nz-date-picker>
+                                <input nz-input type="date" class="w-100" [(ngModel)]="searchParams.DateEnd"
+                                    [ngModelOptions]="{ standalone: true }" name="dateEnd" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -91,7 +87,7 @@
                         </nz-form-item>
                     </nz-col>
 
-                      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
                             <nz-form-control>

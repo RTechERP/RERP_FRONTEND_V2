@@ -161,11 +161,11 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
   selectedRow: any = '';
 
   // Filter params
-  dateStart: any = DateTime.local()
+  dateStart: string = DateTime.local()
     .minus({ month: 1 })
     .set({ hour: 0, minute: 0, second: 0 })
-    .toISO();
-  dateEnd: any = DateTime.local().plus({ month: 2 }).toISO();
+    .toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local().plus({ month: 2 }).toFormat('yyyy-MM-dd');
   projectId: any = 0;
   technicalId: any = 0;
   saleId: any = 0;
@@ -187,7 +187,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
     // Initialize with empty dataset to prevent SlickGrid error
     this.dataset = [];
     this.gridData = [];
-    
+
     this.getCurrentUser();
     this.getEmployees();
     this.getProjects();
@@ -307,8 +307,8 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
     this.dateStart = DateTime.local()
       .minus({ month: 1 })
       .set({ hour: 0, minute: 0, second: 0 })
-      .toISO();
-    this.dateEnd = DateTime.local().plus({ month: 2 }).toISO();
+      .toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local().plus({ month: 2 }).toFormat('yyyy-MM-dd');
     this.projectId = 0;
     this.technicalId = 0;
     this.saleId = 0;
@@ -377,43 +377,43 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
       next: (response: any) => {
         // Ensure response.data exists and is an array
         const responseData = response.data || [];
-        
+
         // Create a Set to track used ids and ensure uniqueness
         const usedIds = new Set<string>();
-        
+
         this.dataset = responseData.map((item: any, index: number) => {
           let uniqueId = item.ID || item.id || `survey_${index + 1}`;
-          
+
           // If the id is already used, create a truly unique one
           if (usedIds.has(String(uniqueId))) {
             uniqueId = `survey_${index + 1}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           }
-          
+
           usedIds.add(String(uniqueId));
-          
+
           return {
             ...item,
             id: uniqueId
           };
         });
-        
+
         // Create a new Set for gridData to ensure independence
         const usedIdsForGrid = new Set<string>();
         this.gridData = responseData.map((item: any, index: number) => {
           let uniqueId = item.ID || item.id || `survey_grid_${index + 1}`;
-          
+
           if (usedIdsForGrid.has(String(uniqueId))) {
             uniqueId = `survey_grid_${index + 1}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           }
-          
+
           usedIdsForGrid.add(String(uniqueId));
-          
+
           return {
             ...item,
             id: uniqueId
           };
         });
-        
+
         this.isLoading = false;
 
         setTimeout(() => {
@@ -1042,7 +1042,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
             this.notification.success('Thông báo', 'Xóa thành công');
             this.getDataProjectSurvey();
           },
-        error: (error: any) => {
+          error: (error: any) => {
             console.error('Error deleting version:', error);
             const errorMessage = error?.error?.message || error?.message || 'Không thể xóa!';
             this.notification.error('Lỗi', errorMessage);
@@ -1260,7 +1260,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         if (column.filter && column.filter.model === Filters['multipleSelect']) {
           const field = column.field;
           if (!field) return;
-          
+
           // Use predefined collections for boolean fields
           if (field === 'IsUrgent' || field === 'IsApprovedUrgent') {
             column.filter.collection = booleanCollection;
@@ -1286,7 +1286,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         if (colDef.filter && colDef.filter.model === Filters['multipleSelect']) {
           const field = colDef.field;
           if (!field) return;
-          
+
           // Use predefined collections for boolean fields
           if (field === 'IsUrgent' || field === 'IsApprovedUrgent') {
             colDef.filter.collection = booleanCollection;
@@ -1294,7 +1294,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
             colDef.filter.collection = this.customers.map((c: any) => ({ value: c.CustomerName, label: c.CustomerName }));
           } else if (field === 'ProjectTypeName') {
             colDef.filter.collection = this.projectTypes.map((t: any) => ({ value: t.ProjectTypeName, label: t.ProjectTypeName }));
-          } 
+          }
           else {
             colDef.filter.collection = getUniqueValues(data, field);
           }

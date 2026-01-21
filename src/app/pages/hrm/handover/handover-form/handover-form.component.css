@@ -7,18 +7,6 @@
   color: #fff !important; /* buộc chữ trắng */
 }
 
-.box {
-  height: 60%; /* Mặc định cho mobile */
-}
-
-/* Màn hình lớn hơn hoặc bằng 992px (Laptop/Desktop) */
-@media (min-width: 992px) {
-  .box {
-    height: 80%;
-  }
-}
-
-
 :host ::ng-deep .modal-body {
   height: 88vh;
   overflow: auto;

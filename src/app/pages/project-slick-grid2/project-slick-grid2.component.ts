@@ -203,12 +203,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   currentUser: any = null;
   savedPage: number = 1;
   selectedStatusDate: Date | null = null;
-  dateStart: any = DateTime.local()
+  dateStart: string = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
-    .toISO();
-  dateEnd: any = DateTime.local()
+    .toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
-    .toISO();
+    .toFormat('yyyy-MM-dd');
   //#endregion
 
   //#region Lifecycle hooks
@@ -2066,7 +2066,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       DateTime.fromJSDate(new Date(this.dateStart))
         .set({ hour: 23, minute: 59, second: 59 })
         .toFormat('yyyy-MM-dd HH:mm:ss'),
-      DateTime.fromJSDate(this.dateStart)
+      DateTime.fromJSDate(new Date(this.dateStart))
         .set({ hour: 23, minute: 59, second: 59 })
         .toFormat('yyyy-MM-dd HH:mm:ss')
     );
@@ -2076,10 +2076,10 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     this.dateStart = DateTime.local()
       .minus({ years: 1 })
       .set({ hour: 0, minute: 0, second: 0 })
-      .toISO();
+      .toFormat('yyyy-MM-dd');
     this.dateEnd = DateTime.local()
       .set({ hour: 0, minute: 0, second: 0 })
-      .toISO();
+      .toFormat('yyyy-MM-dd');
     this.projectTypeIds = [];
     this.projecStatusIds = [];
     this.userId = 0;

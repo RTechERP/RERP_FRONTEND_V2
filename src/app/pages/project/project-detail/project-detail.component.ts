@@ -99,7 +99,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   currentState: any;
   createDate: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
-    .toJSDate();
+    .toFormat('yyyy-MM-dd');
   // Ngày dự kiến
   expectedPlanDate: any;
   expectedQuotationDate: any;
@@ -117,8 +117,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   readonly STATUS_FINISHED = 9;
 
   // Ngày thay đổi trạng thái
-  dateChangeStatus: Date | null = null;
-  tempDateChangeStatus: Date | null = null;
+  dateChangeStatus: string | null = null;
+  tempDateChangeStatus: string | null = null;
   projectUserTeams: any[] = [];
   projectStatus: any;
   projectStatusIdDetail: any;
@@ -151,7 +151,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     this.formGroup = this.fb.group({
       customerId: [null, [Validators.required]],
       projectCode: [{ value: '', disabled: true }, [Validators.required]],
-      createdDate: [DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toJSDate()],
+      createdDate: [DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toFormat('yyyy-MM-dd')],
       projectName: ['', [Validators.required]],
       userSaleId: [null, [Validators.required]],
       userTechId: [null, [Validators.required]],
@@ -411,7 +411,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           });
           this.createDate = DateTime.fromISO(response.data.CreatedDate)
             .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-            .toJSDate();
+            .toFormat('yyyy-MM-dd');
 
           this.projectStatusId = response.data.ProjectStatus;
           this.oldStatusId = response.data.ProjectStatus;
@@ -454,12 +454,12 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           this.expectedPlanDate = res.data.ExpectedPlanDate
             ? DateTime.fromISO(res.data.ExpectedPlanDate)
               .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-              .toJSDate()
+              .toFormat('yyyy-MM-dd')
             : null;
           this.expectedQuotationDate = res.data.ExpectedQuotationDate
             ? DateTime.fromISO(res.data.ExpectedQuotationDate)
               .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-              .toJSDate()
+              .toFormat('yyyy-MM-dd')
             : null;
 
           // Cập nhật form values cho ngày
@@ -470,33 +470,33 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           this.expectedPODate = res.data.ExpectedPODate
             ? DateTime.fromISO(res.data.ExpectedPODate)
               .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-              .toJSDate()
+              .toFormat('yyyy-MM-dd')
             : null;
           this.expectedProjectEndDate = res.data.ExpectedProjectEndDate
             ? DateTime.fromISO(res.data.ExpectedProjectEndDate)
               .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-              .toJSDate()
+              .toFormat('yyyy-MM-dd')
             : null;
 
           this.realityPlanDate = res.data.RealityPlanDate
             ? DateTime.fromISO(res.data.RealityPlanDate)
               .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-              .toJSDate()
+              .toFormat('yyyy-MM-dd')
             : null;
           this.realityQuotationDate = res.data.RealityQuotationDate
             ? DateTime.fromISO(res.data.RealityQuotationDate)
               .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-              .toJSDate()
+              .toFormat('yyyy-MM-dd')
             : null;
           this.realityPODate = res.data.RealityPODate
             ? DateTime.fromISO(res.data.RealityPODate)
               .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-              .toJSDate()
+              .toFormat('yyyy-MM-dd')
             : null;
           this.realityProjectEndDate = res.data.RealityProjectEndDate
             ? DateTime.fromISO(res.data.RealityProjectEndDate)
               .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-              .toJSDate()
+              .toFormat('yyyy-MM-dd')
             : null;
 
           this.formGroup.patchValue({
@@ -644,7 +644,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     onOk: (selected: Date) => void;
   }): void {
     this.dateChangeStatus = null;
-    this.tempDateChangeStatus = new Date();
+    this.tempDateChangeStatus = DateTime.local().toFormat('yyyy-MM-dd');
 
     const modalRef = this.modal.create({
       nzContent: this.dateChangeStatusContainer,
@@ -662,8 +662,10 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           label: config.okText,
           type: 'primary',
           onClick: () => {
-            const selected = this.coerceToDate(this.tempDateChangeStatus);
-            if (!(selected instanceof Date) || isNaN(selected.getTime())) {
+            const selected = this.tempDateChangeStatus
+              ? DateTime.fromISO(this.tempDateChangeStatus).toJSDate()
+              : null;
+            if (!selected || isNaN(selected.getTime())) {
               console.log('tempDateChangeStatus value:', this.tempDateChangeStatus, 'type:', typeof this.tempDateChangeStatus);
               this.notification.error(
                 '',
@@ -675,7 +677,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
               return;
             }
 
-            this.dateChangeStatus = selected;
+            this.dateChangeStatus = this.tempDateChangeStatus;
             config.onOk(selected);
             modalRef.close();
           },
@@ -790,14 +792,14 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   onDateChange(date: any) {
-    this.dateChangeStatus = this.coerceToDate(date);
+    this.dateChangeStatus = date;
     console.log(this.dateChangeStatus);
   }
 
   onDateChangeStatusChange(date: any) {
     // Hàm này được gọi khi date picker trong modal thay đổi
-    this.tempDateChangeStatus = this.coerceToDate(date);
-    console.log('onDateChangeStatusChange - date:', this.tempDateChangeStatus, 'type:', typeof this.tempDateChangeStatus, 'isValid:', this.tempDateChangeStatus instanceof Date);
+    this.tempDateChangeStatus = date;
+    console.log('onDateChangeStatusChange - date:', this.tempDateChangeStatus, 'type:', typeof this.tempDateChangeStatus);
   }
 
   private coerceToDate(value: any): Date | null {
@@ -821,7 +823,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   // Hàm helper để kiểm tra dateChangeStatus có giá trị hợp lệ không
   private isValidDateChangeStatus(): boolean {
-    return this.dateChangeStatus instanceof Date && !isNaN(this.dateChangeStatus.getTime());
+    if (!this.dateChangeStatus) return false;
+    const d = DateTime.fromISO(this.dateChangeStatus);
+    return d.isValid;
   }
 
   saveDataProject() {

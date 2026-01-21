@@ -7,7 +7,7 @@
   </div>
 
   <div class="modal-body pt-2 pb-0 p-2 w-100 position-relative" style="max-height: 80vh">
-    
+
     <!-- THÔNG TIN DỰ ÁN -->
     <fieldset class="reset m-0 mb-2">
       <legend class="reset fs-12 p-0 mb-2">THÔNG TIN DỰ ÁN</legend>
@@ -199,7 +199,7 @@
     <fieldset class="reset m-0">
       <legend class="reset fs-12 p-0 mb-2">THÔNG TIN KHẢO SÁT</legend>
       <form nz-form nzLayout="vertical" [formGroup]="validateForm">
-        
+
         <nz-row [nzGutter]="8">
           <div nz-col [nzSpan]="6">
             <nz-form-item class="m-0">
@@ -262,26 +262,14 @@
           <div nz-col [nzSpan]="6">
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Từ ngày</label>
-              <nz-date-picker
-                name="dateStart"
-                class="w-100"
-                nzFormat="dd/MM/yyyy"
-                nzAllowClear="false"
-                formControlName="dateStart">
-              </nz-date-picker>
+              <input nz-input type="date" name="dateStart" class="w-100" formControlName="dateStart" />
             </nz-form-item>
           </div>
 
           <div nz-col [nzSpan]="6">
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Tới ngày</label>
-              <nz-date-picker
-                name="dateEnd"
-                class="w-100"
-                nzFormat="dd/MM/yyyy"
-                nzAllowClear="false"
-                formControlName="dateEnd">
-              </nz-date-picker>
+              <input nz-input type="date" name="dateEnd" class="w-100" formControlName="dateEnd" />
             </nz-form-item>
           </div>
         </nz-row>
@@ -425,7 +413,7 @@
 
           <div nz-col [nzSpan]="12">
             <nz-form-item class="m-0">
-              <label class="fs-12 p-0">Tệp đính kèm 
+              <label class="fs-12 p-0">Tệp đính kèm
                 <!-- <nz-upload
                 [(nzFileList)]="fileList"
                 [nzBeforeUpload]="beforeUpload"
@@ -436,15 +424,15 @@
                   Chọn file
                 </button>
               </nz-upload> -->
-            </label>
+              </label>
               <nz-form-control>
-              <div class="border mt-1" style="height: 60px !important; overflow-y: auto" #tb_projectSurveyFile></div>
-            </nz-form-control>
-          </nz-form-item>
+                <div class="border mt-1" style="height: 60px !important; overflow-y: auto" #tb_projectSurveyFile></div>
+              </nz-form-control>
+            </nz-form-item>
           </div>
         </nz-row>
       </form>
-    
+
     </fieldset>
     <nz-row [nzGutter]="8" class="mt-2">
       <div nz-col [nzSpan]="24">

@@ -14,18 +14,16 @@
                 <div class="card-body">
                     <form nz-form nzLayout="vertical">
                         <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày này</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-date-picker name="dateStart" class="w-100" nzFormat="dd/MM/yyyy"
-                                    [(ngModel)]="dateStart" nzAllowClear="false"
-                                    (ngModelChange)="getDay()"></nz-date-picker>
+                                <input nz-input type="date" name="dateStart" class="w-100" [(ngModel)]="dateStart"
+                                    (change)="getDay()" />
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateEnd"
-                                    nzAllowClear="false"></nz-date-picker>
+                                <input nz-input type="date" name="dateEnd" class="w-100" [(ngModel)]="dateEnd" />
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
@@ -263,12 +261,11 @@
                 <div class="bg-light border-bottom p-2" *ngIf="showSearchBar">
                     <div class="d-flex gap-1 align-items-center flex-wrap">
                         <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
-                        <nz-date-picker [(ngModel)]="dateStart" [ngModelOptions]="{standalone: true}"
-                            nzFormat="dd/MM/yyyy" nzSize="small" nzAllowClear="false" (ngModelChange)="getDay()"
-                            style="width: 140px;" />
+                        <input nz-input type="date" [(ngModel)]="dateStart" [ngModelOptions]="{standalone: true}"
+                            (change)="getDay()" style="width: 140px;" />
                         <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
-                        <nz-date-picker [(ngModel)]="dateEnd" [ngModelOptions]="{standalone: true}"
-                            nzFormat="dd/MM/yyyy" nzSize="small" nzAllowClear="false" style="width: 140px;" />
+                        <input nz-input type="date" [(ngModel)]="dateEnd" [ngModelOptions]="{standalone: true}"
+                            style="width: 140px;" />
 
                         <nz-form-label class="fs-12" style="font-size: 12px;">Khách hàng</nz-form-label>
                         <nz-select [(ngModel)]="customerId" [ngModelOptions]="{standalone: true}" nzShowSearch

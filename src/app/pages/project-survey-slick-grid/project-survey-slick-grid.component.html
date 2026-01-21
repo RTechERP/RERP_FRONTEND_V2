@@ -39,24 +39,12 @@
                 <div class="bg-light border-bottom" *ngIf="showSearchBar">
                     <div class="d-flex gap-1 align-items-center flex-wrap">
                         <nz-form-label class="fs-12" style="font-size: 12px !important;">Từ ngày</nz-form-label>
-                        <nz-date-picker
-                            [(ngModel)]="dateStart"
-                            [ngModelOptions]="{standalone: true}"
-                            nzSize="small"
-                            nzFormat="dd/MM/yyyy"
-                            style="width: 130px; font-size: 12px;"
-                            (ngModelChange)="getDataProjectSurvey()">
-                        </nz-date-picker>
+                        <input nz-input type="date" [(ngModel)]="dateStart" [ngModelOptions]="{standalone: true}"
+                            style="width: 130px; font-size: 12px;" (change)="getDataProjectSurvey()" />
 
                         <nz-form-label class="fs-12" style="font-size: 12px !important;">Đến ngày</nz-form-label>
-                        <nz-date-picker
-                            [(ngModel)]="dateEnd"
-                            [ngModelOptions]="{standalone: true}"
-                            nzSize="small"
-                            nzFormat="dd/MM/yyyy"
-                            style="width: 130px; font-size: 12px;"
-                            (ngModelChange)="getDataProjectSurvey()">
-                        </nz-date-picker>
+                        <input nz-input type="date" [(ngModel)]="dateEnd" [ngModelOptions]="{standalone: true}"
+                            style="width: 130px; font-size: 12px;" (change)="getDataProjectSurvey()" />
 
                         <nz-form-label class="fs-12" style="font-size: 12px !important;">Dự án</nz-form-label>
                         <nz-select [(ngModel)]="projectId" [ngModelOptions]="{standalone: true}" nzShowSearch
@@ -71,7 +59,7 @@
                         </nz-select>
 
                         <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 250px"
-                            [(ngModel)]="keyword" [ngModelOptions]="{standalone: true}" 
+                            [(ngModel)]="keyword" [ngModelOptions]="{standalone: true}"
                             (keyup.enter)="getDataProjectSurvey()" />
 
                         <button nz-button nzType="primary" nzSize="small" (click)="getDataProjectSurvey()">
@@ -101,8 +89,8 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="d-block mb-2" style="font-size: 12px; font-weight: 500;">Kỹ thuật</label>
-                                    <nz-select [(ngModel)]="technicalId" [ngModelOptions]="{standalone: true}" 
-                                        nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Kỹ thuật" 
+                                    <nz-select [(ngModel)]="technicalId" [ngModelOptions]="{standalone: true}"
+                                        nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Kỹ thuật"
                                         style="width: 100%;" (ngModelChange)="getDataProjectSurvey()">
                                         @for (item of employees; track $index) {
                                         <nz-option nzCustomContent="true"
@@ -112,7 +100,7 @@
                                         }
                                     </nz-select>
                                 </div>
-                                                            </div>
+                            </div>
                         </nz-dropdown-menu>
 
                         <!-- <button nz-button nzType="default" nzSize="small" (click)="reset()">

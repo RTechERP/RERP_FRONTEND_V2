@@ -56,7 +56,7 @@ import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'newsletter',
-    imports: [
+  imports: [
     CommonModule,
     NzCardModule,
     FormsModule,
@@ -92,7 +92,7 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
     private http: HttpClient
   ) { }
 
-    nightShiftTable: Tabulator | null = null;
+  nightShiftTable: Tabulator | null = null;
   isSearchVisible: boolean = true;
   exportingExcel: boolean = false;
   // Master data
@@ -112,42 +112,42 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
   currentFileList: any[] = [];
   currentNewsletterTitle: string = '';
 
-    menuBars: MenuItem[] = [
-        {
-            label: 'Thêm',
-            icon: 'fa-solid fa-circle-plus fa-lg text-success',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onAddNewsletter();
-            },
-        },
+  menuBars: MenuItem[] = [
+    {
+      label: 'Thêm',
+      icon: 'fa-solid fa-circle-plus fa-lg text-success',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onAddNewsletter();
+      },
+    },
 
-        {
-            label: 'Sửa',
-            icon: 'fa-solid fa-file-pen fa-lg text-primary',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onEditNewsletter();
-            },
-        },
-        {
-            label: 'Xóa',
-            icon: 'fa-solid fa-trash fa-lg text-danger',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onDeleteNewsletter();
-            },
-        },
-        { separator: true },
+    {
+      label: 'Sửa',
+      icon: 'fa-solid fa-file-pen fa-lg text-primary',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onEditNewsletter();
+      },
+    },
+    {
+      label: 'Xóa',
+      icon: 'fa-solid fa-trash fa-lg text-danger',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onDeleteNewsletter();
+      },
+    },
+    { separator: true },
 
-        {
-            label: 'Xuất Excel',
-            icon: 'fa-solid fa-file-excel fa-lg text-success',
-            command: () => {
-              this.exportToExcel();
-            }
-        },
-    ];
+    // {
+    //   label: 'Xuất Excel',
+    //   icon: 'fa-solid fa-file-excel fa-lg text-success',
+    //   command: () => {
+    //     this.exportToExcel();
+    //   }
+    // },
+  ];
   // Debounce subjects
   private keywordSearchSubject = new Subject<string>();
   private filterChangeSubject = new Subject<void>();
@@ -155,7 +155,7 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-    ngOnInit() {
+  ngOnInit() {
     // Load newsletter types
     this.loadNewsletterTypes();
 
@@ -251,12 +251,17 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
       ...DEFAULT_TABLE_CONFIG,
       columns: this.getTableColumns(),
       data: [],
-      pagination: true,
+      pagination: false,
       paginationSize: 20,
       paginationSizeSelector: [10, 20, 50, 100],
       layout: "fitColumns", // Auto-fit columns to table width
       responsiveLayout: "hide", // Hide columns on small screens
       selectableRows: true, // Allow row selection on click
+
+    });
+    this.nightShiftTable.on("rowDblClick", (e, row) => {
+      const rowData = row.getData();
+      this.onEditNewsletter(rowData);
     });
 
     console.log('Newsletter table initialized successfully');
@@ -333,7 +338,9 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
           this.showFilesList(cell.getRow().getData());
         },
       },
+
     ];
+
   }
 
   showFilesList(newsletter: any): void {
@@ -407,10 +414,10 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
   }
-    toggleSearchPanel(): void {
+  toggleSearchPanel(): void {
     this.isSearchVisible = !this.isSearchVisible;
   }
-    onKeywordChange(value: string): void {
+  onKeywordChange(value: string): void {
     this.keyWord = value;
     this.keywordSearchSubject.next(value);
   }
@@ -425,7 +432,7 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
     this.filterChangeSubject.next();
   }
 
-    resetSearch(): void {
+  resetSearch(): void {
     this.dateStart = this.getFirstDayOfMonth();
     this.dateEnd = this.getLastDayOfMonth();
     this.typeID = 0;
@@ -433,7 +440,7 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
     this.getNewsletter();
   }
 
-    private getFirstDayOfMonth(): Date {
+  private getFirstDayOfMonth(): Date {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   }
@@ -443,7 +450,7 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
     return new Date(now.getFullYear(), now.getMonth() + 1, 0);
   }
 
-    getNewsletter(): void {
+  getNewsletter(): void {
     const params = {
       FromDate: this.dateStart ? DateTime.fromJSDate(this.dateStart).startOf('day').toFormat('yyyy-MM-dd\'T\'HH:mm:ss') : null,
       ToDate: this.dateEnd ? DateTime.fromJSDate(this.dateEnd).endOf('day').toFormat('yyyy-MM-dd\'T\'HH:mm:ss') : null,
@@ -479,7 +486,7 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
- onAddNewsletter(): void {
+  onAddNewsletter(): void {
     const modalRef = this.modalService.open(NewsletterFormComponent, {
       centered: true,
       size: 'xl',

@@ -1,0 +1,65 @@
+<nz-splitter [nzLayout]="splitterLayout">
+    <!-- Left Panel: Category Table -->
+    <nz-splitter-panel [nzDefaultSize]="isCategoryVisible ? '25%' : '0%'" [nzMin]="isCategoryVisible ? '10%' : '0%'"
+        [nzMax]="isCategoryVisible ? '40%' : '0%'">
+        <div class="box">
+            <ng-container class="w-100">
+                <nz-splitter>
+                    <nz-splitter-panel nzDefaultSize="100%">
+                        <div class="card h-100 border-0 rounded-0">
+                            <div
+                                class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Danh mục khóa học</h6>
+                                <button nz-button nzType="text" nzSize="small" (click)="toggleCategoryTable()"
+                                    title="Thu gọn">
+                                    <span nz-icon nzType="menu"></span>
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div #CategoryTable style="width: 100%; height: 100%"></div>
+                            </div>
+                        </div>
+                    </nz-splitter-panel>
+                </nz-splitter>
+            </ng-container>
+        </div>
+    </nz-splitter-panel>
+
+    <!-- Right Panel: Dynamic Content (Courses or Lessons) -->
+    <nz-splitter-panel [nzDefaultSize]="isCategoryVisible ? '75%' : '100%'">
+        <div class="box position-relative" [class.with-hamburger]="!isCategoryVisible">
+            <!-- Hamburger button when category is hidden -->
+            <button *ngIf="!isCategoryVisible" nz-button nzType="default" nzSize="small" class="hamburger-toggle"
+                (click)="toggleCategoryTable()" title="Hiện danh mục">
+                <span nz-icon nzType="menu"></span>
+            </button>
+            <!-- VIEW: Course Cards -->
+            <app-course-list *ngIf="viewMode === 'courses'" [courseData]="courseData" [splitterLayout]="splitterLayout"
+                [courseExamData]="courseExamData" (courseSelected)="onCourseSelected($event)">
+            </app-course-list>
+
+            <!-- VIEW: Lessons Split View -->
+            <app-lesson-view *ngIf="viewMode === 'lessons'" [selectedCourseID]="selectedCourseID"
+                [courseExamData]="courseExamData" [lessonData]="courseLessonData"
+                [selectedCourseName]="selectedCourseName" [splitterLayout]="splitterLayout"
+                (backToCourses)="onBackToCourses()" (lessonSelected)="onLessonSelected($event)"
+                (openExamResult)="onOpenExamResult()" (openLessonExamResult)="onOpenLessonExamResult($event)"
+                (openPractice)="onOpenPracticeResult()" (openQuiz)="onOpenQuizResult()">
+            </app-lesson-view>
+
+            <!-- VIEW: Exam Result (Trắc nghiệm) -->
+            <app-course-exam-result *ngIf="viewMode === 'examResult'" [courseID]="selectedCourseID"
+                [courseName]="selectedCourseName" [courseExamID]="currentCourseExamIDForView"
+                [testTime]="currentTestTimeForView" [lessonID]="selectedLessonID"
+                (backToLesson)="onBackFromExamResult()">
+            </app-course-exam-result>
+
+            <!-- VIEW: Practice Result (Thực hành / Bài tập) -->
+            <app-course-exam-result-practice *ngIf="viewMode === 'practiceResult'" [courseID]="selectedCourseID"
+                [courseName]="selectedCourseName" [courseExamID]="currentCourseExamIDForView"
+                [testTime]="currentTestTimeForView" [lessonID]="selectedLessonID" [examType]="currentExamType"
+                (backToLesson)="onBackFromExamResult()">
+            </app-course-exam-result-practice>
+        </div>
+    </nz-splitter-panel>
+</nz-splitter>

@@ -749,6 +749,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         height: '87vh',
         selectableRows: 1,
+        pagination: false,
         paginationMode: 'local',
         groupBy: [
           (data: any) => data.CatalogTypeText || 'Chưa phân loại',
@@ -834,6 +835,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         height: '87vh',
         selectableRows: 1,
+        pagination: false,
         paginationMode: 'local',
         groupBy: 'CourseTypeName',
         groupHeader: function (value, count, data, group) {
@@ -860,12 +862,13 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             title: 'Tên khóa học',
             field: 'NameCourse',
             hozAlign: 'left',
+            width: 300,
             headerHozAlign: 'center',
             headerSort: false,
           },
           {
             title: 'Thời gian học (ngày)',
-            field: 'StudyDate',
+            field: 'LeadTime',
             hozAlign: 'center',
             headerHozAlign: 'center',
             width: 100,
@@ -1060,6 +1063,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
         selectableRows: 1,
+        pagination: false,
         paginationMode: 'local',
         height: '87vh',
         columns: [

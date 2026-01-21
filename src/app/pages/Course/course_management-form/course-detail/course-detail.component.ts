@@ -241,8 +241,9 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         this.saving = false;
-        this.notification.error('Thông báo', err?.message || 'Không thể lưu khóa học!');
+        this.notification.error('Thông báo', err?.error?.message || 'Không thể lưu khóa học!');
         console.error('Error saving course catalog:', err);
+        
       }
     });
 

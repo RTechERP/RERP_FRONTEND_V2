@@ -392,7 +392,7 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
   onCopyLessonChange(): void {
     const lessonID = this.formGroup.get('CopyLessonID')?.value;
     const lesson = this.lessonListForCopy.find(x => x.ID === lessonID);
-
+    console.log("infor of lesson:", lesson);
     if (lesson) {
       this.formGroup.patchValue({
         CourseID: lesson.CourseID,

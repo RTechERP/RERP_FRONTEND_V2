@@ -1,0 +1,137 @@
+<nz-splitter [nzLayout]="splitterLayout">
+    <!-- Left: Lesson List -->
+    <nz-splitter-panel nzDefaultSize="30%" nzMin="20%" nzMax="50%">
+        <div class="card h-100 border-0 rounded-0">
+            <div class="card-header bg-white border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h6 class="mb-0">DANH SÁCH BÀI HỌC</h6>
+                </div>
+                <p class="mb-0 mt-1 text-muted" style="font-size: 12px;">{{ selectedCourseName }}</p>
+            </div>
+            <div class="card-body p-2" style="overflow-y: auto;">
+                <div class="lesson-list">
+                    <div *ngFor="let lesson of lessonData; let i = index" class="lesson-item"
+                        [class.active]="selectedLessonID === lesson.ID" [class.completed]="lesson.Status === 1"
+                        (click)="onSelectLesson(lesson)">
+                        <div class="lesson-number">{{ lesson.STT || (i + 1) }}</div>
+                        <div class="lesson-content">
+                            <div class="lesson-name">{{ lesson.LessonTitle }}</div>
+                            <div class="lesson-code">{{ lesson.Code }}</div>
+                        </div>
+
+                        <!-- Lesson Exam Dropdown -->
+                        <div *ngIf="getLessonExams(lesson.ID).length > 0" class="lesson-exam-dropdown"
+                            (click)="$event.stopPropagation()">
+                            <button nz-button nz-dropdown [nzDropdownMenu]="lessonExamMenu" nzSize="small"
+                                nzType="primary" class="lesson-exam-btn" [disabled]="!isLessonCompleted(lesson.ID)"
+                                [nz-tooltip]="!isLessonCompleted(lesson.ID) ? 'Bạn phải hoàn thành lesson này' : null">
+                                Bài test
+                                <span nz-icon nzType="down"></span>
+                            </button>
+                            <nz-dropdown-menu #lessonExamMenu="nzDropdownMenu">
+                                <ul nz-menu>
+                                    <li nz-menu-item *ngFor="let exam of getLessonExams(lesson.ID)"
+                                        (click)="onOpenLessonExam(lesson, exam)">
+                                        {{ getExamTypeName(exam.ExamType) }}
+                                    </li>
+                                </ul>
+                            </nz-dropdown-menu>
+                        </div>
+
+                        <label nz-checkbox [nzChecked]="lesson.Status === 1 || lesson.StatusText === 'Đã học'"
+                            (nzCheckedChange)="onLessonCompletionChange(lesson, $event)"
+                            (click)="$event.stopPropagation()" class="lesson-checkbox">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Exam Type Buttons -->
+                <div *ngIf="isExercise || isPractice || isQuiz" class="exam-buttons mt-3">
+                    <button *ngIf="isExercise" nz-button class="exam-btn exercise-btn" (click)="onOpenExercise()"
+                        [disabled]="!areAllLessonsCompleted()"
+                        [nz-tooltip]="!areAllLessonsCompleted() ? 'Hoàn thành tất cả bài học (' + getCompletedLessonsCount() + '/' + lessonData.length + ')' : null">
+                        <span nz-icon nzType="form"></span>
+                        Trắc nghiệm
+                    </button>
+                    <button *ngIf="isPractice" nz-button class="exam-btn practice-btn" (click)="onOpenPractice()"
+                        [disabled]="!areAllLessonsCompleted()"
+                        [nz-tooltip]="!areAllLessonsCompleted() ? 'Hoàn thành tất cả bài học (' + getCompletedLessonsCount() + '/' + lessonData.length + ')' : null">
+                        <span nz-icon nzType="experiment"></span>
+                        Thực hành
+                    </button>
+                    <button *ngIf="isQuiz" nz-button class="exam-btn quiz-btn" (click)="onOpenQuiz()"
+                        [disabled]="!areAllLessonsCompleted()"
+                        [nz-tooltip]="!areAllLessonsCompleted() ? 'Hoàn thành tất cả bài học (' + getCompletedLessonsCount() + '/' + lessonData.length + ')' : null">
+                        <span nz-icon nzType="highlight"></span>
+                        Bài tập
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nz-splitter-panel>
+
+    <!-- Right: Lesson Detail -->
+    <nz-splitter-panel nzDefaultSize="70%" nzMin="50%" nzMax="80%">
+        <!-- Lesson Detail View -->
+        <div class="card h-100 border-0 rounded-0">
+            <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-start">
+                <button nz-button nzType="text" nzSize="small" (click)="goBackToCourses()"
+                    title="Quay lại danh sách khóa học">
+                    <span nz-icon nzType="arrow-left"></span>
+                </button>
+                <h6 class="mb-0">{{ currentLesson?.LessonTitle || 'Chi tiết bài học' }}</h6>
+            </div>
+            <div class="card-body p-3" style="overflow-y: auto;">
+                <div *ngIf="currentLesson" class="lesson-detail-container">
+                    <!-- Video Section -->
+                    <div *ngIf="videoUrl; else videoUnavailable" class="video-section mb-4">
+                        <video #videoPlayer controls width="100%" height="600" preload="metadata" [src]="videoUrl">
+                            Trình duyệt của bạn không hỗ trợ video.
+                        </video>
+                    </div>
+                    <ng-template #videoUnavailable>
+                        <div class="video-unavailable mb-4">
+                            <div class="video-unavailable-content">
+                                <span nz-icon nzType="exclamation-circle" nzTheme="outline"
+                                    class="unavailable-icon"></span>
+                                <div class="unavailable-text">
+                                    <span class="unavailable-title">Video không khả dụng</span>
+                                    <span class="unavailable-desc">Video không khả dụng hoặc chưa có video</span>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-template>
+
+                    <!-- Content Section -->
+                    <div class="content-section mb-4">
+                        <h5 class="section-title">{{ currentLesson.LessonTitle }}</h5>
+                        <div class="section-subtitle mb-3">Nội dung</div>
+                        <div class="lesson-content-html" [innerHTML]="processHtmlContent(currentLesson.LessonContent)">
+                        </div>
+                    </div>
+
+                    <!-- PDF Section -->
+                    <div *ngIf="currentLessonFiles.length > 0" class="pdf-section mb-4">
+                        <ng-container *ngFor="let file of currentLessonFiles">
+                            <div *ngIf="file.TypeFile === 'PDF' || file.NameFile?.toLowerCase()?.endsWith('.pdf')">
+                                <div class="section-subtitle mb-2">File PDF: <span class="text-danger">{{ file.NameFile
+                                        }}</span></div>
+                                <embed [src]="file.LinkFile" type="application/pdf" width="100%" height="600">
+                            </div>
+                        </ng-container>
+                    </div>
+
+                    <!-- File Attachments Section -->
+                    <div *ngIf="currentLessonFiles.length > 0" class="files-section">
+                        <div class="section-subtitle mb-3">Download tài liệu đính kèm:</div>
+                        <div *ngFor="let file of currentLessonFiles" class="file-item">
+                            <a [href]="file.LinkFile" target="_blank" class="file-link">
+                                {{ file.NameFile }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nz-splitter-panel>
+</nz-splitter>

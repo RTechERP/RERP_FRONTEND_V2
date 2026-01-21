@@ -26,7 +26,8 @@ import { PermissionService } from '../../../../../services/permission.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { NewsletterService } from '../newsletter.service';
 import { AuthService } from '../../../../../auth/auth.service';
-
+import { MenubarModule } from 'primeng/menubar';
+import { PrimeIcons, MenuItem } from 'primeng/api';
 @Component({
   standalone: true,
   imports: [
@@ -44,7 +45,9 @@ import { AuthService } from '../../../../../auth/auth.service';
     NzModalModule,
     NzSpinModule,
     NgIf,
-    NzInputNumberModule
+    NzInputNumberModule,
+    MenubarModule,
+
   ],
   templateUrl: './newsletter-type.component.html',
   styleUrl: './newsletter-type.component.css'
@@ -59,7 +62,7 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
   searchForm!: FormGroup;
   exportingExcel = false;
   sizeSearch: string = '0';
-  isLoading = false;
+  isLoading: boolean = false;
   newsletterTypeForm!: FormGroup;
   // Dropdown data for search
   typeList: any[] = [];
@@ -68,6 +71,42 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
   overTimeList: any[] = [];
   currentUser: any;
   currenEmployee: any;
+  menuBars: MenuItem[] = [
+    {
+      label: 'Thêm',
+      icon: 'fa-solid fa-circle-plus fa-lg text-success',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.openAddModal();
+      },
+    },
+
+    {
+      label: 'Sửa',
+      icon: 'fa-solid fa-file-pen fa-lg text-primary',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.openEditModal();
+      },
+    },
+    {
+      label: 'Xóa',
+      icon: 'fa-solid fa-trash fa-lg text-danger',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.openDeleteModal();
+      },
+    },
+    { separator: true },
+
+    // {
+    //   label: 'Xuất Excel',
+    //   icon: 'fa-solid fa-file-excel fa-lg text-success',
+    //   command: () => {
+    //     this.exportToExcel();
+    //   }
+    // },
+  ];
   constructor(
     private fb: FormBuilder,
     private notification: NzNotificationService,
@@ -95,26 +134,26 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
     this.newsletterTypeTable(this.tb_newsletter_type.nativeElement);
   }
 
-    private initForm() {
-      const canEditEmployee = this.permissionService.hasPermission('N80,N1,N34');
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+  private initForm() {
+    const canEditEmployee = this.permissionService.hasPermission('N80,N1,N34');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-      this.newsletterTypeForm = this.fb.group({
-        ID: [0],
-        STT: [0],
-        TypeCode: [''],
-        TypeName: [''],
-        IsDeleted: [false],
-      });
+    this.newsletterTypeForm = this.fb.group({
+      ID: [0],
+      STT: [0],
+      TypeCode: [''],
+      TypeName: [''],
+      IsDeleted: [false],
+    });
 
 
-      if (canEditEmployee) {
-        this.newsletterTypeForm.get('TypeCode')?.enable();
-        this.newsletterTypeForm.get('TypeName')?.enable();
-        this.newsletterTypeForm.get('STT')?.enable();
-      }
+    if (canEditEmployee) {
+      this.newsletterTypeForm.get('TypeCode')?.enable();
+      this.newsletterTypeForm.get('TypeName')?.enable();
+      this.newsletterTypeForm.get('STT')?.enable();
     }
+  }
 
   loadNewsletterType() {
     this.newsletterService
@@ -139,55 +178,61 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
   }
 
   private newsletterTypeTable(container: HTMLElement): void {
-      this.newsletterTypeTabulator = new Tabulator(container, {
-        ...DEFAULT_TABLE_CONFIG,
-        paginationMode: 'local',
-        height: '82vh',
-        data: this.newsletterTypeList,
-        layout: 'fitDataStretch',
-        selectableRows: true,
-
-        columns: [
-          {
-            title: 'STT',
-            field: 'STT',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            width: 50,
-            headerSort: false,
-            bottomCalc: 'count',
-          },
-          {
-            title: 'Mã loại tin tức',
-            field: 'NewsletterTypeCode',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            width: 200,
-            headerSort: false,
-            bottomCalc: 'count',
-          },
-          {
-            title: 'Tên loại tin tức',
-            field: 'NewsletterTypeName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            width: 200,
-            headerSort: false,
-          }
-        ],
-
-      });
+    this.newsletterTypeTabulator = new Tabulator(container, {
+      ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local',
+      height: '89vh',
+      data: this.newsletterTypeList,
+      layout: 'fitDataStretch',
+      selectableRows: true,
+      columns: [
+        {
+          title: 'STT',
+          field: 'STT',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 50,
+          headerSort: false,
+          bottomCalc: 'count',
+        },
+        {
+          title: 'Mã loại tin tức',
+          field: 'NewsletterTypeCode',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 200,
+          headerSort: false,
+          bottomCalc: 'count',
+        },
+        {
+          title: 'Tên loại tin tức',
+          field: 'NewsletterTypeName',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 200,
+          headerSort: false,
+        }
+      ],
+    });
+    this.newsletterTypeTabulator.on('rowDblClick', (e, row) => {
+      const rowData = row.getData();
+      console.log(rowData);
+      this.openEditModal(rowData);
+    });
   }
 
 
 
   openAddModal() {
-
+    const maxSTT = this.newsletterTypeList.reduce((max, item) => {
+      return Math.max(max, item.STT);
+    }, 0);
+    console.log(maxSTT);
     this.newsletterTypeForm.reset({
       ID: 0,
       TypeCode: '',
       TypeName: '',
-      STT: 0,
+      STT: maxSTT + 1,
       IsDeleted: false,
     });
 
@@ -204,9 +249,22 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
   //   modal.show();
   // }
 
-  openEditModal() {
-      const selectedRows = this.newsletterTypeTabulator.getSelectedRows();
+  openEditModal(data?: any) {
+    // if (!data) {
+    //   const selectedRows = this.newsletterTypeTabulator.getSelectedRows();
+    // }
+    // const selectedRows = data;
 
+    // if (selectedRows.length === 0) {
+    //   this.notification.warning(
+    //     NOTIFICATION_TITLE.warning,
+    //     'Vui lòng chọn loại tin tức cần sửa!'
+    //   );
+    //   return;
+    // }
+
+        if (!data) {
+      const selectedRows = this.newsletterTypeTabulator.getSelectedRows();
       if (selectedRows.length === 0) {
         this.notification.warning(
           NOTIFICATION_TITLE.warning,
@@ -214,28 +272,30 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
         );
         return;
       }
-
-      if (selectedRows.length > 0) {
-        this.selectedTypeNewsletter = selectedRows[0].getData();
-        this.newsletterTypeForm.patchValue({
-          ID: this.selectedTypeNewsletter.ID,
-          STT: this.selectedTypeNewsletter.STT,
-          TypeCode: this.selectedTypeNewsletter.NewsletterTypeCode,
-          TypeName: this.selectedTypeNewsletter.NewsletterTypeName,
-          IsDeleted: this.selectedTypeNewsletter.IsDeleted,
-        });
-      }
-
-      const modal = new (window as any).bootstrap.Modal(
-        document.getElementById('addNewsletterTypeModal')
-      );
-      modal.show();
+      data = selectedRows[0].getData();
     }
+
+    if (data) {
+      this.selectedTypeNewsletter = data;
+      this.newsletterTypeForm.patchValue({
+        ID: this.selectedTypeNewsletter.ID,
+        STT: this.selectedTypeNewsletter.STT,
+        TypeCode: this.selectedTypeNewsletter.NewsletterTypeCode,
+        TypeName: this.selectedTypeNewsletter.NewsletterTypeName,
+        IsDeleted: this.selectedTypeNewsletter.IsDeleted,
+      });
+    }
+
+    const modal = new (window as any).bootstrap.Modal(
+      document.getElementById('addNewsletterTypeModal')
+    );
+    modal.show();
+  }
 
   openDeleteModal() {
     const selectedRows = this.newsletterTypeTabulator.getSelectedRows();
 
-    if (selectedRows.length === 0 ) {
+    if (selectedRows.length === 0) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
         'Vui lòng chọn loại tin tức cần xóa'
@@ -301,7 +361,7 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
       },
       nzCancelText: 'Hủy',
     });
-    }
+  }
   hasAdminPermission(): boolean {
     // Kiểm tra IsAdmin trước
     if (this.currentUser?.IsAdmin === true) {
@@ -309,11 +369,15 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
     }
     // Kiểm tra quyền N1, N2, N34
     return this.permissionService.hasPermission('N1') ||
-           this.permissionService.hasPermission('N80') ||
-           this.permissionService.hasPermission('N34');
+      this.permissionService.hasPermission('N80') ||
+      this.permissionService.hasPermission('N34');
   }
-    onSubmit() {
 
+  onSubmit() {
+    if (this.isLoading) {
+      return;
+    }
+    
     if (this.newsletterTypeForm.invalid) {
       Object.values(this.newsletterTypeForm.controls).forEach((control) => {
         if (control.invalid) {
@@ -340,6 +404,7 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
       IsDeleted: formData.IsDeleted,
     };
 
+    this.isLoading = true;
     this.newsletterService.saveNewsletterType(newsletterTypeData).subscribe({
       next: (response) => {
         this.notification.success(
@@ -348,7 +413,7 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
             ? 'Thêm loại tin tức thành công'
             : 'Cập nhật loại tin tức thành công'
         );
-
+        this.isLoading = false;
         this.closeModal();
         this.loadNewsletterType();
         this.newsletterTypeForm.reset({
@@ -360,11 +425,12 @@ export class NewsletterTypeComponent implements OnInit, AfterViewInit {
         });
       },
       error: (error: any) => {
-        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi khi lưu đơn đặt cơm';
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi khi lưu loại tin tức';
         this.notification.error(
           NOTIFICATION_TITLE.error,
           errorMessage
         );
+        this.isLoading = false;
       },
     });
   }

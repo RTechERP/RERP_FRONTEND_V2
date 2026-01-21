@@ -1,0 +1,92 @@
+<div class="practice-result-container">
+    <!-- Header -->
+    <div class="practice-header">
+        <div class="header-left">
+            <button nz-button nzType="text" nzSize="small" (click)="onBack()" title="Quay lại bài học" class="back-btn">
+                <span nz-icon nzType="arrow-left"></span>
+            </button>
+            <h4 class="practice-title">{{ examTitle }} {{ courseName }}</h4>
+        </div>
+        <div class="header-right">
+            <button nz-button nzType="primary" (click)="onStartExam()" [nzLoading]="isStartingExam"
+                class="start-exam-btn">
+                <span nz-icon nzType="edit"></span>
+                Làm bài
+            </button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="practice-content">
+        <div class="row">
+            <!-- Left: History Table -->
+            <div class="col-md-6">
+                <div class="section-card">
+                    <h5 class="section-title">Lịch sử thi</h5>
+                    <nz-spin [nzSpinning]="isLoadingHistory">
+                        <nz-table #historyTable [nzData]="historyData" [nzShowPagination]="false" [nzBordered]="true"
+                            [nzSize]="'small'" nzTableLayout="fixed">
+                            <thead>
+                                <tr>
+                                    <th nzWidth="140px">THỜI GIAN THI</th>
+                                    <th nzWidth="100px">ĐIỂM CẦN ĐẠT</th>
+                                    <th nzWidth="80px">ĐIỂM THI</th>
+                                    <th nzWidth="120px">KẾT QUẢ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of historyData" [class.selected]="selectedHistoryId === item.ID"
+                                    (click)="onSelectHistory(item)">
+                                    <td>{{ formatDate(item.CreatedDate) }}</td>
+                                    <td class="text-center">{{ item.Goal }}</td>
+                                    <td class="text-center">{{ item.PracticePoints }}</td>
+                                    <td class="text-center">
+                                        <span class="status-badge" [ngClass]="getStatusClass(item.StatusText)">
+                                            {{ item.StatusText }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </nz-table>
+                    </nz-spin>
+                </div>
+            </div>
+
+            <!-- Right: Result Table -->
+            <div class="col-md-6">
+                <div class="section-card">
+                    <h5 class="section-title">Kết quả thi</h5>
+                    <nz-spin [nzSpinning]="isLoadingResult">
+                        <nz-table #resultTable [nzData]="resultData" [nzShowPagination]="false" [nzBordered]="true"
+                            [nzSize]="'small'" nzTableLayout="fixed">
+                            <thead>
+                                <tr>
+                                    <th nzWidth="80px">STT</th>
+                                    <th>CÂU HỎI</th>
+                                    <th nzWidth="80px">ĐIỂM</th>
+                                    <th nzWidth="150px">GHI CHÚ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of resultData">
+                                    <td class="text-center">{{ item.STT }}</td>
+                                    <td class="question-text">{{ item.QuestionText }}</td>
+                                    <td class="text-center">{{ item.Point }}</td>
+                                    <td>{{ item.Note }}</td>
+                                </tr>
+                            </tbody>
+                        </nz-table>
+                    </nz-spin>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <!-- <div class="practice-footer">
+        <button nz-button nzType="default" (click)="onBack()">
+            <span nz-icon nzType="arrow-left"></span>
+            Quay lại
+        </button>
+    </div> -->
+</div>

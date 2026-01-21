@@ -250,6 +250,9 @@ export class NewsletterFormComponent implements OnInit, AfterViewInit {
   }
 
   onCancel(): void {
+    if (this.isLoading) {
+      return;
+    }
     this.activeModal.dismiss();
   }
 
@@ -355,6 +358,9 @@ export class NewsletterFormComponent implements OnInit, AfterViewInit {
       this.message.error('Vui lòng điền đầy đủ thông tin bắt buộc.');
       return;
     }
+    if (this.isLoading) {
+      return;
+    }
 
     this.isLoading = true;
 
@@ -391,6 +397,7 @@ export class NewsletterFormComponent implements OnInit, AfterViewInit {
       forkJoin(uploadTasks).subscribe({
         next: (responses: any[]) => {
           this.processUploadResponses(responses, formData, currentUser);
+          this.isLoading = false;
         },
         error: (error: any) => {
           this.isLoading = false;

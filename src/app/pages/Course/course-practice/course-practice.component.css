@@ -1,0 +1,106 @@
+/* Host and Global Styles */
+:host {
+    font-size: 12px !important;
+    display: block;
+    height: 100%;
+}
+
+.tabulator {
+    font-size: 12px;
+}
+
+.box {
+    height: 100%;
+    width: 100%;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card-header {
+    padding: 12px 16px;
+}
+
+.card-header h6 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1890ff;
+}
+
+.card-body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.ant-splitter-panel {
+    position: relative;
+}
+
+.ant-splitter {
+    height: 100% !important;
+}
+
+/* Hamburger Menu Styles */
+.hamburger-toggle {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.hamburger-toggle:hover {
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* Smooth transition for panel visibility */
+nz-splitter-panel {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Prevent hamburger button from overlapping with child component headers */
+.box.with-hamburger ::ng-deep .card-header {
+    padding-left: 50px !important;
+}
+
+/* Responsive Design - Mobile Adjustments */
+@media (max-width: 768px) {
+
+    /* Stack splitter panels vertically on mobile */
+    nz-splitter-panel {
+        min-height: 300px;
+    }
+
+    /* Reduce padding on mobile */
+    .card-header {
+        padding: 10px 12px;
+    }
+
+    .card-body {
+        padding: 8px !important;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Ensure card header flex layout */
+.card-header.d-flex {
+    display: flex !important;
+}
+
+.card-header .hamburger-btn+h6 {
+    flex: 1;
+}

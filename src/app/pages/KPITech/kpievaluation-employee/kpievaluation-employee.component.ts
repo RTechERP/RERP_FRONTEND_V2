@@ -12,8 +12,11 @@ import {
   Formatters,
   AngularSlickgridModule,
   OnSelectedRowsChangedEventArgs,
-  SortDirectionNumber
+  Editors,
+  SortDirectionNumber,
+  EditCommand,
 } from 'angular-slickgrid';
+import { ReadOnlyLongTextEditor } from './frmKPIEvaluationEmployee/readonly-long-text-editor';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -79,6 +82,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   angularGridMaster!: AngularGridInstance;
   angularGridRule!: AngularGridInstance;
   angularGridTeam!: AngularGridInstance;
+  editCommandQueue: EditCommand[] = [];
 
   // Column definitions
   sessionColumns: Column[] = [];
@@ -507,6 +511,13 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         width: 467,
         sortable: true,
         cssClass: 'cell-multiline',
+        editor: {
+          model: ReadOnlyLongTextEditor,
+          required: false,
+          alwaysSaveOnEnterKey: false,
+          minLength: 5,
+          maxLength: 1000,
+        },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           const escaped = this.escapeHtml(dataContext.EvaluationContent);
@@ -569,6 +580,13 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         width: 533,
         sortable: true,
         cssClass: 'cell-multiline',
+        editor: {
+          model: ReadOnlyLongTextEditor,
+          required: false,
+          alwaysSaveOnEnterKey: false,
+          minLength: 5,
+          maxLength: 1000,
+        },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           const escaped = this.escapeHtml(dataContext.VerificationToolsContent);
@@ -577,7 +595,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
           return `<span title="${escaped}">${formattedValue}</span>`;
         },
         customTooltip: {
-          useRegularTooltip: true,
+          useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
+          useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
@@ -680,6 +699,13 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableSorting: true,
       enablePagination: false,
       forceFitColumns: false,
+      editable: true,
+      autoEdit: true,
+      autoCommitEdit: true,
+      editCommandHandler: (_item: any, _column: Column, editCommand: EditCommand) => {
+        this.editCommandQueue.push(editCommand);
+        editCommand.execute();
+      },
       headerRowHeight: 60,
       rowHeight: 50,
       autoFitColumnsOnFirstLoad: false,
@@ -887,6 +913,13 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         width: 800,
         sortable: true,
         cssClass: 'cell-multiline',
+        editor: {
+          model: ReadOnlyLongTextEditor,
+          required: false,
+          alwaysSaveOnEnterKey: false,
+          minLength: 5,
+          maxLength: 1000,
+        },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           const escaped = this.escapeHtml(dataContext.RuleContent);
@@ -1186,18 +1219,26 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   // Helper function to reset column widths from original column definitions
   private resetColumnWidths(angularGrid: any, originalColumns: Column[]): void {
     setTimeout(() => {
-      if (angularGrid?.slickGrid && originalColumns) {
+      if (angularGrid?.slickGrid && originalColumns && originalColumns.length > 0) {
         const grid = angularGrid.slickGrid;
-        // Create a fresh copy of column definitions with original widths
-        const resetColumns = originalColumns.map(col => ({
-          ...col,
-          width: col.width || col.minWidth || 100
-        }));
-        grid.setColumns(resetColumns);
-        grid.invalidate();
-        grid.render();
-        // Then resize grid
-        angularGrid.resizerService?.resizeGrid();
+        try {
+          // Create a fresh copy of column definitions with original widths
+          const resetColumns = originalColumns.map(col => ({
+            ...col,
+            width: col.width || col.minWidth || 100
+          }));
+
+          if (typeof grid.setColumns === 'function') {
+            grid.setColumns(resetColumns);
+            grid.invalidate();
+            grid.render();
+          }
+
+          // Then resize grid
+          angularGrid.resizerService?.resizeGrid();
+        } catch (e) {
+          console.warn('Lỗi khi setColumns trong resetColumnWidths:', e);
+        }
       }
     }, 50);
   }
@@ -1207,24 +1248,32 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     setTimeout(() => {
       if (angularGrid?.slickGrid) {
         const grid = angularGrid.slickGrid;
-        const columns = grid.getColumns();
-        const gridWidth = grid.getGridPosition()?.width || 0;
+        try {
+          const columns = grid.getColumns();
+          if (!columns || columns.length === 0) return;
 
-        // Calculate total width of all columns except the last one
-        let totalFixedWidth = 0;
-        for (let i = 0; i < columns.length - 1; i++) {
-          totalFixedWidth += columns[i].width || 0;
+          const gridWidth = grid.getGridPosition()?.width || 0;
+
+          // Calculate total width of all columns except the last one
+          let totalFixedWidth = 0;
+          for (let i = 0; i < columns.length - 1; i++) {
+            totalFixedWidth += columns[i].width || 0;
+          }
+
+          // Set last column width to fill remaining space
+          const lastColumn = columns[columns.length - 1];
+          const remainingWidth = gridWidth - totalFixedWidth - 20; // 20px for scrollbar
+          if (remainingWidth > (lastColumn.minWidth || 100)) {
+            lastColumn.width = remainingWidth;
+            if (typeof grid.setColumns === 'function') {
+              grid.setColumns(columns);
+            }
+          }
+
+          angularGrid.resizerService?.resizeGrid();
+        } catch (e) {
+          console.warn('Lỗi trong autoFillLastColumn:', e);
         }
-
-        // Set last column width to fill remaining space
-        const lastColumn = columns[columns.length - 1];
-        const remainingWidth = gridWidth - totalFixedWidth - 20; // 20px for scrollbar
-        if (remainingWidth > (lastColumn.minWidth || 100)) {
-          lastColumn.width = remainingWidth;
-          grid.setColumns(columns);
-        }
-
-        angularGrid.resizerService?.resizeGrid();
       }
     }, 200);
   }
@@ -1763,18 +1812,30 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       })
     ).subscribe({
       next: (results) => {
+        console.log('[DEBUG] Remaining tabs results:', results);
+
         // Tab 1 (index=1) - Chung
         if (results.chung?.data) {
+          console.log('[DEBUG] Loading "Chung" data, count:', results.chung.data.length);
           this.dataEvaluation4 = this.transformToTreeData(results.chung.data);
           this.dataEvaluation4 = this.calculatorAvgPoint(this.dataEvaluation4);
           this.isTab2Loaded = true;
+          if (this.angularGridEvaluation4) {
+            this.updateGrid(this.angularGridEvaluation4, this.dataEvaluation4);
+            setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation4, this.dataEvaluation4), 100);
+          }
         }
 
         // Tab 2 (index=2) - Chuyên môn
         if (results.chuyenMon?.data) {
+          console.log('[DEBUG] Loading "Chuyên môn" data, count:', results.chuyenMon.data.length);
           this.dataEvaluation2 = this.transformToTreeData(results.chuyenMon.data);
           this.dataEvaluation2 = this.calculatorAvgPoint(this.dataEvaluation2);
           this.isTab3Loaded = true;
+          if (this.angularGridEvaluation2) {
+            this.updateGrid(this.angularGridEvaluation2, this.dataEvaluation2);
+            setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation2, this.dataEvaluation2), 100);
+          }
         }
 
         // Tab 4 - Tổng hợp (Master) - Tính toán từ dữ liệu Tab 1, 2, 3
@@ -1782,14 +1843,21 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
           this.loadSumaryRank_TKCK();
         } else {
           this.calculateTotalAVG();
+          if (this.angularGridMaster) {
+            this.updateGrid(this.angularGridMaster, this.dataMaster);
+          }
         }
         this.isTab4Loaded = true;
 
         // Tab 5 & 6 - Rule và Team
         if (results.ruleTeam?.data) {
+          console.log('[DEBUG] Loading "Rule/Team" data');
           // Xử lý dtKpiRule
           if (results.ruleTeam.data.dtKpiRule) {
-            this.dataRule = this.transformToTreeData(results.ruleTeam.data.dtKpiRule);
+            this.dataRule = this.transformToTreeData(results.ruleTeam.data.dtKpiRule, false);
+            if (this.angularGridRule) {
+              this.updateGrid(this.angularGridRule, this.dataRule);
+            }
           }
           // Xử lý dtTeam
           if (results.ruleTeam.data.dtTeam) {
@@ -1797,6 +1865,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
               ...item,
               id: item.ID || index + 1
             }));
+            if (this.angularGridTeam) {
+              this.updateGrid(this.angularGridTeam, this.dataTeam);
+            }
           }
           this.isTab5Loaded = true;
         }
@@ -1804,6 +1875,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         // Cập nhật footer cho Rule - hiển thị xếp loại
         if (this.dataRule.length > 0 && this.departmentID !== this.departmentCK) {
           setTimeout(() => {
+            console.log('[DEBUG] Updating Rule footer');
             this.updateRuleFooter();
           }, 200);
         }
@@ -1833,27 +1905,49 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.dataTeam = [];
   }
 
+  // Helper: Kiểm tra grid có hợp lệ để thao tác không
+  private isValidGrid(grid: AngularGridInstance): boolean {
+    return !!(grid && grid.dataView && grid.slickGrid);
+  }
+
+  // Helper: Áp dụng sắp xếp mặc định theo STT nếu cột tồn tại
+  private applyDefaultSort(grid: AngularGridInstance): void {
+    if (grid?.sortService && grid.slickGrid) {
+      try {
+        const cols = grid.slickGrid.getColumns();
+        // Kiểm tra an toàn xem cột STT có trong danh sách cột không
+        if (cols && cols.length > 0) {
+          const hasSTT = cols.some((c: any) => c && c.id === 'STT');
+          if (hasSTT) {
+            grid.sortService.updateSorting([
+              { columnId: 'STT', direction: 'ASC' }
+            ]);
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi khi sắp xếp mặc định:', e);
+      }
+    }
+  }
+
   /**
    * Update grid with new data - follows partlist component pattern
    */
   private updateGrid(grid: AngularGridInstance, data: any[]): void {
-    if (grid?.dataView) {
-      grid.dataView.setItems(data);
-      grid.dataView.refresh();
-      // Force column widths and re-render
-      if (grid.slickGrid) {
-        const columns = grid.slickGrid.getColumns();
-        grid.slickGrid.setColumns(columns);
-        grid.slickGrid.invalidate();
-        grid.slickGrid.render();
+    if (!this.isValidGrid(grid)) return;
 
-        // Apply initial sort by STT column
-        if (grid.sortService) {
-          grid.sortService.updateSorting([
-            { columnId: 'STT', direction: 'ASC' }
-          ]);
-        }
-      }
+    try {
+      grid.dataView.setItems(data || []);
+      grid.dataView.refresh();
+
+      // Buộc render lại mà không reset cột (tránh lỗi Sortable null)
+      grid.slickGrid.invalidate();
+      grid.slickGrid.render();
+
+      // Áp dụng sắp xếp theo cột STT nếu cột đó tồn tại
+      this.applyDefaultSort(grid);
+    } catch (error) {
+      console.warn('Lỗi khi cập nhật grid:', error);
     }
   }
 
@@ -1866,15 +1960,14 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         grid.dataView.setItems(data);
       }
       grid.resizerService?.resizeGrid();
-      grid.slickGrid?.invalidate();
-      grid.slickGrid?.render();
 
-      // Maintain sort by STT column when switching tabs
-      if (grid.sortService) {
-        grid.sortService.updateSorting([
-          { columnId: 'STT', direction: 'ASC' }
-        ]);
+      if (grid.slickGrid) {
+        grid.slickGrid.invalidate();
+        grid.slickGrid.render();
       }
+
+      // Maintain sort by STT column when switching tabs if it exists
+      this.applyDefaultSort(grid);
     }
   }
 
@@ -1888,20 +1981,23 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
    * SlickGrid needs: id (lowercase), parentId (lowercase), __treeLevel
    * IMPORTANT: Data must be sorted with parents before children!
    */
-  private transformToTreeData(data: any[]): any[] {
+  private transformToTreeData(data: any[], addSummaryRow: boolean = true): any[] {
     if (!data || data.length === 0) return [];
 
     // Add summary row like WinForm (ID = -1, ParentID = 0)
-    const hasParentRow = data.some((item: any) => item.ID === -1);
-    if (!hasParentRow) {
-      data.push({
-        ID: -1,
-        ParentID: 0,
-        Stt: '',
-        STT: '',
-        EvaluationContent: 'TỔNG HỆ SỐ',
-        VerificationToolsContent: 'TỔNG ĐIỂM TRUNG BÌNH'
-      });
+    // Only for Evaluation grids, not for Rule grid
+    if (addSummaryRow) {
+      const hasParentRow = data.some((item: any) => item.ID === -1);
+      if (!hasParentRow) {
+        data.push({
+          ID: -1,
+          ParentID: 0,
+          Stt: '',
+          STT: '',
+          EvaluationContent: 'TỔNG HỆ SỐ',
+          VerificationToolsContent: 'TỔNG ĐIỂM TRUNG BÌNH'
+        });
+      }
     }
 
     // First normalize data - handle Stt vs STT
@@ -2130,7 +2226,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         SkillPoint: totalEmpSkillPoint,
         SpecializationPoint: totalEmpCMPoint,
         StandartPoint: totalStandart,
-        PercentageAchieved: this.formatDecimalNumber((totalEmpSkillPoint / divSkill) * 100, 2),
+        PercentageAchieved: ((totalEmpSkillPoint / divSkill) * 100).toFixed(2),
         EvaluationRank: this.getEvaluationRank_TKCK((totalEmpSkillPoint / divSkill) * 100)
       },
       {
@@ -2139,7 +2235,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         SkillPoint: totalTBPSkillPoint,
         SpecializationPoint: totalTBPCMPoint,
         StandartPoint: totalStandart,
-        PercentageAchieved: this.formatDecimalNumber((totalTBPSkillPoint / divSkill) * 100, 2),
+        PercentageAchieved: ((totalTBPSkillPoint / divSkill) * 100).toFixed(2),
         EvaluationRank: this.getEvaluationRank_TKCK((totalTBPSkillPoint / divSkill) * 100)
       },
       {
@@ -2148,10 +2244,11 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         SkillPoint: totalBGDSkillPoint,
         SpecializationPoint: totalBGDCMPoint,
         StandartPoint: totalStandart,
-        PercentageAchieved: this.formatDecimalNumber((totalBGDSkillPoint / divSkill) * 100, 2),
+        PercentageAchieved: ((totalBGDSkillPoint / divSkill) * 100).toFixed(2),
         EvaluationRank: this.getEvaluationRank_TKCK((totalBGDSkillPoint / divSkill) * 100)
       }
     ];
+    console.log("kaka", this.dataMaster);
 
     this.updateGrid(this.angularGridMaster, this.dataMaster);
   }
@@ -2181,37 +2278,38 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   private calculateTotalAVG(): void {
     // Get summary rows (ID = -1) from each tab
     const skillPoint = this.dataEvaluation.find(row => row.ID === -1) || {};
-    const generalPoint = this.dataEvaluation2.find(row => row.ID === -1) || {};
-    const specializationPoint = this.dataEvaluation4.find(row => row.ID === -1) || {};
+    const generalPoint = this.dataEvaluation4.find(row => row.ID === -1) || {};
+    const specializationPoint = this.dataEvaluation2.find(row => row.ID === -1) || {};
 
     // Calculate counts
     const countSkill = this.dataEvaluation.filter(row => row.ID === -1).length || 1;
-    const countGeneral = this.dataEvaluation2.filter(row => row.ID === -1).length || 1;
-    const countSpecialization = this.dataEvaluation4.filter(row => row.ID === -1).length || 1;
+    const countGeneral = this.dataEvaluation4.filter(row => row.ID === -1).length || 1;
+    const countSpecialization = this.dataEvaluation2.filter(row => row.ID === -1).length || 1;
 
     this.dataMaster = [
       {
         id: 1,
         EvaluatedType: 'Tự đánh giá',
-        SkillPoint: this.formatDecimalNumber((skillPoint.EmployeeEvaluation || 0) / countSkill, 1),
-        GeneralPoint: this.formatDecimalNumber((generalPoint.EmployeeEvaluation || 0) / countGeneral, 1),
-        SpecializationPoint: this.formatDecimalNumber((specializationPoint.EmployeeEvaluation || 0) / countSpecialization, 1)
+        SkillPoint: ((skillPoint.EmployeeEvaluation || 0) / countSkill).toFixed(2),
+        GeneralPoint: ((generalPoint.EmployeeEvaluation || 0) / countGeneral).toFixed(2),
+        SpecializationPoint: ((specializationPoint.EmployeeEvaluation || 0) / countSpecialization).toFixed(2)
       },
       {
         id: 2,
         EvaluatedType: 'Đánh giá của Trưởng/Phó BP',
-        SkillPoint: this.formatDecimalNumber((skillPoint.TBPEvaluation || 0) / countSkill, 1),
-        GeneralPoint: this.formatDecimalNumber((generalPoint.TBPEvaluation || 0) / countGeneral, 1),
-        SpecializationPoint: this.formatDecimalNumber((specializationPoint.TBPEvaluation || 0) / countSpecialization, 1)
+        SkillPoint: ((skillPoint.TBPEvaluation || 0) / countSkill).toFixed(2),
+        GeneralPoint: ((generalPoint.TBPEvaluation || 0) / countGeneral).toFixed(2),
+        SpecializationPoint: ((specializationPoint.TBPEvaluation || 0) / countSpecialization).toFixed(2)
       },
       {
         id: 3,
         EvaluatedType: 'Đánh giá của GĐ',
-        SkillPoint: this.formatDecimalNumber((skillPoint.BGDEvaluation || 0) / countSkill, 1),
-        GeneralPoint: this.formatDecimalNumber((generalPoint.BGDEvaluation || 0) / countGeneral, 1),
-        SpecializationPoint: this.formatDecimalNumber((specializationPoint.BGDEvaluation || 0) / countSpecialization, 1)
+        SkillPoint: ((skillPoint.BGDEvaluation || 0) / countSkill).toFixed(2),
+        GeneralPoint: ((generalPoint.BGDEvaluation || 0) / countGeneral).toFixed(2),
+        SpecializationPoint: ((specializationPoint.BGDEvaluation || 0) / countSpecialization).toFixed(2)
       }
     ];
+    console.log("kakacalculateTotalAVG", this.dataMaster);
   }
 
   /**
@@ -2238,25 +2336,32 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
     // Update footer cells
     const columns = slickGrid.getColumns();
-    columns.forEach((column: any) => {
-      if (!column?.field) return;
-      const footerCol = slickGrid.getFooterRowColumn(column.id);
-      if (!footerCol) return;
+    if (columns) {
+      columns.forEach((column: any) => {
+        if (!column || !column.id || !column.field) return;
 
-      if (totals.hasOwnProperty(column.field)) {
-        const value = this.formatDecimalNumber(totals[column.field], 2);
-        footerCol.innerHTML = `<b>${value}</b>`;
-        footerCol.style.textAlign = 'right';
-        footerCol.style.paddingRight = '4px';
-        footerCol.style.backgroundColor = '#f0f0f0';
-        footerCol.style.lineHeight = '30px';
-      } else if (column.field === 'EvaluationContent') {
-        footerCol.innerHTML = '<b>TỔNG</b>';
-        footerCol.style.textAlign = 'right';
-        footerCol.style.backgroundColor = '#f0f0f0';
-        footerCol.style.lineHeight = '30px';
-      }
-    });
+        try {
+          const footerCol = slickGrid.getFooterRowColumn(column.id);
+          if (!footerCol) return;
+
+          if (totals.hasOwnProperty(column.field)) {
+            const value = this.formatDecimalNumber(totals[column.field], 2);
+            footerCol.innerHTML = `<b>${value}</b>`;
+            footerCol.style.textAlign = 'right';
+            footerCol.style.paddingRight = '4px';
+            footerCol.style.backgroundColor = '#f0f0f0';
+            footerCol.style.lineHeight = '30px';
+          } else if (column.field === 'EvaluationContent') {
+            footerCol.innerHTML = '<b>TỔNG</b>';
+            footerCol.style.textAlign = 'right';
+            footerCol.style.backgroundColor = '#f0f0f0';
+            footerCol.style.lineHeight = '30px';
+          }
+        } catch (e) {
+          // Ignore errors for individual columns
+        }
+      });
+    }
     slickGrid.render();
   }
 
@@ -2286,29 +2391,37 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
     // Update footer cells
     const columns = slickGrid.getColumns();
-    columns.forEach((column: any) => {
-      const footerCol = slickGrid.getFooterRowColumn(column.id);
-      if (!footerCol) return;
+    if (columns) {
+      columns.forEach((column: any) => {
+        if (!column || !column.id) return;
 
-      if (column.field === 'PercentRemaining') {
-        footerCol.innerHTML = `<b>${totalPercentRemaining.toFixed(1)}</b>`;
-        footerCol.style.textAlign = 'right';
-        footerCol.style.paddingRight = '4px';
-        footerCol.style.backgroundColor = '#f0f0f0';
-        footerCol.style.lineHeight = '30px';
-      } else if (column.field === 'PercentBonus') {
-        footerCol.innerHTML = `<b>Xếp loại: ${rank}</b>`;
-        footerCol.style.textAlign = 'left';
-        footerCol.style.paddingLeft = '4px';
-        footerCol.style.backgroundColor = '#f0f0f0';
-        footerCol.style.lineHeight = '30px';
-      } else if (column.field === 'RuleContent') {
-        footerCol.innerHTML = '<b>TỔNG</b>';
-        footerCol.style.textAlign = 'right';
-        footerCol.style.backgroundColor = '#f0f0f0';
-        footerCol.style.lineHeight = '30px';
-      }
-    });
+        try {
+          const footerCol = slickGrid.getFooterRowColumn(column.id);
+          if (!footerCol) return;
+
+          if (column.field === 'PercentRemaining') {
+            footerCol.innerHTML = `<b>${totalPercentRemaining.toFixed(1)}</b>`;
+            footerCol.style.textAlign = 'right';
+            footerCol.style.paddingRight = '4px';
+            footerCol.style.backgroundColor = '#f0f0f0';
+            footerCol.style.lineHeight = '30px';
+          } else if (column.field === 'PercentBonus') {
+            footerCol.innerHTML = `<b>Xếp loại: ${rank}</b>`;
+            footerCol.style.textAlign = 'left';
+            footerCol.style.paddingLeft = '4px';
+            footerCol.style.backgroundColor = '#f0f0f0';
+            footerCol.style.lineHeight = '30px';
+          } else if (column.field === 'RuleContent') {
+            footerCol.innerHTML = '<b>TỔNG</b>';
+            footerCol.style.textAlign = 'right';
+            footerCol.style.backgroundColor = '#f0f0f0';
+            footerCol.style.lineHeight = '30px';
+          }
+        } catch (e) {
+          // Ignore errors for individual columns
+        }
+      });
+    }
     slickGrid.render();
   }
 

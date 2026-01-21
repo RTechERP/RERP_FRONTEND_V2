@@ -1,0 +1,46 @@
+/* Chuẩn hóa thanh lọc theo UX ERP */
+.filter-bar {
+  gap: 8px;
+}
+.filter-bar .ant-form-item {
+  margin-bottom: 0;
+}
+.filter-item--date {
+  width: 160px;
+}
+.filter-item--kho {
+  width: 240px;
+}
+.filter-item--status {
+  width: 180px;
+}
+.filter-item--keyword {
+  width: 200px;
+}
+.filter-item--button {
+  width: 100px;
+}
+.filter-item--auto {
+  width: auto;
+}
+.filter-bar .ant-select,
+.filter-bar .ant-picker,
+.filter-bar input[nz-input] {
+  width: 100%;
+}
+
+/* Grid container */
+.grid-container {
+  height: 78vh;
+  width: 100%;
+}
+
+/* Right align for numeric columns */
+::ng-deep .text-right {
+  text-align: right !important;
+}
+
+/* Center align */
+::ng-deep .text-center {
+  text-align: center !important;
+}

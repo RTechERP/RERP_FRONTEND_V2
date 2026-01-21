@@ -70,6 +70,7 @@
                 formControlName="Code"
                 readonly
                 placeholder="Số phiếu"
+                nzSize="small"
               />
               <ng-template #codeError let-control>
                 <ng-container
@@ -97,6 +98,7 @@
                 nzShowSearch
                 [nzAllowClear]="false"
                 nzPlaceHolder="Chọn trạng thái"
+                nzSize="small"
               >
                 <nz-option
                   *ngFor="let id of cbbStatus"
@@ -130,6 +132,7 @@
                 nzShowSearch
                 [nzAllowClear]="false"
                 nzPlaceHolder="Chọn người nhận"
+                nzSize="small"
               >
                 <nz-option
                   *ngFor="let id of dataCbbUser"
@@ -174,6 +177,7 @@
                 formControlName="CreatDate"
                 [nzFormat]="dateFormat"
                 class="w-100"
+                nzSize="small"
               ></nz-date-picker>
               <ng-template #creatDateError let-control>
                 <ng-container
@@ -204,6 +208,7 @@
                 nzShowSearch
                 [nzAllowClear]="false"
                 nzPlaceHolder="Chọn khách hàng"
+                nzSize="small"
               >
                 <nz-option
                   *ngFor="let id of dataCbbCustomer"
@@ -253,6 +258,7 @@
                 nzShowSearch
                 [nzAllowClear]="false"
                 nzPlaceHolder="Chọn người giao"
+                nzSize="small"
               >
                 <nz-option
                   *ngFor="let id of dataCbbSender"
@@ -297,6 +303,7 @@
                 formControlName="RequestDate"
                 [nzFormat]="dateFormat"
                 class="w-100"
+                nzSize="small"
               ></nz-date-picker>
               <ng-template #requestDateError let-control>
                 <ng-container
@@ -325,6 +332,7 @@
                 formControlName="Address"
                 readonly
                 placeholder="Địa chỉ khách hàng"
+                nzSize="small"
               />
             </nz-form-control>
           </nz-form-item>
@@ -341,6 +349,7 @@
                 nzShowSearch
                 [nzAllowClear]="false"
                 nzPlaceHolder="Chọn kho"
+                nzSize="small"
               >
                 <nz-option
                   *ngFor="let id of dataCbbProductGroup"
@@ -380,6 +389,7 @@
                 nzShowSearch
                 nzAllowClear
                 nzPlaceHolder="Chọn loại hàng"
+                nzSize="small"
               >
                 <nz-option
                   *ngFor="let id of cbbProductType"
@@ -404,6 +414,7 @@
                 nzShowSearch
                 [nzAllowClear]="false"
                 nzPlaceHolder="Chọn địa chỉ giao hàng"
+                nzSize="small"
               >
                 <nz-option
                   *ngFor="let id of dataCbbAdressStock"
@@ -433,6 +444,7 @@
                 nzShowSearch
                 [nzAllowClear]="false"
                 nzPlaceHolder="Chọn nhà cung cấp"
+                nzSize="small"
               >
                 <nz-option
                   *ngFor="let id of dataCbbSupplier"
@@ -455,7 +467,7 @@
           <nz-form-item>
             <nz-form-label class="fs-12">&nbsp;</nz-form-label>
             <nz-form-control>
-              <label nz-checkbox formControlName="IsTransfer">Chuyển kho</label>
+              <label nz-checkbox nzSize="small" formControlName="IsTransfer">Chuyển kho</label>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -469,6 +481,7 @@
                 nzShowSearch
                 nzAllowClear
                 nzPlaceHolder="Chọn kho đích"
+                nzSize="small"
                 [nzDisabled]="!validateForm.get('IsTransfer')?.value"
               >
                 <nz-option
@@ -485,8 +498,8 @@
             <nz-form-label class="fs-12">Tham chiếu</nz-form-label>
             <nz-form-control>
               <div class="reference-links-container d-flex">
-                <div *ngIf="referenceLinks.length === 0" class="no-ref">
-                  Khong co tham chieu
+                <div nzSize="small" *ngIf="referenceLinks.length === 0" class="no-ref">
+                  Không có tham chiếu
                 </div>
                 <div *ngFor="let link of referenceLinks" class="mt-1">
                   <a

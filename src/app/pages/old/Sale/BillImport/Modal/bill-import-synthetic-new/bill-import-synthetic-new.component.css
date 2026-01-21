@@ -1,0 +1,133 @@
+/* Bill Import Synthetic New - SlickGrid Styles */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+#gridContainer {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* SlickGrid customizations */
+::ng-deep .slick-header-column {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+::ng-deep .slick-cell {
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+::ng-deep .slick-cell.text-right {
+  text-align: right !important;
+}
+
+::ng-deep .slick-cell.text-center {
+  text-align: center !important;
+}
+
+/* Frozen columns styling */
+::ng-deep .slick-pane-left .slick-header-column {
+  background-color: #e9ecef;
+}
+
+/* Editor styling */
+::ng-deep .slick-cell.editable {
+  background-color: #fff3cd;
+}
+
+::ng-deep .slick-cell.active {
+  border: 2px solid #0d6efd !important;
+}
+
+/* Filter row styling */
+::ng-deep .slick-headerrow-column {
+  background-color: #f8f9fa;
+  padding: 2px 4px;
+}
+
+::ng-deep .slick-headerrow-column input,
+::ng-deep .slick-headerrow-column select {
+  font-size: 11px;
+  padding: 2px 4px;
+}
+
+/* Checkbox selector styling */
+::ng-deep .slick-cell-checkboxsel {
+  text-align: center;
+}
+
+/* Row selection styling */
+::ng-deep .slick-row.selected {
+  background-color: #cfe2ff !important;
+}
+
+/* Context menu styling */
+::ng-deep .slick-context-menu {
+  z-index: 10000 !important;
+  background: white !important;
+  border: 1px solid #ccc !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+}
+
+::ng-deep .slick-context-menu .slick-menu-item {
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+}
+
+::ng-deep .slick-context-menu .slick-menu-item:hover {
+  background-color: #f0f0f0 !important;
+}
+
+/* Submenu styling */
+::ng-deep .slick-context-menu .slick-submenu {
+  position: absolute !important;
+  left: 100% !important;
+  top: 0 !important;
+  z-index: 10001 !important;
+  background: white !important;
+  border: 1px solid #ccc !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+}
+
+::ng-deep .slick-context-menu .slick-menu-icon {
+  margin-right: 8px !important;
+}
+
+/* Form label styling */
+.fs-12 {
+  font-size: 12px;
+}
+
+/* Button styling */
+.btn {
+  font-size: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  ::ng-deep .slick-cell {
+    font-size: 11px;
+    padding: 2px 4px;
+  }
+  
+  ::ng-deep .slick-header-column {
+    font-size: 11px;
+  }
+}
+::ng-deep div[id^="billImportSyntheticGrid-"]{
+  height: calc(91vh - 60px)!important;
+}

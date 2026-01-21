@@ -10,7 +10,8 @@ import {
   Formatters,
   AngularSlickgridModule,
   SortDirectionNumber,
-  Editors
+  Editors,
+  EditCommand
 } from 'angular-slickgrid';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators'; // Added
@@ -30,6 +31,7 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzTreeNodeOptions } from 'ng-zorro-antd/tree';
 import { KPIService } from '../kpi-service/kpi.service';
 import { AppUserService } from '../../../services/app-user.service';
+import { ReadOnlyLongTextEditor } from '../kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
 
 @Component({
   selector: 'app-kpievaluation-factor-scoring',
@@ -84,6 +86,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
   masterGridOptions!: GridOption;
   ruleGridOptions!: GridOption;
   teamGridOptions!: GridOption;
+  editCommandQueue: EditCommand[] = [];
 
   // Data
   dataExam: any[] = [];
@@ -494,6 +497,13 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         width: 467,
         sortable: true,
         cssClass: 'cell-multiline',
+        editor: {
+          model: ReadOnlyLongTextEditor,
+          required: false,
+          alwaysSaveOnEnterKey: false,
+          minLength: 5,
+          maxLength: 1000,
+        },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           const escaped = this.escapeHtml(dataContext.EvaluationContent);
@@ -568,6 +578,13 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         width: 533,
         sortable: true,
         cssClass: 'cell-multiline',
+        editor: {
+          model: ReadOnlyLongTextEditor,
+          required: false,
+          alwaysSaveOnEnterKey: false,
+          minLength: 5,
+          maxLength: 1000,
+        },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           const escaped = this.escapeHtml(dataContext.VerificationToolsContent);
@@ -677,6 +694,11 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       enableCellNavigation: true,
       editable: true,
       autoEdit: true,
+      autoCommitEdit: true,
+      editCommandHandler: (_item: any, _column: Column, editCommand: EditCommand) => {
+        this.editCommandQueue.push(editCommand);
+        editCommand.execute();
+      },
       enableSorting: true,
       enablePagination: false,
       // Tắt forceFitColumns để giữ nguyên độ rộng cột đã cấu hình
@@ -689,6 +711,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       createPreHeaderPanel: true,
       showPreHeaderPanel: true,
       preHeaderPanelHeight: 30,
+
       // Default sort by STT ascending
       presets: {
         sorters: [
@@ -813,6 +836,13 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         name: 'Nội dung đánh giá',
         width: 300,
         cssClass: 'cell-multiline',
+        editor: {
+          model: ReadOnlyLongTextEditor,
+          required: false,
+          alwaysSaveOnEnterKey: false,
+          minLength: 5,
+          maxLength: 1000,
+        },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           const escaped = this.escapeHtml(dataContext.RuleContent);
@@ -1119,8 +1149,8 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       return false;
     }
 
-    // Chỉ cho phép edit các cột điểm
-    const editableColumns = ['EmployeePoint', 'TBPPoint', 'BGDPoint'];
+    // Các cột cho phép edit: cột điểm và cột read-only viewer
+    const editableColumns = ['EmployeePoint', 'TBPPoint', 'BGDPoint', 'EvaluationContent', 'VerificationToolsContent', 'RuleContent'];
     if (column && !editableColumns.includes(column.id)) {
       return false;
     }
@@ -2326,35 +2356,35 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
   private calculateTotalAVG(): void {
     // Get summary rows (ID = -1) from each tab
     const skillPoint = this.dataEvaluation.find(row => row.ID === -1) || {};
-    const generalPoint = this.dataEvaluation2.find(row => row.ID === -1) || {};
-    const specializationPoint = this.dataEvaluation4.find(row => row.ID === -1) || {};
+    const generalPoint = this.dataEvaluation4.find(row => row.ID === -1) || {};
+    const specializationPoint = this.dataEvaluation2.find(row => row.ID === -1) || {};
 
     // Calculate counts
     const countSkill = this.dataEvaluation.filter(row => row.ID === -1).length || 1;
-    const countGeneral = this.dataEvaluation2.filter(row => row.ID === -1).length || 1;
-    const countSpecialization = this.dataEvaluation4.filter(row => row.ID === -1).length || 1;
+    const countGeneral = this.dataEvaluation4.filter(row => row.ID === -1).length || 1;
+    const countSpecialization = this.dataEvaluation2.filter(row => row.ID === -1).length || 1;
 
     this.dataMaster = [
       {
         id: 1,
         EvaluatedType: 'Tự đánh giá',
-        SkillPoint: this.formatDecimalNumber((skillPoint.EmployeeEvaluation || 0) / countSkill, 1),
-        GeneralPoint: this.formatDecimalNumber((generalPoint.EmployeeEvaluation || 0) / countGeneral, 1),
-        SpecializationPoint: this.formatDecimalNumber((specializationPoint.EmployeeEvaluation || 0) / countSpecialization, 1)
+        SkillPoint: ((skillPoint.EmployeeEvaluation || 0) / countSkill).toFixed(2),
+        GeneralPoint: ((generalPoint.EmployeeEvaluation || 0) / countGeneral).toFixed(2),
+        SpecializationPoint: ((specializationPoint.EmployeeEvaluation || 0) / countSpecialization).toFixed(2)
       },
       {
         id: 2,
         EvaluatedType: 'Đánh giá của Trưởng/Phó BP',
-        SkillPoint: this.formatDecimalNumber((skillPoint.TBPEvaluation || 0) / countSkill, 1),
-        GeneralPoint: this.formatDecimalNumber((generalPoint.TBPEvaluation || 0) / countGeneral, 1),
-        SpecializationPoint: this.formatDecimalNumber((specializationPoint.TBPEvaluation || 0) / countSpecialization, 1)
+        SkillPoint: ((skillPoint.TBPEvaluation || 0) / countSkill).toFixed(2),
+        GeneralPoint: ((generalPoint.TBPEvaluation || 0) / countGeneral).toFixed(2),
+        SpecializationPoint: ((specializationPoint.TBPEvaluation || 0) / countSpecialization).toFixed(2)
       },
       {
         id: 3,
         EvaluatedType: 'Đánh giá của GĐ',
-        SkillPoint: this.formatDecimalNumber((skillPoint.BGDEvaluation || 0) / countSkill, 1),
-        GeneralPoint: this.formatDecimalNumber((generalPoint.BGDEvaluation || 0) / countGeneral, 1),
-        SpecializationPoint: this.formatDecimalNumber((specializationPoint.BGDEvaluation || 0) / countSpecialization, 1)
+        SkillPoint: ((skillPoint.BGDEvaluation || 0) / countSkill).toFixed(2),
+        GeneralPoint: ((generalPoint.BGDEvaluation || 0) / countGeneral).toFixed(2),
+        SpecializationPoint: ((specializationPoint.BGDEvaluation || 0) / countSpecialization).toFixed(2)
       }
     ];
   }

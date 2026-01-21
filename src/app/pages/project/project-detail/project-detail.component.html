@@ -31,9 +31,9 @@
                     <nz-select formControlName="customerId" class="w-100" nzShowSearch nzAllowClear
                       nzPlaceHolder="Chọn khách hàng" (ngModelChange)="getProjectCode()" [(ngModel)]="customerId">
                       @for (item of customers; track $index) {
-                      <nz-option nzCustomContent="true" [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"
+                      <nz-option nzCustomContent="true" [nzLabel]="item.CustomerShortName + ' - ' + item.CustomerName"
                         [nzValue]="item.ID">
-                        {{ item.CustomerCode + " - " + item.CustomerName }}
+                        {{ item.CustomerShortName + " - " + item.CustomerName }}
                       </nz-option>
                       }
                     </nz-select>

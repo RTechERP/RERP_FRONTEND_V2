@@ -416,7 +416,11 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
   // Tạo nội dung summary
   generateSummary(): string {
     const dateReport = this.formGroup.get('DateReport')?.value;
-    const dateReportStr = dateReport ? DateTime.fromJSDate(dateReport).toFormat('dd/MM/yyyy') : '';
+    const dateReportStr = dateReport
+      ? (typeof dateReport === 'string'
+        ? DateTime.fromISO(dateReport).toFormat('dd/MM/yyyy')
+        : DateTime.fromJSDate(dateReport).toFormat('dd/MM/yyyy'))
+      : '';
 
     let project = '';
     let projectItemContent = '';
@@ -554,7 +558,9 @@ export class DailyReportMachineDetailComponent implements OnInit, AfterViewInit 
       return [];
     }
 
-    const dateReportStr = DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
+    const dateReportStr = typeof dateReport === 'string'
+      ? dateReport
+      : DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
     const userReport = this.currentUser?.ID || 0;
 
     const reports: any[] = [];

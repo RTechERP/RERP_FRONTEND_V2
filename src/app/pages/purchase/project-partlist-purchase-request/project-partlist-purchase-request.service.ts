@@ -194,4 +194,20 @@ export class ProjectPartlistPurchaseRequestService {
   createProductRTC(items: any[]): Observable<any> {
     return this.http.post<any>(this.baseUrl + `create-product`, items);
   }
+  getAllPurchaseApprovedBGD(filter: {
+  projectId: number;
+  supplierSaleId: number;
+  isApprovedBGD: number;
+  keyword: string;
+}): Observable<any> {
+  return this.http.post<any>(
+    `${this.baseUrl}get-all-purchase-approved-bgd`,  // POST /api/ProjectPartlistPurchaseRequest
+    {
+      ProjectId: filter.projectId,
+      SupplierSaleId: filter.supplierSaleId,
+      IsApprovedBGD: filter.isApprovedBGD,
+      Keyword: filter.keyword
+    }
+  );
+}
 }

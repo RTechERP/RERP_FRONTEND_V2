@@ -67,7 +67,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
   dataRequest: any[] = [];
   ngOnInit(): void {
      // Set ngày yêu cầu mặc định là ngày hôm nay khi thêm mới
-     const today = new Date();
+    const today = new Date();
      today.setHours(0, 0, 0, 0); // Set về 00:00:00 để tránh vấn đề timezone
     this.form = this.fb.group({
       ProjectID: [

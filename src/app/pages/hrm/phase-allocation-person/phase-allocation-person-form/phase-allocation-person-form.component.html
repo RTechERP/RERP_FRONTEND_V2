@@ -1,5 +1,6 @@
 <div class="modal-header bg-primary p-2">
-  <h6 class="modal-title text-white" id="phaseAllocationModalLabel">Cấp phát</h6>
+  <h6 class="modal-title text-white" id="phaseAllocationModalLabel">{{ isEditMode ? 'Sửa đợt cấp phát' : 'Thêm đợt cấp
+    phát' }}</h6>
   <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
 
@@ -33,9 +34,9 @@
           <nz-form-label>Loại cấp phát<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng Chọn loại cấp phát'">
             <nz-select formControlName="TypeAllocation" nzSize="default">
-              <nz-option *ngFor="let type of typeAllocationOptions" [nzValue]="type.value" [nzLabel]="type.label"></nz-option>
+              <nz-option *ngFor="let type of typeAllocationOptions" [nzValue]="type.value"
+                [nzLabel]="type.label"></nz-option>
             </nz-select>
-            <!-- <input nz-input formControlName="" name="" placeholder="Chọn Loại cấp phát" /> -->
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -54,7 +55,7 @@
         <nz-form-item>
           <nz-form-label>Nội dung cấp phát<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng nhập nội dung cấp phát'">
-            <input nz-input formControlName="Name" name="Name" placeholder="Nhập nội dung cấp phát"/>
+            <input nz-input formControlName="Name" name="Name" placeholder="Nhập nội dung cấp phát" />
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -69,6 +70,8 @@
       </button>
     </div>
 
+
+
     <div id="detailTable"></div>
   </div>
 
@@ -77,6 +80,5 @@
 <!-- Footer nút -->
 <div class="modal-footer">
   <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
-  <button nz-button nzType="primary" (click)="saveData()" *hasPermission="'N1,N44'">Lưu</button>
+  <button nz-button nzType="primary" (click)="saveData()" *hasPermission="'N1,N34,N2'">Lưu</button>
 </div>
-

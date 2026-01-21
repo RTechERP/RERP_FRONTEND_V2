@@ -1,3 +1,4 @@
+import { ClipboardService } from './../../../../services/clipboard.service';
 import { CommonModule } from '@angular/common';
 import {
     Component,
@@ -7,6 +8,8 @@ import {
     OnDestroy,
     inject,
     Injector,
+    Optional,
+    Inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -33,6 +36,7 @@ import { DateTime } from 'luxon';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { BillImportTechnicalSummaryComponent } from '../../bill-export-technical/bill-import-technical-summary/bill-import-technical-summary.component';
+import { CheckHistoryTechSlickGridComponent } from '../check-history-tech-slick-grid/check-history-tech-slick-grid.component';
 
 function formatDateCell(value: any): string {
     if (!value) return '';
@@ -104,13 +108,25 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
         private modal: NzModalService,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        private injector: Injector
+        private injector: Injector,
+        private ClipboardService: ClipboardService,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit() {
         this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1;
-            this.warehouseType = params['warehouseType'] || 1;
+            // this.warehouseID = params['warehouseID'] || 1;
+            // this.warehouseType = params['warehouseType'] || 1;
+
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
         });
 
         // Khởi tạo giá trị mặc định cho dateStart (đầu tháng hiện tại) và dateEnd (hôm nay)
@@ -361,6 +377,20 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
             enableAutoSizeColumns: false,
             frozenColumn: 1,
             enableHeaderMenu: false,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.ClipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
         };
     }
     openSummaryModal() {
@@ -376,6 +406,14 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
     }
     private initDetailGridColumns(): void {
         this.columnDefinitionsDetail = [
+            {
+                id: 'ProductCode',
+                field: 'ProductCode',
+                name: 'Mã sản phẩm',
+                width: 300,
+                sortable: true,
+                filterable: true,
+            },
             {
                 id: 'ProductName',
                 field: 'ProductName',
@@ -1032,7 +1070,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
     }
 
     openCheckHistoryTech() {
-        const modalRef = this.ngbModal.open(CheckHistoryTechComponent, {
+        const modalRef = this.ngbModal.open(CheckHistoryTechSlickGridComponent, {
             centered: false,
             fullscreen: true,
             backdrop: 'static',

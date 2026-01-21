@@ -27,6 +27,14 @@ export class DailyReportSaleService {
     return this.http.get(this._url + 'get-employee-team-sale');
   }
 
+  getTeamSaleByEmployee(employeeId: number): Observable<any> {
+    return this.http.get(this._url + 'get-teamsale-by-employee', {
+      params: {
+        employeeId: employeeId.toString(),
+      },
+    });
+  }
+
   getGroupSale(userId: number): Observable<any> {
     return this.http.get(this._url + 'get-group-sale', {
       params: {

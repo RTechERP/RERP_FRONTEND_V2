@@ -1,0 +1,138 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white" id="checkHistoryModalLabel">LỊCH SỬ MƯỢN NCC</h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body">
+  <form class="filter-section" (ngSubmit)="onSearch(); $event.preventDefault()">
+    <nz-row [nzGutter]="16">
+      <nz-col [nzSpan]="6">
+        <label>Ngày bắt đầu:</label>
+        <nz-date-picker
+          [(ngModel)]="filter.dateStart"
+          nzFormat="dd/MM/yyyy"
+          (keyup.enter)="onSearch()"
+          name="dateStart"
+          style="width: 100%">
+        </nz-date-picker>
+      </nz-col>
+      <nz-col [nzSpan]="6">
+        <label>Ngày kết thúc:</label>
+        <nz-date-picker
+          [(ngModel)]="filter.dateEnd"
+          nzFormat="dd/MM/yyyy"
+          (keyup.enter)="onSearch()"
+          name="dateEnd"
+          style="width: 100%">
+        </nz-date-picker>
+      </nz-col>
+      <nz-col [nzSpan]="6">
+        <label>Nhà cung cấp:</label>
+        <nz-select
+          [(ngModel)]="filter.supplierId"
+          nzPlaceHolder="Chọn NCC"
+          nzShowSearch
+          nzAllowClear
+          (keyup.enter)="onSearch()"
+          name="supplierId"
+          style="width: 100%">
+          <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+          <nz-option
+            *ngFor="let supplier of suppliers"
+            [nzValue]="supplier.ID"
+            [nzLabel]="supplier.NameNCC">
+          </nz-option>
+        </nz-select>
+      </nz-col>
+      <nz-col [nzSpan]="6">
+        <label>Nhân viên:</label>
+        <nz-select
+          [(ngModel)]="filter.employeeId"
+          nzPlaceHolder="Chọn nhân viên"
+          (keyup.enter)="onSearch()"
+          name="employeeId"
+          style="width: 100%">
+          <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+          <nz-option
+            *ngFor="let emp of employees"
+            [nzValue]="emp.ID"
+            [nzLabel]="emp.FullName">
+          </nz-option>
+        </nz-select>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="16" style="margin-top: 16px;">
+      <nz-col [nzSpan]="6">
+        <label>Người cần mượn:</label>
+        <nz-select
+          [(ngModel)]="filter.employeeBorrowId"
+          nzPlaceHolder="Chọn người mượn"
+          (keyup.enter)="onSearch()"
+          name="employeeBorrowId"
+          style="width: 100%">
+          <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+          <nz-option
+            *ngFor="let emp of employeeBorrows"
+            [nzValue]="emp.ID"
+            [nzLabel]="emp.FullName">
+          </nz-option>
+        </nz-select>
+      </nz-col>
+      <nz-col [nzSpan]="6">
+        <label>Từ khóa:</label>
+        <input
+          nz-input
+          [(ngModel)]="filter.keyword"
+          placeholder="Nhập từ khóa..."
+          (keyup.enter)="onSearch()"
+          name="keyword"
+          style="width: 100%">
+      </nz-col>
+      <nz-col [nzSpan]="12" style="display: flex; align-items: flex-end; gap: 8px;">
+        <button
+          nz-button
+          nzType="primary"
+          type="submit">
+          <span nz-icon nzType="search"></span>
+          Tìm
+        </button>
+        <button
+          nz-button
+          nzType="default"
+          type="button"
+          (click)="exportExcel()">
+          <span nz-icon nzType="file-excel"></span>
+          Xuất Excel
+        </button>
+        <button
+          nz-button
+          nzType="default"
+          type="button"
+          (click)="openExportDialog()">
+          <span nz-icon nzType="export"></span>
+          Trả hàng
+        </button>
+        <button
+          nz-button
+          nzType="default"
+          type="button"
+          (click)="showMaterialDetailForSelected()">
+          <span nz-icon nzType="eye"></span>
+          Chi tiết vật tư
+        </button>
+      </nz-col>
+    </nz-row>
+  </form>
+
+  <div id="gridContainer" class="grid-container" style="margin-top: 16px; position: relative;">
+    <nz-spin [nzSpinning]="isLoading" [nzTip]="'Đang tải dữ liệu...'">
+      <angular-slickgrid
+        gridId="checkHistoryGrid"
+        [columns]="columnDefinitions"
+        [options]="gridOptions"
+        [dataset]="dataset"
+        (onAngularGridCreated)="angularGridReady($event.detail)">
+      </angular-slickgrid>
+    </nz-spin>
+  </div>
+</div>

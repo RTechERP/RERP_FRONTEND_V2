@@ -23,9 +23,14 @@ export class MenuAppService {
     sortBySTTImmutable(
         items: any[],
         getOrder: (item: any) => number,
-        childrenKeys: string[] = ['Children', 'children']
+        childrenKeys: string[] = ['children']
     ): any[] {
-        return [...items]
+
+        // console.log('sortBySTTImmutable:', items);
+        // console.log('getOrder:', getOrder);
+        // console.log('childrenKeys:', childrenKeys);
+
+        const itemsort = [...items]
             .sort((a, b) => getOrder(a) - getOrder(b))
             .map(item => {
                 // tìm key children đang tồn tại trên item
@@ -44,6 +49,8 @@ export class MenuAppService {
                     )
                 };
             });
+        // console.log('itemsort:', itemsort);
+        return itemsort;
     }
 
 

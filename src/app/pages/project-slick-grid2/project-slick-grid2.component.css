@@ -332,8 +332,11 @@
   background-color: inherit !important;
   color: inherit !important;
 }
+::ng-deep #grvWorkReport{
+  height: 80vh !important;
+}
 /*fix height*/
-.grid-container-projects{
+.grid-container-projects,.grid-container-workreport,.grid-container-typelink{
   height: 100%;
   width: 100%;
 }

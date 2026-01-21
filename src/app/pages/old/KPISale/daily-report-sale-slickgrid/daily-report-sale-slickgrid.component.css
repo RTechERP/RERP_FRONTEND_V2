@@ -1,0 +1,47 @@
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+.reset {
+    all: revert;
+}
+
+.ant-splitter-panel {
+    position: relative;
+}
+
+.grid-container-daily-report {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}
+
+.inner-content {
+    padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+    font-size: 0.75rem;
+}
+
+.filter-bar {
+    flex-shrink: 0;
+}
+
+::ng-deep .slick-cell {
+    font-size: 0.75rem;
+}
+
+::ng-deep .slick-header-column {
+    font-size: 0.75rem;
+}

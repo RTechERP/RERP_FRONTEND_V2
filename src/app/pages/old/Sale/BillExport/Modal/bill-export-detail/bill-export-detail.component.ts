@@ -101,6 +101,7 @@ interface BillExport {
   CreatDate: Date | string | null;
   RequestDate: Date | string | null;
   IsApproved?: boolean; // C# form line 114-117: Disable buttons when approved
+  IsTransfer: boolean;
 }
 
 @Component({
@@ -142,6 +143,7 @@ export class BillExportDetailComponent
   private productAvailableInventoryMap: Map<number, number> = new Map();
 
   isLoading: boolean = false;
+  isSaving: boolean = false;
   isFormDisabled: boolean = false;
 
   dataCbbUser: any[] = [];
@@ -223,6 +225,7 @@ export class BillExportDetailComponent
     SupplierID: 0,
     CreatDate: new Date(),
     RequestDate: new Date(),
+    IsTransfer: false,
   };
   validateForm: FormGroup;
   private destroy$ = new Subject<void>();
@@ -305,10 +308,10 @@ private productInventoryDetailMap: Map<number, {
 }> = new Map();
 
   private hasInventoryRelatedChange: boolean = false;
-  
+
   // Flag để ngăn việc gọi lặp changeProductGroup khi đang load data edit
   private isLoadingEditData: boolean = false;
-  
+
   // Flag để ngăn việc gọi lặp getBillExportDetailID
   private hasBillExportDetailLoaded: boolean = false;
   constructor(
@@ -496,6 +499,7 @@ private productInventoryDetailMap: Map<number, {
         SupplierID: 0,
         CreatDate: new Date(),
         RequestDate: new Date(),
+        IsTransfer: false,
       };
       this.validateForm.patchValue(this.newBillExport);
     }
@@ -558,6 +562,7 @@ private productInventoryDetailMap: Map<number, {
         RequestDate: this.newBillExport.RequestDate || new Date(), // dtpRequestDate.EditValue = billExport.RequestDate
         CreatDate: this.newBillExport.CreatDate || new Date(),
         WarehouseID: this.newBillExport.WarehouseID || 0,
+        IsTransfer: this.newBillExport.IsTransfer || false,
       });
 
       // Sync back to model (important!)
@@ -612,6 +617,7 @@ private productInventoryDetailMap: Map<number, {
         RequestDate: this.newBillExport.RequestDate || new Date(), // dtpRequestDate.EditValue
         CreatDate: this.newBillExport.CreatDate || new Date(),
         WarehouseID: this.newBillExport.WarehouseID || 0,
+        IsTransfer: this.newBillExport.IsTransfer || false,
       });
 
       // Sync back to model
@@ -1086,6 +1092,7 @@ private productInventoryDetailMap: Map<number, {
             CreatDate: new Date(data.CreatDate),
             RequestDate: new Date(data.RequestDate),
             IsApproved: data.IsApproved || false,
+            IsTransfer: data.IsTransfer || false,
           };
           this.validateForm.patchValue(this.newBillExport);
 
@@ -1099,7 +1106,7 @@ private productInventoryDetailMap: Map<number, {
           this.isLoadingEditData = true;
           this.changeProductGroup(this.newBillExport.KhoTypeID);
           this.isLoadingEditData = false;
-          
+
           this.changeCustomer();
 
           // Load reference links cho phiếu chuyển kho
@@ -1592,7 +1599,10 @@ private productInventoryDetailMap: Map<number, {
   }
 
   changeStatus() {
-    this.getNewCode();
+    // Chỉ lấy mã mới khi thêm mới, không lấy khi sửa phiếu
+    if (!this.isCheckmode && (!this.newBillExport.Id || this.newBillExport.Id <= 0)) {
+      this.getNewCode();
+    }
   }
 
   /**
@@ -1702,7 +1712,7 @@ private productInventoryDetailMap: Map<number, {
     this.billExportService.getWarehouses().subscribe({
       next: (res: any) => {
         const list = res.data || [];
-        this.dataCbbWareHouseTransfer = list.map((item: any) => ({
+        this.dataCbbWareHouseTransfer = list.filter((item:any) => item.WarehouseCode !== this.wareHouseCode).map((item: any) => ({
           ID: item.ID,
           Name: item.WarehouseName|| '',
           Code: item.WarehouseCode|| '',
@@ -2382,6 +2392,13 @@ private productInventoryDetailMap: Map<number, {
     productCode: string,
     existingSerials: { ID: number; Serial: string }[]
   ) {
+    if (rowData.ID == null || rowData.ID <= 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Các mã sản phẩm thêm mới cần lưu trước khi chọn serial!'
+      );
+      return;
+    }
     const modalRef = this.modalService.open(BillImportChoseSerialComponent, {
       size: 'md',
       centered: true,
@@ -4142,7 +4159,7 @@ private productInventoryDetailMap: Map<number, {
   }
 
   // --- 3. NẠP TỒN KHO BẤT ĐỒNG BỘ (TRỌNG TÂM SỬA LỖI) ---
-  this.isLoading = true; // Hiện loading spinner
+  this.isSaving = true; // Hiện loading spinner và disable nút lưu
   try {
     const status = formValues.Status || this.newBillExport.Status || 0;
 
@@ -4162,7 +4179,7 @@ const uniqueProductIds: number[] = [...new Set<number>(
     const inventoryValidation = this.validateInventoryStock();
     if (!inventoryValidation.isValid) {
       this.showErrorNotification(inventoryValidation.message);
-      this.isLoading = false;
+      this.isSaving = false;
       return; // Dừng lại không cho lưu
     }
 
@@ -4182,18 +4199,18 @@ const uniqueProductIds: number[] = [...new Set<number>(
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi khi lưu phiếu');
         }
-        this.isLoading = false;
+        this.isSaving = false;
       },
       error: (err: any) => {
         this.showErrorNotification(err?.error?.message || 'Có lỗi xảy ra khi lưu!');
-        this.isLoading = false;
+        this.isSaving = false;
       },
     });
 
   } catch (error) {
     console.error('Lỗi quy trình lưu:', error);
     this.notification.error('Lỗi', 'Không thể kiểm tra tồn kho');
-    this.isLoading = false;
+    this.isSaving = false;
   }
 }
 
@@ -4300,29 +4317,29 @@ console.log('tableData', tableData);
   }
 
   async checkSerial(): Promise<boolean> {
-    const tableData = this.table_billExportDetail?.getData();
+    // const tableData = this.table_billExportDetail?.getData();
 
-    for (const detail of tableData) {
-      const qty = detail.Quantity || detail.Qty || 0;
-      const detailId = detail.ID;
+    // for (const detail of tableData) {
+    //   const qty = detail.Quantity || detail.Qty || 0;
+    //   const detailId = detail.ID;
 
-      if (!detailId || detailId <= 0) {
-        continue;
-      }
+    //   if (!detailId || detailId <= 0) {
+    //     continue;
+    //   }
 
-      try {
-        const result = await this.billImportChoseSerialService
-          .countSerialBillExport(detailId)
-          .toPromise();
+    //   try {
+    //     const result = await this.billImportChoseSerialService
+    //       .countSerialBillExport(detailId)
+    //       .toPromise();
 
-        if (qty < (result?.data || 0)) {
-          return false;
-        }
-      } catch (error) {
-        console.error('Lỗi check serial', detailId, error);
-        return false;
-      }
-    }
+    //     if (qty < (result?.data || 0)) {
+    //       return false;
+    //     }
+    //   } catch (error) {
+    //     console.error('Lỗi check serial', detailId, error);
+    //     return false;
+    //   }
+    // }
 
     return true;
   }

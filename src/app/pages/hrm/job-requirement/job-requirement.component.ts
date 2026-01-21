@@ -211,7 +211,11 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         this.initGridApproved();
 
         this.route.queryParams.subscribe(params => {
-            const typeApprove = params['typeApprove'] || 0;
+            // const typeApprove = params['typeApprove'] || 0;
+            const typeApprove =
+                params['typeApprove']
+                ?? this.tabData?.typeApprove
+                ?? 0;
 
             if (typeApprove === '2') {
                 this.approvalMode = 1;
@@ -438,6 +442,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         private authService: AuthService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
+        @Optional() @Inject('tabData') private tabData: any
     ) {
     }
     getCurrentUser(): void {
@@ -2078,6 +2083,18 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
     angularGridFileReady(angularGrid: AngularGridInstance): void {
         this.angularGridFile = angularGrid;
+
+        // Subscribe to double click event directly on slickGrid
+        if (this.angularGridFile?.slickGrid) {
+            this.angularGridFile.slickGrid.onDblClick.subscribe((e: any, args: any) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const dataContext = this.angularGridFile.dataView.getItem(args.row);
+                if (dataContext) {
+                    this.downloadFile(dataContext);
+                }
+            });
+        }
     }
 
     angularGridApprovedReady(angularGrid: AngularGridInstance): void {
@@ -2334,7 +2351,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             enableRowSelection: true,
             enableCheckboxSelector: true,
             checkboxSelector: { hideSelectAllCheckbox: false },
-            rowSelectionOptions: { selectActiveRow: true },
+            rowSelectionOptions: { selectActiveRow: false },
             multiSelect: true,
             rowHeight: 35,
             headerRowHeight: 40,
@@ -2398,8 +2415,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             const fieldName = _column.field;
             return `
                 <span
-                    title="${dataContext[fieldName] || value}"
-                    style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                    title="Double click để tải file: ${dataContext[fieldName] || value}"
+                    style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-decoration: underline; color: #1890ff; cursor: pointer;"
                 >
                     ${value}
                 </span>
@@ -2426,6 +2443,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             enableAutoSizeColumns: false,
             autoFitColumnsOnFirstLoad: false,
             gridWidth: '100%',
+            editable: false,
+            autoEdit: false,
             enableContextMenu: true,
             contextMenu: {
                 commandItems: [
@@ -2448,6 +2467,20 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 ]
             }
         };
+    }
+
+    // Handle double click on file grid to download file
+    onFileGridDblClick(e: Event, args: any): void {
+        // Prevent default grid behavior (edit mode)
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        const dataContext = args?.dataContext;
+        if (dataContext) {
+            this.downloadFile(dataContext);
+        }
     }
 
     // Initialize approved grid
@@ -2504,24 +2537,12 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         };
     }
 
-    // Handle row click
+    // Handle row click - chỉ load detail khi click vào cell không phải checkbox (cột 0)
     onCellClicked(e: Event, args: OnClickEventArgs): void {
-        const item = (args as any)?.dataContext;
-        if (item) {
-            this.JobrequirementID = item.ID || 0;
-            this.data = [item];
-            if (this.JobrequirementID) {
-                this.getJobrequirementDetails(this.JobrequirementID);
-                this.getHCNSData(this.JobrequirementID);
-            }
-        }
-    }
-
-    // Handle row selection changed
-    onSelectedRowsChanged(e: Event, args: OnSelectedRowsChangedEventArgs): void {
-        if (args?.rows?.length > 0 && this.angularGrid?.dataView) {
-            const selectedIdx = args.rows[0];
-            const item = this.angularGrid.dataView.getItem(selectedIdx);
+        // Khi click vào bất kỳ cell nào, ta sẽ load detail của dòng đó
+        // Tuy nhiên, không xử lý khi click vào checkbox (cột 0) để không ảnh hưởng đến việc chọn nhiều dòng
+        if (args.cell !== 0) {
+            const item = args.grid.getDataItem(args.row);
             if (item) {
                 this.JobrequirementID = item.ID || 0;
                 this.data = [item];
@@ -2530,10 +2551,14 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     this.getHCNSData(this.JobrequirementID);
                 }
             }
-        } else {
-            this.JobrequirementID = 0;
-            this.data = [];
         }
+    }
+
+    // Handle row selection changed - chỉ đồng bộ trạng thái selected, không load detail
+    // Việc load detail sẽ do onCellClicked xử lý khi click vào dòng
+    onSelectedRowsChanged(e: Event, args: OnSelectedRowsChangedEventArgs): void {
+        // Không cần làm gì ở đây vì onCellClicked đã xử lý việc load detail
+        // Method này chỉ được giữ lại để đồng bộ với HTML template
     }
 
     // Get selected data from grid

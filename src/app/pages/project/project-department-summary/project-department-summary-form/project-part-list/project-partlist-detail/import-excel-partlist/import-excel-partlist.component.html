@@ -1,71 +1,74 @@
-
 <div class="modal-content">
-    <div class="modal-header bg-primary text-uppercase py-2 ">
-     <h6 class="modal-title text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
-      <button type="button" class="btn-close" (click)="closePartlistModal()"></button>
+  <div class="modal-header bg-primary text-uppercase py-2 ">
+    <h6 class="modal-title text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
+    <button type="button" class="btn-close" (click)="closePartlistModal()"></button>
+  </div>
+  <div class="modal-body">
+    <div class="d-flex gap-2 align-items-center p-2">
+      <div class="flex-grow-1">
+        <div class="progress-wrapper">
+          <div style="text-align: center;" class="progress-text">{{ displayText }}</div>
+          <nz-progress [nzPercent]="displayProgress" [nzShowInfo]="false"></nz-progress>
+        </div>
+      </div>
     </div>
-    <div class="modal-body">
-      <div class="d-flex gap-2 align-items-center p-2">
-        <div class="flex-grow-1">
-          <div class="progress-wrapper">
-            <div style="text-align: center;" class="progress-text">{{ displayText }}</div>
-            <nz-progress [nzPercent]="displayProgress" [nzShowInfo]="false"></nz-progress>
+    <form class="needs-validation" novalidate>
+      <div class="d-flex flex-column gap-2 p-2">
+        <div class="d-flex gap-2 align-items-center">
+          <div class="d-flex align-items-center gap-2" style="flex: 2;">
+            <label class="mb-0 fs-12" style="white-space: nowrap;">Đường dẫn:</label>
+            <div class="d-flex gap-2 flex-grow-1">
+              <input nz-input [style.width.%]="100" class="fs-12" name="path" id="pathInput" [(ngModel)]="filePath"
+                [disabled]="true">
+              <input type="file" class="d-none fs-12" id="fileInput" accept=".xlsx,.xls"
+                (change)="onFileSelected($event)">
+              <button type="button" class="btn btn-warning  btn-sm" (click)="openFileExplorer()" style="height: auto;">
+                <i class="fas fa-folder-open"></i>
+              </button>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2" style="flex: 1;">
+            <label class="mb-0 fs-12" style="white-space: nowrap;">Tên Sheet:</label>
+            <select class="form-select form-select-sm fs-12" name="sheet" id="sheetSelect" [(ngModel)]="selectedSheet"
+              (change)="onSheetChange()">
+              <option value="">Chọn Sheet</option>
+              <option *ngFor="let sheet of excelSheets" [value]="sheet">{{sheet}}</option>
+            </select>
+          </div>
+          <div class="d-flex align-items-center gap-2" style="flex: 1;">
+            <label class="mb-0 fs-12" style="white-space: nowrap;">Phiên bản:</label>
+            <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn phiên bản"
+              [(ngModel)]="selectedVersion" name="version">
+              <nz-option *ngFor="let version of listVersions" [nzValue]="version.ID"
+                [nzLabel]="version.Name"></nz-option>
+            </nz-select>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label nz-checkbox [(ngModel)]="isProblemRow" name="isProblemRow" (ngModelChange)="onIsProblemRowChange()"
+              class="mb-0 fs-12">Hàng phát sinh</label>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label nz-checkbox [(ngModel)]="isUpdate" name="isUpdate" (ngModelChange)="onIsUpdateChange()"
+              class="mb-0 fs-12">Update</label>
+          </div>
+          <div class="d-flex align-items-center gap-2" *ngIf="false">
+            <label nz-checkbox [(ngModel)]="isStock" name="isStock" (ngModelChange)="onIsStockChange()"
+              class="mb-0 fs-12">Update Stock</label>
           </div>
         </div>
       </div>
-      <form class="needs-validation" novalidate>
-        <div class="d-flex flex-column gap-2 p-2">
-          <div class="d-flex gap-2 align-items-center">
-            <div class="d-flex align-items-center gap-2" style="flex: 2;">
-              <label class="mb-0 fs-12" style="white-space: nowrap;">Đường dẫn:</label>
-              <div class="d-flex gap-2 flex-grow-1">
-                <input nz-input [style.width.%]="100" class="fs-12" name="path" id="pathInput" [(ngModel)]="filePath" [disabled]="true">
-                <input type="file" class="d-none fs-12" id="fileInput" accept=".xlsx,.xls" (change)="onFileSelected($event)">
-                <button type="button" class="btn btn-warning  btn-sm" (click)="openFileExplorer()" style="height: auto;">
-                  <i class="fas fa-folder-open"></i>
-                </button>
-              </div>
-            </div>
-            <div class="d-flex align-items-center gap-2" style="flex: 1;">
-              <label class="mb-0 fs-12" style="white-space: nowrap;">Tên Sheet:</label>
-              <select class="form-select form-select-sm fs-12" name="sheet" id="sheetSelect" [(ngModel)]="selectedSheet" (change)="onSheetChange()">
-                <option value="">Chọn Sheet</option>
-                <option *ngFor="let sheet of excelSheets" [value]="sheet">{{sheet}}</option>
-              </select>
-            </div>
-            <div class="d-flex align-items-center gap-2" style="flex: 1;">
-              <label class="mb-0 fs-12" style="white-space: nowrap;">Phiên bản:</label>
-              <nz-select
-                class="w-100"
-                nzSize="small"
-                nzShowSearch
-                nzAllowClear
-                nzPlaceHolder="Chọn phiên bản"
-                [(ngModel)]="selectedVersion"
-                name="version"
-              >
-                <nz-option *ngFor="let version of listVersions" [nzValue]="version.ID" [nzLabel]="version.Name"></nz-option>
-              </nz-select>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <label nz-checkbox [(ngModel)]="isProblemRow" name="isProblemRow" (ngModelChange)="onIsProblemRowChange()" class="mb-0 fs-12">Hàng phát sinh</label>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <label nz-checkbox [(ngModel)]="isUpdate" name="isUpdate" (ngModelChange)="onIsUpdateChange()" class="mb-0 fs-12">Update</label>
-            </div>
-          </div>
+      <div class="card-body p-2">
+        <div id="partlistTable" style="height: calc(95vh - 350px); min-height: 400px; overflow-y: auto;">
         </div>
-        <div class="card-body p-2">
-          <div id="partlistTable" style="height: calc(95vh - 350px); min-height: 400px; overflow-y: auto;">
-          </div>
-        </div>
-        <div class="modal-footer">
-           <button class="fs-12 btn" nz-button nzDanger  (click)="closeExcelModal()">Đóng</button>
-          <button  class="fs-12 btn" nz-button (click)="downloadTemplate()">
-            <nz-icon nzType="download" nzTheme="outline"></nz-icon> Mẫu
-          </button>
-          <button class="fs-12 btn" nz-button nzType="primary" (click)="saveExcelData()">Lưu</button>   
-        </div>
-      </form>
-    </div>   
+      </div>
+    </form>
+    <div class="modal-footer">
+      <button class="fs-12 btn" nz-button nzDanger (click)="closeExcelModal()" [disabled]="isSaving">Đóng</button>
+      <button class="fs-12 btn" nz-button (click)="downloadTemplate()" [disabled]="isSaving">
+        <nz-icon nzType="download" nzTheme="outline"></nz-icon> Mẫu
+      </button>
+      <button class="fs-12 btn" nz-button nzType="primary" (click)="saveExcelData()" [disabled]="isSaving"
+        [nzLoading]="isSaving">Lưu</button>
+    </div>
   </div>
+</div>

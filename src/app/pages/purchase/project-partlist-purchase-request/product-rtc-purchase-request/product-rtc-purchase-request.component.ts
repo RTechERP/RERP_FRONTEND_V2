@@ -71,6 +71,7 @@ import { FirmService } from '../../../general-category/firm/firm-service/firm.se
 import { EmployeeService } from '../../../hrm/employee/employee-service/employee.service';
 import { ProjectPartListService } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
 import { AppUserService } from '../../../../services/app-user.service';
+import { UnitCountKtService } from '../../../old/inventory-demo/unit-count-kt/unit-count-kt-service/unit-count-kt.service';
 import { TbProductRtcFormComponent } from '../../../old/tb-product-rtc/tb-product-rtc-form/tb-product-rtc-form.component';
 
 
@@ -120,14 +121,15 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     private employeeService: EmployeeService,
     private projectPartListService: ProjectPartListService,
     private appUserService: AppUserService,
-    private modal: NzModalService
+    private modal: NzModalService,
+    private unitCountKtService: UnitCountKtService
   ) {
   }
 
   @Input() projectPartlistDetail: any;
   @Input() productRTCID?: number; // Nhận productRTCID để auto select sản phẩm khi mở form
   @Input() warehouseID?: number; // Nhận warehouseID từ component cha
-  @Input() warehouseType?: number; // Nhận warehouseType từ component cha
+  @Input() warehouseType?: number=1; // Nhận warehouseType từ component cha
 
   validateForm!: FormGroup;
   customers: any[] = [];
@@ -296,6 +298,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       'ProductRTCID',
       'EmployeeBuyID',
       'EmployeeRequestID',
+      'EmployeeApproveID',
       'DateReturnExpected',
       'DateRequest',
       'UnitPrice',
@@ -419,7 +422,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         }
 
         if (unitName && formValue.UnitCountID === 0 && this.unitCounts.length > 0) {
-          const unit = this.unitCounts.find(u => u.UnitCountName === unitName || u.UnitName === unitName);
+          const unit = this.unitCounts.find(u => u.UnitCountName === unitName);
           if (unit) {
             this.validateForm.patchValue({ UnitCountID: unit.ID });
           }
@@ -448,7 +451,6 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
           'CurrencyRate',
           'TicketType',
           'DateReturnEstimated',
-          'EmployeeApproveID',
         ];
 
         this.updateEditForm(controlsToDisable, false);
@@ -744,7 +746,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
   }
 
   getUnitCounts() {
-    this.projectPartListService.getUnitCount().subscribe({
+    this.unitCountKtService.getUnitCountKT().subscribe({
       next: (response: any) => {
         if (response.status === 1 && response.data) {
           this.unitCounts = response.data || [];
@@ -1043,18 +1045,18 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
 
       // Disable các field không cần cho phiếu mua
       this.validateForm.get('DateReturnEstimated')?.disable();
-      this.validateForm.get('EmployeeApproveID')?.disable();
+      // this.validateForm.get('EmployeeApproveID')?.disable();
 
       // Enable nhà cung cấp cho phiếu mua (không bắt buộc nhưng cho phép nhập)
       this.validateForm.get('SupplierSaleID')?.enable();
 
       // Clear validators
-      this.validateForm.get('EmployeeApproveID')?.clearValidators();
+      // this.validateForm.get('EmployeeApproveID')?.clearValidators();
       this.validateForm.get('SupplierSaleID')?.clearValidators();
     }
 
     // Update validity
-    this.validateForm.get('EmployeeApproveID')?.updateValueAndValidity();
+    // this.validateForm.get('EmployeeApproveID')?.updateValueAndValidity();
     this.validateForm.get('SupplierSaleID')?.updateValueAndValidity();
   }
 

@@ -99,7 +99,8 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         private tbProductRtcService: TbProductRtcService,
         private modal: NzModalService,
         private appUserService: AppUserService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
     @ViewChild('dataTableProduct', { static: false }) dataTableProductRef!: ElementRef;
     productTable: Tabulator | null = null;
@@ -128,9 +129,23 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1
-            this.warehouseCode = params['warehouseCode'] || 'HN'
-            this.warehouseType = params['warehouseType'] || 1;
+            // this.warehouseID = params['warehouseID'] || 1
+            // this.warehouseCode = params['warehouseCode'] || 'HN'
+            // this.warehouseType = params['warehouseType'] || 1;
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
+
+            this.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
         });
 
         // if (this.tabData?.warehouseCode) {

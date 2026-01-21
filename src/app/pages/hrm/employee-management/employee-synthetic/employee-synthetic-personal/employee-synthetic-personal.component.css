@@ -88,6 +88,9 @@
 ::ng-deep #tbl_employee_payroll .group-actual {
   background-color: rgb(210, 229, 161) !important;
 }
+::ng-deep #tbl_employee_payroll .group-tax-deduction {
+  background-color: rgb(255, 199, 95) !important;
+}
 
 /* Payroll table styling */
 ::ng-deep #tbl_employee_payroll {

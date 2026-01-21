@@ -39,6 +39,8 @@ import { SelectControlComponent } from '../../select-control/select-control.comp
 import { TabulatorPopupComponent } from '../../../../shared/components/tabulator-popup/tabulator-popup.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
+import { UnitCountKtService } from '../../inventory-demo/unit-count-kt/unit-count-kt-service/unit-count-kt.service';
+import { ProjectPartListService } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
 
 @Component({
   standalone: true,
@@ -62,8 +64,7 @@ import { BillExportService } from '../../Sale/BillExport/bill-export-service/bil
   styleUrls: ['./project-partlist-price-request-form.component.css'],
 })
 export class ProjectPartlistPriceRequestFormComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   private priceRequestService = inject(ProjectPartlistPriceRequestService);
   private purchaseRequestService = inject(
     ProjectPartlistPurchaseRequestService
@@ -72,6 +73,8 @@ export class ProjectPartlistPriceRequestFormComponent
   private authService = inject(AuthService);
   private firmService = inject(FirmService);
   private billExportService = inject(BillExportService);
+  private unitCountKtService = inject(UnitCountKtService);
+  private projectPartListService = inject(ProjectPartListService);
   injector = inject(EnvironmentInjector);
   appRef = inject(ApplicationRef);
 
@@ -102,6 +105,7 @@ export class ProjectPartlistPriceRequestFormComponent
   dtSupplierSale: any[] = [];
   firms: any[] = [];
   customers: any[] = [];
+  units: any[] = [];
   lstSave: any[] = [];
   requesterLoading: boolean = false;
   priceRequestTypeLoading: boolean = false;
@@ -189,7 +193,7 @@ export class ProjectPartlistPriceRequestFormComponent
   constructor(
     public activeModal: NgbActiveModal,
     private appUserService: AppUserService
-  ) {}
+  ) { }
 
   get isEditMode(): boolean {
     return !!(this.dataInput && this.dataInput.length > 0);
@@ -209,9 +213,9 @@ export class ProjectPartlistPriceRequestFormComponent
 
           this.isAdmin = Boolean(
             this.currentUser.IsAdmin ??
-              this.currentUser.isAdmin ??
-              this.currentUser.IsSystemAdmin ??
-              false
+            this.currentUser.isAdmin ??
+            this.currentUser.IsSystemAdmin ??
+            false
           );
         }
       },
@@ -236,7 +240,7 @@ export class ProjectPartlistPriceRequestFormComponent
       ) {
         this.priceRequestTypeID = this.initialPriceRequestTypeID;
       }
-      this.requester = this.appUserService.employeeID??0;
+      this.requester = this.appUserService.employeeID ?? 0;
       this.requestDate = new Date();
       this.tableData = [];
       return;
@@ -259,8 +263,8 @@ export class ProjectPartlistPriceRequestFormComponent
     // Lưu tạm giá trị, sẽ bind lại sau khi priceRequestTypes load xong
     const tempTypeID = Number(
       this.dataInput[0]['ProjectPartlistPriceRequestTypeID'] ||
-        this.dataInput[0]['PriceRequestTypeID'] ||
-        0
+      this.dataInput[0]['PriceRequestTypeID'] ||
+      0
     );
 
     // Chỉ set ngay nếu có giá trị, sẽ được bind lại chính xác trong getPriceRequestType
@@ -330,8 +334,8 @@ export class ProjectPartlistPriceRequestFormComponent
             // Khi sửa: bind từ dataInput, đảm bảo giá trị tồn tại trong danh sách
             const typeId = Number(
               this.dataInput[0]['ProjectPartlistPriceRequestTypeID'] ||
-                this.dataInput[0]['PriceRequestTypeID'] ||
-                0
+              this.dataInput[0]['PriceRequestTypeID'] ||
+              0
             );
 
             if (typeId > 0) {
@@ -380,6 +384,8 @@ export class ProjectPartlistPriceRequestFormComponent
               this.onPriceRequestTypeChange(this.priceRequestTypeID);
             }
           }, 200);
+
+          this.getUnits();
         }, 0);
       },
       error: (err: any) => {
@@ -438,7 +444,7 @@ export class ProjectPartlistPriceRequestFormComponent
           this.drawTable();
         }, 0);
       },
-      error: (err) => {},
+      error: (err) => { },
     });
   }
 
@@ -507,6 +513,30 @@ export class ProjectPartlistPriceRequestFormComponent
     });
   }
 
+  getUnits() {
+    if (this.priceRequestTypeID === 6) {
+      // Hàng demo
+      this.unitCountKtService.getUnitCountKT().subscribe({
+        next: (res: any) => {
+          this.units = res.data || [];
+        },
+        error: (err: any) => {
+          console.error('Lỗi lấy ĐVT:', err);
+        },
+      });
+    } else {
+      // Các loại khác
+      this.projectPartListService.getUnitCount().subscribe({
+        next: (res: any) => {
+          this.units = res.data || [];
+        },
+        error: (err: any) => {
+          console.error('Lỗi lấy ĐVT:', err);
+        },
+      });
+    }
+  }
+
   // getCustomers() {
   //   this.billExportService.getCbbCustomer().subscribe({
   //     next: (res: any) => {
@@ -521,7 +551,7 @@ export class ProjectPartlistPriceRequestFormComponent
   //   });
   // }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
   createdControl1(
     component: Type<any>,
     injector: EnvironmentInjector,
@@ -561,6 +591,55 @@ export class ProjectPartlistPriceRequestFormComponent
       }
       container.appendChild(hostEl);
       appRef.attachView(componentRef.hostView);
+
+      onRendered(() => {
+        setTimeout(() => {
+          const selectEl = container.querySelector('nz-select');
+          if (selectEl) {
+            (selectEl as HTMLElement).focus();
+          }
+        }, 100);
+      });
+
+      return container;
+    };
+  }
+
+  createUnitEditor() {
+    return (cell: any, onRendered: any, success: any, cancel: any) => {
+      const container = document.createElement('div');
+      container.style.width = '100%';
+      container.style.height = '100%';
+      container.style.display = 'block';
+
+      const componentRef = createComponent(SelectControlComponent, {
+        environmentInjector: this.injector,
+      });
+
+      const cellValue = cell.getValue();
+      const unitsData = this.units.map((u: any) => ({
+        value: u.UnitCountName || u.Name || u.UnitName || u.name,
+        label: u.UnitCountName || u.Name || u.UnitName || u.name,
+        ...u,
+      }));
+
+      componentRef.instance.id = cellValue;
+      componentRef.instance.data = unitsData;
+      componentRef.instance.valueField = 'value';
+      componentRef.instance.labelField = 'label';
+      componentRef.instance.placeholder = 'Chọn ĐVT';
+
+      componentRef.instance.valueChange.subscribe((val: any) => {
+        success(val);
+      });
+
+      const hostEl = (componentRef.hostView as any).rootNodes[0];
+      if (hostEl && hostEl.style) {
+        hostEl.style.width = '100%';
+        hostEl.style.display = 'block';
+      }
+      container.appendChild(hostEl);
+      this.appRef.attachView(componentRef.hostView);
 
       onRendered(() => {
         setTimeout(() => {
@@ -712,6 +791,7 @@ export class ProjectPartlistPriceRequestFormComponent
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       data: this.tableData,
+
       rowHeader: {
         headerSort: false,
         resizable: false,
@@ -726,7 +806,7 @@ export class ProjectPartlistPriceRequestFormComponent
         },
       },
       layout: 'fitDataStretch',
-      selectableRows: true,
+      selectableRows: false,
       pagination: false,
 
       columns: [
@@ -823,12 +903,10 @@ export class ProjectPartlistPriceRequestFormComponent
             }
 
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${
-                productCode || 'Chọn sản phẩm'
+              <button class="btn-toggle-detail w-100 h-100" title="${productCode || 'Chọn sản phẩm'
               }">
-                <span class="product-code-text">${
-                  productCode || 'Chọn SP'
-                }</span>
+                <span class="product-code-text">${productCode || 'Chọn SP'
+              }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
@@ -920,7 +998,7 @@ export class ProjectPartlistPriceRequestFormComponent
           title: 'ĐVT (*)',
           headerSort: false,
           field: 'Unit',
-          editor: 'input',
+          editor: this.createUnitEditor(),
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: '100',
@@ -944,12 +1022,10 @@ export class ProjectPartlistPriceRequestFormComponent
             );
             const supplierName = supplier ? supplier.NameNCC : '';
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${
-                supplierName || 'Chọn nhà cung cấp'
+              <button class="btn-toggle-detail w-100 h-100" title="${supplierName || 'Chọn nhà cung cấp'
               }">
-                <span class="product-code-text">${
-                  supplierName || 'Chọn NCC'
-                }</span>
+                <span class="product-code-text">${supplierName || 'Chọn NCC'
+              }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
@@ -1427,14 +1503,14 @@ export class ProjectPartlistPriceRequestFormComponent
         Deadline: data['Deadline']
           ? DateTime.fromJSDate(new Date(data['Deadline'])).toJSDate()
           : null,
-        Note: note,
+        Note: note || '',
         DateRequest: this.requestDate ? new Date(this.requestDate) : null,
         EmployeeID: Number(this.requester) || null,
         // CustomerID: Number(this.customerID) || null,
-        IsJobRequirement: isJobRequirement,
-        IsCommercialProduct: isCommercialProduct,
-        ProjectPartlistID: projectPartlistId,
-        JobRequirementID: jobRequirementId,
+        IsJobRequirement: isJobRequirement || false,
+        IsCommercialProduct: isCommercialProduct || false,
+        ProjectPartlistID: projectPartlistId ||0,
+        JobRequirementID: jobRequirementId ||0,
         ProjectPartlistPriceRequestTypeID: this.priceRequestTypeID || null,
         StatusRequest: isNew ? 1 : oldStatus,
         NoteHR: data['NoteHR'] || null,

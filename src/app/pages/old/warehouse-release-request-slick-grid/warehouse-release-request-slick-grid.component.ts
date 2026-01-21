@@ -41,6 +41,7 @@ import {
   FieldType,
   Formatters,
   GridOption,
+  Grouping,
   OnEventArgs,
   SlickGrid,
 } from 'angular-slickgrid';
@@ -57,6 +58,7 @@ import { RequestInvoiceDetailService } from '../request-invoice-detail/request-i
 import { AppUserService } from '../../../services/app-user.service';
 import { BillExportDetailComponent } from '../Sale/BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { BillExportDetailNewComponent } from '../Sale/BillExport/bill-export-detail-new/bill-export-detail-new.component';
 interface BillExportDetail {
   ProductID: number;
   Qty: number;
@@ -91,6 +93,7 @@ interface BillExportDetail {
   POKHDetailIDActual?: string;
   PONumber?: string;
   POCode?: string;
+
 }
 
 interface BillExport {
@@ -764,6 +767,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         RequestDate: new Date(),
         WarehouseCode: warehouse.WarehouseCode,
         Details: groupDetails,
+        IsTransfer: isTransfer,
       };
     });
 
@@ -841,25 +845,10 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       SupplierID: 0,
       CreatDate: billExport.RequestDate,
       RequestDate: billExport.RequestDate,
+      IsTransfer: isTransfer,
     };
 
-    const modalRef = this.modalService.open(BillExportDetailComponent, {
-      centered: true,
-      // size: 'xl',
-      windowClass: 'full-screen-modal',
-      backdrop: 'static',
-      keyboard: false,
-    });
-
-    // Truyền dữ liệu vào modal
-    modalRef.componentInstance.newBillExport = billExportForModal;
-    modalRef.componentInstance.isCheckmode = false;
-    modalRef.componentInstance.isPOKH = true;
-    modalRef.componentInstance.id = 0;
-    modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
-    modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
-    modalRef.componentInstance.IsTransfer = isTransfer;
-
+    // CRITICAL: Create detailsForModal BEFORE opening the modal
     const detailsForModal = billExport.Details.map((detail: any) => ({
       ID: 0,
       POKHDetailID: detail.POKHDetailID || 0,
@@ -876,6 +865,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       ProjectCodeExport: detail.ProjectCodeExport || '',
       ProjectNameText: detail.ProjectNameText || '',
       ProductFullName: detail.ProductFullName || '',
+      ProjectCode: detail.ProductFullName || '',  // Mã theo khách
       Note: detail.Note || '',
       UnitPricePOKH: detail.UnitPricePOKH || 0,
       UnitPricePurchase: detail.UnitPricePurchase || 0,
@@ -884,21 +874,24 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       POKHID: detail.POKHID || 0,
     }));
 
-    setTimeout(() => {
-      modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
+    console.log('[WAREHOUSE RELEASE SLICKGRID] detailsForModal before modal open:', detailsForModal);
 
-      if (modalRef.componentInstance.table_billExportDetail) {
-        modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
+    const modalRef = this.modalService.open(BillExportDetailNewComponent, {
+      centered: true,
+      // size: 'xl',
+      windowClass: 'full-screen-modal',
+      backdrop: 'static',
+      keyboard: false,
+    });
 
-        // Update TotalInventory after data is set into table
-        // Wait a bit for productOptions to be loaded if not already
-        setTimeout(() => {
-          if (modalRef.componentInstance.updateTotalInventoryForExistingRows) {
-            modalRef.componentInstance.updateTotalInventoryForExistingRows();
-          }
-        }, 500);
-      }
-    }, 200);
+    // CRITICAL: Set selectedList FIRST after opening modal (before other properties)
+    modalRef.componentInstance.selectedList = detailsForModal;
+    modalRef.componentInstance.newBillExport = billExportForModal;
+    modalRef.componentInstance.isCheckmode = false;
+    modalRef.componentInstance.isPOKH = true;
+    modalRef.componentInstance.id = 0;
+    modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
+    modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
 
     modalRef.result.then(
       (result) => {
@@ -1215,6 +1208,18 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         filterable: true,
         type: FieldType.string,
       },
+      {
+        id: 'CreatedDate',
+        name: 'Ngày tạo PO',
+        field: 'CreatedDate',
+        width: 200,
+        minWidth: 100,
+        sortable: true,
+        filterable: true,
+        type: FieldType.dateIso,
+        formatter: Formatters.dateEuro,
+        hidden: true,
+      },
     ];
 
     this.gridOptions = {
@@ -1254,6 +1259,10 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         levelPropName: 'treeLevel',
         indentMarginLeft: 15,
         initiallyCollapsed: false,
+        initialSort: {
+          columnId: 'CreatedDate',
+          direction: 'DESC'
+        }
       },
       frozenColumn: 6,
     };

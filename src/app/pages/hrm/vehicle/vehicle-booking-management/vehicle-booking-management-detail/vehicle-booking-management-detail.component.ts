@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ViewChild, ElementRef, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject, ViewChild, ElementRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -7,7 +7,6 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzUploadModule, NzUploadFile } from 'ng-zorro-antd/upload';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { VehicleBookingManagementService } from '../vehicle-booking-management.service';
@@ -15,6 +14,8 @@ import { AppUserService } from '../../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzGridModule } from 'ng-zorro-antd/grid';
+import flatpickr from 'flatpickr';
+import { Vietnamese } from 'flatpickr/dist/l10n/vn.js';
 
 interface Passenger {
   index: number;
@@ -51,7 +52,6 @@ interface AttachedGoods {
     NzButtonModule,
     NzSelectModule,
     NzTabsModule,
-    NzDatePickerModule,
     NzUploadModule,
     NzIconModule,
     NzGridModule,
@@ -59,9 +59,9 @@ interface AttachedGoods {
   templateUrl: './vehicle-booking-management-detail.component.html',
   styleUrl: './vehicle-booking-management-detail.component.css'
 })
-export class VehicleBookingManagementDetailComponent implements OnInit {
-  @Input() dataInput: any = null; 
-  @Input() isEdit: boolean = false; 
+export class VehicleBookingManagementDetailComponent implements OnInit, AfterViewInit, OnDestroy {
+  @Input() dataInput: any = null;
+  @Input() isEdit: boolean = false;
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
 
   public activeModal = inject(NgbActiveModal);
@@ -79,7 +79,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
   timeNeedPresent: Date | null = null;
   timeReturn: Date | null = null;
   companyNameArrives: string = '';
-  province: string = '';
+  province: string | null = null;
   specificDestinationAddress: string = '';
   departureDate: Date | null = null;
   departureAddressSelect: number = 0;
@@ -154,6 +154,10 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
   isProblem: boolean = false;
   isSaving: boolean = false;
 
+  // Flatpickr instances
+  private flatpickrInstances: Map<string, flatpickr.Instance> = new Map();
+  private documentClickHandler: ((e: MouseEvent) => void) | null = null;
+
   provinceDepartureIDs: number[] = [1, 2, 3, 4];
 
   // Validation errors
@@ -180,6 +184,148 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
     } else {
       this.initializeNewForm();
     }
+  }
+
+  ngAfterViewInit(): void {
+    // Initialize flatpickr after view is rendered
+    setTimeout(() => {
+      this.initializeFlatpickr();
+    }, 100);
+  }
+
+  ngOnDestroy(): void {
+    // Remove document click listener
+    if (this.documentClickHandler) {
+      document.removeEventListener('mousedown', this.documentClickHandler, true);
+      this.documentClickHandler = null;
+    }
+    // Cleanup flatpickr instances
+    this.flatpickrInstances.forEach((instance) => {
+      instance.destroy();
+    });
+    this.flatpickrInstances.clear();
+  }
+
+  private initializeFlatpickr(): void {
+    // Add document click listener để bắt sự kiện click ra ngoài flatpickr
+    if (!this.documentClickHandler) {
+      this.documentClickHandler = (e: MouseEvent) => {
+        this.flatpickrInstances.forEach((instance, fieldId) => {
+          if (instance.isOpen && instance.calendarContainer) {
+            const target = e.target as HTMLElement;
+            const isInsideCalendar = instance.calendarContainer.contains(target);
+            const isInput = instance.input === target;
+
+            if (!isInsideCalendar && !isInput) {
+              // Click outside - force commit time values
+              const hourInput = instance.calendarContainer.querySelector('.flatpickr-hour') as HTMLInputElement;
+              const minuteInput = instance.calendarContainer.querySelector('.flatpickr-minute') as HTMLInputElement;
+
+              if (hourInput && minuteInput && instance.selectedDates.length > 0) {
+                const finalDate = new Date(instance.selectedDates[0]);
+                const hour = parseInt(hourInput.value, 10) || 0;
+                const minute = parseInt(minuteInput.value, 10) || 0;
+                finalDate.setHours(hour, minute, 0, 0);
+                instance.setDate(finalDate, true);
+              }
+            }
+          }
+        });
+      };
+      document.addEventListener('mousedown', this.documentClickHandler, true);
+    }
+
+    // TimeNeedPresent
+    this.initializeFlatpickrField('timeNeedPresent', this.timeNeedPresent, (date: Date) => {
+      this.timeNeedPresent = date;
+      this.onTimeNeedPresentChange(date);
+      this.errors.timeNeedPresent = '';
+    });
+
+    // DepartureDate - with minDate set to today
+    this.initializeFlatpickrFieldWithMinDate('departureDate', this.departureDate, (date: Date) => {
+      this.departureDate = date;
+      this.errors.departureDate = '';
+    }, new Date());
+
+    // TimeReturn
+    this.initializeFlatpickrField('timeReturn', this.timeReturn, (date: Date) => {
+      this.timeReturn = date;
+    });
+  }
+
+  private initializeFlatpickrField(fieldId: string, initialValue: Date | null, onChange: (date: Date) => void): void {
+    const element = document.getElementById(fieldId);
+    if (!element) return;
+
+    // Destroy existing instance if any
+    if (this.flatpickrInstances.has(fieldId)) {
+      this.flatpickrInstances.get(fieldId)?.destroy();
+    }
+
+    const fpInstance = flatpickr(element, {
+      enableTime: true,
+      time_24hr: true,
+      dateFormat: 'd/m/Y H:i',
+      locale: Vietnamese,
+      defaultDate: initialValue || undefined,
+      allowInput: true,
+      disableMobile: false,
+      clickOpens: true,
+      onChange: (selectedDates: Date[]) => {
+        if (selectedDates.length > 0) {
+          const date = selectedDates[0];
+          date.setSeconds(0, 0);
+          onChange(date);
+        }
+      }
+    });
+
+    this.flatpickrInstances.set(fieldId, fpInstance);
+  }
+
+  private initializeFlatpickrFieldWithMinDate(fieldId: string, initialValue: Date | null, onChange: (date: Date) => void, minDate: Date): void {
+    const element = document.getElementById(fieldId);
+    if (!element) return;
+
+    // Destroy existing instance if any
+    if (this.flatpickrInstances.has(fieldId)) {
+      this.flatpickrInstances.get(fieldId)?.destroy();
+    }
+
+    const fpInstance = flatpickr(element, {
+      enableTime: true,
+      time_24hr: true,
+      dateFormat: 'd/m/Y H:i',
+      locale: Vietnamese,
+      defaultDate: initialValue || undefined,
+      allowInput: true,
+      disableMobile: false,
+      minDate: minDate,
+      clickOpens: true,
+      onChange: (selectedDates: Date[]) => {
+        if (selectedDates.length > 0) {
+          const date = selectedDates[0];
+          date.setSeconds(0, 0);
+          onChange(date);
+        }
+      }
+    });
+
+    this.flatpickrInstances.set(fieldId, fpInstance);
+  }
+
+  private updateFlatpickrValue(fieldId: string, value: Date | null): void {
+    const instance = this.flatpickrInstances.get(fieldId);
+    if (instance && value) {
+      instance.setDate(value, false);
+    }
+  }
+
+  private reinitializeFlatpickr(): void {
+    setTimeout(() => {
+      this.initializeFlatpickr();
+    }, 100);
   }
 
   loadProvincesArrives(): void {
@@ -427,6 +573,8 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
     this.onCategoryChange();
     this.checkIsProblem();
 
+    this.reinitializeFlatpickr();
+
     // Load images if category is 2, 6, 7, or 8 (giao hàng/lấy hàng)
     if ((this.category == 2 || this.category == 6 || this.category == 7 || this.category == 8) && this.id > 0) {
       this.vehicleBookingService.getImages(this.id).subscribe({
@@ -555,7 +703,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
             if (goods) {
               goods.code = data.Code || '';
               goods.name = data.FullName || data.Name || '';
-              goods.phoneNumber = data.SdtcaNhan || data.PhoneNumber || '';
+              goods.phoneNumber = data.SDTCaNhan || data.SdtcaNhan || data.PhoneNumber || '';
             }
           }
         },
@@ -899,7 +1047,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
           ProblemArises: this.isProblem ? this.problemArises : '',
           ApprovedTBP: this.isProblem ? this.approvedTbp : 0,
           IsProblemArises: this.isProblem,
-          IsApprovedTBP: false, 
+          IsApprovedTBP: false,
           DepartureDate: this.formatDateTime(this.departureDate),
           DepartureAddress: this.departureAddress,
           DepartureAddressStatus: this.departureAddressSelect,
@@ -938,18 +1086,18 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
         next: (result: any) => {
           if (result && (result.status == 1 || result.Status == 1)) {
             // Lấy vehicleBookingId từ result - API create trả về vehicleBooking object
-            const vehicleBookingId = result.data?.ID || result.data?.Id || 
-                                     result.data?.vehicleBooking?.ID || result.data?.vehicleBooking?.Id ||
-                                     result.vehicleBooking?.ID || result.vehicleBooking?.Id || 
-                                     result.id || result.Id || 
-                                     (payload.Id > 0 ? payload.Id : null);
-            
+            const vehicleBookingId = result.data?.ID || result.data?.Id ||
+              result.data?.vehicleBooking?.ID || result.data?.vehicleBooking?.Id ||
+              result.vehicleBooking?.ID || result.vehicleBooking?.Id ||
+              result.id || result.Id ||
+              (payload.Id > 0 ? payload.Id : null);
+
             // Upload files if category is 2, 6, 7, or 8 and has files
             // Chỉ upload nếu có vehicleBookingId (đã có ID từ trước hoặc vừa tạo)
             if (goods && goods.files && goods.files.length > 0 && vehicleBookingId && vehicleBookingId > 0) {
               this.uploadFilesForGoods(vehicleBookingId, goods.files, goodsIndex);
             }
-            
+
             currentIndex++;
             saveNext();
           } else {
@@ -970,7 +1118,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
   uploadFilesForGoods(vehicleBookingId: number, files: NzUploadFile[], goodsIndex: number): void {
     const formData = new FormData();
     let hasFiles = false;
-    
+
     files.forEach((file: any) => {
       // Only upload new files (not already uploaded ones with id)
       if (file.originFileObj) {

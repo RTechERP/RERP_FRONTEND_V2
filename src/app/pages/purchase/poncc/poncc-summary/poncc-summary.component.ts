@@ -85,7 +85,8 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
     private supplierSaleService: SupplierSaleService,
     private cdr: ChangeDetectorRef,
     private ngbModal: NgbModal,
-    private modal: NzModalService
+    private modal: NzModalService,
+    private appUserService: AppUserService
   ) {}
 
   ponccSummaryMenu: MenuItem[] = [];
@@ -166,6 +167,7 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
       {
         label: 'Thêm',
         icon: 'fa fa-plus text-success',
+        visible: this.appUserService.isAdmin,
         command: () => {
           this.onAdd();
         },
@@ -173,6 +175,7 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
       {
         label: 'Sửa',
         icon: 'fa fa-pencil text-primary',
+        visible: this.appUserService.isAdmin,
         command: () => {
           this.onEdit();
         },
@@ -180,6 +183,7 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
       {
         label: 'Xóa',
         icon: 'fa fa-trash text-danger',
+        visible: this.appUserService.isAdmin,
         command: () => {
           this.onDelete();
         },
@@ -384,7 +388,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
             filterFormat: 'DD/MM/YYYY',
           },
         },
-        editor: { model: Editors['date'], massUpdate: true, editorOptions: { hideClearButton: false } },
+        editor: {
+          model: Editors['date'],
+          massUpdate: true,
+          editorOptions: { hideClearButton: false },
+        },
       },
       {
         id: 'CompanyText',

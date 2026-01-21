@@ -108,14 +108,24 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
-        private appUserService: AppUserService
+        private appUserService: AppUserService,
+        @Optional() @Inject('tabData') private tabData: any
     ) {
         // if (this.tabData) {
         //     this.isSeniorMode = this.tabData.isSeniorMode || false;
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.isSeniorMode = params['isSeniorMode'];
+            // this.isSeniorMode = params['isSeniorMode'];
+
+            console.log('params:', params);
+            console.log('this.tabData:', this.tabData);
+
+            this.isSeniorMode =
+                params['isSeniorMode']
+                ?? this.tabData?.isSeniorMode
+                ?? false;
+
         });
     }
 
@@ -240,7 +250,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                 if (this.searchForm) {
                     this.searchForm.patchValue({
                         IDApprovedTP: idApprovedTP,
-                        type: isRealBGD ? 5 : 0
+                        type: isRealBGD ? 5 : null
                     });
                 }
                 // Auto bind team nếu teamList đã được load
@@ -454,18 +464,18 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         const defaultType = 0;
 
         this.searchForm = this.fb.group({
-            startDate: [DateTime.now().minus({ days: 7 }).toJSDate()],
+            startDate: [firstDay],
             endDate: [lastDay],
             employeeId: [null],
-            teamId: [0],
+            teamId: [null],
             status: [this.isSeniorMode ? -1 : 0],
-            deleteFlag: [0],
+            deleteFlag: [null],
             statusSenior: [this.isSeniorMode ? 0 : -1],
-            type: [defaultType],
-            statusHR: [-1],
-            statusBGD: [-1],
-            keyWord: [''],
-            IDApprovedTP: [0]
+            type: [null],
+            statusHR: [null],
+            statusBGD: [null],
+            keyWord: [null],
+            IDApprovedTP: [null]
         });
     }
 

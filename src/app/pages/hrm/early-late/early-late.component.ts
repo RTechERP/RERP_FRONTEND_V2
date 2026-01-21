@@ -404,6 +404,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       data: this.earlyLateList,
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
+      paginationSize: 200,
       layout: 'fitColumns',
       // langs: {
       //   vi: {
@@ -439,37 +440,43 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       },
       columns: [
         {
-          title: 'Senior duyệt', field: 'IsSeniorApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60, frozen: frozenOn,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
+          title: "Trạng thái duyệt",
+          columns: [
+            {
+              title: 'Senior', field: 'IsSeniorApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60, frozen: frozenOn, headerSort: false,
+              formatter: function (cell: any) {
+                const value = cell.getValue();
+                const checked = value === true || value === 'true' || value === 1 || value === '1';
+                return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
+              },
+            },
+            {
+              title: 'TBP', field: 'IsApprovedTP', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: frozenOn,
+              formatter: function (cell: any) {
+                const value = cell.getValue();
+                const checked = value === true || value === 'true' || value === 1 || value === '1';
+                return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
+              },
+            },
+            {
+              title: 'HR', field: 'IsApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: frozenOn,
+              formatter: function (cell: any) {
+                const value = cell.getValue();
+                const checked = value === true || value === 'true' || value === 1 || value === '1';
+                return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
+              },
+            },
+          ]
+        },
+
+        {
+          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 80, headerSort: false, frozen: frozenOn,
         },
         {
-          title: 'TBP duyệt', field: 'IsApprovedTP', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: frozenOn,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
+          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 160, headerSort: false, frozen: frozenOn, bottomCalc: 'count'
         },
         {
-          title: 'HR duyệt', field: 'IsApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: frozenOn,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-        },
-        {
-          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, frozen: frozenOn,
-        },
-        {
-          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false, frozen: frozenOn, bottomCalc: 'count'
-        },
-        {
-          title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
+          title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 160, headerSort: false,
         },
         {
           title: 'Bổ sung', field: 'IsProblem', hozAlign: 'center', headerHozAlign: 'center', width: 80, headerSort: false,
@@ -501,37 +508,43 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           }
         },
         {
-          title: 'CheckIn', field: 'CheckIn', hozAlign: 'center', headerHozAlign: 'center', width: 100,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            const data = cell.getRow().getData();
+          title: 'Vân tay',
+          columns: [
+            {
+              title: 'In', field: 'CheckIn', hozAlign: 'center', headerHozAlign: 'center', width: 100, headerSort: false,
+              formatter: (cell) => {
+                const value = cell.getValue();
+                const data = cell.getRow().getData();
 
-            if (data['IsNotValid'] === 1) {
-              const el = cell.getElement();
-              el.style.backgroundColor = '#fff3cd';
-              el.style.color = '#dc3545';
-              el.style.fontWeight = 'bold';
-            }
+                if (data['IsNotValid'] === 1) {
+                  const el = cell.getElement();
+                  el.style.backgroundColor = '#fff3cd';
+                  el.style.color = '#dc3545';
+                  el.style.fontWeight = 'bold';
+                }
 
-            return value || '';
-          }
+                return value || '';
+              }
+            },
+            {
+              title: 'Out', field: 'CheckOut', hozAlign: 'center', headerHozAlign: 'center', width: 100, headerSort: false,
+              formatter: (cell) => {
+                const value = cell.getValue();
+                const data = cell.getRow().getData();
+
+                if (data['IsNotValid'] === 1) {
+                  const el = cell.getElement();
+                  el.style.backgroundColor = '#fff3cd';
+                  el.style.color = '#dc3545';
+                  el.style.fontWeight = 'bold';
+                }
+
+                return value || '';
+              }
+            },
+          ]
         },
-        {
-          title: 'CheckOut', field: 'CheckOut', hozAlign: 'center', headerHozAlign: 'center', width: 100,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            const data = cell.getRow().getData();
 
-            if (data['IsNotValid'] === 1) {
-              const el = cell.getElement();
-              el.style.backgroundColor = '#fff3cd';
-              el.style.color = '#dc3545';
-              el.style.fontWeight = 'bold';
-            }
-
-            return value || '';
-          }
-        },
 
         {
           title: 'Số phút', field: 'TimeRegister', hozAlign: 'right', headerHozAlign: 'center', width: 100, headerSort: false,

@@ -18,6 +18,7 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import {
   AngularGridInstance,
   AngularSlickgridModule,
@@ -45,6 +46,8 @@ import { Observable } from 'rxjs';
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../../../services/permission.service';
 @Component({
   standalone: true,
   imports: [
@@ -69,7 +72,9 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     NzDropDownModule,
     NgbModalModule, HasPermissionDirective,
     AngularSlickgridModule,
-    NzSpinModule
+    NzSpinModule,
+    NzFormModule,
+    Menubar
   ],
   selector: 'app-ts-asset-allocation',
   templateUrl: './ts-asset-allocation.component.html',
@@ -98,14 +103,15 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   constructor(private notification: NzNotificationService,
     private assetAllocationService: AssetAllocationService,
     private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
-    private authService: AuthService
+    private authService: AuthService,
+    private permissionService: PermissionService,
   ) { }
   selectedRow: any = "";
   modalData: any = [];
   private ngbModal = inject(NgbModal);
   emPloyeeLists: any[] = [];
-  dateStart: string = '';
-  dateEnd: string = '';
+  dateStart: Date = new Date();
+  dateEnd: Date = new Date();
   employeeID: number | null = null;
   status: number[] = [];
   filterText: string = '';
@@ -114,6 +120,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   assetAllocationData: any[] = [];
   allocationDetailData: any[] = [];
   isSearchVisible: boolean = false;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
   statusData = [
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
@@ -122,12 +129,127 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   isLoading: boolean = false;
 
   selectedApproval: number | null = null;
-  sizeSearch: string = '0';
+  menuBars: any[] = [];
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
+
+  private getFirstDayOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  private getLastDayOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  }
 
   ngOnInit() {
+    this.dateStart = this.getFirstDayOfMonth();
+    this.dateEnd = this.getLastDayOfMonth();
+    this.initMenuBar();
     this.initGrid();
     this.initGridDetail();
   }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.onAddAllocation(),
+        visible: this.permissionService.hasPermission("N23,N1"),
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.onEditAllocation(),
+        visible: this.permissionService.hasPermission("N23,N1"),
+
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.onDeleteAllocation(),
+        visible: this.permissionService.hasPermission("N23,N1"),
+      },
+      {
+        label: 'Cá nhân xác nhận',
+        icon: 'fa-solid fa-user-check fa-lg text-primary',
+        items: [
+          {
+            label: 'Cá nhân duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.updateApprove(1)
+          },
+          {
+            label: 'Cá nhân hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.updateApprove(2)
+          }
+        ]
+      },
+      {
+        label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N23,N1"),
+
+        icon: 'fa-solid fa-id-card fa-lg text-info',
+        items: [
+          {
+            label: 'HR duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.updateApprove(3)
+          },
+          {
+            label: 'HR hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.updateApprove(4)
+          }
+        ]
+      },
+      {
+        label: 'KT xác nhận',
+        visible: this.permissionService.hasPermission("N67,N1"),
+
+        icon: 'fa-solid fa-calculator fa-lg text-warning',
+        items: [
+          {
+            label: 'Kế toán duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.updateApprove(5)
+          },
+          {
+            label: 'Kế toán hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.updateApprove(6)
+          }
+        ]
+      },
+      {
+        label: 'Xuất phiếu',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportAllocationAssetReport()
+      },
+      {
+        label: 'Refresh',
+        icon: 'fa-solid fa-rotate fa-lg text-primary',
+        command: () => this.getAllocation()
+      }
+    ];
+  }
+
   ngAfterViewInit(): void {
     this.getAllocation();
     this.getListEmployee();
@@ -139,8 +261,8 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       statusString = this.selectedApproval === 1 ? '1' : '0';
     }
     const request = {
-      dateStart: this.dateStart || '2020-01-01',
-      dateEnd: this.dateEnd || '2025-12-31',
+      dateStart: this.dateStart ? DateTime.fromJSDate(this.dateStart).toISODate() : '2020-01-01',
+      dateEnd: this.dateEnd ? DateTime.fromJSDate(this.dateEnd).toISODate() : '2035-12-31',
       employeeID: this.employeeID || 0,
       status: statusString,
       filterText: this.filterText || '',
@@ -182,24 +304,36 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     });
   }
   getCurrentUser() {
-  this.authService.getCurrentUser().subscribe((res: any) => {
-    const data = res?.data;
-    this.currentUser = Array.isArray(data) ? data[0] : data;
-    console.log('CurrentUser', this.currentUser);
-  });
-}
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      const data = res?.data;
+      this.currentUser = Array.isArray(data) ? data[0] : data;
+      console.log('CurrentUser', this.currentUser);
+    });
+  }
 
   resetSearch(): void {
-    this.dateStart = '2020-01-01';
-    this.dateEnd = '2035-12-31';
-    this.employeeID = 0;
+    this.dateStart = this.getFirstDayOfMonth();
+    this.dateEnd = this.getLastDayOfMonth();
+    this.employeeID = null;
     this.filterText = '';
     this.selectedApproval = null;
     this.getAllocation();
   }
 
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  onDateRangeChange(): void {
+    this.getAllocation();
+  }
+
+  onEmployeeChange(): void {
+    this.getAllocation();
+  }
+
+  onApprovalChange(): void {
+    this.getAllocation();
+  }
+
+  onKeywordChange(value: string): void {
+    this.filterText = value;
   }
 
   // Khởi tạo SlickGrid cho bảng master
@@ -222,41 +356,41 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     this.columnDefinitions = [
       { id: 'STT', name: 'STT', field: 'STT', type: 'number', width: 60, sortable: true, cssClass: 'text-center' },
       { id: 'ID', name: 'ID', field: 'ID', type: 'number', width: 60, hidden: true },
-      { 
-        id: 'IsApprovedPersonalProperty', 
-        name: 'Cá Nhân Duyệt', 
-        field: 'IsApprovedPersonalProperty', 
-        width: 100, 
+      {
+        id: 'IsApprovedPersonalProperty',
+        name: 'Cá Nhân Duyệt',
+        field: 'IsApprovedPersonalProperty',
+        width: 100,
         sortable: true,
         cssClass: 'text-center',
         formatter: checkboxFormatter
       },
-      { 
-        id: 'Status', 
-        name: 'HR Duyệt', 
-        field: 'Status', 
-        width: 100, 
+      {
+        id: 'Status',
+        name: 'HR Duyệt',
+        field: 'Status',
+        width: 100,
         sortable: true,
         cssClass: 'text-center',
         formatter: checkboxFormatter
       },
-      { 
-        id: 'IsApproveAccountant', 
-        name: 'KT Duyệt', 
-        field: 'IsApproveAccountant', 
-        width: 100, 
+      {
+        id: 'IsApproveAccountant',
+        name: 'KT Duyệt',
+        field: 'IsApproveAccountant',
+        width: 100,
         sortable: true,
         cssClass: 'text-center',
         formatter: checkboxFormatter
       },
-      { 
-        id: 'Code', 
-        name: 'Mã', 
-        field: 'Code', 
-        width: 200, 
-        sortable: true, 
-        filterable: true, 
-        filter: { 
+      {
+        id: 'Code',
+        name: 'Mã',
+        field: 'Code',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -266,20 +400,20 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           } as MultipleSelectOption
         }
       },
-      { 
-        id: 'DateAllocation', 
-        name: 'Ngày cấp phát', 
-        field: 'DateAllocation', 
-        width: 160, 
+      {
+        id: 'DateAllocation',
+        name: 'Ngày cấp phát',
+        field: 'DateAllocation',
+        width: 160,
         sortable: true,
         cssClass: 'text-center',
         formatter: formatDate
       },
-      { 
-        id: 'DateApprovedHR', 
-        name: 'Ngày HR duyệt', 
-        field: 'DateApprovedHR', 
-        width: 160, 
+      {
+        id: 'DateApprovedHR',
+        name: 'Ngày HR duyệt',
+        field: 'DateApprovedHR',
+        width: 160,
         sortable: true,
         cssClass: 'text-center',
         formatter: formatDate,
@@ -287,14 +421,14 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
         filterable: true,
         filter: { model: Filters['compoundInputText'] }
       },
-      { 
-        id: 'EmployeeName', 
-        name: 'Cấp phát cho', 
-        field: 'EmployeeName', 
-        width: 260, 
-        sortable: true, 
-        filterable: true, 
-        filter: { 
+      {
+        id: 'EmployeeName',
+        name: 'Cấp phát cho',
+        field: 'EmployeeName',
+        width: 260,
+        sortable: true,
+        filterable: true,
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -305,14 +439,14 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
         }
       },
       { id: 'EmployeeID', name: 'EmployeeID', field: 'EmployeeID', hidden: true },
-      { 
-        id: 'Department', 
-        name: 'Phòng ban', 
-        field: 'Department', 
-        width: 160, 
-        sortable: true, 
-        filterable: true, 
-        filter: { 
+      {
+        id: 'Department',
+        name: 'Phòng ban',
+        field: 'Department',
+        width: 160,
+        sortable: true,
+        filterable: true,
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -322,14 +456,14 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           } as MultipleSelectOption
         }
       },
-      { 
-        id: 'Possition', 
-        name: 'Vị trí', 
-        field: 'Possition', 
-        width: 160, 
-        sortable: true, 
-        filterable: true, 
-        filter: { 
+      {
+        id: 'Possition',
+        name: 'Vị trí',
+        field: 'Possition',
+        width: 160,
+        sortable: true,
+        filterable: true,
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -339,13 +473,13 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           } as MultipleSelectOption
         }
       },
-      { 
-        id: 'Note', 
-        name: 'Ghi chú', 
-        field: 'Note', 
-        width: 460, 
-        sortable: true, 
-        filterable: true, 
+      {
+        id: 'Note',
+        name: 'Ghi chú',
+        field: 'Note',
+        width: 460,
+        sortable: true,
+        filterable: true,
         filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -362,7 +496,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      forceFitColumns: false,
+      forceFitColumns: true,
       enableRowSelection: true,
       rowSelectionOptions: {
         selectActiveRow: false
@@ -375,9 +509,8 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       enableCheckboxSelector: true,
       enableCellNavigation: true,
       enableFiltering: true,
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false,
-      frozenColumn: 6 
+      autoFitColumnsOnFirstLoad: true,
+      enableAutoSizeColumns: true
     };
   }
 
@@ -387,14 +520,14 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       { id: 'TSAssetAllocationID', name: 'TSAssetAllocationID', field: 'TSAssetAllocationID', width: 60, hidden: true },
       { id: 'ID', name: 'ID', field: 'ID', width: 60, hidden: true },
       { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true, cssClass: 'text-center' },
-      { 
-        id: 'TSCodeNCC', 
-        name: 'Mã tài sản', 
-        field: 'TSCodeNCC', 
-        width: 150, 
-        sortable: true, 
-        filterable: true, 
-        filter: { 
+      {
+        id: 'TSCodeNCC',
+        name: 'Mã tài sản',
+        field: 'TSCodeNCC',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -405,14 +538,14 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
         }
       },
       { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, sortable: true, cssClass: 'text-center' },
-      { 
-        id: 'TSAssetName', 
-        name: 'Tên tài sản', 
-        field: 'TSAssetName', 
-        width: 200, 
-        sortable: true, 
-        filterable: true, 
-        filter: { 
+      {
+        id: 'TSAssetName',
+        name: 'Tên tài sản',
+        field: 'TSAssetName',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -428,13 +561,13 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
         customTooltip: { useRegularTooltip: true }
       },
       { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', width: 100, sortable: true, cssClass: 'text-center' },
-      { 
-        id: 'Note', 
-        name: 'Ghi chú', 
-        field: 'Note', 
-        width: 300, 
-        sortable: true, 
-        filterable: true, 
+      {
+        id: 'Note',
+        name: 'Ghi chú',
+        field: 'Note',
+        width: 300,
+        sortable: true,
+        filterable: true,
         filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -450,12 +583,13 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
         calculateAvailableSizeBy: 'container'
       },
       enableAutoResize: true,
+      gridWidth: '100%',
       forceFitColumns: true,
       enableRowSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false
+      autoFitColumnsOnFirstLoad: true,
+      enableAutoSizeColumns: true
     };
   }
 
@@ -497,32 +631,32 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     }
   }
 
-onAddAllocation() {
-  const modalRef = this.ngbModal.open(TsAssetAllocationFormComponent, {
-    size: 'xl',
-    backdrop: 'static',
-    keyboard: false,
-    centered: true,
-  });
+  onAddAllocation() {
+    const modalRef = this.ngbModal.open(TsAssetAllocationFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
 
-  // ✅ luôn truyền object mới cho form "Thêm mới"
-  modalRef.componentInstance.dataInput = {
-    ID: 0,
-    DateAllocation: DateTime.now().toISODate(),
-    EmployeeID: null,
-    Note: '',
-    // nếu cần thêm field default thì khai báo thêm ở đây
-  };
+    // ✅ luôn truyền object mới cho form "Thêm mới"
+    modalRef.componentInstance.dataInput = {
+      ID: 0,
+      DateAllocation: DateTime.now().toISODate(),
+      EmployeeID: null,
+      Note: '',
+      // nếu cần thêm field default thì khai báo thêm ở đây
+    };
 
-  modalRef.result.then(
-    (result) => {
-      this.getAllocation();
-    },
-    () => {
-      console.log('Modal dismissed');
-    }
-  );
-}
+    modalRef.result.then(
+      (result) => {
+        this.getAllocation();
+      },
+      () => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
   onEditAllocation() {
     const selectedRows = this.angularGrid?.gridService?.getSelectedRows() || [];
     const selectedData = selectedRows.map((index: number) => this.gridData.getDataItem(index));
@@ -636,283 +770,283 @@ onAddAllocation() {
   }
 
 
- // validate 1 dòng, nếu lỗi trả về CODE, nếu ok trả về null
-validateApprove(
-  action: 1 | 2 | 3 | 4 | 5 | 6,
-  row: any
-): string | null {
-  // 1 & 2: chỉ người được cấp tài sản mới được duyệt / hủy cá nhân
-  if (action === 1 || action === 2) {
-    const emp = Array.isArray(this.currentUser)
-      ? this.currentUser[0]
-      : this.currentUser;
+  // validate 1 dòng, nếu lỗi trả về CODE, nếu ok trả về null
+  validateApprove(
+    action: 1 | 2 | 3 | 4 | 5 | 6,
+    row: any
+  ): string | null {
+    // 1 & 2: chỉ người được cấp tài sản mới được duyệt / hủy cá nhân
+    if (action === 1 || action === 2) {
+      const emp = Array.isArray(this.currentUser)
+        ? this.currentUser[0]
+        : this.currentUser;
 
-    const empIdRaw = emp?.EmployeeID;
-    const empId = empIdRaw != null ? Number(empIdRaw) : null;
-    const employeeId = row.EmployeeID != null ? Number(row.EmployeeID) : null;
+      const empIdRaw = emp?.EmployeeID;
+      const empId = empIdRaw != null ? Number(empIdRaw) : null;
+      const employeeId = row.EmployeeID != null ? Number(row.EmployeeID) : null;
 
-    if (!empId || employeeId !== empId) {
-      return 'PERSONAL_NOT_OWNER'; // sẽ gom message ở ngoài
+      if (!empId || employeeId !== empId) {
+        return 'PERSONAL_NOT_OWNER'; // sẽ gom message ở ngoài
+      }
     }
+
+    const isKTApproved = ['true', true, 1, '1'].includes(row.IsApproveAccountant);
+    const isHRApproved = ['true', true, 1, '1'].includes(row.Status) || row.Status == 1;
+
+    switch (action) {
+      case 2: // Hủy cá nhân
+        if (isHRApproved) {
+          return 'PERSONAL_CANNOT_CANCEL_AFTER_HR';
+        }
+        break;
+
+      case 3: // HR duyệt
+
+        break;
+
+      case 4: // Hủy HR
+        if (isKTApproved) {
+          return 'HR_CANNOT_CANCEL_AFTER_KT';
+        }
+        if (!isHRApproved) {
+          return 'HR_CANNOT_CANCEL_NOT_APPROVED';
+        }
+        break;
+
+      case 5: // KT duyệt
+        if (!isHRApproved) {
+          return 'KT_NEED_HR';
+        }
+        if (isKTApproved) {
+          return 'KT_ALREADY_APPROVED';
+        }
+        break;
+
+      case 6: // KT hủy duyệt
+        if (!isKTApproved) {
+          return 'KT_CANNOT_UNAPPROVE_NOT_APPROVED';
+        }
+        break;
+
+      // case 1: duyệt cá nhân, ngoài rule “PERSONAL_NOT_OWNER” thì không check gì thêm
+    }
+
+    return null; // hợp lệ
   }
-
-  const isKTApproved = ['true', true, 1, '1'].includes(row.IsApproveAccountant);
-  const isHRApproved = ['true', true, 1, '1'].includes(row.Status) || row.Status == 1;
-
-  switch (action) {
-    case 2: // Hủy cá nhân
-      if (isHRApproved) {
-        return 'PERSONAL_CANNOT_CANCEL_AFTER_HR';
-      }
-      break;
-
-    case 3: // HR duyệt
-  
-      break;
-
-    case 4: // Hủy HR
-      if (isKTApproved) {
-        return 'HR_CANNOT_CANCEL_AFTER_KT';
-      }
-      if (!isHRApproved) {
-        return 'HR_CANNOT_CANCEL_NOT_APPROVED';
-      }
-      break;
-
-    case 5: // KT duyệt
-      if (!isHRApproved) {
-        return 'KT_NEED_HR';
-      }
-      if (isKTApproved) {
-        return 'KT_ALREADY_APPROVED';
-      }
-      break;
-
-    case 6: // KT hủy duyệt
-      if (!isKTApproved) {
-        return 'KT_CANNOT_UNAPPROVE_NOT_APPROVED';
-      }
-      break;
-
-    // case 1: duyệt cá nhân, ngoài rule “PERSONAL_NOT_OWNER” thì không check gì thêm
-  }
-
-  return null; // hợp lệ
-}
 
   updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
-  const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
-  const selectedRows = selectedIndexes.map((index: number) => this.gridData.getDataItem(index)) as any[];
-  if (!selectedRows || selectedRows.length === 0) {
-    this.notification.warning('Thông báo', 'Chưa chọn biên bản để duyệt');
-    return;
-  }
-
-  const validRows: any[] = [];
-  const invalidRows: { row: any; code: string }[] = [];
-
-  // validate từng row -> trả code
-  for (const row of selectedRows) {
-    const code = this.validateApprove(action, row);
-    if (code) {
-      invalidRows.push({ row, code });
-    } else {
-      validRows.push(row);
+    const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selectedRows = selectedIndexes.map((index: number) => this.gridData.getDataItem(index)) as any[];
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Chưa chọn biên bản để duyệt');
+      return;
     }
-  }
 
-  // helper: gom message theo code
-  const buildErrorMessages = (items: { row: any; code: string }[]): string[] => {
-    const byCode = new Map<string, any[]>();
+    const validRows: any[] = [];
+    const invalidRows: { row: any; code: string }[] = [];
 
-    items.forEach(x => {
-      if (!byCode.has(x.code)) byCode.set(x.code, []);
-      byCode.get(x.code)!.push(x.row);
-    });
-
-    const messages: string[] = [];
-
-    byCode.forEach((rows, code) => {
-      const codes = rows.map((r: any) => r.Code).join(', ');
-
-      switch (code) {
-        case 'PERSONAL_NOT_OWNER':
-          messages.push(
-            `Bạn không được phép duyệt các biên bản cấp phát ${codes} vì không phải người được cấp tài sản.`
-          );
-          break;
-
-        case 'PERSONAL_CANNOT_CANCEL_AFTER_HR':
-          messages.push(
-            `Các biên bản cấp phát ${codes} đã được HR duyệt, cá nhân không thể hủy.`
-          );
-          break;
-
-        case 'HR_NEED_PERSONAL':
-          messages.push(
-            `Các biên bản cấp phát ${codes} chưa được cá nhân duyệt, HR không thể duyệt!`
-          );
-          break;
-
-        case 'HR_CANNOT_CANCEL_AFTER_KT':
-          messages.push(
-            `Các biên bản cấp phát ${codes} đã được Kế toán duyệt, HR không thể hủy.`
-          );
-          break;
-
-        case 'HR_CANNOT_CANCEL_NOT_APPROVED':
-          messages.push(
-            `Các biên bản cấp phát ${codes} chưa được HR duyệt, không thể hủy duyệt!`
-          );
-          break;
-
-        case 'KT_NEED_HR':
-          messages.push(
-            `Các biên bản cấp phát ${codes} chưa được HR duyệt, Kế toán không thể duyệt!`
-          );
-          break;
-
-        case 'KT_ALREADY_APPROVED':
-          messages.push(
-            `Các biên bản cấp phát ${codes} đã được Kế toán duyệt, không thể duyệt lại!`
-          );
-          break;
-
-        case 'KT_CANNOT_UNAPPROVE_NOT_APPROVED':
-          messages.push(
-            `Các biên bản cấp phát ${codes} chưa được Kế toán duyệt, không thể hủy duyệt!`
-          );
-          break;
-
-        default:
-          messages.push(
-            `Lỗi với các biên bản cấp phát ${codes} (code: ${code}).`
-          );
-          break;
+    // validate từng row -> trả code
+    for (const row of selectedRows) {
+      const code = this.validateApprove(action, row);
+      if (code) {
+        invalidRows.push({ row, code });
+      } else {
+        validRows.push(row);
       }
-    });
+    }
 
-    return messages;
-  };
+    // helper: gom message theo code
+    const buildErrorMessages = (items: { row: any; code: string }[]): string[] => {
+      const byCode = new Map<string, any[]>();
 
-  // Không có hàng hợp lệ -> show full lỗi rồi dừng
-  if (validRows.length === 0) {
+      items.forEach(x => {
+        if (!byCode.has(x.code)) byCode.set(x.code, []);
+        byCode.get(x.code)!.push(x.row);
+      });
+
+      const messages: string[] = [];
+
+      byCode.forEach((rows, code) => {
+        const codes = rows.map((r: any) => r.Code).join(', ');
+
+        switch (code) {
+          case 'PERSONAL_NOT_OWNER':
+            messages.push(
+              `Bạn không được phép duyệt các biên bản cấp phát ${codes} vì không phải người được cấp tài sản.`
+            );
+            break;
+
+          case 'PERSONAL_CANNOT_CANCEL_AFTER_HR':
+            messages.push(
+              `Các biên bản cấp phát ${codes} đã được HR duyệt, cá nhân không thể hủy.`
+            );
+            break;
+
+          case 'HR_NEED_PERSONAL':
+            messages.push(
+              `Các biên bản cấp phát ${codes} chưa được cá nhân duyệt, HR không thể duyệt!`
+            );
+            break;
+
+          case 'HR_CANNOT_CANCEL_AFTER_KT':
+            messages.push(
+              `Các biên bản cấp phát ${codes} đã được Kế toán duyệt, HR không thể hủy.`
+            );
+            break;
+
+          case 'HR_CANNOT_CANCEL_NOT_APPROVED':
+            messages.push(
+              `Các biên bản cấp phát ${codes} chưa được HR duyệt, không thể hủy duyệt!`
+            );
+            break;
+
+          case 'KT_NEED_HR':
+            messages.push(
+              `Các biên bản cấp phát ${codes} chưa được HR duyệt, Kế toán không thể duyệt!`
+            );
+            break;
+
+          case 'KT_ALREADY_APPROVED':
+            messages.push(
+              `Các biên bản cấp phát ${codes} đã được Kế toán duyệt, không thể duyệt lại!`
+            );
+            break;
+
+          case 'KT_CANNOT_UNAPPROVE_NOT_APPROVED':
+            messages.push(
+              `Các biên bản cấp phát ${codes} chưa được Kế toán duyệt, không thể hủy duyệt!`
+            );
+            break;
+
+          default:
+            messages.push(
+              `Lỗi với các biên bản cấp phát ${codes} (code: ${code}).`
+            );
+            break;
+        }
+      });
+
+      return messages;
+    };
+
+    // Không có hàng hợp lệ -> show full lỗi rồi dừng
+    if (validRows.length === 0) {
+      if (invalidRows.length > 0) {
+        const msgs = buildErrorMessages(invalidRows);
+        this.notification.warning(
+          'Không thể thực hiện',
+          msgs.join('\n')
+        );
+      } else {
+        this.notification.error(
+          'Thất bại',
+          'Không có biên bản nào hợp lệ để thực hiện.'
+        );
+      }
+      return;
+    }
+
+    // Có cả đúng cả sai -> báo những cái bị bỏ qua
     if (invalidRows.length > 0) {
       const msgs = buildErrorMessages(invalidRows);
       this.notification.warning(
-        'Không thể thực hiện',
+        'Một số biên bản không được xử lý:',
         msgs.join('\n')
       );
-    } else {
-      this.notification.error(
-        'Thất bại',
-        'Không có biên bản nào hợp lệ để thực hiện.'
-      );
     }
-    return;
+
+
+
+    const currentDate = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'Asia/Bangkok',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).format(new Date()).replace(' ', 'T') + '+07:00';
+
+    const payloads = validRows.map(row => {
+      const ID = row.ID;
+      const updatePayload: {
+        tSAssetAllocation: {
+          ID: number;
+          Status?: number;
+          IsApproveAccountant?: boolean;
+          IsApprovedPersonalProperty?: boolean;
+          DateApproveAccountant?: string;
+          DateApprovedPersonalProperty?: string;
+          DateApprovedHR?: string;
+        };
+      } = { tSAssetAllocation: { ID } };
+
+      switch (action) {
+        case 1:
+          updatePayload.tSAssetAllocation.IsApprovedPersonalProperty = true;
+          updatePayload.tSAssetAllocation.DateApprovedPersonalProperty = currentDate;
+          break;
+        case 2:
+          updatePayload.tSAssetAllocation.IsApprovedPersonalProperty = false;
+          updatePayload.tSAssetAllocation.DateApprovedPersonalProperty = currentDate;
+          break;
+        case 3:
+          updatePayload.tSAssetAllocation.Status = 1;
+          updatePayload.tSAssetAllocation.DateApprovedHR = currentDate;
+          break;
+        case 4:
+          updatePayload.tSAssetAllocation.Status = 0;
+          updatePayload.tSAssetAllocation.DateApprovedHR = currentDate;
+          break;
+        case 5:
+          updatePayload.tSAssetAllocation.IsApproveAccountant = true;
+          updatePayload.tSAssetAllocation.DateApproveAccountant = currentDate;
+          break;
+        case 6:
+          updatePayload.tSAssetAllocation.IsApproveAccountant = false;
+          updatePayload.tSAssetAllocation.DateApproveAccountant = currentDate;
+          break;
+      }
+      return updatePayload;
+    });
+
+    const requests$ = payloads.map(payload => {
+      if (action === 1 || action === 2) {
+        return this.assetAllocationService.saveAppropvePersonal(payload);
+      } else if (action === 5 || action === 6) {
+        return this.assetAllocationService.saveAppropveAccountant(payload);
+      } else {
+        return this.assetAllocationService.saveData(payload);
+      }
+    });
+
+    forkJoin(requests$).subscribe({
+      next: () => {
+        const approvedCodes = validRows.map(x => x.Code).join(', ');
+        this.notification.success(
+          'Thành công',
+          `Đã cập nhật thành công các biên bản: ${approvedCodes}`
+        );
+
+        // Nếu là HR duyệt thì sau khi cập nhật trạng thái → cập nhật luôn tài sản
+        if (action === 3 && validRows.length > 0) {
+          this.saveOnApproveMultiple(validRows);
+        } else {
+          this.getAllocation();
+          this.allocationDetailData = [];
+          this.datasetDetail = [];
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi updateApprove (nhiều)', err);
+        const msg = err?.error?.message || 'Một số cập nhật thất bại';
+        this.notification.error('Lỗi', msg);
+      }
+    });
   }
 
-  // Có cả đúng cả sai -> báo những cái bị bỏ qua
-  if (invalidRows.length > 0) {
-    const msgs = buildErrorMessages(invalidRows);
-    this.notification.warning(
-      'Một số biên bản không được xử lý:',
-      msgs.join('\n')
-    );
-  }
-
-
-
-  const currentDate = new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'Asia/Bangkok',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  }).format(new Date()).replace(' ', 'T') + '+07:00';
-
-  const payloads = validRows.map(row => {
-    const ID = row.ID;
-    const updatePayload: {
-      tSAssetAllocation: {
-        ID: number;
-        Status?: number;
-        IsApproveAccountant?: boolean;
-        IsApprovedPersonalProperty?: boolean;
-        DateApproveAccountant?: string;
-        DateApprovedPersonalProperty?: string;
-        DateApprovedHR?: string;
-      };
-    } = { tSAssetAllocation: { ID } };
-
-    switch (action) {
-      case 1:
-        updatePayload.tSAssetAllocation.IsApprovedPersonalProperty = true;
-        updatePayload.tSAssetAllocation.DateApprovedPersonalProperty = currentDate;
-        break;
-      case 2:
-        updatePayload.tSAssetAllocation.IsApprovedPersonalProperty = false;
-        updatePayload.tSAssetAllocation.DateApprovedPersonalProperty = currentDate;
-        break;
-      case 3:
-        updatePayload.tSAssetAllocation.Status = 1;
-        updatePayload.tSAssetAllocation.DateApprovedHR = currentDate;
-        break;
-      case 4:
-        updatePayload.tSAssetAllocation.Status = 0;
-        updatePayload.tSAssetAllocation.DateApprovedHR = currentDate;
-        break;
-      case 5:
-        updatePayload.tSAssetAllocation.IsApproveAccountant = true;
-        updatePayload.tSAssetAllocation.DateApproveAccountant = currentDate;
-        break;
-      case 6:
-        updatePayload.tSAssetAllocation.IsApproveAccountant = false;
-        updatePayload.tSAssetAllocation.DateApproveAccountant = currentDate;
-        break;
-    }
-    return updatePayload;
-  });
-
-  const requests$ = payloads.map(payload => {
-    if (action === 1 || action === 2) {
-      return this.assetAllocationService.saveAppropvePersonal(payload);
-    } else if (action === 5 || action === 6) {
-      return this.assetAllocationService.saveAppropveAccountant(payload);
-    } else {
-      return this.assetAllocationService.saveData(payload);
-    }
-  });
-
- forkJoin(requests$).subscribe({
-  next: () => {
-    const approvedCodes = validRows.map(x => x.Code).join(', ');
-    this.notification.success(
-      'Thành công',
-      `Đã cập nhật thành công các biên bản: ${approvedCodes}`
-    );
-
-    // Nếu là HR duyệt thì sau khi cập nhật trạng thái → cập nhật luôn tài sản
-    if (action === 3 && validRows.length > 0) {
-      this.saveOnApproveMultiple(validRows);
-    } else {
-      this.getAllocation();
-      this.allocationDetailData = [];
-      this.datasetDetail = [];
-    }
-  },
-  error: (err: any) => {
-    console.error('Lỗi updateApprove (nhiều)', err);
-    const msg = err?.error?.message || 'Một số cập nhật thất bại';
-    this.notification.error('Lỗi', msg);
-  }
-});
-}
-
-    saveOnApprove() {
+  saveOnApprove() {
     const selectedDetail = this.datasetDetail;
     console.log(selectedDetail);
     if (!selectedDetail || selectedDetail.length === 0) {
@@ -944,7 +1078,7 @@ validateApprove(
       }))
 
     };
-    console.log("đwqddddđ",payloadOnApprove);
+    console.log("đwqddddđ", payloadOnApprove);
     this.assetAllocationService.saveAppropveAccountant(payloadOnApprove).subscribe({
       next: () => {
 
@@ -956,109 +1090,109 @@ validateApprove(
       }
     });
   }
- private saveOnApproveMultiple(masters: any[]) {
-  // 1. Lấy detail cho từng biên bản
-  const detailRequests = masters.map(m =>
-    this.assetAllocationService.getAssetAllocationDetail(m.ID)
-  );
+  private saveOnApproveMultiple(masters: any[]) {
+    // 1. Lấy detail cho từng biên bản
+    const detailRequests = masters.map(m =>
+      this.assetAllocationService.getAssetAllocationDetail(m.ID)
+    );
 
-  forkJoin(detailRequests).subscribe({
-    next: (responses: any[]) => {
-      const allAssetManagements: any[] = [];
-      const allAllocationEvictions: any[] = [];
+    forkJoin(detailRequests).subscribe({
+      next: (responses: any[]) => {
+        const allAssetManagements: any[] = [];
+        const allAllocationEvictions: any[] = [];
 
-      responses.forEach((res, index) => {
-        const master = masters[index];
+        responses.forEach((res, index) => {
+          const master = masters[index];
 
-        const details = Array.isArray(res?.data?.assetsAllocationDetail)
-          ? res.data.assetsAllocationDetail
-          : [];
+          const details = Array.isArray(res?.data?.assetsAllocationDetail)
+            ? res.data.assetsAllocationDetail
+            : [];
 
-        if (!details || details.length === 0) {
-          console.warn(`Biên bản ${master.Code} không có chi tiết, bỏ qua.`);
+          if (!details || details.length === 0) {
+            console.warn(`Biên bản ${master.Code} không có chi tiết, bỏ qua.`);
+            return;
+          }
+
+          details.forEach((item: any) => {
+            // Ép AssetManagementID về number, nếu lỗi thì = 0
+            const assetIdRaw = item.AssetManagementID;
+            const assetId = Number(assetIdRaw);
+            const safeAssetId = isNaN(assetId) ? 0 : assetId;
+
+            allAssetManagements.push({
+              ID: safeAssetId,
+              IsAllocation: true,
+              StatusID: 2,
+              Status: 'Đang sử dụng',
+              DepartmentID: item.DepartmentID || 0,
+              EmployeeID: master.EmployeeID,
+              TSAssetCode: item.TSAssetCode,
+              TSAssetName: item.TSAssetName,
+              Note: item.Note || '',
+            });
+
+            allAllocationEvictions.push({
+              ID: 0,
+              AssetManagementID: safeAssetId,
+              EmployeeID: master.EmployeeID,
+              ChucVuID: item.ChucVuHDID,
+              DepartmentID: item.DepartmentID,
+              DateAllocation: DateTime.now(),
+              Status: 'Đang sử dụng',
+              Note: item.Note,
+            });
+          });
+        });
+
+        if (allAssetManagements.length === 0) {
+          this.notification.warning(
+            'Cảnh báo',
+            'Không có chi tiết tài sản nào hợp lệ để cập nhật.'
+          );
           return;
         }
 
-        details.forEach((item: any) => {
-          // Ép AssetManagementID về number, nếu lỗi thì = 0
-          const assetIdRaw = item.AssetManagementID;
-          const assetId = Number(assetIdRaw);
-          const safeAssetId = isNaN(assetId) ? 0 : assetId;
+        // 🔹 Thêm allocations theo yêu cầu của API
+        const allocations = masters.map(m => ({
+          ID: m.ID,
+          // Nếu backend cần thêm flag thì map thêm
+          IsApproveAccountant: true
+        }));
 
-          allAssetManagements.push({
-            ID: safeAssetId,
-            IsAllocation: true,
-            StatusID: 2,
-            Status: 'Đang sử dụng',
-            DepartmentID: item.DepartmentID || 0,
-            EmployeeID: master.EmployeeID,
-            TSAssetCode: item.TSAssetCode,
-            TSAssetName: item.TSAssetName,
-            Note: item.Note || '',
-          });
+        const payloadOnApprove = {
+          allocations, // để backend không báo "allocations field is required" nữa
+          tSAssetManagements: allAssetManagements,
+          tSAllocationEvictionAssets: allAllocationEvictions
+        };
 
-          allAllocationEvictions.push({
-            ID: 0,
-            AssetManagementID: safeAssetId,
-            EmployeeID: master.EmployeeID,
-            ChucVuID: item.ChucVuHDID,
-            DepartmentID: item.DepartmentID,
-            DateAllocation: DateTime.now(),
-            Status: 'Đang sử dụng',
-            Note: item.Note,
-          });
+        console.log('payloadOnApprove (multi):', payloadOnApprove);
+
+        // 2. Gửi 1 request duy nhất
+        this.assetAllocationService.saveAppropveAccountant(payloadOnApprove).subscribe({
+          next: () => {
+            const codes = masters.map(m => m.Code).join(', ');
+
+            this.getAllocation();
+            this.allocationDetailData = [];
+          },
+          error: (res: any) => {
+            console.error('Lỗi khi lưu duyệt tài sản (multi)', res);
+            this.notification.error(
+              'Lỗi',
+              res.error?.message || 'Lỗi khi duyệt tài sản.'
+            );
+          }
         });
-      });
-
-      if (allAssetManagements.length === 0) {
-        this.notification.warning(
-          'Cảnh báo',
-          'Không có chi tiết tài sản nào hợp lệ để cập nhật.'
+      },
+      error: (err: any) => {
+        console.error('Lỗi load detail khi KT duyệt nhiều biên bản', err);
+        this.notification.error(
+          'Lỗi',
+          err?.error?.message || 'Không tải được chi tiết cấp phát.'
         );
-        return;
       }
-
-      // 🔹 Thêm allocations theo yêu cầu của API
-      const allocations = masters.map(m => ({
-        ID: m.ID,
-        // Nếu backend cần thêm flag thì map thêm
-        IsApproveAccountant: true
-      }));
-
-      const payloadOnApprove = {
-        allocations, // để backend không báo "allocations field is required" nữa
-        tSAssetManagements: allAssetManagements,
-        tSAllocationEvictionAssets: allAllocationEvictions
-      };
-
-      console.log('payloadOnApprove (multi):', payloadOnApprove);
-
-      // 2. Gửi 1 request duy nhất
-      this.assetAllocationService.saveAppropveAccountant(payloadOnApprove).subscribe({
-        next: () => {
-          const codes = masters.map(m => m.Code).join(', ');
-
-          this.getAllocation();
-          this.allocationDetailData = [];
-        },
-        error: (res: any) => {
-          console.error('Lỗi khi lưu duyệt tài sản (multi)', res);
-          this.notification.error(
-            'Lỗi',
-            res.error?.message || 'Lỗi khi duyệt tài sản.'
-          );
-        }
-      });
-    },
-    error: (err: any) => {
-      console.error('Lỗi load detail khi KT duyệt nhiều biên bản', err);
-      this.notification.error(
-        'Lỗi',
-        err?.error?.message || 'Không tải được chi tiết cấp phát.'
-      );
-    }
-  });
-}
+    });
+  }
 
 
   //#region xuất excel
@@ -1160,7 +1294,7 @@ validateApprove(
       Possition: selectedMaster.Possition,
       Note: selectedMaster.Note,
       CreatedDate: selectedMaster.CreatedDate,
-      DateApprovedHR:selectedMaster.DateApprovedHR,
+      DateApprovedHR: selectedMaster.DateApprovedHR,
       DateApprovedPersonalProperty: selectedMaster.DateApprovedPersonalProperty
     };
 
@@ -1169,7 +1303,7 @@ validateApprove(
       TSAssetAllocationID: d.TSAssetAllocationID,
       AssetManagementID: d.AssetManagementID,
       Quantity: d.Quantity,
-      Status:d.Status,
+      Status: d.Status,
       Note: d.Note,
       TSAssetName: d.TSAssetName,
       TSCodeNCC: d.TSCodeNCC,

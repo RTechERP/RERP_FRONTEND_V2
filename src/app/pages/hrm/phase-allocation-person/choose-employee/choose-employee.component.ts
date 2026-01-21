@@ -32,7 +32,7 @@ export class ChooseEmployeeComponent implements OnInit {
 
   table!: Tabulator;
 
-  constructor(private employeeService: EmployeeService) {}
+  constructor(private employeeService: EmployeeService) { }
 
   ngOnInit() {
   }
@@ -49,6 +49,11 @@ export class ChooseEmployeeComponent implements OnInit {
       height: '70vh',
       data: this.employeeList,
       selectableRows: true,
+      groupBy: 'DepartmentName',
+      groupStartOpen: true,
+      groupHeader: (value: any, count: number) => {
+        return `<span style="font-weight: bold; color: #1677ff;">${value || 'Chưa có phòng ban'}</span> <span style="color: #666;">(${count} nhân viên)</span>`;
+      },
       rowHeader: {
         formatter: 'rowSelection',
         titleFormatter: 'rowSelection',
@@ -57,14 +62,29 @@ export class ChooseEmployeeComponent implements OnInit {
         frozen: true,
         headerHozAlign: 'center',
         hozAlign: 'center',
-        width: 120,
+        width: 50,
       },
       columns: [
-        { title: 'Mã NV', field: 'Code', width: 120 },
-        { title: 'Tên nhân viên', field: 'FullName' },
-        { title: 'Phòng ban', field: 'DepartmentName' },
+        {
+          title: 'Mã NV',
+          field: 'Code',
+          width: 120,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm mã...',
+        },
+        {
+          title: 'Tên nhân viên',
+          field: 'FullName',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm tên...',
+        },
+        {
+          title: 'Phòng ban',
+          field: 'DepartmentName',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm phòng ban...',
+        },
       ],
-
     });
     // ✅ đợi table build xong
     // this.table.on('tableBuilt', () => {

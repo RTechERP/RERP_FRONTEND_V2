@@ -393,7 +393,7 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
 
     this.saving = true;
 
-    this.dailyReportTechService.saveReportHr(report).subscribe({
+    this.dailyReportTechService.saveReportTHr(report).subscribe({
       next: (response: any) => {
         this.saving = false;
         if (response && response.status === 1) {

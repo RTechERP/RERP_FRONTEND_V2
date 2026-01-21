@@ -29,6 +29,7 @@ import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import { BillExportDetailComponent } from '../../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
+import { BillExportDetailNewComponent } from '../../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 
 @Component({
   selector: 'app-inventory-borrow-ncc',
@@ -321,7 +322,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
     }));
 
     // Open bill export detail modal with Status = 5 (Xuất trả NCC)
-    const modalRef = this.modalService.open(BillExportDetailComponent, {
+    const modalRef = this.modalService.open(BillExportDetailNewComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,

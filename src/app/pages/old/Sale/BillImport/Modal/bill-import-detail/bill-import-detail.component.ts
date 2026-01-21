@@ -133,8 +133,7 @@ interface BillImport {
   styleUrl: './bill-import-detail.component.css',
 })
 export class BillImportDetailComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   cbbStatusPur: any = [
     { ID: 1, Name: 'Đã bàn giao' },
     { ID: 2, Name: 'Hủy bàn giao' },
@@ -150,6 +149,7 @@ export class BillImportDetailComponent
   dataTableDocumnetImport: any[] = [];
 
   isLoading: boolean = false;
+  isSaving: boolean = false;
   deletedDetailIds: number[] = [];
 
   dataCbbReciver: any[] = [];
@@ -852,29 +852,33 @@ export class BillImportDetailComponent
     // Cập nhật label theo loại phiếu
     this.updateLabels(billTypeNew);
 
-    // Cập nhật ngày tháng theo loại phiếu
-    if (billTypeNew === 1) {
-      // Phiếu trả: CreatDate = ngày hiện tại, DateRequestImport = null
-      this.validateForm.patchValue({
-        CreatDate: new Date(),
-        DateRequestImport: null,
-        DateRequest: null,
-      });
-    } else if (billTypeNew === 4) {
-      // Loại phiếu 4: CreatDate = null, DateRequestImport = ngày hiện tại
-      this.validateForm.patchValue({
-        CreatDate: null,
-        DateRequestImport: new Date(),
-        DateRequest: null,
-      });
-    } else {
-      // Các loại phiếu khác: DateRequest = null, DateRequestImport = ngày hiện tại
-      this.validateForm.patchValue({
-        DateRequest: null,
-        DateRequestImport: new Date(),
-      });
+    // Chỉ cập nhật ngày tháng khi thêm mới, không cập nhật khi sửa phiếu
+    if (!this.isCheckmode && this.id === 0) {
+      // Cập nhật ngày tháng theo loại phiếu
+      if (billTypeNew === 1) {
+        // Phiếu trả: CreatDate = ngày hiện tại, DateRequestImport = null
+        this.validateForm.patchValue({
+          CreatDate: new Date(),
+          DateRequestImport: null,
+          DateRequest: null,
+        });
+      } else if (billTypeNew === 4) {
+        // Loại phiếu 4: CreatDate = null, DateRequestImport = ngày hiện tại
+        this.validateForm.patchValue({
+          CreatDate: null,
+          DateRequestImport: new Date(),
+          DateRequest: null,
+        });
+      } else {
+        // Các loại phiếu khác: DateRequest = null, DateRequestImport = ngày hiện tại
+        this.validateForm.patchValue({
+          DateRequest: null,
+          DateRequestImport: new Date(),
+        });
+      }
+      // Chỉ lấy mã phiếu mới khi tạo mới
+      this.getNewCode();
     }
-    this.getNewCode();
   }
 
   changeSuplierSale() {
@@ -1720,20 +1724,15 @@ export class BillImportDetailComponent
           DeliverID: formValues.DeliverID,
           KhoTypeID: formValues.KhoTypeID,
           WarehouseID: formValues.WarehouseID || this.newBillImport.WarehouseID,
-          CreatDate: formValues.CreatDate,
-          DateRequestImport: formValues.DateRequestImport,
-          UpdatedDate: new Date(),
+          CreatDate: this.formatDateForServer(formValues.CreatDate),
+          DateRequestImport: this.formatDateForServer(formValues.DateRequestImport),
           BillTypeNew: formValues.BillTypeNew,
           BillDocumentImportType: 2,
-          CreatedDate: formValues.CreatDate,
           Status: false,
           PTNB: false,
           UnApprove: 1,
           RulePayID: formValues.RulePayID,
           IsDeleted: false,
-          // Loại bỏ các trường không có trong BillImport entity:
-          // DPO, DueDate, TaxReduction, COFormE, IsNotKeep
-          // Các trường này chỉ có trong BillImportDetail
         },
         billImportDetail: this.mapTableDataToBillImportDetails(
           billImportDetailsFromTable
@@ -1744,10 +1743,10 @@ export class BillImportDetailComponent
         ),
         pONCCID: this.poNCCId || 0,
       },
-
     ];
     console.log('payload', payload);
 
+    this.isSaving = true;
     this.billImportService.saveBillImport(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
@@ -1765,9 +1764,10 @@ export class BillImportDetailComponent
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
             res.message ||
-              (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
+            (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
           );
         }
+        this.isSaving = false;
       },
       error: (err: any) => {
         console.error('Save error:', err);
@@ -1777,8 +1777,20 @@ export class BillImportDetailComponent
           errorMessage += ' Chi tiết: ' + err.error.message;
         }
         this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        this.isSaving = false;
       },
     });
+  }
+
+  // Format ngày thành yyyy-MM-dd để gửi lên server
+  private formatDateForServer(date: Date | string | null): string | null {
+    if (!date) return null;
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return null;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   openModalBillExportDetail(ischeckmode: boolean) {
@@ -1859,9 +1871,8 @@ export class BillImportDetailComponent
       let data = getData();
       data = data.map((p: any) => ({
         ...p,
-        productLabel: `${p.ProductNewCode || ''} | ${p.ProductCode || ''} | ${
-          p.ProductName || ''
-        }`,
+        productLabel: `${p.ProductNewCode || ''} | ${p.ProductCode || ''} | ${p.ProductName || ''
+          }`,
       }));
       componentRef.instance.id = cell.getValue();
       componentRef.instance.data = data;
@@ -1879,7 +1890,7 @@ export class BillImportDetailComponent
 
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => {});
+      onRendered(() => { });
 
       return container;
     };
@@ -1964,7 +1975,7 @@ export class BillImportDetailComponent
 
     row.update({
       ProjectID: projectValue,
-      ProjectCodeExport: selectedProject.ProjectCode,
+      //ProjectCodeExport: selectedProject.ProjectCode,
       ProjectName: selectedProject.label,
       ProjectNameText: selectedProject.label,
       InventoryProjectIDs: [projectValue],
@@ -2099,6 +2110,13 @@ export class BillImportDetailComponent
     productCode: string,
     existingSerials: { ID: number; Serial: string }[]
   ) {
+    if (rowData.ID == null || rowData.ID <= 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Các mã sản phẩm thêm mới cần lưu trước khi chọn serial!'
+      );
+      return;
+    }
     const modalRef = this.modalService.open(BillImportChoseSerialComponent, {
       size: 'md',
       centered: true,
@@ -2110,6 +2128,7 @@ export class BillImportDetailComponent
     modalRef.componentInstance.existingSerials = existingSerials;
     modalRef.componentInstance.type = 1;
     modalRef.componentInstance.dataBillDetail = rowData;
+    modalRef.componentInstance.isBillImport = true;
     console.log('3', rowData);
 
     // modalRef.result.then(
@@ -2299,7 +2318,7 @@ export class BillImportDetailComponent
             },
             {
               title: 'Mã theo dự án',
-              field: 'ProjectCodeExport',
+              field: 'ProjectCode',
               hozAlign: 'left',
               headerHozAlign: 'center',
               editor: 'input',
@@ -3002,9 +3021,8 @@ export class BillImportDetailComponent
                 const st = this.cbbStatusPur.find(
                   (p: any) => p.ID === parseInt(val) || p.ID === val
                 );
-                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${
-                  st ? st.Name : val
-                }</p><i class="fas fa-angle-down"></i></div>`;
+                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${st ? st.Name : val
+                  }</p><i class="fas fa-angle-down"></i></div>`;
               },
             },
             {
@@ -3080,7 +3098,7 @@ export class BillImportDetailComponent
     const lsProductID: number[] = [];
     const dtDetails: any[] = [];
     let stt = 1;
-    let productNames = '';
+
     for (let i = 0; i < selectedRows.length; i++) {
       const rowData = selectedRows[i].getData();
       console.log(rowData);
@@ -3089,7 +3107,14 @@ export class BillImportDetailComponent
       const productName = rowData['ProductName'] || '';
       const billImportQCId = rowData['BillImportQCID'] || 0;
 
-      productNames += productName + ', ' || '';
+      // Kiểm tra sản phẩm đã được QC chưa
+      if (billImportQCId > 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Sản phẩm thứ [${i + 1}] đã được QC!`
+        );
+        return;
+      }
 
       // Thêm ProductID vào danh sách nếu chưa tồn tại
       if (!lsProductID.includes(productSaleID) && productSaleID > 0) {
@@ -3115,14 +3140,6 @@ export class BillImportDetailComponent
       dtDetails.push(detailRow);
     }
 
-    // Kiểm tra sản phẩm đã được QC chưa
-    if (productNames != '') {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        `Sản phẩm ${productNames} đã được QC!`
-      );
-      return;
-    }
     // Mở modal với dữ liệu đã chuẩn bị
     const modalRef = this.modalService.open(BillImportQcDetailComponent, {
       backdrop: 'static',
@@ -3139,7 +3156,7 @@ export class BillImportDetailComponent
       (result: any) => {
         this.getBillImportDetailID();
       },
-      (reason) => {}
+      (reason) => { }
     );
   }
 
@@ -3217,29 +3234,29 @@ export class BillImportDetailComponent
   }
 
   async checkSerial(): Promise<boolean> {
-    const tableData = this.table_billImportDetail?.getData();
+    // const tableData = this.table_billImportDetail?.getData();
 
-    for (const detail of tableData) {
-      const qty = detail.Quantity || detail.Qty || 0;
-      const detailId = detail.ID;
+    // for (const detail of tableData) {
+    //   const qty = detail.Quantity || detail.Qty || 0;
+    //   const detailId = detail.ID;
 
-      if (!detailId || detailId <= 0) {
-        continue;
-      }
+    //   if (!detailId || detailId <= 0) {
+    //     continue;
+    //   }
 
-      try {
-        const result = await this.billImportChoseSerialService
-          .countSerialBillImport(detailId)
-          .toPromise();
+    //   try {
+    //     const result = await this.billImportChoseSerialService
+    //       .countSerialBillImport(detailId)
+    //       .toPromise();
 
-        if (qty < (result?.data || 0)) {
-          return false;
-        }
-      } catch (error) {
-        console.error('Lỗi check serial', detailId, error);
-        return false;
-      }
-    }
+    //     if (qty < (result?.data || 0)) {
+    //       return false;
+    //     }
+    //   } catch (error) {
+    //     console.error('Lỗi check serial', detailId, error);
+    //     return false;
+    //   }
+    // }
 
     return true;
   }

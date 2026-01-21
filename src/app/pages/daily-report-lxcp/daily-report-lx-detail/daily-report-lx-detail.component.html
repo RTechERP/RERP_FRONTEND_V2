@@ -10,7 +10,10 @@
         <!-- Dòng 1: Họ tên, Chức vụ, Ngày báo cáo, Button Thêm dòng (PositionID=7), Button Làm thêm -->
         <nz-row [nzGutter]="16">
             <!-- Họ tên -->
-            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+            <nz-col [nzXs]="12" [nzSm]="12"
+                [nzMd]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzLg]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzXl]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6">
                 <nz-form-item>
                     <nz-form-label class="fs-12 p-0">Họ tên</nz-form-label>
                     <nz-form-control [nzSpan]="24">
@@ -19,7 +22,10 @@
                 </nz-form-item>
             </nz-col>
             <!-- Chức vụ -->
-            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+            <nz-col [nzXs]="12" [nzSm]="12"
+                [nzMd]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzLg]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzXl]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6">
                 <nz-form-item>
                     <nz-form-label class="fs-12 p-0">Chức vụ</nz-form-label>
                     <nz-form-control [nzSpan]="24">
@@ -28,7 +34,10 @@
                 </nz-form-item>
             </nz-col>
             <!-- Ngày báo cáo -->
-            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+            <nz-col [nzXs]="9" [nzSm]="9"
+                [nzMd]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzLg]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6"
+                [nzXl]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 5 : 6">
                 <nz-form-item>
                     <nz-form-label class="fs-12 p-0">Ngày báo cáo<span class="text-danger ps-1">*</span></nz-form-label>
                     <nz-form-control [nzSpan]="24" [nzValidateStatus]="getValidateStatus('DateReport')"
@@ -39,7 +48,10 @@
                 </nz-form-item>
             </nz-col>
             <!-- Buttons -->
-            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+            <nz-col [nzXs]="15" [nzSm]="15"
+                [nzMd]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 9 : 6"
+                [nzLg]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 9 : 6"
+                [nzXl]="(currentUser?.PositionID === 7 || currentUser?.PositionID === 72) && mode === 'add' ? 9 : 6">
                 <nz-form-item>
                     <nz-form-label class="fs-12 p-0" [style.visibility]="'hidden'">.</nz-form-label>
                     <nz-form-control [nzSpan]="24">
@@ -47,17 +59,16 @@
                             <!-- Button Thêm dòng - chỉ hiển thị với PositionID = 7 hoặc 72 và mode = add -->
                             <button *ngIf="
                   (currentUser?.PositionID === 7 ||
+
                   currentUser?.PositionID === 72) &&
                   mode === 'add'
                 " nz-button nzType="default" nzSize="default" (click)="addFilmRow()" class="flex-grow-1">
-                                <i nz-icon nzType="plus" nzTheme="outline"></i> Thêm dòng
+                                <i nz-icon nzType="plus" nzTheme="outline"></i> Dòng
                             </button>
                             <!-- Button Làm thêm -->
                             <button nz-button nzType="primary" nzSize="default" (click)="openOverTimeModal()"
-                                [class.flex-grow-1]="currentUser?.PositionID !== 7 && currentUser?.PositionID !== 72"
-                                [class.w-100]="currentUser?.PositionID !== 7 && currentUser?.PositionID !== 72 && mode" 
-                                [class.flex-grow-1]="currentUser?.PositionID === 7 || currentUser?.PositionID === 72 && mode != 'add'"`
-                                [class.w-100]="currentUser?.PositionID !== 7 || currentUser?.PositionID !== 72 && mode != 'add'">
+                                [class.w-100]="currentUser?.PositionID !== 7 && currentUser?.PositionID !== 72"
+                                [class.flex-grow-1]="currentUser?.PositionID === 7 || currentUser?.PositionID === 72">
                                 Làm thêm
                             </button>
                         </div>
@@ -239,7 +250,7 @@
     </form>
 </div>
 
-|<div class="modal-footer bg-light p-2">
+<div class="modal-footer bg-light p-2">
     <button nz-button nzType="default" (click)="close()" [disabled]="saving">
         Đóng
     </button>

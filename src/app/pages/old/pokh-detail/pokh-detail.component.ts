@@ -75,6 +75,8 @@ import { ProductSaleDetailComponent } from '../Sale/ProductSale/product-sale-det
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
 import { ProductSaleComponent } from '../Sale/ProductSale/product-sale.component';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup';
+import { ProjectDetailComponent } from '../../project/project-detail/project-detail.component';
+import { ProjectPartListSlickGridComponent } from '../../project-part-list-slick-grid/project-part-list-slick-grid.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -182,7 +184,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     {
       title: 'Tên sản phẩm',
       field: 'ProductName',
-      width: 200,
+      width: 250,
     },
     {
       title: 'Mã nội bộ',
@@ -1975,6 +1977,26 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       }
     );
   }
+
+  openProjectDetailModal() {
+    const modalRef = this.modalService.open(ProjectDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.projectId = 0
+
+    modalRef.result.catch((reason) => {
+      if (reason == true) {
+        this.notification.success('Thông báo', 'Đã thêm dự án thành công!', {
+          nzStyle: { fontSize: '0.75rem' },
+        });
+        this.loadProjects();
+      }
+    });
+  }
+
   openFollowProductReturnModal() {
     const modalRef = this.modalService.open(FollowProductReturnComponent, {
       centered: true,
@@ -2089,16 +2111,18 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         {
           title: '',
           field: 'actions',
+          frozen: true,
           formatter: (cell) => {
             return `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
           },
-          width: '1px',
+          width: '5%',
           hozAlign: 'center',
           cellClick: (e, cell) => {
             const target = e.target as HTMLElement;
             if (
-              target.classList.contains('delete-btn') ||
-              target.tagName === 'IMG'
+              target.tagName === 'BUTTON' ||
+              target.tagName === 'I' ||
+              target.closest('button')
             ) {
               this.modal.confirm({
                 nzTitle: 'Xác nhận xóa',
@@ -2153,6 +2177,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     // };
   }
   initProductDetailTreeList(): void {
+    if (this.tb_ProductDetailTreeList) {
+      this.tb_ProductDetailTreeList.destroy();
+    }
     this.tb_ProductDetailTreeList = new Tabulator(
       this.tbProductDetailTreeListElement.nativeElement,
       {
@@ -2202,8 +2229,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             cellClick: (e, cell) => {
               const target = e.target as HTMLElement;
               if (
-                target.classList.contains('delete-btn') ||
-                target.tagName === 'IMG'
+                target.tagName === 'BUTTON' ||
+                target.tagName === 'I' ||
+                target.closest('button')
               ) {
                 this.modal.confirm({
                   nzTitle: 'Xác nhận xóa',
@@ -2314,6 +2342,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 80,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             bottomCalc: (values, data) => {
               return this.accumulateTreeValues(data, 'Qty');
             },
@@ -2345,6 +2376,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2360,6 +2394,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2387,6 +2424,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2413,6 +2453,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 100,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: function (cell, formatterParams, onRendered) {
               const value = cell.getValue();
               if (
@@ -2431,6 +2474,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2481,6 +2527,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
           },
           {
             title: 'Ngày hóa đơn',
@@ -2512,6 +2561,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
           },
           {
             title: 'Ngày yêu cầu thanh toán',
@@ -2650,7 +2702,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           frozen: true,
           headerSort: false,
           titleFormatter: () =>
-            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-warning cursor-pointer" title="Thêm dòng"></i></div>`,
           headerClick: () => {
             this.addRowDetailUser();
           },
@@ -2930,7 +2982,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     const dtTreeData = this.initialPOKHProductData;
     const minLevel = Math.min(...dtTreeData.map(r => r.level));
     const nodeMinLevelCount = dtTreeData.filter(r => r.level === minLevel).length;
-    const modalRef = this.modalService.open(ProjectPartListComponent, {
+    const modalRef = this.modalService.open(ProjectPartListSlickGridComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false,

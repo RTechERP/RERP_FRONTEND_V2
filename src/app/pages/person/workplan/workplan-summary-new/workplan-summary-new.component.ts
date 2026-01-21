@@ -16,6 +16,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DateTime } from 'luxon';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { TeamServiceService } from '../../../hrm/team/team-service/team-service.service';
+import { AppUserService } from '../../../../services/app-user.service';
 @Component({
     selector: 'app-workplan-summary-new',
     standalone: true,
@@ -58,7 +59,8 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
         private notification: NzNotificationService,
         private workplanService: WorkplanService,
         private employeeService: EmployeeService,
-        private TeamService: TeamServiceService
+        private TeamService: TeamServiceService,
+        private appUserService: AppUserService
     ) {
         // Set default dates: đầu tuần đến cuối tuần hiện tại
         const now = DateTime.now();
@@ -71,9 +73,14 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit(): void {
+        // Set default departmentId theo phòng ban của user hiện tại
+        this.departmentId = this.appUserService.departmentID || 0;
+
         this.loadDepartments();
         this.loadEmployees();
-        this.loadUserTeams();
+        if (this.departmentId > 0) {
+            this.loadTeamsByDepartment(this.departmentId);
+        }
     }
 
     ngAfterViewInit(): void {
@@ -100,33 +107,52 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
         // Chỉ clear table để tránh hiển thị data cũ với date range mới
     }
 
+    onDepartmentChange(): void {
+        this.userId = 0;
+        this.teamId = 0;
+        this.loadEmployees();
+        if (this.departmentId > 0) {
+            this.loadTeamsByDepartment(this.departmentId);
+        } else {
+            this.teamList = [];
+        }
+        this.loadData();
+    }
+
     onTeamChange(): void {
         this.userId = 0;
         this.loadData();
     }
-    loadUserTeams(): void {
-        this.TeamService.getTeams(2).subscribe({
+    loadTeamsByDepartment(deptId: number): void {
+        this.workplanService.getTeamByDepartmentId(deptId).subscribe({
             next: (response: any) => {
                 if (response && response.status === 1 && response.data) {
-                    this.teamList = Array.isArray(response.data) ? response.data : [];
+                    const data = Array.isArray(response.data) ? response.data : [];
+                    this.teamList = data.filter((x: any) => x.IsDeleted !== true);
+                } else {
+                    this.teamList = [];
                 }
             },
             error: (error: any) => {
-                console.error('Error loading user teams:', error);
+                console.error('Error loading teams by department:', error);
+                this.teamList = [];
             }
         });
     }
 
     loadEmployees(): void {
-        this.employeeService.getEmployees().subscribe({
+        // Lấy nhân viên theo phòng ban được chọn (status = 0: đang làm việc)
+        this.employeeService.filterEmployee(0, this.departmentId, '').subscribe({
             next: (response: any) => {
                 if (response && response.data) {
-                    const allEmployees = Array.isArray(response.data) ? response.data : [];
-                    this.userList = allEmployees.filter((emp: any) => emp.DepartmentID === 2);
+                    this.userList = Array.isArray(response.data) ? response.data : [];
+                } else {
+                    this.userList = [];
                 }
             },
             error: (error: any) => {
                 console.error('Error loading employees:', error);
+                this.userList = [];
             }
         });
     }
@@ -187,11 +213,16 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
         this.dateStart = startOfWeek.toFormat('yyyy-MM-dd');
         this.dateEnd = endOfWeek.toFormat('yyyy-MM-dd');
         this.keyword = '';
-        this.departmentId = 0;
+        this.departmentId = this.appUserService.departmentID || 0;
         this.teamId = 0;
         this.userId = 0;
-        this.teamList = [];
-        this.userList = [];
+
+        if (this.departmentId > 0) {
+            this.loadTeamsByDepartment(this.departmentId);
+        } else {
+            this.teamList = [];
+        }
+        this.loadEmployees();
         this.loadData();
     }
 
@@ -259,42 +290,42 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
     }
 
     private buildDateCols(rows: any[]): any[] {
-    const start = this.toDateTime(this.dateStart);
-    const end = this.toDateTime(this.dateEnd);
+        const start = this.toDateTime(this.dateStart);
+        const end = this.toDateTime(this.dateEnd);
 
-    const cols: any[] = [];
-    let cursor = start;
+        const cols: any[] = [];
+        let cursor = start;
 
-    // Lấy tất cả keys từ API để map chính xác
-    const apiKeys = rows.length > 0 ? Object.keys(rows[0]).filter(k => this.isDayCol(k)) : [];
-    console.log('API keys:', apiKeys);
+        // Lấy tất cả keys từ API để map chính xác
+        const apiKeys = rows.length > 0 ? Object.keys(rows[0]).filter(k => this.isDayCol(k)) : [];
+        console.log('API keys:', apiKeys);
 
-    while (cursor <= end) {
-        const dow = cursor.weekday === 7 ? 'CN' : `T${cursor.weekday + 1}`;
-        const dateStr = cursor.toFormat('dd/MM');
-        
-        // Tìm key từ API khớp với ngày này (có thể thiếu dấu ) ở cuối)
-        const matchingKey = apiKeys.find(k => {
-            const normalized = this.normalize(k);
-            return normalized.includes(`(${dateStr})`);
-        });
+        while (cursor <= end) {
+            const dow = cursor.weekday === 7 ? 'CN' : `T${cursor.weekday + 1}`;
+            const dateStr = cursor.toFormat('dd/MM');
 
-        // Tạo cột ngay cả khi API không trả về (để hiển thị đủ ngày)
-        const label = `${dow}(${dateStr})`;
-        cols.push({
-            field: matchingKey || label,  // Dùng key từ API nếu có, không thì dùng label
-            norm: label,
-            dt: cursor.toJSDate(),
-            title: this.head2lines(label),
-            isSun: cursor.weekday === 7
-        });
+            // Tìm key từ API khớp với ngày này (có thể thiếu dấu ) ở cuối)
+            const matchingKey = apiKeys.find(k => {
+                const normalized = this.normalize(k);
+                return normalized.includes(`(${dateStr})`);
+            });
 
-        cursor = cursor.plus({ days: 1 });
+            // Tạo cột ngay cả khi API không trả về (để hiển thị đủ ngày)
+            const label = `${dow}(${dateStr})`;
+            cols.push({
+                field: matchingKey || label,  // Dùng key từ API nếu có, không thì dùng label
+                norm: label,
+                dt: cursor.toJSDate(),
+                title: this.head2lines(label),
+                isSun: cursor.weekday === 7
+            });
+
+            cursor = cursor.plus({ days: 1 });
+        }
+
+        console.log('Built columns:', cols.map(c => ({ field: c.field, dt: c.dt })));
+        return cols;
     }
-
-    console.log('Built columns:', cols.map(c => ({ field: c.field, dt: c.dt })));
-    return cols;
-}
 
 
     private renderTable(): void {
@@ -302,9 +333,9 @@ export class WorkplanSummaryNewComponent implements OnInit, AfterViewInit {
 
         const rows = this.summaryData;
         const dayCols = this.buildDateCols(rows);
-console.log('dateStart:', this.dateStart);
-console.log('dateEnd:', this.dateEnd);
-console.log('dayCols length:', dayCols.length);
+        console.log('dateStart:', this.dateStart);
+        console.log('dateEnd:', this.dateEnd);
+        console.log('dayCols length:', dayCols.length);
         // Build table HTML
         const container = this.summaryTableContainer.nativeElement;
 

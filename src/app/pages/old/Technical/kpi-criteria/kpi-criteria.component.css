@@ -1,0 +1,48 @@
+.ant-splitter {
+    height: 81vh !important;
+}
+
+/* Đảm bảo các splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Đảm bảo các card trong splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel .card {
+    min-height: 0;
+}
+
+/* Đảm bảo các card-body có thể scroll */
+:host ::ng-deep .ant-splitter-panel .card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+/* SlickGrid trong grid-container-criteria chiếm 100% chiều cao */
+.grid-container-criteria {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-criteria angular-slickgrid,
+:host ::ng-deep .grid-container-criteria .slickgrid-container,
+:host ::ng-deep .grid-container-criteria .gridPane {
+    height: 100% !important;
+}
+
+/* SlickGrid trong grid-container-criteria-detail chiếm 100% chiều cao */
+.grid-container-criteria-detail {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-criteria-detail angular-slickgrid,
+:host ::ng-deep .grid-container-criteria-detail .slickgrid-container,
+:host ::ng-deep .grid-container-criteria-detail .gridPane {
+    height: 100% !important;
+}

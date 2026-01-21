@@ -10,6 +10,7 @@ import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
 import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -57,6 +58,7 @@ import { concatMap, catchError } from 'rxjs/operators';
         NzDrawerModule,
         NzSplitterModule,
         NzGridModule,
+        NzFormModule,
         NzDatePickerModule,
         NzAutocompleteModule,
         NzInputModule,
@@ -80,7 +82,7 @@ export class PayrollComponent implements OnInit, AfterViewInit {
 
     sizeSearch: string = '0';
     keyWord: string = '';
-    year: any = new Date();
+    year: number = new Date().getFullYear();
 
     selectedArrEmployeePayroll: Set<any> = new Set();
 
@@ -109,7 +111,7 @@ export class PayrollComponent implements OnInit, AfterViewInit {
     }
 
     refresh() {
-        this.year = new Date();
+        this.year = new Date().getFullYear();
         this.keyWord = '';
         this.selectedArrEmployeePayroll.clear();
         this.drawTbPayroll(this.tb_payrollContainer.nativeElement);
@@ -150,7 +152,7 @@ export class PayrollComponent implements OnInit, AfterViewInit {
             ajaxURL: this.payrollService.getEmployeePayroll(),
             ajaxParams: {
                 keyWord: this.keyWord ?? '',
-                year: this.year.getFullYear() ?? new Date().getFullYear(),
+                year: this.year ?? new Date().getFullYear(),
             },
             ajaxResponse: (url, params, res) => {
                 return {
@@ -217,6 +219,7 @@ export class PayrollComponent implements OnInit, AfterViewInit {
 
     handlePayrollAction(type: string) {
         let selected = this.tb_Payroll.getSelectedData();
+        console.log('selected:', selected);
         if (type === 'create') {
             const modalRef = this.modalService.open(PayrollDetailComponent, {
                 backdrop: 'static',
@@ -428,7 +431,7 @@ export class PayrollComponent implements OnInit, AfterViewInit {
             }
             // báo cáo bảng lương
             case 'payrollReport': {
-                this.payrollReport(last.ID);
+                this.payrollReport(selected[0].ID);
                 return;
             }
             // chi tiết thưởng phạt
@@ -471,6 +474,7 @@ export class PayrollComponent implements OnInit, AfterViewInit {
             windowClass: 'full-screen-modal',
         });
 
+        console.log('payrollId:', payrollId);
         modalRef.componentInstance.payrollId = payrollId;
 
         modalRef.result.catch((reason) => {

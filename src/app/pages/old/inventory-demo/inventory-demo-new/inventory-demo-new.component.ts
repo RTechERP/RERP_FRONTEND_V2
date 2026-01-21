@@ -1,3 +1,4 @@
+import { ClipboardService } from './../../../../services/clipboard.service';
 import { CommonModule } from '@angular/common';
 import {
     Component,
@@ -5,6 +6,8 @@ import {
     OnInit,
     OnDestroy,
     ChangeDetectorRef,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -21,6 +24,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFlexModule } from 'ng-zorro-antd/flex';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { SplitterModule } from 'primeng/splitter';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
@@ -40,6 +44,7 @@ import { ProductLocationTechnicalService } from '../../Technical/product-locatio
 import { UpdateQrcodeFormComponent } from '../update-qrcode-form/update-qrcode-form.component';
 import { InventoryBorrowSupplierDemoComponent } from '../inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
     selector: 'app-inventory-demo-new',
@@ -61,6 +66,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
         NzGridModule,
         NzUploadModule,
         AngularSlickgridModule,
+        SplitterModule,
         HasPermissionDirective,
         NgbModalModule,
         NgbDropdownModule,
@@ -89,11 +95,17 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
     productLocationData: any[] = [];
     selectedLocationID: number | null = null;
 
-    // AngularSlickGrid
+    // AngularSlickGrid - Master grid (products)
     angularGrid!: AngularGridInstance;
     columnDefinitions: Column[] = [];
     gridOptions: GridOption = {};
     dataset: any[] = [];
+
+    // AngularSlickGrid - Product Group grid (left panel)
+    angularGridGroup!: AngularGridInstance;
+    columnDefinitionsGroup: Column[] = [];
+    gridOptionsGroup: GridOption = {};
+    datasetGroup: any[] = [];
 
     isLoading: boolean = false;
     private subscriptions: Subscription[] = [];
@@ -160,25 +172,91 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         private modal: NzModalService,
         private ngbModal: NgbModal,
         private route: ActivatedRoute,
-        private cdr: ChangeDetectorRef
-    ) {}
+        private cdr: ChangeDetectorRef,
+        private ClipboardService: ClipboardService,
+        @Optional() @Inject('tabData') private tabData: any
+    ) { }
 
     ngOnInit(): void {
-        this.route.queryParams.subscribe((params) => {
-            this.warehouseID = params['warehouseID'] || 1;
-            this.warehouseType = params['warehouseType'] || 1;
-        });
-
-        this.loadProductGroups();
-        this.loadProductLocations();
         this.initGridColumns();
         this.initGridOptions();
+        this.initGroupGridColumns();
+        this.initGroupGridOptions();
+
+        // Subscribe to queryParams để reload data khi params thay đổi
+        const sub = this.route.queryParams.subscribe((params) => {
+            // Parse string params to numbers (queryParams values are always strings)
+            // const newWarehouseID = Number(params['warehouseID']) || 1;
+            // const newWarehouseType = Number(params['warehouseType']) || 1;
+
+            const newWarehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            const newWarehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
+
+            // console.log('QueryParams changed:', { newWarehouseID, newWarehouseType, currentWarehouseID: this.warehouseID, currentWarehouseType: this.warehouseType });
+
+            // Kiểm tra xem params có thay đổi không (so sánh number với number)
+            const paramsChanged = this.warehouseID !== newWarehouseID ||
+                this.warehouseType !== newWarehouseType;
+
+            // console.log('Params changed:', paramsChanged);
+
+            // Nếu params thay đổi, reset và clear data trước
+            if (paramsChanged) {
+                // Reset productGroupID
+                this.productGroupID = 0;
+                this.keyWord = '';
+
+                // Clear existing data để trigger grid refresh
+                this.dataset = [];
+                this.datasetGroup = [];
+                this.productData = [];
+                this.productGroupData = [];
+
+                // Clear grid selections, filters và force refresh data cho inventoryDemoGrid
+                if (this.angularGrid && this.angularGrid.slickGrid) {
+                    this.angularGrid.slickGrid.setSelectedRows([]);
+                    this.angularGrid.filterService?.clearFilters();
+                    // Force refresh grid data
+                    this.angularGrid.dataView?.setItems([], 'id');
+                    this.angularGrid.slickGrid.invalidate();
+                    this.angularGrid.slickGrid.render();
+                    this.angularGrid.slickGrid.scrollRowToTop(0);
+                }
+                if (this.angularGridGroup && this.angularGridGroup.slickGrid) {
+                    this.angularGridGroup.slickGrid.setSelectedRows([]);
+                    this.angularGridGroup.filterService?.clearFilters();
+                    // Force refresh grid data
+                    this.angularGridGroup.dataView?.setItems([], 'id');
+                    this.angularGridGroup.slickGrid.invalidate();
+                    this.angularGridGroup.slickGrid.render();
+                    this.angularGridGroup.slickGrid.scrollRowToTop(0);
+                }
+
+                // Trigger change detection
+                this.cdr.detectChanges();
+            }
+
+            // Update parameters after clearing
+            this.warehouseID = newWarehouseID;
+            this.warehouseType = newWarehouseType;
+
+            // Load data mỗi khi params thay đổi
+            this.loadProductGroups();
+            this.loadProductLocations();
+            this.loadTableData();
+        });
+        this.subscriptions.push(sub);
     }
 
     ngAfterViewInit(): void {
-        setTimeout(() => {
-            this.loadTableData();
-        }, 100);
+        // Data đã được load trong ngOnInit qua queryParams subscribe
     }
 
     ngOnDestroy(): void {
@@ -192,6 +270,11 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 next: (response: any) => {
                     const data = response.data || [];
                     this.productGroupData = data;
+                    // Set data for group grid
+                    this.datasetGroup = data.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID || `group_${index}`,
+                    }));
                 },
                 error: (error: any) => {
                     this.notification.error(
@@ -583,6 +666,53 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         this.hideAllSpecColumns();
     }
 
+    private initGroupGridColumns(): void {
+        this.columnDefinitionsGroup = [
+            {
+                id: 'NumberOrder',
+                field: 'NumberOrder',
+                name: 'STT',
+                width: 60,
+                sortable: true,
+                filterable: true,
+            },
+            {
+                id: 'ProductGroupName',
+                field: 'ProductGroupName',
+                name: 'Tên nhóm sản phẩm',
+                width: 200,
+                sortable: true,
+                filterable: true,
+            },
+        ];
+    }
+
+    private initGroupGridOptions(): void {
+        this.gridOptionsGroup = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.group-grid-container',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            datasetIdPropertyName: 'ID',
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true,
+            },
+            enableCellNavigation: true,
+            enableFiltering: true,
+            forceFitColumns: true,
+            autoFitColumnsOnFirstLoad: true,
+            enableAutoSizeColumns: true,
+            enableHeaderMenu: false,
+            enableContextMenu: false,
+            enableCellMenu: false,
+            rowHeight: 35,
+        };
+    }
+
     private initGridOptions(): void {
         this.gridOptions = {
             enableAutoResize: true,
@@ -610,7 +740,20 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             frozenColumn: 2,
             enableHeaderMenu: false,
             enableContextMenu: true,
-            enableCellMenu: false,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.ClipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
             contextMenu: {
                 hideCloseButton: false,
                 width: 200,
@@ -819,7 +962,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
 
         // Lấy tất cả columns từ columnDefinitions để đảm bảo có đầy đủ columns
         const allColumns = [...this.columnDefinitions];
-        
+
         // Map columns để cập nhật spec columns
         const updatedColumns = allColumns.map((col: any) => {
             if (allSpecFields.includes(col.field as string)) {
@@ -888,7 +1031,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         const columns = this.angularGrid.slickGrid.getColumns();
         // Filter out spec columns - chỉ giữ lại các columns không phải spec
         const visibleColumns = columns.filter((col: any) => !allSpecFields.includes(col.field));
-        
+
         // Update column definitions để đảm bảo spec columns có excludeFromColumnPicker và excludeFromGridMenu
         const updatedColumns = columns.map((col: any) => {
             if (allSpecFields.includes(col.field)) {
@@ -977,6 +1120,29 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
 
     onRowSelectionChanged(_eventData: any, _args: OnSelectedRowsChangedEventArgs): void {
         // Handle row selection if needed
+    }
+
+    angularGridGroupReady(angularGrid: AngularGridInstance): void {
+        this.angularGridGroup = angularGrid;
+
+        // Handle click event on group grid
+        this.angularGridGroup.slickGrid.onClick.subscribe((_e: any, args: any) => {
+            const row = args.row;
+            const item = this.angularGridGroup.dataView.getItem(row);
+            if (item) {
+                this.onGroupRowClick(item);
+            }
+        });
+
+        setTimeout(() => {
+            angularGrid.resizerService.resizeGrid();
+        }, 100);
+    }
+
+    onGroupRowClick(item: any): void {
+        this.productGroupID = item.ID;
+        this.showSpec();
+        this.loadTableData();
     }
 
     getSelectedRows(): any[] {
@@ -1121,7 +1287,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         });
 
         window.open(
-            `/material-detail-of-product-rtc?${params.toString()}`,
+            `${environment.baseHref}/material-detail-of-product-rtc?${params.toString()}`,
             '_blank',
             'width=1200,height=800,scrollbars=yes,resizable=yes'
         );

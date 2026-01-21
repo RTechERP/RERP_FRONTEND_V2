@@ -24,7 +24,7 @@ import { ProjectPartlistPriceRequestService } from '../../old/project-partlist-p
 import { ProjectPartlistPriceRequestFormComponent } from '../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 import { ImportExcelProjectPartlistPriceRequestComponent } from '../../old/project-partlist-price-request/import-excel-project-partlist-price-request/import-excel-project-partlist-price-request.component';
 import { AngularSlickgridModule, AngularGridInstance, Column, GridOption, Filters, Formatters, Editors, OnClickEventArgs, OnCellChangeEventArgs, OnSelectedRowsChangedEventArgs, Aggregators, GroupTotalFormatters, SortComparers } from 'angular-slickgrid';
-import { MultipleSelectOption, SortDirectionNumber } from '@slickgrid-universal/common';
+import { AutocompleterOption, MultipleSelectOption, SortDirectionNumber } from '@slickgrid-universal/common';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -361,13 +361,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
 
   OnEditClick() {
-    const lstTypeAccept = [-1, -2];
+    const lstTypeAccept = [-1, -2,-3,-4];
     const angularGrid = this.angularGrids.get(this.activeTabId);
 
     if (!lstTypeAccept.includes(this.activeTabId)) {
       this.notification.info(
-        'Thông báo',
-        'Chỉ được sửa những sản phẩm thương mại hoặc của yêu cầu công việc!'
+        NOTIFICATION_TITLE.warning,
+        'Chỉ được sửa những sản phẩm của hàng thương mại, yêu cầu công việc, marketing, demo!'
       );
       return;
     }
@@ -1542,6 +1542,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           // useRegularTooltipFromCellTextOnly: true,
         },
       },
+      // Cột Model (Thông số kỹ thuật) - sẽ được thêm vào đây nếu là tab demo
       {
         id: 'Manufacturer',
         field: 'Manufacturer',
@@ -1615,6 +1616,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1645,6 +1649,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1677,6 +1684,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1709,6 +1719,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1739,6 +1752,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1803,6 +1819,9 @@ formatter: Formatters.date,
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1945,6 +1964,9 @@ formatter: Formatters.date,
         hidden: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1953,31 +1975,69 @@ formatter: Formatters.date,
         id: 'SupplierSaleID',
         field: 'SupplierSaleID',
         name: 'Nhà cung cấp',
-        width: 200,
+        width: 300,
         sortable: false,
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
           } as MultipleSelectOption,
         },
-        editor: {
-          model: Editors['singleSelect'],
-          collection: this.getSupplierCollection(),
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          editorOptions: {
-            filter: true,
-          } as MultipleSelectOption,
-        },
-        formatter: (row: number, cell: number, value: any) => {
-          // Xử lý cả trường hợp value là array (từ multiselect) hoặc số đơn
+        formatter: (_row: number, _cell: number, value: any, _columnDef: any, dataContext: any) => {
+          if (!value) return '';
           const supplierId = Array.isArray(value) ? (value[0] || value) : value;
           const supplier = this.dtSupplierSale.find((s: any) => s.ID === supplierId);
-          return supplier ? supplier.NameNCC : '';
+          if (supplier) {
+            const codeNCC = supplier.CodeNCC || '';
+            const nameNCC = supplier.NameNCC || '';
+            const tooltipText = `Mã: ${codeNCC}\nTên: ${nameNCC}`;
+            return `<span title="${tooltipText.replace(/"/g, '&quot;')}">${codeNCC}</span>`;
+          }
+          return '';
+        },
+        editor: {
+          model: Editors['autocompleter'],
+          alwaysSaveOnEnterKey: true,
+          editorOptions: {
+            minLength: 0,
+            forceUserInput: false,
+            openSearchListOnFocus: true,
+            fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
+              const suppliers = this.dtSupplierSale || [];
+              if (!searchTerm || searchTerm.length === 0) {
+                callback(suppliers);
+              } else {
+                const filtered = suppliers.filter((s: any) => {
+                  const code = (s.CodeNCC || '').toLowerCase();
+                  const name = (s.NameNCC || '').toLowerCase();
+                  const term = searchTerm.toLowerCase();
+                  return code.includes(term) || name.includes(term);
+                });
+                callback(filtered);
+              }
+            },
+            renderItem: {
+              layout: 'twoRows',
+              templateCallback: (item: any) => {
+                const codeNCC = item?.CodeNCC || '';
+                const nameNCC = item?.NameNCC || '';
+                const ngayUpdate = item?.NgayUpdate ? new Date(item.NgayUpdate).toLocaleDateString('vi-VN') : '';
+                const tooltipText = `Mã: ${codeNCC}\nTên: ${nameNCC}\nNgày Update: ${ngayUpdate}`;
+                return `<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 4px 0; gap: 8px;" title="${tooltipText.replace(/"/g, '&quot;')}">
+                  <div style="flex: 1; min-width: 0; overflow: hidden;">
+                    <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${codeNCC}</div>
+                    <div style="font-size: 12px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; max-height: 2.8em;">${nameNCC}</div>
+                  </div>
+                  <div style="text-align: right; min-width: 80px; flex-shrink: 0; font-size: 11px; color: #999; padding-top: 2px;">${ngayUpdate}</div>
+                </div>`;
+              },
+            },
+          } as AutocompleterOption,
         },
       },
       {
@@ -2102,6 +2162,9 @@ formatter: Formatters.date,
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -2224,6 +2287,19 @@ formatter: Formatters.date,
       },
     ];
 
+    // Nếu là tab Hàng demo (typeId === -4), di chuyển cột Model lên sau ProductName
+    if (typeId === -4) {
+      const modelColumnIndex = columns.findIndex(col => col.id === 'Model');
+      const productNameIndex = columns.findIndex(col => col.id === 'ProductName');
+
+      if (modelColumnIndex !== -1 && productNameIndex !== -1) {
+        // Lấy cột Model ra khỏi vị trí hiện tại
+        const modelColumn = columns.splice(modelColumnIndex, 1)[0];
+        // Chèn cột Model vào ngay sau ProductName
+        columns.splice(productNameIndex + 1, 0, modelColumn);
+      }
+    }
+
     return columns;
   }
 
@@ -2268,6 +2344,12 @@ formatter: Formatters.date,
       enablePagination: false,
       enableHeaderMenu: false, // Disable default header dropdown menu
       autoCommitEdit: true,
+
+      // Footer row configuration
+      rowHeight: 30,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
     } as any; // Use 'as any' to bypass TypeScript error for custom properties
   }
 
@@ -2291,7 +2373,84 @@ formatter: Formatters.date,
     return metadata;
   }
 
+  /**
+   * Update footer row với count cho ProductName và sum cho Quantity, UnitPrice, TotalPrice
+   */
+  updateFooterRow(typeId: number): void {
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid || !angularGrid.slickGrid) return;
+
+    // Lấy dữ liệu đã lọc trên view thay vì toàn bộ dữ liệu
+    const items =
+      (angularGrid.dataView?.getFilteredItems?.() as any[]) ||
+      this.datasetsMap.get(typeId) ||
+      [];
+
+    // Lọc bỏ các group row, chỉ lấy data rows
+    const dataItems = (items || []).filter(
+      (item: any) => !item.__group && !item.__groupTotals
+    );
+
+    // Đếm số lượng sản phẩm (ProductName)
+    const productCount = dataItems.length;
+
+    // Tính tổng cho các cột số
+    const quantitySum = dataItems.reduce(
+      (sum, item) => sum + (Number(item.Quantity) || 0),
+      0
+    );
+    const unitPriceSum = dataItems.reduce(
+      (sum, item) => sum + (Number(item.UnitPrice) || 0),
+      0
+    );
+    const totalPriceSum = dataItems.reduce(
+      (sum, item) => sum + (Number(item.TotalPrice) || 0),
+      0
+    );
+
+    angularGrid.slickGrid.setFooterRowVisibility(true);
+
+    // Set footer values cho từng column
+    const columns = angularGrid.slickGrid.getColumns();
+    columns.forEach((col: any) => {
+      const footerCell = angularGrid.slickGrid.getFooterRowColumn(col.id);
+      if (!footerCell) return;
+
+      // Count cho cột ProductName (Tên sản phẩm)
+      if (col.id === 'ProductName') {
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${productCount}</b>`;
+      }
+      // Sum cho cột Quantity (Số lượng)
+      else if (col.id === 'Quantity') {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(quantitySum);
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+      }
+      // Sum cho cột UnitPrice (Đơn giá)
+      else if (col.id === 'UnitPrice') {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(unitPriceSum);
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+      }
+      // Sum cho cột TotalPrice (Thành tiền chưa VAT)
+      else if (col.id === 'TotalPrice') {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(totalPriceSum);
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+      } else {
+        footerCell.innerHTML = '';
+      }
+    });
+  }
+
   // Helper method to ensure checkbox selector is always enabled
+
   private ensureCheckboxSelector(angularGrid: AngularGridInstance | undefined, delay: number = 0): void {
     if (!angularGrid || !angularGrid.slickGrid) return;
 
@@ -2447,10 +2606,21 @@ formatter: Formatters.date,
 
       // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
       angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => this.applyDistinctFilters(), 100);
+        setTimeout(() => {
+          this.applyDistinctFilters();
+          this.updateFooterRow(typeId);
+        }, 100);
       });
     }
 
+    // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
+    if (angularGrid.slickGrid) {
+      angularGrid.slickGrid.onRendered.subscribe(() => {
+        setTimeout(() => {
+          this.updateFooterRow(typeId);
+        }, 50);
+      });
+    }
 
     // Resize grid after initialization và đảm bảo checkbox selector vẫn hiển thị
     setTimeout(() => {
@@ -2462,8 +2632,11 @@ formatter: Formatters.date,
       }
       // Apply distinct filters after grid is ready
       this.applyDistinctFilters();
+      // Update footer row
+      this.updateFooterRow(typeId);
     }, 100);
   }
+
 
   // Handler khi cell được click
   onCellClicked(typeId: number, e: Event, args: OnClickEventArgs): void {
@@ -2620,10 +2793,17 @@ formatter: Formatters.date,
 
     // Cập nhật giá trị mới vào item
     if (field && newValue !== undefined) {
-      // Xử lý đặc biệt cho SupplierSaleID: chuyển từ array (multiselect) sang giá trị đơn
-      if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
-        // Lấy giá trị đầu tiên từ array (vì chỉ cho phép chọn 1)
-        item[field] = newValue.length > 0 ? newValue[0] : null;
+      // Xử lý đặc biệt cho SupplierSaleID: autocompleter trả về object hoặc array
+      if (field === 'SupplierSaleID') {
+        if (Array.isArray(newValue)) {
+          // Từ multiselect - lấy giá trị đầu tiên
+          item[field] = newValue.length > 0 ? newValue[0] : null;
+        } else if (typeof newValue === 'object' && newValue !== null) {
+          // Từ autocompleter - lấy ID từ object
+          item[field] = newValue.ID || null;
+        } else {
+          item[field] = newValue;
+        }
       } else {
         item[field] = newValue;
       }
@@ -2661,9 +2841,15 @@ formatter: Formatters.date,
         if (!isAdmin && quoteEmployeeID !== currentEmployeeID) continue;
 
         // Fill giá trị vào dòng này
-        // Xử lý đặc biệt cho SupplierSaleID
-        if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
-          selectedItem[field] = newValue.length > 0 ? newValue[0] : null;
+        // Xử lý đặc biệt cho SupplierSaleID (autocompleter hoặc multiselect)
+        if (field === 'SupplierSaleID') {
+          if (Array.isArray(newValue)) {
+            selectedItem[field] = newValue.length > 0 ? newValue[0] : null;
+          } else if (typeof newValue === 'object' && newValue !== null) {
+            selectedItem[field] = newValue.ID || null;
+          } else {
+            selectedItem[field] = newValue;
+          }
         } else {
           selectedItem[field] = newValue;
         }
@@ -2957,7 +3143,7 @@ formatter: Formatters.date,
     // Đảm bảo data là array
     if (!Array.isArray(data)) {
       console.error('SaveDataCommon: data không phải là array', data);
-      this.notification.error('Thông báo', 'Dữ liệu không hợp lệ.');
+      this.notification.error('Thông báo', 'Data is not an Array');
       return;
     }
 
@@ -2995,7 +3181,7 @@ formatter: Formatters.date,
       },
       error: (error) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || 'Lỗi khi lưu dữ liệu.');
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
         // Swal.fire('Thông báo', 'Không thể lưu dữ liệu.', 'error');
       },
     });
@@ -3896,7 +4082,7 @@ formatter: Formatters.date,
           },
           error: (error) => {
             console.error('Error quoting price:', error);
-            this.notification.error('Lỗi', error?.error?.message || `Có lỗi xảy ra khi ${statusText}!`);
+            this.notification.error('Lỗi', error?.error?.message || error?.message);
           },
         });
       },
@@ -3989,7 +4175,7 @@ formatter: Formatters.date,
             console.error('Error checking price:', error);
             this.notification.error(
               'Lỗi',
-              error?.error?.message || `Có lỗi xảy ra khi ${isCheckText}!`
+              error?.error?.message || error?.message
             );
           },
         });
@@ -4124,7 +4310,7 @@ formatter: Formatters.date,
             }
           },
           error: (err: any) => {
-            const errorMsg = err?.error?.message || 'Có lỗi xảy ra';
+            const errorMsg = err?.error?.message || err?.message;
             const invalidProducts = err?.error?.invalidProducts;
             let fullMessage = errorMsg;
             if (invalidProducts && Array.isArray(invalidProducts) && invalidProducts.length > 0) {
@@ -4206,7 +4392,7 @@ formatter: Formatters.date,
         }
       },
       error: (err: any) => {
-        const errorMsg = err?.error?.message || 'Có lỗi xảy ra';
+        const errorMsg = err?.error?.message || err?.message;
         const invalidProducts = err?.error?.invalidProducts;
         let fullMessage = errorMsg;
         if (invalidProducts && Array.isArray(invalidProducts) && invalidProducts.length > 0) {
@@ -4441,6 +4627,7 @@ formatter: Formatters.date,
     }
 
     const products = (this.lastSelectedRowsForBuy || []).map((data: any) => ({
+      ID: Number(data['ID'] || 0),
       ProductCode: String(data['ProductCode'] || '').trim(),
       ProductName: String(data['ProductName'] || '').trim(),
       Quantity: Number(data['Quantity'] || 0),
@@ -4518,7 +4705,7 @@ formatter: Formatters.date,
       error: (err: any) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          err?.error?.message || 'Có lỗi xảy ra'
+          err?.error?.message || err?.message
         );
       },
     });
@@ -5122,11 +5309,11 @@ formatter: Formatters.date,
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(link.href);
-    } catch (error) {
+    } catch (error:any) {
       console.error(error);
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Đã xảy ra lỗi khi xuất Excel. Vui lòng thử lại sau.'
+        error?.error?.message || error?.message
       );
     }
   }

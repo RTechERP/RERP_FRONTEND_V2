@@ -7,7 +7,7 @@
   </div>
 
   <div class="modal-body pt-2 pb-0 p-2 w-100 position-relative" style="max-height: 80vh">
-    
+
     <!-- THÔNG TIN DỰ ÁN -->
     <fieldset class="reset m-0 mb-2">
       <legend class="reset fs-12 p-0 mb-2">THÔNG TIN DỰ ÁN</legend>
@@ -16,22 +16,17 @@
           <div nz-col [nzSpan]="8">
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Dự án <span class="text-danger fs-12">(*)</span></label>
-              <nz-form-control
-                [nzErrorTip]="
+              <nz-form-control [nzErrorTip]="
                   validateForm.get('projectId')?.invalid &&
                   (validateForm.get('projectId')?.dirty || validateForm.get('projectId')?.touched)
                     ? 'Vui lòng chọn dự án!'
                     : undefined
                 ">
-                <nz-select
-                  name="projectId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn dự án"
+                <nz-select name="projectId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
                   formControlName="projectId">
                   @for (item of projects; track $index) {
-                  <nz-option nzCustomContent="true" [nzLabel]="item.ProjectCode" [nzValue]="item.ID">
+                  <nz-option nzCustomContent="true" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
+                    [nzValue]="item.ID">
                     {{ item.ProjectCode + " - " + item.ProjectName }}
                   </nz-option>
                   }
@@ -44,17 +39,11 @@
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Khách hàng</label>
               <nz-form-control>
-                <nz-select
-                  name="customerId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn khách hàng"
-                  [ngModelOptions]="{ standalone: true }"
-                  [(ngModel)]="customerId"
-                  nzDisabled="">
+                <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng"
+                  [ngModelOptions]="{ standalone: true }" [(ngModel)]="customerId" nzDisabled="">
                   @for (item of customers; track $index) {
-                  <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName" [nzValue]="item.ID">
+                  <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName + ' - ' + item.CustomerCode"
+                    [nzValue]="item.ID">
                     {{ item.CustomerCode + " - " + item.CustomerName }}
                   </nz-option>
                   }
@@ -67,15 +56,8 @@
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">End User</label>
               <nz-form-control>
-                <nz-select
-                  name="endUserId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn end user"
-                  [ngModelOptions]="{ standalone: true }"
-                  [(ngModel)]="endUserId"
-                  nzDisabled="">
+                <nz-select name="endUserId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn end user"
+                  [ngModelOptions]="{ standalone: true }" [(ngModel)]="endUserId" nzDisabled="">
                   @for (item of customers; track $index) {
                   <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName" [nzValue]="item.ID">
                     {{ item.CustomerCode + " - " + item.CustomerName }}
@@ -92,15 +74,8 @@
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Sale</label>
               <nz-form-control>
-                <nz-select
-                  name="saleId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn Sale"
-                  [ngModelOptions]="{ standalone: true }"
-                  [(ngModel)]="saleId"
-                  nzDisabled="">
+                <nz-select name="saleId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn Sale"
+                  [ngModelOptions]="{ standalone: true }" [(ngModel)]="saleId" nzDisabled="">
                   @for (parent of employees; track $index) {
                   <nz-option-group [nzLabel]="parent.label">
                     @for (child of parent.options; track $index) {
@@ -119,15 +94,8 @@
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Kỹ thuật</label>
               <nz-form-control>
-                <nz-select
-                  name="technicalId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn kỹ thuật"
-                  [ngModelOptions]="{ standalone: true }"
-                  [(ngModel)]="technicalId"
-                  nzDisabled="">
+                <nz-select name="technicalId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn kỹ thuật"
+                  [ngModelOptions]="{ standalone: true }" [(ngModel)]="technicalId" nzDisabled="">
                   @for (parent of employees; track $index) {
                   <nz-option-group [nzLabel]="parent.label">
                     @for (child of parent.options; track $index) {
@@ -146,15 +114,8 @@
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">PM</label>
               <nz-form-control>
-                <nz-select
-                  name="pmId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn PM"
-                  [ngModelOptions]="{ standalone: true }"
-                  [(ngModel)]="pmId"
-                  nzDisabled="">
+                <nz-select name="pmId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn PM"
+                  [ngModelOptions]="{ standalone: true }" [(ngModel)]="pmId" nzDisabled="">
                   @for (parent of employees; track $index) {
                   <nz-option-group [nzLabel]="parent.label">
                     @for (child of parent.options; track $index) {
@@ -173,15 +134,8 @@
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Trạng thái</label>
               <nz-form-control>
-                <nz-select
-                  name="statusId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn trạng thái"
-                  [ngModelOptions]="{ standalone: true }"
-                  [(ngModel)]="statusId"
-                  nzDisabled="">
+                <nz-select name="statusId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái"
+                  [ngModelOptions]="{ standalone: true }" [(ngModel)]="statusId" nzDisabled="">
                   @for (item of statuses; track $index) {
                   <nz-option nzCustomContent="true" [nzLabel]="item.StatusName" [nzValue]="item.ID">
                     {{ item.StatusName }}
@@ -199,24 +153,18 @@
     <fieldset class="reset m-0">
       <legend class="reset fs-12 p-0 mb-2">THÔNG TIN KHẢO SÁT</legend>
       <form nz-form nzLayout="vertical" [formGroup]="validateForm">
-        
+
         <nz-row [nzGutter]="8">
           <div nz-col [nzSpan]="6">
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Người yêu cầu</label>
-              <nz-select
-                name="userRequestId"
-                class="w-100"
-                nzShowSearch
-                nzAllowClear
-                nzPlaceHolder="Chọn người yêu cầu"
-                [ngModelOptions]="{ standalone: true }"
-                [(ngModel)]="userRequestId"
-                [nzDisabled]="isAdmin">
+              <nz-select name="userRequestId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người yêu cầu"
+                [ngModelOptions]="{ standalone: true }" [(ngModel)]="userRequestId" [nzDisabled]="isAdmin">
                 @for (parent of employees; track $index) {
                 <nz-option-group [nzLabel]="parent.label">
                   @for (child of parent.options; track $index) {
-                  <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName" [nzValue]="child.item.ID">
+                  <nz-option nzCustomContent="true" [nzLabel]="child.item.Code + ' - ' + child.item.FullName"
+                    [nzValue]="child.item.ID">
                     {{ child.item.Code + " - " + child.item.FullName }}
                   </nz-option>
                   }
@@ -231,24 +179,19 @@
               <label class="fs-12 p-0">
                 Leader <span *ngIf="validateForm.get('isUrgent')?.value" class="text-danger">(*)</span>
               </label>
-              <nz-form-control
-                [nzErrorTip]="
+              <nz-form-control [nzErrorTip]="
                   validateForm.get('leaderId')?.invalid &&
                   (validateForm.get('leaderId')?.dirty || validateForm.get('leaderId')?.touched)
                     ? 'Vui lòng chọn leader!'
                     : undefined
                 ">
-                <nz-select
-                  name="leaderId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn leader"
+                <nz-select name="leaderId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn leader"
                   formControlName="leaderId">
                   @for (parent of employees; track $index) {
                   <nz-option-group [nzLabel]="parent.label">
                     @for (child of parent.options; track $index) {
-                    <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName" [nzValue]="child.item.ID">
+                    <nz-option nzCustomContent="true" [nzLabel]="child.item.Code + ' - ' + child.item.FullName"
+                      [nzValue]="child.item.ID">
                       {{ child.item.Code + " - " + child.item.FullName }}
                     </nz-option>
                     }
@@ -262,11 +205,7 @@
           <div nz-col [nzSpan]="6">
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Từ ngày</label>
-              <nz-date-picker
-                name="dateStart"
-                class="w-100"
-                nzFormat="dd/MM/yyyy"
-                nzAllowClear="false"
+              <nz-date-picker name="dateStart" class="w-100" nzFormat="dd/MM/yyyy" nzAllowClear="false"
                 formControlName="dateStart">
               </nz-date-picker>
             </nz-form-item>
@@ -275,11 +214,7 @@
           <div nz-col [nzSpan]="6">
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Tới ngày</label>
-              <nz-date-picker
-                name="dateEnd"
-                class="w-100"
-                nzFormat="dd/MM/yyyy"
-                nzAllowClear="false"
+              <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" nzAllowClear="false"
                 formControlName="dateEnd">
               </nz-date-picker>
             </nz-form-item>
@@ -292,18 +227,13 @@
               <label class="fs-12 p-0">
                 Tên khách hàng <span class="text-danger">(*)</span>
               </label>
-              <nz-form-control
-                [nzErrorTip]="
+              <nz-form-control [nzErrorTip]="
                   validateForm.get('customerName')?.invalid &&
                   (validateForm.get('customerName')?.dirty || validateForm.get('customerName')?.touched)
                     ? 'Vui lòng nhập tên khách hàng!'
                     : undefined
                 ">
-                <input
-                  name="customerName"
-                  nz-input
-                  placeholder="Nhập tên khách hàng"
-                  formControlName="customerName" />
+                <input name="customerName" nz-input placeholder="Nhập tên khách hàng" formControlName="customerName" />
               </nz-form-control>
             </nz-form-item>
           </div>
@@ -313,8 +243,7 @@
               <label class="fs-12 p-0">
                 SĐT khách hàng <span class="text-danger">(*)</span>
               </label>
-              <nz-form-control
-                [nzErrorTip]="
+              <nz-form-control [nzErrorTip]="
                   validateForm.get('customerPhoneNum')?.invalid &&
                   (validateForm.get('customerPhoneNum')?.dirty || validateForm.get('customerPhoneNum')?.touched)
                     ? (validateForm.get('customerPhoneNum')?.errors?.['required'] 
@@ -324,12 +253,8 @@
                         : 'Số điện thoại không hợp lệ!')
                     : undefined
                 ">
-                <input
-                  name="customerPhoneNum"
-                  nz-input
-                  placeholder="Nhập SĐT (VD: 0912345678 hoặc +84 963 706 996)"
-                  formControlName="customerPhoneNum"
-                  maxlength="20" />
+                <input name="customerPhoneNum" nz-input placeholder="Nhập SĐT (VD: 0912345678 hoặc +84 963 706 996)"
+                  formControlName="customerPhoneNum" maxlength="20" />
               </nz-form-control>
             </nz-form-item>
           </div>
@@ -342,18 +267,13 @@
                 </label>
                 <span *ngIf="validateForm.get('isUrgent')?.value" class="text-danger ms-2">- Lý do (*)</span>
               </label>
-              <nz-form-control
-                [nzErrorTip]="
+              <nz-form-control [nzErrorTip]="
                   validateForm.get('reasonUrgent')?.invalid &&
                   (validateForm.get('reasonUrgent')?.dirty || validateForm.get('reasonUrgent')?.touched)
                     ? 'Vui lòng nhập lý do gấp!'
                     : undefined
                 ">
-                <input
-                  name="reasonUrgent"
-                  nz-input
-                  placeholder="Nhập lý do gấp"
-                  formControlName="reasonUrgent" />
+                <input name="reasonUrgent" nz-input placeholder="Nhập lý do gấp" formControlName="reasonUrgent" />
               </nz-form-control>
             </nz-form-item>
           </div>
@@ -365,19 +285,13 @@
               <label class="fs-12 p-0">
                 Địa chỉ <span class="text-danger">(*)</span>
               </label>
-              <nz-form-control
-                [nzErrorTip]="
+              <nz-form-control [nzErrorTip]="
                   validateForm.get('address')?.invalid &&
                   (validateForm.get('address')?.dirty || validateForm.get('address')?.touched)
                     ? 'Vui lòng nhập địa chỉ!'
                     : undefined
                 ">
-                <textarea
-                  name="address"
-                  rows="2"
-                  nz-input
-                  placeholder="Nhập địa chỉ"
-                  formControlName="address">
+                <textarea name="address" rows="2" nz-input placeholder="Nhập địa chỉ" formControlName="address">
                 </textarea>
               </nz-form-control>
             </nz-form-item>
@@ -388,19 +302,13 @@
               <label class="fs-12 p-0">
                 Mô tả dự án <span class="text-danger">(*)</span>
               </label>
-              <nz-form-control
-                [nzErrorTip]="
+              <nz-form-control [nzErrorTip]="
                   validateForm.get('descripsion')?.invalid &&
                   (validateForm.get('descripsion')?.dirty || validateForm.get('descripsion')?.touched)
                     ? 'Vui lòng nhập mô tả!'
                     : undefined
                 ">
-                <textarea
-                  name="descripsion"
-                  rows="2"
-                  nz-input
-                  placeholder="Nhập mô tả"
-                  formControlName="descripsion">
+                <textarea name="descripsion" rows="2" nz-input placeholder="Nhập mô tả" formControlName="descripsion">
                 </textarea>
               </nz-form-control>
             </nz-form-item>
@@ -412,12 +320,7 @@
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Ghi chú</label>
               <nz-form-control>
-                <textarea
-                  name="note"
-                  rows="13"
-                  nz-input
-                  placeholder="Nhập ghi chú"
-                  formControlName="note">
+                <textarea name="note" rows="13" nz-input placeholder="Nhập ghi chú" formControlName="note">
                 </textarea>
               </nz-form-control>
             </nz-form-item>
@@ -425,7 +328,7 @@
 
           <div nz-col [nzSpan]="12">
             <nz-form-item class="m-0">
-              <label class="fs-12 p-0">Tệp đính kèm 
+              <label class="fs-12 p-0">Tệp đính kèm
                 <!-- <nz-upload
                 [(nzFileList)]="fileList"
                 [nzBeforeUpload]="beforeUpload"
@@ -436,15 +339,15 @@
                   Chọn file
                 </button>
               </nz-upload> -->
-            </label>
+              </label>
               <nz-form-control>
-              <div class="border mt-1" style="height: 60px !important; overflow-y: auto" #tb_projectSurveyFile></div>
-            </nz-form-control>
-          </nz-form-item>
+                <div class="border mt-1" style="height: 60px !important; overflow-y: auto" #tb_projectSurveyFile></div>
+              </nz-form-control>
+            </nz-form-item>
           </div>
         </nz-row>
       </form>
-    
+
     </fieldset>
     <nz-row [nzGutter]="8" class="mt-2">
       <div nz-col [nzSpan]="24">
@@ -460,7 +363,7 @@
       <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
         Đóng
       </button>
-      <button nz-button nzType="primary" *ngIf="canEdit && !isDisSave" (click)="save()">
+      <button nz-button nzType="primary" *ngIf="canEdit && isDisSave" (click)="save()">
         Lưu
       </button>
     </div>

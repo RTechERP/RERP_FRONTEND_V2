@@ -9,26 +9,30 @@ import { environment } from '../../../../../environments/environment';
 export class TeamServiceService {
   private apiUrl = environment.host + 'api/'; //'https://localhost:7187/api/';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getTeams(departmentID: number): Observable<any> {
     return this.http.get(this.apiUrl + 'Team/department/' + departmentID);
   }
 
+  getTeamByDepartmentId(departmentID: number): Observable<any> {
+    return this.http.get(this.apiUrl + 'team/get-team-by-department-id?departmentID=' + departmentID);
+  }
+
   getUserTeam(teamID: number, departmentID: number): Observable<any> {
     return this.http.get(
       this.apiUrl +
-        'Team/user-team?teamID=' +
-        teamID +
-        '&departmentID=' +
-        departmentID
+      'Team/user-team?teamID=' +
+      teamID +
+      '&departmentID=' +
+      departmentID
     );
   }
 
   getEmployees(): Observable<any> {
     return this.http.get(this.apiUrl + 'Employee');
   }
-  
+
   getProjectTypes(): Observable<any> {
     return this.http.get(this.apiUrl + 'ProjectType');
   }
@@ -56,10 +60,10 @@ export class TeamServiceService {
   ): Observable<any> {
     return this.http.get(
       this.apiUrl +
-        'Team/employee-by-department?departmentID=' +
-        departmentID +
-        '&userTeamID=' +
-        userTeamID
+      'Team/employee-by-department?departmentID=' +
+      departmentID +
+      '&userTeamID=' +
+      userTeamID
     );
   }
 }

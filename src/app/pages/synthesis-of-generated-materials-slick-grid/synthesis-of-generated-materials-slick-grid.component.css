@@ -30,7 +30,7 @@
     height: 100% !important;
   }
   ::ng-deep #grid-container-synthesis-materials {
-    height: 86vh !important; /* Subtract header row height */
+    height: 84vh !important; /* Subtract header row height */
   }
 
   /* Fix for SlickGrid container height */
@@ -41,4 +41,19 @@
   /* Hide time picker in date filters */
 ::ng-deep .vc-time {
   display: none !important;
+}
+.grid-container {
+  height: 100%;
+  width: 100%;
+}
+
+angular-slickgrid,
+.grvSynthesisMaterials{
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
 }

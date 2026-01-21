@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, Optional } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule } from '@angular/common';
@@ -33,6 +33,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
+import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 
 @Component({
     selector: 'app-history-borrow-sale-new',
@@ -64,7 +65,8 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         private notification: NzNotificationService,
         private modalService: NgbModal,
         private billExportService: BillExportService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     cbbStatus: any = [
@@ -107,8 +109,19 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
 
     ngOnInit(): void {
         this.route.queryParams.subscribe(params => {
-            this.warehouseCode = params['warehouseCode'] || 'HN';
-            this.warehouseID = params['warehouseID'] || 0;
+            // this.warehouseCode = params['warehouseCode'] || 'HN';
+            // this.warehouseID = params['warehouseID'] || 0;
+
+            this.warehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
+
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
             this.searchParams.warehouseCode = this.warehouseCode;
             this.searchParams.warehouseID = this.warehouseID;
         });
@@ -355,7 +368,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
-                 formatter: (_row, _cell, value, _column, dataContext) => {
+                formatter: (_row, _cell, value, _column, dataContext) => {
                     if (!value) return '';
                     return `
                         <span
@@ -519,7 +532,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
 
         this.gridOptions = {
             autoResize: {
-                container: '.grid-container',
+                container: '.grid-container' + this.warehouseCode,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -906,7 +919,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             return;
         }
 
-        const modalRef = this.modalService.open(BillExportDetailComponent, {
+        const modalRef = this.modalService.open(BillExportDetailNewComponent, {
             backdrop: 'static',
             keyboard: false,
             windowClass: 'full-screen-modal',

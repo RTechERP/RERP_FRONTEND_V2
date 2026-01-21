@@ -111,7 +111,8 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   showProjectStatusModal: boolean = false;
   projectStatusForm!: FormGroup;
   isSavingProjectStatus: boolean = false;
-  
+  isSaving: boolean = false;
+
   users: any[] = [];
   projects: any[] = [];
   customers: any[] = [];
@@ -172,7 +173,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     // Kiểm tra quyền admin và set userId
     this.isAdmin = this.appUserService.isAdmin;
     this.isUserIdDisabled = !this.isAdmin;
-    
+
     // Nếu không phải admin, set userId của user hiện tại và disable dropdown
     if (!this.isAdmin) {
       const currentUserId = this.appUserService.id;
@@ -233,7 +234,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
         if (response.status === 1 && response.data) {
           const data = response.data;
           console.log("Data sửa:", data);
-          
+
           // Set projectStatusOld
           this.projectStatusOld = data.ProjectStatusBaseID || 0;
 
@@ -468,7 +469,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       contactId: null,
       partId: null
     });
-    
+
     if (customerId) {
       this.loadCustomerContacts(customerId);
       this.loadCustomerParts(customerId);
@@ -701,18 +702,18 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
         next: (response) => {
           if (response.status === 1 && response.data) {
             const project = response.data;
-            
+
             // Set customerId từ project
             this.dailyReportSaleForm.patchValue({
               customerId: project.CustomerID || null
             });
-            
+
             // Set projectStatusId và projectStatusOld
             this.projectStatusOld = project.ProjectStatus || 0;
             this.dailyReportSaleForm.patchValue({
               projectStatusId: this.projectStatusOld
             });
-            
+
             // Load ProductCustomer sau khi set các giá trị
             this.loadProductCustomer();
           }
@@ -733,19 +734,19 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     }
 
     const projectId = this.dailyReportSaleForm.get('projectId')?.value;
-    
+
     // nếu projectStatus mới giống với projectStatusOld hoặc projectStatus <= 0 hoặc projectId <= 0 thì ẩn modal
     if (!projectId || projectId <= 0 || !projectStatusId || projectStatusId <= 0) {
       this.showDateStatusLogModal = false;
       return;
     }
-    
+
     // Nếu projectStatus mới giống với projectStatusOld thì ẩn modal
     if (this.projectStatusOld === projectStatusId) {
       this.showDateStatusLogModal = false;
       return;
     }
-    
+
     // Nếu projectStatus thay đổi so với projectStatusOld thì hiển thị modal
     if (this.projectStatusOld > 0 && this.projectStatusOld !== projectStatusId) {
       this.showDateStatusLogModal = true;
@@ -773,7 +774,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     // Lấy giá trị từ form, nếu control bị disable thì dùng getRawValue()
     const formValue = this.dailyReportSaleForm.getRawValue();
     const employeeId = this.appUserService.employeeID || 0;
-    
+
     const formatDate = (date: any): string => {
       if (!date) return '';
       if (date instanceof Date) {
@@ -889,14 +890,15 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
 
   saveAndClose() {
     this.isSubmitted = true;
-    
+
     if (!this.validateForm()) {
       return;
     }
 
     if (this.dailyReportSaleForm.valid) {
+      this.isSaving = true;
       const dto = this.getFormData();
-      
+
       this.dailyReportSaleService.save(dto).subscribe({
         next: (response) => {
           if (response.status === 1) {
@@ -904,11 +906,13 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
             this.activeModal.close({ success: true, reloadData: true });
           } else {
             this.notification.error('Lỗi', response.message || 'Không thể lưu dữ liệu');
+            this.isSaving = false;
           }
         },
         error: (error) => {
           console.error('Error saving daily report sale:', error);
           this.notification.error('Lỗi', error.error?.message || 'Lỗi kết nối khi lưu dữ liệu');
+          this.isSaving = false;
         }
       });
     } else {

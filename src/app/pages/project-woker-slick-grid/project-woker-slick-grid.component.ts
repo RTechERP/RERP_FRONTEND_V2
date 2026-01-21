@@ -16,6 +16,7 @@ import {
   Formatters,
   MultipleSelectOption,
   AngularSlickgridModule,
+  SortDirectionNumber,
 } from 'angular-slickgrid';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
@@ -343,6 +344,31 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   }
 
   initProjectWorkerGrid(): void {
+    // Helper: natural sorting for hierarchy strings (1.1.1, 1.1.10, etc.)
+    const naturalSortComparer = (value1: any, value2: any, sortDirection?: SortDirectionNumber) => {
+      const a = String(value1 || '');
+      const b = String(value2 || '');
+
+      if (a === b) return 0;
+
+      const aParts = a.split('.');
+      const bParts = b.split('.');
+      const maxLength = Math.max(aParts.length, bParts.length);
+
+      // Xác định hướng sort: 1 = tăng dần, -1 = giảm dần
+      const direction = sortDirection || 1;
+
+      for (let i = 0; i < maxLength; i++) {
+        const aPart = parseInt(aParts[i] || '0', 10);
+        const bPart = parseInt(bParts[i] || '0', 10);
+
+        if (aPart < bPart) return -1 * direction;
+        if (aPart > bPart) return 1 * direction;
+      }
+
+      return 0;
+    };
+
     const moneyFormatter = (row: number, cell: number, value: any) => {
       if (value == null || value === '') return '';
       return Number(value).toLocaleString('vi-VN');
@@ -350,8 +376,9 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
 
     this.projectWorkerColumns = [
       {
-        id: 'TT', field: 'TT', name: 'TT', width: 150, formatter: Formatters.tree,
-        sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
+        id: 'TT', field: 'TT', name: 'TT', width: 60, formatter: Formatters.tree,
+        sortable: true, filterable: true,
+        sortComparer: naturalSortComparer
       },
       {
         id: 'IsApprovedTBPText', field: 'IsApprovedTBPText', name: 'TBP duyệt', width: 90,
@@ -362,16 +389,21 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
           collection: [{ value: 'Đã duyệt', label: 'Đã duyệt' }, { value: 'Chưa duyệt', label: 'Chưa duyệt' }],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
-      },
-      {
-        id: 'WorkContent', field: 'WorkContent', name: 'Nội dung công việc', width: 500,
-        filterable: true, filter: { model: Filters['compoundInputText'], },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
             <span
-              title="${dataContext.WorkContent}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${dataContext.IsApprovedTBPText}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -379,28 +411,34 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
-        id: 'AmountPeople', field: 'AmountPeople', name: 'Số người', width: 70,
+        id: 'WorkContent', field: 'WorkContent', name: 'Nội dung công việc', width: 500,
+        filterable: true,
+        cssClass: 'cell-wrap',
+        formatter: (_row, _cell, value) => {
+          if (!value) return '';
+          return `<div class="wrap-text">${value}</div>`;
+        },
+      },
+      {
+        id: 'AmountPeople', field: 'AmountPeople', name: 'Số người', width: 50,
         cssClass: 'text-center',
         filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
+
         formatter: (row, cell, value, col, dataContext) => dataContext.__hasChildren ? '' : (value ?? ''),
       },
       {
-        id: 'NumberOfDay', field: 'NumberOfDay', name: 'Số ngày', width: 70,
+        id: 'NumberOfDay', field: 'NumberOfDay', name: 'Số ngày', width: 50,
         cssClass: 'text-center',
         filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
         formatter: (row, cell, value, col, dataContext) => dataContext.__hasChildren ? '' : (value ?? ''),
       },
       {
-        id: 'TotalWorkforce', field: 'TotalWorkforce', name: 'Tổng nhân công', width: 110,
+        id: 'TotalWorkforce', field: 'TotalWorkforce', name: 'Tổng nhân công', width: 70,
         cssClass: 'text-right', formatter: moneyFormatter,
         filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'Price', field: 'Price', name: 'Đơn giá', width: 100,
@@ -410,13 +448,11 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
           return value ? Number(value).toLocaleString('vi-VN') : '';
         },
         filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'TotalPrice', field: 'TotalPrice', name: 'Thành tiền',
         cssClass: 'text-right', formatter: moneyFormatter,
         filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
         resizable: true,   // tự động fill độ rộng khi resize màn hình
       },
     ];
@@ -427,6 +463,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       autoResize: {
         container: '.grid-project-worker-container',
         calculateAvailableSizeBy: 'container',
+        rightPadding: 0,
       },
       //end
       gridWidth: '100%',
@@ -441,12 +478,16 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       enableFiltering: true,
       showHeaderRow: true,
       headerRowHeight: 35,
-      rowHeight: 35,
+      rowHeight: 40,
       enablePagination: false,
       autoFitColumnsOnFirstLoad: true,
       enableAutoSizeColumns: true,
-      forceFitColumns: false,   // tự động fill độ rộng khi resize màn hình
+      forceFitColumns: false,
+      fullWidthRows: true,
+      syncColumnCellResize: true,
+      //explicitInitialization: false,
       enableTreeData: true,
+      explicitInitialization: true,
       treeDataOptions: {
         columnId: 'TT',
         parentPropName: 'ParentID',
@@ -954,6 +995,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
           setTimeout(() => {
             this.applyRowStyling();
             this.updateFooterTotals();
+            this.angularGridProjectWorker?.resizerService?.resizeGrid();
             this.stopLoading();
           }, 100);
         } else {
@@ -1128,7 +1170,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Nhân công');
 
-    const headers = ['TT', 'TBP duyệt', 'Nội dung công việc', 'Số người', 'Số ngày', 'Tổng nhân công', 'Đơn giá', 'Thành tiền'];
+    const headers = ['TT', 'Nội dung công việc', 'Số người', 'Số ngày', 'Tổng nhân công', 'Đơn giá', 'Thành tiền'];
     const headerRow = worksheet.addRow(headers);
     headerRow.font = { bold: true, color: { argb: 'FFFFFF' } };
     headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD700' } };
@@ -1137,7 +1179,6 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
     const addNodeToSheet = (node: any, level: number = 0) => {
       const row = worksheet.addRow([
         '  '.repeat(level * 2) + (node.TT || ''),
-        node.IsApprovedTBPText || '',
         node.WorkContent || '',
         node._children?.length > 0 ? '' : node.AmountPeople,
         node._children?.length > 0 ? '' : node.NumberOfDay,
@@ -1146,7 +1187,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         node.TotalPrice,
       ]);
 
-      [5, 6, 7, 8].forEach((idx) => {
+      [4, 5, 6, 7].forEach((idx) => {
         const cell = row.getCell(idx);
         if (cell.value) {
           cell.numFmt = '#,##0';
@@ -1591,22 +1632,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   }
   //#endregion
 
-  //#region Panel Controls
-  closeLeftPanel(): void {
-    this.sizeLeftPanel = '0';
-    this.sizeRightPanel = '100%';
-  }
 
-  toggleLeftPanel(): void {
-    if (this.sizeLeftPanel === '0') {
-      this.sizeLeftPanel = '';
-      this.sizeRightPanel = '';
-    } else {
-      this.sizeLeftPanel = '0';
-      this.sizeRightPanel = '100%';
-    }
-  }
-  //#endregion
   private applyDistinctFilters(): void {
     const fieldsToFilter = [
       'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
@@ -1679,4 +1705,39 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       }
     });
   }
+
+  // Handler khi user kéo resize splitter thủ công
+  onSplitterResizeEnd(sizes: number[]): void {
+    console.log('[SPLITTER] Resize ended, panel sizes:', sizes);
+    this.resizeWorkerGrid();
+  }
+
+  // #region Panel Toggle
+  closeLeftPanel(): void {
+    this.sizeLeftPanel = '0';
+    this.sizeRightPanel = '100%';
+    this.resizeWorkerGrid();
+  }
+
+  toggleLeftPanel(): void {
+    if (this.sizeLeftPanel === '0') {
+      this.sizeLeftPanel = '25%';
+      this.sizeRightPanel = '75%';
+    } else {
+      this.sizeLeftPanel = '0';
+      this.sizeRightPanel = '100%';
+    }
+    this.resizeWorkerGrid();
+  }
+
+  private resizeWorkerGrid(): void {
+    // Give time for panel animation to complete, then resize grid
+    setTimeout(() => {
+      if (this.angularGridProjectWorker?.slickGrid) {
+        this.angularGridProjectWorker.slickGrid.autosizeColumns();
+        this.angularGridProjectWorker.resizerService?.resizeGrid();
+      }
+    }, 300);
+  }
+  // #endregion
 }

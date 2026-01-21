@@ -33,27 +33,6 @@
                 </div>
 
                 <div class="col-md-4">
-                  <label class="mb-1 fs-12">Khách hàng <span class="text-danger">*</span>
-                    <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
-                      (click)="openCustomerModal()" title="Thêm khách hàng">
-                      <i class="fas fa-plus"></i>
-                    </button>
-                  </label>
-                  <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
-                    nzSize="default" class="w-100" [(ngModel)]="selectedCustomer" required
-                    #customerId="ngModel" (ngModelChange)="onCustomerChange($event)">
-                    <nz-option *ngFor="let customer of dataCustomers" [nzValue]="customer"
-                      [nzLabel]="customer.CustomerShortName + ' - ' + customer.CustomerName">
-                    </nz-option>
-                  </nz-select>
-                  <small class="text-danger d-block"
-                    *ngIf="(customerId.invalid && customerId.touched) || (isSubmitted && (!selectedCustomer || !selectedCustomer.ID || selectedCustomer.ID === 0))">
-                    Vui lòng chọn khách hàng
-                  </small>
-                </div>
-
-                <!-- Row 2 -->
-                <div class="col-md-4">
                   <label class="mb-1 fs-12">Sales phụ trách</label>
                   <nz-select nzShowSearch name="userId" [(ngModel)]="poFormData.userId"
                     nzPlaceHolder="Chọn người phụ trách" nzAllowClear nzSize="default" class="w-100">
@@ -63,6 +42,27 @@
                       </nz-option>
                     </nz-option-group>
                   </nz-select>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="col-md-4">
+                  <label class="mb-1 fs-12">Khách hàng <span class="text-danger">*</span>
+                    <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
+                      (click)="openCustomerModal()" title="Thêm khách hàng">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </label>
+                  <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
+                    nzSize="default" class="w-100" [(ngModel)]="selectedCustomer" required #customerId="ngModel"
+                    (ngModelChange)="onCustomerChange($event)">
+                    <nz-option *ngFor="let customer of dataCustomers" [nzValue]="customer"
+                      [nzLabel]="customer.CustomerShortName + ' - ' + customer.CustomerName">
+                    </nz-option>
+                  </nz-select>
+                  <small class="text-danger d-block"
+                    *ngIf="(customerId.invalid && customerId.touched) || (isSubmitted && (!selectedCustomer || !selectedCustomer.ID || selectedCustomer.ID === 0))">
+                    Vui lòng chọn khách hàng
+                  </small>
                 </div>
 
                 <div class="col-md-4">
@@ -82,7 +82,8 @@
                 <!-- Row 3 -->
                 <div class="col-md-4">
                   <label class="mb-1 fs-12">Dự án <span class="text-danger">*</span>
-                    <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm dự án">
+                    <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm dự án"
+                      (click)="openProjectDetailModal()">
                       <i class="fas fa-plus"></i>
                     </button>
                   </label>

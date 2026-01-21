@@ -129,7 +129,8 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         private RequestInvoiceDetailService: RequestInvoiceDetailService,
         private menuEventService: MenuEventService,
         private requestInvoiceStatusLinkService: RequestInvoiceStatusLinkService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     data: any[] = [];
@@ -159,7 +160,11 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.warehouseId = params['warehouseId'] || 0;
+            // this.warehouseId = params['warehouseId'] || 0;
+            this.warehouseId =
+                params['warehouseId']
+                ?? this.tabData?.warehouseId
+                ?? 0;
         });
         // Set startDate to first day and endDate to last day of current month
         const now = new Date();

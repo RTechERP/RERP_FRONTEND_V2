@@ -54,6 +54,7 @@ import { MaterialDetailOfProductRtcComponent } from '../../material-detail-of-pr
 import { BillExportTechnicalFormComponent } from '../../../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 import { ID_ADMIN_DEMO_LIST } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { environment } from '../../../../../../environments/environment';
 
 @Component({
     selector: 'app-borrow-product-history',
@@ -136,8 +137,8 @@ export class BorrowProductHistoryComponent implements OnInit {
         //   this.warehouseID = this.tabData.warehouseID;
         //   this.warehouseType = this.tabData.warehouseType;
         // }
-        this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1
+        this.route.queryParams.subscribe((params) => {
+            this.warehouseID = params['warehouseID'] || 1;
             this.warehouseType = params['warehouseType'] || 1;
         });
 
@@ -306,7 +307,10 @@ export class BorrowProductHistoryComponent implements OnInit {
 
                     // Validate và filter các ID hợp lệ trước khi gọi API
                     const validateAndProcess = async () => {
-                        const validItems: Array<{ id: number; modulaLocationDetailID: number }> = [];
+                        const validItems: Array<{
+                            id: number;
+                            modulaLocationDetailID: number;
+                        }> = [];
 
                         // Validate từng item trước
                         for (const id of arrIds) {
@@ -328,7 +332,8 @@ export class BorrowProductHistoryComponent implements OnInit {
 
                                 const model = historyRes.data;
                                 const status = model.Status || 0;
-                                const modulaLocationDetailID = model.ModulaLocationDetailID || 0;
+                                const modulaLocationDetailID =
+                                    model.ModulaLocationDetailID || 0;
                                 const statusPerson = model.StatusPerson || 0;
 
                                 // Check if Status is 1, 4, or 7
@@ -351,27 +356,23 @@ export class BorrowProductHistoryComponent implements OnInit {
                                         );
                                         return; // Stop processing on validation error, matching C# behavior
                                     }
-                                }else {
-                                    // Non-admin 
+                                } else {
+                                    // Non-admin
                                     // Check condition: modulaLocationDetailID > 0 && StatusPerson <= 0
-                                    if(model.PeopleID > 0 && model.PeopleID!==employeeID){
+                                    if (model.PeopleID > 0 && model.PeopleID !== employeeID) {
                                         this.notification.error(
                                             'Thông báo',
                                             'Bạn không có quyền trả sản phẩm này!'
                                         );
-                                        return; 
+                                        return;
                                     }
-                                    if (
-                                        modulaLocationDetailID > 0 &&
-                                        statusPerson <= 0
-                                    ) {
+                                    if (modulaLocationDetailID > 0 && statusPerson <= 0) {
                                         this.notification.error(
                                             'Thông báo',
                                             'Bạn chưa hoàn thành thao tác trả hàng.\nBạn không thể trả!'
                                         );
-                                        return; 
+                                        return;
                                     }
-
                                 }
 
                                 // Nếu pass validation thì thêm vào danh sách để gọi API
@@ -383,7 +384,10 @@ export class BorrowProductHistoryComponent implements OnInit {
 
                         // Nếu không có ID nào hợp lệ thì return
                         if (validItems.length === 0) {
-                            this.notification.warning('Thông báo', 'Không có sản phẩm nào hợp lệ để trả!');
+                            this.notification.warning(
+                                'Thông báo',
+                                'Không có sản phẩm nào hợp lệ để trả!'
+                            );
                             return;
                         }
 
@@ -398,7 +402,8 @@ export class BorrowProductHistoryComponent implements OnInit {
                             )
                                 .then(() => ({ id: item.id, success: true, message: null }))
                                 .catch((error) => {
-                                    const message = error?.error?.message || 'Lỗi không xác định!';
+                                    const message =
+                                        error?.error?.message || 'Lỗi không xác định!';
                                     return { id: item.id, success: false, message };
                                 })
                         );
@@ -541,8 +546,13 @@ export class BorrowProductHistoryComponent implements OnInit {
                         const productCode =
                             rowData?.ProductCodeRTC || rowData?.ProductCode || 'N/A';
 
+                        const modulaLocationDetailID = rowData?.ModulaLocationDetailID || 0;
                         return firstValueFrom(
-                            this.borrowService.postApproveBorrowingRTC(id, isAdminAll)
+                            this.borrowService.postApproveBorrowingRTC(
+                                id,
+                                modulaLocationDetailID,
+                                isAdminAll
+                            )
                         )
                             .then(() => ({
                                 id,
@@ -724,14 +734,12 @@ export class BorrowProductHistoryComponent implements OnInit {
                     field: 'ProductName',
                     hozAlign: 'left',
                     headerHozAlign: 'center',
-
                 },
                 {
                     title: 'Mã nội bộ',
                     field: 'ProductCodeRTC',
                     hozAlign: 'left',
                     headerHozAlign: 'center',
-
                 },
                 {
                     title: 'Mã sản phẩm',
@@ -1110,18 +1118,18 @@ export class BorrowProductHistoryComponent implements OnInit {
             id ?? Array.from(this.selectedArrHistoryProductID).at(-1) ?? 0;
 
         // Refresh khi modal đóng và có thay đổi
-        modalRef.result.then(
-            (result) => {
+        modalRef.result
+            .then((result) => {
                 if (result === true) {
                     // Reload data sau khi save
                     this.drawTbProductHistory(
                         this.tb_productHistoryContainer.nativeElement
                     );
                 }
-            }
-        ).catch(() => {
-            // Modal dismissed, không làm gì
-        });
+            })
+            .catch(() => {
+                // Modal dismissed, không làm gì
+            });
     }
     productHistoryDetail() {
         const modalRef = this.modalService.open(
@@ -1339,7 +1347,7 @@ export class BorrowProductHistoryComponent implements OnInit {
         });
 
         window.open(
-            `/material-detail-of-product-rtc?${params.toString()}`,
+            `${environment.baseHref}/material-detail-of-product-rtc?${params.toString()}`,
             '_blank',
             'width=1200,height=800,scrollbars=yes,resizable=yes'
         );

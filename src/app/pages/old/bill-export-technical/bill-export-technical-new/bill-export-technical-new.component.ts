@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import {
     Component,
@@ -8,6 +9,8 @@ import {
     ChangeDetectorRef,
     OnDestroy,
     inject,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -34,9 +37,10 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 // @ts-ignore
 import { saveAs } from 'file-saver';
+import { ClipboardService } from '../../../../services/clipboard.service';
 
 @Component({
-  selector: 'app-bill-export-technical-new',
+    selector: 'app-bill-export-technical-new',
     standalone: true,
     imports: [
         CommonModule,
@@ -55,8 +59,8 @@ import { saveAs } from 'file-saver';
         HasPermissionDirective,
         NgbModalModule,
     ],
-  templateUrl: './bill-export-technical-new.component.html',
-  styleUrls: ['./bill-export-technical-new.component.css']
+    templateUrl: './bill-export-technical-new.component.html',
+    styleUrls: ['./bill-export-technical-new.component.css']
 })
 export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, OnDestroy {
     // AngularSlickGrid for master table
@@ -99,13 +103,25 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
         private billExportTechnicalService: BillExportTechnicalService,
         private appUserService: AppUserService,
         private route: ActivatedRoute,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private ClipboardService: ClipboardService,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
-  ngOnInit() {
+    ngOnInit() {
         this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1;
-            this.warehouseType = params['warehouseType'] || 1;
+            // this.warehouseID = params['warehouseID'] || 1;
+            // this.warehouseType = params['warehouseType'] || 1;
+
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
         });
 
         // Khởi tạo giá trị mặc định cho các filter
@@ -399,6 +415,20 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
             enableAutoSizeColumns: false,
             frozenColumn: 1,
             enableHeaderMenu: false,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.ClipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
         };
     }
 
@@ -498,7 +528,7 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
             enableHeaderMenu: false,
-            forceFitColumns:true,
+            forceFitColumns: true,
         };
     }
 

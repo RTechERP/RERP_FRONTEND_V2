@@ -163,7 +163,8 @@
                                             <angular-slickgrid gridId="jobRequirementFileGrid"
                                                 [columns]="columnDefinitionsFile" [options]="gridOptionsFile"
                                                 [dataset]="datasetFile"
-                                                (onAngularGridCreated)="angularGridFileReady($event.detail)">
+                                                (onAngularGridCreated)="angularGridFileReady($event.detail)"
+                                                (onDblClick)="onFileGridDblClick($event.detail.eventData, $event.detail.args)">
                                             </angular-slickgrid>
                                         </div>
                                     </nz-splitter-panel>

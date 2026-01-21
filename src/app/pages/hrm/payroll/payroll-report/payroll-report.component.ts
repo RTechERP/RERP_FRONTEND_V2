@@ -116,6 +116,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
         this.getEmployee();
         this.getDepartment();
 
+        console.log('ngOnInit:,', this.payrollId);
 
     }
 
@@ -187,7 +188,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                     if (res.status === 1) {
 
                         this.totalWorkday = res.data.totalWorkday;
-                        this.payrollId = res.data.payrollId;
+                        // this.payrollId = res.data.payrollId;
                         this.drawTbEmployeePayrollReport(this.tb_payrollReportContainer.nativeElement);
                         this.tb_payrollReport.on("tableBuilt", () => {
                             this.tb_payrollReport.setData(res.data.data);
@@ -400,6 +401,8 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
             return;
         }
 
+        console.log('this.payrollId:', this.payrollId);
+
         const modalRef = this.modalService.open(ImportExcelComponent, {
             centered: true,
             backdrop: 'static',
@@ -488,7 +491,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                     },
                                 },
                                 {
-                                    title: "Công bố", field: "IsPublish", width: 40, hozAlign: "center", headerHozAlign: "center",
+                                    title: "CÔNG BỐ", field: "IsPublish", width: 40, hozAlign: "center", headerHozAlign: "center",
                                     headerSort: false,
                                     headerWordWrap: true,
                                     formatter: function (cell) {
@@ -500,7 +503,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
 
                                 },
                                 {
-                                    title: "Ký nhận", field: "Sign", width: 40, headerHozAlign: "center", hozAlign: "center",
+                                    title: "KÝ NHẬN", field: "Sign", width: 40, headerHozAlign: "center", hozAlign: "center",
                                     headerSort: false,
                                     headerWordWrap: true,
                                     formatter: function (cell) {
@@ -511,13 +514,13 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                     }
                                 },
                                 { title: "STT", field: "STT", width: 58, hozAlign: "center", headerHozAlign: "center", headerWordWrap: true, },
-                                { title: "Công ty", field: "TaxCompanyName", width: 60, hozAlign: "center", headerHozAlign: "center", headerWordWrap: true, },
-                                { title: "Mã NV", field: "Code", width: 100, headerHozAlign: "center" },
-                                { title: "Họ tên", field: "FullName", width: 120, headerHozAlign: "center", formatter: 'textarea', headerWordWrap: true, },
-                                { title: "Chức vụ", field: "PositionName", width: 120, headerHozAlign: "center", formatter: 'textarea' },
-                                { title: "Trạng thái hợp đồng", field: "StatusContract", width: 100, headerHozAlign: "center", formatter: 'textarea' },
+                                { title: "CÔNG TY", field: "TaxCompanyName", width: 60, hozAlign: "center", headerHozAlign: "center", headerWordWrap: true, },
+                                { title: "MÃ NV", field: "Code", width: 100, headerHozAlign: "center" },
+                                { title: "HỌ VÀ TÊN", field: "FullName", width: 120, headerHozAlign: "center", formatter: 'textarea', headerWordWrap: true, },
+                                { title: "CHỨC VỤ", field: "PositionName", width: 120, headerHozAlign: "center", formatter: 'textarea' },
+                                { title: "TRẠNG THÁI HỢP ĐỒNG", field: "StatusContract", width: 100, headerHozAlign: "center", formatter: 'textarea' },
                                 {
-                                    title: "Ngày vào", field: "StartWorking", width: 120, headerHozAlign: "center", hozAlign: "center",
+                                    title: "NGÀY VÀO", field: "StartWorking", width: 120, headerHozAlign: "center", hozAlign: "center",
                                     formatter: function (cell) {
                                         const raw = cell.getValue();
                                         if (!raw) return "";
@@ -529,14 +532,14 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                     }
                                 },
                                 {
-                                    title: "LƯƠNG CƠ BẢN",
+                                    title: "THU NHẬP TIÊU CHUẨN",
                                     headerHozAlign: "center",
                                     columns: [
                                         {
-                                            title: "Lương thực lĩnh", hozAlign: "right", headerHozAlign: "center",
+                                            title: "Thu nhập thực lĩnh", hozAlign: "right", headerHozAlign: "center",
                                             columns: [
                                                 {
-                                                    title: "Lương cơ bản tham chiếu", field: "BasicSalary", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                    title: "Thu nhập tiêu chuẩn tham chiếu", field: "BasicSalary", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                     formatterParams: {
                                                         decimal: ".",
                                                         thousand: ",",
@@ -548,7 +551,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                 },
                                                 { title: "Công", hozAlign: "right", field: "TotalMerit", headerHozAlign: "center", bottomCalcFormatter: "money", bottomCalc: "sum" },
                                                 {
-                                                    title: "Lương", hozAlign: "right", field: "TotalSalaryByDay", headerHozAlign: "center", formatter: "money",
+                                                    title: "Thành tiền", hozAlign: "right", field: "TotalSalaryByDay", headerHozAlign: "center", formatter: "money",
                                                     formatterParams: {
                                                         decimal: ".",
                                                         thousand: ",",
@@ -557,7 +560,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                     bottomCalcFormatter: "money", bottomCalc: "sum"
                                                 },
                                                 {
-                                                    title: "Đơn giá tiền công/giờ", field: "SalaryOneHour", width: 150, hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                    title: "Đơn giá/giờ", field: "SalaryOneHour", width: 150, hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                     headerWordWrap: true,
                                                     formatterParams: {
                                                         decimal: ".",
@@ -583,7 +586,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                             headerHozAlign: "center",
                             columns: [
                                 {
-                                    title: "Làm thêm",
+                                    title: "LÀM THÊM",
                                     headerHozAlign: "center",
                                     columns: [
                                         {
@@ -646,15 +649,15 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                     ]
                                 },
                                 {
-                                    title: "Phụ cấp",
+                                    title: "PHỤ CẤP",
                                     headerHozAlign: "center",
                                     columns: [
                                         {
-                                            title: "PCCC", hozAlign: "right", headerHozAlign: "center",
+                                            title: "PC chuyên cần", hozAlign: "right", headerHozAlign: "center",
                                             columns:
                                                 [
                                                     {
-                                                        title: "Phụ cấp chuyên cần tham chiếu", field: "ReferenceIndustry", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "PCCC tham chiếu", field: "ReferenceIndustry", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -663,7 +666,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
-                                                        title: "Phụ cấp chuyên cần thực lĩnh", field: "RealIndustry", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "PCCC thực lĩnh", field: "RealIndustry", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -678,7 +681,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                             columns:
                                                 [
                                                     {
-                                                        title: "PC ăn cơm", field: "AllowanceMeal", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "PC cơm ca sau 20H/ theo loại CT", field: "AllowanceMeal", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -687,7 +690,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
-                                                        title: "PC đi làm trước 7h15", field: "Allowance_OT_Early", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "PC đi làm trước 7H15", field: "Allowance_OT_Early", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -710,7 +713,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                     ]
                                 },
                                 {
-                                    title: "Các khoản cộng khác",
+                                    title: "CÁC KHOẢN CỘNG KHÁC",
                                     headerHozAlign: "center",
                                     columns: [
                                         {
@@ -718,7 +721,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                             columns:
                                                 [
                                                     {
-                                                        title: "Tiền công tác phí", field: "BussinessMoney", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "Công tác phí", field: "BussinessMoney", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -727,7 +730,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
-                                                        title: "Tiền công làm đêm", field: "NightShiftMoney", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "Làm đêm", field: "NightShiftMoney", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -745,7 +748,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
-                                                        title: "Thưởng KPIs / doanh số", field: "Bonus", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "Thưởng KPIs/Doanh số", field: "Bonus", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -778,7 +781,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                     ]
                                 },
                                 {
-                                    title: "Tổng thu nhập", field: "RealSalary", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                    title: "TỔNG THU NHẬP TÍNH THUẾ", field: "RealSalary", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                     formatterParams: {
                                         decimal: ".",
                                         thousand: ",",
@@ -787,7 +790,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                     bottomCalcFormatter: "money", bottomCalc: "sum"
                                 },
                                 {
-                                    title: "Các khoản phải trừ",
+                                    title: "CÁC KHOẢN PHẢI TRỪ",
                                     headerHozAlign: "center",
                                     columns: [
                                         {
@@ -855,7 +858,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
-                                                        title: "Phạt 5s", field: "Punish5S", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "5s", field: "Punish5S", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -864,7 +867,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
-                                                        title: "Cơm ca đã ăn tại cty", field: "MealUse", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "Cơm ca tại văn phòng", field: "MealUse", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -873,7 +876,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
-                                                        title: "Tạm giữ", field: "OtherDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "Khác", field: "OtherDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -882,7 +885,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
-                                                        title: "Tổng cộng các khoản phải trừ", field: "TotalDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "Tổng các khoản phải trừ", field: "TotalDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",
@@ -893,99 +896,102 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                 ]
                                         },
 
-                                        {
-                                            title: "THUẾ THU NHẬP CÁ NHÂN", hozAlign: "right", headerHozAlign: "center",
-                                            columns:
-                                                [
 
-                                                    {
-                                                        title: "Lương BHXH (10.5%)", field: "Insurances", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-
-                                                    {
-                                                        title: "Lương làm thêm", field: "TaxSalaryOT", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                    {
-                                                        title: "Lương làm thêm", field: "TaxSalaryMeal", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                    {
-                                                        title: "PC cơm ca", field: "TaxSalaryMeal", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                    {
-                                                        title: "PC điện thoại", field: "TaxSalaryPhone", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                    {
-                                                        title: "Giảm trừ bản thân", field: "TaxPersonalDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                    {
-                                                        title: "Giảm trừ người phụ thuộc", field: "TaxDependentsDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                    {
-                                                        title: "Thu nhập tính thuế", field: "TaxAbleIncome", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                    {
-                                                        title: "Khấu trừ Thuế TNCN ", field: "TaxDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                ]
-                                        },
                                     ]
                                 },
+
                                 {
-                                    title: "Thực lĩnh", field: "ActualAmountReceived", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                    title: "THUẾ THU NHẬP CÁ NHÂN", hozAlign: "right", headerHozAlign: "center",
+                                    columns:
+                                        [
+
+                                            {
+                                                title: "Lương BHXH (10.5%)", field: "Insurances", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                formatterParams: {
+                                                    decimal: ".",
+                                                    thousand: ",",
+                                                    precision: false
+                                                },
+                                                bottomCalcFormatter: "money", bottomCalc: "sum"
+                                            },
+
+                                            {
+                                                title: "Làm thêm + làm đêm", field: "TaxSalaryOT", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                formatterParams: {
+                                                    decimal: ".",
+                                                    thousand: ",",
+                                                    precision: false
+                                                },
+                                                bottomCalcFormatter: "money", bottomCalc: "sum"
+                                            },
+
+                                            {
+                                                title: "PC cơm ca", field: "TaxSalaryMeal", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                formatterParams: {
+                                                    decimal: ".",
+                                                    thousand: ",",
+                                                    precision: false
+                                                },
+                                                bottomCalcFormatter: "money", bottomCalc: "sum"
+                                            },
+                                            {
+                                                title: "Phụ cấp điện thoại", field: "TaxSalaryPhone", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                formatterParams: {
+                                                    decimal: ".",
+                                                    thousand: ",",
+                                                    precision: false
+                                                },
+                                                bottomCalcFormatter: "money", bottomCalc: "sum"
+                                            },
+                                            {
+                                                title: "Giảm trừ bản thân", field: "TaxPersonalDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                formatterParams: {
+                                                    decimal: ".",
+                                                    thousand: ",",
+                                                    precision: false
+                                                },
+                                                bottomCalcFormatter: "money", bottomCalc: "sum"
+                                            },
+                                            {
+                                                title: "Giảm trừ người phụ thuộc", field: "TaxDependentsDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                formatterParams: {
+                                                    decimal: ".",
+                                                    thousand: ",",
+                                                    precision: false
+                                                },
+                                                bottomCalcFormatter: "money", bottomCalc: "sum"
+                                            },
+                                            {
+                                                title: "Tổng các khoản giảm trừ thuế TNCN", field: "TotalTaxDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                formatterParams: {
+                                                    decimal: ".",
+                                                    thousand: ",",
+                                                    precision: false
+                                                },
+                                                bottomCalcFormatter: "money", bottomCalc: "sum"
+                                            },
+                                            {
+                                                title: "Thu nhập tính thuế", field: "TaxAbleIncome", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                formatterParams: {
+                                                    decimal: ".",
+                                                    thousand: ",",
+                                                    precision: false
+                                                },
+                                                bottomCalcFormatter: "money", bottomCalc: "sum"
+                                            },
+                                            {
+                                                title: "Khấu trừ Thuế TNCN ", field: "TaxDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                formatterParams: {
+                                                    decimal: ".",
+                                                    thousand: ",",
+                                                    precision: false
+                                                },
+                                                bottomCalcFormatter: "money", bottomCalc: "sum"
+                                            },
+                                        ]
+                                },
+                                {
+                                    title: "THỰC LĨNH", field: "ActualAmountReceived", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                     formatterParams: {
                                         decimal: ".",
                                         thousand: ",",
@@ -993,7 +999,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                     },
                                     bottomCalcFormatter: "money", bottomCalc: "sum"
                                 },
-                                { title: "Ghi chú", field: "Note", hozAlign: "right", headerHozAlign: "center" },
+                                { title: "GHI CHÚ", field: "Note", hozAlign: "right", headerHozAlign: "center" },
                             ]
                         }
                     ]

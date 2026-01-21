@@ -67,7 +67,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   statuses: any[] = [];
 
   unitData: any[] = [];
-  
+
   // Autocomplete suggestions
   productNameSuggestions: string[] = [];
   makerSuggestions: string[] = [];
@@ -81,11 +81,12 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   currentIsApprovedTBP: boolean = false; // Lưu trữ giá trị IsApprovedTBP hiện tại
   currentPartListId: number = 0; // Lưu trữ ID của partlist đang edit
   hasDataChanged: boolean = false; // Flag để track xem có thay đổi dữ liệu hay không (mã đặc biệt)
-  
+  isParentNode: boolean = false; // Flag xác định đây là node cha (không có ProductCode) - không cần validate mã TB, hãng SX, đơn vị
+
   diffDataIsFix: any = {};
   // Regex pattern cho TT
   private regexTT = /^\d+(\.\d+)*$/;
-  
+
   constructor(
     public activeModal: NgbActiveModal,
     private fb: FormBuilder,
@@ -148,6 +149,9 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     this.formGroup.get('maker')?.valueChanges.subscribe((value: string) => {
       this.makerOptions = this.getMakerOptions(value || '');
     });
+
+    // Không cần auto-detect isParentNode nữa
+    // isParentNode được xác định từ data.__hasChildren khi loadSelectedData
 
     // Listen to isProblem checkbox changes để update qtyMin/qtyFull state
     this.formGroup.get('isProblem')?.valueChanges.subscribe((isProblem: boolean) => {
@@ -217,7 +221,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     if (this.projectId > 0) {
       this.formGroup.patchValue({ projectId: this.projectId });
     }
-    
+
     // Load versions nếu đã có projectSolutionId và versionPOID
     if (this.projectSolutionId > 0) {
       // Load versions sẽ được gọi trong loadInitialData
@@ -241,8 +245,8 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       error: (error: any) => {
         console.error('Error loading current user:', error);
       }
-      })
-  } 
+    })
+  }
   loadInitialData(): void {
     this.getProjects();
     this.getCurrencies();
@@ -263,16 +267,16 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     } else {
       // Thêm mới - enable button Save
       this.isDisabled = false;
-      
+
       if (this.projectId > 0) {
         // Nếu không có selectedData nhưng có projectId, set projectId vào form
         this.formGroup.patchValue({ projectId: this.projectId });
-        
+
         // Load versions nếu có projectSolutionId
         if (this.projectSolutionId > 0) {
           this.loadVersions(this.projectSolutionId);
         }
-        
+
         // Set versionId nếu có versionPOID
         if (this.versionPOID > 0) {
           this.formGroup.patchValue({ versionId: this.versionPOID });
@@ -285,7 +289,12 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     console.log("data", data);
     // Lưu ID của partlist đang edit
     this.currentPartListId = data.ID || 0;
-    
+
+    // Xác định node cha hay node con dựa vào __hasChildren
+    // Node cha: có __hasChildren = true - KHÔNG validate productCode/maker/unit
+    // Node con: không có __hasChildren hoặc = false - VALIDATE đầy đủ
+    this.isParentNode = !!(data.__hasChildren === true);
+
     this.formGroup.patchValue({
       projectId: this.projectId || null, // mã dự án
       versionId: this.versionPOID || null, // mã phiên bản
@@ -294,50 +303,48 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       maker: data.Maker || '', // nhà sản xuất
       qtyFull: data.Qty || 0, // số lượng
       qtyMin: data.QtyMin || 0, // số lượng tối thiểu
-      tt: data.TT || null, 
+      tt: data.TT || null,
       specialCode: data.SpecialCode || '', // mã đặc biệt
       isDeleted: data.IsDeleted || false, // trạng thái xóa
       technicalInfo: data.Model || '', // thông tin kỹ thuật
       unit: data.Unit || '', // đơn vị
       employeeId: data.EmployeeID || null, // mã nhân viên
-      isProblem: data.IsProblem || false, // trạng thái vấn đề
+      isProblem: data.IsProblem || false, // có vấn đề
       reasonProblem: data.ReasonProblem || '', // lý do vấn đề
       note: data.Note || '', // ghi chú
-      // Tab 2: Thông tin báo giá
-      supplierQuoteId: data.SupplierSaleID || null, // nhà cung cấp
-      ncc: data.NCC || '', // tên nhà cung cấp (báo giá)
-      unitPriceQuote: data.Price || 0, // đơn giá
-      totalPriceQuote: data.Amount || 0, // thành tiền
-      currencyQuote: data.UnitMoney || null, // loại tiền
-      leadTimeQuote: data.LeadTime || "", // thời gian giao hàng
-      // Tab 3: Thông tin đặt mua
-      billCodePurchase: data.OrderCode || '', // mã đơn hàng
-      supplierPurchaseId: data.SupplierSaleID || null, // nhà cung cấp
-      nccFinal: data.NCCFinal || '', // tên nhà cung cấp (đặt mua)
-      unitPricePurchase: data.PriceOrder || "", // đơn giá
-      totalPricePurchase: data.TotalPriceOrder || 0, // thành tiền
-      currencyPurchase: data.UnitMoney || null, // loại tiền
-      leadTimePurchase: data.LeadTime || "", // thời gian giao hàng
-      requestDate: data.RequestDate || null, // ngày yêu cầu
-      expectedDateReturn: data.ExpectedReturnDateDate || null, // ngày dự kiến trả hàng
-      startPurchaseDate: data.OrderDate || null, // ngày bắt đầu đặt hàng
-      receiveDate: data.RequestDate || null, // ngày nhận hàng
-      // quantityReturn: data.QuantityReturn || 0, // số lượng trả hàng
-      statusId: data.Status || null, // trạng thái
-      quality: data.Quality || '' // chất lượng
+
+      // Thông tin báo giá
+      supplierQuoteId: data.SupplierQuoteID || null,
+      ncc: data.Supplier || '',
+      unitPriceQuote: data.UnitPriceQuote || 0,
+      totalPriceQuote: data.TotalPriceQuote || 0,
+      currencyQuote: data.CurrencyIDQuote || null,
+      leadTimeQuote: data.LeadTimeQuote || '',
+
+      // Thông tin đặt mua
+      billCodePurchase: data.BillCode || '',
+      supplierPurchaseId: data.SupplierPurchaseID || null,
+      nccFinal: data.SupplierFinal || '',
+      unitPricePurchase: data.UnitPrice || 0,
+      totalPricePurchase: data.TotalPrice || 0,
+      currencyPurchase: data.CurrencyID || null,
+      leadTimePurchase: data.LeadTime || '',
+      requestDate: data.RequestDate ? new Date(data.RequestDate) : null,
+      expectedDateReturn: data.ExpectedDateReturn ? new Date(data.ExpectedDateReturn) : null,
+      startPurchaseDate: data.StartPurchaseDate ? new Date(data.StartPurchaseDate) : null,
+      receiveDate: data.ReceiveDate ? new Date(data.ReceiveDate) : null,
+      quantityReturn: data.QuantityReturn || 0,
+      statusId: data.StatusID || null,
+      quality: data.Quality || ''
     });
 
-    // Load versions based on projectSolutionId
-    if (this.projectSolutionId > 0) {
-      this.loadVersions(this.projectSolutionId);
-    }
+    // Cập nhật validators dựa trên loại node
+    this.updateValidatorsBasedOnNodeType();
 
-    // Lưu trữ giá trị IsApprovedTBP để dùng khi isProblem thay đổi
-    this.currentIsApprovedTBP = data.IsApprovedTBP === true || data.IsApprovedTBP === 1;
-
-    // Logic enable/disable qtyMin and qtyFull theo WinForm
+    // Cập nhật trạng thái của các trường qty
+    this.currentIsApprovedTBP = data.IsApprovedTBP || false;
     this.updateQtyFieldsState(data.IsProblem || false, this.currentIsApprovedTBP);
-    
+
     // Logic disable button Save theo WinForm: !(IsApprovedTBP == true || IsApprovedTBPNewCode == true)
     const isApprovedTBP = data.IsApprovedTBP === true || data.IsApprovedTBP === 1;
     const isApprovedTBPNewCode = data.IsApprovedTBPNewCode === true || data.IsApprovedTBPNewCode === 1;
@@ -345,10 +352,10 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     const IsCheckPrice = data.IsCheckPrice === true || data.IsCheckPrice === 1 || data.IsCheckPrice === '1';
     const StatusRequest = data.StatusRequest;
     const StatusPriceRequest = data.StatusPriceRequest;
-    
+
     // Reset disable reason
     this.disableReason = '';
-    
+
     // Kiểm tra các điều kiện disable và set message tương ứng
     if (isApprovedTBP) {
       this.isDisabled = true;
@@ -367,7 +374,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       this.disableMainReason = '';
       this.disableReason = '';
     }
-    
+
     // Hiển thị thông báo nếu vật tư không thể sửa
     if (this.isDisabled && this.disableMainReason) {
       setTimeout(() => {
@@ -375,7 +382,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
         const message = `Vật tư không thể sửa vì ${this.disableMainReason}.`;
         const note = 'Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt';
         const htmlMessage = `${message}<br/><span style="font-size: 0.75rem; color: #666; display: block; margin-top: 4px;">${note}</span>`;
-        
+
         // Tạo notification với HTML content (ng-zorro hỗ trợ HTML trong message)
         this.notification.warning(NOTIFICATION_TITLE.warning, htmlMessage);
       }, 300);
@@ -385,7 +392,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   // Method để update state của qtyMin và qtyFull
   updateQtyFieldsState(isProblem: boolean, isApprovedTBP: boolean): void {
     const isAdmin = this.currentUser?.IsAdmin || false;
-    
+
     // Logic theo WinForm:
     // 1. Nếu isProblem == true && !IsAdmin → Enable
     // 2. Nếu isApprovedTBP == true && !IsAdmin → Disable
@@ -400,6 +407,30 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       this.formGroup.get('qtyMin')?.enable();
       this.formGroup.get('qtyFull')?.enable();
     }
+  }
+
+  // Method để update validators dựa trên loại node (cha/con)
+  updateValidatorsBasedOnNodeType(): void {
+    const productCodeControl = this.formGroup.get('productCode');
+    const makerControl = this.formGroup.get('maker');
+    const unitControl = this.formGroup.get('unit');
+
+    if (this.isParentNode) {
+      // Node cha: Xóa validators cho productCode, maker, unit
+      productCodeControl?.clearValidators();
+      makerControl?.clearValidators();
+      unitControl?.clearValidators();
+    } else {
+      // Node con: Thêm validators required
+      productCodeControl?.setValidators([Validators.required]);
+      makerControl?.setValidators([Validators.required]);
+      unitControl?.setValidators([Validators.required]);
+    }
+
+    // Update validity để form nhận biết thay đổi
+    productCodeControl?.updateValueAndValidity({ emitEvent: false });
+    makerControl?.updateValueAndValidity({ emitEvent: false });
+    unitControl?.updateValueAndValidity({ emitEvent: false });
   }
 
   getProjects(): void {
@@ -429,7 +460,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
         } else {
           this.versions = [];
         }
-        
+
         // Set default version if versionPOID provided
         if (this.versionPOID > 0) {
           this.formGroup.patchValue({ versionId: this.versionPOID });
@@ -499,6 +530,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   }
 
   getUnitCount(): void {
+    debugger;
     this.projectPartListService.getUnitCount().subscribe({
       next: (response: any) => {
         // Handle response structure - check if it's wrapped in data property
@@ -544,7 +576,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
           this.productNameSuggestions = [];
           this.makerSuggestions = [];
         }
-        
+
         // Initialize options with current form values
         const currentProductName = this.formGroup.get('productName')?.value || '';
         const currentMaker = this.formGroup.get('maker')?.value || '';
@@ -679,8 +711,24 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
 
   validateForm(): boolean {
     if (this.currentTab === 0) {
+      const formValue = this.formGroup.getRawValue();
+
+      // Sử dụng this.isParentNode đã được set từ __hasChildren
+      // KHÔNG check lại productCode ở đây
+      const isParentNode = this.isParentNode;
+
       // Validate tab 1
-      const requiredFields = ['projectId', 'versionId', 'tt', 'productCode', 'unit', 'maker'];
+      // Node cha: Chỉ cần projectId, versionId, tt
+      // Node con: Cần thêm productCode, unit, maker
+      let requiredFields: string[];
+      if (isParentNode) {
+        // Node cha - không cần mã thiết bị, hãng sx, đơn vị
+        requiredFields = ['projectId', 'versionId', 'tt'];
+      } else {
+        // Node con - cần đầy đủ
+        requiredFields = ['projectId', 'versionId', 'tt', 'productCode', 'unit', 'maker'];
+      }
+
       const invalidFields = requiredFields.filter(key => {
         const control = this.formGroup.get(key);
         return !control || control.invalid || control.value === null || control.value === '';
@@ -688,53 +736,58 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
 
       if (invalidFields.length > 0) {
         this.formGroup.markAllAsTouched();
-        
+
         // Kiểm tra lỗi cụ thể cho TT
         const ttControl = this.formGroup.get('tt');
         if (ttControl?.errors?.['ttPattern']) {
           this.notification.warning(NOTIFICATION_TITLE.warning, 'TT phải có định dạng số (ví dụ: 1, 1.1, 1.1.1, ...)!');
           return false;
         }
-        
-        // Kiểm tra lỗi cho Unit
-        const unitControl = this.formGroup.get('unit');
-        if (unitControl?.errors?.['required']) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Đơn vị không được để trống!');
-          return false;
+
+        // Chỉ kiểm tra lỗi cho Unit và Maker nếu là node con
+        if (!isParentNode) {
+          // Kiểm tra lỗi cho Unit
+          const unitControl = this.formGroup.get('unit');
+          if (unitControl?.errors?.['required']) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Đơn vị không được để trống!');
+            return false;
+          }
+
+          // Kiểm tra lỗi cho Maker
+          const makerControl = this.formGroup.get('maker');
+          if (makerControl?.errors?.['required']) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Hãng sản xuất không được để trống!');
+            return false;
+          }
         }
-        
-        // Kiểm tra lỗi cho Maker
-        const makerControl = this.formGroup.get('maker');
-        if (makerControl?.errors?.['required']) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Hãng sản xuất không được để trống!');
-          return false;
-        }
-        
+
         this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ các trường bắt buộc!');
         return false;
       }
 
-      // Validate qtyMin và qtyFull - chỉ validate nếu không có giá trị hoặc < 0
-      const qtyMinControl = this.formGroup.get('qtyMin');
-      const qtyFullControl = this.formGroup.get('qtyFull');
-      
-      if (qtyMinControl?.invalid) {
-        this.formGroup.markAllAsTouched();
-        if (qtyMinControl.errors?.['min']) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng/1 máy phải lớn hơn hoặc bằng 0!');
-          return false;
+      // Validate qtyMin và qtyFull - chỉ validate cho node con (có dữ liệu)
+      if (!isParentNode) {
+        const qtyMinControl = this.formGroup.get('qtyMin');
+        const qtyFullControl = this.formGroup.get('qtyFull');
+
+        if (qtyMinControl?.invalid) {
+          this.formGroup.markAllAsTouched();
+          if (qtyMinControl.errors?.['min']) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng/1 máy phải lớn hơn hoặc bằng 0!');
+            return false;
+          }
         }
-      }
-      
-      if (qtyFullControl?.invalid) {
-        this.formGroup.markAllAsTouched();
-        if (qtyFullControl.errors?.['required']) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng tổng không được để trống!');
-          return false;
-        }
-        if (qtyFullControl.errors?.['min']) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng tổng phải lớn hơn hoặc bằng 0!');
-          return false;
+
+        if (qtyFullControl?.invalid) {
+          this.formGroup.markAllAsTouched();
+          if (qtyFullControl.errors?.['required']) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng tổng không được để trống!');
+            return false;
+          }
+          if (qtyFullControl.errors?.['min']) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng tổng phải lớn hơn hoặc bằng 0!');
+            return false;
+          }
         }
       }
     }
@@ -758,7 +811,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
 
     // Prepare data to save - Map từ form sang model ProjectPartList
     const formValue = this.formGroup.getRawValue();
-    
+
     // Map dữ liệu theo model ProjectPartList
     const dataToSave: any = {
       // ID - nếu đang edit thì có ID, thêm mới thì = 0
@@ -808,13 +861,21 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   }
 
   // Hàm thực hiện lưu dữ liệu
+  // isLeaf = true: Node lá (có ProductCode) - validate đầy đủ
+  // isLeaf = false: Node cha - bỏ qua một số validate
   executeSave(dataToSave: any, overrideFix: boolean = false, isConfirm: boolean = false): void {
-    if(isConfirm){
+    if (isConfirm) {
       dataToSave.GroupMaterial = this.diffDataIsFix.ProductName || "";
-      dataToSave.Manufacturer = this.diffDataIsFix.Maker ||  "";
+      dataToSave.Manufacturer = this.diffDataIsFix.Maker || "";
       dataToSave.Unit = this.diffDataIsFix.Unit || "";
     }
-    this.projectPartListService.saveProjectPartListData(dataToSave, overrideFix).subscribe({
+
+    // Xác định isLeaf: Node lá là node có ProductCode (không phải node cha)
+    // Node cha thường không có ProductCode hoặc ProductCode rỗng
+    const isLeaf = !!(dataToSave.ProductCode && dataToSave.ProductCode.trim() !== '');
+
+    // Sử dụng updateProjectPartList thay vì saveProjectPartListData
+    this.projectPartListService.updateProjectPartList(dataToSave, overrideFix, isLeaf).subscribe({
       next: (response: any) => {
         // Kiểm tra nếu có lỗi ValidateFixProduct (status = 0 hoặc success = false)
         if (response.status === 0 || response.success === false) {

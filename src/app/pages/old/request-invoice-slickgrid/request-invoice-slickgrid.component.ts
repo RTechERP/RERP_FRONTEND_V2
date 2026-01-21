@@ -151,7 +151,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         private RequestInvoiceDetailService: RequestInvoiceDetailService,
         private menuEventService: MenuEventService,
         private requestInvoiceStatusLinkService: RequestInvoiceStatusLinkService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     data: any[] = [];
@@ -250,7 +251,11 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     ngOnInit(): void {
         this.initMenuBar();
         this.route.queryParams.subscribe(params => {
-            this.warehouseId = params['warehouseId'] || 0;
+            // this.warehouseId = params['warehouseId'] || 0;
+            this.warehouseId =
+                params['warehouseId']
+                ?? this.tabData?.warehouseId
+                ?? 0;
         });
         const now = new Date();
         const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -476,11 +481,41 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
             frozenColumn: 3,
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 30,
         };
     }
 
     angularGridReadyDetail(angularGrid: AngularGridInstance): void {
         this.angularGridDetail = angularGrid;
+
+        setTimeout(() => {
+            this.updateFooterRow();
+        }, 100);
+    }
+
+    updateFooterRow(): void {
+        if (!this.angularGridDetail || !this.angularGridDetail.slickGrid) return;
+
+        const items = this.angularGridDetail.dataView.getItems();
+        const totalQuantity = items.reduce((sum: number, item: any) => {
+            return sum + (Number(item.Quantity) || 0);
+        }, 0);
+
+        this.angularGridDetail.slickGrid.setFooterRowVisibility(true);
+
+        const columns = this.angularGridDetail.slickGrid.getColumns();
+        columns.forEach((col: any) => {
+            const footerCell = this.angularGridDetail.slickGrid.getFooterRowColumn(col.id);
+            if (!footerCell) return;
+
+            if (col.id === 'Quantity') {
+                footerCell.innerHTML = `<b>${totalQuantity.toLocaleString('en-US')}</b>`;
+            } else {
+                footerCell.innerHTML = '';
+            }
+        });
     }
 
     onDetailRowClick(e: any, args: any): void {
@@ -743,6 +778,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     // Apply distinct filters after data is loaded
                     setTimeout(() => {
                         this.applyDistinctFiltersToGrid(this.angularGridDetail, this.columnDefinitionsDetail, ['Unit', 'CompanyText']);
+                        this.updateFooterRow();
                     }, 500);
 
                     // Auto select first row and load POFile

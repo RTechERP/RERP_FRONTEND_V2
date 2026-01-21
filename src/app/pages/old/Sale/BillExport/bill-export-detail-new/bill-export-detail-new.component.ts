@@ -986,13 +986,16 @@ export class BillExportDetailNewComponent
           const found = this.projectGridCollection.find(
             (x: any) => x.value === Number(value)
           );
-          return found?.label ?? '';
+          return found?.ProjectName ?? '';
         },
         editor: {
           model: Editors['singleSelect'],
           collectionOptions: { addBlankEntry: true },
           collection: this.projectGridCollection,
-          editorOptions: { filter: true } as MultipleSelectOption,
+          editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+
         },
       },
       {
@@ -1319,7 +1322,7 @@ export class BillExportDetailNewComponent
 
       if (selectedProject) {
         args.item.ProjectCodeExport = selectedProject.ProjectCode || '';
-        args.item.ProjectNameText = selectedProject.label || '';
+        args.item.ProjectNameText = selectedProject.ProjectName || '';
       } else {
         args.item.ProjectCodeExport = '';
         args.item.ProjectNameText = '';
@@ -1610,7 +1613,7 @@ export class BillExportDetailNewComponent
               QuantityRemain: item.QuantityRemain || 0,
               ProjectID: item.ProjectID || 0,
               ProjectCodeExport: item.ProjectCodeExport || projectInfo?.ProjectCode || '',
-              ProjectNameText: item.ProjectNameText || projectInfo?.label || '',
+              ProjectNameText: item.ProjectNameText || projectInfo?.ProjectName || '',
               Note: item.Note || '',
               ExpectReturnDate: item.ExpectReturnDate
                 ? new Date(item.ExpectReturnDate)
@@ -1711,8 +1714,12 @@ export class BillExportDetailNewComponent
         next: (res: any) => {
           if (res?.data && res.data.length > 0) {
             const userId = res.data[0].UserID || 0;
-            this.validateForm.patchValue({ UserID: userId });
-            this.newBillExport.UserID = userId;
+            this.validateForm.patchValue({ SenderID: userId });
+            this.newBillExport.SenderID = userId;
+            if (userId <= 0) {
+            this.validateForm.patchValue({ SenderID: this.appUserService.id });
+            this.newBillExport.SenderID = this.appUserService.id || 0;
+            }
           }
         },
         error: (err: any) => {
@@ -1786,9 +1793,10 @@ export class BillExportDetailNewComponent
           this.projectGridCollection = projectData
             .filter((p) => p.ID !== null && p.ID !== undefined && p.ID !== 0)
             .map((project) => ({
-              label: project.ProjectName,
+              label: project.ProjectCode+' | '+project.ProjectName,
               value: project.ID,
               ProjectCode: project.ProjectCode,
+              ProjectName:project.ProjectName,
             }));
         } else {
           this.projectGridCollection = [];

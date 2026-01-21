@@ -18,6 +18,8 @@ import { DateTime } from 'luxon';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
 import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -118,6 +120,11 @@ export class DayOffComponent implements OnInit {
   currentEmployee: any;
   userPermissions: string = '';
   canEditOthers: boolean = false;
+  isEmployeeSelectDisabled: boolean = true;
+
+  // Summary data for employee leave
+  isLoadingSummary: boolean = false;
+  listSummaryTable: Tabulator | null = null;
 
   listParams = {
     DepartmentID: 0,
@@ -695,7 +702,7 @@ export class DayOffComponent implements OnInit {
         this.dayOffList = response.data || [];
         this.dataset = this.dayOffList.map((item, index) => ({
           ...item,
-          id: index
+          id: item.ID  // Sử dụng ID từ database thay vì index
         }));
         this.applyDistinctFilters();
       },
@@ -728,6 +735,15 @@ export class DayOffComponent implements OnInit {
     if (!permissions) return false;
     const permissionList = permissions.split(',').map(p => p.trim());
     return permissionList.includes('N1') || permissionList.includes('N2');
+  }
+
+  // Kiểm tra quyền để enable select nhân viên (ad, IM, N1, N2)
+  hasPermissionToEditEmployeeSelect(): boolean {
+    return this.permissionService.hasPermission('ad') ||
+      this.permissionService.hasPermission('IM') ||
+      this.permissionService.hasPermission('N1') ||
+      this.permissionService.hasPermission('N2') ||
+      this.checkIsAdmin();
   }
 
   checkCanEditApproved(): boolean {
@@ -797,6 +813,9 @@ export class DayOffComponent implements OnInit {
 
   openAddModal() {
     this.isEditModal = false;
+    // Kiểm tra quyền ad, IM, N1, N2 để enable/disable select nhân viên
+    this.isEmployeeSelectDisabled = !this.hasPermissionToEditEmployeeSelect();
+    this.listSummaryData = [];
     this.dayOffForm.reset({
       ID: 0,
       EmployeeID: this.currentEmployee?.EmployeeID || null,
@@ -808,6 +827,12 @@ export class DayOffComponent implements OnInit {
       ReasonHREdit: '',
       EndDate: null
     });
+
+    // Load summary for current employee
+    if (this.currentEmployee?.EmployeeID) {
+      this.loadEmployeeSummary(this.currentEmployee.EmployeeID);
+    }
+
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addDayOffModal'));
     modal.show();
   }
@@ -829,6 +854,9 @@ export class DayOffComponent implements OnInit {
 
     this.isEditModal = true;
     this.selectedDayOff = selectedData;
+    // Kiểm tra quyền ad, IM, N1, N2 để enable/disable select nhân viên
+    this.isEmployeeSelectDisabled = !this.hasPermissionToEditEmployeeSelect();
+    this.listSummaryData = [];
 
     this.dayOffForm.patchValue({
       ID: selectedData['ID'],
@@ -842,6 +870,11 @@ export class DayOffComponent implements OnInit {
       EndDate: selectedData['EndDate'] ? new Date(selectedData['EndDate']) : null
     });
 
+    // Load summary for selected employee
+    if (selectedData['EmployeeID']) {
+      this.loadEmployeeSummary(selectedData['EmployeeID']);
+    }
+
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addDayOffModal'));
     modal.show();
   }
@@ -854,6 +887,109 @@ export class DayOffComponent implements OnInit {
         modal.hide();
       }
     }
+  }
+
+  // Load employee leave summary
+  loadEmployeeSummary(employeeId: number): void {
+    if (!employeeId) {
+      this.listSummaryData = [];
+      if (this.listSummaryTable) {
+        this.listSummaryTable.clearData();
+      }
+      return;
+    }
+
+    this.isLoadingSummary = true;
+    this.dayOffService.getEmployeeOnLeaveSummaryByEmployee(employeeId, new Date()).subscribe({
+      next: (response: any) => {
+        this.isLoadingSummary = false;
+        if (response.status === 1 && response.data) {
+          const summaryData = response.data.data || [];
+          this.listSummaryData = summaryData.filter((item: any) => item.EmployeeID === employeeId);
+          if (this.listSummaryData.length === 0 && summaryData.length > 0) {
+            this.listSummaryData = [summaryData[0]];
+          }
+
+          // Cập nhật bảng Tabulator
+          this.draw_listSummaryTable();
+        } else {
+          this.listSummaryData = [];
+          if (this.listSummaryTable) {
+            this.listSummaryTable.clearData();
+          }
+        }
+      },
+      error: () => {
+        this.isLoadingSummary = false;
+        this.listSummaryData = [];
+        if (this.listSummaryTable) {
+          this.listSummaryTable.clearData();
+        }
+      }
+    });
+  }
+
+  // Khởi tạo bảng Tabulator cho summary
+  draw_listSummaryTable(): void {
+    if (!this.tableRef?.nativeElement) return;
+
+    if (this.listSummaryTable) {
+      this.listSummaryTable.replaceData(this.listSummaryData);
+    } else {
+      this.listSummaryTable = new Tabulator(this.tableRef.nativeElement, {
+        data: this.listSummaryData,
+        ...DEFAULT_TABLE_CONFIG,
+        paginationMode: 'local',
+        height: '200px',
+        pagination: false,
+        selectableRows: 1,
+        columns: [
+          {
+            title: 'STT',
+            hozAlign: 'center',
+            formatter: 'rownum',
+            headerHozAlign: 'center',
+            field: 'STT',
+          },
+          {
+            title: 'Họ tên',
+            field: 'FullName',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Tổng số ngày xin nghỉ phép trong tháng',
+            field: 'TotalDay',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Số ngày đã duyệt trong tháng',
+            field: 'TotalDayApproved',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Số ngày chưa duyệt trong tháng',
+            field: 'TotalDayUnApproved',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Số ngày còn lại dự kiến trong tháng',
+            field: 'TotalDayRemain',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Số ngày phép còn lại dự kiến trong năm',
+            field: 'TotalDayOnleaveActual',
+            headerHozAlign: 'center',
+          },
+        ],
+      });
+    }
+  }
+
+  // Handle employee selection change
+  onEmployeeChange(employeeId: number): void {
+    this.loadEmployeeSummary(employeeId);
+    this.updateReasonHREditValidation();
   }
 
   openDeleteModal() {
@@ -913,7 +1049,7 @@ export class DayOffComponent implements OnInit {
 
     if (this.shouldShowReasonHREdit()) {
       if (!formData.ReasonHREdit || formData.ReasonHREdit.trim() === '') {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Khi sửa thông tin ngày nghỉ cho người khác, vui lòng nhập lý do sửa');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập lý do sửa');
         this.dayOffForm.get('ReasonHREdit')?.markAsTouched();
         return;
       }
@@ -986,12 +1122,16 @@ export class DayOffComponent implements OnInit {
       const dateNowOnly = new Date(dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate());
       const timeSpan = Math.floor((startDateOnly.getTime() - dateNowOnly.getTime()) / (1000 * 60 * 60 * 24));
 
-      if (timeSpan == 0) {
+      // Nếu không có quyền N1/N2, không cho phép đăng ký nghỉ phép cùng ngày hiện tại
+      const hasN1N2Permission = this.hasPermissionN1OrN2(this.userPermissions) || this.checkIsAdmin();
+
+      if (timeSpan == 0 && !hasN1N2Permission) {
         this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn không thể xin nghỉ phép cùng với ngày hiện tại.\nVui lòng chọn Loại khác!');
         return;
       }
 
-      if (timeSpan == 1 && dateNow.getHours() >= 19) {
+      // Nếu không có quyền N1/N2, không cho phép đăng ký nghỉ phép sau 19h của ngày liền trước
+      if (timeSpan == 1 && dateNow.getHours() >= 19 && !hasN1N2Permission) {
         this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn không thể xin nghỉ phép sau 19:00.\nVui lòng chọn Loại khác!');
         return;
       }
@@ -1003,12 +1143,14 @@ export class DayOffComponent implements OnInit {
             const employeeSummary = summaryData.find((item: any) => item.EmployeeID === employeeId) || summaryData[0];
             const totalDayRemain = employeeSummary?.TotalDayRemain || employeeSummary?.TotalDayOnleaveActual || 0;
 
-            if (totalDayRemain == 0) {
+            // Nếu không có quyền N1/N2, không cho phép đăng ký nếu hết phép
+            if (totalDayRemain == 0 && !hasN1N2Permission) {
               this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn không đủ phép.\nVui lòng chọn Thời gian nghỉ hoặc Loại khác!');
               return;
             }
 
-            if (totalDay > totalDayRemain) {
+            // Nếu không có quyền N1/N2, không cho phép đăng ký nếu số ngày nghỉ lớn hơn số phép còn lại
+            if (totalDay > totalDayRemain && !hasN1N2Permission) {
               this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn không đủ phép.\nVui lòng chọn Thời gian nghỉ hoặc Loại khác!');
               return;
             }

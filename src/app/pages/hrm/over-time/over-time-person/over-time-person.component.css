@@ -198,3 +198,28 @@
         z-index: 1 !important;
     }
 }
+
+/* Ẩn scrollbar dọc ở frozen pane (left pane) */
+::ng-deep .slick-pane-left .slick-viewport {
+    overflow-y: hidden !important;
+}
+
+/* Hide horizontal scrollbar in frozen columns section */
+::ng-deep .slick-frozen-left .slick-viewport {
+    overflow-x: hidden !important;
+}
+
+/* Hide scrollbar in frozen columns header */
+::ng-deep .slick-frozen-left .slick-header-columns {
+    overflow-x: hidden !important;
+}
+
+/* Hide scrollbar in frozen columns headerrow (filter row) */
+::ng-deep .slick-frozen-left .slick-headerrow-columns {
+    overflow-x: hidden !important;
+}
+
+/* Hide scrollbar in frozen pane footer */
+::ng-deep .slick-pane-left .slick-footerrow-columns {
+    overflow-x: hidden !important;
+}

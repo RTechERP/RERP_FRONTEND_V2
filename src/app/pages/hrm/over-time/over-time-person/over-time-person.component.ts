@@ -539,9 +539,15 @@ export class OverTimePersonComponent implements OnInit {
       this.updateFooterTotals();
     });
 
+    // Update footer after grid render (to prevent footer being cleared)
+    angularGrid.slickGrid.onRendered.subscribe(() => {
+      setTimeout(() => this.updateFooterTotals(), 0);
+    });
+
     // Apply distinct filters after grid is ready with a small delay
     setTimeout(() => {
       this.applyDistinctFilters();
+      this.updateFooterTotals();
     }, 100);
   }
 

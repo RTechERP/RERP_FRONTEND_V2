@@ -206,7 +206,13 @@
             </li>
           </ul>
         </div>
-        <div #listSummaryTable></div>
+        <div #listSummaryTable class="mb-3">
+          <!-- Bảng Tabulator hiển thị thông tin ngày phép -->
+        </div>
+        <div *ngIf="isLoadingSummary" class="text-center py-2">
+          <nz-spin nzSimple></nz-spin>
+          <span class="ms-2" style="font-size: 12px;">Đang tải thông tin phép...</span>
+        </div>
         <form nz-form [formGroup]="dayOffForm">
           <nz-row [nzGutter]="24" class="pb-1">
             <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
@@ -215,7 +221,8 @@
                     class="text-danger ps-1">*</span></nz-form-label>
                 <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn tên nhân viên">
                   <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default" formControlName="EmployeeID"
-                    nzPlaceHolder="Chọn họ tên nhân viên">
+                    nzPlaceHolder="Chọn họ tên nhân viên" [nzDisabled]="isEmployeeSelectDisabled"
+                    (ngModelChange)="onEmployeeChange($event)">
                     @for (item of employeeList; track $index) {
                     <nz-option nzCustomContent="true" [nzLabel]="item.FullName" [nzValue]="item.ID">{{ item.Code + " - "
                       + item.FullName }}</nz-option>

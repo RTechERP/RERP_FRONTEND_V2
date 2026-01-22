@@ -37,7 +37,7 @@ import { PurchaseRequestDemoComponent } from '../../../../pages/purchase/project
 import { ProjectPartlistPriceRequestNewComponent } from '../../../../pages/purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { AppUserService } from '../../../../services/app-user.service';
 import { TbProductRtcImportExcelComponent } from '../tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
-const ExcelJS = import('exceljs');
+import * as ExcelJS from 'exceljs';
 @Component({
     selector: 'app-product-rtc',
     standalone: true,
@@ -1202,8 +1202,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
             return;
         }
-        const ExcelJSModule = await ExcelJS;
-        const workbook = new ExcelJSModule.Workbook();
+        const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Danh sách thiết bị');
 
         // Get visible columns from SlickGrid

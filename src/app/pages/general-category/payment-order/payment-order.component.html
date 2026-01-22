@@ -282,7 +282,7 @@
         <p-tabs [(value)]="activeTab" class="tabs-full">
             <p-tablist>
                 <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
-                <p-tab value="1" class="p-2" [hidden]="!isPermisstionDB">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
+                <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
             </p-tablist>
             <p-tabpanels class="p-0">
                 <p-tabpanel value="0">
@@ -290,9 +290,9 @@
                         <span [hidden]="!processingExport">
                             <i class="mdi mdi-sync mdi-spin-1s"></i>
                         </span>
-                        <!-- <div *ngIf="isLoading">
+                        <div *ngIf="isLoading">
                             <nz-spin [nzSpinning]="isLoading" nzSimple class="spinner"></nz-spin>
-                        </div> -->
+                        </div>
                         <angular-slickgrid gridId="grvData" [columns]="columnDefinitions" [options]="gridOptions"
                             [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
                             (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
@@ -303,8 +303,11 @@
                         </angular-slickgrid>
                     </div>
                 </p-tabpanel>
-                <p-tabpanel value="1" [hidden]="!isPermisstionDB">
-                    <div class="grid-container-special">
+                <p-tabpanel value="1">
+                    <div class="grid-container-special" style="position: relative;">
+                        <div *ngIf="isLoading">
+                            <nz-spin [nzSpinning]="isLoading" nzSimple class="spinner"></nz-spin>
+                        </div>
                         <angular-slickgrid gridId="grvDataSpecial" [columns]="columnDefinitionsSpecial"
                             [options]="gridOptionsSpecial" [dataset]="datasetSpecial"
                             (onAngularGridCreated)="angularGridReadySpecial($event.detail)"
@@ -352,7 +355,7 @@
                                 [options]="gridOptionFiles" [dataset]="datasetFiles"
                                 (onAngularGridCreated)="angularGridFileReady($event.detail)"
                                 (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                                (onDblClick)="onDownloadFileAttach($event.detail.eventData, $event.detail.args,angularGridFile)">
                             </angular-slickgrid>
                         </p-tabpanel>
                         <p-tabpanel value="1" class="grid-container-filebankslip"
@@ -361,7 +364,7 @@
                                 [options]="gridOptionFileBankSlips" [dataset]="datasetFileBankslip"
                                 (onAngularGridCreated)="angularGridFileBankslipReady($event.detail)"
                                 (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                                (onDblClick)="onDownloadFileAttach($event.detail.eventData, $event.detail.args,angularGridFileBankslip)">
                             </angular-slickgrid>
                         </p-tabpanel>
 

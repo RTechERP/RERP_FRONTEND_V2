@@ -162,9 +162,17 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
+    // Convert Date to YYYY-MM-DD format for HTML date input
+    const formatDateForInput = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     this.searchForm = this.fb.group({
-      startDate: [firstDay],
-      endDate: [lastDay],
+      startDate: [formatDateForInput(firstDay)],
+      endDate: [formatDateForInput(lastDay)],
       status: [-1],
       type: [null],
       vehicleId: [null],
@@ -204,9 +212,17 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
+    // Convert Date to YYYY-MM-DD format for HTML date input
+    const formatDateForInput = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     this.searchForm.reset({
-      startDate: firstDay,
-      endDate: lastDay,
+      startDate: formatDateForInput(firstDay),
+      endDate: formatDateForInput(lastDay),
       status: -1,
       type: null,
       vehicleId: null,
@@ -758,6 +774,14 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     }
 
     const selectedData = selectedRows.map(row => row.getData());
+
+    // Kiểm tra các bản ghi đã duyệt
+    const approvedRecords = selectedData.filter(item => item['StatusTBP'] === 1 || item['StatusHR'] === 1);
+    if (approvedRecords.length > 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Có ${approvedRecords.length} bản ghi đã được duyệt, không thể xóa`);
+      return;
+    }
+
     const ids = selectedData.map(item => item['ID']).filter(id => id > 0);
 
     if (ids.length === 0) {
@@ -805,15 +829,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
 
     const selectedData = selectedRows[0].getData();
 
-    // Kiểm tra nếu đã duyệt thì không cho sao chép
-    const statusTBP = selectedData['StatusTBP'];
-    const statusHR = selectedData['StatusHR'];
-
-    // Nếu TBP hoặc HR đã duyệt (status = 1) thì không cho sao chép
-    if (statusTBP === 1 || statusHR === 1) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể sao chép');
-      return;
-    }
+    // Cho phép sao chép cả bản ghi đã duyệt - sẽ reset trạng thái duyệt về Chờ duyệt
 
     const bussinessID = selectedData['ID'] || selectedData['Id'] || 0;
     if (!bussinessID || bussinessID === 0) {
@@ -998,8 +1014,9 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const startDate = this.searchForm.get('startDate')?.value;
       const endDate = this.searchForm.get('endDate')?.value;
-      const startDateStr = startDate ? DateTime.fromJSDate(new Date(startDate)).toFormat('ddMMyyyy') : '';
-      const endDateStr = endDate ? DateTime.fromJSDate(new Date(endDate)).toFormat('ddMMyyyy') : '';
+      // startDate/endDate are YYYY-MM-DD strings (HTML date input)
+      const startDateStr = startDate ? DateTime.fromISO(startDate).toFormat('ddMMyyyy') : '';
+      const endDateStr = endDate ? DateTime.fromISO(endDate).toFormat('ddMMyyyy') : '';
       saveAs(blob, `DangKyCongTac_${startDateStr}_${endDateStr}.xlsx`);
 
     } catch (error: any) {

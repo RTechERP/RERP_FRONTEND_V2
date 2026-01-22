@@ -97,7 +97,8 @@ export class CheckHistoryTechComponent implements OnInit, AfterViewInit {
         private historyService: BillImportTechnicalService,
         private notification: NzNotificationService,
         private menuEventService: MenuEventService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
@@ -115,9 +116,24 @@ export class CheckHistoryTechComponent implements OnInit, AfterViewInit {
 
 
         this.route.queryParams.subscribe(params => {
-            this.filter.warehouseId = params['warehouseID'] || 1
-            this.warehouseID = params['warehouseID'] || 1
-            this.warehouseType = params['warehouseType'] || 1;
+            // this.filter.warehouseId = params['warehouseID'] || 1
+            // this.warehouseID = params['warehouseID'] || 1
+            // this.warehouseType = params['warehouseType'] || 1;
+
+            this.filter.warehouseId =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
         });
 
         this.initDate();

@@ -177,18 +177,12 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         @Optional() @Inject('tabData') private tabData: any
     ) {
         // Nhận data từ tab nếu có
-        if (this.tabData && this.tabData.warehouseId) {
-            this.warehouseId = this.tabData.warehouseId;
-        }
+        // if (this.tabData && this.tabData.warehouseId) {
+        //     this.warehouseId = this.tabData.warehouseId;
+        // }
     }
-
-    sizeSearch: string = '0';
 
     menuBars: any[] = [];
-
-    toggleSearchPanel() {
-        this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
-    }
 
     initMenuBar() {
         this.menuBars = [
@@ -202,7 +196,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             {
                 label: 'Quản lý trạng thái',
                 icon: 'fa-solid fa-list-check fa-lg text-warning',
-                
+
                 command: () => {
                     this.openRequestInvoiceStatusLinkModal();
                 }
@@ -236,16 +230,21 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
 
         // Lấy warehouseId từ query params
         this.route.queryParams.subscribe(params => {
-            if (params['warehouseId']) {
-                this.warehouseId = params['warehouseId'];
-            }
+            // if (params['warehouseId']) {
+            //     this.warehouseId = params['warehouseId'];
+            // }
+
+            this.warehouseId =
+                params['warehouseId']
+                ?? this.tabData?.warehouseId
+                ?? 0;
         });
 
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 1); // Lấy dữ liệu 1 ngày trước
         startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
+        endDate.setHours(23, 59, 59, 0);
         this.dateStart = startDate;
         this.dateEnd = endDate;
 
@@ -270,7 +269,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         const start = new Date(this.dateStart);
         start.setHours(0, 0, 0, 0);
         const end = new Date(this.dateEnd);
-        end.setHours(23, 59, 59, 999);
+        end.setHours(23, 59, 59, 0);
 
         this.isLoading = true;
         this.requestInvoiceService.getRequestInvoiceSummary(
@@ -419,7 +418,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             { key: 'Quantity', width: 15 },
             { key: 'ProjectCode', width: 20 },
             { key: 'ProjectName', width: 20 },
-            { key: 'NotePO', width: 30 },
+            { key: 'Note1', width: 30 },
             { key: 'Specifications', width: 20 },
             { key: 'InvoiceNumber', width: 20 },
             { key: 'InvoiceDate', width: 15 },
@@ -448,7 +447,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             'Yêu cầu gấp', 'Deadline', 'Trạng thái', 'Mã lệnh', 'Tờ khai HQ',
             'Lý do yêu cầu bổ sung', 'Người yêu cầu', 'Khách hàng', 'Địa chỉ', 'Công ty bán',
             'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã theo khách', 'Tên sản phẩm',
-            'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (PO)',
+            'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (Chi tiết)',
             'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Mã PO',
             'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK', 'Công ty nhập'
         ]);
@@ -509,7 +508,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 Quantity: item.Quantity,
                 ProjectCode: item.ProjectCode,
                 ProjectName: item.ProjectName,
-                NotePO: item.Note,
+                Note1: item.Note1,
                 Specifications: item.Specifications,
                 InvoiceNumber: item.InvoiceNumber,
                 InvoiceDate: item.InvoiceDate ? DateTime.fromISO(item.InvoiceDate).toFormat('dd/MM/yyyy') : '',
@@ -717,8 +716,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'IsUrgency',
                 name: 'Yêu cầu gấp',
                 field: 'IsUrgency',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 80,
                 minWidth: 80,
                 sortable: true,
@@ -730,8 +729,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             {
                 id: 'DealineUrgency',
                 name: 'Deadline',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 field: 'DealineUrgency',
                 width: 100,
                 minWidth: 100,
@@ -742,8 +741,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             {
                 id: 'StatusText',
                 name: 'Trạng thái',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 field: 'StatusText',
                 width: 150,
                 minWidth: 150,
@@ -754,8 +753,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             },
             {
                 id: 'Code',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 name: 'Mã lệnh',
                 field: 'Code',
                 width: 150,
@@ -767,8 +766,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             },
             {
                 id: 'IsCustomsDeclared',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 name: 'Tờ khai HQ',
                 field: 'IsCustomsDeclared',
                 width: 80,
@@ -783,8 +782,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'FullName',
                 name: 'Người yêu cầu',
                 field: 'FullName',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 150,
                 minWidth: 150,
                 sortable: true,
@@ -796,8 +795,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'CustomerName',
                 name: 'Khách hàng',
                 field: 'CustomerName',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 250,
                 minWidth: 150,
                 sortable: true,
@@ -809,8 +808,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'Address',
                 name: 'Địa chỉ',
                 field: 'Address',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 300,
                 minWidth: 300,
                 sortable: true,
@@ -822,8 +821,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'Name',
                 name: 'Công ty bán',
                 field: 'Name',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 140,
                 minWidth: 140,
                 sortable: true,
@@ -834,8 +833,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             {
                 id: 'Note',
                 name: 'Ghi chú',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 field: 'Note',
                 width: 200,
                 minWidth: 200,
@@ -845,11 +844,24 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 filter: { model: Filters['compoundInputText'] },
             },
             {
+                id: 'NotePO',
+                name: 'Ghi chú (Chi tiết)',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
+                field: 'Note1',
+                width: 150,
+                minWidth: 150,
+                sortable: true,
+                filterable: true,
+                type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
                 id: 'ProductNewCode',
                 name: 'Mã nội bộ',
                 field: 'ProductNewCode',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 100,
                 minWidth: 100,
                 sortable: true,
@@ -861,8 +873,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'ProductCode',
                 name: 'Mã sản phẩm',
                 field: 'ProductCode',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 150,
                 minWidth: 150,
                 sortable: true,
@@ -874,8 +886,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'GuestCode',
                 name: 'Mã theo khách',
                 field: 'GuestCode',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 150,
                 minWidth: 150,
                 sortable: true,
@@ -887,8 +899,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'ProductName',
                 name: 'Tên sản phẩm',
                 field: 'ProductName',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 200,
                 minWidth: 200,
                 sortable: true,
@@ -900,8 +912,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'Unit',
                 name: 'ĐVT',
                 field: 'Unit',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 100,
                 minWidth: 150,
                 sortable: true,
@@ -913,8 +925,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'Quantity',
                 name: 'Số lượng',
                 field: 'Quantity',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 100,
                 minWidth: 150,
                 sortable: true,
@@ -925,8 +937,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'ProjectCode',
                 name: 'Mã dự án',
                 field: 'ProjectCode',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 150,
                 minWidth: 150,
                 sortable: true,
@@ -938,21 +950,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'ProjectName',
                 name: 'Dự án',
                 field: 'ProjectName',
-                columnGroup: '',
-                columnGroupKey: '',
-                width: 150,
-                minWidth: 150,
-                sortable: true,
-                filterable: true,
-                type: FieldType.string,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            {
-                id: 'NotePO',
-                name: 'Ghi chú (PO)',
-                columnGroup: '',
-                columnGroupKey: '',
-                field: 'Note',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 150,
                 minWidth: 150,
                 sortable: true,
@@ -964,8 +963,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'Specifications',
                 name: 'Thông số kỹ thuật',
                 field: 'Specifications',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 150,
                 minWidth: 150,
                 sortable: true,
@@ -977,8 +976,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'InvoiceNumber',
                 name: 'Số hóa đơn',
                 field: 'InvoiceNumber',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 150,
                 minWidth: 150,
                 sortable: true,
@@ -990,8 +989,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'AmendReason',
                 name: 'Lý do yêu cầu bổ sung',
                 field: 'AmendReason',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 215,
                 minWidth: 215,
                 sortable: true,
@@ -1003,8 +1002,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'InvoiceDate',
                 name: 'Ngày hóa đơn',
                 field: 'InvoiceDate',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 120,
                 minWidth: 150,
                 sortable: true,
@@ -1015,8 +1014,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'PONumber',
                 name: 'Số PO',
                 field: 'PONumber',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 width: 150,
                 minWidth: 150,
                 sortable: true,
@@ -1027,8 +1026,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             {
                 id: 'POCode',
                 name: 'Mã PO',
-                columnGroup: '',
-                columnGroupKey: '',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
                 field: 'POCode',
                 width: 150,
                 minWidth: 150,
@@ -1129,6 +1128,12 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         ];
 
         this.gridOptions = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
             gridWidth: '100%',
             enableCellNavigation: true,
             enableColumnReorder: true,

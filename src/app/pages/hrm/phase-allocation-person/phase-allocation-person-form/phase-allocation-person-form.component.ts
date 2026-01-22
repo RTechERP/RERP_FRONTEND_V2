@@ -25,7 +25,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { ChooseEmployeeComponent } from '../choose-employee/choose-employee.component';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 
 @Component({
   standalone: true,
@@ -38,6 +38,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
     NzButtonModule,
     NzSelectModule,
     NzGridModule,
+    NzModalModule,
     HasPermissionDirective,
     ChooseEmployeeComponent,
     NgbModalModule,
@@ -47,8 +48,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
   styleUrl: './phase-allocation-person-form.component.css',
 })
 export class PhaseAllocationPersonFormComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   @Input() dataInput: any;
 
   public activeModal = inject(NgbActiveModal);
@@ -58,7 +58,9 @@ export class PhaseAllocationPersonFormComponent
   employeeList: any[] = [];
   employeeEditorValues: any[] = [];
   deletedRows: any[] = [];
+  changedRowIds: Set<number> = new Set(); // Track các row ID đã thay đổi
   private ngbModal = inject(NgbModal);
+  isEditMode: boolean = false;
 
   // Options cho năm và tháng
   yearOptions: number[] = [];
@@ -87,9 +89,9 @@ export class PhaseAllocationPersonFormComponent
     private phaseAllocationService: PhaseAllocationPersonService,
     private employeeService: EmployeeService,
     private fb: FormBuilder,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private modal: NzModalService
   ) {
-    // Tạo danh sách năm
     const currentYear = new Date().getFullYear();
     for (let i = currentYear - 5; i <= currentYear + 5; i++) {
       this.yearOptions.push(i);
@@ -98,11 +100,9 @@ export class PhaseAllocationPersonFormComponent
 
   ngOnInit() {
     this.initForm();
-    console.log(this.dataInput);
     if (this.dataInput?.master) {
-      // Có dữ liệu master để sửa
+      this.isEditMode = true;
       this.patchFormData(this.dataInput.master);
-      console.log(this.dataInput?.details);
       this.detailData = (this.dataInput?.details || []).map((d: any) => ({
         ID: d.ID || 0,
         EmployeeCode: d.EmployeeCode || '',
@@ -111,6 +111,7 @@ export class PhaseAllocationPersonFormComponent
         PhasedAllocationPersonID: d.PhasedAllocationPersonID || 0,
         DateReceive: d.DateReceive || null,
         StatusReceive: d.StatusReceive || 0,
+        OriginalStatusReceive: d.StatusReceive || 0, // Lưu trạng thái ban đầu
         IsDeleted: d.IsDeleted || false,
         Quantity: d.Quantity || 1,
         UnitName: d.UnitName || '',
@@ -118,7 +119,7 @@ export class PhaseAllocationPersonFormComponent
         DepartmentName: d.DepartmentName || '',
       }));
     } else {
-      // Thêm mới
+      this.isEditMode = false;
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1;
       this.formMaster.reset({
@@ -171,7 +172,7 @@ export class PhaseAllocationPersonFormComponent
             groups[dept].options.push({
               label: `${emp.Code} - ${emp.FullName}`,
               value: emp.Code,
-              keywords: `${emp.Code},${emp.FullName},${dept}`, // 🔍 search tốt
+              keywords: `${emp.Code},${emp.FullName},${dept}`,
               description: emp.FullName,
             });
 
@@ -218,6 +219,12 @@ export class PhaseAllocationPersonFormComponent
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
+      headerFilterLiveFilterDelay: 300,
+      groupBy: 'DepartmentName',
+      groupHeader: (value: string, count: number) => {
+        return `<span style="color: #1890ff; font-weight: bold;">${value || 'Chưa có phòng ban'}</span> <span style="color: #888;">(${count} nhân viên)</span>`;
+      },
+      groupStartOpen: true,
       rowHeader: {
         formatter: 'rowSelection',
         titleFormatter: 'rowSelection',
@@ -249,17 +256,35 @@ export class PhaseAllocationPersonFormComponent
             if ((e.target as HTMLElement).classList.contains('fas')) {
               const row = cell.getRow();
               const rowData = row.getData();
+              const employeeName = rowData['EmployeeName'] || rowData['EmployeeCode'] || 'nhân viên này';
 
-              // Nếu là dòng đã tồn tại trong DB thì push vào deletedRows
-              if (rowData['ID'] && rowData['ID'] > 0) {
-                this.deletedRows.push({
-                  ...rowData,
-                  IsDeleted: true,
-                });
-              }
+              this.modal.confirm({
+                nzTitle: 'Xác nhận xóa',
+                nzContent: `Bạn có chắc muốn xóa <b>${employeeName}</b> khỏi danh sách?`,
+                nzOkText: 'Đồng ý',
+                nzCancelText: 'Hủy',
+                nzOkDanger: true,
+                nzOnOk: () => {
+                  if (rowData['ID'] && rowData['ID'] > 0) {
+                    const deletedItem = {
+                      ID: rowData['ID'],
+                      EmployeeID: rowData['EmployeeID'],
+                      EmployeeCode: rowData['EmployeeCode'],
+                      EmployeeName: rowData['EmployeeName'],
+                      PhasedAllocationPersonID: rowData['PhasedAllocationPersonID'],
+                      StatusReceive: rowData['StatusReceive'],
+                      Quantity: rowData['Quantity'],
+                      UnitName: rowData['UnitName'],
+                      ContentReceive: rowData['ContentReceive'],
+                      DepartmentName: rowData['DepartmentName'],
+                      IsDeleted: true,
+                    };
+                    this.deletedRows.push(deletedItem);
+                  }
 
-              // Xóa khỏi bảng
-              row.delete();
+                  row.delete();
+                },
+              });
             }
           },
         },
@@ -300,6 +325,7 @@ export class PhaseAllocationPersonFormComponent
 
           cellEdited: (cell) => {
             const row = cell.getRow();
+            const rowData = row.getData();
             const code = cell.getValue()?.trim();
 
             if (!code) {
@@ -322,13 +348,12 @@ export class PhaseAllocationPersonFormComponent
               return;
             }
 
-            // 🔹 kiểm tra trùng EmployeeID
+
             const isDuplicate = this.detailTable
               ?.getData()
               .some((r: any) => r.EmployeeID === emp.ID && r !== row.getData());
 
             if (isDuplicate) {
-              // ❌ trùng → rollback
               row.update({
                 EmployeeCode: '',
                 EmployeeID: 0,
@@ -342,12 +367,14 @@ export class PhaseAllocationPersonFormComponent
               return;
             }
 
-            // ✅ hợp lệ
             row.update({
               EmployeeID: emp.ID,
               EmployeeName: emp.FullName,
               DepartmentName: emp.DepartmentName,
             });
+
+            // Đánh dấu row đã thay đổi
+            this.markRowAsChanged(rowData);
           },
         },
         {
@@ -355,6 +382,8 @@ export class PhaseAllocationPersonFormComponent
           field: 'EmployeeName',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm tên NV...',
         },
         {
           title: 'Phòng ban',
@@ -372,16 +401,18 @@ export class PhaseAllocationPersonFormComponent
             const table = cell.getTable();
             const selectedRows = table.getSelectedRows();
             const content = cell.getValue();
+            const rowData = cell.getRow().getData();
 
-            // 👉 CHỈ bulk update khi có checkbox được tick
+            // Đánh dấu row đã thay đổi
+            this.markRowAsChanged(rowData);
+
             if (selectedRows.length > 0) {
               selectedRows.forEach((row) => {
                 row.update({ ContentReceive: content });
+                this.markRowAsChanged(row.getData());
               });
               table.deselectRow();
             }
-            // ❌ nếu không tick checkbox nào
-            // → Tabulator đã tự update đúng dòng đang edit
           },
         },
         {
@@ -392,7 +423,7 @@ export class PhaseAllocationPersonFormComponent
           editor: 'input',
           editorParams: {
             elementAttributes: {
-              type: 'number', // 🔥 chỉ cho nhập số
+              type: 'number',
               min: '0',
               step: '1',
             },
@@ -401,16 +432,18 @@ export class PhaseAllocationPersonFormComponent
             const table = cell.getTable();
             const selectedRows = table.getSelectedRows();
             const content = cell.getValue();
+            const rowData = cell.getRow().getData();
 
-            // 👉 CHỈ bulk update khi có checkbox được tick
+            // Đánh dấu row đã thay đổi
+            this.markRowAsChanged(rowData);
+
             if (selectedRows.length > 0) {
               selectedRows.forEach((row) => {
                 row.update({ Quantity: content });
+                this.markRowAsChanged(row.getData());
               });
               table.deselectRow();
             }
-            // ❌ nếu không tick checkbox nào
-            // → Tabulator đã tự update đúng dòng đang edit
           },
         },
         {
@@ -422,16 +455,18 @@ export class PhaseAllocationPersonFormComponent
             const table = cell.getTable();
             const selectedRows = table.getSelectedRows();
             const newUnit = cell.getValue();
+            const rowData = cell.getRow().getData();
 
-            // 👉 CHỈ bulk update khi có checkbox được tick
+            // Đánh dấu row đã thay đổi
+            this.markRowAsChanged(rowData);
+
             if (selectedRows.length > 0) {
               selectedRows.forEach((row) => {
                 row.update({ UnitName: newUnit });
+                this.markRowAsChanged(row.getData());
               });
               table.deselectRow();
             }
-            // ❌ nếu không tick checkbox nào
-            // → Tabulator đã tự update đúng dòng đang edit
           },
         },
 
@@ -444,6 +479,9 @@ export class PhaseAllocationPersonFormComponent
             return `<input type="checkbox" ${checked} />`;
           },
           cellClick: (e, cell) => {
+            e.preventDefault();
+            e.stopPropagation();
+
             const newVal = cell.getValue() === 1 ? 0 : 1;
             cell.setValue(newVal, true);
           },
@@ -451,20 +489,29 @@ export class PhaseAllocationPersonFormComponent
             const table = cell.getTable();
             const selectedRows = table.getSelectedRows();
             const newUnit = cell.getValue();
+            const rowData = cell.getRow().getData();
 
-            // 👉 CHỈ bulk update khi có checkbox được tick
+            // Đánh dấu row đã thay đổi
+            this.markRowAsChanged(rowData);
+
             if (selectedRows.length > 0) {
               selectedRows.forEach((row) => {
                 row.update({ StatusReceive: newUnit });
+                this.markRowAsChanged(row.getData());
               });
               table.deselectRow();
             }
-            // ❌ nếu không tick checkbox nào
-            // → Tabulator đã tự update đúng dòng đang edit
           },
         },
       ],
     });
+  }
+
+  // Đánh dấu row đã thay đổi (chỉ cho row đã tồn tại - ID > 0)
+  markRowAsChanged(rowData: any): void {
+    if (rowData && rowData.ID && rowData.ID > 0) {
+      this.changedRowIds.add(rowData.ID);
+    }
   }
 
   addRow() {
@@ -487,7 +534,6 @@ export class PhaseAllocationPersonFormComponent
   }
   openChooseEmployee() {
     if (!this.detailTable) {
-      console.warn('Detail table not initialized');
       return;
     }
     const selectedEmployeeIds = new Set(
@@ -497,7 +543,6 @@ export class PhaseAllocationPersonFormComponent
         .filter((id: number) => id > 0)
     );
 
-    // 🔹 Lọc employee chưa được chọn
     const availableEmployees = this.employeeList.filter(
       (emp) => !selectedEmployeeIds.has(emp.ID)
     );
@@ -505,18 +550,16 @@ export class PhaseAllocationPersonFormComponent
       size: 'lg',
       backdrop: 'static',
       centered: true,
-      windowClass: 'second-modal-window', // Thêm class tùy chỉnh
+      windowClass: 'second-modal-window',
     });
 
     modalRef.componentInstance.employeeList = availableEmployees;
-    //    modalRef.componentInstance.selectedEmployeeIds = currentEmployeeIds;
     modalRef.result.then(
       (selectedEmployees: any[]) => {
         if (!this.detailTable || !selectedEmployees?.length) return;
 
         const masterID = this.formMaster.get('ID')?.value || 0;
 
-        // 🔹 Lấy danh sách EmployeeID đã có
         const existingIds = new Set(
           this.detailTable
             .getData()
@@ -524,9 +567,8 @@ export class PhaseAllocationPersonFormComponent
             .filter((id: number) => id > 0)
         );
 
-        // 🔹 Map employee được chọn → row detail
         const newRows = selectedEmployees
-          .filter((emp) => !existingIds.has(emp.ID)) // chống trùng (dù đã lọc từ trước)
+          .filter((emp) => !existingIds.has(emp.ID))
           .map((emp) => ({
             ID: 0,
             EmployeeCode: emp.Code,
@@ -553,7 +595,6 @@ export class PhaseAllocationPersonFormComponent
   }
 
   async saveData() {
-    // 1. Validate form master
     if (this.formMaster.invalid) {
       Object.values(this.formMaster.controls).forEach((c) => {
         if (c.invalid) {
@@ -568,22 +609,17 @@ export class PhaseAllocationPersonFormComponent
       return;
     }
 
-    // 2. Lấy dữ liệu chi tiết trên bảng
+    const formValue = this.formMaster.value;
+
     const tableRows = this.detailTable ? this.detailTable.getData() : [];
 
-    // // 2.1. Bắt buộc phải có ít nhất 1 dòng chi tiết
-    // if (!tableRows || tableRows.length === 0) {
-    //   this.notification.warning(
-    //     'Cảnh báo',
-    //     'Vui lòng thêm ít nhất 1 nhân viên'
-    //   );
-    //   return;
-    // }
 
-    // 2.2. Check từng dòng: EmployeeCode không được để trống
+    // Chỉ validate những row mới hoặc đã thay đổi
     const invalidIndex = tableRows.findIndex(
       (row: any) =>
         !row.IsDeleted &&
+        // Chỉ check row mới hoặc row có thay đổi
+        (row.ID === 0 || !row.ID || this.changedRowIds.has(row.ID)) &&
         (!row.EmployeeCode || row.EmployeeCode.toString().trim() === '')
     );
 
@@ -595,10 +631,12 @@ export class PhaseAllocationPersonFormComponent
       );
       return;
     }
-
-    // 2.3. Check mã nhân viên có tồn tại không
     const invalidEmployees: string[] = [];
     tableRows.forEach((row: any, idx: number) => {
+      // Bỏ qua row không thay đổi (đã có ID và không nằm trong changedRowIds)
+      const isNewOrChanged = !row.ID || row.ID === 0 || this.changedRowIds.has(row.ID);
+      if (!isNewOrChanged) return;
+
       if (!row.IsDeleted && row.EmployeeCode) {
         const employee = this.employeeList.find(
           (emp: any) => emp.Code === row.EmployeeCode
@@ -615,10 +653,6 @@ export class PhaseAllocationPersonFormComponent
       this.notification.warning('Cảnh báo', invalidEmployees.join('\n'));
       return;
     }
-
-    const formValue = this.formMaster.value;
-
-    // 3. Lưu master trước
     const masterPayload = {
       ID: formValue.ID || 0,
       Code: formValue.Code,
@@ -636,20 +670,34 @@ export class PhaseAllocationPersonFormComponent
           const savedMaster = masterResponse.data;
           const masterID = savedMaster?.ID || formValue.ID || 0;
 
-          // 4. Lưu detail
-          const allRows = [...tableRows, ...this.deletedRows];
+          const deletedIds = new Set(this.deletedRows.map((r: any) => r.ID));
 
-          const detailPayload = allRows.map((row: any) => ({
-            ID: row.ID,
-            EmployeeID: row.EmployeeID,
-            PhasedAllocationPersonID: masterID,
-            StatusReceive: row.StatusReceive,
-            Quantity: parseInt(row.Quantity, 10) || 0,
-            UnitName: row.UnitName,
-            ContentReceive: row.ContentReceive,
-            IsDeleted: row.IsDeleted,
-          }));
-          console.log(detailPayload);
+          // Chỉ lấy các row cần lưu: row mới (ID=0), row đã thay đổi, hoặc row đã xóa
+          const rowsToSave = tableRows.filter((row: any) => {
+            // Row mới (chưa có ID)
+            if (!row.ID || row.ID === 0) return true;
+            // Row đã thay đổi
+            if (this.changedRowIds.has(row.ID)) return true;
+            // Row đã xóa (không cần vì sẽ thêm từ deletedRows)
+            return false;
+          });
+
+          // Thêm các row đã xóa vào danh sách
+          const allRowsToSave = [...rowsToSave, ...this.deletedRows];
+
+          const detailPayload = allRowsToSave.map((row: any) => {
+            const isDeleted = deletedIds.has(row.ID);
+            return {
+              ID: row.ID || 0,
+              EmployeeID: row.EmployeeID || 0,
+              PhasedAllocationPersonID: masterID,
+              StatusReceive: row.StatusReceive || 0,
+              Quantity: parseInt(row.Quantity, 10) || 0,
+              UnitName: row.UnitName || '',
+              ContentReceive: row.ContentReceive || '',
+              IsDeleted: isDeleted,
+            };
+          });
           if (detailPayload.length > 0) {
             this.phaseAllocationService
               .saveDataDetail(detailPayload)
@@ -669,7 +717,6 @@ export class PhaseAllocationPersonFormComponent
                   }
                 },
                 error: (res: any) => {
-                  console.error('Lỗi khi lưu chi tiết:', res);
                   this.notification.error(
                     NOTIFICATION_TITLE.error,
                     res.error?.message || 'Lỗi khi lưu chi tiết'
@@ -691,7 +738,6 @@ export class PhaseAllocationPersonFormComponent
         }
       },
       error: (res: any) => {
-        console.error('Lỗi khi lưu master:', res);
         this.notification.error(
           NOTIFICATION_TITLE.error,
           res.error?.message || 'Lỗi khi lưu dữ liệu'

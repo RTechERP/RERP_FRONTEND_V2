@@ -93,8 +93,8 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
       Content: ['', [Validators.required]],
       Results: ['', [Validators.required]],
       PlanNextDay: ['', [Validators.required]],
-      Problem: [{value: '', disabled: true}],
-      ProblemSolve: [{value: '', disabled: true}],
+      Problem: [{ value: '', disabled: true }],
+      ProblemSolve: [{ value: '', disabled: true }],
       Backlog: [''],
       Note: [''],
     });
@@ -103,7 +103,7 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     if (this.mode === 'edit' && this.dataInput) {
       const dailyID = typeof this.dataInput === 'number' ? this.dataInput : (this.dataInput?.ID || this.dataInput?.dailyID);
-      
+
       if (dailyID) {
         this.loadDataForEdit(dailyID);
       }
@@ -111,7 +111,7 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
       // Set ngày báo cáo mặc định theo quy tắc 9h sáng
       const now = DateTime.local();
       const currentHour = now.hour;
-      
+
       if (currentHour >= 0 && currentHour <= 9) {
         this.formGroup.patchValue({
           DateReport: null
@@ -182,7 +182,7 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
     }
   }
   ngAfterViewInit(): void {
-    
+
   }
 
   disabledDate = (current: Date): boolean => {
@@ -207,7 +207,11 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
 
   generateSummary(): string {
     const dateReport = this.formGroup.get('DateReport')?.value;
-    const dateReportStr = dateReport ? DateTime.fromJSDate(dateReport).toFormat('dd/MM/yyyy') : '';
+    const dateReportStr = dateReport
+      ? (typeof dateReport === 'string'
+        ? DateTime.fromISO(dateReport).toFormat('dd/MM/yyyy')
+        : DateTime.fromJSDate(dateReport).toFormat('dd/MM/yyyy'))
+      : '';
 
     // Lấy dữ liệu từ formGroup
     const content = this.formGroup.get('Content')?.value || '';
@@ -259,18 +263,18 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
 
   openPreviewModal(): void {
     const summaryContent = this.generateSummary();
-   
+
     if (!summaryContent || summaryContent.trim() === '') {
       return;
     }
-   
+
     const escapedContent = summaryContent
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
-   
+
     const modal = this.modalService.create({
       nzTitle: 'Tổng hợp báo cáo',
       nzContent: `
@@ -305,7 +309,7 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
             } else {
               this.notification.warning('Thông báo', 'Không thể copy vào clipboard. Vui lòng copy thủ công.');
             }
-            
+
             this.submitDailyReport();
             modal.destroy();
           }
@@ -374,7 +378,9 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
     }
 
     // Tạo dữ liệu từ formGroup
-    const dateReportStr = DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
+    const dateReportStr = typeof dateReport === 'string'
+      ? dateReport
+      : DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
     const userReport = this.currentUser?.ID || 0;
 
     const report: any = {
@@ -393,14 +399,14 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
 
     this.saving = true;
 
-    this.dailyReportTechService.saveReportHr(report).subscribe({
+    this.dailyReportTechService.saveReportTHr(report).subscribe({
       next: (response: any) => {
         this.saving = false;
         if (response && response.status === 1) {
           this.notification.success('Thông báo', response.message || 'Báo cáo đã được lưu thành công!');
-          
+
           //this.sendEmailAfterSave();
-          
+
           this.close(true);
         } else {
           this.notification.error('Thông báo', response?.message || 'Lưu báo cáo thất bại!');
@@ -417,7 +423,7 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
   private sendEmailAfterSave(): void {
     try {
       const summaryContent = this.generateSummary();
-      
+
       if (!summaryContent || summaryContent.trim() === '') {
         return;
       }
@@ -444,9 +450,9 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
 
     if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
-      
+
       const errors: string[] = [];
-      
+
       if (this.formGroup.get('DateReport')?.hasError('required')) {
         errors.push('Ngày báo cáo');
       }
@@ -459,7 +465,7 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
       if (this.formGroup.get('PlanNextDay')?.hasError('required')) {
         errors.push('Kế hoạch ngày tiếp theo');
       }
-      
+
       if (errors.length > 0) {
         this.notification.warning('Thông báo', `Vui lòng điền đầy đủ các trường bắt buộc: ${errors.join(', ')}`);
       } else {
@@ -492,17 +498,17 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
         keyboard: false,
         windowClass: 'overtime-modal-custom'
       });
-      
+
       if (!modalRef) {
         this.notification.error('Lỗi', 'Không thể mở modal làm thêm!');
         return;
       }
-      
+
       if (modalRef.componentInstance) {
         modalRef.componentInstance.data = null;
         modalRef.componentInstance.isEditMode = false;
       }
-      
+
       modalRef.result.then(
         (result) => {
           // Modal đóng

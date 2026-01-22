@@ -112,6 +112,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   sizeSearch: string = '0';
   sizeTbMaster: string = '100%';
   sizeTbDetail: any = '0';
+  showDetailPanel: boolean = false; // Điều khiển hiển thị panel thông tin thêm
   project: any[] = [];
   projectTypes: any[] = [];
   users: any[] = [];
@@ -160,12 +161,12 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   currentUser: any = null;
   pageId: number = 2;
   globalID: number = 0;
-  dateStart: any = DateTime.local()
+  dateStart: string = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
-    .toISO();
-  dateEnd: any = DateTime.local()
+    .toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
-    .toISO();
+    .toFormat('yyyy-MM-dd');
   //#endregion
 
 
@@ -324,15 +325,15 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         width: 150,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
       },
       {
         id: 'ProjectProcessType',
@@ -341,15 +342,15 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         width: 120,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
       },
       {
         id: 'UserMission',
@@ -383,15 +384,15 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         sortable: true,
         filterable: true,
         cssClass: 'cell-wrap',
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -533,15 +534,15 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         sortable: true,
         filterable: true,
         cssClass: 'cell-wrap',
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -565,15 +566,15 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         sortable: true,
         filterable: true,
         cssClass: 'cell-wrap',
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -597,15 +598,15 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         sortable: true,
         filterable: true,
         cssClass: 'cell-wrap',
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -1175,45 +1176,88 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   }
 
   openProjectDetail(item: any) {
+    // Không set size split khi click - chỉ lưu thông tin và load data
     console.log('[OPEN PROJECT] Opening project detail:', item);
-    this.sizeTbMaster = '60%';
-    this.sizeTbDetail = '40%';
     this.projectId = item['ID'];
     this.projectCode = item['ProjectCode'];
     this.activeTab = 'workreport';
-    this.selectedTabIndex = 0; // Reset về tab đầu tiên
+    this.selectedTabIndex = 0;
 
-    // Clear stale instances to avoid confusion
-    this.angularGridWorkReport = undefined!;
-    this.angularGridTypeLink = undefined!;
+    // Load data cho 2 bảng work và type (không cần đợi panel mở)
+    this.getProjectWorkReports();
+    this.getProjectTypeLinks();
 
-    // Trigger change detection
-    this.cdr.detectChanges();
+    // Nếu panel đang mở thì resize grids
+    if (this.showDetailPanel) {
+      setTimeout(() => {
+        try {
+          if (this.angularGridWorkReport?.slickGrid) {
+            this.angularGridWorkReport.resizerService?.resizeGrid();
+          }
+          if (this.angularGridTypeLink?.slickGrid) {
+            this.angularGridTypeLink.resizerService?.resizeGrid();
+          }
+        } catch (error) {
+          console.error('Error resizing grids:', error);
+        }
+      }, 100);
+    }
+  }
 
+  // Toggle hiển thị panel thông tin thêm
+  toggleDetailPanel() {
+    this.showDetailPanel = !this.showDetailPanel;
+    if (this.showDetailPanel) {
+      this.sizeTbMaster = '60%';
+      this.sizeTbDetail = '40%';
 
-    this.detailTabsVisible = true;
-    this.detailGridsReady = false;
-    this.cdr.detectChanges();
+      // Clear stale instances to avoid confusion
+      this.angularGridWorkReport = undefined!;
+      this.angularGridTypeLink = undefined!;
 
-    setTimeout(() => {
-      // Reinforce state right before rendering
-      this.activeTab = 'workreport';
-      this.selectedTabIndex = 0;
-      this.detailGridsReady = true;
-      console.log('[OPEN PROJECT] Detail grids ready. activeTab:', this.activeTab, 'selectedTabIndex:', this.selectedTabIndex);
+      // Trigger change detection
+      this.cdr.detectChanges();
 
-      // Load data cho workreport grid (nếu đang ở tab workreport và grid đã ready)
-      if (this.activeTab === 'workreport' && this.angularGridWorkReport) {
-        console.log('[OPEN PROJECT] Loading workreport data immediately');
-        setTimeout(() => this.getProjectWorkReports(), 100);
-      }
+      this.detailTabsVisible = true;
+      this.detailGridsReady = false;
+      this.cdr.detectChanges();
 
-      // Load data cho typelink grid (nếu đang ở tab typelink và grid đã ready)
-      if (this.activeTab === 'typelink' && this.angularGridTypeLink) {
-        console.log('[OPEN PROJECT] Loading typelink data immediately');
-        setTimeout(() => this.getProjectTypeLinks(), 100);
-      }
-    }, 600);
+      setTimeout(() => {
+        // Reinforce state right before rendering
+        this.activeTab = 'workreport';
+        this.selectedTabIndex = 0;
+        this.detailGridsReady = true;
+        console.log('[TOGGLE PANEL] Detail grids ready. activeTab:', this.activeTab, 'selectedTabIndex:', this.selectedTabIndex);
+
+        // Resize grids after panel opens
+        setTimeout(() => {
+          try {
+            if (this.angularGrid?.slickGrid) {
+              const columns = this.angularGrid.slickGrid.getColumns();
+              if (columns && columns.length > 0 && columns.every(col => col !== null && col !== undefined)) {
+                this.angularGrid.resizerService?.resizeGrid();
+              }
+            }
+            if (this.angularGridWorkReport?.slickGrid) {
+              const columns = this.angularGridWorkReport.slickGrid.getColumns();
+              if (columns && columns.length > 0 && columns.every(col => col !== null && col !== undefined)) {
+                this.angularGridWorkReport.resizerService?.resizeGrid();
+              }
+            }
+            if (this.angularGridTypeLink?.slickGrid) {
+              const columns = this.angularGridTypeLink.slickGrid.getColumns();
+              if (columns && columns.length > 0 && columns.every(col => col !== null && col !== undefined)) {
+                this.angularGridTypeLink.resizerService?.resizeGrid();
+              }
+            }
+          } catch (error) {
+            console.error('Error resizing grids:', error);
+          }
+        }, 100);
+      }, 600);
+    } else {
+      this.closePanel();
+    }
   }
 
   handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
@@ -1517,6 +1561,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   closePanel() {
     this.sizeTbMaster = '100%';
     this.sizeTbDetail = '0';
+    this.showDetailPanel = false; // Đóng panel
     this.detailGridsReady = false;
     this.detailTabsVisible = false;
     this.angularGridWorkReport = undefined!;

@@ -2139,6 +2139,8 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     }
     onCreatePDFLanguageEn(data: any, isShowSign: boolean, isShowSeal: boolean) {
         let po = data.po;
+        console.log('po:',po);
+        
         let poDetails = data.poDetails;
         let taxCompany = data.taxCompany;
 
@@ -2223,7 +2225,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                         body: [
                             [
                                 'Supplier name:',
-                                { text: po.NameNCC, bold: true },
+                                { text: po.ENameNCC ?? po.NameNCC, bold: true },
                                 'Date:',
                                 DateTime.fromISO(po.RequestDate).toFormat('dd/MM/yyyy'),
                             ],

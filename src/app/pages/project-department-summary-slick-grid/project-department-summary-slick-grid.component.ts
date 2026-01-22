@@ -117,6 +117,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   sizeSearch: string = '0';
   sizeTbMaster: string = '100%';
   sizeTbDetail: any = '0';
+  showDetailPanel: boolean = false; // Điều khiển hiển thị panel thông tin thêm
   project: any[] = [];
   projectTypes: any[] = [];
   users: any[] = [];
@@ -159,8 +160,8 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   savedPage: number = 1;
 
   searchParams: any = {
-    dateTimeS: new Date('2024-02-02'),
-    dateTimeE: new Date(),
+    dateTimeS: '2024-02-02',
+    dateTimeE: DateTime.local().toFormat('yyyy-MM-dd'),
     keyword: '',
     userID: 0,
     projectTypeID: '',
@@ -334,15 +335,15 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         width: 150,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        }
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // }
       },
       {
         id: 'ProjectName',
@@ -351,15 +352,15 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // },
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -383,15 +384,15 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // },
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -481,7 +482,10 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
-          filterOptions: { autoAdjustDropWidthByTextSize: true }
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -505,15 +509,15 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -584,15 +588,15 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // },
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -695,6 +699,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       rowSelectionOptions: {
         selectActiveRow: true
       },
+      enableCellNavigation: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
       frozenColumn: 3,
@@ -1118,45 +1123,72 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   onCellClicked(e: any, args: OnClickEventArgs) {
     const item = args.grid.getDataItem(args.row);
     if (item) {
-      this.sizeTbMaster = '60%';
-      this.sizeTbDetail = '40%';
+      // Không set size split khi click - chỉ lưu thông tin và load data
       this.projectId = item['ID'];
       this.projectCode = item['ProjectCode'];
       this.activeTab = 'workreport';
 
+      // Load data cho 2 bảng work và type (không cần đợi panel mở)
+      this.getProjectWorkReports();
+      this.getProjectTypeLinks();
+
+      // Nếu panel đang mở thì resize grids
+      if (this.showDetailPanel) {
+        setTimeout(() => {
+          try {
+            if (this.angularGridWorkReport?.slickGrid) {
+              this.angularGridWorkReport.resizerService?.resizeGrid();
+            }
+            if (this.angularGridTypeLink?.slickGrid) {
+              this.angularGridTypeLink.resizerService?.resizeGrid();
+            }
+          } catch (error) {
+            console.error('Error resizing grids:', error);
+          }
+        }, 100);
+      }
+    }
+  }
+
+  // Toggle hiển thị panel thông tin thêm
+  toggleDetailPanel() {
+    this.showDetailPanel = !this.showDetailPanel;
+    if (this.showDetailPanel) {
+      this.sizeTbMaster = '60%';
+      this.sizeTbDetail = '40%';
+
+      // Khi mở panel: đợi panel có kích thước, render grids
       setTimeout(() => {
         this.detailGridsReady = true;
 
+        // Resize grids after panel opens
         setTimeout(() => {
-          this.getProjectWorkReports();
-          this.getProjectTypeLinks();
-
-          setTimeout(() => {
-            try {
-              if (this.angularGrid?.slickGrid) {
-                const columns = this.angularGrid.slickGrid.getColumns();
-                if (columns && columns.length > 0 && columns.every(col => col !== null && col !== undefined)) {
-                  this.angularGrid.resizerService?.resizeGrid();
-                }
+          try {
+            if (this.angularGrid?.slickGrid) {
+              const columns = this.angularGrid.slickGrid.getColumns();
+              if (columns && columns.length > 0 && columns.every(col => col !== null && col !== undefined)) {
+                this.angularGrid.resizerService?.resizeGrid();
               }
-              if (this.angularGridWorkReport?.slickGrid) {
-                const columns = this.angularGridWorkReport.slickGrid.getColumns();
-                if (columns && columns.length > 0 && columns.every(col => col !== null && col !== undefined)) {
-                  this.angularGridWorkReport.resizerService?.resizeGrid();
-                }
-              }
-              if (this.angularGridTypeLink?.slickGrid) {
-                const columns = this.angularGridTypeLink.slickGrid.getColumns();
-                if (columns && columns.length > 0 && columns.every(col => col !== null && col !== undefined)) {
-                  this.angularGridTypeLink.resizerService?.resizeGrid();
-                }
-              }
-            } catch (error) {
-              console.error('Error resizing grids:', error);
             }
-          }, 100);
-        }, 200);
+            if (this.angularGridWorkReport?.slickGrid) {
+              const columns = this.angularGridWorkReport.slickGrid.getColumns();
+              if (columns && columns.length > 0 && columns.every(col => col !== null && col !== undefined)) {
+                this.angularGridWorkReport.resizerService?.resizeGrid();
+              }
+            }
+            if (this.angularGridTypeLink?.slickGrid) {
+              const columns = this.angularGridTypeLink.slickGrid.getColumns();
+              if (columns && columns.length > 0 && columns.every(col => col !== null && col !== undefined)) {
+                this.angularGridTypeLink.resizerService?.resizeGrid();
+              }
+            }
+          } catch (error) {
+            console.error('Error resizing grids:', error);
+          }
+        }, 100);
       }, 300);
+    } else {
+      this.closePanel();
     }
   }
   //#endregion
@@ -1181,6 +1213,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   closePanel() {
     this.sizeTbMaster = '100%';
     this.sizeTbDetail = '0';
+    this.showDetailPanel = false; // Đóng panel
     this.detailGridsReady = false;
     setTimeout(() => {
       try {
@@ -1550,6 +1583,22 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
     modalRef.componentInstance.projectCodex = this.projectCode;
     modalRef.componentInstance.tbp = false;
   }
+  openProjectPartListWindow() {
+    const selectedIDs = this.getSelectedIds();
+    const selectedRows = this.getSelectedRows();
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+      return;
+    }
+
+    const projectId = this.projectId;
+    const projectName = selectedRows[0]?.ProjectName;
+    const projectCode = selectedRows[0]?.ProjectCode;
+
+    const url = `/rerpweb/project-part-list?projectId=${projectId}&projectName=${encodeURIComponent(projectName)}&projectCode=${encodeURIComponent(projectCode)}&tbp=false`;
+    window.open(url, '_blank', 'width=1280,height=960,resizable=yes');
+  }
 
   openProjectEmployee() {
     if (!this.projectId || this.projectId === 0) {
@@ -1865,7 +1914,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   // Helper methods cho export Excel
   private getCurrentFilterInfo(): string {
     const filters: string[] = [];
-    
+
     // Lấy filter từ các cột
     const columns = this.angularGrid?.slickGrid?.getColumns() || [];
     columns.forEach(col => {
@@ -1901,7 +1950,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   private getStatsInfo(): string {
     const totalItems = this.angularGrid?.dataView?.getItems()?.length || 0;
     const filteredItems = this.angularGrid?.dataView?.getFilteredItems()?.length || 0;
-    
+
     return `Tổng số dự án: ${filteredItems} ${filteredItems < totalItems ? `(trên ${totalItems})` : ''}`;
   }
 
@@ -1936,93 +1985,93 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
     });
   }
   //#endregion
-   // Apply distinct filters for multiple columns after data is loaded
-    private applyDistinctFilters(): void {
-      const fieldsToFilter = [
-        'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
-        'FullNameSale', 'FullNameTech', 'FullNamePM', 'BussinessField',
-        'CurrentSituation', 'CustomerName', 'CreatedBy', 'UpdatedBy'
-      ];
-      this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
-    }
-  
-    private applyDistinctFiltersWorkReport(): void {
-      const fieldsToFilter = [
-        'Code', 'StatusText', 'ProjectTypeName', 'FullName',
-        'Mission', 'EmployeeRequest', 'Note', 'ProjectEmployeeName'
-      ];
-      this.applyDistinctFiltersToGrid(this.angularGridWorkReport, this.columnDefinitionsWorkReport, fieldsToFilter);
-    }
-  
-    private applyDistinctFiltersTypeLink(): void {
-      const fieldsToFilter = ['ProjectTypeName', 'FullName'];
-      this.applyDistinctFiltersToGrid(this.angularGridTypeLink, this.columnDefinitionsTypeLink, fieldsToFilter);
-    }
-  
-    private applyDistinctFiltersToGrid(
-      angularGrid: AngularGridInstance | undefined,
-      columnDefs: Column[],
-      fieldsToFilter: string[]
-    ): void {
-      if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
-  
-      const data = angularGrid.dataView.getItems();
-      if (!data || data.length === 0) return;
-  
-      const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
-        const map = new Map<string, string>();
-        dataArray.forEach((row: any) => {
-          const value = String(row?.[field] ?? '');
-          if (value && !map.has(value)) {
-            map.set(value, value);
-          }
-        });
-        return Array.from(map.entries())
-          .map(([value, label]) => ({ value, label }))
-          .sort((a, b) => a.label.localeCompare(b.label));
-      };
-  
-      const columns = angularGrid.slickGrid.getColumns();
-      if (!columns) return;
-  
-      // Update runtime columns
-      columns.forEach((column: any) => {
-        if (column?.filter && column.filter.model === Filters['multipleSelect']) {
-          const field = column.field;
-          if (!field || !fieldsToFilter.includes(field)) return;
-          column.filter.collection = getUniqueValues(data, field);
+  // Apply distinct filters for multiple columns after data is loaded
+  private applyDistinctFilters(): void {
+    const fieldsToFilter = [
+      'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
+      'FullNameSale', 'FullNameTech', 'FullNamePM', 'BussinessField',
+      'CurrentSituation', 'CustomerName', 'CreatedBy', 'UpdatedBy'
+    ];
+    this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersWorkReport(): void {
+    const fieldsToFilter = [
+      'Code', 'StatusText', 'ProjectTypeName', 'FullName',
+      'Mission', 'EmployeeRequest', 'Note', 'ProjectEmployeeName'
+    ];
+    this.applyDistinctFiltersToGrid(this.angularGridWorkReport, this.columnDefinitionsWorkReport, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersTypeLink(): void {
+    const fieldsToFilter = ['ProjectTypeName', 'FullName'];
+    this.applyDistinctFiltersToGrid(this.angularGridTypeLink, this.columnDefinitionsTypeLink, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersToGrid(
+    angularGrid: AngularGridInstance | undefined,
+    columnDefs: Column[],
+    fieldsToFilter: string[]
+  ): void {
+    if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+    const data = angularGrid.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
         }
       });
-  
-      // Update column definitions (so when grid re-renders, it keeps the collections)
-      columnDefs.forEach((colDef: any) => {
-        if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
-          const field = colDef.field;
-          if (!field || !fieldsToFilter.includes(field)) return;
-          colDef.filter.collection = getUniqueValues(data, field);
-        }
-      });
-  
-      angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
-      angularGrid.slickGrid.invalidate();
-      angularGrid.slickGrid.render();
-  
-      // Thêm tooltip cho dropdown options sau khi render
-      setTimeout(() => {
-        this.addTooltipsToDropdownOptions();
-      }, 100);
-    }
-  
-    private addTooltipsToDropdownOptions(): void {
-      // Tìm tất cả dropdown options và thêm title attribute
-      const dropdownOptions = document.querySelectorAll('.ms-drop.bottom .ms-list li label span');
-      dropdownOptions.forEach((span: Element) => {
-        const text = span.textContent || '';
-        if (text && text.length > 30) { // Chỉ thêm tooltip cho text dài
-          (span as HTMLElement).setAttribute('title', text);
-        }
-      });
-    }
-    //#endregion
-    
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions (so when grid re-renders, it keeps the collections)
+    columnDefs.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
+
+    // Thêm tooltip cho dropdown options sau khi render
+    setTimeout(() => {
+      this.addTooltipsToDropdownOptions();
+    }, 100);
+  }
+
+  private addTooltipsToDropdownOptions(): void {
+    // Tìm tất cả dropdown options và thêm title attribute
+    const dropdownOptions = document.querySelectorAll('.ms-drop.bottom .ms-list li label span');
+    dropdownOptions.forEach((span: Element) => {
+      const text = span.textContent || '';
+      if (text && text.length > 30) { // Chỉ thêm tooltip cho text dài
+        (span as HTMLElement).setAttribute('title', text);
+      }
+    });
+  }
+  //#endregion
+
 }

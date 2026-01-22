@@ -40,6 +40,13 @@
 
 
 
+                <!-- Content -->
+                <div class="newsletter-body mb-4">
+                    <div class="content-html" [innerHTML]="sanitizedContent"></div>
+                </div>
+
+
+
                 <!-- Attached Files -->
                 <div *ngIf="newsletterFiles.length > 0" class="newsletter-files">
                     <h5 class="mb-3">

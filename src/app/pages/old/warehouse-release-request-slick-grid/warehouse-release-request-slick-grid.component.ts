@@ -41,6 +41,7 @@ import {
   FieldType,
   Formatters,
   GridOption,
+  Grouping,
   OnEventArgs,
   SlickGrid,
 } from 'angular-slickgrid';
@@ -57,6 +58,7 @@ import { RequestInvoiceDetailService } from '../request-invoice-detail/request-i
 import { AppUserService } from '../../../services/app-user.service';
 import { BillExportDetailComponent } from '../Sale/BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { BillExportDetailNewComponent } from '../Sale/BillExport/bill-export-detail-new/bill-export-detail-new.component';
 interface BillExportDetail {
   ProductID: number;
   Qty: number;
@@ -91,6 +93,7 @@ interface BillExportDetail {
   POKHDetailIDActual?: string;
   PONumber?: string;
   POCode?: string;
+
 }
 
 interface BillExport {
@@ -631,15 +634,17 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
   //   });
   // }
 
-  onWarehouseSelect(warehouse: any): void {
+  onWarehouseSelect(warehouse: any, isTransfer: boolean = false): void {
     if (this.selectedRowsAll.length <= 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn sản phẩm muốn yêu cầu xuất kho!');
       return;
     }
 
+    const actionText = isTransfer ? 'chuyển kho' : 'xuất kho';
+
     this.nzModal.confirm({
       nzTitle: 'Xác nhận',
-      nzContent: `Bạn có chắc muốn yêu cầu xuất kho danh sách sản phẩm đã chọn từ [${warehouse.WarehouseName}] không?`,
+      nzContent: `Bạn có chắc muốn yêu cầu ${actionText} danh sách sản phẩm đã chọn từ [${warehouse.WarehouseName}] không?`,
       nzOkText: 'Xác nhận',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -669,7 +674,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
             if (invalidCodes.length > 0) {
               this.notification.warning(
                 'Thông báo',
-                `Các sản phẩm có mã nội bộ: ${invalidCodes.join('; ')} sẽ không được xuất kho vì không đủ số lượng!`
+                `Các sản phẩm có mã nội bộ: ${invalidCodes.join('; ')} sẽ không được ${actionText} vì không đủ số lượng!`
               );
             }
 
@@ -709,11 +714,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
             }
 
             if (finalValidDetails.length === 0) {
-              this.notification.warning('Thông báo', 'Không có sản phẩm nào hợp lệ để yêu cầu xuất kho!');
+              this.notification.warning('Thông báo', `Không có sản phẩm nào hợp lệ để yêu cầu ${actionText}!`);
               return;
             }
 
-            this.generateBillExport(finalValidDetails, warehouse);
+            this.generateBillExport(finalValidDetails, warehouse, isTransfer);
           },
           error: (err) => {
             this.isLoading = false;
@@ -726,20 +731,22 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
   }
 
 
-  onWarehouseTranferSelect(warehouse: any) {
-    this.notification.warning('Thông báo!', "Chức năng đang phát triển")
+  onWarehouseTranferSelect(warehouse: any): void {
+    this.onWarehouseSelect(warehouse, true);
   }
 
-  private generateBillExport(details: BillExportDetail[], warehouse: any): void {
+  private generateBillExport(details: BillExportDetail[], warehouse: any, isTransfer: boolean = false): void {
     const groupedKeys = [...new Set(
       details.map(d => `${d.CustomerID}-${d.KhoTypeID}`)
     )];
+
+    const actionText = isTransfer ? 'chuyển kho' : 'xuất';
 
     if (groupedKeys.length > 1) {
       this.notification.info(
         'Thông báo',
         `Bạn chọn sản phẩm từ ${groupedKeys.length} Khách hàng hoặc Loại kho.\n` +
-        `Hệ thống sẽ tự động tạo ${groupedKeys.length} phiếu xuất.`
+        `Hệ thống sẽ tự động tạo ${groupedKeys.length} phiếu ${actionText}.`
       );
     }
 
@@ -760,11 +767,14 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         RequestDate: new Date(),
         WarehouseCode: warehouse.WarehouseCode,
         Details: groupDetails,
+        IsTransfer: isTransfer,
       };
     });
 
+    console.log('=== billExports data đẩy sang BillExport ===', this.billExports);
+
     // this.activeModal.close();
-    this.openBillExportDetailModals(0, warehouse);
+    this.openBillExportDetailModals(0, warehouse, isTransfer);
   }
   private convertToDetail(d: any): BillExportDetail {
     return {
@@ -809,8 +819,9 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
    * Mở modal chi tiết cho từng bill export tuần tự
    * @param index - Index của bill export hiện tại trong mảng billExports
    * @param warehouse - Warehouse object từ onWarehouseSelect
+   * @param isTransfer - Cờ xác định có phải là chuyển kho hay không
    */
-  private openBillExportDetailModals(index: number, warehouse: any): void {
+  private openBillExportDetailModals(index: number, warehouse: any, isTransfer: boolean = false): void {
     if (index >= this.billExports.length) {
       return;
     }
@@ -834,24 +845,10 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       SupplierID: 0,
       CreatDate: billExport.RequestDate,
       RequestDate: billExport.RequestDate,
+      IsTransfer: isTransfer,
     };
 
-    const modalRef = this.modalService.open(BillExportDetailComponent, {
-      centered: true,
-      // size: 'xl',
-      windowClass: 'full-screen-modal',
-      backdrop: 'static',
-      keyboard: false,
-    });
-
-    // Truyền dữ liệu vào modal
-    modalRef.componentInstance.newBillExport = billExportForModal;
-    modalRef.componentInstance.isCheckmode = false;
-    modalRef.componentInstance.isPOKH = true;
-    modalRef.componentInstance.id = 0;
-    modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
-    modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
-
+    // CRITICAL: Create detailsForModal BEFORE opening the modal
     const detailsForModal = billExport.Details.map((detail: any) => ({
       ID: 0,
       POKHDetailID: detail.POKHDetailID || 0,
@@ -860,7 +857,6 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       ProductCode: detail.ProductCode || '',
       ProductName: detail.ProductName || '',
       Unit: detail.Unit || '',
-      // ✅ Không set TotalInventory ở đây - để bill-export-detail tự fill từ productOptions
       // TotalInventory sẽ được fill từ productOptions trong updateTotalInventoryForExistingRows()
       TotalInventory: 0,
       Qty: detail.Qty || 0,
@@ -869,6 +865,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       ProjectCodeExport: detail.ProjectCodeExport || '',
       ProjectNameText: detail.ProjectNameText || '',
       ProductFullName: detail.ProductFullName || '',
+      ProjectCode: detail.ProductFullName || '',  // Mã theo khách
       Note: detail.Note || '',
       UnitPricePOKH: detail.UnitPricePOKH || 0,
       UnitPricePurchase: detail.UnitPricePurchase || 0,
@@ -877,21 +874,24 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       POKHID: detail.POKHID || 0,
     }));
 
-    setTimeout(() => {
-      modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
+    console.log('[WAREHOUSE RELEASE SLICKGRID] detailsForModal before modal open:', detailsForModal);
 
-      if (modalRef.componentInstance.table_billExportDetail) {
-        modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
+    const modalRef = this.modalService.open(BillExportDetailNewComponent, {
+      centered: true,
+      // size: 'xl',
+      windowClass: 'full-screen-modal',
+      backdrop: 'static',
+      keyboard: false,
+    });
 
-        // Update TotalInventory after data is set into table
-        // Wait a bit for productOptions to be loaded if not already
-        setTimeout(() => {
-          if (modalRef.componentInstance.updateTotalInventoryForExistingRows) {
-            modalRef.componentInstance.updateTotalInventoryForExistingRows();
-          }
-        }, 500);
-      }
-    }, 200);
+    // CRITICAL: Set selectedList FIRST after opening modal (before other properties)
+    modalRef.componentInstance.selectedList = detailsForModal;
+    modalRef.componentInstance.newBillExport = billExportForModal;
+    modalRef.componentInstance.isCheckmode = false;
+    modalRef.componentInstance.isPOKH = true;
+    modalRef.componentInstance.id = 0;
+    modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
+    modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
 
     modalRef.result.then(
       (result) => {
@@ -900,7 +900,6 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         if (index < this.billExports.length - 1) {
           this.openBillExportDetailModals(index + 1, warehouse);
         } else {
-          // Đây là modal cuối cùng, đóng activeModal
           this.activeModal.close();
         }
       },
@@ -909,7 +908,6 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         if (index < this.billExports.length - 1) {
           this.openBillExportDetailModals(index + 1, warehouse);
         } else {
-          // Đây là modal cuối cùng, đóng activeModal
           this.activeModal.close();
         }
       }
@@ -1210,6 +1208,18 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         filterable: true,
         type: FieldType.string,
       },
+      {
+        id: 'CreatedDate',
+        name: 'Ngày tạo PO',
+        field: 'CreatedDate',
+        width: 200,
+        minWidth: 100,
+        sortable: true,
+        filterable: true,
+        type: FieldType.dateIso,
+        formatter: Formatters.dateEuro,
+        hidden: true,
+      },
     ];
 
     this.gridOptions = {
@@ -1249,8 +1259,12 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         levelPropName: 'treeLevel',
         indentMarginLeft: 15,
         initiallyCollapsed: false,
+        initialSort: {
+          columnId: 'CreatedDate',
+          direction: 'DESC'
+        }
       },
-      frozenColumn: 6, 
+      frozenColumn: 6,
     };
   }
 

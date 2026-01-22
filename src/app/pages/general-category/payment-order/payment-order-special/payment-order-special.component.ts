@@ -65,76 +65,24 @@ export class PaymentOrderSpecialComponent implements OnInit {
     // userTeamNames$!: Observable<{ value: any; label: string }[]>;
     userTeamNames: any = [
         {
-            "value": 18,
-            "label": "Admin (HCM)"
-        },
-        {
-            "value": 17,
-            "label": "Sales (HCM)"
-        },
-        {
-            "value": 16,
-            "label": "HCM ()"
-        },
-        {
-            "value": 15,
-            "label": "Admin (Bless)"
-        },
-        {
-            "value": 14,
-            "label": "Sales (Bless)"
-        },
-        {
-            "value": 13,
-            "label": "Bless ()"
-        },
-        {
-            "value": 12,
-            "label": "Admin (VP BẮC NINH)"
-        },
-        {
-            "value": 11,
-            "label": "PM (VP BẮC NINH)"
-        },
-        {
-            "value": 10,
-            "label": "Sales (VP BẮC NINH)"
-        },
-        {
-            "value": 9,
-            "label": "VP BẮC NINH ()"
-        },
-        {
-            "value": 8,
-            "label": "Admin (Shark)"
-        },
-        {
-            "value": 7,
-            "label": "PM (Shark)"
-        },
-        {
-            "value": 6,
-            "label": "Sales (Shark)"
+            "value": 1,
+            "label": "Bob"
         },
         {
             "value": 5,
-            "label": "Shark ()"
+            "label": "Shark"
         },
         {
-            "value": 4,
-            "label": "Admin (Bob)"
+            "value": 9,
+            "label": "VP BẮC NINH"
         },
         {
-            "value": 3,
-            "label": "PM (Bob)"
+            "value": 13,
+            "label": "Bless"
         },
         {
-            "value": 2,
-            "label": "Sales (Bob)"
-        },
-        {
-            "value": 1,
-            "label": "Bob ()"
+            "value": 16,
+            "label": "HCM"
         }
     ];
 
@@ -203,7 +151,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 header: {
                     buttons: [
                         {
-                            cssClass: 'fa fa-plus',
+                            cssClass: 'btn btn-success fa fa-plus',
                             tooltip: 'Thêm mới',
                             command: 'add'
                         },

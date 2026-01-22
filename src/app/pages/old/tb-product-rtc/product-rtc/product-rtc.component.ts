@@ -1,3 +1,4 @@
+import { ClipboardService } from './../../../../services/clipboard.service';
 import { CommonModule } from '@angular/common';
 import {
     Component,
@@ -7,6 +8,8 @@ import {
     ElementRef,
     ChangeDetectorRef,
     OnDestroy,
+    Inject,
+    Optional,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -19,6 +22,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { SplitterModule } from 'primeng/splitter';
 import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
 import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.service';
 import { NgbModal, NgbModalModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
@@ -32,9 +36,10 @@ import { ProductRtcPurchaseRequestComponent } from '../../../../pages/purchase/p
 import { PurchaseRequestDemoComponent } from '../../../../pages/purchase/project-partlist-purchase-request/purchase-request-demo/purchase-request-demo.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../../pages/purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { AppUserService } from '../../../../services/app-user.service';
-
+import { TbProductRtcImportExcelComponent } from '../tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
+const ExcelJS = import('exceljs');
 @Component({
-  selector: 'app-product-rtc',
+    selector: 'app-product-rtc',
     standalone: true,
     imports: [
         CommonModule,
@@ -48,6 +53,7 @@ import { AppUserService } from '../../../../services/app-user.service';
         NzRadioModule,
         NzModalModule,
         NzSpinModule,
+        SplitterModule,
         AngularSlickgridModule,
         HasPermissionDirective,
         NgbModalModule,
@@ -55,9 +61,10 @@ import { AppUserService } from '../../../../services/app-user.service';
         ProductRtcPurchaseRequestComponent, // Component để tạo yêu cầu mua hàng ProductRTC
         PurchaseRequestDemoComponent, // Component để xem danh sách yêu cầu mua hàng demo
         ProjectPartlistPriceRequestNewComponent, // Component để yêu cầu báo giá
+        TbProductRtcImportExcelComponent, // Component để import Excel
     ],
-  templateUrl: './product-rtc.component.html',
-  styleUrls: ['./product-rtc.component.css']
+    templateUrl: './product-rtc.component.html',
+    styleUrls: ['./product-rtc.component.css']
 })
 export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
     warehouseCode: string = 'HN';
@@ -72,11 +79,17 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
     productGroupData: any[] = [];
     productData: any[] = [];
 
-    // AngularSlickGrid
+    // AngularSlickGrid - Master grid (products)
     angularGrid!: AngularGridInstance;
     columnDefinitions: Column[] = [];
     gridOptions: GridOption = {};
     dataset: any[] = [];
+
+    // AngularSlickGrid - Product Group grid (left panel)
+    angularGridGroup!: AngularGridInstance;
+    columnDefinitionsGroup: Column[] = [];
+    gridOptionsGroup: GridOption = {};
+    datasetGroup: any[] = [];
 
     isLoading: boolean = false;
     private subscriptions: Subscription[] = [];
@@ -88,25 +101,99 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         private modalService: NgbModal,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        private appUserService: AppUserService
+        private appUserService: AppUserService,
+        private ClipboardService: ClipboardService,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
 
-  ngOnInit() {
-        this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1;
-            this.warehouseCode = params['warehouseCode'] || 'HN';
-            this.warehouseType = params['warehouseType'] || 1;
-        });
-
-        this.loadProductGroups();
+    ngOnInit() {
         this.initGridColumns();
         this.initGridOptions();
+        this.initGroupGridColumns();
+        this.initGroupGridOptions();
+
+        // Subscribe to queryParams để reload data khi params thay đổi
+        const sub = this.route.queryParams.subscribe(params => {
+            // const newWarehouseID = Number(params['warehouseID']) || 1;
+            // const newWarehouseCode = params['warehouseCode'] || 'HN';
+            // const newWarehouseType = Number(params['warehouseType']) || 1;
+
+            const newWarehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            const newWarehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
+
+            const newWarehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
+
+            // Kiểm tra xem params có thay đổi không
+            const paramsChanged = this.warehouseID !== newWarehouseID ||
+                this.warehouseCode !== newWarehouseCode ||
+                this.warehouseType !== newWarehouseType;
+
+            // Nếu params thay đổi, reset và clear data trước
+            if (paramsChanged) {
+                // Reset productGroupID và keyword
+                this.productGroupID = 0;
+                this.keyWord = '';
+
+                // Clear existing data
+                this.dataset = [];
+                this.datasetGroup = [];
+                this.productData = [];
+                this.productGroupData = [];
+
+                // Clear grid selections, filters và force refresh data
+                if (this.angularGrid && this.angularGrid.slickGrid) {
+                    this.angularGrid.slickGrid.setSelectedRows([]);
+                    this.angularGrid.filterService?.clearFilters();
+                    // Force refresh grid data
+                    this.angularGrid.dataView?.setItems([], 'id');
+                    this.angularGrid.slickGrid.invalidate();
+                    this.angularGrid.slickGrid.render();
+                    this.angularGrid.slickGrid.scrollRowToTop(0);
+                }
+                if (this.angularGridGroup && this.angularGridGroup.slickGrid) {
+                    this.angularGridGroup.slickGrid.setSelectedRows([]);
+                    this.angularGridGroup.filterService?.clearFilters();
+                    // Force refresh grid data
+                    this.angularGridGroup.dataView?.setItems([], 'id');
+                    this.angularGridGroup.slickGrid.invalidate();
+                    this.angularGridGroup.slickGrid.render();
+                    this.angularGridGroup.slickGrid.scrollRowToTop(0);
+                }
+
+                // Re-initialize grids if warehouse code changed
+                this.initGridColumns();
+                this.initGridOptions();
+                this.initGroupGridColumns();
+                this.initGroupGridOptions();
+
+                // Trigger change detection
+                this.cdr.detectChanges();
+            }
+
+            // Update parameters after clearing
+            this.warehouseID = newWarehouseID;
+            this.warehouseCode = newWarehouseCode;
+            this.warehouseType = newWarehouseType;
+
+            // Load data mỗi khi params thay đổi
+            this.loadProductGroups();
+            this.getProduct();
+        });
+        this.subscriptions.push(sub);
     }
 
     ngAfterViewInit(): void {
-        setTimeout(() => {
-            this.getProduct();
-        }, 100);
+        // Data đã được load trong ngOnInit qua queryParams subscribe
     }
 
     ngOnDestroy(): void {
@@ -118,6 +205,16 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             next: (response: any) => {
                 const data = response.data || [];
                 this.productGroupData = data;
+                // Set data for group grid
+                this.datasetGroup = data.map((item: any, index: number) => ({
+                    ...item,
+                    id: item.ID || `group_${index}`,
+                }));
+
+                // Resize grids after data is loaded
+                setTimeout(() => {
+                    this.resizeGrids();
+                }, 100);
             },
             error: (error: any) => {
                 this.notification.error(
@@ -161,6 +258,27 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     } as MultipleSelectOption,
                 },
             },
+            // Spec columns - visible will be controlled by showSpec()
+            { id: 'Resolution', field: 'Resolution', name: 'Resolution', width: 120, sortable: true, hidden: true },
+            { id: 'MonoColor', field: 'MonoColor', name: 'Mono/Color', width: 100, sortable: true, hidden: true },
+            { id: 'SensorSize', field: 'SensorSize', name: 'Sensor Size (")', width: 120, sortable: true, hidden: true },
+            { id: 'SensorSizeMax', field: 'SensorSizeMax', name: 'Sensor Size Max (")', width: 140, sortable: true, hidden: true },
+            { id: 'DataInterface', field: 'DataInterface', name: 'Data Interface', width: 130, sortable: true, hidden: true },
+            { id: 'LensMount', field: 'LensMount', name: 'Lens Mount', width: 110, sortable: true, hidden: true },
+            { id: 'ShutterMode', field: 'ShutterMode', name: 'Shutter Mode', width: 120, sortable: true, hidden: true },
+            { id: 'PixelSize', field: 'PixelSize', name: 'Pixel Size', width: 100, sortable: true, hidden: true },
+            { id: 'LampType', field: 'LampType', name: 'Lamp Type', width: 110, sortable: true, hidden: true },
+            { id: 'LampPower', field: 'LampPower', name: 'Lamp Power', width: 110, sortable: true, hidden: true },
+            { id: 'LampWattage', field: 'LampWattage', name: 'Lamp Wattage', width: 110, sortable: true, hidden: true },
+            { id: 'LampColor', field: 'LampColor', name: 'Lamp Color', width: 100, sortable: true, hidden: true },
+            { id: 'MOD', field: 'MOD', name: 'MOD', width: 80, sortable: true, hidden: true },
+            { id: 'FNo', field: 'FNo', name: 'FNo', width: 80, sortable: true, hidden: true },
+            { id: 'WD', field: 'WD', name: 'WD', width: 80, sortable: true, hidden: true },
+            { id: 'Magnification', field: 'Magnification', name: 'Magnification', width: 120, sortable: true, hidden: true },
+            { id: 'FocalLength', field: 'FocalLength', name: 'Focal Length', width: 110, sortable: true, hidden: true },
+            { id: 'InputValue', field: 'InputValue', name: 'Input Value', width: 110, sortable: true, hidden: true },
+            { id: 'OutputValue', field: 'OutputValue', name: 'Output Value', width: 110, sortable: true, hidden: true },
+            { id: 'CurrentIntensityMax', field: 'CurrentIntensityMax', name: 'Rated Current (A)', width: 130, sortable: true, hidden: true },
             {
                 id: 'ProductGroupName',
                 field: 'ProductGroupName',
@@ -319,6 +437,52 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         ];
     }
 
+    private initGroupGridColumns(): void {
+        this.columnDefinitionsGroup = [
+            {
+                id: 'NumberOrder',
+                field: 'NumberOrder',
+                name: 'STT',
+                width: 60,
+                sortable: true,
+                filterable: true,
+            },
+            {
+                id: 'ProductGroupName',
+                field: 'ProductGroupName',
+                name: 'Tên nhóm sản phẩm',
+                width: 200,
+                sortable: true,
+                filterable: true,
+            },
+        ];
+    }
+
+    private initGroupGridOptions(): void {
+        this.gridOptionsGroup = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.group-grid-container',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            datasetIdPropertyName: 'ID',
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true,
+            },
+            enableCellNavigation: true,
+            enableFiltering: true,
+            autoFitColumnsOnFirstLoad: true,
+            enableAutoSizeColumns: true,
+            enableHeaderMenu: false,
+            enableContextMenu: false,
+            enableCellMenu: false,
+            rowHeight: 35,
+        };
+    }
+
     private initGridOptions(): void {
         this.gridOptions = {
             enableAutoResize: true,
@@ -341,6 +505,20 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             enableCheckboxSelector: true,
             enableCellNavigation: true,
             enableFiltering: true,
+            enableCellMenu: true,
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.ClipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
             frozenColumn: 2, // Freeze first 2 columns (ID and STT are not shown, so ProductCode and ProductName will be frozen)
@@ -379,6 +557,11 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.updateFilterCollections();
 
                 this.isLoading = false;
+
+                // Resize grids after data is loaded
+                setTimeout(() => {
+                    this.resizeGrids();
+                }, 100);
                 this.cdr.detectChanges();
 
                 // Resize grid sau khi data được load
@@ -448,7 +631,122 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
 
     onGroupChange(groupID: number): void {
         this.productGroupID = groupID;
+        this.showSpec();
         this.getProduct();
+    }
+
+    /**
+     * Hiển thị/ẩn các cột spec dựa trên ProductGroupID
+     * Tương ứng với logic ShowSpec() trong WinForm và tb-product-rtc.component.ts
+     */
+    showSpec(): void {
+        if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+
+        const groupId = this.productGroupID || 0;
+
+        // Tất cả các cột spec
+        const allSpecColumns = [
+            'Resolution',
+            'MonoColor',
+            'SensorSize',
+            'SensorSizeMax',
+            'DataInterface',
+            'LensMount',
+            'ShutterMode',
+            'PixelSize',
+            'LampType',
+            'LampPower',
+            'LampWattage',
+            'LampColor',
+            'MOD',
+            'FNo',
+            'WD',
+            'Magnification',
+            'FocalLength',
+            'InputValue',
+            'OutputValue',
+            'CurrentIntensityMax',
+        ];
+
+        // Map columns cần hiển thị theo ProductGroupID
+        const columnConfigs: { [key: number]: Array<{ field: string; title?: string }> } = {
+            74: [ // Camera
+                { field: 'Resolution', title: 'Resolution (pixel)' },
+                { field: 'MonoColor' },
+                { field: 'SensorSize', title: 'Sensor Size (")' },
+                { field: 'DataInterface' },
+                { field: 'LensMount' },
+                { field: 'ShutterMode' },
+            ],
+            75: [ // Light
+                { field: 'LampType' },
+                { field: 'LampColor' },
+                { field: 'LampPower' },
+                { field: 'LampWattage' },
+            ],
+            78: [ // Telecentric Lens
+                { field: 'Resolution', title: 'Resolution (µm)' },
+                { field: 'SensorSizeMax', title: 'Sensor Size Max (")' },
+                { field: 'WD' },
+                { field: 'LensMount' },
+                { field: 'FNo' },
+                { field: 'Magnification' },
+            ],
+            79: [ // Line Scan Camera
+                { field: 'Resolution' },
+                { field: 'MonoColor' },
+                { field: 'PixelSize' },
+                { field: 'DataInterface' },
+                { field: 'LensMount' },
+            ],
+            81: [ // FA Lens
+                { field: 'Resolution', title: 'Resolution (µm)' },
+                { field: 'SensorSizeMax', title: 'Sensor Size Max (")' },
+                { field: 'MOD' },
+                { field: 'LensMount' },
+                { field: 'FNo' },
+                { field: 'FocalLength' },
+            ],
+            139: [ // Lens Adapter
+                { field: 'Resolution' },
+                { field: 'SensorSizeMax' },
+                { field: 'MOD' },
+                { field: 'LensMount' },
+                { field: 'FNo' },
+                { field: 'FocalLength' },
+            ],
+            92: [ // Power Supply
+                { field: 'InputValue' },
+                { field: 'OutputValue' },
+                { field: 'CurrentIntensityMax' },
+            ],
+        };
+
+        const columns = this.angularGrid.slickGrid.getColumns();
+        const configs = columnConfigs[groupId] || [];
+        const visibleSpecFields = configs.map((c) => c.field);
+
+        // Update visibility và title cho các cột
+        columns.forEach((column: any) => {
+            if (allSpecColumns.includes(column.id)) {
+                const config = configs.find((c) => c.field === column.id);
+                if (config) {
+                    // Show column
+                    column.hidden = false;
+                    // Update title if specified
+                    if (config.title) {
+                        column.name = config.title;
+                    }
+                } else {
+                    // Hide column
+                    column.hidden = true;
+                }
+            }
+        });
+
+        // Update grid columns
+        this.angularGrid.slickGrid.setColumns(columns);
+        this.angularGrid.slickGrid.render();
     }
 
     onKeywordChange(value: string): void {
@@ -475,13 +773,45 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         this.getProduct();
     }
 
+    resizeGrids(): void {
+        if (this.angularGrid?.resizerService) {
+            this.angularGrid.resizerService.resizeGrid();
+        }
+        if (this.angularGridGroup?.resizerService) {
+            this.angularGridGroup.resizerService.resizeGrid();
+        }
+    }
+
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
 
         // Resize grid sau khi container đã render
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
         }, 100);
+    }
+
+    angularGridGroupReady(angularGrid: AngularGridInstance): void {
+        this.angularGridGroup = angularGrid;
+
+        // Handle click event on group grid
+        this.angularGridGroup.slickGrid.onClick.subscribe((_e: any, args: any) => {
+            const row = args.row;
+            const item = this.angularGridGroup.dataView.getItem(row);
+            if (item) {
+                this.onGroupRowClick(item);
+            }
+        });
+
+        setTimeout(() => {
+            this.resizeGrids();
+        }, 100);
+    }
+
+    onGroupRowClick(item: any): void {
+        this.productGroupID = item.ID;
+        this.showSpec();
+        this.getProduct();
     }
 
     onRowSelectionChanged(eventData: any, args: OnSelectedRowsChangedEventArgs) {
@@ -843,5 +1173,97 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 console.log('Modal dismissed');
             }
         );
+    }
+
+    openModalImportExcel() {
+        const modalRef = this.modalService.open(TbProductRtcImportExcelComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.warehouseType = this.warehouseType;
+        modalRef.componentInstance.warehouseID = this.warehouseID;
+        modalRef.result.then(
+            (result) => {
+                this.getProduct();
+            },
+            () => {
+                console.log('Modal dismissed');
+            }
+        );
+    }
+
+    async exportToExcelProduct() {
+        if (!this.angularGrid) return;
+
+        const selectedData = this.dataset;
+        if (!selectedData || selectedData.length === 0) {
+            this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+            return;
+        }
+        const ExcelJSModule = await ExcelJS;
+        const workbook = new ExcelJSModule.Workbook();
+        const worksheet = workbook.addWorksheet('Danh sách thiết bị');
+
+        // Get visible columns from SlickGrid
+        const columns = this.angularGrid.slickGrid.getColumns().filter(
+            (col: any) => !col.hidden && col.field && col.field.trim() !== '' && col.id !== '_checkbox_selector'
+        );
+
+        const headerRow = worksheet.addRow(
+            columns.map((col: any) => col.name || col.field)
+        );
+        headerRow.font = { bold: true };
+        headerRow.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFE0E0E0' },
+        };
+
+        selectedData.forEach((row: any) => {
+            const rowData = columns.map((col: any) => {
+                const value = row[col.field];
+                switch (col.field) {
+                    case 'BorrowCustomer':
+                        return value ? 'Có' : 'Không';
+                    case 'CreateDate':
+                        return value ? new Date(value).toLocaleDateString('vi-VN') : '';
+                    default:
+                        return value !== null && value !== undefined ? value : '';
+                }
+            });
+            worksheet.addRow(rowData);
+        });
+
+        worksheet.columns.forEach((col) => {
+            col.width = 20;
+        });
+
+        worksheet.eachRow((row, rowNumber) => {
+            row.eachCell((cell) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' },
+                };
+                if (rowNumber === 1) {
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                }
+            });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `danh-sach-thiet-bi-${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
     }
 }

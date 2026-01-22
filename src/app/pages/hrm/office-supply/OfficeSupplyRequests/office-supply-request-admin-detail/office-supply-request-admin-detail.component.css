@@ -18,7 +18,7 @@
   font-size: 12px !important;
 }
 
-:host ::ng-deep .ant-form-item-label > label {
+:host ::ng-deep .ant-form-item-label>label {
   font-size: 12px !important;
 }
 
@@ -36,3 +36,6 @@
   font-size: 12px !important;
 }
 
+.ant-splitter {
+  height: 35;
+}

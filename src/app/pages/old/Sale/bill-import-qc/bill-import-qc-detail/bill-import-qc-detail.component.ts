@@ -33,6 +33,7 @@ import {
 } from 'angular-slickgrid';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
+  MultipleSelectOption,
   OnEventArgs,
   OperatorType,
   SortDirectionNumber,
@@ -58,381 +59,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillImportQcService } from '../bill-import-qc-service/bill-import-qc-service.service';
 import { BillImportQcFileComponent } from '../bill-import-qc-file/bill-import-qc-file.component';
 import { NzSpinComponent } from 'ng-zorro-antd/spin';
-
-class GroupSelectEditor {
-  private args: any;
-  private wrapperElm!: HTMLDivElement;
-  private inputElm!: HTMLInputElement;
-  private dropdownElm!: HTMLDivElement;
-  private defaultValue: string = '';
-  private selectedValue: string = '';
-  private collection: Array<any> = [];
-  private flatCollection: Array<{
-    group?: string;
-    value: string;
-    label: string;
-  }> = [];
-  private visibleOptions: Array<{
-    value: string;
-    label: string;
-    group?: string;
-  }> = [];
-  private activeIndex = -1;
-
-  private inputDebounceTimer: any;
-  private readonly maxOptionsWithoutSearch = 200;
-  private readonly maxOptionsWithSearch = 500;
-
-  private handleOutsideMouseDown!: (e: Event) => void;
-  private handleReposition!: () => void;
-
-  constructor(args: any) {
-    this.args = args;
-    this.init();
-  }
-
-  init() {
-    const editor = this.args?.column?.editor ?? {};
-    this.collection = editor.collection ?? [];
-    this.flatCollection = this.getFlattenedCollection();
-
-    this.wrapperElm = document.createElement('div');
-    this.wrapperElm.style.width = '100%';
-    this.wrapperElm.style.height = '100%';
-
-    this.inputElm = document.createElement('input');
-    this.inputElm.type = 'text';
-    this.inputElm.placeholder = 'Tìm...';
-    this.inputElm.style.width = '100%';
-    this.inputElm.style.height = '100%';
-    this.inputElm.style.boxSizing = 'border-box';
-    this.inputElm.style.padding = '2px 6px';
-    this.inputElm.style.fontSize = '12px';
-
-    this.wrapperElm.appendChild(this.inputElm);
-    this.args.container.appendChild(this.wrapperElm);
-
-    this.dropdownElm = document.createElement('div');
-    this.dropdownElm.style.position = 'fixed';
-    this.dropdownElm.style.zIndex = '99999';
-    this.dropdownElm.style.background = '#fff';
-    this.dropdownElm.style.border = '1px solid #d9d9d9';
-    this.dropdownElm.style.borderRadius = '4px';
-    this.dropdownElm.style.boxShadow = '0 6px 16px rgba(0,0,0,.08)';
-    this.dropdownElm.style.maxHeight = '260px';
-    this.dropdownElm.style.overflow = 'auto';
-    this.dropdownElm.style.display = 'none';
-    document.body.appendChild(this.dropdownElm);
-
-    this.inputElm.addEventListener('input', () => {
-      if (this.inputDebounceTimer) {
-        clearTimeout(this.inputDebounceTimer);
-      }
-      this.inputDebounceTimer = setTimeout(() => {
-        this.activeIndex = -1;
-        this.buildDropdown(this.inputElm.value);
-        this.openDropdown();
-      }, 120);
-    });
-
-    this.inputElm.addEventListener('focus', () => {
-      this.activeIndex = -1;
-      this.buildDropdown(this.inputElm.value);
-      this.openDropdown();
-    });
-
-    this.inputElm.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        this.closeDropdown();
-        e.preventDefault();
-        return;
-      }
-
-      if (e.key === 'ArrowDown') {
-        this.moveActive(1);
-        e.preventDefault();
-        return;
-      }
-
-      if (e.key === 'ArrowUp') {
-        this.moveActive(-1);
-        e.preventDefault();
-        return;
-      }
-
-      if (e.key === 'Enter') {
-        this.selectActiveOrCommit();
-        e.preventDefault();
-      }
-    });
-
-    this.dropdownElm.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-    });
-
-    this.handleOutsideMouseDown = (e: Event) => {
-      const target = e.target as Node;
-      if (
-        this.wrapperElm?.contains(target) ||
-        this.dropdownElm?.contains(target)
-      )
-        return;
-      this.closeDropdown();
-    };
-
-    this.handleReposition = () => {
-      if (this.dropdownElm?.style.display !== 'none') {
-        this.repositionDropdown();
-      }
-    };
-
-    document.addEventListener('mousedown', this.handleOutsideMouseDown, true);
-    window.addEventListener('scroll', this.handleReposition, true);
-    window.addEventListener('resize', this.handleReposition, true);
-
-    this.buildDropdown('');
-    this.openDropdown();
-    this.inputElm.focus();
-  }
-
-  private openDropdown() {
-    this.repositionDropdown();
-    this.dropdownElm.style.display = 'block';
-  }
-
-  private closeDropdown() {
-    if (this.dropdownElm) {
-      this.dropdownElm.style.display = 'none';
-    }
-  }
-
-  private repositionDropdown() {
-    const rect = this.wrapperElm.getBoundingClientRect();
-    this.dropdownElm.style.left = `${rect.left}px`;
-    this.dropdownElm.style.top = `${rect.bottom}px`;
-    this.dropdownElm.style.width = `${rect.width}px`;
-  }
-
-  private commit() {
-    const grid = this.args?.grid;
-    const lock = grid?.getEditorLock?.();
-    lock?.commitCurrentEdit?.();
-  }
-
-  private getFlattenedCollection(): Array<{
-    group?: string;
-    value: string;
-    label: string;
-  }> {
-    const out: Array<{ group?: string; value: string; label: string }> = [];
-    const editor = this.args?.column?.editor ?? {};
-    const addBlankEntry = editor?.collectionOptions?.addBlankEntry !== false;
-
-    if (addBlankEntry) {
-      out.push({ value: '', label: '' });
-    }
-
-    for (const item of this.collection) {
-      if (item?.options?.length) {
-        for (const opt of item.options) {
-          out.push({
-            group: item.label ?? '',
-            value: String(opt.value ?? ''),
-            label: String(opt.label ?? ''),
-          });
-        }
-      } else {
-        out.push({
-          value: String(item.value ?? ''),
-          label: String(item.label ?? ''),
-        });
-      }
-    }
-    return out;
-  }
-
-  private buildDropdown(searchTerm: string) {
-    const term = (searchTerm ?? '').trim().toLowerCase();
-    const currentValue = String(this.selectedValue ?? '');
-    const all = this.flatCollection?.length
-      ? this.flatCollection
-      : this.getFlattenedCollection();
-
-    let filtered: Array<{ group?: string; value: string; label: string }> = [];
-    if (!term) {
-      const current = all.find((x) => String(x.value ?? '') === currentValue);
-      const first = all
-        .filter((x) => String(x.value ?? '') !== currentValue)
-        .slice(0, this.maxOptionsWithoutSearch);
-      filtered = [...(current ? [current] : []), ...first];
-    } else {
-      filtered = all
-        .filter((x) => {
-          if (String(x.value ?? '') === currentValue) return true;
-          const label = String(x.label ?? '').toLowerCase();
-          const value = String(x.value ?? '').toLowerCase();
-          return label.includes(term) || value.includes(term);
-        })
-        .slice(0, this.maxOptionsWithSearch);
-    }
-
-    this.visibleOptions = filtered;
-
-    const root = document.createElement('div');
-    root.style.padding = '4px 0';
-
-    const grouped = new Map<string, Array<{ value: string; label: string }>>();
-    const noGroup: Array<{ value: string; label: string }> = [];
-    const hasGroup = filtered.some((x) => !!x.group);
-
-    for (const x of filtered) {
-      const item = { value: x.value, label: x.label };
-      if (hasGroup && x.group) {
-        if (!grouped.has(x.group)) grouped.set(x.group, []);
-        grouped.get(x.group)!.push(item);
-      } else {
-        noGroup.push(item);
-      }
-    }
-
-    const appendOption = (
-      opt: { value: string; label: string },
-      optIndex: number
-    ) => {
-      const row = document.createElement('div');
-      row.setAttribute('data-idx', String(optIndex));
-      row.style.padding = '6px 10px';
-      row.style.cursor = 'pointer';
-      row.style.userSelect = 'none';
-      row.style.whiteSpace = 'nowrap';
-      row.style.overflow = 'hidden';
-      row.style.textOverflow = 'ellipsis';
-      row.textContent = opt.label;
-
-      if (opt.value === currentValue) {
-        row.style.background = '#e6f4ff';
-      }
-      if (optIndex === this.activeIndex) {
-        row.style.background = '#f5f5f5';
-      }
-
-      row.addEventListener('click', () => {
-        this.selectValue(opt.value);
-      });
-
-      root.appendChild(row);
-    };
-
-    let optIndex = 0;
-    for (const opt of noGroup) {
-      appendOption(opt, optIndex);
-      optIndex++;
-    }
-
-    if (hasGroup) {
-      for (const [groupLabel, items] of grouped.entries()) {
-        const header = document.createElement('div');
-        header.style.padding = '6px 10px';
-        header.style.fontWeight = '600';
-        header.style.color = '#000';
-        header.style.fontSize = '14px';
-        header.textContent = groupLabel;
-        root.appendChild(header);
-
-        for (const opt of items) {
-          appendOption(opt, optIndex);
-          optIndex++;
-        }
-      }
-    }
-
-    this.dropdownElm.innerHTML = '';
-    this.dropdownElm.appendChild(root);
-  }
-
-  private moveActive(delta: number) {
-    const count = this.visibleOptions?.length ?? 0;
-    if (count <= 0) return;
-    const next = Math.max(0, Math.min(count - 1, this.activeIndex + delta));
-    this.activeIndex = next;
-    this.buildDropdown(this.inputElm.value);
-
-    const active = this.dropdownElm.querySelector(
-      `[data-idx="${this.activeIndex}"]`
-    ) as HTMLDivElement | null;
-    active?.scrollIntoView({ block: 'nearest' });
-  }
-
-  private selectActiveOrCommit() {
-    if (
-      this.activeIndex >= 0 &&
-      this.activeIndex < (this.visibleOptions?.length ?? 0)
-    ) {
-      this.selectValue(this.visibleOptions[this.activeIndex].value);
-      return;
-    }
-    this.commit();
-  }
-
-  private selectValue(val: string) {
-    this.selectedValue = String(val ?? '');
-    const flat = this.flatCollection?.length
-      ? this.flatCollection
-      : this.getFlattenedCollection();
-    const found = flat.find(
-      (x) => String(x.value ?? '') === this.selectedValue
-    );
-    this.inputElm.value = found?.label ?? '';
-    this.closeDropdown();
-    this.commit();
-  }
-
-  destroy() {
-    document.removeEventListener(
-      'mousedown',
-      this.handleOutsideMouseDown,
-      true
-    );
-    window.removeEventListener('scroll', this.handleReposition, true);
-    window.removeEventListener('resize', this.handleReposition, true);
-    this.dropdownElm?.remove();
-    this.wrapperElm?.remove();
-  }
-
-  focus() {
-    this.inputElm?.focus();
-  }
-
-  loadValue(item: any) {
-    this.defaultValue = String(item?.[this.args.column.field] ?? '');
-    this.selectedValue = this.defaultValue;
-    const flat = this.flatCollection?.length
-      ? this.flatCollection
-      : this.getFlattenedCollection();
-    const found = flat.find(
-      (x) => String(x.value ?? '') === this.selectedValue
-    );
-    this.inputElm.value = found?.label ?? '';
-    this.buildDropdown('');
-    this.openDropdown();
-  }
-
-  serializeValue() {
-    return this.selectedValue ?? '';
-  }
-
-  applyValue(item: any, state: any) {
-    item[this.args.column.field] = state;
-  }
-
-  isValueChanged() {
-    return String(this.selectedValue ?? '') !== String(this.defaultValue ?? '');
-  }
-
-  validate() {
-    return { valid: true, msg: null };
-  }
-}
+import { PermissionService } from '../../../../../services/permission.service';
 
 @Component({
   selector: 'app-bill-import-qc-detail',
@@ -460,8 +87,7 @@ class GroupSelectEditor {
   styleUrl: './bill-import-qc-detail.component.css',
 })
 export class BillImportQcDetailComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   //#region Khai báo
   constructor(
     private fb: FormBuilder,
@@ -471,8 +97,9 @@ export class BillImportQcDetailComponent
     private appUserService: AppUserService,
     private projectService: ProjectService,
     private notification: NzNotificationService,
-    private billImportQcService: BillImportQcService
-  ) {}
+    private billImportQcService: BillImportQcService,
+    private permissionService: PermissionService
+  ) { }
 
   dateRequest: Date = new Date();
   deadline: Date = new Date();
@@ -493,26 +120,6 @@ export class BillImportQcDetailComponent
   productSaleGrid: any = [];
 
   isLoading: boolean = false;
-
-  ddosGroupCollection: Array<{
-    label: string;
-    options: Array<{ value: string; label: string }>;
-  }> = [
-    {
-      label: 'Nhóm 1',
-      options: [
-        { value: 'ddos_1', label: 'DDOS 1' },
-        { value: 'ddos_2', label: 'DDOS 2' },
-      ],
-    },
-    {
-      label: 'Nhóm 2',
-      options: [
-        { value: 'ddos_3', label: 'DDOS 3' },
-        { value: 'ddos_4', label: 'DDOS 4' },
-      ],
-    },
-  ];
 
   angularGridMaster!: AngularGridInstance;
   angularGridFileCheck!: AngularGridInstance;
@@ -548,10 +155,12 @@ export class BillImportQcDetailComponent
   private masterAllInitialized = false;
   selectedRowIds: Set<number> = new Set();
 
+  isSenior: boolean = false;
   //#endregion
 
   //#region Chạy khi mở chương trình
   ngOnInit(): void {
+    this.isSenior = this.permissionService.hasPermission('N85');
     this.isDisabledEmployeeRequest = !this.appUserService.isAdmin;
     this.loadLookupData();
     this.initGridColumns();
@@ -590,9 +199,9 @@ export class BillImportQcDetailComponent
     });
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void { }
 
   loadLookupData() {
     this.projectService.getUsers().subscribe({
@@ -732,46 +341,56 @@ export class BillImportQcDetailComponent
   }
 
   buildEmployeeGroupCollection(employeeRequests: any[]) {
-    const map = new Map<string, Array<{ value: string; label: string }>>();
+    // const map = new Map<string, Array<{ value: string; label: string }>>();
 
-    employeeRequests.forEach((e) => {
-      const dept = e.DepartmentName ?? 'Khác';
+    // employeeRequests.forEach((e) => {
+    //   const dept = e.DepartmentName ?? 'Khác';
 
-      if (!map.has(dept)) {
-        map.set(dept, []);
-      }
+    //   if (!map.has(dept)) {
+    //     map.set(dept, []);
+    //   }
 
-      map.get(dept)!.push({
-        value: e.EmployeeID,
-        label: `${e.Code} - ${e.FullName}`,
-      });
-    });
+    //   map.get(dept)!.push({
+    //     value: e.EmployeeID,
+    //     label: `${e.Code} - ${e.FullName}`,
+    //   });
+    // });
 
-    return Array.from(map.entries()).map(([label, options]) => ({
-      label,
-      options,
+    // return Array.from(map.entries()).map(([label, options]) => ({
+    //   label,
+    //   options,
+    // }));
+
+    return employeeRequests.map((l) => ({
+      value: l.EmployeeID,
+      label: `${l.Code} - ${l.FullName}`,
     }));
   }
 
   buildLeaderGroupCollection(leaders: any[]) {
-    const map = new Map<string, Array<{ value: string; label: string }>>();
+    // const map = new Map<string, Array<{ value: string; label: string }>>();
 
-    leaders.forEach((l) => {
-      const dept = l.DepartmentName ?? 'Khác';
+    // leaders.forEach((l) => {
+    //   const dept = l.DepartmentName ?? 'Khác';
 
-      if (!map.has(dept)) {
-        map.set(dept, []);
-      }
+    //   if (!map.has(dept)) {
+    //     map.set(dept, []);
+    //   }
 
-      map.get(dept)!.push({
-        value: l.EmployeeID,
-        label: `${l.Code} - ${l.FullName}`,
-      });
-    });
+    //   map.get(dept)!.push({
+    //     value: l.EmployeeID,
+    //     label: `${l.Code} - ${l.FullName}`,
+    //   });
+    // });
 
-    return Array.from(map.entries()).map(([label, options]) => ({
-      label,
-      options,
+    // return Array.from(map.entries()).map(([label, options]) => ({
+    //   label,
+    //   options,
+    // }));
+
+    return leaders.map((l) => ({
+      value: l.EmployeeID,
+      label: `${l.Code} - ${l.FullName}`,
     }));
   }
 
@@ -890,7 +509,7 @@ export class BillImportQcDetailComponent
       // Cột EmployeeTechID: chỉ Leader được sửa
       if (fieldName === 'EmployeeTechID') {
         const leaderID = Number(item.LeaderTechID);
-        if (leaderID === currentEmployeeID && leaderID > 0) {
+        if ((leaderID === currentEmployeeID && leaderID > 0) || this.isSenior) {
           return true;
         }
         return false;
@@ -1493,12 +1112,22 @@ export class BillImportQcDetailComponent
 
           return found?.label ?? '';
         },
+        // editor: {
+        //   model: GroupSelectEditor,
+        //   collection: this.productSaleGrid,
+        //   collectionOptions: {
+        //     addBlankEntry: false,
+        //   },
+        // },
         editor: {
-          model: GroupSelectEditor,
-          collection: this.productSaleGrid,
+          model: Editors['singleSelect'],
           collectionOptions: {
-            addBlankEntry: false,
+            addBlankEntry: true
           },
+          collection: this.productSaleGrid,
+          editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
 
         customTooltip: {
@@ -1572,21 +1201,40 @@ export class BillImportQcDetailComponent
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
 
+        // formatter: (_row, _cell, value) => {
+        //   if (value == null) return '';
+
+        //   const flatOptions = this.leadersGrid.flatMap((g: any) => g.options);
+
+        //   const found = flatOptions.find((x: any) => x.value === Number(value));
+
+        //   return found?.label ?? '';
+        // },
+        // editor: {
+        //   model: GroupSelectEditor,
+        //   collection: this.leadersGrid,
+        //   collectionOptions: {
+        //     addBlankEntry: false,
+        //   },
+        // },
         formatter: (_row, _cell, value) => {
           if (value == null) return '';
 
-          const flatOptions = this.leadersGrid.flatMap((g: any) => g.options);
-
-          const found = flatOptions.find((x: any) => x.value === Number(value));
+          const found = this.leadersGrid.find(
+            (x: any) => x.value === Number(value)
+          );
 
           return found?.label ?? '';
         },
         editor: {
-          model: GroupSelectEditor,
-          collection: this.leadersGrid,
+          model: Editors['singleSelect'],
           collectionOptions: {
-            addBlankEntry: false,
+            addBlankEntry: true
           },
+          collection: this.leadersGrid,
+          editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
 
         customTooltip: {
@@ -1602,23 +1250,42 @@ export class BillImportQcDetailComponent
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
 
+        // formatter: (_row, _cell, value) => {
+        //   if (value == null) return '';
+
+        //   const flatOptions = this.employeeRequestsGrid.flatMap(
+        //     (g: any) => g.options
+        //   );
+
+        //   const found = flatOptions.find((x: any) => x.value === Number(value));
+
+        //   return found?.label ?? '';
+        // },
+        // editor: {
+        //   model: GroupSelectEditor,
+        //   collection: this.employeeRequestsGrid,
+        //   collectionOptions: {
+        //     addBlankEntry: false,
+        //   },
+        // },
         formatter: (_row, _cell, value) => {
           if (value == null) return '';
 
-          const flatOptions = this.employeeRequestsGrid.flatMap(
-            (g: any) => g.options
+          const found = this.employeeRequestsGrid.find(
+            (x: any) => x.value === Number(value)
           );
-
-          const found = flatOptions.find((x: any) => x.value === Number(value));
 
           return found?.label ?? '';
         },
         editor: {
-          model: GroupSelectEditor,
-          collection: this.employeeRequestsGrid,
+          model: Editors['singleSelect'],
           collectionOptions: {
-            addBlankEntry: false,
+            addBlankEntry: true
           },
+          collection: this.employeeRequestsGrid,
+          editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
 
         customTooltip: {
@@ -1643,12 +1310,23 @@ export class BillImportQcDetailComponent
 
           return found?.label ?? '';
         },
+        // editor: {
+        //   model: GroupSelectEditor,
+        //   collection: this.projectsGrid,
+        //   collectionOptions: {
+        //     addBlankEntry: false,
+        //   },
+        // },
+
         editor: {
-          model: GroupSelectEditor,
-          collection: this.projectsGrid,
+          model: Editors['singleSelect'],
           collectionOptions: {
-            addBlankEntry: false,
+            addBlankEntry: true
           },
+          collection: this.projectsGrid,
+          editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
 
         customTooltip: {
@@ -2044,17 +1722,17 @@ export class BillImportQcDetailComponent
     // Chuẩn bị data detail (master grid)
     const detailData = this.dataMasterAll.map((item) => ({
       ID: item.ID,
-      BillImportQCID: item.BillImportQCID ?? 0,
-      ProductSaleID: item.ProductSaleID ?? 0,
-      LeaderTechID: item.LeaderTechID ?? 0,
-      Status: item.Status ?? 0,
-      EmployeeTechID: item.EmployeeTechID ?? 0,
-      Note: item.Note ?? '',
-      BillImportDetailID: item.BillImportDetailID ?? 0,
-      IsDeleted: item.IsDeleted ?? false,
-      ProjectID: item.ProjectID ?? 0,
-      POKHCode: item.POKHCode ?? '',
-      Quantity: item.Quantity ?? 0,
+      BillImportQCID: item.BillImportQCID || 0,
+      ProductSaleID: item.ProductSaleID || 0,
+      LeaderTechID: item.LeaderTechID || 0,
+      Status: item.Status || 0,
+      EmployeeTechID: item.EmployeeTechID || 0,
+      Note: item.Note || '',
+      BillImportDetailID: item.BillImportDetailID || 0,
+      IsDeleted: item.IsDeleted || false,
+      ProjectID: item.ProjectID || 0,
+      POKHCode: item.POKHCode || '',
+      Quantity: item.Quantity || 0,
     }));
 
     // Chỉ lấy file mới (có FileObject) để upload

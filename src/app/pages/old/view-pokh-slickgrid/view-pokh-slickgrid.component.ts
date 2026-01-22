@@ -17,6 +17,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import {
   AngularGridInstance,
   AngularSlickgridModule,
@@ -67,6 +68,7 @@ interface GroupedData {
     NzCardModule,
     NzSplitterModule,
     NzFormModule,
+    NzDropDownModule,
     NzDatePickerModule,
     NzInputModule,
     NzInputNumberModule,
@@ -79,7 +81,6 @@ interface GroupedData {
 })
 export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() warehouseId: number = 0;
-  sizeSearch: string = '0';
   private modifiedRows: Set<number> = new Set();
   public modifiedInvoiceRows: Set<number> = new Set();
   private skipChildUpdate: boolean = false;
@@ -110,10 +111,6 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
   private nestedExportGrids: Map<number, AngularGridInstance> = new Map();
   // Track row detail view components for refreshing nested grids
   public nestedRowDetailViews: Map<number, any> = new Map();
-
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch === '0' ? '22%' : '0';
-  }
 
   menuBars: any[] = [];
 
@@ -280,12 +277,14 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         },
         excludeFromExport: true,
       },
-      // { id: 'ID', name: 'ID', field: 'ID', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, excludeFromExport: true },
+      { id: 'ID', name: 'ID', field: 'ID', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, excludeFromExport: true, hidden: true },
       { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'StatusText', name: 'Trạng thái', field: 'StatusText', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.statusFormatter, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReceivedDatePO', name: 'Ngày PO', field: 'ReceivedDatePO', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.dateFormatter, cssClass: 'text-center' },
       { id: 'FullName', name: 'Sale phụ trách', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'CustomerCode', name: 'Mã khách hàng', field: 'CustomerCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'CustomerName', name: 'Tên khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ProductNewCode', name: 'Mã nội bộ', field: 'ProductNewCode', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -366,9 +365,12 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         width: 40,
         maxWidth: 40,
         formatter: (row, cell, value, columnDef, dataContext) => {
-          const isSelected = this.selectedExportRowsAll.some(r => r.BillExportDetailID === dataContext.BillExportDetailID);
+          // Dùng Code + POKHDetailID làm composite key
+          const isSelected = this.selectedExportRowsAll.some(r =>
+            r.POKHDetailID === dataContext.POKHDetailID && r.Code === dataContext.Code
+          );
           return `<div style="text-align: center;">
-            <input type="checkbox" ${isSelected ? 'checked' : ''} class="export-row-checkbox" data-id="${dataContext.BillExportDetailID}" data-parent-id="${dataContext.POKHDetailID}" style="cursor: pointer; width: 16px; height: 16px;"/>
+            <input type="checkbox" ${isSelected ? 'checked' : ''} class="export-row-checkbox" data-code="${dataContext.Code}" data-parent-id="${dataContext.POKHDetailID}" style="cursor: pointer; width: 16px; height: 16px;"/>
           </div>`;
         },
         excludeFromExport: true,
@@ -479,8 +481,11 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
           e.stopImmediatePropagation();
           const isChecked = (target as HTMLInputElement).checked;
           this.handleRowSelect(dataContext, isChecked);
-          angularGrid.slickGrid?.invalidateRow(args.row);
-          angularGrid.slickGrid?.render();
+          // Chỉ update cell checkbox thay vì invalidate cả row để giữ nguyên row detail panel
+          const checkboxColumnIndex = angularGrid.slickGrid?.getColumnIndex('select');
+          if (checkboxColumnIndex !== undefined && checkboxColumnIndex >= 0) {
+            angularGrid.slickGrid?.updateCell(args.row, checkboxColumnIndex);
+          }
           return;
         }
       });
@@ -610,14 +615,15 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
   }
 
   handleExportRowSelect(dataContext: any, parentId: number, isSelected: boolean): void {
-    const billExportDetailID = dataContext.BillExportDetailID || dataContext.ID;
+    const code = dataContext.Code || '';
 
     if (isSelected) {
-      if (!this.selectedExportRowsAll.some(x => x.BillExportDetailID === billExportDetailID)) {
+      // Dùng Code + POKHDetailID làm composite key
+      if (!this.selectedExportRowsAll.some(x => x.POKHDetailID === parentId && x.Code === code)) {
         this.selectedExportRowsAll.push({
           POKHDetailID: parentId,
-          BillExportDetailID: billExportDetailID,
-          Code: dataContext.Code || '',
+          BillExportDetailID: dataContext.BillExportDetailID || dataContext.ID,
+          Code: code,
         });
       }
       // Auto-select parent if not already selected
@@ -626,7 +632,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         this.selectedRowsAll.push({ ...parentData });
       }
     } else {
-      this.selectedExportRowsAll = this.selectedExportRowsAll.filter(x => x.BillExportDetailID !== billExportDetailID);
+      // Xóa dựa trên Code + POKHDetailID
+      this.selectedExportRowsAll = this.selectedExportRowsAll.filter(x => !(x.POKHDetailID === parentId && x.Code === code));
       // Deselect parent if no more exports selected
       const remainingExportsForParent = this.selectedExportRowsAll.filter(x => x.POKHDetailID === parentId);
       if (remainingExportsForParent.length === 0) {
@@ -640,12 +647,13 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
   selectAllExportsForParent(parentData: any): void {
     if (parentData.exportDetails && parentData.exportDetails.length > 0) {
       parentData.exportDetails.forEach((ex: any) => {
-        const billExportDetailID = ex.BillExportDetailID || ex.ID;
-        if (!this.selectedExportRowsAll.some(x => x.BillExportDetailID === billExportDetailID)) {
+        const code = ex.Code || '';
+        // Dùng Code + POKHDetailID làm composite key
+        if (!this.selectedExportRowsAll.some(x => x.POKHDetailID === parentData.ID && x.Code === code)) {
           this.selectedExportRowsAll.push({
             POKHDetailID: parentData.ID,
-            BillExportDetailID: billExportDetailID,
-            Code: ex.Code || '',
+            BillExportDetailID: ex.BillExportDetailID || ex.ID,
+            Code: code,
           });
         }
       });
@@ -656,8 +664,12 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     if (this.angularGrid?.slickGrid && this.angularGrid?.dataView) {
       const rowIndex = this.angularGrid.dataView.getRowById(parentId);
       if (rowIndex !== undefined && rowIndex >= 0) {
-        this.angularGrid.slickGrid.invalidateRow(rowIndex);
-        this.angularGrid.slickGrid.render();
+        // Chỉ update cell checkbox thay vì invalidate cả row
+        // để tránh collapse row detail panel đang mở
+        const checkboxColumnIndex = this.angularGrid.slickGrid.getColumnIndex('select');
+        if (checkboxColumnIndex !== undefined && checkboxColumnIndex >= 0) {
+          this.angularGrid.slickGrid.updateCell(rowIndex, checkboxColumnIndex);
+        }
       }
     }
   }
@@ -840,8 +852,9 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       }
 
       const selectedExports = (row.exportDetails || []).filter((ex: any) => {
+        // Match dùng Code + POKHDetailID (vì BillExportDetailID có thể undefined)
         return selectedExportsForThisParent.some((selected: any) =>
-          selected.BillExportDetailID === ex.BillExportDetailID
+          selected.POKHDetailID === row.ID && selected.Code === ex.Code
         );
       });
 
@@ -1014,7 +1027,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     this.viewPokhSlickgridService.loadUser().subscribe(
       (response) => {
         if (response.status === 1) {
-          this.users = response.data;
+          // Lọc bỏ user có UserID = 0
+          this.users = response.data.filter((user: any) => user.UserID !== 0);
         }
       }
     );
@@ -1025,7 +1039,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     this.viewPokhSlickgridService.loadEmployeeByTeamSale(teamId || 0).subscribe(
       (response) => {
         if (response.status === 1) {
-          this.users = response.data;
+          // Lọc bỏ user có UserID = 0
+          this.users = response.data.filter((user: any) => user.UserID !== 0);
         }
       }
     );

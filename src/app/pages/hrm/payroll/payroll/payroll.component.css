@@ -1,0 +1,18 @@
+/* Payroll filter (year/keyword) responsive helpers */
+.payroll-filter-year-group {
+  flex: 1 1 100%;
+}
+
+.payroll-filter-year-input {
+  width: 100%;
+}
+
+@media (min-width: 576px) {
+  .payroll-filter-year-group {
+    flex: 0 0 auto;
+  }
+
+  .payroll-filter-year-input {
+    width: 80px;
+  }
+}

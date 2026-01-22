@@ -1,0 +1,77 @@
+.filter-section {
+  padding: 16px;
+  background-color: #fafafa;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.filter-section label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.grid-container {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+
+}
+.modal-body{
+  padding: 0;
+}
+/* SlickGrid custom styles */
+:host ::ng-deep .slick-header-column {
+  background-color: #f0f0f0;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+:host ::ng-deep .slick-cell {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+:host ::ng-deep .text-center {
+  text-align: center;
+}
+
+:host ::ng-deep .text-end {
+  text-align: right;
+}
+
+:host ::ng-deep .cell-wrap {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Warning row style */
+:host ::ng-deep .row-warning {
+  background-color: #fff3cd !important;
+}
+
+:host ::ng-deep .row-warning:hover {
+  background-color: #ffe69c !important;
+}
+
+/* Checkbox selector column */
+:host ::ng-deep .slick-cell-checkboxsel {
+  text-align: center;
+}
+
+/* Modal styles */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+/* Button group alignment */
+.filter-section nz-col button {
+  margin-right: 0;
+}
+::ng-deep #checkHistoryGrid{
+  height: 77vh!important;
+}

@@ -60,6 +60,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     @Input() ponccID: number = 0;
     @Input() paymentOrder = new PaymentOrder();
     @Input() isCopy = false;
+    @Input() initialContentPayment: string = ''; // ContentPayment cho dòng chi tiết đầu tiên
     paymentOrderField = PaymentOrderField;
 
     //  orderTypeSelectProjects = [19, 22];
@@ -82,7 +83,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: '1',
+            Stt: '1',
             ContentPayment: '',
             Unit: '',
             Quantity: 0,
@@ -101,7 +102,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: 'I',
+            Stt: 'I',
             ContentPayment: 'Số tiền tạm ứng',
             Unit: '',
             Quantity: 0,
@@ -119,7 +120,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: 'II',
+            Stt: 'II',
             ContentPayment: 'Số tiền thanh toán',
             Unit: '',
             Quantity: 0,
@@ -137,7 +138,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: '1',
+            Stt: '1',
             ContentPayment: '',
             Unit: '',
             Quantity: 0,
@@ -155,7 +156,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: 'III',
+            Stt: 'III',
             ContentPayment: 'Chênh lệch',
             Unit: '',
             Quantity: 0,
@@ -173,7 +174,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: '1',
+            Stt: '1',
             ContentPayment: 'Tạm ứng chi không hết (I-II)',
             Unit: '',
             Quantity: 0,
@@ -191,7 +192,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: '2',
+            Stt: '2',
             ContentPayment: 'Số chi quá tạm ứng (II-I)',
             Unit: '',
             Quantity: 0,
@@ -214,6 +215,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     fileUploads: any[] = []; //Lưu những file chọn đẻ upload
     fileDeletes: any[] = []; //Lưu những file xóa
 
+    isSubmit = false;
+
     private destroy$ = new Subject<void>();
 
     constructor(
@@ -231,6 +234,13 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         // Thêm xử lý khi ponccID > 0
         if (this.ponccID > 0) {
             this.loadDataFromPONCC();
+        }
+        // Set ContentPayment cho dòng chi tiết đầu tiên (ParentID: 2) nếu có initialContentPayment
+        if (this.initialContentPayment) {
+            const detailRow = this.dataset2.find(x => x.ParentID === 2 && x._id === 6);
+            if (detailRow) {
+                detailRow.ContentPayment = this.initialContentPayment;
+            }
         }
     }
     loadDataFromPONCC() {
@@ -303,7 +313,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     initDataCombo() {
         this.paymentService.getDataCombo().subscribe({
             next: (response) => {
-                console.log(response);
+                // console.log(response);
                 this.paymentOrderTypes = response.data.paymentOrderTypes;
                 this.approvedTBPs = response.data.approvedTBPs;
                 this.supplierSales = response.data.supplierSales;
@@ -414,6 +424,16 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((value: number) => {
                 this.poNCCs = this.poNCCs.filter(x => x.SupplierSaleID == value);
+
+                const supplierSale = this.supplierSales.find(x => x.ID == value);
+                // console.log('supplierSale:', supplierSale);
+                if (supplierSale) {
+                    // const accountNumber = this.validateForm.get(this.paymentOrderField.AccountNumber.field)?.value;
+                    // console.log('accountNumber:', accountNumber);
+                    this.validateForm.get(this.paymentOrderField.AccountNumber.field)?.setValue(supplierSale.SoTK);
+                    this.validateForm.get(this.paymentOrderField.ReceiverInfo.field)?.setValue(supplierSale.NameNCC);
+                    this.validateForm.get(this.paymentOrderField.Bank.field)?.setValue(supplierSale.NganHang);
+                }
             });
 
         //Sự kiện chọn thanh toán gấp
@@ -776,19 +796,24 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         if (this.paymentOrder.ID > 0) {
             this.paymentService.getDetail(this.paymentOrder.ID).subscribe({
                 next: (response) => {
-                    // console.log(response);
+                    console.log(response);
 
                     if (this.paymentOrder.TypeOrder != 2) {
                         this.dataset = response.data.details;
                         this.dataset = this.dataset.map((x, i) => ({
                             ...x,
-                            _id: x.Id   // dành riêng cho SlickGrid
+                            _id: i + 1,
+                            ParentID: x.ParentId == 0 ? null : x.ParentId
+
                         }));
                     } else {
                         this.dataset2 = response.data.details;
                         this.dataset2 = this.dataset2.map((x, i) => ({
                             ...x,
-                            _id: x.Id   // dành riêng cho SlickGrid
+                            _id: x.Id,   // dành riêng cho SlickGrid
+                            ParentID: x.ParentId == 0 ? null : x.ParentId,
+                            treeLevel: x.ParentId > 0 ? 1 : 0,
+                            // PaymentPercentage: x.PaymentPercentage <= 0 :
                         }));
                     }
 
@@ -799,6 +824,9 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                             id: i + 1
                         }));
                     }
+
+
+                    // console.log('this.dataset2:', this.dataset2);
 
 
                 }
@@ -833,12 +861,21 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     }
 
     onCellChanged(e: Event, args: any) {
-        this.dataset = [...this.angularGrid.dataView.getItems()];
+        // console.log('args', args, this.paymentOrder.TypeOrder);
+        if (this.paymentOrder.TypeOrder == 2) {
+            this.dataset2 = [...this.angularGrid2.dataView.getItems()];
+        } else {
+            this.dataset = [...this.angularGrid.dataView.getItems()];
+        }
     }
 
     onCellChanged2(e: Event, args: any) {
-        this.dataset = [...this.angularGrid2.dataView.getItems()];
+        if (this.angularGrid2.dataView) {
+            this.dataset = [...this.angularGrid2.dataView.getItems()];
+        }
     }
+
+
 
     submitForm() {
         // console.log('this.validateForm.valid', this.validateForm.valid);
@@ -849,6 +886,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         // console.log('this.validateForm invalid:', this.validateForm.invalid);
         // console.log('this.validateForm valid:', this.validateForm.valid);
 
+
+
         if (!this.validateForm.valid) {
             Object.values(this.validateForm.controls).forEach(control => {
                 if (control.invalid) {
@@ -857,6 +896,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 }
             });
         } else {
+
+            this.isSubmit = true;
 
             let gridInstance = this.angularGrid;
             if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
@@ -881,12 +922,19 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             this.paymentService.save(this.paymentOrder).subscribe({
                 next: (response) => {
                     // console.log(response);
+                    // if (response.status == 1) {
+
+                    // }
+
+                    this.isSubmit = false;
                     this.uploadFile(response.data.ID);
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
 
+                    this.activeModal.close();
                 },
                 error: (err) => {
                     this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                    this.isSubmit = false;
                 }
             });
 
@@ -902,20 +950,21 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         let data = gridInstance.dataView.getItems();
         let _id = data.length <= 0 ? 0 : Math.max(...data.map(x => x._id || 0));
-        let stt = data.length <= 0 ? 0 : Math.max(...data.map((x: any) => Number(x.STT) || 0));
-        const parent = gridInstance.dataView.getItemById(2);
+        let stt = data.length <= 0 ? 0 : Math.max(...data.map((x: any) => Number(x.Stt) || 0));
+        const parent2 = data.find(x => x.Stt == 'II');
+        const parent = gridInstance.dataView.getItemById(parent2._id);
 
         const isParent = parent && parent.__hasChildren;
         if (isParent) {
-            const detailPayment = data.filter(x => x.ParentID == 2);
-            stt = detailPayment.length <= 0 ? 0 : Math.max(...detailPayment.map((x: any) => Number(x.STT) || 0));
+            const detailPayment = data.filter(x => x.ParentId == parent2._id);
+            stt = detailPayment.length <= 0 ? 0 : Math.max(...detailPayment.map((x: any) => Number(x.Stt) || 0));
         }
 
         const newItem = {
             _id: _id + 1,
             ID: 0,
             PaymentOrderID: 0,
-            STT: `${stt + 1}`,
+            Stt: `${stt + 1}`,
             ContentPayment: '',
             Unit: '',
             Quantity: 0,
@@ -1058,27 +1107,45 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             }
         } else {
 
+
+            // console.log('data:', data);
+
+            const parent1 = data.find(x => x.Stt == 'I');
+            const parent2 = data.find(x => x.Stt == 'II');
             //Tính Thành tiền
-            const totalMoney1 = data.filter(x => x._id == 1).reduce((total, item) => total + (item.TotalMoney || 0), 0);
-            const totalMoney2 = data.filter(x => x.ParentID == 2).reduce((total, item) => total + (item.TotalMoney || 0), 0);
+            const totalMoney1 = data.filter(x => x._id == parent1._id).reduce((total, item) => total + (item.TotalMoney || 0), 0);
+            const totalMoney2 = data.filter(x => x.ParentID == parent2._id).reduce((total, item) => total + (item.TotalMoney || 0), 0);
             const totalMoneyDiff = Math.abs(totalMoney1 - totalMoney2);
+
+
+            // console.log('parent2:', parent2);
+            // console.log('data.filter(x => x.ParentId == parent2._id):', data.filter(x => x.ParentId == parent2._id));
 
             const totalMoneyDiff1 = totalMoney1 - totalMoney2;
             const totalMoneyDiff2 = totalMoney2 - totalMoney1;
 
+
+            // console.log('totalMoneyDiff:', totalMoneyDiff);
+            // console.log('totalMoneyDiff1:', totalMoneyDiff1);
+            // console.log('totalMoneyDiff2:', totalMoneyDiff2);
+
             //Tính tổng tiền thanh toán
-            const totalPaymentAmount1 = data.filter(x => x._id == 1).reduce((total, item) => total + (item.TotalPaymentAmount || 0), 0);
-            const totalPaymentAmount2 = data.filter(x => x.ParentID == 2).reduce((total, item) => total + (item.TotalPaymentAmount || 0), 0);
+            const totalPaymentAmount1 = data.filter(x => x._id == parent1._id).reduce((total, item) => total + (item.TotalPaymentAmount || 0), 0);
+            const totalPaymentAmount2 = data.filter(x => x.ParentID == parent2._id).reduce((total, item) => total + (item.TotalPaymentAmount || 0), 0);
             const totalPaymentAmountDiff = Math.abs(totalPaymentAmount1 - totalPaymentAmount2);
 
             const totalPaymentAmountDiff1 = totalPaymentAmount1 - totalPaymentAmount2;
             const totalPaymentAmountDiff2 = totalPaymentAmount2 - totalPaymentAmount1;
 
             //Gán giá trị lên view
-            const rowParent2 = data.findIndex(x => x._id === 2);
-            const rowParent3 = data.findIndex(x => x._id === 3);
-            const rowParent4 = data.findIndex(x => x._id === 4);
-            const rowParent5 = data.findIndex(x => x._id === 5);
+            const rowParent2 = data.findIndex(x => x.Stt === 'II');
+            const rowParent3 = data.findIndex(x => x.Stt === 'III');
+            // const rowParent4 = data.findIndex(x => x._id === 4);
+            const rowParent4 = data.length - 2;
+            // const rowParent5 = data.findIndex(x => x._id === 5);
+            const rowParent5 = data.length - 1;
+            // console.log('rowParent4:', rowParent4);
+            // console.log('rowParent5:', rowParent5);
 
             data[rowParent2][PaymentOrderDetailField.TotalMoney.field] = totalMoney2;
             data[rowParent3][PaymentOrderDetailField.TotalMoney.field] = totalMoneyDiff;
@@ -1100,7 +1167,15 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             const columnTotalPaymentAmountElement = gridInstance.slickGrid?.getFooterRowColumn(columnTotalPaymentAmountId);
             if (columnTotalPaymentAmountElement) columnTotalPaymentAmountElement.textContent = `${totalPaymentAmountDiff}`;
 
-            this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(totalPaymentAmountDiff, this.validateForm.value.Unit);
+            if (totalPaymentAmountDiff != 0) {
+
+                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(totalPaymentAmountDiff, this.validateForm.value.Unit);
+            } else {
+                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(totalMoneyDiff, this.validateForm.value.Unit);
+            }
+
+            // console.log('this.paymentOrder.TotalMoneyText:', this.paymentOrder.TotalMoneyText);
+            // console.log('totalPaymentAmountDiff:', totalPaymentAmountDiff, totalMoneyDiff);
         }
     }
 

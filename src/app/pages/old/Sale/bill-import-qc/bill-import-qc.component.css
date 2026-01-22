@@ -84,11 +84,11 @@
     width: 100%;
 }
 
-::ng-deep #gridQC {
+::ng-deep div[id^="gridQC-"] {
     height: 42.8vh !important;
 }
 
-::ng-deep #gridQCDetail {
+::ng-deep div[id^="gridQCDetail-"] {
     height: 39.5vh !important;
 }
 

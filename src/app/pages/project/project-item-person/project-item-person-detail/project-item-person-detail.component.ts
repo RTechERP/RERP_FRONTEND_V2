@@ -37,7 +37,7 @@ interface ProjectItemTab {
   PlanEndDate: Date | null;
   ActualStartDate: Date | null;
   ActualEndDate: Date | null;
-  PercentItem: number | null;
+  PercentageActual: number | null; // % hoàn thành thực tế do người dùng nhập
   dateChangeStatus: Date | null; // Ngày thay đổi trạng thái
 }
 
@@ -96,6 +96,16 @@ export class ProjectItemPersonDetailComponent implements OnInit {
   defaultEmployeeRequestId: number = 0;
   editingItemId: number = 0; // ID của item đang edit
   private previousProjectID: number | null = null; // Lưu ProjectID trước đó để so sánh
+  private isLoadingData: boolean = false; // Flag để bỏ qua auto-change khi đang load dữ liệu
+
+  // Lưu dữ liệu gốc khi edit để so sánh thay đổi
+  private originalTabData: {
+    Mission: string;
+    PlanStartDate: Date | null;
+    PlanEndDate: Date | null;
+    TotalDayPlan: number | null;
+    ReasonLate: string;
+  } | null = null;
 
   additionalInfo: {
     Problem: string;
@@ -103,11 +113,11 @@ export class ProjectItemPersonDetailComponent implements OnInit {
     UpdateDate: Date | null;
     CreatedBy: number | null;
   } = {
-    Problem: '',
-    Note: '',
-    UpdateDate: null,
-    CreatedBy: null,
-  };
+      Problem: '',
+      Note: '',
+      UpdateDate: null,
+      CreatedBy: null,
+    };
 
   activeAccordion: Record<string, boolean> = {
     additional_info: true,
@@ -134,7 +144,7 @@ export class ProjectItemPersonDetailComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private projectService: ProjectService,
-    private projectItemPersonService : ProjectItemPersonService,
+    private projectItemPersonService: ProjectItemPersonService,
     private workItemService: WorkItemServiceService,
     private notification: NzNotificationService,
     private ngbModalService: NgbModal,
@@ -227,7 +237,7 @@ export class ProjectItemPersonDetailComponent implements OnInit {
       // Chỉ xử lý khi ProjectID thực sự thay đổi
       if (this.previousProjectID !== projectID) {
         this.previousProjectID = projectID;
-        
+
         if (projectID && projectID > 0) {
           this.loadParentList(projectID);
           // Clear ParentID của tất cả các tab khi đổi dự án
@@ -264,28 +274,26 @@ export class ProjectItemPersonDetailComponent implements OnInit {
 
   loadDataById(id: number): void {
     this.saving = true;
+    this.isLoadingData = true;
+
     this.projectItemPersonService.getById(id).subscribe({
       next: (response: any) => {
         this.saving = false;
         if (response && response.status === 1 && response.data) {
           const data = response.data;
-          
-          // Set previousProjectID trước để tránh trigger valueChanges không cần thiết
+
           this.previousProjectID = data.ProjectID || null;
-          
-          // Set ProjectID vào form
           this.formGroup.patchValue({
             ID: data.ID,
             ProjectID: data.ProjectID,
           });
 
-          // Load danh sách hạng mục cha khi đã có ProjectID
           if (data.ProjectID) {
             this.loadParentList(data.ProjectID);
           }
 
           // Tạo tab từ dữ liệu API
-          const editTab: ProjectItemTab = {
+          this.tabs = [{
             id: this.tabIdCounter++,
             TypeProjectItemID: data.TypeProjectItem || null,
             Status: data.Status ?? 0,
@@ -299,13 +307,11 @@ export class ProjectItemPersonDetailComponent implements OnInit {
             PlanEndDate: data.PlanEndDate ? new Date(data.PlanEndDate) : null,
             ActualStartDate: data.ActualStartDate ? new Date(data.ActualStartDate) : null,
             ActualEndDate: data.ActualEndDate ? new Date(data.ActualEndDate) : null,
-            PercentItem: data.PercentageActual ?? 0,
+            PercentageActual: data.PercentageActual ?? 0,
             dateChangeStatus: null,
-          };
-          this.tabs = [editTab];
+          }];
           this.selectedTabIndex = 0;
 
-          // Load thông tin khác
           this.additionalInfo = {
             Problem: data.ReasonLate || '',
             Note: data.Note || '',
@@ -313,15 +319,27 @@ export class ProjectItemPersonDetailComponent implements OnInit {
             CreatedBy: data.CreatedBy || null,
           };
 
-          // Lưu ID của item đang edit
           this.editingItemId = data.ID;
+
+          // Lưu dữ liệu gốc để so sánh khi save
+          this.originalTabData = {
+            Mission: data.Mission || '',
+            PlanStartDate: data.PlanStartDate ? new Date(data.PlanStartDate) : null,
+            PlanEndDate: data.PlanEndDate ? new Date(data.PlanEndDate) : null,
+            TotalDayPlan: data.TotalDayPlan || null,
+            ReasonLate: data.ReasonLate || '',
+          };
+
+          // Tắt flag sau khi binding hoàn tất
+          setTimeout(() => { this.isLoadingData = false; }, 100);
         } else {
+          this.isLoadingData = false;
           this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Không thể tải dữ liệu');
         }
       },
       error: (error: any) => {
         this.saving = false;
-        console.error('Error loading data by ID:', error);
+        this.isLoadingData = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi tải dữ liệu');
       }
     });
@@ -406,7 +424,7 @@ export class ProjectItemPersonDetailComponent implements OnInit {
       PlanEndDate: null,
       ActualStartDate: null,
       ActualEndDate: null,
-      PercentItem: 0,
+      PercentageActual: 0,
       dateChangeStatus: null,
     };
     this.tabs.push(newTab);
@@ -425,31 +443,31 @@ export class ProjectItemPersonDetailComponent implements OnInit {
   }
 
   // Date calculation methods
-onPlanStartDateChange(tab: ProjectItemTab): void {
-  if (tab.PlanStartDate && tab.TotalDayPlan && tab.TotalDayPlan > 0) {
-    const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
-    // Trừ 1 vì ngày bắt đầu đã tính là ngày thứ 1
-    tab.PlanEndDate = startDate.plus({ days: tab.TotalDayPlan - 1 }).toJSDate();
+  onPlanStartDateChange(tab: ProjectItemTab): void {
+    if (tab.PlanStartDate && tab.TotalDayPlan && tab.TotalDayPlan > 0) {
+      const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
+      // Trừ 1 vì ngày bắt đầu đã tính là ngày thứ 1
+      tab.PlanEndDate = startDate.plus({ days: tab.TotalDayPlan - 1 }).toJSDate();
+    }
   }
-}
 
-onTotalDayPlanChange(tab: ProjectItemTab): void {
-  if (tab.PlanStartDate && tab.TotalDayPlan && tab.TotalDayPlan > 0) {
-    const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
-    // Trừ 1 vì ngày bắt đầu đã tính là ngày thứ 1
-    tab.PlanEndDate = startDate.plus({ days: tab.TotalDayPlan - 1 }).toJSDate();
+  onTotalDayPlanChange(tab: ProjectItemTab): void {
+    if (tab.PlanStartDate && tab.TotalDayPlan && tab.TotalDayPlan > 0) {
+      const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
+      // Trừ 1 vì ngày bắt đầu đã tính là ngày thứ 1
+      tab.PlanEndDate = startDate.plus({ days: tab.TotalDayPlan - 1 }).toJSDate();
+    }
   }
-}
 
-onPlanEndDateChange(tab: ProjectItemTab): void {
-  if (tab.PlanStartDate && tab.PlanEndDate) {
-    const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
-    const endDate = DateTime.fromJSDate(new Date(tab.PlanEndDate));
-    const diff = endDate.diff(startDate, 'days').days;
-    // Cộng 1 vì cả ngày bắt đầu và ngày kết thúc đều được tính
-    tab.TotalDayPlan = Math.max(1, Math.round(diff) + 1);
+  onPlanEndDateChange(tab: ProjectItemTab): void {
+    if (tab.PlanStartDate && tab.PlanEndDate) {
+      const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
+      const endDate = DateTime.fromJSDate(new Date(tab.PlanEndDate));
+      const diff = endDate.diff(startDate, 'days').days;
+      // Cộng 1 vì cả ngày bắt đầu và ngày kết thúc đều được tính
+      tab.TotalDayPlan = Math.max(1, Math.round(diff) + 1);
+    }
   }
-}
 
   // Xử lý khi thay đổi trạng thái
   onStatusChange(tab: ProjectItemTab, newStatus: number): void {
@@ -489,7 +507,7 @@ onPlanEndDateChange(tab: ProjectItemTab): void {
         tab.ActualStartDate = dateChangeStatus;
       }
       // Reset % về 0 khi chuyển sang trạng thái Đang làm
-      tab.PercentItem = 0;
+      tab.PercentageActual = 0;
       return;
     }
 
@@ -498,14 +516,14 @@ onPlanEndDateChange(tab: ProjectItemTab): void {
       if (!tab.ActualEndDate) {
         tab.ActualEndDate = dateChangeStatus;
       }
-      tab.PercentItem = 100;
+      tab.PercentageActual = 100;
       return;
     }
 
     // Status khác (Chưa làm, Pending, ...) → reset dates và % về 0
     tab.ActualStartDate = null;
     tab.ActualEndDate = null;
-    tab.PercentItem = 0;
+    tab.PercentageActual = 0;
   }
 
   private cancelStatusChange(tab: ProjectItemTab): void {
@@ -550,7 +568,7 @@ onPlanEndDateChange(tab: ProjectItemTab): void {
   // Kiểm tra và auto fill ActualEndDate khi status = Hoàn thành
   private checkAndAutoFillActualEndDate(tab: ProjectItemTab, dateChangeStatus: Date): void {
     const projectId = this.formGroup.get('ProjectID')?.value;
-    
+
     if (!projectId) {
       // Nếu chưa chọn dự án, auto fill trực tiếp
       if (!tab.ActualEndDate) {
@@ -639,10 +657,28 @@ onPlanEndDateChange(tab: ProjectItemTab): void {
           return;
         }
         if (tab.ActualStartDate && tab.ActualEndDate) {
-          const start = DateTime.fromJSDate(new Date(tab.ActualStartDate));
-          const end = DateTime.fromJSDate(new Date(tab.ActualEndDate));
+          const start = DateTime.fromJSDate(new Date(tab.ActualStartDate)).startOf('day');
+          const end = DateTime.fromJSDate(new Date(tab.ActualEndDate)).startOf('day');
           if (start > end) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Ngày kết thúc thực tế phải lớn hơn ngày bắt đầu thực tế!`);
+            this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Ngày kết thúc thực tế phải lớn hơn hoặc bằng ngày bắt đầu thực tế!`);
+            this.selectedTabIndex = i;
+            return;
+          }
+        }
+      }
+
+      // Validate phát sinh khi SỬA (theo logic RTCWeb)
+      if (this.mode === 'edit' && this.originalTabData) {
+        const hasChanges = this.checkFieldChanges(tab);
+        if (hasChanges) {
+          const currentReasonLate = this.additionalInfo.Problem?.trim() || '';
+          const originalReasonLate = this.originalTabData.ReasonLate?.trim() || '';
+
+          // Nếu có thay đổi nhưng chưa nhập phát sinh mới
+          if (currentReasonLate === originalReasonLate) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Vui lòng nhập lý do phát sinh do có thay đổi thông tin kế hoạch!`);
+            // Mở accordion thông tin thêm
+            this.activeAccordion['additional_info'] = true;
             this.selectedTabIndex = i;
             return;
           }
@@ -700,13 +736,13 @@ onPlanEndDateChange(tab: ProjectItemTab): void {
           ActualEndDate: tab.ActualEndDate ? DateTime.fromJSDate(new Date(tab.ActualEndDate)).toISO() : null,
           Note: this.additionalInfo.Note || '',
           TotalDayPlan: tab.TotalDayPlan ?? 0,
-          PercentItem: tab.PercentItem ?? 0,
-          ParentID: parentID, // Gửi giá trị đã xử lý
+          PercentItem: 0, // Backend sẽ tính lại qua UpdatePercent()
+          ParentID: parentID,
           TotalDayActual: 0,
           ItemLate: 0,
           TimeSpan: 0,
           TypeProjectItem: tab.TypeProjectItemID ?? 0,
-          PercentageActual: 0,
+          PercentageActual: tab.PercentageActual ?? 0, // % hoàn thành do người dùng nhập
           EmployeeIDRequest: tab.EmployeeIDRequest ?? 0,
           UpdatedDateActual: tab.ActualEndDate ? DateTime.fromJSDate(new Date(tab.ActualEndDate)).toISO() : null,
           IsApproved: 0,
@@ -774,6 +810,7 @@ onPlanEndDateChange(tab: ProjectItemTab): void {
 
   // Khi nhập ngày bắt đầu thực tế → tự chuyển status sang Đang làm
   onActualStartDateChange(tab: ProjectItemTab): void {
+    if (this.isLoadingData) return;
     if (tab.ActualStartDate && tab.Status !== this.STATUS_IN_PROGRESS && tab.Status !== this.STATUS_COMPLETED) {
       tab.Status = this.STATUS_IN_PROGRESS;
     }
@@ -781,9 +818,10 @@ onPlanEndDateChange(tab: ProjectItemTab): void {
 
   // Khi nhập ngày kết thúc thực tế → tự chuyển status sang Hoàn thành, % = 100
   onActualEndDateChange(tab: ProjectItemTab): void {
+    if (this.isLoadingData) return;
     if (tab.ActualEndDate) {
       tab.Status = this.STATUS_COMPLETED;
-      tab.PercentItem = 100;
+      tab.PercentageActual = 100;
     }
   }
 
@@ -795,12 +833,39 @@ onPlanEndDateChange(tab: ProjectItemTab): void {
     } else {
       tab.ParentID = null;
     }
-    
+
     // Cập nhật vào tabs array để đảm bảo reference đúng
     const tabIndex = this.tabs.findIndex(t => t.id === tab.id);
     if (tabIndex >= 0) {
       this.tabs[tabIndex].ParentID = tab.ParentID;
     }
+  }
+
+  // Kiểm tra các field có thay đổi không (theo logic RTCWeb)
+  private checkFieldChanges(tab: ProjectItemTab): boolean {
+    if (!this.originalTabData) return false;
+
+    // So sánh Mission (bỏ ký tự xuống dòng, trim, lowercase)
+    const normalizeString = (str: string | null | undefined): string => {
+      return (str || '').replace(/\r\n?|\n/g, '').toLowerCase().trim();
+    };
+
+    const missionChanged = normalizeString(tab.Mission) !== normalizeString(this.originalTabData.Mission);
+
+    // So sánh ngày (chỉ so sánh date, bỏ qua time)
+    const compareDates = (d1: Date | null, d2: Date | null): boolean => {
+      if (!d1 && !d2) return false; // Cả hai đều null = không thay đổi
+      if (!d1 || !d2) return true;  // Một bên null = thay đổi
+      return d1.toDateString() !== d2.toDateString();
+    };
+
+    const planStartChanged = compareDates(tab.PlanStartDate, this.originalTabData.PlanStartDate);
+    const planEndChanged = compareDates(tab.PlanEndDate, this.originalTabData.PlanEndDate);
+
+    // So sánh TotalDayPlan
+    const totalDayChanged = (tab.TotalDayPlan || 0) !== (this.originalTabData.TotalDayPlan || 0);
+
+    return missionChanged || planStartChanged || planEndChanged || totalDayChanged;
   }
 
 }

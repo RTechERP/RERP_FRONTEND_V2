@@ -37,8 +37,7 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
                             <nz-form-control>
-                                <nz-date-picker formControlName="dateStart" nzFormat="dd/MM/yyyy" class="w-100"
-                                    nzSize="small" nzAllowClear="false"></nz-date-picker>
+                                <input type="date" formControlName="dateStart" class="form-control form-control-sm w-100" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -48,8 +47,7 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
                             <nz-form-control>
-                                <nz-date-picker formControlName="dateEnd" nzFormat="dd/MM/yyyy" class="w-100"
-                                    nzSize="small" nzAllowClear="false"></nz-date-picker>
+                                <input type="date" formControlName="dateEnd" class="form-control form-control-sm w-100" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -122,7 +120,13 @@
                     justifyContent: 'center'
                 }"></nz-spin>
             </div>
-            <div id="tb_over_time"></div>
+            <div id="grvOverTimeContainer" class="grid-container-overtime">
+                <angular-slickgrid gridId="grvOverTime" [columns]="columnDefinitions" [options]="gridOptions"
+                    [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                    (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                </angular-slickgrid>
+            </div>
         </div>
     </div>
 </ng-container>

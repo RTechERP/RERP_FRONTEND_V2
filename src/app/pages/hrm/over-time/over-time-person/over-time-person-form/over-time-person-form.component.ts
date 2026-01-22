@@ -26,6 +26,7 @@ import { AuthService } from '../../../../../auth/auth.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { WFHService } from '../../../employee-management/employee-wfh/WFH-service/WFH.service';
 import { ProjectItemSelectModalComponent } from './project-item-select-modal/project-item-select-modal.component';
+import { HomeLayoutService } from '../../../../../layouts/home-layout/home-layout-service/home-layout.service';
 import flatpickr from 'flatpickr';
 import { Vietnamese } from 'flatpickr/dist/l10n/vn.js';
 
@@ -96,6 +97,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
   attachFileName: string = '';
   isProblemValue: boolean = false;
   datePickerKey: number = 0;
+  isSupplementaryRegistrationOpen: boolean = false; // Trạng thái mở đăng ký bổ sung
 
   // Flatpickr instances map
   private flatpickrInstances: Map<string, flatpickr.Instance> = new Map();
@@ -170,7 +172,8 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     private wfhService: WFHService,
     private message: NzMessageService,
     private modalService: NgbModal,
-    private nzModal: NzModalService
+    private nzModal: NzModalService,
+    private homeLayoutService: HomeLayoutService
   ) {
     this.initializeForm();
     this.attachMinutePrecisionForForm(this.overTimeForm);
@@ -196,6 +199,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     this.loadApprovers();
     this.loadProjects();
     this.getCurrentUser();
+    this.loadConfigSystem();
     if (this.isEditMode && this.data && this.data.ID && this.data.ID > 0) {
       this.loadDataByID(this.data.ID);
     } else if (this.data) {
@@ -211,6 +215,16 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     }
 
     this.commonForm.get('IsProblem')?.valueChanges.subscribe((value) => {
+      // Kiểm tra nếu đang bật checkbox nhưng chưa mở đăng ký bổ sung
+      if (value && !this.isSupplementaryRegistrationOpen) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Nhân sự chưa mở đăng ký bổ sung');
+        // Reset lại checkbox về false
+        this.commonForm.patchValue({ IsProblem: false }, { emitEvent: false });
+        this.isProblemValue = false;
+        this.cdr.detectChanges();
+        return;
+      }
+
       this.isProblemValue = value || false;
 
       // Khi bỏ tích đăng ký bổ sung (IsProblem = false)
@@ -373,10 +387,16 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
         // Force update date picker validation
         this.datePickerKey++;
         this.cdr.detectChanges();
+
+        // Cập nhật min/max dates cho Flatpickr khi DateRegister thay đổi
+        this.updateFlatpickrMinMaxDates();
+        // Cập nhật giá trị hiển thị trong Flatpickr
+        this.formTabs.forEach((tab) => {
+          this.setFlatpickrValue(tab);
+        });
       }
     });
   }
-
   ngAfterViewInit(): void {
     // Khởi tạo Flatpickr cho tất cả các tabs sau khi view đã render
     setTimeout(() => {
@@ -742,18 +762,29 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
 
   // ========== PrimeNG DatePicker Methods ==========
 
-  // Lấy min Date cho TimeStart (PrimeNG)
+  // Lấy min Date cho TimeStart - dựa vào DateRegister
   getMinDateForTimeStart(): Date {
-    const isProblem = this.commonForm.get('IsProblem')?.value;
+    const dateRegisterValue = this.commonForm?.get('DateRegister')?.value;
 
+    if (dateRegisterValue) {
+      // Nếu có DateRegister, minDate = DateRegister lúc 00:00
+      const registerDate = dateRegisterValue instanceof Date
+        ? new Date(dateRegisterValue)
+        : new Date(dateRegisterValue);
+      if (!isNaN(registerDate.getTime())) {
+        registerDate.setHours(0, 0, 0, 0);
+        return registerDate;
+      }
+    }
+
+    // Fallback: nếu không có DateRegister
+    const isProblem = this.commonForm.get('IsProblem')?.value;
     if (isProblem) {
-      // Nếu là đăng ký bổ sung, cho phép chọn từ 30 ngày trước
       const minDate = new Date();
       minDate.setDate(minDate.getDate() - 30);
       minDate.setHours(0, 0, 0, 0);
       return minDate;
     } else {
-      // Không phải đăng ký bổ sung: chỉ cho chọn từ hôm qua
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       yesterday.setHours(0, 0, 0, 0);
@@ -761,16 +792,31 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     }
   }
 
-  // Lấy max Date cho TimeStart (PrimeNG)
+  // Lấy max Date cho TimeStart - dựa vào DateRegister
   getMaxDateForTimeStart(): Date {
-    // Cho phép chọn đến cuối ngày mai
+    const dateRegisterValue = this.commonForm?.get('DateRegister')?.value;
+
+    if (dateRegisterValue) {
+      // Nếu có DateRegister, maxDate = DateRegister + 1 ngày lúc 23:59
+      const registerDate = dateRegisterValue instanceof Date
+        ? new Date(dateRegisterValue)
+        : new Date(dateRegisterValue);
+      if (!isNaN(registerDate.getTime())) {
+        const maxDate = new Date(registerDate);
+        maxDate.setDate(maxDate.getDate() + 1);
+        maxDate.setHours(23, 59, 0, 0);
+        return maxDate;
+      }
+    }
+
+    // Fallback: nếu không có DateRegister, cho phép đến cuối ngày mai
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(23, 59, 0, 0);
     return tomorrow;
   }
 
-  // Lấy min Date cho EndTime (PrimeNG) - phải >= TimeStart
+  // Lấy min Date cho EndTime - dựa vào DateRegister và TimeStart
   getMinDateForEndTime(form: FormGroup): Date {
     const timeStart = form.get('TimeStart')?.value;
     if (timeStart) {
@@ -779,12 +825,28 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
         return startDate;
       }
     }
+    // Fallback về minDate của TimeStart (dựa vào DateRegister)
     return this.getMinDateForTimeStart();
   }
 
-  // Lấy max Date cho EndTime (PrimeNG)
+  // Lấy max Date cho EndTime - dựa vào DateRegister
   getMaxDateForEndTime(): Date {
-    // Cho phép chọn đến cuối ngày kia (2 ngày sau)
+    const dateRegisterValue = this.commonForm?.get('DateRegister')?.value;
+
+    if (dateRegisterValue) {
+      // Nếu có DateRegister, maxDate = DateRegister + 1 ngày lúc 23:59
+      const registerDate = dateRegisterValue instanceof Date
+        ? new Date(dateRegisterValue)
+        : new Date(dateRegisterValue);
+      if (!isNaN(registerDate.getTime())) {
+        const maxDate = new Date(registerDate);
+        maxDate.setDate(maxDate.getDate() + 1);
+        maxDate.setHours(23, 59, 0, 0);
+        return maxDate;
+      }
+    }
+
+    // Fallback: cho phép đến cuối ngày kia (2 ngày sau)
     const dayAfterTomorrow = new Date();
     dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
     dayAfterTomorrow.setHours(23, 59, 0, 0);
@@ -922,6 +984,26 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       error: (error: any) => {
         const errorMessage = error?.error?.Message || error?.error?.message || error?.message || 'Lỗi không xác định';
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại làm thêm: ' + errorMessage);
+      }
+    });
+  }
+
+  // Load config hệ thống để kiểm tra có mở đăng ký bổ sung không
+  loadConfigSystem() {
+    this.homeLayoutService.getConfigSystemHR().subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1 && response.data && response.data.data) {
+          const configs = response.data.data;
+          const overtimeConfig = configs.find((c: any) => c.KeyName === 'EmployeeOvertime');
+          if (overtimeConfig && overtimeConfig.KeyValue2 === '1') {
+            this.isSupplementaryRegistrationOpen = true;
+          } else {
+            this.isSupplementaryRegistrationOpen = false;
+          }
+        }
+      },
+      error: () => {
+        this.isSupplementaryRegistrationOpen = false;
       }
     });
   }

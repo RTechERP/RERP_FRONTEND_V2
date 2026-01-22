@@ -28,6 +28,7 @@ import { ApproveTpService } from '../../../pages/person/approve-tp/approve-tp-se
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newsletter/newsletter-detail/newsletter-detail.component';
+import { DateTime } from 'luxon';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -66,6 +67,8 @@ export class HomeLayoutNewComponent implements OnInit {
     // isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
     // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
     // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+
+    date = new Date();
 
     dynamicTabs: any[] = [];
     selectedIndex = 0;
@@ -212,7 +215,7 @@ export class HomeLayoutNewComponent implements OnInit {
     }
     getMenus() {
 
-        console.log('this.appUserService.currentUser:', this.appUserService.currentUser);
+        // console.log('this.appUserService.currentUser:', this.appUserService.currentUser);
 
 
         this.menuAppService.getAll().subscribe({
@@ -274,7 +277,8 @@ export class HomeLayoutNewComponent implements OnInit {
                         IsOpen: true,
                         ParentID: item.ParentID,
                         Children: [],
-                        ID: item.ID
+                        ID: item.ID,
+                        QueryParam: item.QueryParam ?? ''
                     });
                 });
 
@@ -373,7 +377,9 @@ export class HomeLayoutNewComponent implements OnInit {
     loadNewsletters(): void {
         this.homepageService.getNewsletters().subscribe({
             next: (response) => {
-                this.newsletters = response.data || [];
+                const data = response.data || [];
+                // Sort by CreatedDate descending and take top 10
+                this.newsletters = data;
             },
             error: (error: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
@@ -426,20 +432,65 @@ export class HomeLayoutNewComponent implements OnInit {
     //     // });
     // }
 
-    newTab(route: string, title: string, data?: any) {
+    newTab(route: string, title: string, queryParams?: any) {
         route = route.replace(environment.baseHref, '');
 
         const idx = this.dynamicTabs.findIndex(t => t.route === route);
 
-        if (idx >= 0) {
-            this.selectedIndex = idx;
-            this.router.navigateByUrl(route);
-            return;
+
+        let parsedParams: any = null;
+        // console.log('queryParams:', queryParams);
+        if (queryParams && queryParams !== '') {
+            if (typeof queryParams === 'string') {
+                try {
+                    parsedParams = JSON.parse(queryParams);
+                    // console.log('Parsed queryParams:', parsedParams);
+                } catch (e) {
+                    // console.error('Error parsing queryParams:', e, 'queryParams value:', queryParams);
+                    parsedParams = null;
+                }
+            } else if (typeof queryParams === 'object') {
+                // Đã là object rồi, không cần parse
+                parsedParams = queryParams;
+                // console.log('queryParams already object:', parsedParams);
+            }
+        } else {
+            // console.log('queryParams is empty or undefined');
         }
+
+        const normalizedParams =
+            parsedParams && typeof parsedParams === 'object' && Object.keys(parsedParams).length > 0
+                ? parsedParams
+                : undefined;
+        // if (idx >= 0) {
+        this.selectedIndex = idx;
+
+        const cleanRoute = route.startsWith('/') ? route.substring(1) : route;
+        let url = `/${cleanRoute}`;
+        if (normalizedParams) {
+            const params = new URLSearchParams();
+            Object.keys(normalizedParams).forEach(key => {
+                const value = normalizedParams[key];
+                // Convert boolean, number sang string
+                params.append(key, String(value));
+            });
+            url += `?${params.toString()}`;
+        }
+
+        // this.router.navigateByUrl(route);
+        // console.log('navigateByUrl(url):', url);
+        this.router.navigateByUrl(url).then(() => {
+            // Reset flag sau khi navigation xong
+            setTimeout(() => {
+                // this.isNavigatingFromNewTab = false;
+            }, 100);
+        });
+        return;
+        // }
 
         this.dynamicTabs = [
             ...this.dynamicTabs,
-            { title, route, data }
+            { title, route, queryParams }
         ];
         // console.log('this.dynamicTabs after add:', this.dynamicTabs);
 
@@ -449,12 +500,12 @@ export class HomeLayoutNewComponent implements OnInit {
         });
     }
 
-    handleClickLink(event: MouseEvent, route: string, title: string) {
+    handleClickLink(event: MouseEvent, route: string, title: string, queryParam?: string) {
         // console.log('route:', route);
         if (route == '') return;
         if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
             event.preventDefault(); // chặn reload
-            this.newTab(route, title);
+            this.newTab(route, title, queryParam);
         }
     }
 

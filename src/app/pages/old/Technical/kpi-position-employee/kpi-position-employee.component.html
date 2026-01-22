@@ -1,0 +1,107 @@
+<ng-container class="w-100">
+    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+
+        <!-- Filter Bar -->
+        <div class="filter-bar bg-light border-bottom p-2">
+            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">
+                        Phòng ban
+                    </nz-form-label>
+                    <nz-form-control>
+                        <nz-select name="department" nzShowSearch nzSize="small" nzPlaceHolder="Chọn phòng ban"
+                            style="width: 200px;" [(ngModel)]="selectedDepartmentId"
+                            (ngModelChange)="onDepartmentChange()" [nzDisabled]="true">
+                            <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID"
+                                [nzLabel]="dept.Code + ' - ' + dept.Name">
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">
+                        Kỳ đánh giá
+                    </nz-form-label>
+                    <nz-form-control>
+                        <nz-select name="kpiSession" nzShowSearch nzAllowClear nzSize="small"
+                            nzPlaceHolder="Chọn kỳ đánh giá" style="width: 250px;" [(ngModel)]="selectedKPISessionId"
+                            (ngModelChange)="onKPISessionChange()">
+                            <nz-option *ngFor="let session of kpiSessions" [nzValue]="session.ID"
+                                [nzLabel]="session.Code + ' - ' + session.Name">
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-control>
+                        <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                            Tìm kiếm
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </div>
+
+        <!-- Content with Splitter -->
+        <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
+            <nz-splitter class="h-100">
+
+                <!-- Master Panel (Positions) -->
+                <nz-splitter-panel nzSize="50%" [nzCollapsible]="true" nzResizable="true">
+                    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                        <!-- Master Toolbar -->
+                        <div class="card-header bg-white p-0" style="flex-shrink: 0;">
+                            <p-menubar [model]="masterMenuBars">
+                                <ng-template pTemplate="item" let-item>
+                                    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                                        <i [class]="item.icon"></i>
+                                        <span class="p-menuitem-text">{{ item.label }}</span>
+                                    </a>
+                                </ng-template>
+                            </p-menubar>
+                        </div>
+
+                        <!-- Master Grid -->
+                        <div class="card-body p-0 flex-grow-1 grid-container-master" style="overflow: hidden;">
+                            <angular-slickgrid gridId="gridMaster" [columns]="columnDefinitionsMaster"
+                                [options]="gridOptionsMaster" [dataset]="datasetMaster"
+                                (onAngularGridCreated)="angularGridReadyMaster($event.detail)"
+                                (onClick)="onMasterRowClick($event.detail.eventData, $event.detail.args)"
+                                (onDblClick)="onMasterRowDblClick($event.detail.eventData, $event.detail.args)">
+                            </angular-slickgrid>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+
+                <!-- Detail Panel (Employees) -->
+                <nz-splitter-panel nzSize="50%" [nzCollapsible]="true" nzResizable="true">
+                    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                        <!-- Detail Toolbar -->
+                        <div class="card-header bg-white p-0" style="flex-shrink: 0;">
+                            <p-menubar [model]="detailMenuBars">
+                                <ng-template pTemplate="item" let-item>
+                                    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                                        <i [class]="item.icon"></i>
+                                        <span class="p-menuitem-text">{{ item.label }}</span>
+                                    </a>
+                                </ng-template>
+                            </p-menubar>
+                        </div>
+
+                        <!-- Detail Grid -->
+                        <div class="card-body p-0 flex-grow-1 grid-container-detail" style="overflow: hidden;">
+                            <angular-slickgrid gridId="gridDetail" [columns]="columnDefinitionsDetail"
+                                [options]="gridOptionsDetail" [dataset]="datasetDetail"
+                                (onAngularGridCreated)="angularGridReadyDetail($event.detail)"
+                                (onDblClick)="onDetailRowDblClick($event.detail.eventData, $event.detail.args)">
+                            </angular-slickgrid>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+
+            </nz-splitter>
+        </div>
+    </div>
+</ng-container>

@@ -6,3 +6,10 @@
   cursor: pointer;
 }
 
+::ng-deep .tabulator-header-filter input {
+  color: #000000 !important;
+}
+
+::ng-deep .tabulator-header-filter select {
+  color: #000000 !important;
+}

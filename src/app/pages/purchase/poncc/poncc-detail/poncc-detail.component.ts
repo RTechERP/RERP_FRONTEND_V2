@@ -44,12 +44,12 @@ import { FormsModule } from '@angular/forms';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
-    Times: {
-        normal: 'TIMES.ttf',
-        bold: 'TIMESBD.ttf',
-        bolditalics: 'TIMESBI.ttf',
-        italics: 'TIMESI.ttf',
-    },
+  Times: {
+    normal: 'TIMES.ttf',
+    bold: 'TIMESBD.ttf',
+    bolditalics: 'TIMESBI.ttf',
+    italics: 'TIMESI.ttf',
+  },
 };
 
 @Component({
@@ -84,6 +84,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   companyForm!: FormGroup;
   diffForm!: FormGroup;
   extraForm!: FormGroup;
+  @Input() warehouseType = 1;
   @Input() poncc: any = null;
   @Input() ponccDetail: any;
   @Input() dtRef: any;
@@ -140,7 +141,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   productRTCs: any[] = [];
   projects: any[] = [];
   referenceLinks: any[] = []; // Danh sách link tham chiếu từ dtRef
-  
+
   // Column definitions for popups
   productSalePopupColumns: ColumnDefinition[] = [
     {
@@ -211,7 +212,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     return Number(cleaned);
   };
 
-  
+
 
   constructor(
     private fb: FormBuilder,
@@ -230,11 +231,9 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-    console.log('🔷 ngOnInit started - isEditMode:', this.isEditMode, 'poncc.ID:', this.poncc?.ID);
 
     this.isAdmin = this.appUserService.isAdmin;
     if (this.poncc && this.poncc.ID > 0) {
-      console.log('🔷 Loading existing PO details for ID:', this.poncc.ID);
       this.ponccService.getPoncc(this.poncc.ID).subscribe({
         next: (response: any) => {
           this.rupayId = this.poncc.RulePayID;
@@ -242,17 +241,15 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           if (this.isCopy) {
             this.poncc.ID = 0;
           }
-          console.log('🔷 PO data loaded, calling mapDataToForm');
           this.mapDataToForm();
           this.loadReferenceLinks();
         },
         error: (error) => {
-            this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+          this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
         },
       });
     }
     else if (this.isAddPoYCMH) {
-      console.log('🔷 Adding PO from YCMH');
       this.getSupplierSale().then(() => {
         this.mapDataToForm();
         // Không gọi getBillCode() ở đây vì BillCode đã được set từ component cha (YCMH)
@@ -262,8 +259,20 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         }
       });
     }
+    // Trường hợp copy: poncc.ID = 0 nhưng có data sẵn từ component cha
+    else if (this.isCopy && this.poncc) {
+      this.rupayId = this.poncc.RulePayID;
+      // Đợi các dropdown load xong rồi mới map data
+      Promise.all([
+        this.getSupplierSale(),
+        this.getRulePay(),
+        this.getCurrencies()
+      ]).then(() => {
+        console.log('🔷 Copy mode: data loaded, calling mapDataToForm');
+        this.mapDataToForm();
+      });
+    }
 
-    console.log('🔷 Calling initInformationForm');
     this.initInformationForm();
     this.initCompanyForm();
     this.initDiffForm();
@@ -290,7 +299,6 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       // Chỉ tự động generate BillCode khi đang tạo mới (ID = 0 hoặc undefined)
       // Khi edit/copy, không tự động generate để tránh ghi đè
       if ((poTypeId === 0 || poTypeId === 1) && (!this.poncc || this.poncc.ID === 0 || this.isCopy)) {
-        console.log('Auto-generating BillCode for new PO or copy');
         this.getBillCode(poTypeId);
       }
     });
@@ -298,7 +306,6 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     // Subscribe to CurrencyID changes to update CurrencyRate automatically
     this.companyForm.get('CurrencyID')?.valueChanges.subscribe((currencyId: number) => {
       if (currencyId !== null && currencyId !== undefined) {
-        console.log('CurrencyID changed to:', currencyId);
         this.onCurrencyChange(currencyId);
       }
     });
@@ -350,7 +357,6 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   private mapDataToForm(): void {
     if (!this.poncc) return;
 
-    console.log('🟢 mapDataToForm called - poncc.BillCode:', this.poncc.BillCode);
 
     // Map data vào informationForm
     this.informationForm.patchValue({
@@ -375,7 +381,6 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       CurrencyRate: this.poncc.CurrencyRate || 0
     }, { emitEvent: false });
 
-    console.log('🟢 mapDataToForm done - companyForm.BillCode:', this.companyForm.get('BillCode')?.value);
 
     // Map data vào diffForm
     this.diffForm.patchValue({
@@ -397,18 +402,12 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       ReasonForFailure: this.poncc.ReasonForFailure || '',
       OrderQualityNotMet: this.poncc.OrderQualityNotMet || false,
       NCCNew: this.poncc.NCCNew || false,
-      DeptSupplier: this.poncc.DeptSupplier || false
+      DeptSupplier: this.poncc.DeptSupplier || true
     });
 
     // Sau khi map xong, trigger các sự kiện để load thông tin đầy đủ
     // Đợi một chút để đảm bảo supplierSales, rulepays và currencies đã được load
     setTimeout(() => {
-      console.log('Loading additional data...', {
-        supplierSalesCount: this.supplierSales.length,
-        rulepaysCount: this.rulepays.length,
-        currenciesCount: this.currencies.length
-      });
-
       // Load thông tin NCC (địa chỉ, mã số thuế, diễn giải)
       if (this.poncc.SupplierSaleID) {
         const selectedSupplier = this.supplierSales.find(s => s.ID === this.poncc.SupplierSaleID);
@@ -423,14 +422,6 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
             this.informationForm.get('RulePayID')?.setValue(selectedSupplier.RulePayID);
           }
 
-          console.log('Loaded supplier info:', {
-            AddressNCC: selectedSupplier.AddressNCC,
-            MaSoThue: selectedSupplier.MaSoThue,
-            Note: selectedSupplier.Note,
-            RulePayID: selectedSupplier.RulePayID
-          });
-        } else {
-          console.warn('Supplier not found:', this.poncc.SupplierSaleID);
         }
       }
 
@@ -478,7 +469,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       OrderQualityNotMet: [false],
       ReasonForFailure: [{ value: '', disabled: true }],
       NCCNew: [false],
-      DeptSupplier: [false]
+      DeptSupplier: [true]
     });
   }
 
@@ -501,15 +492,9 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       IsCheckTotalMoneyPO: [false]
     });
 
-    console.log('🟡 initInformationForm - checking if should call getBillCode(0)');
-    console.log('🟡 State: isEditMode:', this.isEditMode, 'poncc.ID:', this.poncc?.ID, 'isCopy:', this.isCopy);
-
     // Chỉ gọi getBillCode khi đang tạo mới (không phải edit mode và không có poncc.ID)
     if (!this.isEditMode && (!this.poncc || this.poncc.ID === 0)) {
-      console.log('🟡 Calling getBillCode(0) for new PO');
       this.getBillCode(0);
-    } else {
-      console.log('🟡 Skipping getBillCode - edit mode or existing PO');
     }
   }
 
@@ -1099,29 +1084,33 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         );
       },
       error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
       },
     });
   }
 
-  getRulePay() {
-    this.supplierSaleService.getRulePay().subscribe({
-      next: (data) => {
-        if (data.status == 1) {
-          this.rulepays = data.data.map((item: any) => ({
-            title: item.Code + " - " + item.Note,
-            value: item.ID
-          }));
-        } else {
-          this.notification.warning(
-            NOTIFICATION_TITLE.warning,
-            'Không có dữ liệu liên hệ nào được tìm thấy.'
-          );
-        }
-      },
-      error: (error) => {
+  getRulePay(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.supplierSaleService.getRulePay().subscribe({
+        next: (data) => {
+          if (data.status == 1) {
+            this.rulepays = data.data.map((item: any) => ({
+              title: item.Code + " - " + item.Note,
+              value: item.ID
+            }));
+          } else {
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              'Không có dữ liệu liên hệ nào được tìm thấy.'
+            );
+          }
+          resolve();
+        },
+        error: (error) => {
           this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
-      }
+          reject(error);
+        }
+      });
     });
   }
 
@@ -1151,43 +1140,40 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     );
   }
 
-  getCurrencies() {
-    this.projectPartlistPurchaseRequestService.getCurrencies().subscribe({
-      next: (res: any) => {
-        this.currencies = res || [];
-        // Sau khi currencies được load, nếu đã có CurrencyID trong form thì cập nhật CurrencyRate
-        const currencyId = this.companyForm?.get('CurrencyID')?.value;
-        if (currencyId && this.currencies.length > 0) {
-          // Đợi một chút để đảm bảo form đã được khởi tạo xong
-          setTimeout(() => {
-            this.onCurrencyChange(currencyId);
-          }, 100);
+  getCurrencies(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.projectPartlistPurchaseRequestService.getCurrencies().subscribe({
+        next: (res: any) => {
+          this.currencies = res || [];
+          // Sau khi currencies được load, nếu đã có CurrencyID trong form thì cập nhật CurrencyRate
+          const currencyId = this.companyForm?.get('CurrencyID')?.value;
+          if (currencyId && this.currencies.length > 0) {
+            // Đợi một chút để đảm bảo form đã được khởi tạo xong
+            setTimeout(() => {
+              this.onCurrencyChange(currencyId);
+            }, 100);
+          }
+          resolve();
+        }, error: (error: any) => {
+          this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+          reject(error);
         }
-      }, error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
-      }
+      });
     });
   }
 
   getBillCode(poTypeId: number) {
-    console.log('🔵 getBillCode called with poTypeId:', poTypeId);
-    console.log('🔵 Current state - isEditMode:', this.isEditMode, 'skipBillCodeGeneration:', this.skipBillCodeGeneration, 'poncc.ID:', this.poncc?.ID);
-    console.trace('🔵 getBillCode call stack');
-
-    // Nếu skipBillCodeGeneration = true (đã có BillCode từ YCMH), không generate lại
     if (this.skipBillCodeGeneration) {
-      console.log('⛔ Skipping BillCode generation - already set from YCMH');
       return;
     }
 
     this.ponccService.getBillCode(poTypeId).subscribe({
       next: (res: any) => {
-        console.log('🔴 OVERWRITING BillCode with:', res.data);
         this.companyForm.patchValue({
           BillCode: res.data
         })
       }, error: (error: any) => {
-          this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
       }
     });
   }
@@ -1201,8 +1187,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         this.productSales = data || [];
         this.updateEditorLookups();
       },
-      error: (err) =>  {
-        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message); 
+      error: (err) => {
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
       }
     });
     this.ponccService.getProductRTC().subscribe({
@@ -1220,7 +1206,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         this.updateEditorLookups();
       },
       error: (err) => {
-          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
       }
     });
   }
@@ -1312,16 +1298,32 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         layout: 'fitColumns',
         minWidth: '600px',
         maxWidth: '800px',
+        showClearButton: true,
         onRowSelected: (selectedProduct) => {
           // Update the row with selected product data
           const row = cell.getRow();
           this.updateProductInfo(row, selectedProduct.ID, true);
-          
+
           // Redraw cell to update display
           cell.getTable().redraw(true);
-          
+
           // Đóng popup
           this.tabulatorPopupService.close();
+        },
+        onCleared: () => {
+          // Xóa giá trị ProductSale đã chọn
+          const row = cell.getRow();
+          row.update({
+            ProductSaleID: 0,
+            ProductName: '',
+            UnitName: '',
+            ProductNewCode: '',
+            ProductGroupName: '',
+            Note: '',
+            ProductCodeOfSupplier: '',
+            PriceHistory: 0,
+          });
+          cell.getTable().redraw(true);
         },
         onClosed: () => {
           // Optional: xử lý khi popup đóng
@@ -1353,16 +1355,32 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         layout: 'fitColumns',
         minWidth: '600px',
         maxWidth: '800px',
+        showClearButton: true,
         onRowSelected: (selectedProduct) => {
           // Update the row with selected product data
           const row = cell.getRow();
           this.updateProductInfo(row, selectedProduct.ID, false);
-          
+
           // Redraw cell to update display
           cell.getTable().redraw(true);
-          
+
           // Đóng popup
           this.tabulatorPopupService.close();
+        },
+        onCleared: () => {
+          // Xóa giá trị ProductRTC đã chọn
+          const row = cell.getRow();
+          row.update({
+            ProductRTCID: 0,
+            ProductName: '',
+            UnitName: '',
+            ProductNewCode: '',
+            ProductGroupName: '',
+            Note: '',
+            ProductCodeOfSupplier: '',
+            PriceHistory: 0,
+          });
+          cell.getTable().redraw(true);
         },
         onClosed: () => {
           // Optional: xử lý khi popup đóng
@@ -1569,7 +1587,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                   ponccData.poncc.BillCode = res.data;
                   this.save(ponccData, closeAfterSave);
                 }, error: (error) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+                  this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
                 }
               });
             },
@@ -1623,7 +1641,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
       }
     });
   }
@@ -1644,6 +1662,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   // Hàm chuẩn bị dữ liệu để lưu
   private prepareDataForSave(tableData: any[]): any {
     // Chuẩn bị dữ liệu bảng (PONCCDetails)
+    console.log('tableData:', tableData);
+
     const ponccDetails = tableData.map((row: any) => ({
       ID: row.ID || 0,
       STT: row.STT || 0,
@@ -1679,7 +1699,9 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       BiddingPrice: row.BiddingPrice || 0,
       Note: row.Note || '',
       YCMHCode: row.YCMHCode || '',
-      PONCCDetailRequestBuyID: row.PONCCDetailRequestBuyID || ''
+      PONCCDetailRequestBuyID: row.PONCCDetailRequestBuyID || '',
+      ProjectPartlistPurchaseRequestID: row.ProjectPartlistPurchaseRequestID || 0,
+      ProjectPartlistID: row.ProjectPartListID || 0,
     }));
 
     // Kết hợp tất cả dữ liệu
@@ -2107,8 +2129,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     this.ponccService.printPO(this.poncc.ID, this.isMerge).subscribe({
       next: (response) => {
         this.dataPrint = response.data;
-        this.renderPDF(this.language);
         this.showPreview = true;
+        this.renderPDF(this.language);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -2121,9 +2143,11 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   }
 
   renderPDF(language: string) {
+    console.log('🔵 renderPDF - language:', language);
     const docDefinition = language === 'vi'
       ? this.onCreatePDFLanguageVi(this.dataPrint, this.isShowSign, this.isShowSeal)
       : this.onCreatePDFLanguageEn(this.dataPrint, this.isShowSign, this.isShowSeal);
+    console.log('🔵 docDefinition:', docDefinition);
 
     pdfMake.createPdf(docDefinition).getBlob((blob: any) => {
       this.pdfSrc = URL.createObjectURL(blob);
@@ -2157,398 +2181,593 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   }
 
   onCreatePDFLanguageVi(data: any, isShowSign: boolean, isShowSeal: boolean) {
-        // console.log(data);
-        let po = data.po;
-        let poDetails = data.poDetails;
-        let employeePurchase = data.employeePurchase;
-        let taxCompany = data.taxCompany;
+    // console.log(data);
+    let po = data.po;
+    let poDetails = data.poDetails;
+    let employeePurchase = data.employeePurchase;
+    let taxCompany = data.taxCompany;
 
-        const totalAmount = poDetails.reduce((sum: number, x: any) => sum + x.ThanhTien, 0);
-        const vatMoney = poDetails.reduce((sum: number, x: any) => sum + x.VATMoney, 0);
-        const discount = poDetails.reduce((sum: number, x: any) => sum + x.Discount, 0);
-        const totalPrice = poDetails.reduce((sum: number, x: any) => sum + x.TotalPrice, 0);
+    const totalAmount = poDetails.reduce((sum: number, x: any) => sum + x.ThanhTien, 0);
+    const vatMoney = poDetails.reduce((sum: number, x: any) => sum + x.VATMoney, 0);
+    const discount = poDetails.reduce((sum: number, x: any) => sum + x.Discount, 0);
+    const totalPrice = poDetails.reduce((sum: number, x: any) => sum + x.TotalPrice, 0);
 
-        let items: any = [];
+    let items: any = [];
 
-        for (let i = 0; i < poDetails.length; i++) {
-            let item = [
-                { text: poDetails[i].STT, alignment: 'center' },
-                { text: poDetails[i].ProductCodeOfSupplier, alignment: '' },
+    for (let i = 0; i < poDetails.length; i++) {
+      let item = [
+        { text: poDetails[i].STT, alignment: 'center' },
+        { text: poDetails[i].ProductCodeOfSupplier, alignment: '' },
 
-                { text: poDetails[i].UnitName, alignment: '' },
-                {
-                    text: this.formatNumber(poDetails[i].QtyRequest),
-                    alignment: 'right',
-                },
-                { text: this.formatNumber(poDetails[i].UnitPrice), alignment: 'right' },
-                { text: this.formatNumber(poDetails[i].ThanhTien), alignment: 'right' },
-                { text: this.formatNumber(poDetails[i].VAT), alignment: 'right' },
-                { text: this.formatNumber(poDetails[i].VATMoney), alignment: 'right' },
-            ];
-            items.push(item);
-        }
+        { text: poDetails[i].UnitName, alignment: '' },
+        {
+          text: this.formatNumber(poDetails[i].QtyRequest),
+          alignment: 'right',
+        },
+        { text: this.formatNumber(poDetails[i].UnitPrice), alignment: 'right' },
+        { text: this.formatNumber(poDetails[i].ThanhTien), alignment: 'right' },
+        { text: this.formatNumber(poDetails[i].VAT), alignment: 'right' },
+        { text: this.formatNumber(poDetails[i].VATMoney), alignment: 'right' },
+      ];
+      items.push(item);
+    }
 
-        let cellDisplaySign = { text: '', style: '', margin: [0, 60, 0, 60] };
+    let cellDisplaySign = { text: '', style: '', margin: [0, 60, 0, 60] };
 
-        let cellPicPrepared: any = po.PicPrepared == '' ?
-            cellDisplaySign
-            : {
-                image: 'data:image/png;base64,' + po.PicPrepared,
-                width: 150,
-                margin: [0, 0, 40, 0],
-            };
-        if (!isShowSign) cellPicPrepared = cellDisplaySign;
-        let cellPicDirector: any = po.PicDirector == '' ?
-            cellDisplaySign
-            :
-            {
-                image: 'data:image/png;base64,' + po.PicDirector, width: 170,
-                margin: [20, 0, 0, 0],
-            };
-        if (!isShowSeal) cellPicDirector = cellDisplaySign;
-        // console.log('isShowSeal:', this.isShowSeal);
-        // console.log('cellPicPrepared:', cellPicDirector);
+    let cellPicPrepared: any = po.PicPrepared == '' ?
+      cellDisplaySign
+      : {
+        image: 'data:image/png;base64,' + po.PicPrepared,
+        width: 150,
+        margin: [0, 0, 40, 0],
+      };
+    if (!isShowSign) cellPicPrepared = cellDisplaySign;
+    let cellPicDirector: any = po.PicDirector == '' ?
+      cellDisplaySign
+      :
+      {
+        image: 'data:image/png;base64,' + po.PicDirector, width: 170,
+        margin: [20, 0, 0, 0],
+      };
+    if (!isShowSeal) cellPicDirector = cellDisplaySign;
+    // console.log('isShowSeal:', this.isShowSeal);
+    // console.log('cellPicPrepared:', cellPicDirector);
 
-        let docDefinition = {
-            info: {
-                title: po.BillCode,
-            },
-            content: [
-                `${taxCompany.BuyerVietnamese}
+    let docDefinition = {
+      info: {
+        title: po.BillCode,
+      },
+      content: [
+        `${taxCompany.BuyerVietnamese}
                 ${taxCompany.AddressBuyerVienamese}
                 ${taxCompany.TaxVietnamese}`,
-                { text: "ĐƠN MUA HÀNG", alignment: 'center', bold: true, fontSize: 12, margin: [0, 10, 0, 10] },
-                {
-                    style: 'tableExample',
-                    table: {
-                        widths: [80, '*', 30, 70, 35, 30, 25],
-                        body: [
-                            [
-                                'Tên nhà cung cấp:', { colSpan: 3, text: po.NameNCC }, '', '', 'Ngày:',
-                                { colSpan: 2, text: DateTime.fromISO(po.RequestDate).toFormat('dd/MM/yyyy') }
-                            ],
-                            [
-                                'Địa chỉ:', { colSpan: 3, text: po.AddressNCC }, '', '',
-                                'Số:', { colSpan: 2, text: po.BillCode }
-                            ],
-                        ]
-                    },
-                    layout: 'noBorders',
-                },
-                {
-                    style: 'tableExample',
-                    table: {
-                        widths: [80, '*', 30, 70, 30, 25, 35],
-                        body: [
-                            [
-                                'Mã số thuế:', { colSpan: 3, text: po.MaSoThue }, '', '',
-                                { colSpan: 2, text: 'Loại tiền:' }, '', po.CurrencyText
-                            ],
-                        ]
-                    },
-                    layout: 'noBorders',
-                },
-                {
-                    style: 'tableExample',
-                    table: {
-                        widths: [80, '*', 30, 70, 35, 30, 25],
-                        body: [
-                            [
-                                'Điện thoại:', po.SupplierContactPhone,
-                                'Fax:', { colSpan: 4, text: po.Fax }
-                            ],
-                            ['Diễn giải:', { colSpan: 6, text: po.Note }],
-                        ]
-                    },
-                    layout: 'noBorders',
+        { text: "ĐƠN MUA HÀNG", alignment: 'center', bold: true, fontSize: 12, margin: [0, 10, 0, 10] },
+        {
+          style: 'tableExample',
+          table: {
+            widths: [80, '*', 30, 70, 35, 30, 25],
+            body: [
+              [
+                'Tên nhà cung cấp:', { colSpan: 3, text: po.NameNCC }, '', '', 'Ngày:',
+                { colSpan: 2, text: DateTime.fromISO(po.RequestDate).toFormat('dd/MM/yyyy') }
+              ],
+              [
+                'Địa chỉ:', { colSpan: 3, text: po.AddressNCC }, '', '',
+                'Số:', { colSpan: 2, text: po.BillCode }
+              ],
+            ]
+          },
+          layout: 'noBorders',
+        },
+        {
+          style: 'tableExample',
+          table: {
+            widths: [80, '*', 30, 70, 30, 25, 35],
+            body: [
+              [
+                'Mã số thuế:', { colSpan: 3, text: po.MaSoThue }, '', '',
+                { colSpan: 2, text: 'Loại tiền:' }, '', po.CurrencyText
+              ],
+            ]
+          },
+          layout: 'noBorders',
+        },
+        {
+          style: 'tableExample',
+          table: {
+            widths: [80, '*', 30, 70, 35, 30, 25],
+            body: [
+              [
+                'Điện thoại:', po.SupplierContactPhone,
+                'Fax:', { colSpan: 4, text: po.Fax }
+              ],
+              ['Diễn giải:', { colSpan: 6, text: po.Note }],
+            ]
+          },
+          layout: 'noBorders',
 
-                },
+        },
 
-                //Bảng chi tiết sản phẩm
-                {
-                    table: {
-                        widths: [20, 120, 30, 45, '*', '*', 35, '*'],
-                        body: [
-                            //Header table
-                            [
-                                { text: 'STT', alignment: 'center', bold: true },
-                                { text: 'Diễn giải', alignment: 'center', bold: true },
-                                { text: 'Đơn vị', alignment: 'center', bold: true },
-                                { text: 'Số lượng', alignment: 'center', bold: true },
-                                { text: 'Đơn giá', alignment: 'center', bold: true },
-                                { text: 'Thành tiền', alignment: 'center', bold: true },
-                                { text: '% VAT', alignment: 'center', bold: true },
-                                { text: 'Tổng tiền VAT', alignment: 'center', bold: true },
-                            ],
+        //Bảng chi tiết sản phẩm
+        {
+          table: {
+            widths: [20, 120, 30, 45, '*', '*', 35, '*'],
+            body: [
+              //Header table
+              [
+                { text: 'STT', alignment: 'center', bold: true },
+                { text: 'Diễn giải', alignment: 'center', bold: true },
+                { text: 'Đơn vị', alignment: 'center', bold: true },
+                { text: 'Số lượng', alignment: 'center', bold: true },
+                { text: 'Đơn giá', alignment: 'center', bold: true },
+                { text: 'Thành tiền', alignment: 'center', bold: true },
+                { text: '% VAT', alignment: 'center', bold: true },
+                { text: 'Tổng tiền VAT', alignment: 'center', bold: true },
+              ],
 
-                            //list item
-                            ...items,
-                            //sum footer table
-                            [
-                                { colSpan: 2, text: '', border: [true, false, false, true] }, '',
-                                { colSpan: 4, text: 'Cộng tiền hàng:', border: [false, false, false, true] }, '4', '5', '6',
-                                { colSpan: 2, text: this.formatNumber(totalAmount), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
-                            ],
-                            [
-                                { colSpan: 2, text: '', border: [true, false, false, true] }, '2',
-                                { colSpan: 4, text: 'Tiền thuế GTGT:', border: [false, false, false, true] }, '4', '5', '6',
-                                { colSpan: 2, text: this.formatNumber(vatMoney), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
-                            ],
-                            [
-                                { colSpan: 2, text: '', border: [true, false, false, true] }, '2',
-                                { colSpan: 4, text: 'Chiết khấu:', border: [false, false, false, true] }, '4', '5', '6',
-                                { colSpan: 2, text: this.formatNumber(discount), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
-                            ],
-                            [
-                                { colSpan: 2, text: '', border: [true, false, false, true] }, '2',
-                                { colSpan: 4, text: 'Tổng tiền thanh toán:', border: [false, false, false, true] }, '4', '5', '6',
-                                { colSpan: 2, text: this.formatNumber(totalPrice), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
-                            ],
-                            [
-                                { colSpan: 2, text: 'Số tiền viết bằng chữ:', border: [true, false, false, true] }, '',
-                                { colSpan: 6, text: po.TotalMoneyText, bold: true, italics: true, border: [false, false, true, true] }, '4', '5', '6', '7', '8'
-                            ],
-                        ],
-                    },
-                },
-                //Thông tin khác
-                {
-                    style: 'tableExample',
-                    table: {
-                        body: [
-                            ['Ngày giao hàng:', DateTime.fromISO(po.DeliveryDate).toFormat('dd/MM/yyyy')],
-                            ['Địa điểm giao hàng:', po.AddressDelivery],
-                            ['Điều khoàn thanh toán:', po.RulePayName],
-                            ['Số tài khoản:', po.AccountNumberSupplier],
-                        ],
-                    },
-                    layout: 'noBorders',
-                },
-                //Chữ ký
-                {
-                    alignment: 'justify',
-                    columns: [
-                        { text: 'Người bán', alignment: 'center', bold: true },
-                        { text: 'Người lập', alignment: 'center', bold: true },
-                        { text: 'Người mua', alignment: 'center', bold: true },
-                    ],
-                },
-                {
-                    alignment: 'justify',
-                    columns: [
-                        {
-                            text: '(Ký, họ tên)',
-                            italics: true,
-                            alignment: 'center',
-                        },
-                        {
-                            text: '(Ký, họ tên)',
-                            italics: true,
-                            alignment: 'center',
-                        },
-                        {
-                            text: '(Ký, họ tên)',
-                            italics: true,
-                            alignment: 'center',
-                        },
-                    ],
-                },
-                {
-                    alignment: 'justify',
-                    columns: [{ text: '', style: '' }, cellPicPrepared, cellPicDirector],
-                },
-                {
-                    alignment: 'justify',
-                    columns: [
-                        {
-                            text: '',
-                        },
-                        {
-                            table: {
-                                body: [
-                                    ['Phone:', employeePurchase.Telephone],
-                                    ['Email:', employeePurchase.Email]
-                                ]
-                            },
-                            layout: 'noBorders',
-                        },
-                        {
-                            text: '',
-                        },
-                    ],
-                },
-
+              //list item
+              ...items,
+              //sum footer table
+              [
+                { colSpan: 2, text: '', border: [true, false, false, true] }, '',
+                { colSpan: 4, text: 'Cộng tiền hàng:', border: [false, false, false, true] }, '4', '5', '6',
+                { colSpan: 2, text: this.formatNumber(totalAmount), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
+              ],
+              [
+                { colSpan: 2, text: '', border: [true, false, false, true] }, '2',
+                { colSpan: 4, text: 'Tiền thuế GTGT:', border: [false, false, false, true] }, '4', '5', '6',
+                { colSpan: 2, text: this.formatNumber(vatMoney), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
+              ],
+              [
+                { colSpan: 2, text: '', border: [true, false, false, true] }, '2',
+                { colSpan: 4, text: 'Chiết khấu:', border: [false, false, false, true] }, '4', '5', '6',
+                { colSpan: 2, text: this.formatNumber(discount), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
+              ],
+              [
+                { colSpan: 2, text: '', border: [true, false, false, true] }, '2',
+                { colSpan: 4, text: 'Tổng tiền thanh toán:', border: [false, false, false, true] }, '4', '5', '6',
+                { colSpan: 2, text: this.formatNumber(totalPrice), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
+              ],
+              [
+                { colSpan: 2, text: 'Số tiền viết bằng chữ:', border: [true, false, false, true] }, '',
+                { colSpan: 6, text: po.TotalMoneyText, bold: true, italics: true, border: [false, false, true, true] }, '4', '5', '6', '7', '8'
+              ],
             ],
-            defaultStyle: {
-                fontSize: 10,
-                alignment: 'justify',
-                font: 'Times',
+          },
+        },
+        //Thông tin khác
+        {
+          style: 'tableExample',
+          table: {
+            body: [
+              ['Ngày giao hàng:', DateTime.fromISO(po.DeliveryDate).toFormat('dd/MM/yyyy')],
+              ['Địa điểm giao hàng:', po.AddressDelivery],
+              ['Điều khoàn thanh toán:', po.RulePayName],
+              ['Số tài khoản:', po.AccountNumberSupplier],
+            ],
+          },
+          layout: 'noBorders',
+        },
+        //Chữ ký
+        {
+          alignment: 'justify',
+          columns: [
+            { text: 'Người bán', alignment: 'center', bold: true },
+            { text: 'Người lập', alignment: 'center', bold: true },
+            { text: 'Người mua', alignment: 'center', bold: true },
+          ],
+        },
+        {
+          alignment: 'justify',
+          columns: [
+            {
+              text: '(Ký, họ tên)',
+              italics: true,
+              alignment: 'center',
             },
-        };
+            {
+              text: '(Ký, họ tên)',
+              italics: true,
+              alignment: 'center',
+            },
+            {
+              text: '(Ký, họ tên)',
+              italics: true,
+              alignment: 'center',
+            },
+          ],
+        },
+        {
+          alignment: 'justify',
+          columns: [{ text: '', style: '' }, cellPicPrepared, cellPicDirector],
+        },
+        {
+          alignment: 'justify',
+          columns: [
+            {
+              text: '',
+            },
+            {
+              table: {
+                body: [
+                  ['Phone:', employeePurchase.Telephone],
+                  ['Email:', employeePurchase.Email]
+                ]
+              },
+              layout: 'noBorders',
+            },
+            {
+              text: '',
+            },
+          ],
+        },
+
+      ],
+      defaultStyle: {
+        fontSize: 10,
+        alignment: 'justify',
+        font: 'Times',
+      },
+    };
 
 
-        return docDefinition;
-    }
+    return docDefinition;
+  }
 
   onCreatePDFLanguageEn(data: any, isShowSign: boolean, isShowSeal: boolean) {
-        let po = data.po;
-        let poDetails = data.poDetails;
-        let taxCompany = data.taxCompany;
+    let po = data.po;
+    let poDetails = data.poDetails;
+    let taxCompany = data.taxCompany;
 
-        const totalAmount = poDetails.reduce((sum: number, x: any) => sum + x.ThanhTien, 0);
-        const vatMoney = poDetails.reduce((sum: number, x: any) => sum + x.VATMoney, 0);
-        const discount = poDetails.reduce((sum: number, x: any) => sum + x.Discount, 0);
-        const totalPrice = poDetails.reduce((sum: number, x: any) => sum + x.TotalPrice, 0);
+    const EMPTY_IMAGE_BASE64 =
+      'iVBORw0KGgoAAAANSUhEUgAAANgAAABSCAYAAAA2CxpTAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjw' +
+      'v8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAD+SURBVHhe7dOhAQAgDMAw4P+fh0dTl8j67pmZBSTOG4B/' +
+      'DAYhg0HIYBAyGIQMBiGDQchgEDIYhAwGIYNByGAQMhiEDAYhg0HIYBAyGIQMBiGDQchgEDIYhAwGIYNByGAQMhi' +
+      'EDAYhg0HIYBAyGIQMBiGDQchgEDIYhAwGIYNByGAQMhiEDAYhg0HIYBAyGIQMBiGDQchgEDIYhAwGIYNByGAQMhiE' +
+      'DAYhg0HIYBAyGIQMBiGDQchgEDIYhAwGIYNByGAQMhiEDAYhg0HIYBAyGIQMBiGDQchgEDIYhAwGIYNByGAQMhiEDAYhg' +
+      '0HIYBAyGIQMBiGDQchgEDIYhC4EjgSgJ7qviAAAAABJRU5ErkJggg==';
 
-        let items: any = [];
+    const totalAmount = poDetails.reduce(
+      (sum: number, x: any) => sum + x.ThanhTien,
+      0
+    );
+    const vatMoney = poDetails.reduce(
+      (sum: number, x: any) => sum + x.VATMoney,
+      0
+    );
+    const discount = poDetails.reduce(
+      (sum: number, x: any) => sum + x.Discount,
+      0
+    );
+    const totalPrice = poDetails.reduce(
+      (sum: number, x: any) => sum + x.TotalPrice,
+      0
+    );
 
-        for (let i = 0; i < poDetails.length; i++) {
-            let item = [
-                { text: poDetails[i].STT, alignment: 'center' },
-                { text: poDetails[i].ProductCodeOfSupplier, alignment: '' },
+    let items: any = [];
+console.log(poDetails);
+    for (let i = 0; i < poDetails.length; i++) {
+      let item = [
+        { text: poDetails[i].STT, alignment: 'center' },
+        { text: poDetails[i].ProductCodeOfSupplier, alignment: '' },
 
-                { text: poDetails[i].UnitName, alignment: '' },
-                {
-                    text: this.formatNumber(poDetails[i].QtyRequest),
-                    alignment: 'right',
-                },
-                { text: this.formatNumber(poDetails[i].UnitPrice), alignment: 'right' },
-                { text: this.formatNumber(poDetails[i].ThanhTien), alignment: 'right' },
-                { text: this.formatNumber(poDetails[i].VAT), alignment: 'right' },
-                { text: this.formatNumber(poDetails[i].VATMoney), alignment: 'right' },
-            ];
-            items.push(item);
-        }
+        { text: (poDetails[i].UnitName || poDetails[i].Unit), alignment: '' },
+        {
+          text: this.formatNumber(poDetails[i].QtyRequest),
+          alignment: 'right',
+        },
+        { text: this.formatNumber(poDetails[i].UnitPrice), alignment: 'right' },
+        { text: this.formatNumber(poDetails[i].ThanhTien), alignment: 'right' },
+        { text: this.formatNumber(poDetails[i].VAT), alignment: 'right' },
+        { text: this.formatNumber(poDetails[i].VATMoney), alignment: 'right' },
+      ];
+      items.push(item);
+    }
 
-        let cellDisplaySign = { text: '', style: '', margin: [0, 60, 0, 60] };
-        let cellPicPrepared: any = po.PicPrepared == '' ?
-            cellDisplaySign
-            : {
-                image: 'data:image/png;base64,' + po.PicPrepared,
-                width: 150,
-                margin: [0, 0, 40, 0],
-            };
-        if (!isShowSign) cellPicPrepared = cellDisplaySign;
-
-        let cellPicDirector: any = po.PicDirector == '' ?
-            cellDisplaySign
-            :
-            {
-                image: 'data:image/png;base64,' + po.PicDirector, width: 170,
-                margin: [20, 0, 0, 0],
-            };
-        if (!isShowSeal) cellPicDirector = cellDisplaySign;
-
-        return {
-            info: { title: po.BillCode },
-            content: [
-                {
-                    alignment: 'justify',
-                    columns: [
-                        { image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAAJUCAYAAAAFJN9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAX/', width: 200 },
-                        `${taxCompany.BuyerEnglish}\n${taxCompany.AddressBuyerEnglish}\n${taxCompany.TaxEnglish}`,
-                    ]
-                },
-                { text: "PURCHASE ORDER", alignment: 'center', bold: true, fontSize: 12, margin: [0, 10, 0, 10] },
-                {
-                    style: 'tableExample',
-                    table: {
-                        widths: [80, '*', 30, 70, 35, 30, 25],
-                        body: [
-                            ['Supplier Name:', { colSpan: 3, text: po.NameNCC }, '', '', 'Date:', { colSpan: 2, text: DateTime.fromISO(po.RequestDate).toFormat('MM/dd/yyyy') }],
-                            ['Address:', { colSpan: 3, text: po.AddressNCC }, '', '', 'No:', { colSpan: 2, text: po.BillCode }],
-                        ]
-                    },
-                    layout: 'noBorders',
-                },
-                {
-                    style: 'tableExample',
-                    table: {
-                        widths: [80, '*', 30, 70, 30, 25, 35],
-                        body: [['Tax No:', { colSpan: 3, text: po.MaSoThue }, '', '', { colSpan: 2, text: 'Currency:' }, '', po.CurrencyText]]
-                    },
-                    layout: 'noBorders',
-                },
-                {
-                    style: 'tableExample',
-                    table: {
-                        widths: [80, '*', 30, 70, 35, 30, 25],
-                        body: [
-                            ['Tel:', po.SupplierContactPhone, 'Fax:', { colSpan: 4, text: po.Fax }],
-                            ['Note:', { colSpan: 6, text: po.Note }],
-                        ]
-                    },
-                    layout: 'noBorders',
-                },
-                {
-                    table: {
-                        widths: [20, 120, 30, 45, '*', '*', 35, '*'],
-                        body: [
-                            [
-                                { text: 'No.', alignment: 'center', bold: true },
-                                { text: 'Description', alignment: 'center', bold: true },
-                                { text: 'Unit', alignment: 'center', bold: true },
-                                { text: 'Quantity', alignment: 'center', bold: true },
-                                { text: 'Unit Price', alignment: 'center', bold: true },
-                                { text: 'Amount', alignment: 'center', bold: true },
-                                { text: '% VAT', alignment: 'center', bold: true },
-                                { text: 'Total VAT', alignment: 'center', bold: true },
-                            ],
-                            ...items,
-                            [{ colSpan: 2, text: '', border: [true, false, false, true] }, '', { colSpan: 4, text: 'Sub Total:', border: [false, false, false, true] }, '', '', '', { colSpan: 2, text: this.formatNumber(totalAmount), alignment: 'right', bold: true, border: [false, false, true, true] }, ''],
-                            [{ colSpan: 2, text: '', border: [true, false, false, true] }, '', { colSpan: 4, text: 'VAT:', border: [false, false, false, true] }, '', '', '', { colSpan: 2, text: this.formatNumber(vatMoney), alignment: 'right', bold: true, border: [false, false, true, true] }, ''],
-                            [{ colSpan: 2, text: '', border: [true, false, false, true] }, '', { colSpan: 4, text: 'Discount:', border: [false, false, false, true] }, '', '', '', { colSpan: 2, text: this.formatNumber(discount), alignment: 'right', bold: true, border: [false, false, true, true] }, ''],
-                            [{ colSpan: 2, text: '', border: [true, false, false, true] }, '', { colSpan: 4, text: 'Total Amount:', border: [false, false, false, true] }, '', '', '', { colSpan: 2, text: this.formatNumber(totalPrice), alignment: 'right', bold: true, border: [false, false, true, true] }, ''],
-                            [{ colSpan: 2, text: 'Amount in words:', border: [true, false, false, true] }, '', { colSpan: 6, text: po.TotalMoneyText, bold: true, italics: true, border: [false, false, true, true] }, '', '', '', '', ''],
-                        ],
-                    },
-                },
-                {
-                    style: 'tableExample',
-                    table: {
-                        body: [
-                            ['Delivery Date:', DateTime.fromISO(po.DeliveryDate).toFormat('MM/dd/yyyy')],
-                            ['Delivery Address:', po.AddressDelivery],
-                            ['Payment Terms:', po.RulePayName],
-                            ['Account Number:', po.AccountNumberSupplier],
-                        ],
-                    },
-                    layout: 'noBorders',
-                },
-                {
-                    alignment: 'justify',
-                    columns: [
-                        { text: 'Seller', alignment: 'center', bold: true },
-                        { text: 'Prepared by', alignment: 'center', bold: true },
-                        { text: 'Buyer', alignment: 'center', bold: true },
-                    ],
-                },
-                {
-                    alignment: 'justify',
-                    columns: [
-                        { text: '(Signature, Name)', italics: true, alignment: 'center' },
-                        { text: '(Signature, Name)', italics: true, alignment: 'center' },
-                        { text: '(Signature, Name)', italics: true, alignment: 'center' },
-                    ],
-                },
-                {
-                    alignment: 'justify',
-                    columns: [{ text: '', style: '' }, cellPicPrepared, cellPicDirector],
-                },
-            ],
-            defaultStyle: {
-                fontSize: 10,
-                alignment: 'justify',
-                font: 'Times',
-            },
+    let cellDisplaySign = { text: '', style: '', margin: [0, 60, 0, 60] };
+    let cellPicPrepared: any =
+      po.PicPrepared == ''
+        ? cellDisplaySign
+        : {
+          image: 'data:image/png;base64,' + po.PicPrepared,
+          width: 150,
+          margin: [0, 0, 40, 0],
         };
-    }
+    if (!isShowSign) cellPicPrepared = cellDisplaySign;
 
-    formatNumber(num: number, digits: number = 2) {
-        num = num || 0;
-        return num.toLocaleString('vi-VN', {
-            minimumFractionDigits: digits,
-            maximumFractionDigits: digits,
-        });
-    }
+    let cellPicDirector: any =
+      po.PicDirector == ''
+        ? cellDisplaySign
+        : {
+          image: 'data:image/png;base64,' + po.PicDirector,
+          width: 170,
+          margin: [20, 0, 0, 0],
+        };
+    if (!isShowSeal) cellPicDirector = cellDisplaySign;
+
+
+
+    let docDefinition = {
+      info: {
+        title: po.BillCode,
+      },
+      content: [
+        {
+          alignment: 'justify',
+          columns: [
+            {
+              image:
+                'data:image/png;base64,' + (po.Logo || EMPTY_IMAGE_BASE64),
+              fit: [100, 100],
+            },
+            {
+              text: 'PURCHASE ORDER',
+              fontSize: 12,
+              alignment: 'center',
+              bold: true,
+              margin: [0, 20, 0, 0],
+            },
+            {
+              text: po.POCode,
+              fontSize: 12,
+              alignment: 'center',
+              bold: true,
+              margin: [0, 20, 0, 0],
+            },
+          ],
+        },
+
+        {
+          style: 'tableExample',
+          table: {
+            widths: [90, '*', 30, 60],
+            body: [
+              [
+                'Supplier name:',
+                { text: po.NameNCC, bold: true },
+                'Date:',
+                DateTime.fromISO(po.RequestDate).toFormat('dd/MM/yyyy'),
+              ],
+              [
+                'Address:',
+                { text: po.AddressNCC, bold: true },
+                'No:',
+                po.BillCode,
+              ],
+            ],
+          },
+          layout: 'noBorders',
+        },
+
+        {
+          style: 'tableExample',
+          table: {
+            widths: [90, '*', 30, 70, 60, 30],
+            body: [
+              [
+                'Telephone number:',
+                { text: po.SupplierContactPhone },
+                'Fax:',
+                po.Fax == '' ? '............................' : po.Fax,
+                'Currency type:',
+                po.CurrencyText,
+              ],
+              [
+                'Contact Name:',
+                { text: po.SupplierContactName },
+                'Email:',
+                { colSpan: 3, text: po.SupplierContactEmail },
+              ],
+            ],
+          },
+          layout: 'noBorders',
+        },
+        {
+          style: 'tableExample',
+          table: {
+            widths: [90, '*'],
+            body: [
+              ['Buyer:', { text: taxCompany.BuyerEnglish, bold: true }],
+              ['Address:', taxCompany.AddressBuyerEnglish],
+              ['Legal Representative:', taxCompany.LegalRepresentativeEnglish],
+              ['Purchaser:', po.Purchaser],
+            ],
+          },
+          layout: 'noBorders',
+        },
+
+        'We hereby accept and confirm to order with the following details:',
+        {
+          style: 'tableExample',
+          table: {
+            widths: [20, 130, 30, 46, '*', '*', 30, '*'],
+            body: [
+              //Header table
+              [
+                { text: 'No', alignment: 'center', bold: true },
+                { text: 'Description', alignment: 'center', bold: true },
+                { text: 'Unit', alignment: 'center', bold: true },
+                { text: 'Quantity', alignment: 'center', bold: true },
+                { text: 'Unit price', alignment: 'center', bold: true },
+                { text: 'Amount', alignment: 'center', bold: true },
+                { text: 'VAT', alignment: 'center', bold: true },
+                { text: 'VATMoney', alignment: 'center', bold: true },
+              ],
+
+              //list item
+              ...items,
+              //sum footer table
+              [
+                {
+                  colSpan: 8,
+                  text: '',
+                  style: 'header',
+                  border: [true, false, true, true],
+                },
+              ],
+              [
+                {
+                  colSpan: 2,
+                  text: 'Total amount:',
+                  border: [true, false, false, true],
+                },
+                '',
+                {
+                  colSpan: 3,
+                  text: po.RuleIncoterm,
+                  style: 'header',
+                  border: [false, false, false, true],
+                },
+                '',
+                '',
+                {
+                  colSpan: 3,
+                  text: this.formatNumber(totalAmount),
+                  alignment: 'right',
+                  border: [false, false, true, true],
+                },
+              ],
+              [
+                { colSpan: 2, text: '', border: [true, false, false, true] },
+                '',
+                {
+                  colSpan: 3,
+                  text: 'VAT amount',
+                  border: [false, false, false, true],
+                },
+                '',
+                '',
+                {
+                  colSpan: 3,
+                  text: this.formatNumber(vatMoney),
+                  alignment: 'right',
+                  border: [false, false, true, true],
+                },
+              ],
+              [
+                { colSpan: 2, text: '', border: [true, false, false, true] },
+                '',
+                {
+                  colSpan: 3,
+                  text: 'Discount',
+                  border: [false, false, false, true],
+                },
+                '',
+                '',
+                {
+                  colSpan: 3,
+                  text: this.formatNumber(discount),
+                  alignment: 'right',
+                  border: [false, false, true, true],
+                },
+              ],
+              [
+                { colSpan: 2, text: '', border: [true, false, false, true] },
+                '',
+                {
+                  colSpan: 3,
+                  text: 'Total payment',
+                  border: [false, false, false, true],
+                },
+                '',
+                '',
+                {
+                  colSpan: 3,
+                  text: this.formatNumber(totalPrice),
+                  alignment: 'right',
+                  border: [false, false, true, true],
+                },
+              ],
+              [
+                {
+                  colSpan: 2,
+                  text: 'Total amount (In words):',
+                  border: [true, false, false, true],
+                },
+                '',
+                {
+                  colSpan: 6,
+                  text: po.TotalAmountText,
+                  bold: true,
+                  italics: true,
+                  border: [false, false, true, true],
+                },
+              ],
+            ],
+          },
+          layout: {
+            paddingTop: () => 5,
+            paddingBottom: () => 5,
+          },
+          height: 60,
+        },
+        {
+          style: 'tableExample',
+          table: {
+            body: [
+              [
+                'Delivery date:',
+                DateTime.fromISO(po.DeliveryDate).toFormat('dd/MM/yyyy'),
+              ],
+              ['Delivery point:', po.AddressDelivery],
+              ['Term:', po.RulePayName],
+              ['Bank Charge:', po.BankCharge],
+              ['Fedex Account:', po.FedexAccount],
+              ['Bank Account:', po.AccountNumberSupplier],
+            ],
+          },
+          layout: 'noBorders',
+        },
+
+        {
+          alignment: 'justify',
+          columns: [
+            { text: 'Supplier', alignment: 'center', bold: true },
+            { text: 'Prepared by', alignment: 'center', bold: true },
+            { text: 'Director', alignment: 'center', bold: true },
+          ],
+        },
+        {
+          alignment: 'justify',
+          columns: [
+            {
+              text: '(Signature, full name)',
+              italics: true,
+              alignment: 'center',
+            },
+            {
+              text: '(Signature, full name)',
+              italics: true,
+              alignment: 'center',
+            },
+            {
+              text: '(Signature, full name)',
+              italics: true,
+              alignment: 'center',
+            },
+          ],
+        },
+        {
+          alignment: 'justify',
+          columns: [{ text: '', style: '' }, cellPicPrepared, cellPicDirector],
+        },
+      ],
+
+      defaultStyle: {
+        fontSize: 10,
+        alignment: 'justify',
+        font: 'Times',
+      },
+    };
+
+    return docDefinition;
+  }
+
+  formatNumber(num: number, digits: number = 2) {
+    num = num || 0;
+    return num.toLocaleString('vi-VN', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    });
+  }
 }

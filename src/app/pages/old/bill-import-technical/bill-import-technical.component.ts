@@ -89,7 +89,8 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
         private injector: Injector,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
     private ngbModal = inject(NgbModal);
     selectedRow: any = '';
@@ -134,8 +135,18 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1
-            this.warehouseType = params['warehouseType'] || 1;
+            // this.warehouseID = params['warehouseID'] || 1
+            // this.warehouseType = params['warehouseType'] || 1;
+
+            this.warehouseID =
+                params['warehouseID']
+                ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
+                ?? 1;
         });
     }
     ngAfterViewInit(): void {

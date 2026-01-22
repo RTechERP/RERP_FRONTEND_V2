@@ -12,6 +12,8 @@ import { log } from 'ng-zorro-antd/core/logger';
 import { AuthService } from '../auth.service';
 import { jwtDecode } from 'jwt-decode';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { CryptoService } from '../login/crypto.service';
+
 @Component({
     selector: 'app-login',
     imports: [ReactiveFormsModule, CommonModule, NzSpinModule],
@@ -27,28 +29,76 @@ export class LoginComponent {
     constructor(
         private formBuilder: FormBuilder,
         private authService: AuthService,
-        private router: Router
+        private router: Router,
+        private crypto: CryptoService,
     ) {
         this.loginForm = this.formBuilder.group({
             loginname: ['', [Validators.required]],
             passwordhash: ['', [Validators.required]],
+            rememberMe: [false],
         });
+    }
+
+    ngOnInit(): void {
+        this.loadRememberLogin();
+    }
+    // 🔹 Load username + password đã nhớ
+    private async loadRememberLogin(): Promise<void> {
+        const saved = localStorage.getItem('remember_login');
+        if (!saved) return;
+
+        try {
+            const decrypted = await this.crypto.decrypt(saved);
+            const data = JSON.parse(decrypted);
+
+            this.loginForm.patchValue({
+                loginname: data.username,
+                passwordhash: data.password,
+                rememberMe: true,
+            });
+        } catch {
+            localStorage.removeItem('remember_login');
+        }
     }
 
     onLogin(): void {
         this.submitted = true;
         if (this.loginForm.invalid) return;
+
         this.isLoading = true;
         this.errorMessage = '';
+
+        const { loginname, passwordhash, rememberMe } = this.loginForm.value;
+
+        // console.log('this.loginForm.value:', this.loginForm.value);
+
         this.authService.login(this.loginForm.value).subscribe({
-            next: (res) => {
+            next: async () => {
                 this.isLoading = false;
+
+
+
+                // 🔹 Nhớ tài khoản & mật khẩu
+                if (rememberMe) {
+                    const encrypted = await this.crypto.encrypt(
+                        JSON.stringify({
+                            username: loginname,
+                            password: passwordhash,
+                        }),
+                    );
+                    localStorage.setItem('remember_login', encrypted);
+                } else {
+                    localStorage.removeItem('remember_login');
+                }
+
+                // 🔹 Decode token (giữ nguyên logic cũ)
                 this.token = this.authService.getToken();
                 try {
                     const decoded: any = jwtDecode(this.token);
                 } catch (error) {
-                    // console.error('Invalid token', error);
+                    console.error('Invalid token', error);
                 }
+
                 this.router.navigate(['/home']);
             },
             error: (err) => {
@@ -57,6 +107,28 @@ export class LoginComponent {
             },
         });
     }
+    // onLogin(): void {
+    //     this.submitted = true;
+    //     if (this.loginForm.invalid) return;
+    //     this.isLoading = true;
+    //     this.errorMessage = '';
+    //     this.authService.login(this.loginForm.value).subscribe({
+    //         next: (res) => {
+    //             this.isLoading = false;
+    //             this.token = this.authService.getToken();
+    //             try {
+    //                 const decoded: any = jwtDecode(this.token);
+    //             } catch (error) {
+    //                 // console.error('Invalid token', error);
+    //             }
+    //             this.router.navigate(['/home']);
+    //         },
+    //         error: (err) => {
+    //             this.isLoading = false;
+    //             this.errorMessage = err?.error?.message || 'Đăng nhập thất bại';
+    //         },
+    //     });
+    // }
 }
 
 // import { CommonModule } from '@angular/common';

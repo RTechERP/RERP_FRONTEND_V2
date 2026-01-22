@@ -123,7 +123,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
   canDelete: boolean = false;
   canApprove: boolean = false;
   canCancel: boolean = false;
-  canSelect: boolean =false;
+  canSelect: boolean = false;
   //#endregion
 
   //#region Chạy khi mở
@@ -157,9 +157,9 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
     this.projectService.getProjectModal().subscribe({
       next: (response: any) => {
         this.projects = [
-  { ID: 0, ProjectName: 'Tất cả', ProjectCode: '' },
-  ...(response.data || [])
-];
+          { ID: 0, ProjectName: 'Tất cả', ProjectCode: '' },
+          ...(response.data || [])
+        ];
         console.log('Projects loaded:', response.data, 'items');
       },
       error: (error: any) => {
@@ -194,7 +194,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
           this.userId = data.ID || 0; // Gán cho bộ lọc mới
           this.departmentId = data.DepartmentID || 0;
           this.isAdmin = data.IsAdmin || false;
-          if(data.IsAdmin == true || data.IsLeader >0) this.canSelect = true;
+          if (data.IsAdmin == true || data.IsLeader > 0) this.canSelect = true;
           console.log('Current EmployeeID:', this.currentUserEmployeeId);
 
           // Gọi getProjectItemPerson() sau khi đã có userId
@@ -255,7 +255,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
     this.projectItemPersonService.getProjectItemPerson(request).subscribe({
       next: (response: any) => {
         const flatData = response.data || [];
-        
+
         // Convert flat data thành tree structure
         const treeData = this.convertToTreeData(flatData);
 
@@ -411,7 +411,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
       dataTree: true,
       dataTreeStartExpanded: true,
       dataTreeChildField: '_children',
-      selectableRows: true,
+      selectableRows: 1,
       pagination: true,
       layout: 'fitDataStretch',
       height: '83vh',
@@ -479,7 +479,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           width: 50,
           frozen: true,
-          bottomCalc:'count'
+          bottomCalc: 'count'
         },
         {
           title: 'ParentID',
@@ -569,7 +569,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
               field: 'TotalDayPlan',
               hozAlign: 'center',
               width: 80,
-              bottomCalc:'sum'
+              bottomCalc: 'sum'
             },
             {
               title: 'Ngày kết thúc',
@@ -625,14 +625,14 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
           field: 'ReasonLate',
           hozAlign: 'left',
           width: 200,
-          formatter:this.textWithTooltipFormatter
+          formatter: this.textWithTooltipFormatter
         },
         {
           title: 'Ghi chú',
           field: 'Note',
           hozAlign: 'left',
           width: 200,
-          formatter:'textarea'
+          formatter: 'textarea'
         },
         {
           title: 'Ngày cập nhật',
@@ -666,7 +666,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
     // Không gọi getProjectItemPerson() ở đây vì cần đợi getCurrentUser() hoàn thành
   }
   //#endregion
-  
+
   //#region Xử lý trạng thái
   filterByStatus() {
     if (this.tb_projectItemPerson) {
@@ -750,7 +750,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
     this.openProblemDetail(selectedData);
   }
 
-  openProblemDetail(data:any): void {
+  openProblemDetail(data: any): void {
     // Import và mở modal ProjectItemProblemComponent
 
     const modalRef = this.modal.open(ProjectItemProblemComponent, {
@@ -759,7 +759,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
       keyboard: true,
       centered: true,
     });
-    if(data.ID > 0){
+    if (data.ID > 0) {
       modalRef.componentInstance.projectItemId = data.ID;
     }
     modalRef.result.then(

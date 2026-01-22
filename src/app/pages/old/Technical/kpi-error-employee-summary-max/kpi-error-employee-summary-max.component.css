@@ -1,0 +1,12 @@
+:host {
+    height: 100%;
+    display: block;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+::ng-deep .grid-container-main .slick-header-menu-button {
+    display: none !important;
+}

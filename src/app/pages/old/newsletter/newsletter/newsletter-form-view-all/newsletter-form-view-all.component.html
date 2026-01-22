@@ -1,0 +1,128 @@
+<div class="newsletter-view-all-page h-100 overflow-auto p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="m-0 fw-bold text-uppercase text-primary border-start border-4 border-primary ps-3">
+                Danh sách bản tin
+            </h4>
+        </div>
+    <!-- Search Form Section -->
+    <nz-card class="w-100 p-0 mb-3 shadow-sm border-0">
+        <form nz-form class="ant-advanced-search-form px-1 py-0">
+            <div nz-row [nzGutter]="16" nzAlign="middle">
+                <!-- Date Start -->
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item class="m-0">
+                        <nz-form-label [nzNoColon]="true">Từ ngày</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker class="w-100" [(ngModel)]="dateStart" nzFormat="dd/MM/yyyy"
+                                [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <!-- Date End -->
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item class="m-0">
+                        <nz-form-label [nzNoColon]="true">Đến ngày</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker class="w-100" [(ngModel)]="dateEnd" nzFormat="dd/MM/yyyy"
+                                [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <!-- Newsletter Type -->
+                <div nz-col [nzSpan]="8">
+                    <nz-form-item class="m-0">
+                        <nz-form-label [nzNoColon]="true">Loại bản tin</nz-form-label>
+                        <nz-form-control>
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại bản tin" [(ngModel)]="typeID"
+                                [ngModelOptions]="{ standalone: true }" nzSize="small">
+                                <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                                <nz-option *ngFor="let type of newsletterTypes" [nzValue]="type.ID"
+                                    [nzLabel]="type.NewsletterTypeName"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <!-- Keyword and Search Button -->
+                <div nz-col [nzSpan]="8">
+                    <nz-form-item class="m-0">
+                        <nz-form-label [nzNoColon]="true">Từ khóa</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
+                                <input type="text" [(ngModel)]="keyWord" nz-input placeholder="Tiêu đề, người tạo..."
+                                    [ngModelOptions]="{ standalone: true }" (keyup.enter)="loadNewsletters()" />
+                            </nz-input-group>
+                            <ng-template #suffixIconButton>
+                                <button nz-button nzType="primary" nzSearch nzSize="small" (click)="loadNewsletters()">
+                                    <span nz-icon nzType="search"></span>
+                                </button>
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+        </form>
+    </nz-card>
+
+    <!-- Main Content Section -->
+    <div class="newsletter-view-all-container">
+        <nz-spin [nzSpinning]="isLoading">
+            <div nz-row [nzGutter]="[16, 16]">
+                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4" *ngFor="let item of newsletters">
+                    <nz-card nzHoverable [nzCover]="coverTemplate" [nzActions]="[actionView]"
+                        class="newsletter-card shadow-sm h-100">
+                        <nz-card-meta [nzTitle]="titleTemplate" [nzDescription]="descriptionTemplate">
+                        </nz-card-meta>
+
+                        <ng-template #titleTemplate>
+                            <div class="newsletter-title text-truncate-2" [title]="item.Title">
+                                {{item.Title}}
+                            </div>
+                        </ng-template>
+
+                        <ng-template #descriptionTemplate>
+                            <div class="newsletter-meta">
+                                <div class="d-flex align-items-center mb-1 text-muted small">
+                                    <i nz-icon nzType="user" nzTheme="outline" class="me-1"></i>
+                                    <span class="text-truncate" [title]="item.CreatedBy || 'Admin'">{{item.CreatedBy ||
+                                        'Admin'}}</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1 text-muted small">
+                                    <i nz-icon nzType="calendar" nzTheme="outline" class="me-1"></i>
+                                    <span>{{item.CreatedDate | date:'dd/MM/yyyy HH:mm'}}</span>
+                                </div>
+                                <div class="d-flex align-items-center text-primary fw-bold small">
+                                    <i nz-icon nzType="paper-clip" nzTheme="outline" class="me-1"></i>
+                                    <span>{{item.NewsletterFiles?.length || 0}} file đính kèm</span>
+                                </div>
+                            </div>
+                        </ng-template>
+
+                        <ng-template #coverTemplate>
+                            <div class="card-cover-wrapper">
+                                <img alt="newsletter image" [src]="getNewsletterImageUrl(item)"
+                                    class="card-cover-image" />
+                                <div class="type-badge" *ngIf="item.NewsletterTypeName">
+                                    {{item.NewsletterTypeName}}
+                                </div>
+                            </div>
+                        </ng-template>
+
+                        <ng-template #actionView>
+                            <div class="action-btn action-view" (click)="openNewsletterDetail(item.ID)">
+                                <i nz-icon nzType="eye" nzTheme="outline" class="me-1"></i> Xem chi tiết
+                            </div>
+                        </ng-template>
+                    </nz-card>
+                </div>
+            </div>
+
+            <div *ngIf="!isLoading && newsletters.length === 0" class="text-center py-5 rounded bg-light border mt-4">
+                <img src="assets/images/empty-box.png" alt="No data" style="width: 120px; opacity: 0.5;">
+                <p class="text-muted mt-3">Hiện chưa có bản tin nào để hiển thị.</p>
+            </div>
+        </nz-spin>
+    </div>
+</div>

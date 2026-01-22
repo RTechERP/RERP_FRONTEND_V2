@@ -24,7 +24,7 @@ import { ProjectPartlistPriceRequestService } from '../../old/project-partlist-p
 import { ProjectPartlistPriceRequestFormComponent } from '../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 import { ImportExcelProjectPartlistPriceRequestComponent } from '../../old/project-partlist-price-request/import-excel-project-partlist-price-request/import-excel-project-partlist-price-request.component';
 import { AngularSlickgridModule, AngularGridInstance, Column, GridOption, Filters, Formatters, Editors, OnClickEventArgs, OnCellChangeEventArgs, OnSelectedRowsChangedEventArgs, Aggregators, GroupTotalFormatters, SortComparers } from 'angular-slickgrid';
-import { MultipleSelectOption, SortDirectionNumber } from '@slickgrid-universal/common';
+import { AutocompleterOption, MultipleSelectOption, SortDirectionNumber } from '@slickgrid-universal/common';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -141,6 +141,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   allDataByType: Map<number, any[]> = new Map();
   // Store original data for each tab (before filters)
   datasetsAllMap: Map<number, any[]> = new Map();
+  // Store selected row IDs for each tab
+  selectedRowIdsSetMap: Map<number, Set<number>> = new Map();
   // Quản lý subscriptions để có thể hủy khi cần
   private dataLoadingSubscriptions: Subscription[] = [];
   // Request ID để đảm bảo chỉ xử lý response từ request hiện tại
@@ -359,13 +361,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
 
   OnEditClick() {
-    const lstTypeAccept = [-1, -2];
+    const lstTypeAccept = [-1, -2,-3,-4];
     const angularGrid = this.angularGrids.get(this.activeTabId);
 
     if (!lstTypeAccept.includes(this.activeTabId)) {
       this.notification.info(
-        'Thông báo',
-        'Chỉ được sửa những sản phẩm thương mại hoặc của yêu cầu công việc!'
+        NOTIFICATION_TITLE.warning,
+        'Chỉ được sửa những sản phẩm của hàng thương mại, yêu cầu công việc, marketing, demo!'
       );
       return;
     }
@@ -1437,17 +1439,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
     const columns: Column[] = [
       {
-        id: 'ID',
-        field: 'ID',
-        name: 'ID',
-        width: 0,
-        hidden: true,
-        excludeFromHeaderMenu: true,
-        excludeFromGridMenu: true,
-        excludeFromColumnPicker: true,
-        excludeFromQuery: true,
-      },
-      {
         id: 'TT',
         field: 'TT',
         name: 'TT',
@@ -1551,6 +1542,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           // useRegularTooltipFromCellTextOnly: true,
         },
       },
+      // Cột Model (Thông số kỹ thuật) - sẽ được thêm vào đây nếu là tab demo
       {
         id: 'Manufacturer',
         field: 'Manufacturer',
@@ -1591,12 +1583,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'], decimal: 2,
         },
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-        params: { groupFormatterPrefix: 'Tổng: ' },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1624,6 +1616,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1654,6 +1649,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1686,6 +1684,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1718,6 +1719,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1748,6 +1752,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1775,7 +1782,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         width: 100,
         sortable: true,
         filterable: true,
-        formatter: Formatters.date,
+formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
       },
@@ -1810,6 +1819,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1838,6 +1850,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
       },
@@ -1849,6 +1862,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 0,
@@ -1864,6 +1878,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 0,
@@ -1878,7 +1893,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: Formatters.date,
+formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
       },
@@ -1890,10 +1907,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-        params: { groupFormatterPrefix: 'Tổng: ' },
       },
       {
         id: 'TotalPriceExchange',
@@ -1903,10 +1920,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-        params: { groupFormatterPrefix: 'Tổng: ' },
       },
       {
         id: 'VAT',
@@ -1916,6 +1933,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 2,
@@ -1931,10 +1949,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
-        formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
+        cssClass: 'text-right',
+        formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-        params: { groupFormatterPrefix: 'Tổng: ' },
       },
       {
         id: 'CodeNCC',
@@ -1946,6 +1964,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         hidden: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1954,31 +1975,69 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         id: 'SupplierSaleID',
         field: 'SupplierSaleID',
         name: 'Nhà cung cấp',
-        width: 200,
+        width: 300,
         sortable: false,
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
           } as MultipleSelectOption,
         },
-        editor: {
-          model: Editors['singleSelect'],
-          collection: this.getSupplierCollection(),
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          editorOptions: {
-            filter: true,
-          } as MultipleSelectOption,
-        },
-        formatter: (row: number, cell: number, value: any) => {
-          // Xử lý cả trường hợp value là array (từ multiselect) hoặc số đơn
+        formatter: (_row: number, _cell: number, value: any, _columnDef: any, dataContext: any) => {
+          if (!value) return '';
           const supplierId = Array.isArray(value) ? (value[0] || value) : value;
           const supplier = this.dtSupplierSale.find((s: any) => s.ID === supplierId);
-          return supplier ? supplier.NameNCC : '';
+          if (supplier) {
+            const codeNCC = supplier.CodeNCC || '';
+            const nameNCC = supplier.NameNCC || '';
+            const tooltipText = `Mã: ${codeNCC}\nTên: ${nameNCC}`;
+            return `<span title="${tooltipText.replace(/"/g, '&quot;')}">${codeNCC}</span>`;
+          }
+          return '';
+        },
+        editor: {
+          model: Editors['autocompleter'],
+          alwaysSaveOnEnterKey: true,
+          editorOptions: {
+            minLength: 0,
+            forceUserInput: false,
+            openSearchListOnFocus: true,
+            fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
+              const suppliers = this.dtSupplierSale || [];
+              if (!searchTerm || searchTerm.length === 0) {
+                callback(suppliers);
+              } else {
+                const filtered = suppliers.filter((s: any) => {
+                  const code = (s.CodeNCC || '').toLowerCase();
+                  const name = (s.NameNCC || '').toLowerCase();
+                  const term = searchTerm.toLowerCase();
+                  return code.includes(term) || name.includes(term);
+                });
+                callback(filtered);
+              }
+            },
+            renderItem: {
+              layout: 'twoRows',
+              templateCallback: (item: any) => {
+                const codeNCC = item?.CodeNCC || '';
+                const nameNCC = item?.NameNCC || '';
+                const ngayUpdate = item?.NgayUpdate ? new Date(item.NgayUpdate).toLocaleDateString('vi-VN') : '';
+                const tooltipText = `Mã: ${codeNCC}\nTên: ${nameNCC}\nNgày Update: ${ngayUpdate}`;
+                return `<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 4px 0; gap: 8px;" title="${tooltipText.replace(/"/g, '&quot;')}">
+                  <div style="flex: 1; min-width: 0; overflow: hidden;">
+                    <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${codeNCC}</div>
+                    <div style="font-size: 12px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; max-height: 2.8em;">${nameNCC}</div>
+                  </div>
+                  <div style="text-align: right; min-width: 80px; flex-shrink: 0; font-size: 11px; color: #999; padding-top: 2px;">${ngayUpdate}</div>
+                </div>`;
+              },
+            },
+          } as AutocompleterOption,
         },
       },
       {
@@ -1989,10 +2048,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['integer'],
         },
-        formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
+        formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         customTooltip: {
           useRegularTooltip: true,
@@ -2006,7 +2066,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         width: 150,
         sortable: true,
         filterable: true,
-        formatter: Formatters.date,
+formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
       },
@@ -2100,6 +2162,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -2180,7 +2245,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: GroupTotalFormatters['sumTotalsFormatter'],
-        params: { groupFormatterPrefix: 'Tổng: ' },
       },
       {
         id: 'LeadTime',
@@ -2189,7 +2253,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         width: 100,
         sortable: true,
         filterable: true,
-        formatter: Formatters.date,
+formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
       },
@@ -2220,6 +2286,19 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         },
       },
     ];
+
+    // Nếu là tab Hàng demo (typeId === -4), di chuyển cột Model lên sau ProductName
+    if (typeId === -4) {
+      const modelColumnIndex = columns.findIndex(col => col.id === 'Model');
+      const productNameIndex = columns.findIndex(col => col.id === 'ProductName');
+
+      if (modelColumnIndex !== -1 && productNameIndex !== -1) {
+        // Lấy cột Model ra khỏi vị trí hiện tại
+        const modelColumn = columns.splice(modelColumnIndex, 1)[0];
+        // Chèn cột Model vào ngay sau ProductName
+        columns.splice(productNameIndex + 1, 0, modelColumn);
+      }
+    }
 
     return columns;
   }
@@ -2265,10 +2344,113 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       enablePagination: false,
       enableHeaderMenu: false, // Disable default header dropdown menu
       autoCommitEdit: true,
-    };
+
+      // Footer row configuration
+      rowHeight: 30,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
+    } as any; // Use 'as any' to bypass TypeScript error for custom properties
+  }
+
+  // Get row metadata for styling based on row data
+  private getRowMetadata(item: any, typeId: number): any {
+    const metadata: any = { cssClasses: '' };
+
+    // Rule 1: IsDeleted = true → row-deleted (màu đỏ)
+    if (item.IsDeleted === true || item.IsDeleted === 1) {
+      metadata.cssClasses += 'row-deleted ';
+    }
+
+    // Rule 2: Tab HCNS (typeId = 7) hoặc MARKETING (typeId = 8) + StatusRequestID = 2 → row-quoted (màu xanh lục)
+    const isHCNSOrMarketing = typeId === 7 || typeId === 8;
+    const isQuoted = item.StatusRequestID === 2;
+
+    if (isHCNSOrMarketing && isQuoted && !item.IsDeleted) {
+      metadata.cssClasses += 'row-quoted ';
+    }
+
+    return metadata;
+  }
+
+  /**
+   * Update footer row với count cho ProductName và sum cho Quantity, UnitPrice, TotalPrice
+   */
+  updateFooterRow(typeId: number): void {
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid || !angularGrid.slickGrid) return;
+
+    // Lấy dữ liệu đã lọc trên view thay vì toàn bộ dữ liệu
+    const items =
+      (angularGrid.dataView?.getFilteredItems?.() as any[]) ||
+      this.datasetsMap.get(typeId) ||
+      [];
+
+    // Lọc bỏ các group row, chỉ lấy data rows
+    const dataItems = (items || []).filter(
+      (item: any) => !item.__group && !item.__groupTotals
+    );
+
+    // Đếm số lượng sản phẩm (ProductName)
+    const productCount = dataItems.length;
+
+    // Tính tổng cho các cột số
+    const quantitySum = dataItems.reduce(
+      (sum, item) => sum + (Number(item.Quantity) || 0),
+      0
+    );
+    const unitPriceSum = dataItems.reduce(
+      (sum, item) => sum + (Number(item.UnitPrice) || 0),
+      0
+    );
+    const totalPriceSum = dataItems.reduce(
+      (sum, item) => sum + (Number(item.TotalPrice) || 0),
+      0
+    );
+
+    angularGrid.slickGrid.setFooterRowVisibility(true);
+
+    // Set footer values cho từng column
+    const columns = angularGrid.slickGrid.getColumns();
+    columns.forEach((col: any) => {
+      const footerCell = angularGrid.slickGrid.getFooterRowColumn(col.id);
+      if (!footerCell) return;
+
+      // Count cho cột ProductName (Tên sản phẩm)
+      if (col.id === 'ProductName') {
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${productCount}</b>`;
+      }
+      // Sum cho cột Quantity (Số lượng)
+      else if (col.id === 'Quantity') {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(quantitySum);
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+      }
+      // Sum cho cột UnitPrice (Đơn giá)
+      else if (col.id === 'UnitPrice') {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(unitPriceSum);
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+      }
+      // Sum cho cột TotalPrice (Thành tiền chưa VAT)
+      else if (col.id === 'TotalPrice') {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(totalPriceSum);
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+      } else {
+        footerCell.innerHTML = '';
+      }
+    });
   }
 
   // Helper method to ensure checkbox selector is always enabled
+
   private ensureCheckboxSelector(angularGrid: AngularGridInstance | undefined, delay: number = 0): void {
     if (!angularGrid || !angularGrid.slickGrid) return;
 
@@ -2369,14 +2551,76 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         collapsed: false, // Groups expanded by default
       });
 
+      // Store original getItemMetadata from grouping
+      const originalGetItemMetadata = (angularGrid.dataView as any).getItemMetadata?.bind(angularGrid.dataView);
+
+      // Override getItemMetadata to merge grouping metadata with row styling metadata
+      (angularGrid.dataView as any).getItemMetadata = (row: number) => {
+        const item = angularGrid.dataView.getItem(row);
+
+        // Get group metadata first (if this row is a group or group totals)
+        // This is important to preserve group row formatting
+        if (originalGetItemMetadata) {
+          const groupMetadata = originalGetItemMetadata(row);
+
+          // If this is a group row or group totals row, return the group metadata as-is
+          if (item && (item.__group || item.__groupTotals)) {
+            return groupMetadata;
+          }
+
+          // For data rows, merge custom styling with any existing metadata
+          if (item && !item.__group && !item.__groupTotals) {
+            const customMetadata = this.getRowMetadata(item, typeId);
+
+            if (groupMetadata) {
+              // Merge cssClasses
+              return {
+                ...groupMetadata,
+                cssClasses: ((groupMetadata.cssClasses || '') + ' ' + (customMetadata.cssClasses || '')).trim()
+              };
+            } else if (customMetadata.cssClasses) {
+              return customMetadata;
+            }
+          }
+
+          return groupMetadata;
+        }
+
+        // No original metadata, just return custom metadata for data rows
+        if (item && !item.__group && !item.__groupTotals) {
+          const customMetadata = this.getRowMetadata(item, typeId);
+          if (customMetadata.cssClasses) {
+            return customMetadata;
+          }
+        }
+
+        return null;
+      };
+
       // Refresh the grid to show grouping
       angularGrid.dataView.refresh();
       angularGrid.slickGrid.render();
 
       // Đảm bảo checkbox selector vẫn được enable sau khi refresh/render (với delay nhỏ)
       this.ensureCheckboxSelector(angularGrid, 50);
+
+      // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
+      angularGrid.dataView.onRowCountChanged.subscribe(() => {
+        setTimeout(() => {
+          this.applyDistinctFilters();
+          this.updateFooterRow(typeId);
+        }, 100);
+      });
     }
 
+    // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
+    if (angularGrid.slickGrid) {
+      angularGrid.slickGrid.onRendered.subscribe(() => {
+        setTimeout(() => {
+          this.updateFooterRow(typeId);
+        }, 50);
+      });
+    }
 
     // Resize grid after initialization và đảm bảo checkbox selector vẫn hiển thị
     setTimeout(() => {
@@ -2386,8 +2630,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       if (angularGrid.slickGrid) {
         angularGrid.slickGrid.render();
       }
+      // Apply distinct filters after grid is ready
+      this.applyDistinctFilters();
+      // Update footer row
+      this.updateFooterRow(typeId);
     }, 100);
   }
+
 
   // Handler khi cell được click
   onCellClicked(typeId: number, e: Event, args: OnClickEventArgs): void {
@@ -2404,6 +2653,132 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
 
   // Handler khi cell được thay đổi
+  // onCellChange(typeId: number, e: Event, args: OnCellChangeEventArgs): void {
+  //   const angularGrid = this.angularGrids.get(typeId);
+  //   if (!angularGrid) return;
+
+  //   const rowIndex = args.row;
+  //   const item = angularGrid.dataView.getItem(rowIndex);
+  //   const column = args.column;
+  //   const field = column?.field || '';
+  //   const newValue = args.item?.[field];
+
+  //   if (!item) return;
+
+  //   // Cập nhật giá trị mới vào item
+  //   if (field && newValue !== undefined) {
+  //     // Xử lý đặc biệt cho SupplierSaleID: chuyển từ array (multiselect) sang giá trị đơn
+  //     if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
+  //       // Lấy giá trị đầu tiên từ array (vì chỉ cho phép chọn 1)
+  //       item[field] = newValue.length > 0 ? newValue[0] : null;
+  //     } else {
+  //       item[field] = newValue;
+  //     }
+  //   }
+
+  //   // Fill giá trị vào các dòng đã chọn (nếu có nhiều dòng được chọn)
+  //   // Lấy selected rows trực tiếp từ grid (vì selectedRowIdsSetMap có thể bị clear khi click cell)
+  //   const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+  //   const selectedRowIds = new Set<number>();
+  //   selectedRowIndexes.forEach((idx: number) => {
+  //     const selectedItem = angularGrid.dataView.getItem(idx);
+  //     if (selectedItem?.ID) {
+  //       selectedRowIds.add(Number(selectedItem.ID));
+  //     }
+  //   });
+
+  //   // Chỉ fill khi dòng đang edit CŨNG nằm trong các dòng được chọn
+  //   const isEditedRowSelected = selectedRowIds.has(Number(item.ID));
+  //   if (isEditedRowSelected && selectedRowIds.size > 1 && field) {
+  //     let hasUpdatedRows = false;
+
+  //     // Lấy tất cả dữ liệu của tab hiện tại
+  //     const allData = this.datasetsAllMap.get(typeId) || [];
+
+  //     // Cập nhật tất cả các dòng đã chọn
+  //     allData.forEach((rowData: any) => {
+  //       if (
+  //         selectedRowIds.has(Number(rowData.ID)) &&
+  //         Number(rowData.ID) !== Number(item.ID)
+  //       ) {
+  //         // Fill giá trị vào dòng này
+  //         // Xử lý đặc biệt cho SupplierSaleID
+  //         if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
+  //           rowData[field] = newValue.length > 0 ? newValue[0] : null;
+  //         } else {
+  //           rowData[field] = newValue;
+  //         }
+
+  //         // Xử lý các logic đặc biệt cho từng field
+  //         if (field === 'CurrencyID') {
+  //           this.OnCurrencyChangedSlickGrid(rowData);
+  //         } else if (field === 'SupplierSaleID') {
+  //           this.OnSupplierSaleChangedSlickGrid(rowData);
+  //         } else if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'TotalDayLeadTime'].includes(field)) {
+  //           this.recalculateRowForSlickGrid(rowData);
+  //         }
+
+  //         // Track edited row
+  //         const rowId = rowData['ID'];
+  //         if (rowId) {
+  //           const tabEditedRows = this.editedRowsMap.get(typeId);
+  //           if (!tabEditedRows) {
+  //             this.editedRowsMap.set(typeId, new Map());
+  //           }
+  //           const editedRows = this.editedRowsMap.get(typeId);
+  //           if (editedRows) {
+  //             editedRows.set(rowId, rowData);
+  //           }
+  //         }
+
+  //         // Update item in dataView
+  //         if (rowData.id) {
+  //           angularGrid.dataView.updateItem(rowData.id, rowData);
+  //         }
+  //         hasUpdatedRows = true;
+  //       }
+  //     });
+
+  //     // Refresh grid nếu có dòng được update
+  //     if (hasUpdatedRows) {
+  //       angularGrid.slickGrid.invalidate();
+  //       angularGrid.slickGrid.render();
+  //       this.ensureCheckboxSelector(angularGrid);
+  //     }
+  //   }
+
+  //   // Xử lý thay đổi cell
+  //   if (field === 'CurrencyID') {
+  //     this.OnCurrencyChangedSlickGrid(item);
+  //   } else if (field === 'SupplierSaleID') {
+  //     this.OnSupplierSaleChangedSlickGrid(item);
+  //   } else if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'TotalDayLeadTime'].includes(field)) {
+  //     // Tính toán lại các giá trị phụ thuộc
+  //     this.recalculateRowForSlickGrid(item);
+  //   }
+
+  //   // Cập nhật lại item trong dataView
+  //   angularGrid.dataView.updateItem(item['id'], item);
+
+  //   // Track edited row
+  //   const rowId = item['ID'];
+  //   if (rowId) {
+  //     const tabEditedRows = this.editedRowsMap.get(typeId);
+  //     if (!tabEditedRows) {
+  //       this.editedRowsMap.set(typeId, new Map());
+  //     }
+  //     const editedRows = this.editedRowsMap.get(typeId);
+  //     if (editedRows) {
+  //       editedRows.set(rowId, item);
+  //     }
+  //   }
+
+  //   // Refresh grid
+  //   angularGrid.slickGrid.invalidate();
+  //   angularGrid.slickGrid.render();
+  //   // Đảm bảo checkbox selector vẫn được enable sau khi render
+  //   this.ensureCheckboxSelector(angularGrid);
+  // }
   onCellChange(typeId: number, e: Event, args: OnCellChangeEventArgs): void {
     const angularGrid = this.angularGrids.get(typeId);
     if (!angularGrid) return;
@@ -2418,10 +2793,17 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
     // Cập nhật giá trị mới vào item
     if (field && newValue !== undefined) {
-      // Xử lý đặc biệt cho SupplierSaleID: chuyển từ array (multiselect) sang giá trị đơn
-      if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
-        // Lấy giá trị đầu tiên từ array (vì chỉ cho phép chọn 1)
-        item[field] = newValue.length > 0 ? newValue[0] : null;
+      // Xử lý đặc biệt cho SupplierSaleID: autocompleter trả về object hoặc array
+      if (field === 'SupplierSaleID') {
+        if (Array.isArray(newValue)) {
+          // Từ multiselect - lấy giá trị đầu tiên
+          item[field] = newValue.length > 0 ? newValue[0] : null;
+        } else if (typeof newValue === 'object' && newValue !== null) {
+          // Từ autocompleter - lấy ID từ object
+          item[field] = newValue.ID || null;
+        } else {
+          item[field] = newValue;
+        }
       } else {
         item[field] = newValue;
       }
@@ -2430,14 +2812,21 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     // Lấy tất cả các dòng đã chọn
     const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
     const currentEmployeeID = this.appUserService.employeeID;
+    const isAdmin = this.appUserService.isAdmin || false;
 
     // Kiểm tra xem cell được edit có nằm trong các dòng đã chọn không
-    const isEditedRowSelected = selectedRowIndexes && selectedRowIndexes.includes(rowIndex);
+    const isEditedRowSelected =
+      selectedRowIndexes && selectedRowIndexes.includes(rowIndex);
 
     // Nếu có nhiều dòng được chọn VÀ dòng đang edit nằm trong selection
     // thì fill giá trị cho các dòng đã chọn khác
     // với điều kiện EmployeeCheckPriceID = người đăng nhập hiện tại
-    if (isEditedRowSelected && selectedRowIndexes && selectedRowIndexes.length > 1 && field) {
+    if (
+      isEditedRowSelected &&
+      selectedRowIndexes &&
+      selectedRowIndexes.length > 1 &&
+      field
+    ) {
       let hasUpdatedRows = false;
 
       for (const selectedRowIndex of selectedRowIndexes) {
@@ -2448,13 +2837,19 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         if (!selectedItem) continue;
 
         // Kiểm tra EmployeeCheckPriceID
-        const employeeCheckPriceID = selectedItem['EmployeeCheckPriceID'];
-        if (employeeCheckPriceID !== currentEmployeeID) continue;
+        const quoteEmployeeID = Number(selectedItem['QuoteEmployeeID'] || 0);
+        if (!isAdmin && quoteEmployeeID !== currentEmployeeID) continue;
 
         // Fill giá trị vào dòng này
-        // Xử lý đặc biệt cho SupplierSaleID
-        if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
-          selectedItem[field] = newValue.length > 0 ? newValue[0] : null;
+        // Xử lý đặc biệt cho SupplierSaleID (autocompleter hoặc multiselect)
+        if (field === 'SupplierSaleID') {
+          if (Array.isArray(newValue)) {
+            selectedItem[field] = newValue.length > 0 ? newValue[0] : null;
+          } else if (typeof newValue === 'object' && newValue !== null) {
+            selectedItem[field] = newValue.ID || null;
+          } else {
+            selectedItem[field] = newValue;
+          }
         } else {
           selectedItem[field] = newValue;
         }
@@ -2464,7 +2859,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           this.OnCurrencyChangedSlickGrid(selectedItem);
         } else if (field === 'SupplierSaleID') {
           this.OnSupplierSaleChangedSlickGrid(selectedItem);
-        } else if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'TotalDayLeadTime'].includes(field)) {
+        } else if (
+          [
+            'Quantity',
+            'UnitPrice',
+            'CurrencyRate',
+            'UnitImportPrice',
+            'VAT',
+            'TotalDayLeadTime',
+          ].includes(field)
+        ) {
           this.recalculateRowForSlickGrid(selectedItem);
         }
 
@@ -2482,7 +2886,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         }
 
         // Update item in dataView
-        angularGrid.dataView.updateItem(selectedItem['id'], selectedItem);
+        if (selectedItem.id) {
+          angularGrid.dataView.updateItem(selectedItem.id, selectedItem);
+        }
         hasUpdatedRows = true;
       }
 
@@ -2499,13 +2905,24 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.OnCurrencyChangedSlickGrid(item);
     } else if (field === 'SupplierSaleID') {
       this.OnSupplierSaleChangedSlickGrid(item);
-    } else if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'TotalDayLeadTime'].includes(field)) {
+    } else if (
+      [
+        'Quantity',
+        'UnitPrice',
+        'CurrencyRate',
+        'UnitImportPrice',
+        'VAT',
+        'TotalDayLeadTime',
+      ].includes(field)
+    ) {
       // Tính toán lại các giá trị phụ thuộc
       this.recalculateRowForSlickGrid(item);
     }
 
     // Cập nhật lại item trong dataView
-    angularGrid.dataView.updateItem(item['id'], item);
+    if (item.id) {
+      angularGrid.dataView.updateItem(item.id, item);
+    }
 
     // Track edited row
     const rowId = item['ID'];
@@ -2529,12 +2946,27 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
   // Handler khi row selection thay đổi
   handleRowSelection(typeId: number, e: Event, args: OnSelectedRowsChangedEventArgs): void {
-    // Có thể thêm logic xử lý khi selection thay đổi
+    // Tracking selected row IDs
     const angularGrid = this.angularGrids.get(typeId);
     if (!angularGrid) return;
 
-    const selectedRows = args.rows || [];
-    // Có thể thêm logic xử lý selected rows nếu cần
+    const selectedRowIndexes = args.rows || [];
+
+    // Initialize Set for this typeId if not exists
+    if (!this.selectedRowIdsSetMap.has(typeId)) {
+      this.selectedRowIdsSetMap.set(typeId, new Set<number>());
+    }
+
+    const selectedRowIdsSet = this.selectedRowIdsSetMap.get(typeId)!;
+    selectedRowIdsSet.clear();
+
+    // Lưu ID của các dòng được chọn
+    selectedRowIndexes.forEach((rowIndex: number) => {
+      const item = angularGrid.dataView.getItem(rowIndex);
+      if (item && item.ID) {
+        selectedRowIdsSet.add(Number(item.ID));
+      }
+    });
   }
 
   // Helper method to format numbers
@@ -2711,7 +3143,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     // Đảm bảo data là array
     if (!Array.isArray(data)) {
       console.error('SaveDataCommon: data không phải là array', data);
-      this.notification.error('Thông báo', 'Dữ liệu không hợp lệ.');
+      this.notification.error('Thông báo', 'Data is not an Array');
       return;
     }
 
@@ -2749,7 +3181,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       },
       error: (error) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || 'Lỗi khi lưu dữ liệu.');
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
         // Swal.fire('Thông báo', 'Không thể lưu dữ liệu.', 'error');
       },
     });
@@ -3650,7 +4082,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           },
           error: (error) => {
             console.error('Error quoting price:', error);
-            this.notification.error('Lỗi', error?.error?.message || `Có lỗi xảy ra khi ${statusText}!`);
+            this.notification.error('Lỗi', error?.error?.message || error?.message);
           },
         });
       },
@@ -3743,7 +4175,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             console.error('Error checking price:', error);
             this.notification.error(
               'Lỗi',
-              error?.error?.message || `Có lỗi xảy ra khi ${isCheckText}!`
+              error?.error?.message || error?.message
             );
           },
         });
@@ -3878,7 +4310,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             }
           },
           error: (err: any) => {
-            const errorMsg = err?.error?.message || 'Có lỗi xảy ra';
+            const errorMsg = err?.error?.message || err?.message;
             const invalidProducts = err?.error?.invalidProducts;
             let fullMessage = errorMsg;
             if (invalidProducts && Array.isArray(invalidProducts) && invalidProducts.length > 0) {
@@ -3960,7 +4392,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         }
       },
       error: (err: any) => {
-        const errorMsg = err?.error?.message || 'Có lỗi xảy ra';
+        const errorMsg = err?.error?.message || err?.message;
         const invalidProducts = err?.error?.invalidProducts;
         let fullMessage = errorMsg;
         if (invalidProducts && Array.isArray(invalidProducts) && invalidProducts.length > 0) {
@@ -3981,6 +4413,77 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       );
       return;
     }
+
+    // Kiểm tra trạng thái StatusRequest = 1 (Yêu cầu báo giá) thì không cho phép yêu cầu mua
+    for (const row of selectedRows) {
+      const statusRequest = Number(row['StatusRequest'] || 0);
+      const productCode = String(row['ProductCode'] || '');
+
+      if (statusRequest === 1) {
+        this.notification.warning(
+          'Thông báo',
+          `Sản phẩm [${productCode}] đang ở trạng thái Yêu cầu báo giá.không thể yêu cầu mua.`
+        );
+        return;
+      }
+    }
+
+    // // Kiểm tra Deadline
+    // // Deadline phải cách ngày yêu cầu ít nhất 2 ngày
+    // // Nếu yêu cầu sau 15h thì tính từ ngày hôm sau
+    // // Deadline phải là ngày làm việc (không tính thứ 7, chủ nhật)
+    // const now = DateTime.now();
+    // const currentHour = now.hour;
+
+    // // Tính ngày bắt đầu tính (nếu sau 15h thì tính từ ngày mai)
+    // let startDate = now.startOf('day');
+    // if (currentHour >= 15) {
+    //   startDate = startDate.plus({ days: 1 });
+    // }
+
+    // // Ngày deadline tối thiểu (phải cách ít nhất 2 ngày từ startDate)
+    // const minDeadline = startDate.plus({ days: 2 });
+
+    // for (const row of selectedRows) {
+    //   const deadlineValue = row['Deadline'];
+    //   const productCode = String(row['ProductCode'] || '');
+
+    //   if (deadlineValue) {
+    //     let deadline: DateTime | null = null;
+
+    //     // Parse date từ nhiều format
+    //     if (typeof deadlineValue === 'string') {
+    //       deadline = DateTime.fromISO(deadlineValue);
+    //       if (!deadline.isValid) {
+    //         deadline = DateTime.fromFormat(deadlineValue, 'dd/MM/yyyy');
+    //       }
+    //     } else if (deadlineValue instanceof Date) {
+    //       deadline = DateTime.fromJSDate(deadlineValue);
+    //     }
+
+    //     if (deadline && deadline.isValid) {
+    //       // Kiểm tra nếu deadline là thứ 7 hoặc chủ nhật
+    //       const dayOfWeek = deadline.weekday; // 1 = Monday, 6 = Saturday, 7 = Sunday
+    //       if (dayOfWeek === 6 || dayOfWeek === 7) {
+    //         this.notification.warning(
+    //           'Thông báo',
+    //           `Sản phẩm [${productCode}] có deadline (${deadline.toFormat('dd/MM/yyyy')}) là ngày cuối tuần. Deadline phải là ngày làm việc (T2 - T6).`
+    //         );
+    //         return;
+    //       }
+
+    //       // Kiểm tra nếu deadline không đủ 2 ngày
+    //       if (deadline < minDeadline) {
+    //         const errorMsg = currentHour >= 15
+    //           ? 'Yêu cầu từ sau 15h nên ngày Deadline tối thiểu là 2 ngày tính từ ngày hôm sau!'
+    //           : 'Deadline tối thiểu là 2 ngày từ ngày hiện tại!';
+
+    //         this.notification.warning('Thông báo', errorMsg);
+    //         return;
+    //       }
+    //     }
+    //   }
+    // }
 
     // Kiểm tra thời gian báo giá lịch sử cho tab demo (activeTabId === -4 hoặc projectPartlistPriceRequestTypeID === 4)
     if (this.activeTabId === -4 || this.projectPartlistPriceRequestTypeID === 4) {
@@ -4060,7 +4563,31 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     });
   }
 
-  private validateRequestBuyDeadline(deadline: Date): string | null {
+  private validateRequestBuyDeadline(deadline: Date): boolean {
+    const now = new Date();
+    const d = new Date(
+      deadline.getFullYear(),
+      deadline.getMonth(),
+      deadline.getDate()
+    );
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const timeSpan =
+      Math.floor((d.getTime() - start.getTime()) / (24 * 3600 * 1000)) + 1;
+
+    if (now.getHours() < 15 && timeSpan < 2) {
+      return false;
+    }
+    if (now.getHours() >= 15 && timeSpan < 3) {
+      return false;
+    }
+    const dow = d.getDay();
+    if (dow === 6 || dow === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  private getRequestBuyDeadlineErrorMessage(deadline: Date): string {
     const now = new Date();
     const d = new Date(
       deadline.getFullYear(),
@@ -4081,7 +4608,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (dow === 6 || dow === 0) {
       return 'Deadline phải là ngày làm việc (T2 - T6)!';
     }
-    return null;
+    return '';
   }
 
   private PerformRequestBuy(): boolean {
@@ -4093,13 +4620,14 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       );
       return false;
     }
-    const deadlineMsg = this.validateRequestBuyDeadline(deadline as Date);
-    if (deadlineMsg) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, deadlineMsg);
+    if (!this.validateRequestBuyDeadline(deadline as Date)) {
+      const errorMsg = this.getRequestBuyDeadlineErrorMessage(deadline as Date);
+      this.notification.warning(NOTIFICATION_TITLE.warning, errorMsg);
       return false;
     }
 
     const products = (this.lastSelectedRowsForBuy || []).map((data: any) => ({
+      ID: Number(data['ID'] || 0),
       ProductCode: String(data['ProductCode'] || '').trim(),
       ProductName: String(data['ProductName'] || '').trim(),
       Quantity: Number(data['Quantity'] || 0),
@@ -4155,7 +4683,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         this.projectPartlistPriceRequestTypeID > 0
           ? this.projectPartlistPriceRequestTypeID
           : 7,
-       
+
       Products: products,
     };
 
@@ -4177,7 +4705,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       error: (err: any) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          err?.error?.message || 'Có lỗi xảy ra'
+          err?.error?.message || err?.message
         );
       },
     });
@@ -4781,11 +5309,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(link.href);
-    } catch (error) {
+    } catch (error:any) {
       console.error(error);
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Đã xảy ra lỗi khi xuất Excel. Vui lòng thử lại sau.'
+        error?.error?.message || error?.message
       );
     }
   }

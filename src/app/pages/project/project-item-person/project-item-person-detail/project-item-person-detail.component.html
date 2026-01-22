@@ -19,7 +19,7 @@
                         <nz-select formControlName="ProjectID" class="w-100" nzPlaceHolder="Chọn dự án" nzShowSearch
                             nzAllowClear>
                             @for (project of projects; track $index) {
-                            <nz-option [nzLabel]="project.ProjectName + ' - ' + project.ProjectCode"
+                            <nz-option [nzLabel]="project.ProjectCode + ' - ' + project.ProjectName"
                                 [nzValue]="project.ID"></nz-option>
                             }
                         </nz-select>
@@ -271,7 +271,7 @@
                                                 <nz-form-item>
                                                     <nz-form-label class="fs-12 p-0">% Hoàn thành</nz-form-label>
                                                     <nz-form-control [nzSpan]="24">
-                                                        <nz-input-number [(ngModel)]="tab.PercentItem"
+                                                        <nz-input-number [(ngModel)]="tab.PercentageActual"
                                                             [ngModelOptions]="{ standalone: true }" [nzMin]="0"
                                                             [nzMax]="100" [nzStep]="1" [nzFormatter]="percentFormatter"
                                                             [nzParser]="percentParser" class="w-100"

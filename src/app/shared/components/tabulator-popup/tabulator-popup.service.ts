@@ -26,7 +26,9 @@ export interface TabulatorPopupConfig {
   };
   minWidth?: string;
   maxWidth?: string;
+  showClearButton?: boolean; // Hiển thị nút Clear để xóa giá trị đã chọn
   onRowSelected?: (data: any) => void;
+  onCleared?: () => void; // Callback khi click nút Clear
   onClosed?: () => void;
 }
 
@@ -123,12 +125,20 @@ export class TabulatorPopupService {
     this.popupComponentRef.instance.height = config.height || '300px';
     this.popupComponentRef.instance.selectableRows = config.selectableRows ?? 1;
     this.popupComponentRef.instance.layout = config.layout || 'fitColumns';
+    this.popupComponentRef.instance.showClearButton = config.showClearButton ?? false;
 
     // Subscribe to outputs
     this.popupComponentRef.instance.rowSelected.subscribe((data: any) => {
       if (config.onRowSelected) {
         config.onRowSelected(data);
       }
+    });
+
+    this.popupComponentRef.instance.cleared.subscribe(() => {
+      if (config.onCleared) {
+        config.onCleared();
+      }
+      this.close();
     });
 
     this.popupComponentRef.instance.closed.subscribe(() => {

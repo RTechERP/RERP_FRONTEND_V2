@@ -6,46 +6,52 @@
           <div class="d-flex h-40 gap-1 justify-content-between align-items-center">
             <div class="d-flex gap-1">
               <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="onAddPhaseAllocation()"
-                *hasPermission="'N1,N44'">
+                *hasPermission="'N1,N34,N2'">
                 <img src="assets/icon/action_add_item_16.png" /> Thêm
               </button>
               <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="onEditPhaseAllocation()"
-                *hasPermission="'N1,N44'">
+                *hasPermission="'N1,N34,N2'">
                 <img src="assets/icon/action_edit_item_16.png" /> Sửa
               </button>
-              <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeletePhaseAllocation()"
-                *hasPermission="'N1,N44'">
+              <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small"
+                (click)="onDeletePhaseAllocation()" *hasPermission="'N1,N34,N2'">
                 <img src="assets/icon/action_delete_item_16.png" /> Xóa
               </button>
               <button class="fs-12 btn-copy" nz-button nzType="default" nzSize="small" (click)="onCopyAllocation()"
-                *hasPermission="'N1,N44'">
+                *hasPermission="'N1,N34,N2'">
                 <img src="assets/icon/action_copy_24.svg" /> Copy
               </button>
-              <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()" [nzLoading]="exportingExcel">
+              <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()"
+                [nzLoading]="exportingExcel">
                 <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
+              </button>
+              <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportDetailToExcel()"
+                [nzLoading]="exportingExcelDetail">
+                <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel Chi Tiết
               </button>
             </div>
 
             <!-- Phần filter và tìm kiếm bên phải -->
             <div class="d-flex gap-2 align-items-center">
-              <nz-select
-                [(ngModel)]="currentYear"
-                nzSize="small"
-                style="width: 100px;"
+              <nz-select [(ngModel)]="masterFilterStatus" nzSize="small" style="width: 190px;"
+                nzPlaceHolder="Trạng thái" [nzAllowClear]="true" (ngModelChange)="onMasterFilterChange()">
+                <nz-option *ngFor="let opt of masterStatusOptions" [nzValue]="opt.value"
+                  [nzLabel]="opt.label"></nz-option>
+              </nz-select>
+
+              <nz-select [(ngModel)]="currentYear" nzSize="small" style="width: 100px;"
                 (ngModelChange)="onYearChange()">
                 <nz-option *ngFor="let year of yearOptions" [nzValue]="year" [nzLabel]="year.toString()"></nz-option>
               </nz-select>
 
-              <nz-select
-                [(ngModel)]="currentMonth"
-                nzSize="small"
-                style="width: 120px;"
+              <nz-select [(ngModel)]="currentMonth" nzSize="small" style="width: 120px;"
                 (ngModelChange)="onMonthChange()">
-                <nz-option *ngFor="let month of monthOptions" [nzValue]="month.value" [nzLabel]="month.label"></nz-option>
+                <nz-option *ngFor="let month of monthOptions" [nzValue]="month.value"
+                  [nzLabel]="month.label"></nz-option>
               </nz-select>
 
               <input nz-input placeholder="Nhập từ khóa tìm kiếm..." [(ngModel)]="filterText" nzSize="small"
-                style="width: 300px;" (keyup.enter)="searchPhaseAllocation()" />
+                style="width: 250px;" (keyup.enter)="searchPhaseAllocation()" />
               <button nz-button nzType="primary" nzSize="small" (click)="searchPhaseAllocation()">
                 <nz-icon nzType="search"></nz-icon>
               </button>
@@ -69,6 +75,31 @@
               </ng-template>
               <nz-tabset style="padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
                 <nz-tab [nzTitle]="detailTabTitle">
+                  <!-- Toolbar chi tiết: Filter + Buttons -->
+                  <div class="detail-toolbar d-flex gap-2 align-items-center justify-content-between mb-2 flex-wrap">
+                    <!-- Phần filter bên trái -->
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                      <span class="fs-12">Trạng thái nhận:</span>
+                      <nz-select [(ngModel)]="detailFilterStatus" nzSize="small" style="width: 120px;"
+                        nzPlaceHolder="Trạng thái" [nzAllowClear]="true" (ngModelChange)="onDetailFilterChange()">
+                        <nz-option *ngFor="let opt of detailStatusOptions" [nzValue]="opt.value"
+                          [nzLabel]="opt.label"></nz-option>
+                      </nz-select>
+                    </div>
+
+                    <!-- Phần buttons bên phải -->`
+                    <div class="d-flex gap-1">
+                      <button class="fs-12" nz-button nzType="primary" nzSize="small" (click)="onAddEmployee()"
+                        *hasPermission="'N1,N34,N2'">
+                        <nz-icon nzType="user-add"></nz-icon> Thêm NV
+                      </button>
+                      <button class="fs-12" nz-button nzType="default" nzSize="small" nzDanger
+                        (click)="onUpdateReceived()" *hasPermission="'N1,N34,N2'">
+                        <nz-icon nzType="check-circle"></nz-icon> Cập nhật đã nhận
+                      </button>
+                    </div>
+                  </div>
+
                   <div #detailTableRef></div>
                 </nz-tab>
               </nz-tabset>
@@ -79,4 +110,3 @@
     </nz-splitter-panel>
   </nz-splitter>
 </ng-container>
-

@@ -73,6 +73,7 @@ import { PokhDetailComponent } from '../../../../old/pokh-detail/pokh-detail.com
 import { FormExportExcelPartlistComponent } from './project-partlist-detail/form-export-excel-partlist/form-export-excel-partlist.component';
 import { ProjectPartlistPurchaseRequestDetailComponent } from '../../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
 import { environment } from '../../../../../../environments/environment';
+import { BillExportDetailNewComponent } from '../../../../old/Sale/BillExport/bill-export-detail-new/bill-export-detail-new.component';
 
 @Component({
     selector: 'app-project-worker',
@@ -136,7 +137,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         private appUserService: AppUserService,
         private billExportService: BillExportService,
         private authService: AuthService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        @Optional() @Inject('tabData') private tabData: any
     ) { }
     sizeLeftPanel: string = ''; // Khởi tạo rỗng
     sizeRightPanel: string = ''; // Khởi tạo rỗng
@@ -214,7 +216,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.tbp = params['tbp'] || false;
+            // this.tbp = params['tbp'] || false;
+            this.tbp =
+                params['tbp']
+                ?? this.tabData?.tbp
+                ?? false;
         });
         this.isDeleted = 0;
         this.isApprovedTBP = -1;
@@ -1808,18 +1814,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         // Xuất Excel trước
         const exportSuccess = await this.exportExcelPartlist();
         // Sau khi xuất thành công, mở modal
-        if (exportSuccess) {
-            const modalRef = this.ngbModal.open(FormExportExcelPartlistComponent, {
-                centered: true,
-                windowClass: 'full-screen-modal',
-                keyboard: false,
-            });
-            modalRef.componentInstance.projectId = this.projectId;
-            modalRef.componentInstance.projectCode = this.projectCodex || '';
-            modalRef.componentInstance.projectName = this.projectNameX || '';
-            modalRef.componentInstance.versionPOID = this.versionPOID;
-            modalRef.componentInstance.partListData = this.tb_projectWorker?.getData('tree') || [];
-        }
+        // if (exportSuccess) {
+        //     const modalRef = this.ngbModal.open(FormExportExcelPartlistComponent, {
+        //         centered: true,
+        //         windowClass: 'full-screen-modal',
+        //         keyboard: false,
+        //     });
+        //     modalRef.componentInstance.projectId = this.projectId;
+        //     modalRef.componentInstance.projectCode = this.projectCodex || '';
+        //     modalRef.componentInstance.projectName = this.projectNameX || '';
+        //     modalRef.componentInstance.versionPOID = this.versionPOID;
+        //     modalRef.componentInstance.partListData = this.tb_projectWorker?.getData('tree') || [];
+        // }
     }
     //#region open modal import excel
     openImportExcelProjectPartList(): void {
@@ -3593,6 +3599,17 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                                 formatter: (cell: any) => {
                                     const value = cell.getValue();
                                     return `<input type="checkbox" ${(value === 'Đã duyệt' ? 'checked' : '')} onclick="return false;">`;
+                                }
+                            },
+                            {
+                                title: 'TBP duyệt cột',
+                                field: 'IsApprovedTBP',  // Sửa: dùng text thay vì boolean
+                                hozAlign: 'center',
+                                headerHozAlign: 'center',
+                                width: 70,
+                                formatter: (cell: any) => {
+                                    const value = cell.getValue();
+                                    return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
                                 }
                             },
                             {
@@ -6111,7 +6128,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         });
     }
     //Thực hiện yêu cầu chuyển kho 
-     executeRequestTransfer(selectedNodes: any[], warehouseCode: string): void {
+    executeRequestTransfer(selectedNodes: any[], warehouseCode: string): void {
         // Chuẩn bị payload theo ProjectPartListExportDTO structure mới
         // Chỉ gửi các field cần thiết theo DTO (không extends ProjectPartList nữa)
         const listItem = selectedNodes.map((node: any) => {
@@ -6153,7 +6170,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                         return;
                     }
                     // Mở modal BillExportDetail tuần tự cho từng bill
-                    this.openBillExportDetailModals(billsData, 0,true);
+                    this.openBillExportDetailModals(billsData, 0, true);
                     // Reload data sau khi hoàn thành (sẽ được gọi trong openBillExportDetailModals)
                 } else {
                     this.notification.error('Lỗi', response.message || 'Không thể yêu cầu xuất kho!');
@@ -6223,7 +6240,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         });
     }
     // Mở modal BillExportDetail tuần tự cho từng bill
-    private openBillExportDetailModals(billsData: any[], index: number, isTransfer:boolean): void {
+    private openBillExportDetailModals(billsData: any[], index: number, isTransfer: boolean): void {
         if (index >= billsData.length) {
             // Đã mở hết tất cả modal → reload data
             this.loadDataProjectPartList();
@@ -6283,7 +6300,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             // TotalInventory sẽ được fill từ productOptions trong updateTotalInventoryForExistingRows()
             TotalInventory: 0
         }));
-        const modalRef = this.ngbModal.open(BillExportDetailComponent, {
+        const modalRef = this.ngbModal.open(BillExportDetailNewComponent, {
             centered: true,
             size: 'xl',
             backdrop: 'static',
@@ -6300,13 +6317,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.wareHouseCode = bill.WarehouseCode || '';
         modalRef.componentInstance.isPOKH = bill.IsPOKH || false;
         modalRef.componentInstance.isFromProjectPartList = true; // FLAG RIÊNG cho luồng ProjectPartList
-        // Set detail data sau khi modal mở
-        setTimeout(() => {
-            modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
-            if (modalRef.componentInstance.table_billExportDetail) {
-                modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
-            }
-        }, 200);
+        // Truyền data chi tiết vào selectedList (dành cho BillExportDetailNewComponent với SlickGrid)
+        modalRef.componentInstance.selectedList = detailsForModal;
         // Xử lý khi modal đóng
         modalRef.result.then(
             (result) => {
@@ -6338,7 +6350,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             (dismissed) => {
                 // Modal bị dismiss → vẫn tiếp tục mở modal tiếp theo nếu có
                 if (index < billsData.length - 1) {
-                    this.openBillExportDetailModals(billsData, index + 1,false);
+                    this.openBillExportDetailModals(billsData, index + 1, false);
                 } else {
                     // Modal cuối cùng bị dismiss → reload data
                     this.loadDataProjectPartList();
@@ -6553,6 +6565,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             { header: 'SL đã về', field: 'QuantityReturn', width: 12, isNumber: true },
             { header: 'SL đã xuất', field: 'TotalExport', width: 12, isNumber: true },
             { header: 'SL còn lại', field: 'RemainQuantity', width: 12, isNumber: true },
+            { header: 'Ngày nhập kho', field: 'DateImport', width: 12, isNumber: true },
+            { header: 'Mã phiếu nhập', field: 'BillImportCode', width: 12, isNumber: true },
+            { header: 'Kho nhập', field: 'KhoType', width: 12, isNumber: true },
         ];
 
         // Set column widths

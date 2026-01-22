@@ -89,6 +89,7 @@
 
   <!-- Grid -->
   <div class="grid-wrapper">
+    <nz-spin [nzSpinning]="loading" [nzTip]="'Đang tải dữ liệu...'">
       <div class="grid-container grid-full-height">
         <angular-slickgrid
           gridId="inventory-project-grid"
@@ -101,5 +102,6 @@
           (onSelectedRowsChanged)="onSelectedRowsChanged($event.detail.eventData, $event.detail.args)">
         </angular-slickgrid>
       </div>
+    </nz-spin>
   </div>
 </div>

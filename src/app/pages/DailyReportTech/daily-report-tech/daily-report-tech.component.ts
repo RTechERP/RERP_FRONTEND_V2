@@ -68,10 +68,10 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   showSearchBar: boolean = true; // Mặc định ẩn, sẽ được set trong ngOnInit
   isMobile: boolean = false;
   menuBars: MenuItem[] = [];
-  
+
   // Search filters
-  dateStart: any = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
-  dateEnd: any = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
+  dateStart: string = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local().toFormat('yyyy-MM-dd');
   departmentId: number = 2;
   teamId: number = 0;
   userId: number = 0;
@@ -116,7 +116,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.updateResponsiveState();
     this.initMenuBar();
-    
+
     this.getCurrentUser();
     this.loadDepartments();
     this.loadUsers();
@@ -139,7 +139,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     // Vẽ table trước với data rỗng (giống summary-of-exam-results)
     this.drawTbDailyReportTech(this.tb_daily_report_techContainer.nativeElement);
-    
+
     // Load dữ liệu sau khi table đã được khởi tạo
     // getCurrentUser() sẽ tự động gọi getDailyReportTechData() khi hoàn thành
     // Nếu getCurrentUser() đã hoàn thành trước đó, gọi getDailyReportTechData() ngay
@@ -161,10 +161,10 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         // Sau khi có currentUser, nếu users đã được load thì set userId
         if (this.users.length > 0) {
           // Thử tìm theo ID trước, nếu không có thì tìm theo EmployeeID
-          if(data.IsAdmin == true || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)){
+          if (data.IsAdmin == true || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.userId = 0;
           }
-          else if(data.ID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)){
+          else if (data.ID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.setUserIdFromEmployeeID(data.ID);
           } else if (data.EmployeeID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.setUserIdFromEmployeeID(data.EmployeeID);
@@ -177,7 +177,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
           // Khi loadUsers() được gọi sau đó, nó sẽ tự động tìm và set lại
           this.userId = 0;
         }
-        
+
         // Sau khi có currentUser, load dữ liệu bảng nếu table đã được khởi tạo
         if (this.tb_daily_report_tech) {
           this.getDailyReportTechData();
@@ -241,12 +241,12 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     // Load users dựa trên teamId nếu có, ngược lại load theo departmentId
     const userTeamID = this.teamId > 0 ? this.teamId : undefined;
     const departmentid = this.departmentId > 0 ? this.departmentId : undefined;
-    
+
     this.dailyReportTechService.getEmployees(userTeamID, departmentid).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
           const employees = Array.isArray(response.data) ? response.data : [];
-          
+
           // Group employees by DepartmentName nếu có
           if (employees.length > 0 && employees[0].DepartmentName) {
             this.users = this.groupEmployeesByDepartment(employees);
@@ -262,11 +262,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         } else {
           this.users = [];
         }
-        
+
         // Sau khi load users, tìm và set userId từ currentUser
         // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
         if (this.currentUser) {
-          if (this.currentUser.ID && this.currentUser.IsAdmin != true &&!USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
+          if (this.currentUser.ID && this.currentUser.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.setUserIdFromEmployeeID(this.currentUser.ID);
           } else if (this.currentUser.EmployeeID && this.currentUser.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
@@ -288,7 +288,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
   groupEmployeesByDepartment(employees: any[]): any[] {
     const grouped: { [key: string]: any[] } = {};
-    
+
     employees.forEach(emp => {
       const deptName = emp.DepartmentName || 'Khác';
       if (!grouped[deptName]) {
@@ -382,7 +382,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
   getDailyReportTechData(): void {
     const searchParams = this.getSearchParams();
-    
+
     this.dailyReportTechService.getDailyReportTech(searchParams).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
@@ -390,7 +390,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         } else {
           this.dailyReportTechData = [];
         }
-        
+
         if (this.tb_daily_report_tech) {
           this.tb_daily_report_tech.replaceData(this.dailyReportTechData);
         }
@@ -419,8 +419,8 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   setDefaultSearch(): void {
-    this.dateStart = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
-    this.dateEnd = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
+    this.dateStart = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local().toFormat('yyyy-MM-dd');
     this.departmentId = 2;
     this.teamId = 0;
     this.userId = 0;
@@ -430,26 +430,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   getSearchParams(): any {
-    // Xử lý dateStart - có thể là Date object hoặc ISO string
-    let dateStart: DateTime;
-    if (this.dateStart instanceof Date) {
-      dateStart = DateTime.fromJSDate(this.dateStart);
-    } else if (typeof this.dateStart === 'string') {
-      dateStart = DateTime.fromISO(this.dateStart);
-    } else {
-      dateStart = DateTime.local().minus({ days: 1 });
-    }
-
-    // Xử lý dateEnd - có thể là Date object hoặc ISO string
-    let dateEnd: DateTime;
-    if (this.dateEnd instanceof Date) {
-      dateEnd = DateTime.fromJSDate(this.dateEnd);
-    } else if (typeof this.dateEnd === 'string') {
-      dateEnd = DateTime.fromISO(this.dateEnd);
-    } else {
-      dateEnd = DateTime.local();
-    }
-
+    // dateStart và dateEnd giờ là string format yyyy-MM-dd từ native date input
     // Xử lý userID an toàn khi currentUser có thể là null
     let userID = 0;
     if (this.currentUser) {
@@ -461,8 +442,8 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     }
 
     return {
-      dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
-      dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
+      dateStart: this.dateStart || DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd'),
+      dateEnd: this.dateEnd || DateTime.local().toFormat('yyyy-MM-dd'),
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
       userID: userID,
@@ -498,7 +479,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
               return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
             },
             hozAlign: 'center',
-            width: 120,
+            width: 100,
           },
           {
             title: 'Ngày tạo',
@@ -509,7 +490,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
               return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy HH:mm:ss') : '';
             },
             hozAlign: 'center',
-            width: 120,
+            width: 100,
           },
           {
             title: 'Dự án',
@@ -526,21 +507,21 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             title: 'Tổng giờ',
             field: 'TotalHours',
             hozAlign: 'right',
-            width: 70,
+            width: 60,
             headerSort: false,
           },
           {
             title: 'Giờ OT',
             field: 'TotalHourOT',
             hozAlign: 'right',
-            width: 70,
+            width: 60,
             headerSort: false,
           },
           {
             title: '% Hoàn thành',
             field: 'PercentComplete',
             hozAlign: 'right',
-            width: 70,
+            width: 55,
             headerSort: false,
             formatter: (cell: any) => {
               const value = cell.getValue() || 0;
@@ -598,73 +579,73 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
           {
             title: 'Dự kiến',
             columns: [
-            {
-              title: 'Ngày bắt đầu',
-              field: 'PlanStartDate', 
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-            {
-              title: 'Tổng số ngày',
-              field: 'TotalDayPlan',
-              hozAlign: 'right',
-              width: 100,
-            },
-            {
-              title: 'Ngày kết thúc',
-              field: 'PlanEndDate',
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-          ],
+              {
+                title: 'Ngày bắt đầu',
+                field: 'PlanStartDate',
+                // formatter: (cell: any) => {
+                //   const value = cell.getValue() || '';
+                //   const dateTime = DateTime.fromISO(value);
+                //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                // },
+                hozAlign: 'center',
+                width: 120,
+              },
+              {
+                title: 'Tổng số ngày',
+                field: 'TotalDayPlan',
+                hozAlign: 'right',
+                width: 100,
+              },
+              {
+                title: 'Ngày kết thúc',
+                field: 'PlanEndDate',
+                // formatter: (cell: any) => {
+                //   const value = cell.getValue() || '';
+                //   const dateTime = DateTime.fromISO(value);
+                //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                // },
+                hozAlign: 'center',
+                width: 120,
+              },
+            ],
           },
           {
             title: 'Thực tế',
             columns: [
-            {
-              title: 'Ngày bắt đầu',
-              field: 'ActualStartDate',
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-            {
-              title: 'Tổng số ngày',
-              field: 'TotalDayActual',
-              hozAlign: 'right',
-              width: 100,
-            },
-            {
-              title: 'Ngày kết thúc',
-              field: 'ActualEndDate',
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-          ],
-        },
-      ],
-    });
+              {
+                title: 'Ngày bắt đầu',
+                field: 'ActualStartDate',
+                // formatter: (cell: any) => {
+                //   const value = cell.getValue() || '';
+                //   const dateTime = DateTime.fromISO(value);
+                //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                // },
+                hozAlign: 'center',
+                width: 120,
+              },
+              {
+                title: 'Tổng số ngày',
+                field: 'TotalDayActual',
+                hozAlign: 'right',
+                width: 100,
+              },
+              {
+                title: 'Ngày kết thúc',
+                field: 'ActualEndDate',
+                // formatter: (cell: any) => {
+                //   const value = cell.getValue() || '';
+                //   const dateTime = DateTime.fromISO(value);
+                //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                // },
+                hozAlign: 'center',
+                width: 120,
+              },
+            ],
+          },
+        ],
+      });
+    }
   }
-}
 
   // Header actions
   addDailyReport(): void {
@@ -790,7 +771,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   copyDailyReport(): void {
     // Lấy dữ liệu để copy dựa trên filter hiện tại
     const searchParams = this.getSearchParams();
-    
+
     // Tìm EmployeeID từ users dựa trên searchParams.userID (UserID từ dropdown)
     // Dropdown bind [nzValue]="child.item.UserID", nên searchParams.userID là UserID
     let employeeID = 0;
@@ -805,7 +786,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         }
       }
     }
-    
+
     // Gọi API để lấy dữ liệu copy
     const copyParams = {
       dateStart: searchParams.dateStart,
@@ -815,7 +796,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       userid: employeeID || 0,
       departmentid: searchParams.departmentID || 0
     };
-    
+
     this.dailyReportTechService.getForCopy(copyParams).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
@@ -840,7 +821,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
     // Lấy danh sách ngày duy nhất
     const uniqueDates = [...new Set(result.map(item => item.DateReport))];
-    
+
     // Chỉ copy khi có đúng 1 ngày (giống RTCWeb)
     if (uniqueDates.length === 1) {
       // Copy 1 ngày
@@ -876,7 +857,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
           // Nếu không có ProjectItemCode, thêm trực tiếp
           content += (item.Mission || item.Content || '') + '\n';
         }
-        
+
         // Tránh trùng lặp ProjectCode trong project (giống RTCWeb)
         if (item.ProjectCode && !project.includes(item.ProjectCode)) {
           project += `${item.ProjectCode} - ${item.ProjectName || ''}\n`;
@@ -895,20 +876,20 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     // Format theo departmentId (nếu departmentId == 6 thì không hiển thị Mã dự án)
     // Lấy departmentId từ currentUser hoặc từ filter
     const departmentId = this.departmentId || this.currentUser?.DepartmentID || 0;
-    
+
     // Format giống RTCWeb
     if (departmentId !== 6) {
       contentSummary += `* Mã dự án - Tên dự án: \n${project.trim()}\n`;
     }
-    
+
     contentSummary += `\n* Nội dung công việc:\n${content.trim()}\n`;
     contentSummary += `\n* Kết quả công việc:\n${resultReport.trim()}\n`;
     contentSummary += `\n* Tồn đọng:\n${backlog.trim() === '' ? '- Không có' : backlog.trim()}\n`;
-    
+
     if (departmentId === 6) {
       contentSummary += `\n* Lý do tồn đọng:\n${note.trim() === '' ? '- Không có' : note.trim()}\n`;
     }
-    
+
     contentSummary += `\n* Vấn đề phát sinh:\n${problem.trim() === '' ? '- Không có' : problem.trim()}\n`;
     contentSummary += `\n* Giải pháp cho vấn đề phát sinh:\n${problemSolve.trim() === '' ? '- Không có' : problemSolve.trim()}\n`;
     contentSummary += `\n* Kế hoạch ngày tiếp theo:\n${planNextDay.trim() === '' ? '- Không có' : planNextDay.trim()}\n`;
@@ -927,7 +908,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
+
       try {
         const successful = document.execCommand('copy');
         if (successful) {
@@ -942,7 +923,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         document.body.removeChild(textArea);
       }
     };
-    
+
     try {
       // Thử sử dụng Clipboard API nếu có
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -986,12 +967,12 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     // Lấy columns từ bảng
     const columns = table.getColumns();
     const columnDefinitions = columns.map((col: any) => col.getDefinition());
-    
+
     // Lọc bỏ các columns không có field hoặc là nested columns (chỉ lấy columns cấp 1)
     const visibleColumns = columnDefinitions.filter((col: any) => {
       return col.field && col.visible !== false && !col.columns; // Loại bỏ nested columns
     });
-    
+
     // Tạo header
     const headers = visibleColumns.map((col: any) => col.title || col.field);
     worksheet.addRow(headers);
@@ -1061,7 +1042,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
         return value || '';
       });
-      
+
       const excelRow = worksheet.addRow(rowData);
       excelRow.alignment = { vertical: 'top', wrapText: true };
     });
@@ -1076,10 +1057,10 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         const cellValue = cell.value ? cell.value.toString() : '';
         maxLength = Math.max(maxLength, cellValue.length + 2);
       });
-      
+
       // Set width với giới hạn
       column.width = Math.min(Math.max(maxLength, 10), 50);
-      
+
       // Alignment
       if (colDef.hozAlign === 'right') {
         column.alignment = { horizontal: 'right' };
@@ -1139,12 +1120,12 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     // Lấy columns từ bảng
     const columns = table.getColumns();
     const columnDefinitions = columns.map((col: any) => col.getDefinition());
-    
+
     // Lọc bỏ các columns không có field hoặc là nested columns (chỉ lấy columns cấp 1)
     const visibleColumns = columnDefinitions.filter((col: any) => {
       return col.field && col.visible !== false && !col.columns; // Loại bỏ nested columns
     });
-    
+
     // Tạo header
     const headers = visibleColumns.map((col: any) => col.title || col.field);
     worksheet.addRow(headers);
@@ -1214,7 +1195,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
         return value || '';
       });
-      
+
       const excelRow = worksheet.addRow(rowData);
       excelRow.alignment = { vertical: 'top', wrapText: true };
     });
@@ -1229,10 +1210,10 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         const cellValue = cell.value ? cell.value.toString() : '';
         maxLength = Math.max(maxLength, cellValue.length + 2);
       });
-      
+
       // Set width với giới hạn
       column.width = Math.min(Math.max(maxLength, 10), 50);
-      
+
       // Alignment
       if (colDef.hozAlign === 'right') {
         column.alignment = { horizontal: 'right' };

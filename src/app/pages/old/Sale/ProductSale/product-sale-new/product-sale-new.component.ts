@@ -47,6 +47,7 @@ import { ProductGroupDetailComponent } from '../product-group-detail/product-gro
 import { ImportExcelProductSaleComponent } from '../import-excel-product-sale/import-excel-product-sale.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { MarketingPurchaseRequestComponent } from '../../../../purchase/marketing-purchase-request/marketing-purchase-request.component';
+import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { ProjectPartListService } from '../../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
@@ -457,6 +458,19 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             .replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
     }
 
+    // Formatter cho phép wrap text tối đa 3 dòng với tooltip
+    wrapTextFormatter: Formatter = (_row, _cell, value, _column, dataContext) => {
+        if (!value) return '';
+        return `
+            <span
+                title="${String(value).replace(/"/g, '&quot;')}"
+                style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3;"
+            >
+                ${value}
+            </span>
+        `;
+    };
+
     excelBooleanFormatter: Formatter = (_row, _cell, value) => {
         if (value === true) return 'x';
         if (value === false) return '';
@@ -558,7 +572,10 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
@@ -623,7 +640,10 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
@@ -634,7 +654,10 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                formatter: (_r, _c, v) => v, // UI
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
         ];
@@ -665,6 +688,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
             frozenColumn: this.isMobile ? 0 : 3,
+            rowHeight: 55, // Điều chỉnh row height cho 3 dòng text (khoảng 18px/dòng + padding)
 
             // Excel export configuration
             externalResources: [this.excelExportService],
@@ -1344,77 +1368,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
     }
 
     openPurchaseRequest(): void {
-        const selectedRows = this.getSelectedProductSaleRows();
-
-        if (!this.id || this.id <= 0) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                'Vui lòng chọn nhóm sản phẩm!'
-            );
-            return;
-        }
-
-        const dataset: any[] = [];
-        let countSTT = 0;
-
-        selectedRows.forEach((row: any) => {
-            countSTT++;
-
-            const unitName = String(row.Unit || '').trim();
-            let unitCountID = 0;
-
-            if (unitName) {
-                const unitCount = this.unitCounts.find(
-                    (u: any) =>
-                        String(u.UnitName || '')
-                            .toLowerCase()
-                            .trim() === unitName.toLowerCase().trim()
-                );
-                if (unitCount && unitCount.ID) {
-                    unitCountID = unitCount.ID;
-                }
-            }
-
-            const newRow: any = {
-                id: Date.now() + countSTT,
-                TT: countSTT,
-                ProductCode: String(row.ProductCode || '').trim(),
-                ProductNewCode: String(row.ProductNewCode || '').trim(),
-                ProductName: String(row.ProductName || '').trim(),
-                UnitName: unitCountID,
-                Manufacturer: String(row.Maker || '').trim(),
-                ProductGroupID: this.id,
-                SupplierSaleID: null,
-                DateReturnExpected: null,
-                Quantity: 0,
-                CurrencyID: null,
-                CurrencyRate: 0,
-                Note: '',
-                ID: 0,
-            };
-
-            dataset.push(newRow);
-        });
-
-        const modalRef = this.modalService.open(MarketingPurchaseRequestComponent, {
+        const modalRef = this.modalService.open(ProjectPartListPurchaseRequestSlickGridComponent, {
             centered: true,
-            size: 'xl',
-            backdrop: 'static',
-            keyboard: false,
             windowClass: 'full-screen-modal',
+            backdrop: 'static',
         });
-
-        modalRef.componentInstance.requestTypeID = 7;
-        modalRef.componentInstance.initialDataset = dataset;
-
-        modalRef.result.then(
-            (result) => {
-                console.log('Modal closed with result:', result);
-            },
-            (reason) => {
-                console.log('Modal dismissed:', reason);
-            }
-        );
+        modalRef.componentInstance.isFromMarketing = true;
     }
 
     closeModal(): void {

@@ -1,4 +1,5 @@
 /* ==================== ROW COLORING STYLES ==================== */
+
 /* Dòng bị xóa → Red background */
 :host ::ng-deep .slick-row.row-deleted,
 :host ::ng-deep .slick-row .row-deleted {
@@ -227,8 +228,33 @@
   cursor: pointer;
 }
 
+@keyframes bounce-up-down {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.btn-filter-active {
+  border: 2.5px solid #007bff !important;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.6);
+  font-weight: bold !important;
+  animation: bounce-up-down 0.8s ease-in-out infinite;
+  z-index: 10;
+  position: relative;
+}
+
 :host ::ng-deep .slick-cell {
   padding: 4px 6px;
+  white-space: normal !important;
+  line-height: 1.4 !important;
+  display: flex;
+  align-items: center;
 }
 
 /* ==================== GRID CONTAINER STYLES ==================== */
@@ -244,21 +270,29 @@
   height: 100%;
 }
 
-/* Fix row height overflow - đảm bảo row không đè lên row khác */
-:host ::ng-deep .slick-row {
-  overflow: visible !important;
+
+angular-slickgrid,
+.angular-slickgrid-container {
+  height: 100% !important;
+  width: 100%;
+  display: flex;
 }
 
-:host ::ng-deep .slick-cell {
-  overflow: hidden !important;
-  white-space: normal !important;
-  line-height: 1.4 !important;
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
 }
 
-/* Auto row height để text wrap không bị đè */
-:host ::ng-deep .slick-viewport {
-  overflow-x: auto !important;
-  overflow-y: auto !important;
+----
+
+/* ==================== FOOTER ROW STYLES ==================== */
+:host ::ng-deep .slick-footer-row {
+  background-color: #f0f0f0 !important;
+}
+
+:host ::ng-deep .slick-footerrow-column {
+  font-weight: bold !important;
+  color: #000 !important;
+  border-right: 1px solid #ddd !important;
 }
 
 /* ==================== HEADER STYLES ==================== */
@@ -273,50 +307,8 @@
   text-align: center;
 }
 
-.slick-header-columns {
-  height: auto !important;
-  min-height: 30px;
-}
-
-.grid-po-version-container,
-.grid-solution-version-container,
-.grid-solution-container {
-  height: 100%;
-  width: 100%;
-}
-
-angular-slickgrid,
-.angular-slickgrid-container {
-  height: 100% !important;
-  width: 100%;
-  display: flex;
-}
-
-:host ::ng-deep .slickgrid-container {
-  height: 100% !important;
-}
-
-/* ==================== FOOTER ROW STYLES ==================== */
-:host ::ng-deep .slick-footer-row {
-  background-color: #f0f0f0 !important;
-  border-top: 2px solid #666 !important;
-}
-
-:host ::ng-deep .slick-footerrow-column {
-  font-weight: bold !important;
-  color: #000 !important;
-  border-right: 1px solid #ddd !important;
-  line-height: 30px !important;
-  padding: 0 4px !important;
-}
-
-/* ==================== FROZEN COLUMN SCROLLBAR FIX ==================== */
-:host ::ng-deep .slick-viewport-left {
-  overflow-y: hidden !important;
-  /* Hide vertical scrollbar on left frozen pane */
-}
-
-:host ::ng-deep .slick-viewport-right {
-  overflow-y: auto !important;
-  /* Ensure vertical scrollbar is on right pane */
+/* Fix font for dropdown menus */
+nz-dropdown-menu ul {
+  font-family: inherit;
+  font-size: inherit;
 }

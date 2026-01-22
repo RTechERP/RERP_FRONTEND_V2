@@ -1,82 +1,132 @@
 <ng-container class="w-100">
-  <nz-splitter>
-    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-      <div class="card h-100 border-0 rounded-0" style="height: 94vh !important;">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
-              (click)="toggleSearchPanel()">
-              <nz-icon nzType="close" nzTheme="outline" />
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <form nz-form nzLayout="vertical">
-            <nz-form-item>
-              <nz-form-label class="fs-12" [nzSpan]="24">Năm</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-date-picker nzMode="year" [(ngModel)]="year" name="year" class="w-100"
-                  nzAllowClear="false"></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <input name="keyword" [(ngModel)]="keyWord" nz-input placeholder="Nhập từ khóa" />
-              </nz-form-control>
-            </nz-form-item>
-          </form>
-        </div>
-        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-          <button nz-button nzType="default" nzSize="small" (click)="refresh()">Đặt lại</button>
-          <button nz-button nzType="primary" nzSize="small" (click)="filter()">Tìm kiếm</button>
-        </div>
-      </div>
-    </nz-splitter-panel>
-    <nz-splitter-panel nzDefaultSize="100%">
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex gap-1 align-items-center">
-            <!-- Nhóm nút bên trái -->
-            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-              <nz-icon nzType="search" />
-            </button>
-            <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="handlePayrollAction('create')" *hasPermission="'N1,N2'">
-              <img src="assets/icon/action_add_item_16.png" alt="Thêm " /> Thêm
-            </button>
-            <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="handlePayrollAction('update')" *hasPermission="'N1,N2'">
-              <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
-            </button>
-            <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="handlePayrollAction('delete')" *hasPermission="'N1,N2'">
-              <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="handlePayrollAction('approve')" *hasPermission="'N1,N2'">
-              <img src="assets/icon/action_approved_16.png" alt="Duyệt" />Duyệt
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small"  (click)="handlePayrollAction('unapprove')" *hasPermission="'N1,N2'">
-              <img src="assets/icon/action_unapproved_16.png" alt="Hủy duyệt" />Hủy Duyệt
-            </button>
-
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()" >
-              <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" />Xuất excel
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="handlePayrollAction('payrollReport')" *hasPermission="'N1,N2,N52'">
-             <img src="assets/icon/action_payroll_report_16.png" alt="Báo cáo bảng lương" />Báo cáo bảng lương
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="handlePayrollAction('bonusPenaltyDetails')">
-              <img src="assets/icon/action_reward_punish-16.png" alt="Chi tiết thưởng/Phạt" />Chi tiết thưởng/Phạt
-            </button>
-            <!-- Tìm kiếm đẩy ra bên phải -->
-            <div class="d-flex align-items-center ms-auto" style="min-width: 250px;">
+    <nz-splitter>
+        <!-- <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+            <div class="card h-100 border-0 rounded-0" style="height: 94vh !important;">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                            (click)="toggleSearchPanel()">
+                            <nz-icon nzType="close" nzTheme="outline" />
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form nz-form nzLayout="vertical">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Năm</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker nzMode="year" [(ngModel)]="year" name="year" class="w-100"
+                                    nzAllowClear="false"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <input name="keyword" [(ngModel)]="keyWord" nz-input placeholder="Nhập từ khóa" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                    <button nz-button nzType="default" nzSize="small" (click)="refresh()">Đặt lại</button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="filter()">Tìm kiếm</button>
+                </div>
             </div>
-          </div>
-        </div>
+        </nz-splitter-panel> -->
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex gap-1 align-items-center flex-wrap">
+                        <!-- Nhóm nút bên trái -->
+                        <!-- <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                            <nz-icon nzType="search" />
+                        </button> -->
+                        <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small"
+                            (click)="handlePayrollAction('create')" *hasPermission="'N1,N2'">
+                            <img src="assets/icon/action_add_item_16.png" alt="Thêm " /> Thêm
+                        </button>
+                        <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small"
+                            (click)="handlePayrollAction('update')" *hasPermission="'N1,N2'">
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
+                        </button>
+                        <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small"
+                            (click)="handlePayrollAction('delete')" *hasPermission="'N1,N2'">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="handlePayrollAction('approve')" *hasPermission="'N1,N2'">
+                            <img src="assets/icon/action_approved_16.png" alt="Duyệt" />Duyệt
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="handlePayrollAction('unapprove')" *hasPermission="'N1,N2'">
+                            <img src="assets/icon/action_unapproved_16.png" alt="Hủy duyệt" />Hủy Duyệt
+                        </button>
 
-        <div class="card-body p-0">
-          <div #tb_Payroll></div>
-        </div>
-      </div>
-    </nz-splitter-panel>
-  </nz-splitter>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" />Xuất excel
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="handlePayrollAction('payrollReport')" *hasPermission="'N1,N2,N52'">
+                            <img src="assets/icon/action_payroll_report_16.png" alt="Báo cáo bảng lương" />Báo cáo bảng
+                            lương
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="handlePayrollAction('bonusPenaltyDetails')">
+                            <img src="assets/icon/action_reward_punish-16.png" alt="Chi tiết thưởng/Phạt" />Chi tiết
+                            thưởng/Phạt
+                        </button>
+                        
+                        <!-- Tìm kiếm đẩy ra bên phải -->
+                        <div class="ms-auto" style="width: 100%; max-width: 560px;">
+                            <form nz-form class="w-100">
+                                <div class="d-flex gap-2 flex-wrap justify-content-end align-items-end" style="min-width: 240px;">
+                                    <!-- Năm -->
+                                    <div class="d-flex align-items-center gap-1 payroll-filter-year-group">
+                                        <span class="fs-12" style="font-size: 12px; white-space: nowrap;">Năm: </span>
+                                        <input
+                                            type="number"
+                                            name="year"
+                                            [(ngModel)]="year"
+                                            class="payroll-filter-year-input"
+                                            style="padding: 2px 2px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 2px;"
+                                        />
+                                    </div>
+
+                                    <!-- Từ khóa + nút tìm kiếm -->
+                                    <div class="d-flex align-items-center gap-1 flex-grow-1" style="min-width: 240px;">
+                                        <span class="fs-12" style="font-size: 12px; white-space: nowrap;">Từ khóa: </span>
+                                        <div class="d-flex gap-1 flex-grow-1">
+                                            <input
+                                                name="keyword"
+                                                nz-input
+                                                placeholder="Nhập từ khóa..."
+                                                nzSize="small"
+                                                [(ngModel)]="keyWord"
+                                                (keyup.enter)="filter()"
+                                                class="flex-grow-1"
+                                            />
+                                            <button
+                                                nz-button
+                                                nzType="primary"
+                                                nzSize="small"
+                                                style="width: 40px;"
+                                                (click)="filter()"
+                                            >
+                                                <nz-icon nzType="search" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div #tb_Payroll></div>
+                </div>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
 </ng-container>

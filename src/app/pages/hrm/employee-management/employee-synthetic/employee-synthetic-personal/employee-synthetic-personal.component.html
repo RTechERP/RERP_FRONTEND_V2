@@ -1,40 +1,44 @@
 <ng-container class="w-100">
-  <div class="card h-100 border-0 rounded-0">
-    <div class="card-header bg-white p-2">
-      <form nz-form [formGroup]="searchForm">
-        <div class="d-flex flex-column flex-md-row gap-2 align-items-start align-items-md-center flex-wrap">
-          <div class="d-flex flex-wrap gap-1 align-items-center" style="flex: 1; min-width: 0;">
-            <div class="d-flex align-items-center">
-              <label class="mb-0 me-1 d-none d-lg-inline" style="font-size: 12px; white-space: nowrap;">Năm:</label>
-              <nz-input-number formControlName="year" [nzMin]="1900" [nzMax]="9999" [nzPrecision]="0" nzSize="small"
-                style="width: 120px; min-width: 100px;" (ngModelChange)="onYearChange($event)"></nz-input-number>
-            </div>
-            <div class="d-flex align-items-center">
-              <label class="mb-0 me-1 d-none d-lg-inline" style="font-size: 12px; white-space: nowrap;">Tháng:</label>
-              <nz-input-number formControlName="month" [nzMin]="1" [nzMax]="12" [nzPrecision]="0" nzSize="small"
-                style="width: 100px; min-width: 80px;" (ngModelChange)="onMonthChange($event)"></nz-input-number>
-            </div>
-            <div class="d-flex gap-1 align-items-center">
+    <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-2">
+            <form nz-form [formGroup]="searchForm">
+                <div class="d-flex flex-column flex-md-row gap-2 align-items-start align-items-md-center flex-wrap">
+                    <div class="d-flex flex-wrap gap-1 align-items-center" style="flex: 1; min-width: 0;">
+                        <div class="d-flex align-items-center">
+                            <label class="mb-0 me-1 d-none d-lg-inline"
+                                style="font-size: 12px; white-space: nowrap;">Năm:</label>
+                            <nz-input-number formControlName="year" [nzMin]="1900" [nzMax]="9999" [nzPrecision]="0"
+                                nzSize="small" style="width: 120px; min-width: 100px;"
+                                (ngModelChange)="onYearChange($event)"></nz-input-number>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <label class="mb-0 me-1 d-none d-lg-inline"
+                                style="font-size: 12px; white-space: nowrap;">Tháng:</label>
+                            <nz-input-number formControlName="month" [nzMin]="1" [nzMax]="12" [nzPrecision]="0"
+                                nzSize="small" style="width: 100px; min-width: 80px;"
+                                (ngModelChange)="onMonthChange($event)"></nz-input-number>
+                        </div>
+                        <div class="d-flex gap-1 align-items-center">
 
-              <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
-                <nz-icon nzType="search" />
-                <span class="d-none d-sm-inline">Tìm kiếm</span>
-              </button>
-            </div>
-          </div>
+                            <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                                <nz-icon nzType="search" />
+                                <span class="d-none d-sm-inline">Tìm kiếm</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectChange)="onTabChange($event.index ?? 0)">
+                <nz-tab nzTitle="TỔNG HỢP"></nz-tab>
+                <nz-tab nzTitle="VÂN TAY"></nz-tab>
+                <nz-tab nzTitle="CHẤM CÔNG"></nz-tab>
+                <nz-tab nzTitle="BẢNG LƯƠNG"></nz-tab>
+            </nz-tabset>
         </div>
-      </form>
-      <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectChange)="onTabChange($event.index ?? 0)">
-        <nz-tab nzTitle="TỔNG HỢP"></nz-tab>
-        <nz-tab nzTitle="VÂN TAY"></nz-tab>
-        <nz-tab nzTitle="CHẤM CÔNG"></nz-tab>
-        <nz-tab nzTitle="BẢNG LƯƠNG"></nz-tab>
-      </nz-tabset>
-    </div>
 
-    <div class="card-body p-0" style="position: relative">
-      <div *ngIf="isLoadTable">
-        <nz-spin [nzSpinning]="isLoadTable" nzSimple [style]="{
+        <div class="card-body p-0" style="position: relative">
+            <div *ngIf="isLoadTable">
+                <nz-spin [nzSpinning]="isLoadTable" nzSimple [style]="{
             position: 'absolute',
             top: '0',
             left: '0',
@@ -46,215 +50,268 @@
             alignItems: 'center',
             justifyContent: 'center'
           }"></nz-spin>
-      </div>
+            </div>
 
-      <!-- Tab: TỔNG HỢP (Summary) -->
-      <div [hidden]="selectedTabIndex !== 0" class="w-100">
-        <div #tb_summary class="w-100"></div>
-      </div>
+            <!-- Tab: TỔNG HỢP (Summary) -->
+            <div [hidden]="selectedTabIndex !== 0" class="w-100">
+                <div #tb_summary class="w-100"></div>
+            </div>
 
-      <!-- Tab: VÂN TAY (Fingerprint) -->
-      <div [hidden]="selectedTabIndex !== 1" class="w-100">
-        <div #tb_fingerprint class="w-100"></div>
-      </div>
+            <!-- Tab: VÂN TAY (Fingerprint) -->
+            <div [hidden]="selectedTabIndex !== 1" class="w-100">
+                <div #tb_fingerprint class="w-100"></div>
+            </div>
 
-      <!-- Tab: CHẤM CÔNG (Timekeeping) -->
-      <div [hidden]="selectedTabIndex !== 2" class="w-100">
-        <div #tb_timekeeping class="w-100"></div>
-        <div class="mt-2" style="height: 100px;" *ngIf="timekeepingSummary">
-          <label style="font-weight: 600; ">Tổng hợp</label>
-          <div class="table-responsive" style="height: 100px;">
-            <table class="table table-bordered table-sm">
-              <thead class="text-center bg-light">
-                <tr>
-                  <th style="min-width: 120px;">Công đi làm thực tế</th>
-                  <th style="min-width: 100px;">Công nghỉ lễ, tết</th>
-                  <th style="min-width: 100px;">Công nghỉ phép</th>
-                  <th style="min-width: 150px;">Công nghỉ việc riêng có lương</th>
-                  <th style="min-width: 80px;">Công WFH</th>
-                  <th style="min-width: 150px;">Tổng số công được hưởng</th>
-                  <th style="min-width: 150px;">Công nghỉ không hưởng lương</th>
-                  <th style="min-width: 80px;">Tổng</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayActual)}}</td>
-                  <td class="text-center">{{formatNumber(timekeepingSummary.TotalHoliday)}}</td>
-                  <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayOnleave2)}}</td>
-                  <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayOnleave3)}}</td>
-                  <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayWFH)}}</td>
-                  <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayGet)}}</td>
-                  <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayOnleave1)}}</td>
-                  <td class="text-center">{{formatNumber(timekeepingSummary.TotalDay)}}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+            <!-- Tab: CHẤM CÔNG (Timekeeping) -->
+            <div [hidden]="selectedTabIndex !== 2" class="w-100">
+                <div #tb_timekeeping class="w-100"></div>
+                <div class="mt-2" style="height: 100px;" *ngIf="timekeepingSummary">
+                    <label style="font-weight: 600; ">Tổng hợp</label>
+                    <div class="table-responsive" style="height: 100px;">
+                        <table class="table table-bordered table-sm">
+                            <thead class="text-center bg-light">
+                                <tr>
+                                    <th style="min-width: 120px;">Công đi làm thực tế</th>
+                                    <th style="min-width: 100px;">Công nghỉ lễ, tết</th>
+                                    <th style="min-width: 100px;">Công nghỉ phép</th>
+                                    <th style="min-width: 150px;">Công nghỉ việc riêng có lương</th>
+                                    <th style="min-width: 80px;">Công WFH</th>
+                                    <th style="min-width: 150px;">Tổng số công được hưởng</th>
+                                    <th style="min-width: 150px;">Công nghỉ không hưởng lương</th>
+                                    <th style="min-width: 80px;">Tổng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayActual)}}</td>
+                                    <td class="text-center">{{formatNumber(timekeepingSummary.TotalHoliday)}}</td>
+                                    <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayOnleave2)}}</td>
+                                    <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayOnleave3)}}</td>
+                                    <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayWFH)}}</td>
+                                    <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayGet)}}</td>
+                                    <td class="text-center">{{formatNumber(timekeepingSummary.TotalDayOnleave1)}}</td>
+                                    <td class="text-center">{{formatNumber(timekeepingSummary.TotalDay)}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: BẢNG LƯƠNG (Payroll) -->
+            <div [hidden]="selectedTabIndex !== 3" class="w-100 payroll-tab-container">
+                <div id="group_btn_action_payroll" class="p-2" style="border:none !important"
+                    *ngIf="payrollData && payrollData.length > 0">
+                    <button nz-button nzType="default" nzSize="small" class="me-1" (click)="onConfirmPayroll()">
+                        <span nz-icon nzType="check"></span> Confirm
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" nzDanger (click)="onCancelPayroll()">
+                        <span nz-icon nzType="close"></span> Cancel
+                    </button>
+                </div>
+                <div class="table-responsive-xl">
+                    <table class="table table-bordered table-sm m-0" id="tbl_employee_payroll"
+                        [class.payroll-confirmed]="payrollData && payrollData.length > 0 && payrollData[0]?.Sign">
+                        <thead class="text-center">
+                            <tr>
+                                <th colspan="6" class="group-standard">CÔNG TIÊU CHUẨN (F4)</th>
+                                <th class="group-standard" id="total_workday_standard">{{totalWorkdayStandard}}</th>
+                                <th colspan="48"></th>
+                            </tr>
+                            <tr>
+                                <th rowspan="3" class="group-basic">STT</th>
+                                <th rowspan="3" class="group-basic">CÔNG TY</th>
+                                <th rowspan="3" class="group-basic">MÃ NV</th>
+                                <th rowspan="3" class="group-basic">HỌ VÀ TÊN</th>
+                                <th rowspan="3" class="group-basic">CHỨC VỤ</th>
+                                <th rowspan="3" class="group-basic">TRẠNG THÁI HỢP ĐỒNG</th>
+                                <th rowspan="3" class="group-basic">NGÀY VÀO</th>
+
+                                <th colspan="4" class="group-basic">THU THẬP TIÊU CHUẨN</th>
+                                <th colspan="7" class="group-overtime">LÀM THÊM</th>
+                                <th colspan="5" class="group-allowance">PHỤ CẤP</th>
+                                <th colspan="6" class="group-bonus">CÁC KHOẢN CỘNG KHÁC</th>
+                                <th rowspan="3" class="group-bonus">TỔNG THU NHẬP TÍNH THUẾ</th>
+                                <th colspan="10" class="group-deduction">CÁC KHOẢN PHẢI TRỪ</th>
+                                <th colspan="9" class="group-deduction">TỔNG THU NHẬP TÍNH THUẾ</th>
+                                <th rowspan="3" class="group-actual">THỰC LĨNH</th>
+                                <th rowspan="3" class="group-note">GHI CHÚ</th>
+                            </tr>
+                            <tr>
+                                <th rowspan="2" class="group-basic">Thu nhập tiêu chuẩn tham chiếu</th>
+                                <th colspan="2" class="group-basic">Thu nhập thực lĩnh</th>
+                                <th rowspan="2" class="group-basic">Đơn giá/giờ</th>
+                                <th colspan="2" class="group-overtime">Làm thêm ngày thường</th>
+                                <th colspan="2" class="group-overtime">Làm thêm cuối tuần</th>
+                                <th colspan="2" class="group-overtime">Làm thêm ngày lễ, tết</th>
+                                <th rowspan="2" class="group-overtime">Tổng tiền làm thêm</th>
+                                <th colspan="2" class="group-allowance">PCCC</th>
+                                <th rowspan="2" class="group-allowance">PC cơm ca sau 20H/ theo loại CT</th>
+                                <th rowspan="2" class="group-allowance">PC đi làm trước 7H15</th>
+                                <th rowspan="2" class="group-allowance">Tổng tiền phụ cấp</th>
+                                <th rowspan="2" class="group-bonus">Công tác phí</th>
+                                <th rowspan="2" class="group-bonus">Làm đêm</th>
+                                <th rowspan="2" class="group-bonus">Chi phí phương tiện công tác</th>
+                                <th rowspan="2" class="group-bonus">Thưởng KPIs/doanh số</th>
+                                <th rowspan="2" class="group-bonus">Khác</th>
+                                <th rowspan="2" class="group-bonus">Tổng cộng</th>
+                                <th colspan="2" class="group-deduction">BHXH, BHYT, BHTN</th>
+                                <th rowspan="2" class="group-deduction">Quỹ BĐS</th>
+                                <th rowspan="2" class="group-deduction">Ứng lương</th>
+                                <th rowspan="2" class="group-deduction">Thu hộ phòng ban</th>
+                                <th rowspan="2" class="group-deduction">Gửi xe ô tô</th>
+                                <th rowspan="2" class="group-deduction">5s</th>
+                                <th rowspan="2" class="group-deduction">Cơm ca tại văn phòng</th>
+                                <th rowspan="2" class="group-deduction">Khác</th>
+                                <th rowspan="2" class="group-deduction">Tổng các khoản phải trừ</th>
+                                <th colspan="6" class="group-tax-deduction">CÁC KHOẢN GIẢM TRỪ THUẾ TNCN</th>
+
+                                <th rowspan="2" class="group-tax-deduction">Tổng các khoản giảm trừ thuế TNCN</th>
+                                <th rowspan="2" class="group-tax-deduction">Thu thập tính thuế</th>
+                                <th rowspan="2" class="group-tax-deduction">Khấu trừ Thuế TNCN </th>
+
+                            </tr>
+                            <tr style="font-style: italic;">
+                                <th style="font-weight: 400;" class="group-basic">Công</th>
+                                <th style="font-weight: 400;" class="group-basic">Lương</th>
+                                <th style="font-weight: 400;" class="group-overtime">Số giờ</th>
+                                <th style="font-weight: 400;" class="group-overtime">Thành tiền</th>
+                                <th style="font-weight: 400;" class="group-overtime">Số giờ</th>
+                                <th style="font-weight: 400;" class="group-overtime">Thành tiền</th>
+                                <th style="font-weight: 400;" class="group-overtime">Số giờ</th>
+                                <th style="font-weight: 400;" class="group-overtime">Thành tiền</th>
+                                <th style="font-weight: 400;" class="group-allowance">PCCC tham chiếu</th>
+                                <th style="font-weight: 400;" class="group-allowance">PCCC thực lĩnh</th>
+                                <th style="font-weight: 400;" class="group-deduction">Mức đóng</th>
+                                <th style="font-weight: 400;" class="group-deduction">Phải thu BHXH</th>
+
+                                <th style="font-weight: 400;" class="group-tax-deduction">Lương BHXH (10.5%)</th>
+                                <th style="font-weight: 400;" class="group-tax-deduction">Lương làm thêm</th>
+                                <th style="font-weight: 400;" class="group-tax-deduction">PC cơm ca</th>
+                                <th style="font-weight: 400;" class="group-tax-deduction">PC điện thoại</th>
+                                <th style="font-weight: 400;" class="group-tax-deduction">Giảm trừ bản thân</th>
+                                <th style="font-weight: 400;" class="group-tax-deduction">Giảm trừ người phụ thuộc</th>
+
+                            </tr>
+                            <!-- <tr>
+                                
+                            </tr> -->
+                            <tr class="font-italic text-danger">
+                                <th class="group-basic">(1)</th>
+                                <th class="group-basic"></th>
+                                <th class="group-basic"></th>
+                                <th class="group-basic">(2)</th>
+                                <th class="group-basic">(3)</th>
+                                <th class="group-basic"></th>
+                                <th class="group-basic"></th>
+                                <th class="group-basic">(4)</th>
+                                <th class="group-basic">(5)=Công thực tế + Phép</th>
+                                <th class="group-basic">(6)=(4)/F4*(5)</th>
+                                <th class="group-overtime">(7)=(4)/F4/8</th>
+                                <th class="group-overtime">(8)</th>
+                                <th class="group-overtime">(9)=(8)*(7)*1,5</th>
+                                <th class="group-overtime">(10)</th>
+                                <th class="group-overtime">(11)=(10)*(7)*2</th>
+                                <th class="group-overtime">(12)</th>
+                                <th class="group-overtime">(13)=(12)*(7)*3</th>
+                                <th class="group-allowance">(14)=(9)+(11)+(13)</th>
+                                <th class="group-allowance">(15)</th>
+                                <th class="group-allowance">(16)</th>
+                                <th class="group-allowance">(17)</th>
+                                <th class="group-allowance">(18)</th>
+                                <th class="group-allowance">(19)=(16)+(17)+(18)</th>
+                                <th class="group-bonus">(20)</th>
+                                <th class="group-bonus">(21)=Số giờ làm đêm*0,4 + Số giờ làm đêm cuối tuần*2.8</th>
+                                <th class="group-bonus">(22)</th>
+                                <th class="group-bonus">(23)</th>
+                                <th class="group-bonus">(24)</th>
+                                <th class="group-bonus">(25)=(20)+(21)+(22)+(23)+(24)</th>
+                                <th class="group-bonus">(26)=(6)+(14)+(19)+(25)</th>
+                                <th class="group-deduction">(29)</th>
+                                <th class="group-deduction">(30) = 10,5%*(27)</th>
+                                <th class="group-deduction">(31)=1%*(27)</th>
+                                <th class="group-deduction">(32)</th>
+                                <th class="group-deduction">(33)</th>
+                                <th class="group-deduction">(34)</th>
+                                <th class="group-deduction">(35)</th>
+                                <th class="group-deduction">(36)</th>
+                                <th class="group-deduction">(37)</th>
+                                <th class="group-deduction">(38)=(31)+(32)+(33)+(34)+(35)+(36)+(37)</th>
+
+                                <th class="group-tax-deduction">(39)</th>
+                                <th class="group-tax-deduction">(40)=(14)+(21)</th>
+                                <th class="group-tax-deduction">(41)</th>
+                                <th class="group-tax-deduction">(42)</th>
+                                <th class="group-tax-deduction">(43)</th>
+                                <th class="group-tax-deduction">(44)</th>
+                                <th class="group-tax-deduction">(45)=(39)+(40)+(41)+(42)+(43)+(44)</th>
+                                <th class="group-tax-deduction">(46)=(26)-(30)-(44)</th>
+                                <th class="group-tax-deduction">(47)</th>
+
+                                <th class="group-actual">(48)=(28)-(30)-(38)-(45)</th>
+                                <th class="group-note">(49)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody_payroll">
+                            <tr *ngFor="let item of payrollData; let i = index" [class.bg-success]="item.Sign">
+                                <td class="text-center">{{item.STT || (i + 1)}}</td>
+                                <td class="text-center">{{item.TaxCompanyName}}</td>
+                                <td class="text-left">{{item.Code || ''}}</td>
+                                <td class="text-left">{{item.FullName || ''}}</td>
+                                <td class="text-left">{{item.PositionName || ''}}</td>
+                                <td class="text-left">{{item.StatusContract || ''}}</td>
+                                <td class="text-center">{{ item.StartWorking | date:'dd/MM/yyyy' }}</td>
+                                <td class="text-right">{{formatNumber(item.BasicSalary)}}</td>
+                                <td class="text-center">{{formatNumber(item.TotalMerit)}}</td>
+                                <td class="text-right">{{formatNumber(item.TotalSalaryByDay)}}</td>
+                                <td class="text-right">{{formatNumber(item.SalaryOneHour)}}</td>
+                                <td class="text-center">{{formatNumber(item.OT_Hour_WD)}}</td>
+                                <td class="text-right">{{formatNumber(item.OT_Money_WD)}}</td>
+                                <td class="text-center">{{formatNumber(item.OT_Hour_WK)}}</td>
+                                <td class="text-right">{{formatNumber(item.OT_Money_WK)}}</td>
+                                <td class="text-center">{{formatNumber(item.OT_Hour_HD)}}</td>
+                                <td class="text-right">{{formatNumber(item.OT_Money_HD)}}</td>
+                                <td class="text-right">{{formatNumber(item.OT_TotalSalary)}}</td>
+                                <td class="text-right">{{formatNumber(item.ReferenceIndustry)}}</td>
+                                <td class="text-right">{{formatNumber(item.RealIndustry)}}</td>
+                                <td class="text-right">{{formatNumber(item.AllowanceMeal)}}</td>
+                                <td class="text-right">{{formatNumber(item.Allowance_OT_Early)}}</td>
+                                <td class="text-right">{{formatNumber(item.TotalAllowance)}}</td>
+                                <td class="text-right">{{formatNumber(item.BussinessMoney)}}</td>
+                                <td class="text-right">{{formatNumber(item.NightShiftMoney)}}</td>
+                                <td class="text-right">{{formatNumber(item.CostVehicleBussiness)}}</td>
+                                <td class="text-right">{{formatNumber(item.Bonus)}}</td>
+                                <td class="text-right">{{formatNumber(item.Other)}}</td>
+                                <td class="text-right">{{formatNumber(item.TotalBonus)}}</td>
+                                <td class="text-right">{{formatNumber(item.RealSalary)}}</td>
+                                <td class="text-right">{{formatNumber(item.SocialInsurance)}}</td>
+                                <td class="text-right">{{formatNumber(item.Insurances)}}</td>
+                                <td class="text-right">{{formatNumber(item.UnionFees)}}</td>
+                                <td class="text-right">{{formatNumber(item.AdvancePayment)}}</td>
+                                <td class="text-right">{{formatNumber(item.DepartmentalFees)}}</td>
+                                <td class="text-right">{{formatNumber(item.ParkingMoney)}}</td>
+                                <td class="text-right">{{formatNumber(item.Punish5S)}}</td>
+                                <td class="text-right">{{formatNumber(item.MealUse)}}</td>
+                                <td class="text-right">{{formatNumber(item.OtherDeduction)}}</td>
+                                <td class="text-right">{{formatNumber(item.TotalDeduction)}}</td>
+
+                                <td class="text-right">{{formatNumber(item.Insurances)}}</td>
+                                <td class="text-right">{{formatNumber(item.TaxSalaryOT)}}</td>
+                                <td class="text-right">{{formatNumber(item.TaxSalaryMeal)}}</td>
+                                <td class="text-right">{{formatNumber(item.TaxSalaryPhone)}}</td>
+                                <td class="text-right">{{formatNumber(item.TaxPersonalDeduction)}}</td>
+                                <td class="text-right">{{formatNumber(item.TaxDependentsDeduction)}}</td>
+                                <td class="text-right">{{formatNumber(item.TotalTaxDeduction)}}</td>
+                                <td class="text-right">{{formatNumber(item.TaxAbleIncome)}}</td>
+                                <td class="text-right">{{formatNumber(item.TaxDeduction)}}</td>
+
+                                <td class="text-right">{{formatNumber(item.ActualAmountReceived)}}</td>
+                                <td class="text-left" style="white-space: pre;">{{item.Note || ''}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <!-- Tab: BẢNG LƯƠNG (Payroll) -->
-      <div [hidden]="selectedTabIndex !== 3" class="w-100 payroll-tab-container">
-        <div id="group_btn_action_payroll" class="p-2" style="border:none !important"
-          *ngIf="payrollData && payrollData.length > 0">
-          <button nz-button nzType="default" nzSize="small" class="me-1" (click)="onConfirmPayroll()">
-            <span nz-icon nzType="check"></span> Confirm
-          </button>
-          <button nz-button nzType="default" nzSize="small" nzDanger (click)="onCancelPayroll()">
-            <span nz-icon nzType="close"></span> Cancel
-          </button>
-        </div>
-        <div class="table-responsive-xl">
-          <table class="table table-bordered table-sm m-0" id="tbl_employee_payroll"
-            [class.payroll-confirmed]="payrollData && payrollData.length > 0 && payrollData[0]?.Sign">
-            <thead class="text-center">
-              <tr>
-                <th colspan="6" class="group-standard">CÔNG TIÊU CHUẨN (F4)</th>
-                <th class="group-standard" id="total_workday_standard">{{totalWorkdayStandard}}</th>
-                <th colspan="35"></th>
-              </tr>
-              <tr>
-                <th rowspan="3" class="group-basic">STT</th>
-                <th rowspan="3" class="group-basic">HỌ TÊN</th>
-                <th rowspan="3" class="group-basic">CHỨC VỤ</th>
-                <th colspan="4" class="group-basic">LƯƠNG CƠ BẢN</th>
-                <th colspan="7" class="group-overtime">LÀM THÊM</th>
-                <th colspan="5" class="group-allowance">PHỤ CẤP</th>
-                <th colspan="6" class="group-bonus">CÁC KHOẢN CỘNG KHÁC</th>
-                <th rowspan="3" class="group-bonus">TỔNG THU NHẬP</th>
-                <th colspan="10" class="group-deduction">CÁC KHOẢN PHẢI TRỪ</th>
-                <th rowspan="3" class="group-actual">Thực lĩnh</th>
-                <th rowspan="3" class="group-note">Ghi chú</th>
-              </tr>
-              <tr>
-                <th rowspan="2" class="group-basic">Lương cơ bản tham chiếu</th>
-                <th colspan="2" class="group-basic">Lương cơ bản thực lĩnh</th>
-                <th rowspan="2" class="group-basic">Đơn giá tiền công/giờ</th>
-                <th colspan="2" class="group-overtime">Làm thêm ngày thường</th>
-                <th colspan="2" class="group-overtime">Làm thêm cuối tuần</th>
-                <th colspan="2" class="group-overtime">Làm thêm ngày lễ, tết</th>
-                <th rowspan="2" class="group-overtime">Tổng tiền làm thêm</th>
-                <th colspan="2" class="group-allowance">PCCC</th>
-                <th rowspan="2" class="group-allowance">PC ăn cơm</th>
-                <th rowspan="2" class="group-allowance">PC đi làm trước 7H15</th>
-                <th rowspan="2" class="group-allowance">Tổng tiền phụ cấp</th>
-                <th rowspan="2" class="group-bonus">Tiền công tác phí</th>
-                <th rowspan="2" class="group-bonus">Tiền công làm đêm</th>
-                <th rowspan="2" class="group-bonus">Chi phí phương tiện công tác</th>
-                <th rowspan="2" class="group-bonus">Thưởng KPIs/doanh số</th>
-                <th rowspan="2" class="group-bonus">Khác</th>
-                <th rowspan="2" class="group-bonus">Tổng cộng</th>
-                <th colspan="2" class="group-deduction">BHXH, BHYT, BHTN</th>
-                <th rowspan="2" class="group-deduction">Công đoàn</th>
-                <th rowspan="2" class="group-deduction">Ứng lương</th>
-                <th rowspan="2" class="group-deduction">Thu hộ phòng ban</th>
-                <th rowspan="2" class="group-deduction">Gửi xe ô tô</th>
-                <th rowspan="2" class="group-deduction">Phạt 5s</th>
-                <th rowspan="2" class="group-deduction">Cơm ca đã ăn tại công ty</th>
-                <th rowspan="2" class="group-deduction">Khác</th>
-                <th rowspan="2" class="group-deduction">Tổng các khoản phải trừ</th>
-              </tr>
-              <tr style="font-style: italic;">
-                <th style="font-weight: 400;" class="group-basic">Công</th>
-                <th style="font-weight: 400;" class="group-basic">Lương</th>
-                <th style="font-weight: 400;" class="group-overtime">Số giờ</th>
-                <th style="font-weight: 400;" class="group-overtime">Thành tiền</th>
-                <th style="font-weight: 400;" class="group-overtime">Số giờ</th>
-                <th style="font-weight: 400;" class="group-overtime">Thành tiền</th>
-                <th style="font-weight: 400;" class="group-overtime">Số giờ</th>
-                <th style="font-weight: 400;" class="group-overtime">Thành tiền</th>
-                <th style="font-weight: 400;" class="group-allowance">PCCC tham chiếu</th>
-                <th style="font-weight: 400;" class="group-allowance">PCCC thực lĩnh</th>
-                <th style="font-weight: 400;" class="group-deduction">Mức đóng</th>
-                <th style="font-weight: 400;" class="group-deduction">Phải thu BHXH</th>
-              </tr>
-              <tr class="font-italic text-danger">
-                <th class="group-basic">(1)</th>
-                <th class="group-basic">(2)</th>
-                <th class="group-basic">(3)</th>
-                <th class="group-basic">(4)</th>
-                <th class="group-basic">(5) = Công thực tế + Phép</th>
-                <th class="group-basic">(6) = (4) / F4 * (5)</th>
-                <th class="group-basic">(7) = (4) / F4 / 8</th>
-                <th class="group-overtime">(8)</th>
-                <th class="group-overtime">(9) = (8) * (7) * 1,5</th>
-                <th class="group-overtime">(10)</th>
-                <th class="group-overtime">(11) = (10) * (7) * 2</th>
-                <th class="group-overtime">(12)</th>
-                <th class="group-overtime">(13) = (12) * (7) * 3</th>
-                <th class="group-overtime">(14) = (9) + (11) + (13)</th>
-                <th class="group-allowance">(15)</th>
-                <th class="group-allowance">(16)</th>
-                <th class="group-allowance">(17)</th>
-                <th class="group-allowance">(18)</th>
-                <th class="group-allowance">(19) = (16) + (17) + (18)</th>
-                <th class="group-bonus">(20)</th>
-                <th class="group-bonus">(21) = Số giờ làm đêm * 0,4</th>
-                <th class="group-bonus">(22)</th>
-                <th class="group-bonus">(23)</th>
-                <th class="group-bonus">(24)</th>
-                <th class="group-bonus">(25) = (20) +(21) + (22) + (23) + (24)</th>
-                <th class="group-bonus">(26) = (6) + (14) + (19) + (25)</th>
-                <th class="group-deduction">(27)</th>
-                <th class="group-deduction">(28) = 10,5% * (27)</th>
-                <th class="group-deduction">(29) = 1% * (27)</th>
-                <th class="group-deduction">(30)</th>
-                <th class="group-deduction">(31)</th>
-                <th class="group-deduction">(32)</th>
-                <th class="group-deduction">(33)</th>
-                <th class="group-deduction">(34)</th>
-                <th class="group-deduction">(35)</th>
-                <th class="group-deduction">(36) = (28) + (29) + (30) + (31) + (32) + (33) + (34) + (35)</th>
-                <th class="group-actual">(37) = (26) - (36)</th>
-                <th class="group-note">(38)</th>
-              </tr>
-            </thead>
-            <tbody id="tbody_payroll">
-              <tr *ngFor="let item of payrollData; let i = index" [class.bg-success]="item.Sign">
-                <td class="text-center">{{item.STT || (i + 1)}}</td>
-                <td class="text-left">{{item.FullName || ''}}</td>
-                <td class="text-left">{{item.PositionName || ''}}</td>
-                <td class="text-right">{{formatNumber(item.BasicSalary)}}</td>
-                <td class="text-center">{{formatNumber(item.TotalMerit)}}</td>
-                <td class="text-right">{{formatNumber(item.TotalSalaryByDay)}}</td>
-                <td class="text-right">{{formatNumber(item.SalaryOneHour)}}</td>
-                <td class="text-center">{{formatNumber(item.OT_Hour_WD)}}</td>
-                <td class="text-right">{{formatNumber(item.OT_Money_WD)}}</td>
-                <td class="text-center">{{formatNumber(item.OT_Hour_WK)}}</td>
-                <td class="text-right">{{formatNumber(item.OT_Money_WK)}}</td>
-                <td class="text-center">{{formatNumber(item.OT_Hour_HD)}}</td>
-                <td class="text-right">{{formatNumber(item.OT_Money_HD)}}</td>
-                <td class="text-right">{{formatNumber(item.OT_TotalSalary)}}</td>
-                <td class="text-right">{{formatNumber(item.ReferenceIndustry)}}</td>
-                <td class="text-right">{{formatNumber(item.RealIndustry)}}</td>
-                <td class="text-right">{{formatNumber(item.AllowanceMeal)}}</td>
-                <td class="text-right">{{formatNumber(item.Allowance_OT_Early)}}</td>
-                <td class="text-right">{{formatNumber(item.TotalAllowance)}}</td>
-                <td class="text-right">{{formatNumber(item.BussinessMoney)}}</td>
-                <td class="text-right">{{formatNumber(item.NightShiftMoney)}}</td>
-                <td class="text-right">{{formatNumber(item.CostVehicleBussiness)}}</td>
-                <td class="text-right">{{formatNumber(item.Bonus)}}</td>
-                <td class="text-right">{{formatNumber(item.Other)}}</td>
-                <td class="text-right">{{formatNumber(item.TotalBonus)}}</td>
-                <td class="text-right">{{formatNumber(item.RealSalary)}}</td>
-                <td class="text-right">{{formatNumber(item.SocialInsurance)}}</td>
-                <td class="text-right">{{formatNumber(item.Insurances)}}</td>
-                <td class="text-right">{{formatNumber(item.UnionFees)}}</td>
-                <td class="text-right">{{formatNumber(item.AdvancePayment)}}</td>
-                <td class="text-right">{{formatNumber(item.DepartmentalFees)}}</td>
-                <td class="text-right">{{formatNumber(item.ParkingMoney)}}</td>
-                <td class="text-right">{{formatNumber(item.Punish5S)}}</td>
-                <td class="text-right">{{formatNumber(item.MealUse)}}</td>
-                <td class="text-right">{{formatNumber(item.OtherDeduction)}}</td>
-                <td class="text-right">{{formatNumber(item.TotalDeduction)}}</td>
-                <td class="text-right">{{formatNumber(item.ActualAmountReceived)}}</td>
-                <td class="text-left" style="white-space: pre;">{{item.Note || ''}}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
-  </div>
 </ng-container>

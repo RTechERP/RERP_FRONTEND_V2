@@ -379,6 +379,11 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     'ten nhom': 'ProductGroupName',
     'ma nhom': 'ProductGroupNo',
     'vi tri': 'LocationName',
+    'vi tri (hop)': 'LocationName',
+    'ma vi tri': 'LocationCode',
+    'ma vi tri (hop)': 'LocationCode',
+    locationcode: 'LocationCode',
+    locationname: 'LocationName',
     kho: 'WarehouseID',
     // Đơn vị / Hãng
     // 'unitname': 'UnitName',
@@ -490,14 +495,14 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           const col = fieldToCol[field];
           if (!col) return '';
           const cell = row.getCell(col);
-          
+
           // Kiểm tra text trước - nếu text rỗng hoặc null/undefined thì trả về rỗng
           // Không lấy formula nếu text rỗng
           const cellText = cell.text;
           if (cellText === null || cellText === undefined || cellText.trim() === '') {
             return '';
           }
-          
+
           // Nếu có text thì trả về text (đây là giá trị hiển thị thực tế trong Excel)
           return cellText.trim();
         };
@@ -571,6 +576,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           ProductGroupName: getValueByField('ProductGroupName'),
           ProductGroupNo: getValueByField('ProductGroupNo'),
           ProductCodeRTC: getValueByField('ProductCodeRTC'),
+          LocationCode: getValueByField('LocationCode'),
           LocationName: getValueByField('LocationName'),
           FirmName: getValueByField('FirmName'),
           Serial: getValueByField('Serial'),
@@ -713,7 +719,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         PartNumber: row.PartNumber || '',
         CreatedBy: row.CreatedBy || '',
         LocationImg: row.LocationImg || '',
-        ProductCodeRTC: row.ProductCodeRTC || '',
+        ProductCodeRTC: null, // Không lấy từ Excel
         BorrowCustomer: row.BorrowCustomer === true || row.BorrowCustomer === '1',
         SLKiemKe: this.toNumber(row.SLKiemKe),
         ProductLocationID: 0, // Backend sẽ tự gán sau khi tìm/tạo ProductLocation
@@ -743,7 +749,6 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         Status: 0,
         Size: row.Size || '',
         CodeHCM: row.CodeHCM || '',
-        IsDeleted: false,
         IsDelete: false,
         LocationName: row.LocationName || '',
         LocationCode: row.LocationCode || '',
@@ -759,10 +764,17 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     console.log('payload:', payload);
     this.saveSubscription = this.tbProductRtcService.saveDataExcel(payload).subscribe({
       next: (res: any) => {
+        // Lưu lại ID notification trước khi reset
+        const notificationIdToRemove = this.savingNotificationId;
+
+        // Reset state trước
+        this.isSaving = false;
+        this.saveSubscription = null;
+        this.savingNotificationId = null;
+
         // Đóng notification đang lưu nếu có
-        if (this.savingNotificationId) {
-          this.notification.remove(this.savingNotificationId);
-          this.savingNotificationId = null;
+        if (notificationIdToRemove) {
+          this.notification.remove(notificationIdToRemove);
         }
 
         // Hiển thị chính xác message từ API
@@ -772,10 +784,8 @@ export class TbProductRtcImportExcelComponent implements OnInit {
             'Thông báo',
             successMessage
           );
-          // Chỉ đóng modal nếu modal vẫn còn mở (chưa đóng trong lúc đang lưu)
-          if (!this.savingNotificationId) {
-            this.closeExcelModal();
-          }
+          // Đóng modal sau khi lưu thành công
+          this.modalService.dismissAll(true);
         } else {
           this.notification.warning(
             'Thông báo',
@@ -789,14 +799,19 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         } else {
           this.displayText = 'Hoàn tất';
         }
-        this.isSaving = false;
-        this.saveSubscription = null;
       },
       error: (err) => {
+        // Lưu lại ID notification trước khi reset
+        const notificationIdToRemove = this.savingNotificationId;
+
+        // Reset state trước
+        this.isSaving = false;
+        this.saveSubscription = null;
+        this.savingNotificationId = null;
+
         // Đóng notification đang lưu nếu có
-        if (this.savingNotificationId) {
-          this.notification.remove(this.savingNotificationId);
-          this.savingNotificationId = null;
+        if (notificationIdToRemove) {
+          this.notification.remove(notificationIdToRemove);
         }
 
         const errorMessage = err.error?.message || 'Không thể lưu dữ liệu Excel!';
@@ -807,12 +822,6 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         console.error('Lỗi API save-data-excel:', err);
         this.displayProgress = 0;
         this.displayText = `0/${validDataToSave.length} bản ghi`;
-        this.isSaving = false;
-        this.saveSubscription = null;
-      },
-      complete: () => {
-        this.isSaving = false;
-        this.saveSubscription = null;
       },
     });
   }

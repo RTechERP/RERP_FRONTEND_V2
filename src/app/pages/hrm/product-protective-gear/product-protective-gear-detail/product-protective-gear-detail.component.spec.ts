@@ -3,21 +3,21 @@ import {  ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 
-import { ProductLocationTechnicalDetailComponent } from './product-location-technical-detail.component';
+import { ProductProtectiveGearDetailComponent } from './product-protective-gear-detail.component';
 
-describe('ProductLocationTechnicalDetailComponent', () => {
-  let component: ProductLocationTechnicalDetailComponent;
-  let fixture: ComponentFixture<ProductLocationTechnicalDetailComponent>;
+describe('ProductProtectiveGearDetailComponent', () => {
+  let component: ProductProtectiveGearDetailComponent;
+  let fixture: ComponentFixture<ProductProtectiveGearDetailComponent>;
 
   beforeEach(async() => {
     TestBed.configureTestingModule({
-      declarations: [ ProductLocationTechnicalDetailComponent ]
+      declarations: [ ProductProtectiveGearDetailComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ProductLocationTechnicalDetailComponent);
+    fixture = TestBed.createComponent(ProductProtectiveGearDetailComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

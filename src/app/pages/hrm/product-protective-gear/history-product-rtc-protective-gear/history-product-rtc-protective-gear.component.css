@@ -1,0 +1,13 @@
+::ng-deep div[id^="historyProductRtcGrid-"] {
+       height: 90vh !important;
+}
+
+/* Compact form spacing */
+.compact-form nz-form-item {
+       margin-bottom: 4px !important;
+}
+
+.compact-form nz-form-label {
+       padding-bottom: 0px !important;
+       line-height: 1.2 !important;
+}

@@ -1,0 +1,6 @@
+::ng-deep #gridProductRTC{
+    height: 89vh !important;
+}
+::ng-deep #gridProductGroup{
+    height: 89vh !important;
+}

@@ -214,7 +214,14 @@ import { NewsletterTypeComponent } from './pages/old/newsletter/newsletter/newsl
 import { ProjectPartlistPriceRequestOldComponent } from './pages/purchase/project-partlist-price-request-old/project-partlist-price-request-old.component';
 import { MeetingMinuteSlickGridComponent } from './pages/meeting-minute-slick-grid/meeting-minute-slick-grid.component';
 import { DocumentSaleAdminComponent } from './pages/hrm/document/document-sale-admin/document-sale-admin.component';
-import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
+import { ProductProtectiveGearComponent } from './pages/hrm/product-protective-gear/product-protective-gear/product-protective-gear.component';
+import { InventoryDemoProtectiveGearComponent } from './pages/hrm/product-protective-gear/inventory-demo-protective-gear/inventory-demo-protective-gear.component';
+import { ProductLocationTechComponent } from './pages/hrm/product-protective-gear/product-location-tech/product-location-tech.component';
+import { BillImportTechnicalProtectiveGearComponent } from './pages/hrm/product-protective-gear/bill-import-technical-protective-gear/bill-import-technical-protective-gear.component';
+import { BillExportTechnicalProtectiveGearComponent } from './pages/hrm/product-protective-gear/bill-export-technical-protective-gear/bill-export-technical-protective-gear.component';
+import { HistoryProductRtcProtectiveGearComponent } from './pages/hrm/product-protective-gear/history-product-rtc-protective-gear/history-product-rtc-protective-gear.component';
+import { HistoryProductRtcProtectiveGearNewComponent } from './pages/hrm/product-protective-gear/history-product-rtc-protective-gear-new/history-product-rtc-protective-gear-new.component';
+// import { CustomerSlickgridComponent } from './pages/hrm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
         path: '',
@@ -511,7 +518,7 @@ export const routes: Routes = [
             { path: 'pokh-history-hn', component: PokhHistoryComponent, canActivate: [authGuard] },
             { path: 'plan-week-hn', component: PlanWeekComponent, canActivate: [authGuard] },
             { path: 'follow-project-base-hn', component: FollowProjectBaseComponent, canActivate: [authGuard] },
-            { path: 'customer-sale-hn', component: CustomerSlickgridComponent, canActivate: [authGuard] },
+            // { path: 'customer-sale-hn', component: CustomerSlickgridComponent, canActivate: [authGuard] },
 
 
             //KPI
@@ -932,8 +939,14 @@ export const routes: Routes = [
             { path: 'newsletter', component: NewsletterComponent, canActivate: [authGuard] },
             { path: 'newsletter-type', component: NewsletterTypeComponent, canActivate: [authGuard] },
             { path: 'document-sale-admin', component: DocumentSaleAdminComponent, canActivate: [authGuard] },
-
-
-        ],
+            // Trung
+            { path: 'product-protective-gear', component: ProductProtectiveGearComponent, canActivate: [authGuard] },
+            { path: 'inventory-demo-protective-gear', component: InventoryDemoProtectiveGearComponent, canActivate: [authGuard] },
+            { path: 'product-location-tech', component: ProductLocationTechComponent, canActivate: [authGuard] },
+            { path: 'bill-import-tech-protective-gear', component: BillImportTechnicalProtectiveGearComponent, canActivate: [authGuard] },
+            { path: 'bill-export-tech-protective-gear', component: BillExportTechnicalProtectiveGearComponent, canActivate: [authGuard] },
+            { path: 'history-product-rtc-protective-gear', component: HistoryProductRtcProtectiveGearComponent, canActivate: [authGuard] },
+            { path: 'history-product-rtc-protective-gear-new', component: HistoryProductRtcProtectiveGearNewComponent, canActivate: [authGuard] }
+        ],  
     },
 ];

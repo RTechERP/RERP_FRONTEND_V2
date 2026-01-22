@@ -1,0 +1,183 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0" *ngIf="!isEmbedded">
+  <h6 class="modal-title text-white">Chi tiết phiếu nhập</h6>
+  <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+<div class="modal-body p-2 flex-grow-1 overflow-visible" style="overflow-y: unset;">
+
+
+  <!-- Đổi sang vertical: label nằm trên input -->
+  <form nz-form [nzLayout]="'vertical'" [nzLabelAlign]="'left'" class="mt-2" [formGroup]="validateForm">
+    <!-- Hàng 1: 4 cột (Số phiếu, Trạng thái, Loại kho, Kho) -->
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="6">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" nzRequired>Số phiếu</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [formControlName]="billImportTechnicalProtectiveGearField.BillCode.field"
+              placeholder=" Vui lòng nhập số phiếu!" [readonly]="isCheckmode" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="6">
+        <nz-form-item>
+          <nz-form-label class="fs-12" nzRequired>Loại phiếu</nz-form-label>
+          <nz-form-control>
+            <nz-select [formControlName]="billImportTechnicalProtectiveGearField.BillTypeNew.field" nzShowSearch
+              nzAllowClear nzPlaceHolder="Chọn loại phiếu" (ngModelChange)="changeStatus()">
+              <nz-option *ngFor="let id of cbbStatus" [nzValue]="id.ID" [nzLabel]="id.Name" nzCustomContent>
+                {{ id.Name }}
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+      </div>
+
+
+      <div nz-col [nzSpan]="6">
+        <nz-form-item>
+          <nz-form-label class="fs-12" nzRequired>Người nhận</nz-form-label>
+          <nz-form-control>
+            <nz-select [formControlName]="billImportTechnicalProtectiveGearField.ReceiverID.field" nzShowSearch
+              nzAllowClear nzPlaceHolder="Chọn người nhận">
+              <nz-option *ngFor="let id of receiverAndDeliverList" [nzValue]="id.ID" [nzLabel]="id.FullName"
+                nzCustomContent>
+                {{ id.FullName }} - {{ id.LoginName }}
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <!-- Hàng 2: 3 nhóm cột -->
+    <div nz-row [nzGutter]="16" class="mt-2">
+      <!-- Nhóm trái (2/4): Nhà cung cấp + Loại kho -->
+      <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Nhà cung cấp</nz-form-label>
+          <nz-form-control>
+            <nz-select [formControlName]="billImportTechnicalProtectiveGearField.SupplierSaleID.field" nzShowSearch
+              nzAllowClear nzPlaceHolder="Chọn nhà cung cấp">
+              <nz-option *ngFor="let id of supplierList" [nzValue]="id.ID" [nzLabel]="id.NameNCC" nzCustomContent>
+                {{ id.CodeNCC }} - {{ id.NameNCC }}
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mt-2">
+          <nz-form-label class="fs-12">Loại kho</nz-form-label>
+          <nz-form-control>
+            <input [formControlName]="billImportTechnicalProtectiveGearField.WarehouseType.field" nz-input
+              placeholder="Nhập loại kho" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Nhóm giữa (1/4): Tên người giao + Điều khoản thanh toán -->
+      <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="6">
+        <nz-form-item>
+          <nz-form-label class="fs-12" nzRequired>Người giao</nz-form-label>
+          <nz-form-control>
+            <nz-select [formControlName]="billImportTechnicalProtectiveGearField.DeliverID.field" nzShowSearch
+              nzAllowClear nzPlaceHolder="Chọn người giao">
+              <nz-option *ngFor="let id of receiverAndDeliverList" [nzValue]="id.ID" [nzLabel]="id.FullName"
+                nzCustomContent>
+                {{ id.FullName }} - {{ id.LoginName }}
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mt-2">
+          <nz-form-label class="fs-12">Tên người giao</nz-form-label>
+          <nz-form-control>
+
+            <input [formControlName]="billImportTechnicalProtectiveGearField.Deliver.field" nz-input
+              placeholder="Vui lòng nhập người giao!" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Nhóm phải (1/4): Ngày nhập + Kho -->
+      <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="6">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Ngày nhập</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker [formControlName]="billImportTechnicalProtectiveGearField.CreatDate.field"
+              [nzFormat]="dateFormat" class="w-100"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="mt-2">
+          <nz-form-label class="fs-12">Kho</nz-form-label>
+          <nz-form-control>
+            <nz-select [formControlName]="billImportTechnicalProtectiveGearField.WarehouseID.field" nzShowSearch
+              nzAllowClear nzPlaceHolder="Chọn kho">
+              <nz-option *ngFor="let id of warehouseList" [nzValue]="id.ID" [nzLabel]="id.WarehouseName"
+                nzCustomContent>{{ id.WarehouseName }}
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <!-- Cột phải: Điều khoản thanh toán -->
+
+      <div nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24">Khách hàng</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select [formControlName]="billImportTechnicalProtectiveGearField.CustomerID.field" nzShowSearch
+              nzAllowClear nzPlaceHolder="Chọn khách hàng">
+              <nz-option *ngFor="let id of customerList" [nzValue]="id.ID" [nzLabel]="id.CustomerName" nzCustomContent>
+                {{ id.CustomerCode }} - {{ id.CustomerName }}
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" nzRequired>Điều khoản thanh toán</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select [formControlName]="billImportTechnicalProtectiveGearField.RulePayID.field" nzShowSearch
+              nzAllowClear nzPlaceHolder="Chọn điều khoản thanh toán">
+              <nz-option *ngFor="let id of rulePayList" [nzValue]="id.ID" [nzLabel]="id.Note" nzCustomContent>
+                {{ id.Code }} - {{ id.Note }}
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+
+  <nz-tabset nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
+    <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
+      <div class="position-relative" style="height: 38vh;">
+        <div #table_BillImportDetails style="height: 100%;"></div>
+      </div>
+    </nz-tab>
+    <!-- <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
+      <div class="position-relative" style="height: 38vh;">
+        <div #table_DocumnetImport style="height: 100%;"></div>
+      </div>
+    </nz-tab> -->
+  </nz-tabset>
+  <!-- Product Selection Popup -->
+  <div *ngIf="showProductPopup" style="position: fixed; z-index: 10000; min-width: 600px; max-width: 800px;"
+    [style.top]="popupPosition.top" [style.left]="popupPosition.left">
+    <app-tabulator-popup [data]="productOptions" [columns]="productPopupColumns" [searchFields]="productSearchFields"
+      [searchPlaceholder]="'Tìm kiếm sản phẩm...'" [height]="'350px'" (rowSelected)="onProductSelected($event)"
+      (closed)="onPopupClosed()"></app-tabulator-popup>
+  </div>
+
+</div>
+
+<div class="modal-footer flex-shrink-0">
+  <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()" [disabled]="isSaving">Đóng</button>
+  <button class="fs-12 btn" nz-button nzType="primary" (click)="saveDataBillImport()" [nzLoading]="isSaving"
+    [disabled]="isSaving">Lưu</button>
+</div>

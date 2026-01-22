@@ -400,7 +400,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
 
     angularGridReady(angularGrid: AngularGridInstance): void {
         this.angularGrid = angularGrid;
-
+console.log('Angular Grid Ready:', angularGrid);
         // Map để track index màu của mỗi phòng ban
         const departmentColorMap = new Map<string, number>();
         let deptColorIndex = 0;

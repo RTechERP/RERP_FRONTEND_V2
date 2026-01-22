@@ -15,17 +15,17 @@ export class BorrowService {
   constructor(
     private http: HttpClient,
     private notification: NzNotificationService,
-    private appUserService:AppUserService
+    private appUserService: AppUserService
   ) {
-    this.LoginName=appUserService.loginName||'';
+    this.LoginName = appUserService.loginName || '';
     this.ISADMIN = appUserService.isAdmin || false;
-    this.GlobalEmployeeId = appUserService.employeeID||0;
-   }
+    this.GlobalEmployeeId = appUserService.employeeID || 0;
+  }
 
   GlobalEmployeeId: number = 78;
   LoginName: string = 'ADMIN';
   ISADMIN: boolean = true;
-
+  
   private pad(n: number): string {
     return String(n).padStart(2, '0');
   }
@@ -56,6 +56,7 @@ export class BorrowService {
       this.apiUrl + `borrow/get-employee-team-and-department`,
     );
   }
+  
   getUserHistoryProduct(userId: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `borrow/get-user-history-product?userId=${userId}&status=0`,
@@ -67,7 +68,7 @@ export class BorrowService {
     );
   }
 
-  getProductRTCDetail(productGroupID: number, keyword: string, checkAll: number, filter: string, warehouseID: number, warehouseType:number): Observable<any> {
+  getProductRTCDetail(productGroupID: number, keyword: string, checkAll: number, filter: string, warehouseID: number, warehouseType: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `borrow/get-productrtc-detail?productGroupID=${productGroupID}&keyword=${keyword}&checkAll=${checkAll}&filter=${filter}&warehouseID=${warehouseID}&warehouseType=${warehouseType}`,
     );
@@ -98,7 +99,7 @@ export class BorrowService {
     )
   }
 
-    getBillNumber(): Observable<any> {
+  getBillNumber(): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `borrow/get-bill-number`,
     )
@@ -110,13 +111,13 @@ export class BorrowService {
       data
     );
   }
-   postSaveBillExportDetailTechnical(data: any): Observable<any> {
+  postSaveBillExportDetailTechnical(data: any): Observable<any> {
     return this.http.post<any>(
       this.apiUrl + `borrow/save-bill-export-detail-technical`,
       data
     );
   }
-    postSaveBillExportTechnical(data: any): Observable<any> {
+  postSaveBillExportTechnical(data: any): Observable<any> {
     return this.http.post<any>(
       this.apiUrl + `borrow/save-billexport-technical`,
       data
@@ -129,7 +130,7 @@ export class BorrowService {
       data
     );
   }
-postSaveHistoryProduct(data: any): Observable<any> {
+  postSaveHistoryProduct(data: any): Observable<any> {
     return this.http.post<any>(
       this.apiUrl + `borrow/save-history-product`,
       data

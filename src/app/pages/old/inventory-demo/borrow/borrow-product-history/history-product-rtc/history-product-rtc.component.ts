@@ -86,6 +86,7 @@ import { HistoryProductRtcDetailComponent } from '../history-product-rtc-detail/
         HasPermissionDirective,
     ]
 })
+
 export class HistoryProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
     // INTEGRATION: Input/Output để hoạt động như modal
     @Input() isModalMode: boolean = false;

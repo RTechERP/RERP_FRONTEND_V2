@@ -1,0 +1,6 @@
+::ng-deep #gridProductLocation {
+    height: 89vh !important;
+}
+:host ::ng-deep .slick-group:has(.group-color-0) {
+    background-color: #E3F2FD !important;
+}

@@ -1,0 +1,96 @@
+/* ProductLocation Technical Detail Component Styles */
+.modal-body {
+  padding: 1.5rem;
+  font-size: 0.75rem;
+}
+
+.modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Style NzModal Header - giống chuẩn ProductLocationFormComponent */
+::ng-deep .ant-modal-header {
+  background-color: #007bff !important; /* Màu xanh primary */
+  color: #fff;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+::ng-deep .ant-modal-header .ant-modal-title {
+  color: #fff !important;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+::ng-deep .ant-modal-header .ant-modal-close {
+  color: #fff;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 0.75rem;
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+  font-size: 0.75rem;
+}
+
+::ng-deep .ant-modal-header .ant-modal-close:hover {
+  color: #fff;
+  opacity: 0.8;
+}
+
+/* Style NzModal Footer buttons - giống chuẩn ProductLocationFormComponent */
+::ng-deep .ant-modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+::ng-deep .ant-modal-footer .ant-btn {
+  font-size: 0.75rem;
+}
+
+/* Form */
+nz-form-item {
+  margin-bottom: 1rem;
+}
+
+nz-form-label {
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.ant-input, .ant-select, .ant-input-number {
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+::ng-deep .ant-input,
+::ng-deep .ant-select-selector,
+::ng-deep .ant-input-number {
+  font-size: 0.75rem;
+}
+
+::ng-deep .ant-form-item-label > label {
+  font-size: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-body {
+    padding: 0.5rem;
+  }
+
+  ::ng-deep .ant-modal-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

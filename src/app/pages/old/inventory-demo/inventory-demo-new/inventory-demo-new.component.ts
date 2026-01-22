@@ -1,3 +1,4 @@
+import * as ExcelJS from 'exceljs';
 import { ClipboardService } from './../../../../services/clipboard.service';
 import { CommonModule } from '@angular/common';
 import {
@@ -44,6 +45,7 @@ import { ProductLocationTechnicalService } from '../../Technical/product-locatio
 import { UpdateQrcodeFormComponent } from '../update-qrcode-form/update-qrcode-form.component';
 import { InventoryBorrowSupplierDemoComponent } from '../inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { TbProductRtcFormComponent } from '../../tb-product-rtc/tb-product-rtc-form/tb-product-rtc-form.component';
 import { environment } from '../../../../../environments/environment';
 
 @Component({
@@ -70,6 +72,7 @@ import { environment } from '../../../../../environments/environment';
         HasPermissionDirective,
         NgbModalModule,
         NgbDropdownModule,
+        TbProductRtcFormComponent,
     ],
     templateUrl: './inventory-demo-new.component.html',
     styleUrls: ['./inventory-demo-new.component.css'],
@@ -762,9 +765,20 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                         command: 'view-detail',
                         title: 'Xem chi tiết',
                         iconCssClass: 'fa fa-eye',
+                        positionOrder: 1,
                         action: (_e: any, args: any) => {
                             const row = args.dataContext;
                             this.openDetailTab(row);
+                        },
+                    },
+                    {
+                        command: 'edit-product',
+                        title: 'Sửa sản phẩm',
+                        iconCssClass: 'fa fa-pencil',
+                        positionOrder: 2,
+                        action: (_e: any, args: any) => {
+                            const row = args.dataContext;
+                            this.onEditProduct(row);
                         },
                     },
                 ],
@@ -1116,6 +1130,15 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             this.showSpec();
             angularGrid.resizerService.resizeGrid();
         }, 100);
+
+        // Handle double click event on main grid
+        this.angularGrid.slickGrid.onDblClick.subscribe((_e: any, args: any) => {
+            const row = args.row;
+            const item = this.angularGrid.dataView.getItem(row);
+            if (item) {
+                this.onEditProduct(item);
+            }
+        });
     }
 
     onRowSelectionChanged(_eventData: any, _args: OnSelectedRowsChangedEventArgs): void {
@@ -1152,6 +1175,42 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         return selectedIndexes
             .map((index: number) => this.angularGrid.dataView.getItem(index))
             .filter((item: any) => item);
+    }
+
+    onEditProduct(item?: any) {
+        let selectedProduct = item;
+        if (!selectedProduct) {
+            const selected = this.getSelectedRows();
+            if (!selected || selected.length === 0) {
+                this.notification.warning(
+                    'Thông báo',
+                    'Vui lòng chọn một sản phẩm để sửa!'
+                );
+                return;
+            }
+            selectedProduct = { ...selected[0] };
+        } else {
+            selectedProduct = { ...item };
+        }
+
+        const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.dataInput = selectedProduct;
+        modalRef.componentInstance.warehouseType = this.warehouseType;
+        modalRef.result.then(
+            (result) => {
+                if (result?.refresh) {
+                    this.loadTableData();
+                }
+            },
+            () => {
+                // Modal dismissed
+            }
+        );
     }
 
     onUpdateQrCode(): void {
@@ -1210,7 +1269,6 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             return;
         }
 
-        const ExcelJS = await import('exceljs');
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Danh sách thiết bị');
 

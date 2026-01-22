@@ -3933,11 +3933,11 @@ export class PaymentOrderComponent implements OnInit {
                     widths: [120, '*', 40, 70],
                     body: [
                         [
-                            '- Hình thức chuyển khoản',
+                            { text: '- Hình thức chuyển khoản', margin: [15, 0, 0, 0] },
                             { colSpan: 3, text: `:${paymentOrder.TypeBankTransferText}` }, {}, {}
                         ],
                         [
-                            '- Nội dung chuyển khoản',
+                            { text: '- Nội dung chuyển khoản', margin: [15, 0, 0, 0] },
                             { colSpan: 3, text: `:${paymentOrder.ContentBankTransfer}` }, {}, {}
                         ]
 
@@ -3988,8 +3988,8 @@ export class PaymentOrderComponent implements OnInit {
         let signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
 
         const dateFix = new Date('2024-03-03T00:00:00');
-        console.log('dateOrder:', dateOrder);
-        console.log('dateFix:', dateFix);
+        // console.log('dateOrder:', dateOrder);
+        // console.log('dateFix:', dateFix);
 
         if (dateOrder.getTime() <= dateFix.getTime()) {
             if (!paymentOrder.IsIgnoreHR) {
@@ -4158,13 +4158,13 @@ export class PaymentOrderComponent implements OnInit {
                             ],
 
                             [
-                                { text: paymentOrder.TypeOrder == 3 ? '- Hình thức thu tiền' : '- Hình thức thanh toán' },
+                                { text: paymentOrder.TypeOrder == 3 ? '- Hình thức thu tiền' : '- Hình thức thanh toán', margin: [15, 0, 0, 0] },
                                 // {},
                                 { text: paymentOrder.TypePayment == 1 ? '[x] Chuyển khoản' : '[ ] Chuyển khoản' },
                                 { colSpan: 2, text: paymentOrder.TypePayment == 2 ? '[x] Tiền mặt' : '[ ] Tiền mặt' }
                             ],
                             [
-                                '- Số tài khoản', { text: `:${paymentOrder.AccountNumber}` },
+                                { text: '- Số tài khoản', margin: [15, 0, 0, 0] }, { text: `:${paymentOrder.AccountNumber}` },
                                 'Ngân hàng', `:${paymentOrder.Bank}`
                             ],
 
@@ -4212,7 +4212,7 @@ export class PaymentOrderComponent implements OnInit {
                             ],
                             ...items,
                             ...sumTotalFooter,
-                            [{ colSpan: 9, text: paymentOrder.TotalMoneyText, bold: true, italics: true }]
+                            [{ colSpan: 9, text: `Số tiền bằng chữ: ${paymentOrder.TotalMoneyText}`, bold: true, italics: true }]
 
                         ],
                     },
@@ -4305,7 +4305,7 @@ export class PaymentOrderComponent implements OnInit {
 
         //Chữ ký
 
-        console.log('signs:', signs);
+        // console.log('signs:', signs);
 
         const signEmp = signs.find((x: any) => x.Step == 1 && x.IsApproved == 1);
         const signTBP = signs.find((x: any) => x.Step == 2 && x.IsApproved == 1);
@@ -4430,7 +4430,7 @@ export class PaymentOrderComponent implements OnInit {
                                 {},
                                 {},
                             ],
-                            [{ colSpan: 7, text: paymentOrder.TotalMoneyText, bold: true, italics: true }]
+                            [{ colSpan: 7, text: `Số tiền bằng chữ: ${paymentOrder.TotalMoneyText}`, bold: true, italics: true }]
                         ],
 
                     },

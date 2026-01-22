@@ -223,7 +223,7 @@ export class PaymentOrderComponent implements OnInit {
                 ?? this.tabData?.activeTab
                 ?? '0';
 
-            console.log('this.activeTab:', this.activeTab)
+            // console.log('this.activeTab:', this.activeTab)
         });
 
         this.loadDataCombo();
@@ -580,6 +580,30 @@ export class PaymentOrderComponent implements OnInit {
                 command: () => {
                     this.onApprovedBGD(2, {
                         ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnUnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
+                    });
+                }
+            },
+
+            {
+                separator: true,
+            },
+            {
+                label: 'KH đã nhận',
+                icon: 'fa-solid fa-circle-check fa-lg text-success',
+                visible: this.activeTab == '1',
+                command: () => {
+                    this.onApprovedKHReceive(1, {
+                        ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH đã nhận',
+                    });
+                }
+            },
+            {
+                label: 'KH hủy nhận',
+                icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                visible: this.activeTab == '1',
+                command: () => {
+                    this.onApprovedKHReceive(2, {
+                        ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH hủy nhận',
                     });
                 }
             },
@@ -2590,11 +2614,15 @@ export class PaymentOrderComponent implements OnInit {
     loadDataSpecial() {
         // this.param.isSpecialOrder = 1;
 
-        if (!this.isPermisstionDB) return;
+
+        // if (!this.isPermisstionDB) {
+
+        // };
         const p = {
             ...this.param,
             isSpecialOrder: 1,
-            typeOrder: 0
+            typeOrder: 0,
+            employeeID: this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
         }
         this.paymentService.get(p).subscribe({
             next: (response) => {
@@ -2718,7 +2746,7 @@ export class PaymentOrderComponent implements OnInit {
 
     applyDistinctFilters(angularGrid: AngularGridInstance): void {
         // const angularGrid = this.angularGrid;
-        console.log('angularGrid:', angularGrid);
+        // console.log('angularGrid:', angularGrid);
         if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
 
         // const data: any[] = [];
@@ -3707,6 +3735,75 @@ export class PaymentOrderComponent implements OnInit {
         }
 
 
+    }
+
+    async onApprovedKHReceive(isApproved: number, action: any) {
+        // let gridInstance = this.angularGrid;
+        let gridInstance = this.angularGridSpecial;
+        // if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
+
+        const rowIndexes = grid.getSelectedRows();
+        let selectedItems = rowIndexes
+            .map(i => dataView.getItem(i));
+
+        selectedItems = selectedItems.map((x, i) => ({
+            ...x,
+            Action: action,
+            PaymentOrderLog: {
+                IsApproved: isApproved,
+            },
+            CurrentApproved: x.IsApproved || 0,
+            Step: x.Step || 0
+        }));
+
+        if (isApproved == 1) {
+            Swal.fire({
+                title: 'Xác nhận duyệt?',
+                text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Duyệt',
+                cancelButtonText: 'Hủy',
+            }).then((result: any) => {
+                if (result.isConfirmed) {
+                    console.log('duyêt:', selectedItems);
+
+                    // this.handleApproved(selectedItems);
+                }
+            });
+
+
+        }
+        else if (isApproved == 2) {
+            const { value: reason }: { value?: string } = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Lý do hủy',
+                inputPlaceholder: 'Nhập lý do hủy duyệt...',
+                inputAttributes: {
+                    'aria-label': 'Vui lòng nhập Lý do hủy',
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Hủy duyệt',
+                cancelButtonText: 'Hủy',
+            });
+            if (reason) {
+
+                selectedItems = selectedItems.map((x, i) => ({
+                    ...x,
+                    ReasonCancel: reason
+                }));
+
+                console.log('hủy duyêt:', selectedItems);
+                // this.handleApproved(selectedItems);
+            }
+        }
     }
 
     formatNumber(num: number, digits: number = 2) {

@@ -2612,12 +2612,6 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadDataSpecial() {
-        // this.param.isSpecialOrder = 1;
-
-
-        // if (!this.isPermisstionDB) {
-
-        // };
         const p = {
             ...this.param,
             isSpecialOrder: 1,

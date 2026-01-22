@@ -111,7 +111,7 @@ interface HandoverWarehouseAsset {
 interface HandoverAssetManagement {
   STT: number;
   EmployeeID: number;
-  TSAssetCode: string;
+  TSCodeNCC: string;
   TSAssetName: string;
   Quantity: number;
   UnitName: string;
@@ -233,7 +233,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   newHandoverAssetManagement: HandoverAssetManagement = {
     STT: 0,
     EmployeeID: 0,
-    TSAssetCode: '',
+    TSCodeNCC: '',
     TSAssetName: '',
     Quantity: 0,
     UnitName: '',
@@ -430,6 +430,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
       this.HandoverData = response.data?.asset || [];
       if (this.handoverTable) {
         this.handoverTable.setData(this.HandoverData || []);
+        console.log("data: ", this.HandoverData)
       } else {
         this.draw_handoverTable();
       }
@@ -1106,7 +1107,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
             },
             {
               title: 'Mã tài sản',
-              field: 'TSAssetCode',
+              field: 'TSCodeNCC',
               headerHozAlign: 'center',
               minWidth: 200,
               widthGrow: 1,

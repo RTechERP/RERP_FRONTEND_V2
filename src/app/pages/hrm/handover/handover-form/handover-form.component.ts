@@ -506,7 +506,7 @@ const selectedEmployee = this.cbbEmployeeGroup
           (item: any, index: number) => ({
             STT: index + 1,
             EmployeeID: 0,
-            TSAssetCode: item.TSAssetCode || '',
+            TSAssetCode: item.TSCodeNCC || '',
             TSAssetName: item.TSAssetName || '',
             Quantity: item.Quantity || '',
             UnitName: item.UnitName || '',
@@ -521,6 +521,7 @@ const selectedEmployee = this.cbbEmployeeGroup
           this.handoverAssetManagementTable.setData(
             this.HandoverAssetManagementData
           );
+          console.log("hehe: ", this.HandoverAssetManagementData)
         }
 
         this.HandoverSubordinatesData = HandoverSubordinate.map(
@@ -671,7 +672,7 @@ const selectedEmployee = this.cbbEmployeeGroup
             STT: item.STT || 0,
             EmployeeID: item.EmployeeID || 0,
             HandoverID: item.HandoverID || 0,
-            TSAssetCode: item.TSAssetCode || '',
+            TSAssetCode: item.TSCodeNCC || '',
             TSAssetName: item.TSAssetName || '',
             Quantity: item.Quantity || 0,
             UnitName: item.UnitName || '',
@@ -1179,7 +1180,7 @@ uploadFileForRow(rowData: any) {
             ID: item.ID || 0,
             STT: item.STT || 0,
             EmployeeID: item.EmployeeID || 0,
-            TSAssetCode: item.TSAssetCode || '',
+            TSAssetCode: item.TSCodeNCC || '',
             TSAssetName: item.TSAssetName || '',
             Quantity: item.Quantity || '',
             UnitName: item.UnitName || '',
@@ -1308,7 +1309,7 @@ uploadFileForRow(rowData: any) {
             STT: item.STT || 0,
             EmployeeID: item.EmployeeID || 0,
             HandoverID: item.HandoverID || 0,
-            TSAssetCode: item.TSAssetCode || '',
+            TSAssetCode: item.TSCodeNCC || '',
             TSAssetName: item.TSAssetName || '',
             Quantity: item.Quantity || '',
             UnitName: item.UnitName || '',

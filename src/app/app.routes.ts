@@ -222,7 +222,7 @@ import { CourseManagementComponent } from './pages/Course/course-management/cour
 import { EconimicContractTermComponent } from './pages/hrm/economic-contract/econimic-contract-term/econimic-contract-term.component';
 import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/economic-contract-type/economic-contract-type.component';
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
-import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/kpievaluation-employee.component';
+import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/kpievaluation-employee.component';
 import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
 import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
 import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';

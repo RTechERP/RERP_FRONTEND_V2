@@ -16,7 +16,7 @@ import {
   SortDirectionNumber,
   EditCommand,
 } from 'angular-slickgrid';
-import { ReadOnlyLongTextEditor } from './frmKPIEvaluationEmployee/readonly-long-text-editor';
+import { ReadOnlyLongTextEditor } from './readonly-long-text-editor';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -29,9 +29,9 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
-import { KPIService } from '../kpi-service/kpi.service';
-import { AppUserService } from '../../../services/app-user.service';
-import { AuthService } from '../../../auth/auth.service';
+import { KPIService } from '../../kpi-service/kpi.service';
+import { AppUserService } from '../../../../services/app-user.service';
+import { AuthService } from '../../../../auth/auth.service';
 import { HostListener } from '@angular/core';
 
 interface LiXi {

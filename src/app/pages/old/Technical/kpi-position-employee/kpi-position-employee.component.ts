@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA, Optional, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA, Optional, Inject, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -41,6 +41,9 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
+  // ViewChild for copy modal template
+  @ViewChild('copyModalContent') copyModalContent!: TemplateRef<any>;
+
   // Master grid (Positions)
   angularGridMaster!: AngularGridInstance;
   columnDefinitionsMaster: Column[] = [];
@@ -67,6 +70,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
   selectedPositionId: number = 0;
   selectedPositionRow: any = null;
   selectedEmployeeRows: any[] = [];
+
+  // Copy modal
+  copyFromSessionId: number = 0;
+  copyToSessionId: number = 0;
 
   // Route params
   private queryParamsSubscription?: Subscription;
@@ -603,15 +610,66 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
   }
 
   onCopyPosition(): void {
-    if (!this.selectedPositionId) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn vị trí cần copy'
-      );
-      return;
-    }
-    // TODO: Implement copy functionality
-    this.notification.info('Thông báo', 'Chức năng copy vị trí đang được phát triển');
+    // Reset copy session IDs
+    this.copyFromSessionId = 0;
+    this.copyToSessionId = 0;
+
+    this.modal.create({
+      nzTitle: 'Copy vị trí nhân viên',
+      nzContent: this.copyModalContent,
+      nzOkText: 'Copy',
+      nzCancelText: 'Hủy',
+      nzWidth: 450,
+      nzOnOk: () => {
+        // Validate
+        if (!this.copyFromSessionId) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Vui lòng chọn kỳ đánh giá nguồn'
+          );
+          return false;
+        }
+        if (!this.copyToSessionId) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Vui lòng chọn kỳ đánh giá đích'
+          );
+          return false;
+        }
+        if (this.copyFromSessionId === this.copyToSessionId) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Kỳ đánh giá nguồn và đích không được trùng nhau'
+          );
+          return false;
+        }
+
+        // Call API
+        this.service.copyPositionEmployee(this.copyFromSessionId, this.copyToSessionId).subscribe({
+          next: (response) => {
+            if (response.status === 1) {
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                'Copy thành công'
+              );
+              this.onSearch();
+            } else {
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                response.message || 'Lỗi khi copy'
+              );
+            }
+          },
+          error: (error) => {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Lỗi kết nối khi copy: ' + error
+            );
+          },
+        });
+        return true;
+      },
+    });
   }
 
   onAddEmployee(): void {

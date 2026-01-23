@@ -208,3 +208,8 @@ angular-slickgrid,
 :host ::ng-deep .grid-container-pofile .gridPane {
     height: 100% !important;
 }
+
+/* Footer Row căn sang phải */
+:host ::ng-deep .slick-state-default .slick-footerrow-column {
+    justify-content: end !important;
+}

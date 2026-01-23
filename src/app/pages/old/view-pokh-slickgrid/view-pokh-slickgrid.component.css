@@ -4,6 +4,12 @@
   height: 100%;
 }
 
+:host ::ng-deep .grid-container-viewpokh nz-spin,
+:host ::ng-deep .grid-container-viewpokh .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-viewpokh .ant-spin-container {
+  height: 100% !important;
+}
+
 .export-grid-container {
   width: 100%;
   height: 100%;

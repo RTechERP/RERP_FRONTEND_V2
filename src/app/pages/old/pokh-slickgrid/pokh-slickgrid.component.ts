@@ -34,6 +34,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 // import {
 //   TabulatorFull as Tabulator,
 //   RowComponent,
@@ -121,6 +122,7 @@ import { Menubar } from 'primeng/menubar';
         NzUploadModule,
         NzSwitchModule,
         NzCheckboxModule,
+        NzSpinModule,
         CommonModule,
         HasPermissionDirective,
         AngularSlickgridModule,
@@ -142,6 +144,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     // tb_POKHProductElement!: ElementRef;
     // @ViewChild('tb_POKHFile', { static: false })
     // tb_POKHFileElement!: ElementRef;
+
+    private static gridInstanceSeq = 0;
+    private readonly gridInstanceId = ++PokhSlickgridComponent.gridInstanceSeq;
+
+    gridPOKHId: string = 'gridPOKH';
+    gridPOKHProductId: string = 'gridPOKHProduct';
+    gridPOKHFileId: string = 'gridPOKHFile';
 
     // SlickGrid properties for POKH table
     angularGridPOKH!: AngularGridInstance;
@@ -346,6 +355,11 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     isModalOpen: boolean = false;
     lockEvents: boolean = false;
     isResponsibleUsersEnabled: boolean = false;
+
+    // Loading states for grids
+    isLoadingPOKH: boolean = false;
+    isLoadingPOKHProduct: boolean = false;
+    isLoadingPOKHFile: boolean = false;
     isCopy: boolean = false;
 
     //#endregion
@@ -365,6 +379,15 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
 
         this.filters.startDate = startDate;
         this.filters.endDate = endDate;
+
+        const warehouseId =
+            this.tabData?.warehouseID
+            ?? this.route.snapshot.queryParams['warehouseId']
+            ?? 1;
+        const gridSuffix = `${warehouseId}-${this.gridInstanceId}`;
+        this.gridPOKHId = `gridPOKH-${gridSuffix}`;
+        this.gridPOKHProductId = `gridPOKHProduct-${gridSuffix}`;
+        this.gridPOKHFileId = `gridPOKHFile-${gridSuffix}`;
 
         // Initialize SlickGrid tables trước
         this.initGridPOKH();
@@ -419,6 +442,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     //#endregion
 
     loadPOKH(): void {
+        this.isLoadingPOKH = true;
         const params = this.getPOKHAjaxParamsObject();
         this.POKHService.getPOKHData(params).subscribe({
             next: (response: any) => {
@@ -432,11 +456,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     this.datasetPOKH = [];
                 }
 
+                this.isLoadingPOKH = false;
                 setTimeout(() => {
                     this.applyDistinctFiltersToGrid(this.angularGridPOKH, this.columnDefinitionsPOKH, ['MainIndex', 'CurrencyCode', 'AccountTypeText']);
                 }, 0);
             },
             error: (error: any) => {
+                this.isLoadingPOKH = false;
                 this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu POKH: ' + error);
             }
         });
@@ -626,6 +652,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     loadPOKHProducts(id: number = 0, idDetail: number = 0): void {
+        this.isLoadingPOKHProduct = true;
         this.POKHService.getPOKHProduct(id, idDetail).subscribe({
             next: (response) => {
                 if (response.status === 1) {
@@ -636,11 +663,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                         parentId: item.ParentID === 0 ? null : item.ParentID
                     }));
 
+                    this.isLoadingPOKHProduct = false;
                     setTimeout(() => {
                         this.applyDistinctFiltersToGrid(this.angularGridPOKHProduct, this.columnDefinitionsPOKHProduct, ['Maker', 'Unit']);
                         this.updateProductFooterRow();
                     }, 500);
                 } else {
+                    this.isLoadingPOKHProduct = false;
                     this.notification.error(
                         NOTIFICATION_TITLE.error,
                         'Lỗi khi tải chi tiết POKH: ' + response.message
@@ -648,6 +677,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 }
             },
             error: (error) => {
+                this.isLoadingPOKHProduct = false;
                 this.notification.error(
                     NOTIFICATION_TITLE.error,
                     'Lỗi kết nối khi tải chi tiết POKH: ' + error
@@ -656,6 +686,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         });
     }
     loadPOKHFiles(id: number = 0): void {
+        this.isLoadingPOKHFile = true;
         this.POKHService.getPOKHFile(id).subscribe({
             next: (response) => {
                 if (response.status === 1) {
@@ -666,7 +697,9 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                         id: item.ID,
                         STT: index + 1
                     }));
+                    this.isLoadingPOKHFile = false;
                 } else {
+                    this.isLoadingPOKHFile = false;
                     this.notification.error(
                         NOTIFICATION_TITLE.error,
                         'Lỗi khi tải tệp POKH: ' + response.message
@@ -674,6 +707,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 }
             },
             error: (error) => {
+                this.isLoadingPOKHFile = false;
                 // Silent error
             },
         });
@@ -876,15 +910,40 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
 
         // Add data rows from SlickGrid dataset
-        this.datasetPOKHProduct.forEach((rowData: any) => {
-            const row = this.columnDefinitionsPOKHProduct.map((col: any) => {
+        this.datasetPOKHProduct.forEach((rowData: any, rowIndex: number) => {
+            const row = this.columnDefinitionsPOKHProduct.map((col: any, colIndex: number) => {
                 const value = rowData[col.field];
                 if (typeof value === 'number') {
-                    return new Intl.NumberFormat('vi-VN').format(value);
+                    return value; // Return number, not formatted string
                 }
                 return value ?? '';
             });
-            worksheet.addRow(row);
+            const addedRow = worksheet.addRow(row);
+
+            // Set number format for numeric columns
+            this.columnDefinitionsPOKHProduct.forEach((col: any, colIndex: number) => {
+                const value = rowData[col.field];
+                if (typeof value === 'number') {
+                    const cell = addedRow.getCell(colIndex + 1);
+                    cell.numFmt = '#,##0.00'; // Number format for Excel
+                }
+            });
+        });
+
+        // Add footer row with totals for numeric columns
+        const footerRow = worksheet.addRow([]);
+        this.columnDefinitionsPOKHProduct.forEach((col: any, colIndex: number) => {
+            const value = this.datasetPOKHProduct.reduce((sum: number, row: any) => {
+                const cellValue = row[col.field];
+                return typeof cellValue === 'number' ? sum + cellValue : sum;
+            }, 0);
+
+            const cell = footerRow.getCell(colIndex + 1);
+            if (value > 0) {
+                cell.value = value;
+                cell.numFmt = '#,##0.00';
+                cell.font = { bold: true };
+            }
         });
 
         // Auto-fit columns
@@ -919,18 +978,43 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
 
         // Add data rows from SlickGrid dataset
-        this.datasetPOKH.forEach((rowData: any) => {
-            const row = this.columnDefinitionsPOKH.map((col: any) => {
+        this.datasetPOKH.forEach((rowData: any, rowIndex: number) => {
+            const row = this.columnDefinitionsPOKH.map((col: any, colIndex: number) => {
                 const value = rowData[col.field];
                 if (typeof value === 'boolean') {
                     return value ? 'Có' : 'Không';
                 }
                 if (typeof value === 'number') {
-                    return new Intl.NumberFormat('vi-VN').format(value);
+                    return value; // Return number, not formatted string
                 }
                 return value ?? '';
             });
-            worksheet.addRow(row);
+            const addedRow = worksheet.addRow(row);
+
+            // Set number format for numeric columns
+            this.columnDefinitionsPOKH.forEach((col: any, colIndex: number) => {
+                const value = rowData[col.field];
+                if (typeof value === 'number') {
+                    const cell = addedRow.getCell(colIndex + 1);
+                    cell.numFmt = '#,##0.00'; // Number format for Excel
+                }
+            });
+        });
+
+        // Add footer row with totals for numeric columns
+        const footerRow = worksheet.addRow([]);
+        this.columnDefinitionsPOKH.forEach((col: any, colIndex: number) => {
+            const value = this.datasetPOKH.reduce((sum: number, row: any) => {
+                const cellValue = row[col.field];
+                return typeof cellValue === 'number' ? sum + cellValue : sum;
+            }, 0);
+
+            const cell = footerRow.getCell(colIndex + 1);
+            if (value > 0) {
+                cell.value = value;
+                cell.numFmt = '#,##0.00';
+                cell.font = { bold: true };
+            }
         });
 
         // Auto-fit columns
@@ -1774,6 +1858,21 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             contextMenu: {
                 commandItems: this.getContextMenuOptions(),
                 onCommand: (e, args) => this.handleContextMenuCommand(e, args),
+                onBeforeMenuShow: (e, args) => {
+                    // Select the row when right-clicking before showing context menu
+                    const grid = args.grid;
+                    const row = args.row;
+                    if (grid && row !== undefined) {
+                        const dataItem = grid.getDataItem(row);
+                        if (dataItem) {
+                            this.selectedId = dataItem['ID'];
+                            this.selectedRow = dataItem;
+                            grid.setActiveCell(row, 0);
+                            this.loadPOKHProducts(this.selectedId);
+                            this.loadPOKHFiles(this.selectedId);
+                        }
+                    }
+                },
             },
         };
 

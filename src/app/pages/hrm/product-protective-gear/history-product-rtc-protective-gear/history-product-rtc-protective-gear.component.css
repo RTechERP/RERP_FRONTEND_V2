@@ -1,5 +1,5 @@
 ::ng-deep div[id^="historyProductRtcGrid-"] {
-       height: 90vh !important;
+       height: 74vh !important;
 }
 
 /* Compact form spacing */
@@ -10,4 +10,12 @@
 .compact-form nz-form-label {
        padding-bottom: 0px !important;
        line-height: 1.2 !important;
+}
+
+::ng-deep .ant-card-body {
+       padding: 0px !important;
+}
+
+::ng-deep .ant-splitter {
+       height: 74vh !important;
 }

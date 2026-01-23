@@ -1,0 +1,18 @@
+/* Detail legend title - smaller font */
+.detail-legend {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Master grid - push down a bit */
+.grid-container-master {
+    margin-top: 8px;
+}
+
+/* Detail fieldset styling */
+.detail-fieldset {
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 12px;
+}

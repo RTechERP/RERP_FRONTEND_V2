@@ -145,6 +145,7 @@ export class HistoryProductRtcProtectiveGearDetailComponent implements OnInit {
   }
 
   loadUser() {
+     
     this.ProductProtectiveGearService.getUserHistoryProduct(this.userId).subscribe({
       next: (response: any) => {
         let data = response.data;

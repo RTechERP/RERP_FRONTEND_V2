@@ -1004,7 +1004,7 @@ export const routes: Routes = [
             { path: 'newsletter-view-all', component: NewsletterFormViewAllComponent, canActivate: [authGuard] },
 
             { path: 'document-sale-admin', component: DocumentSaleAdminComponent, canActivate: [authGuard] },
-            // Trung
+            // Tủ đồ bảo hộ và phòng sạch
             { path: 'product-protective-gear', component: ProductProtectiveGearComponent, canActivate: [authGuard] },
             { path: 'inventory-demo-protective-gear', component: InventoryDemoProtectiveGearComponent, canActivate: [authGuard] },
             { path: 'product-location-tech', component: ProductLocationTechComponent, canActivate: [authGuard] },

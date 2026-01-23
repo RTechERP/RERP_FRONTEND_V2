@@ -138,14 +138,16 @@ nz-form-label {
 }
 
 /* Input Styling - Simple and clean */
-input[nz-input], textarea[nz-input] {
+input[nz-input],
+textarea[nz-input] {
   border: 1px solid #d9d9d9;
   border-radius: 4px;
   transition: all 0.3s ease;
   font-size: 13px;
 }
 
-input[nz-input]:focus, textarea[nz-input]:focus {
+input[nz-input]:focus,
+textarea[nz-input]:focus {
   border-color: #1890ff;
   box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
@@ -181,12 +183,14 @@ nz-button {
 ::ng-deep .tabulator-cell {
   white-space: normal !important;
 }
+
 .tabulator-cell {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;    /* số dòng tối đa */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    max-height: 40px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  /* số dòng tối đa */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 40px;
 }
 
 /* Responsive Design */
@@ -204,6 +208,3 @@ nz-button {
     margin-bottom: 8px;
   }
 }
-
-
-

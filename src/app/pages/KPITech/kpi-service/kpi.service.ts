@@ -439,5 +439,54 @@ export class KPIService {
       .set('kpiSessionID', kpiSessionID.toString());
     return this.http.get<any>(this.apiUrl + 'get-position-employee', { params });
   }
+
+  /**
+   * Choice position for KPI evaluation
+   * API: POST api/KPIEvaluationEmployee/choice-position
+   * @param positionID - Position ID to choose
+   */
+  choicePosition(positionID: number): Observable<any> {
+    const body = { positionID };
+    return this.http.post<any>(this.apiUrl + 'choice-position', body);
+  }
+
+  // ==================== Load Data Team APIs ====================
+
+  /**
+   * Lấy danh sách tất cả team của nhân viên
+   * API: GET api/KPIEvaluationFactorScoring/get-all-team-by-empID
+   * @param employeeID - ID của nhân viên
+   * @param kpiSessionID - ID của kỳ đánh giá KPI
+   */
+  getAllTeamByEmployeeID(employeeID: number, kpiSessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('kpiSessionID', kpiSessionID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'get-all-team-by-empID', { params });
+  }
+
+  /**
+   * Load dữ liệu team và xử lý điểm KPI cho team
+   * API: POST api/KPIEvaluationFactorScoring/load-data-team
+   * @param request - Request object chứa employeeID, kpiSessionID, và danh sách nhân viên được chọn
+   */
+  loadDataTeam(request: {
+    employeeID: number;
+    kpiSessionID: number;
+    lstEmpChose: Array<{ ID: number }>;
+  }): Observable<any> {
+    return this.http.post<any>(this.apiUrlFactorScoring + 'load-data-team', request);
+  }
+
+  /**
+   * Load dữ liệu KPI Rule mới
+   * API: GET api/KPIEvaluationFactorScoring/load-point-rule-new
+   * @param empPointMaster - ID của KPI Employee Point chính
+   */
+  loadPointRuleNew(empPointMaster: number): Observable<any> {
+    const params = new HttpParams()
+      .set('empPointMaster', empPointMaster.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'load-point-rule-new', { params });
+  }
 }
 

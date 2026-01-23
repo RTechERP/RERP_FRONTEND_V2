@@ -83,6 +83,7 @@ export class KpiRuleSumarizeTeamChooseEmployeeComponent implements OnInit {
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container'
       },
+      gridHeight: 400, // Fixed height để grid render đúng trong modal
       gridWidth: '100%',
       enableRowSelection: true,
       enableCheckboxSelector: true,
@@ -114,12 +115,13 @@ export class KpiRuleSumarizeTeamChooseEmployeeComponent implements OnInit {
       this.filteredEmployees = [...this.allEmployees];
 
       // Select all rows by default (matching WinForms behavior)
+      // Increase timeout để grid có thời gian render
       setTimeout(() => {
         if (this.angularGrid?.gridService) {
           const allRowIndexes = this.filteredEmployees.map((_, index) => index);
           this.angularGrid.gridService.setSelectedRows(allRowIndexes);
         }
-      }, 100);
+      }, 300);
     }
   }
 

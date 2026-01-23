@@ -11,6 +11,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -46,6 +47,7 @@ import { DailyReportTechComponent } from '../DailyReportTech/daily-report-tech/d
     NzNotificationModule,
     NzModalModule,
     NzDropDownModule,
+    NzSpinModule,
     Menubar,
   ],
   templateUrl: './daily-report-lxcp.component.html',
@@ -62,6 +64,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
   showSearchBar: boolean = true; // Mặc định ẩn, sẽ được set trong ngOnInit
   isMobile: boolean = false;
   menuBars: MenuItem[] = [];
+  isLoading: boolean = false;
 
   // Search filters
   dateStart: string = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
@@ -264,6 +267,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
 
   getDailyReportHrData(): void {
     const searchParams = this.getSearchParams();
+    this.isLoading = true;
 
     this.dailyReportTechService.getDailyReportLXCP(searchParams).subscribe({
       next: (response: any) => {
@@ -287,6 +291,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
             this.showSearchBar = false;
           }, 100);
         }
+        this.isLoading = false;
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
@@ -296,6 +301,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
         if (this.tb_daily_report_hr) {
           this.tb_daily_report_hr.replaceData(this.dailyReportHrData);
         }
+        this.isLoading = false;
       }
     });
   }

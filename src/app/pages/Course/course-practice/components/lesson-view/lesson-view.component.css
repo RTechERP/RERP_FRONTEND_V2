@@ -1,0 +1,421 @@
+/* ========== LESSON LIST STYLES ========== */
+.lesson-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.lesson-item:hover {
+    background: #f0f5ff;
+    border-color: #1890ff;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+}
+
+.lesson-item.active {
+    background: #e6f7ff;
+    border-color: #1890ff;
+    border-width: 2px;
+}
+
+.lesson-number {
+    flex: 0 0 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1890ff;
+    color: #ffffff;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.lesson-item.active .lesson-number {
+    background: #0050b3;
+}
+
+.lesson-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.lesson-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #262626;
+    line-height: 1.4;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lesson-code {
+    font-size: 11px;
+    color: #8c8c8c;
+}
+
+/* Lesson Completion Checkbox */
+.lesson-checkbox {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.lesson-checkbox ::ng-deep .ant-checkbox-inner {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+.lesson-checkbox ::ng-deep .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: #52c41a;
+    border-color: #52c41a;
+}
+
+.lesson-checkbox ::ng-deep .ant-checkbox-inner::after {
+    width: 6px;
+    height: 10px;
+}
+
+/* Completed lesson item style */
+.lesson-item.completed {
+    background: #f6ffed;
+    border-color: #b7eb8f;
+}
+
+.lesson-item.completed .lesson-number {
+    background: #52c41a;
+}
+
+.lesson-item.completed .lesson-name {
+    color: #389e0d;
+}
+
+/* ========== LESSON EXAM DROPDOWN ========== */
+.lesson-exam-dropdown {
+    flex: 0 0 auto;
+    margin-right: 8px;
+}
+
+.lesson-exam-btn {
+    background: #722ed1 !important;
+    border-color: #722ed1 !important;
+    color: #ffffff !important;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 0 10px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lesson-exam-btn:hover {
+    background: #9254de !important;
+    border-color: #9254de !important;
+}
+
+.lesson-exam-btn ::ng-deep .anticon {
+    font-size: 10px;
+}
+
+/* ========== EXAM TYPE BUTTONS ========== */
+.exam-buttons {
+    padding: 12px 0;
+    border-top: 1px solid #e8e8e8;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.exam-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    flex: 1 1 auto;
+    min-width: 120px;
+}
+
+.exercise-btn {
+    background: #1901f1;
+    border-color: #1901f1;
+    color: #ffffff;
+}
+
+.exercise-btn:hover {
+    background: #2d15ff;
+    border-color: #2d15ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(45, 21, 255, 0.4);
+    color: #ffffff;
+}
+
+.quiz-btn {
+    background: #1890ff;
+    border-color: #1890ff;
+    color: #ffffff;
+}
+
+.quiz-btn:hover {
+    background: #40a9ff;
+    border-color: #40a9ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+    color: #ffffff;
+}
+
+.practice-btn {
+    background: #52c41a;
+    border-color: #52c41a;
+    color: #ffffff;
+}
+
+.practice-btn:hover {
+    background: #73d13d;
+    border-color: #73d13d;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
+}
+
+/* ========== DISABLED EXAM BUTTON STYLES ========== */
+.exam-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.lesson-exam-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #d9d9d9 !important;
+    border-color: #d9d9d9 !important;
+    color: #8c8c8c !important;
+}
+
+/* ========== LESSON DETAIL STYLES ========== */
+.lesson-detail-container {
+    max-width: 100%;
+}
+
+.video-section {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.video-section iframe {
+    display: block;
+    border-radius: 8px;
+}
+
+/* Video Unavailable Placeholder */
+.video-unavailable {
+    background: #1a1a1a;
+    border-radius: 8px;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.video-unavailable-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.unavailable-icon {
+    font-size: 48px;
+    color: #8c8c8c;
+    background: #333;
+    border-radius: 50%;
+    padding: 12px;
+}
+
+.unavailable-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.unavailable-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #bfbfbf;
+}
+
+.unavailable-desc {
+    font-size: 13px;
+    color: #8c8c8c;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #262626;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #1890ff;
+    padding-bottom: 8px;
+}
+
+.section-subtitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #595959;
+}
+
+.lesson-content-html {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #262626;
+}
+
+.lesson-content-html h1,
+.lesson-content-html h2,
+.lesson-content-html h3 {
+    margin-top: 20px;
+    margin-bottom: 12px;
+    color: #262626;
+}
+
+.lesson-content-html p {
+    margin-bottom: 12px;
+}
+
+.lesson-content-html ul,
+.lesson-content-html ol {
+    padding-left: 24px;
+    margin-bottom: 12px;
+}
+
+.lesson-content-html img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 12px 0;
+}
+
+.pdf-section embed {
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.files-section {
+    background: #fafafa;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.file-item {
+    padding: 10px 12px;
+    background: #ffffff;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.file-item:hover {
+    border-color: #1890ff;
+    box-shadow: 0 2px 6px rgba(24, 144, 255, 0.15);
+}
+
+.file-item:last-child {
+    margin-bottom: 0;
+}
+
+.file-link {
+    color: #1890ff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-link::before {
+    content: '📎';
+    font-size: 16px;
+}
+
+.file-link:hover {
+    color: #0050b3;
+    text-decoration: underline;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card-header {
+    padding: 12px 16px;
+}
+
+.card-header h6 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1890ff;
+}
+
+.card-body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Responsive adjustments for lesson view */
+@media (max-width: 768px) {
+    .lesson-item {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .lesson-number {
+        flex: 0 0 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .lesson-name {
+        font-size: 12px;
+    }
+
+    .section-title {
+        font-size: 18px;
+    }
+
+    .video-section iframe {
+        height: 300px !important;
+    }
+
+    .pdf-section embed {
+        height: 400px !important;
+    }
+}

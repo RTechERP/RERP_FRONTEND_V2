@@ -36,6 +36,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { PermissionService } from '../../../services/permission.service';
 import { CourseCatalogDetailComponent } from '../course_management-form/course-catalog-detail/course-catalog-detail.component';
 import { CourseDetailComponent } from '../course_management-form/course-detail/course-detail.component';
+import { LessonDetailComponent } from '../course_management-form/lesson-detail/lesson-detail.component';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 interface Category {
@@ -47,10 +48,23 @@ interface Category {
 
 interface Lesson {
   ID: number;
-  STT: number;
-  Code: string;
-  Name: string;
+  STT?: number;
+  Code?: string;
+  Name?: string;
+  LessonTitle?: string;
+  LessonContent?: string;
+  Duration?: number;
+  VideoURL?: string;
   CourseID: number;
+  FileCourseID?: number;
+  UrlPDF?: string;
+  LessonCopyID?: number;
+  EmployeeID?: number;
+  IsDeleted?: boolean;
+  CreatedBy?: string;
+  CreatedDate?: Date;
+  UpdatedBy?: string;
+  UpdatedDate?: Date;
 }
 
 @Component({
@@ -80,92 +94,92 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   @ViewChild('CourseTable') courseTableRef!: ElementRef;
   @ViewChild('LessonTable') lessonTableRef!: ElementRef;
 
-      categoryMenuBars: MenuItem[] = [
-        {
-            label: 'Thêm',
-            icon: 'fa-solid fa-circle-plus fa-lg text-success',
-            //visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onAddCategory();
-            },
-        },
+  categoryMenuBars: MenuItem[] = [
+    {
+      label: 'Thêm',
+      icon: 'fa-solid fa-circle-plus fa-lg text-success',
+      //visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onAddCategory();
+      },
+    },
 
-        {
-            label: 'Sửa',
-            icon: 'fa-solid fa-file-pen fa-lg text-primary',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onEditCategory();
-            },
-        },
-        {
-            label: 'Xóa',
-            icon: 'fa-solid fa-trash fa-lg text-danger',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onDeleteCategory();
-            },
-        },
-        { separator: true },
-    ];
+    {
+      label: 'Sửa',
+      icon: 'fa-solid fa-file-pen fa-lg text-primary',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onEditCategory();
+      },
+    },
+    {
+      label: 'Xóa',
+      icon: 'fa-solid fa-trash fa-lg text-danger',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onDeleteCategory();
+      },
+    },
+    { separator: true },
+  ];
 
-    courseMenuBars: MenuItem[] = [
-        {
-            label: 'Thêm',
-            icon: 'fa-solid fa-circle-plus fa-lg text-success',
-            //visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onAddCourse();
-            },
-        },
+  courseMenuBars: MenuItem[] = [
+    {
+      label: 'Thêm',
+      icon: 'fa-solid fa-circle-plus fa-lg text-success',
+      //visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onAddCourse();
+      },
+    },
 
-        {
-            label: 'Sửa',
-            icon: 'fa-solid fa-file-pen fa-lg text-primary',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onEditCourse();
-            },
-        },
-        {
-            label: 'Xóa',
-            icon: 'fa-solid fa-trash fa-lg text-danger',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onDeleteCourse();
-            },
-        },
-        { separator: true },
-    ];
+    {
+      label: 'Sửa',
+      icon: 'fa-solid fa-file-pen fa-lg text-primary',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onEditCourse();
+      },
+    },
+    {
+      label: 'Xóa',
+      icon: 'fa-solid fa-trash fa-lg text-danger',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onDeleteCourse();
+      },
+    },
+    { separator: true },
+  ];
 
-        lessonMenuBars: MenuItem[] = [
-        {
-            label: 'Thêm',
-            icon: 'fa-solid fa-circle-plus fa-lg text-success',
-            //visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onAddLesson();
-            },
-        },
+  lessonMenuBars: MenuItem[] = [
+    {
+      label: 'Thêm',
+      icon: 'fa-solid fa-circle-plus fa-lg text-success',
+      //visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onAddLesson();
+      },
+    },
 
-        {
-            label: 'Sửa',
-            icon: 'fa-solid fa-file-pen fa-lg text-primary',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onEditLesson();
-            },
-        },
-        {
-            label: 'Xóa',
-            icon: 'fa-solid fa-trash fa-lg text-danger',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onDeleteLesson();
-            },
-        },
-        { separator: true },
-    ];
+    {
+      label: 'Sửa',
+      icon: 'fa-solid fa-file-pen fa-lg text-primary',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onEditLesson();
+      },
+    },
+    {
+      label: 'Xóa',
+      icon: 'fa-solid fa-trash fa-lg text-danger',
+      // visible: this.permissionService.hasPermission(""),
+      command: () => {
+        this.onDeleteLesson();
+      },
+    },
+    { separator: true },
+  ];
 
   splitterLayout: 'horizontal' | 'vertical' = 'horizontal';
 
@@ -478,6 +492,10 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   }
 
   onAddCourse() {
+    const maxSTT = this.courseData.length > 0
+      ? Math.max(...this.courseData.map(c => c.STT || 0))
+      : 0;
+
     const modalRef = this.modalService.open(CourseDetailComponent, {
       centered: true,
       size: 'lg',
@@ -494,9 +512,10 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.dataCategory = this.categoryData;
     modalRef.componentInstance.dataCourse = this.courseData;
     modalRef.componentInstance.categoryID = this.categoryID;
+    modalRef.componentInstance.maxSTT = maxSTT;
     modalRef.componentInstance.mode = 'add';
 
-        modalRef.result.then(
+    modalRef.result.then(
       (result) => {
         if (result == true) {
           this.getCourse();
@@ -531,7 +550,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.dataCourse = this.courseData;
     modalRef.componentInstance.categoryID = this.categoryID;
     modalRef.componentInstance.mode = 'edit';
-            modalRef.result.then(
+    modalRef.result.then(
       (result) => {
         if (result == true) {
           this.getCourse();
@@ -582,33 +601,140 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
 
   onAddLesson() {
     // TODO: Implement add lesson modal
-    this.notification.info('Thông báo', 'Chức năng thêm bài học đang được phát triển');
+    const maxSTT = this.lessonData.length > 0
+      ? Math.max(...this.lessonData.map(c => c.STT || 0))
+      : 0;
+
+    const dataToEdit = this.courseTable?.getSelectedData()?.[0];
+    if (!dataToEdit) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một khóa học để thêm bài học!');
+      return;
+    }
+    const modalRef = this.modalService.open(LessonDetailComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    modalRef.componentInstance.dataCategory = this.categoryData;
+    // modalRef.componentInstance.dataCourse = this.courseData;
+    modalRef.componentInstance.categoryID = this.categoryID;
+    modalRef.componentInstance.courseID = dataToEdit.ID;
+    modalRef.componentInstance.maxSTT = maxSTT;
+    modalRef.componentInstance.mode = 'add';
+    console.log("modalRef.componentInstance.courseID", dataToEdit.ID)
+    modalRef.result.then(
+      (result) => {
+        if (result == true) {
+          this.getLessonByCourseID(dataToEdit.ID);
+        }
+      },
+      (reason) => {
+        // Modal dismissed - không làm gì
+      }
+    );
+    //this.notification.info('Thông báo', 'Chức năng thêm bài học đang được phát triển');
   }
 
   onEditLesson(lessonData?: any) {
-    // TODO: Implement edit lesson modal
     const dataToEdit = lessonData || this.lessonTable?.getSelectedData()?.[0];
     if (!dataToEdit) {
       this.notification.warning('Thông báo', 'Vui lòng chọn một bài học để sửa!');
       return;
     }
-    this.notification.info('Thông báo', 'Chức năng sửa bài học đang được phát triển');
+
+    const modalRef = this.modalService.open(LessonDetailComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    modalRef.componentInstance.dataInput = dataToEdit;
+    modalRef.componentInstance.dataCategory = this.categoryData;
+    modalRef.componentInstance.categoryID = this.categoryID;
+    modalRef.componentInstance.courseID = dataToEdit.CourseID;
+    modalRef.componentInstance.mode = 'edit';
+
+    console.log('Dữ liệu truyền vào modal sửa bài học:', dataToEdit);
+
+    modalRef.result.then(
+      (result) => {
+        if (result == true) {
+          this.getLessonByCourseID(dataToEdit.CourseID);
+        }
+      },
+      (reason) => {
+        // Modal dismissed - không làm gì
+      }
+    );
   }
 
   onDeleteLesson() {
     const dataSelect: Lesson[] = this.lessonTable!.getSelectedData();
+    const dataToEdit = this.lessonTable?.getSelectedData()?.[0];
     if (dataSelect.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một bài học để xóa!');
       return;
     }
+
+    const lessonNames = dataSelect.map(l => l.LessonTitle).join(', ');
+    const displayNames = dataSelect.length > 3
+      ? `${dataSelect.slice(0, 3).map(l => l.LessonTitle).join(', ')} và ${dataSelect.length - 3} bài học khác`
+      : lessonNames;
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa ${dataSelect[0].Name} không?`,
+      nzContent: `Bạn có chắc chắn muốn xóa bài học "${displayNames}" không?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
+      nzOkDanger: true,
       nzOnOk: () => {
-        // TODO: Implement delete API
-        this.notification.info('Thông báo', 'Chức năng xóa bài học đang được phát triển');
+        const deleteRequests = dataSelect.map(lesson => {
+          const payload = {
+            CourseLesson: {
+              ID: lesson.ID,
+              Code: lesson.Code,
+              LessonTitle: lesson.LessonTitle,
+              LessonContent: lesson.LessonContent,
+              Duration: lesson.Duration,
+              VideoURL: lesson.VideoURL,
+              STT: lesson.STT,
+              CourseID: lesson.CourseID,
+              FileCourseID: lesson.FileCourseID,
+              UrlPDF: lesson.UrlPDF,
+              LessonCopyID: lesson.LessonCopyID,
+              EmployeeID: lesson.EmployeeID,
+              IsDeleted: true
+            },
+            CoursePdf: null,
+            CourseFiles: null
+          };
+          return this.courseService.saveLesson(payload);
+        });
+
+        forkJoin(deleteRequests).subscribe({
+          next: (results: any[]) => {
+            const successCount = results.filter(res => res && res.status === 1).length;
+            const failCount = results.length - successCount;
+
+            if (successCount > 0) {
+              this.notification.success('Thông báo', `Đã xóa thành công ${successCount} bài học!`);
+            }
+
+            if (failCount > 0) {
+              this.notification.warning('Thông báo', `Có ${failCount} bài học không thể xóa!`);
+            }
+
+            this.getLessonByCourseID(dataSelect[0].CourseID || dataToEdit.CourseID);
+          },
+          error: (err) => {
+            this.notification.error('Thông báo', 'Có lỗi xảy ra khi thực hiện xóa danh sách bài học!');
+            console.error('Error deleting lessons:', err);
+            this.getLessonByCourseID(dataSelect[0].CourseID || dataToEdit.CourseID);
+          }
+        });
       },
     });
   }
@@ -623,6 +749,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         height: '87vh',
         selectableRows: 1,
+        pagination: false,
         paginationMode: 'local',
         groupBy: [
           (data: any) => data.CatalogTypeText || 'Chưa phân loại',
@@ -708,38 +835,40 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         height: '87vh',
         selectableRows: 1,
+        pagination: false,
         paginationMode: 'local',
         groupBy: 'CourseTypeName',
         groupHeader: function (value, count, data, group) {
           return (
-            `Loại: ${value ||""}`
+            `Loại: ${value || ""}`
           );
         },
         columns: [
-        {
-          title: 'STT',
-          field: 'STT',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 30,
-        },
-        {
-          title: 'Mã khóa học',
-          field: 'Code',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          headerSort: false,
-        },
           {
-            title: 'Tên khóa học',
-            field: 'NameCourse',
+            title: 'STT',
+            field: 'STT',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            width: 30,
+          },
+          {
+            title: 'Mã khóa học',
+            field: 'Code',
             hozAlign: 'left',
             headerHozAlign: 'center',
             headerSort: false,
           },
           {
+            title: 'Tên khóa học',
+            field: 'NameCourse',
+            hozAlign: 'left',
+            width: 300,
+            headerHozAlign: 'center',
+            headerSort: false,
+          },
+          {
             title: 'Thời gian học (ngày)',
-            field: 'StudyDate',
+            field: 'LeadTime',
             hozAlign: 'center',
             headerHozAlign: 'center',
             width: 100,
@@ -917,9 +1046,9 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         this.courseID = 0;
         this.lessonData = [];
 
-          if (this.lessonTable) {
-            this.lessonTable.setData(this.lessonData);
-          }
+        if (this.lessonTable) {
+          this.lessonTable.setData(this.lessonData);
+        }
 
       });
     }
@@ -934,6 +1063,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
         selectableRows: 1,
+        pagination: false,
         paginationMode: 'local',
         height: '87vh',
         columns: [

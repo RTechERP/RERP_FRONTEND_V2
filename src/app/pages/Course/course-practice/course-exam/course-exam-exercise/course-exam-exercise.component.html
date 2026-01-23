@@ -1,0 +1,101 @@
+<div class="exam-modal-container">
+    <!-- Header -->
+    <div class="exam-modal-header">
+        <h5 class="exam-modal-title">BÀI THI KHÓA HỌC {{ courseName | uppercase }}</h5>
+        <!-- <button type="button" class="btn-close" aria-label="Close" (click)="onClose()"></button> -->
+    </div>
+
+    <!-- Body -->
+    <div class="exam-modal-body">
+        <nz-spin [nzSpinning]="isLoading">
+            <!-- Toolbar: Timer + Submit -->
+            <div class="exam-toolbar">
+                <div class="timer-section">
+                    <span nz-icon nzType="clock-circle" nzTheme="outline" class="timer-icon"></span>
+                    <span class="timer-value" [class.timer-warning]="remainingSeconds < 300">
+                        {{ formatTime(remainingSeconds) }}
+                    </span>
+                </div>
+
+                <!-- Result summary after submission -->
+                <div class="result-summary" *ngIf="isSubmitted">
+                    <span class="result-correct">
+                        <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+                        {{ numCorrectAnswers }} đúng
+                    </span>
+                    <span class="result-incorrect">
+                        <span nz-icon nzType="close-circle" nzTheme="fill"></span>
+                        {{ numIncorrectAnswers }} sai
+                    </span>
+                </div>
+
+                <button nz-button [nzType]="isSubmitted ? 'primary' : 'primary'" [nzDanger]="!isSubmitted"
+                    class="submit-btn" (click)="onSubmit()" [nzLoading]="isSubmitting" [disabled]="isSubmitting">
+                    {{ isSubmitted ? 'Hoàn thành' : 'Nộp bài' }}
+                </button>
+            </div>
+
+            <!-- Scrollable Content Area -->
+            <div class="exam-content-scrollable">
+                <!-- Question Section -->
+                <div class="question-section" *ngIf="currentQuestion">
+                    <div class="question-header">
+                        <strong>Câu {{ currentIndex + 1 }}/{{ questions.length }}:</strong>
+                    </div>
+                    <div class="question-content">
+                        <p class="question-text">{{ currentQuestion.QuestionText }}</p>
+                    </div>
+
+                    <!-- Question Image (if any) -->
+                    <div class="question-image" *ngIf="currentQuestion.Image">
+                        <img [src]="currentQuestionImage" alt="Question Image" />
+                    </div>
+                </div>
+
+                <!-- Answers Section -->
+                <div class="answer-section" *ngIf="currentQuestion">
+                    <p class="answer-label">Câu trả lời:</p>
+                    <div class="answer-list">
+                        <div class="answer-item" *ngFor="let answer of currentQuestion.ExamAnswers; let i = index">
+                            <label nz-checkbox [(ngModel)]="answer.selected" [nzDisabled]="isSubmitted">
+                                {{ answer.AnswerText }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nz-spin>
+    </div>
+
+    <!-- Fixed Footer -->
+    <div class="exam-modal-footer">
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <button nz-button nzType="primary" nzSize="small" (click)="onPrevious()"
+                [disabled]="currentIndex === 0 || isSaving">
+                <span nz-icon nzType="left"></span>
+            </button>
+            <button nz-button nzType="default" nzSize="small" class="save-btn" (click)="onSave()" [nzLoading]="isSaving"
+                [disabled]="isSubmitted">
+                Lưu
+            </button>
+            <button nz-button nzType="primary" nzSize="small" (click)="onNext()"
+                [disabled]="currentIndex === questions.length - 1 || isSaving">
+                <span nz-icon nzType="right"></span>
+            </button>
+        </div>
+
+        <!-- Question Navigation -->
+        <div class="question-nav-section">
+            <p class="nav-label">Danh sách câu hỏi:</p>
+            <div class="question-nav">
+                <span class="question-number" *ngFor="let q of questions; let i = index"
+                    [class.current]="i === currentIndex" [class.answered]="q.isAnswered && !isSubmitted"
+                    [class.correct]="isSubmitted && q.isCorrect === true"
+                    [class.incorrect]="isSubmitted && q.isCorrect === false" (click)="goToQuestion(i)">
+                    {{ i + 1 }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

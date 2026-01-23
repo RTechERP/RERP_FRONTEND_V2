@@ -92,6 +92,7 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
   @Input() mode: 'add' | 'edit' = 'add';
   @Input() dataCategory: any[] = [];
+  @Input() maxSTT: number = 0;
   dataCourse: any[] = [];
   @Input() categoryID: number = 0;
 
@@ -149,6 +150,9 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
 
     // Load dữ liệu dropdown
     this.loadTypeData();
+    this.formGroup.patchValue({
+      STT: this.maxSTT || 0
+    });
 
     // Load dữ liệu nếu là chế độ edit
     if (this.mode === 'edit' && this.dataInput) {
@@ -216,11 +220,12 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       NameCourse: formValue.Name,
       CourseCatalogID: formValue.CategoryID,
       DeleteFlag: formValue.IsActive !== undefined ? formValue.IsActive : true,
-      QuestionCount: formValue.TotalQuestions || 0,
+      QuestionCount: formValue.RandomQuizQuestions || 0,
       LeadTime: formValue.StudyDays || 0,
       CourseTypeID: formValue.TypeID,
       IdeaIDs: formValue.IdeaID || [],
       QuestionDuration: formValue.QuestionDuration || 0,
+
     };
 
       this.courseService.saveCourse(payload).subscribe({
@@ -236,8 +241,9 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         this.saving = false;
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lưu khóa học!');
+        this.notification.error('Thông báo', err?.error?.message || 'Không thể lưu khóa học!');
         console.error('Error saving course catalog:', err);
+        
       }
     });
 
@@ -376,5 +382,16 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
         });
     const maxSTT = this.typeData.length > 0 ? Math.max(...this.typeData.map(t => t.STT || 0)) : 0;
     modalRef.componentInstance.maxSTT = maxSTT + 1;
+
+        modalRef.result.then(
+      (result) => {
+        if (result == true) {
+          this.loadTypeData();
+        }
+      },
+      (reason) => {
+        // Modal dismissed - không làm gì
+      }
+    );
   }
 }

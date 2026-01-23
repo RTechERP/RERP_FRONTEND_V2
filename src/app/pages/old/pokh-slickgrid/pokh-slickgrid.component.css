@@ -96,6 +96,9 @@ label[nz-checkbox] {
   height: 100%;
 }
 
+:host ::ng-deep .grid-container-pokh-product nz-spin,
+:host ::ng-deep .grid-container-pokh-product .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-pokh-product .ant-spin-container,
 :host ::ng-deep .grid-container-pokh-product angular-slickgrid,
 :host ::ng-deep .grid-container-pokh-product .slickgrid-container,
 :host ::ng-deep .grid-container-pokh-product .gridPane {
@@ -107,6 +110,9 @@ label[nz-checkbox] {
   height: 100%;
 }
 
+:host ::ng-deep .grid-container-pokh-file nz-spin,
+:host ::ng-deep .grid-container-pokh-file .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-pokh-file .ant-spin-container,
 :host ::ng-deep .grid-container-pokh-file angular-slickgrid,
 :host ::ng-deep .grid-container-pokh-file .slickgrid-container,
 :host ::ng-deep .grid-container-pokh-file .gridPane {

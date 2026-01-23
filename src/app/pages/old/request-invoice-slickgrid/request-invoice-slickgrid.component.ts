@@ -34,6 +34,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
@@ -102,6 +103,7 @@ import { Menubar } from 'primeng/menubar';
         NzUploadModule,
         NzSwitchModule,
         NzCheckboxModule,
+        NzSpinModule,
         NzFormModule,
         CommonModule,
         HasPermissionDirective,
@@ -172,6 +174,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     };
 
     isPOFileGridRendered: boolean = false;
+
+    // Loading states for grids
+    isLoadingMain: boolean = false;
+    isLoadingDetail: boolean = false;
+    isLoadingFile: boolean = false;
+    isLoadingPOFile: boolean = false;
 
     menuBars: any[] = [];
 
@@ -699,6 +707,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         start.setHours(0, 0, 0, 0);
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
+        this.isLoadingMain = true;
         this.RequestInvoiceSlickgridService.getRequestInvoice(
             start,
             end,
@@ -712,16 +721,18 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                         ...item,
                         id: `${item.ID}_${index}`
                     }));
-
                     // Apply distinct filters after data is loaded
                     setTimeout(() => {
                         this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name', 'StatusText']);
                     }, 500);
+                    this.isLoadingMain = false;
                 } else {
+                    this.isLoadingMain = false;
                     this.notification.error(NOTIFICATION_TITLE.error, response.message);
                 }
             },
             error: (error) => {
+                this.isLoadingMain = false;
                 this.notification.error(NOTIFICATION_TITLE.error, error);
             },
         });
@@ -757,6 +768,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     }
 
     loadDetailData(id: number): void {
+        this.isLoadingDetail = true;
+        this.isLoadingFile = true;
         this.RequestInvoiceSlickgridService.getDetail(id).subscribe({
             next: (response) => {
                 if (response.status === 1) {
@@ -775,11 +788,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                         id: item.ID || `file_${index}`
                     }));
 
-                    // Apply distinct filters after data is loaded
                     setTimeout(() => {
                         this.applyDistinctFiltersToGrid(this.angularGridDetail, this.columnDefinitionsDetail, ['Unit', 'CompanyText']);
                         this.updateFooterRow();
                     }, 500);
+                    this.isLoadingDetail = false;
+                    this.isLoadingFile = false;
 
                     // Auto select first row and load POFile
                     if (this.dataDetail.length > 0) {
@@ -789,16 +803,21 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                         }
                     }
                 } else {
+                    this.isLoadingDetail = false;
+                    this.isLoadingFile = false;
                     this.notification.error(NOTIFICATION_TITLE.error, response.message);
                 }
             },
             error: (error) => {
+                this.isLoadingDetail = false;
+                this.isLoadingFile = false;
                 this.notification.error(NOTIFICATION_TITLE.error, error);
             },
         });
     }
 
     loadPOKHFile(POKHID: number): void {
+        this.isLoadingPOFile = true;
         this.RequestInvoiceSlickgridService.getPOKHFile(POKHID).subscribe(
             (response) => {
                 if (response.status === 1) {
@@ -809,8 +828,10 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                         id: item.ID || `pofile_${index}`
                     }));
                 }
+                this.isLoadingPOFile = false;
             },
             (error) => {
+                this.isLoadingPOFile = false;
                 console.error('Lỗi kết nối khi tải POKHFile:', error);
             }
         );

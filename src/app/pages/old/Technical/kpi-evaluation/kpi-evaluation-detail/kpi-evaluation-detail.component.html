@@ -1,6 +1,6 @@
 <div class="modal-header bg-primary text-uppercase py-2">
     <h6 class="modal-title text-white">CHI TIẾT NỘI DUNG ĐÁNH GIÁ KPI</h6>
-    <button type="button" class="btn-close btn-close-white" (click)="cancel()" aria-label="Close"></button>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
 </div>
 
 <div class="modal-body p-2" style="height: 500px; overflow-y: auto; overflow-x: hidden;">
@@ -13,7 +13,8 @@
             </label>
             <input nz-input type="text" nzSize="small" [(ngModel)]="evaluationCode" name="evaluationCode"
                 (blur)="errors.evaluationCode = ''" />
-            <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.evaluationCode">{{ errors.evaluationCode }}</span>
+            <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.evaluationCode">{{ errors.evaluationCode
+                }}</span>
         </div>
 
         <!-- Ghi chú -->
@@ -26,14 +27,9 @@
         <div class="form-group mb-0">
             <label class="m-0 mb-1">Danh sách lỗi</label>
             <div class="error-grid-container" style="height: 300px;">
-                <angular-slickgrid
-                    gridId="gridKPIEvaluationErrors"
-                    [columns]="columnDefinitions"
-                    [options]="gridOptions"
-                    [dataset]="dataset"
-                    (onAngularGridCreated)="angularGridReady($event.detail)"
-                    (onClick)="onGridClick($event.detail.eventData, $event.detail.args)"
-                >
+                <angular-slickgrid gridId="gridKPIEvaluationErrors" [columns]="columnDefinitions"
+                    [options]="gridOptions" [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                    (onClick)="onGridClick($event.detail.eventData, $event.detail.args)">
                 </angular-slickgrid>
             </div>
         </div>

@@ -365,16 +365,16 @@ export class BillExportDetailNewComponent
       !this.isFromWarehouseRelease &&
       !this.isReturnToSupplier
     ) {
-      // Lấy UserID từ người đăng nhập hiện tại
-      const currentUserId = this.appUserService.id || 0;
+      // Lấy employeeID từ người đăng nhập hiện tại cho Người Nhận
+      const currentEmployeeId = this.appUserService.id || 0;
 
       this.newBillExport = {
         TypeBill: false,
         Code: '',
         Address: '',
         CustomerID: 0,
-        UserID: 0, // Người Nhận = người đăng nhập hiện tại
-        SenderID: currentUserId, // Người Giao = sẽ lấy từ ProductGroupWarehouse
+        UserID: currentEmployeeId, // Người Nhận = người đăng nhập hiện tại
+        SenderID: 0, // Người Giao = sẽ lấy từ ProductGroupWarehouse
         WarehouseType: '',
         GroupID: '',
         KhoTypeID: 0,
@@ -396,7 +396,7 @@ export class BillExportDetailNewComponent
         this.validateForm.patchValue({
           KhoTypeID: this.billImport.KhoTypeID,
           //UserID: this.billImport.ReciverID,
-          UserID: this.id > 0 ? this.billImport.ReciverID : this.appUserService.employeeID,
+          UserID: this.id > 0 ? this.billImport.ReciverID : this.appUserService.id,
           WarehouseID: this.billImport.WarehouseID,
           SenderID: this.billImport.DeliverID,
           SupplierID: this.billImport.SupplierID,

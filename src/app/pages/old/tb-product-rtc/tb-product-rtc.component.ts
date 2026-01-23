@@ -46,6 +46,7 @@ import { TbProductGroupRtcFormComponent } from './tb-product-group-rtc-form/tb-p
 import { TbProductRtcFormComponent } from './tb-product-rtc-form/tb-product-rtc-form.component';
 (window as any).luxon = { DateTime };
 declare var bootstrap: any;
+import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TbProductRtcService } from './tb-product-rtc-service/tb-product-rtc.service';
 import { TbProductRtcImportExcelComponent } from './tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
@@ -862,7 +863,6 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        const ExcelJS = await import('exceljs');
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Danh sách thiết bị');
 

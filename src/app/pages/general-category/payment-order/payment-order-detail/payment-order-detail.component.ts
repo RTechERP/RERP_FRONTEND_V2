@@ -905,6 +905,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             const columnId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field);
             const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
 
+
+            console.log('columnElement', columnElement);
             const details = gridInstance.dataView.getItems().map(x => ({
                 ...x,
                 ID: this.isCopy ? 0 : x.ID,
@@ -913,7 +915,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 ...this.paymentOrder,
                 ...this.validateForm.getRawValue(),
                 PaymentOrderDetails: details,
-                TotalMoney: parseFloat(columnElement.textContent ?? ''),
+                TotalMoney: parseFloat((columnElement.textContent ?? '').replace(/,/g, '')),
                 ID: this.isCopy ? 0 : this.paymentOrder.ID,
                 id: this.isCopy ? 0 : this.paymentOrder.ID,
             };

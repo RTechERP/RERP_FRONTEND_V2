@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, OnInit, AfterViewInit, EventEmitter, Output, Input } from '@angular/core';
+import { Component, ElementRef, ViewChild, OnInit, AfterViewInit, EventEmitter, Output, Input, inject } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -25,10 +25,12 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { OverTimeService } from '../over-time-service/over-time.service';
+import { ProjectService } from '../../../project/project-service/project.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from "../../../../directives/has-permission.directive";
 @Component({
   selector: 'app-over-time-detail',
+  standalone: true,
   templateUrl: './over-time-detail.component.html',
   styleUrls: ['./over-time-detail.component.css'],
   imports: [
@@ -65,6 +67,8 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
   employeeTypeOverTimeList: any[] = [];
   searchForm!: FormGroup;
   overTimeDetail: any[] = [];
+  projectList: any[] = [];  // Danh sách dự án
+  private projectService = inject(ProjectService);
 
 
   // Thêm mảng để map location value với label
@@ -88,6 +92,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
     this.loadApprover();
     this.loadEmployee();
     this.loadEmployeeTypeOverTime();
+    this.loadProjects();
     this.loadDetailData();
   }
 
@@ -112,16 +117,19 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
       dateRegister: new Date(firstItem['DateRegister'])
     });
 
-    // Gán lại STT cho từng dòng dữ liệu
     if (this.detailData && this.detailData.length > 0) {
       this.detailData.forEach((item, idx) => {
         item.STT = idx + 1;
+        item.ProjectID = item.ProjectID || item.ProjectId || item.ProjectItemID || 0;
+        item.Location = item.Location || item.LocationID || item.location || 0;
+        item.TypeID = item.TypeID || item.Type || 0;
       });
     }
 
     // Load data into tabulator
+    this.overTimeDetail = [...this.detailData];
     if (this.tabulator) {
-      this.tabulator.setData(this.detailData);
+      this.tabulator.setData(this.overTimeDetail);
     } else {
       this.overTimeDetail = this.detailData;
     }
@@ -180,6 +188,45 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
     })
   }
 
+  loadProjects() {
+    this.projectService.getProjectModal().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 0) {
+          this.projectList = [];
+          return;
+        }
+        if (res && res.data) {
+          const dataArray = Array.isArray(res.data) ? res.data : [res.data];
+          this.projectList = dataArray.map((item: any) => {
+            if (item.id !== undefined && item.text !== undefined) {
+              return { value: item.id, label: item.text };
+            }
+            if (item.ID !== undefined) {
+              const projectText = item.ProjectCode
+                ? `${item.ProjectCode} - ${item.ProjectName || ''}`
+                : (item.ProjectName || '');
+              return {
+                value: item.ID,
+                label: projectText
+              };
+            }
+            return { value: item.ID || item.id, label: item.ProjectName || item.text || '' };
+          });
+          // Reload tabulator nếu đã có
+          if (this.tabulator) {
+            this.destroyTabulator();
+            this.initializeTabulator();
+          }
+        } else {
+          this.projectList = [];
+        }
+      },
+      error: (error: any) => {
+        this.projectList = [];
+      }
+    });
+  }
+
   private destroyTabulator() {
     if (this.tabulator) {
       this.tabulator.destroy();
@@ -203,6 +250,19 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
     rows.forEach((row, index) => {
       row.update({ STT: index + 1 });
     });
+  }
+
+  toLocalISOString(date: Date | string | null): string | null {
+    if (!date) return null;
+    try {
+      const dateObj = date instanceof Date ? date : new Date(date);
+      if (isNaN(dateObj.getTime())) return null;
+
+      const dt = DateTime.fromJSDate(dateObj);
+      return dt.toISO({ includeOffset: true });
+    } catch {
+      return null;
+    }
   }
 
   private initializeTabulator(): void {
@@ -332,14 +392,10 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
           }
         },
         {
-          title: 'Loại',
-          field: 'TypeID',
-          editor: 'list',
+          title: 'Loại', field: 'TypeID', editor: 'list',
           editorParams: {
             values: this.employeeTypeOverTimeList
           },
-
-
           formatter: (cell: any) => {
             const value = cell.getValue();
             const type = this.employeeTypeOverTimeList.find((emp: any) => emp.value === value);
@@ -348,6 +404,22 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: 350
+        },
+        {
+          title: 'Dự án',
+          field: 'ProjectID',
+          editor: 'list',
+          editorParams: {
+            values: this.projectList
+          },
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            const project = this.projectList.find((p: any) => p.value === value);
+            return project ? project.label : value || '';
+          },
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 300
         },
         { title: 'Lý do', field: 'Reason', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500 },
         { title: 'Lý do sửa', field: 'ReasonHREdit', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500 },
@@ -387,6 +459,17 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
               cell.setValue('');
               return;
             }
+
+            // Tự động tích ăn tối nếu kết thúc sau 20:00 (8h tối) hoặc làm trên 8 tiếng giống over-time-person-form
+            if (field === 'EndTime' || field === 'TimeStart') {
+              const diffMs = endTime.getTime() - startTime.getTime();
+              const diffHours = diffMs / (1000 * 60 * 60);
+              const hours = endTime.getHours();
+
+              if (hours >= 20 || diffHours >= 8) {
+                cell.getRow().update({ Overnight: true });
+              }
+            }
           }
         }
 
@@ -418,21 +501,38 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
     const formData = {
       EmployeeOvertimes: employeeOverTime.map(item => {
         const isEdit = item.ID && item.ID > 0;
+
+        // Tính toán thời gian thực tế (TimeReality)
+        let timeReality = 0;
+        if (item.TimeStart && item.EndTime) {
+          const startDate = new Date(item.TimeStart);
+          const endDate = new Date(item.EndTime);
+          if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+            const diffMs = endDate.getTime() - startDate.getTime();
+            const diffHours = diffMs / (1000 * 60 * 60);
+            timeReality = Math.round(diffHours * 100) / 100;
+          }
+        }
+
         return {
-          ID: item.ID || 0,
-          EmployeeID: data.employeeId,
-          ApprovedID: data.approverId,
-          DateRegister: data.dateRegister,
-          TimeStart: item.TimeStart,
-          EndTime: item.EndTime,
-          Location: item.Location,
-          Overnight: item.Overnight,
-          TypeID: item.TypeID,
-          Reason: item.Reason,
-          ReasonHREdit: item.ReasonHREdit,
-          // Reset trạng thái duyệt khi sửa
+          ID: item.ID !== null && item.ID !== undefined ? item.ID : 0,
+          EmployeeID: Number(data.employeeId),
+          ApprovedID: Number(data.approverId || 0),
+          DateRegister: this.toLocalISOString(data.dateRegister),
+          TimeStart: this.toLocalISOString(item.TimeStart),
+          EndTime: this.toLocalISOString(item.EndTime),
+          TimeReality: timeReality,
+          Location: Number(item.Location || 0),
+          Overnight: item.Overnight || false,
+          CostOvernight: item.Overnight ? 30000 : 0,
+          CostDinner: item.Overnight ? 35000 : 0,
+          TypeID: Number(item.TypeID || 0),
+          ProjectID: item.ProjectID ? Number(item.ProjectID) : 0,
+          Reason: item.Reason || '',
+          ReasonHREdit: item.ReasonHREdit || '',
           IsApproved: isEdit ? false : undefined,
           IsApprovedHR: isEdit ? false : undefined,
+          IsDeleted: false
         };
       })
     }

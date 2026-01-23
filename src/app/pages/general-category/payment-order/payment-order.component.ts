@@ -223,7 +223,7 @@ export class PaymentOrderComponent implements OnInit {
                 ?? this.tabData?.activeTab
                 ?? '0';
 
-            console.log('this.activeTab:', this.activeTab)
+            // console.log('this.activeTab:', this.activeTab)
         });
 
         this.loadDataCombo();
@@ -580,6 +580,30 @@ export class PaymentOrderComponent implements OnInit {
                 command: () => {
                     this.onApprovedBGD(2, {
                         ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnUnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
+                    });
+                }
+            },
+
+            {
+                separator: true,
+            },
+            {
+                label: 'KH đã nhận',
+                icon: 'fa-solid fa-circle-check fa-lg text-success',
+                visible: this.activeTab == '1',
+                command: () => {
+                    this.onApprovedKHReceive(1, {
+                        ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH đã nhận',
+                    });
+                }
+            },
+            {
+                label: 'KH hủy nhận',
+                icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                visible: this.activeTab == '1',
+                command: () => {
+                    this.onApprovedKHReceive(2, {
+                        ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH hủy nhận',
                     });
                 }
             },
@@ -2588,13 +2612,11 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadDataSpecial() {
-        // this.param.isSpecialOrder = 1;
-
-        if (!this.isPermisstionDB) return;
         const p = {
             ...this.param,
             isSpecialOrder: 1,
-            typeOrder: 0
+            typeOrder: 0,
+            employeeID: this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
         }
         this.paymentService.get(p).subscribe({
             next: (response) => {
@@ -2718,7 +2740,7 @@ export class PaymentOrderComponent implements OnInit {
 
     applyDistinctFilters(angularGrid: AngularGridInstance): void {
         // const angularGrid = this.angularGrid;
-        console.log('angularGrid:', angularGrid);
+        // console.log('angularGrid:', angularGrid);
         if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
 
         // const data: any[] = [];
@@ -3709,6 +3731,75 @@ export class PaymentOrderComponent implements OnInit {
 
     }
 
+    async onApprovedKHReceive(isApproved: number, action: any) {
+        // let gridInstance = this.angularGrid;
+        let gridInstance = this.angularGridSpecial;
+        // if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
+
+        const rowIndexes = grid.getSelectedRows();
+        let selectedItems = rowIndexes
+            .map(i => dataView.getItem(i));
+
+        selectedItems = selectedItems.map((x, i) => ({
+            ...x,
+            Action: action,
+            PaymentOrderLog: {
+                IsApproved: isApproved,
+            },
+            CurrentApproved: x.IsApproved || 0,
+            Step: x.Step || 0
+        }));
+
+        if (isApproved == 1) {
+            Swal.fire({
+                title: 'Xác nhận duyệt?',
+                text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Duyệt',
+                cancelButtonText: 'Hủy',
+            }).then((result: any) => {
+                if (result.isConfirmed) {
+                    console.log('duyêt:', selectedItems);
+
+                    // this.handleApproved(selectedItems);
+                }
+            });
+
+
+        }
+        else if (isApproved == 2) {
+            const { value: reason }: { value?: string } = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Lý do hủy',
+                inputPlaceholder: 'Nhập lý do hủy duyệt...',
+                inputAttributes: {
+                    'aria-label': 'Vui lòng nhập Lý do hủy',
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Hủy duyệt',
+                cancelButtonText: 'Hủy',
+            });
+            if (reason) {
+
+                selectedItems = selectedItems.map((x, i) => ({
+                    ...x,
+                    ReasonCancel: reason
+                }));
+
+                console.log('hủy duyêt:', selectedItems);
+                // this.handleApproved(selectedItems);
+            }
+        }
+    }
+
     formatNumber(num: number, digits: number = 2) {
         num = num || 0;
         return num.toLocaleString('vi-VN', {
@@ -3842,11 +3933,11 @@ export class PaymentOrderComponent implements OnInit {
                     widths: [120, '*', 40, 70],
                     body: [
                         [
-                            '- Hình thức chuyển khoản',
+                            { text: '- Hình thức chuyển khoản', margin: [15, 0, 0, 0] },
                             { colSpan: 3, text: `:${paymentOrder.TypeBankTransferText}` }, {}, {}
                         ],
                         [
-                            '- Nội dung chuyển khoản',
+                            { text: '- Nội dung chuyển khoản', margin: [15, 0, 0, 0] },
                             { colSpan: 3, text: `:${paymentOrder.ContentBankTransfer}` }, {}, {}
                         ]
 
@@ -3897,8 +3988,8 @@ export class PaymentOrderComponent implements OnInit {
         let signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
 
         const dateFix = new Date('2024-03-03T00:00:00');
-        console.log('dateOrder:', dateOrder);
-        console.log('dateFix:', dateFix);
+        // console.log('dateOrder:', dateOrder);
+        // console.log('dateFix:', dateFix);
 
         if (dateOrder.getTime() <= dateFix.getTime()) {
             if (!paymentOrder.IsIgnoreHR) {
@@ -4067,13 +4158,13 @@ export class PaymentOrderComponent implements OnInit {
                             ],
 
                             [
-                                { text: paymentOrder.TypeOrder == 3 ? '- Hình thức thu tiền' : '- Hình thức thanh toán' },
+                                { text: paymentOrder.TypeOrder == 3 ? '- Hình thức thu tiền' : '- Hình thức thanh toán', margin: [15, 0, 0, 0] },
                                 // {},
                                 { text: paymentOrder.TypePayment == 1 ? '[x] Chuyển khoản' : '[ ] Chuyển khoản' },
                                 { colSpan: 2, text: paymentOrder.TypePayment == 2 ? '[x] Tiền mặt' : '[ ] Tiền mặt' }
                             ],
                             [
-                                '- Số tài khoản', { text: `:${paymentOrder.AccountNumber}` },
+                                { text: '- Số tài khoản', margin: [15, 0, 0, 0] }, { text: `:${paymentOrder.AccountNumber}` },
                                 'Ngân hàng', `:${paymentOrder.Bank}`
                             ],
 
@@ -4121,7 +4212,7 @@ export class PaymentOrderComponent implements OnInit {
                             ],
                             ...items,
                             ...sumTotalFooter,
-                            [{ colSpan: 9, text: paymentOrder.TotalMoneyText, bold: true, italics: true }]
+                            [{ colSpan: 9, text: `Số tiền bằng chữ: ${paymentOrder.TotalMoneyText}`, bold: true, italics: true }]
 
                         ],
                     },
@@ -4214,7 +4305,7 @@ export class PaymentOrderComponent implements OnInit {
 
         //Chữ ký
 
-        console.log('signs:', signs);
+        // console.log('signs:', signs);
 
         const signEmp = signs.find((x: any) => x.Step == 1 && x.IsApproved == 1);
         const signTBP = signs.find((x: any) => x.Step == 2 && x.IsApproved == 1);
@@ -4339,7 +4430,7 @@ export class PaymentOrderComponent implements OnInit {
                                 {},
                                 {},
                             ],
-                            [{ colSpan: 7, text: paymentOrder.TotalMoneyText, bold: true, italics: true }]
+                            [{ colSpan: 7, text: `Số tiền bằng chữ: ${paymentOrder.TotalMoneyText}`, bold: true, italics: true }]
                         ],
 
                     },

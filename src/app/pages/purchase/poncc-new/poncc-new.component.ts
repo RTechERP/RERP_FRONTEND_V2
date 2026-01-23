@@ -12,6 +12,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -52,7 +53,6 @@ import { SafeUrlPipe } from '../../../../safeUrl.pipe';
 import { PaymentOrderDetailComponent } from '../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
-
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
   Times: {
@@ -74,6 +74,7 @@ import { MenuItem } from 'primeng/api';
     NzFormModule,
     NzIconModule,
     NzInputModule,
+    NzInputNumberModule,
     NzSelectModule,
     NzSplitterModule,
     NzTabSetComponent,
@@ -155,6 +156,15 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
   datasetPoMuon: any[] = [];
   datasetDetail: any[] = [];
 
+  isLoadingExcel: boolean = false;
+
+  preparedMarginTop: number = 0;
+  directorMarginTop: number = 0;
+  preparedWidth: number = 150;
+  directorWidth: number = 170;
+  preparedMarginLeft: number = 0;
+  directorMarginLeft: number = 20;
+  titleMarginTop: number = 0;
   // Lưu trạng thái bảng để khôi phục sau khi reload
   private savedScrollPosition: number = 0;
   private savedSelectedRowIds: number[] = [];
@@ -1477,7 +1487,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 error: (error) => {
                   this.notify.error(
                     'Lỗi',
-                  error.error?.message || error?.message
+                    error.error?.message || error?.message
                   );
                 },
               });
@@ -2965,8 +2975,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         ? cellDisplaySign
         : {
           image: 'data:image/png;base64,' + po.PicPrepared,
-          width: 150,
-          margin: [0, 0, 40, 0],
+          width: this.preparedWidth,
+          margin: [this.preparedMarginLeft, this.preparedMarginTop, 40, 0],
         };
     if (!isShowSign) cellPicPrepared = cellDisplaySign;
     let cellPicDirector: any =
@@ -2974,21 +2984,22 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         ? cellDisplaySign
         : {
           image: 'data:image/png;base64,' + po.PicDirector,
-          width: 170,
-          margin: [20, 0, 0, 0],
+          width: this.directorWidth,
+          margin: [this.directorMarginLeft, this.directorMarginTop, 0, 0],
         };
     if (!isShowSeal) cellPicDirector = cellDisplaySign;
     // console.log('isShowSeal:', this.isShowSeal);
     // console.log('cellPicPrepared:', cellPicDirector);
 
     let docDefinition = {
+      pageMargins: [40, 20, 40, 10],
       info: {
         title: po.BillCode,
       },
       content: [
-        `${taxCompany.BuyerVietnamese}
-                ${taxCompany.AddressBuyerVienamese}
-                ${taxCompany.TaxVietnamese}`,
+        `${taxCompany.BuyerVietnamese || ''}
+                ${taxCompany.AddressBuyerVienamese || ''}
+                ${taxCompany.TaxVietnamese || ''}`,
         {
           text: 'ĐƠN MUA HÀNG',
           alignment: 'center',
@@ -3201,6 +3212,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         //Chữ ký
         {
           alignment: 'justify',
+          margin: [0, this.titleMarginTop, 0, 0],
           columns: [
             { text: 'Người bán', alignment: 'center', bold: true },
             { text: 'Người lập', alignment: 'center', bold: true },
@@ -3209,6 +3221,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         },
         {
           alignment: 'justify',
+          //margin: [0, this.titleMarginTop, 0, 0],
           columns: [
             {
               text: '(Ký, họ tên)',
@@ -3309,8 +3322,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         ? cellDisplaySign
         : {
           image: 'data:image/png;base64,' + po.PicPrepared,
-          width: 150,
-          margin: [0, 0, 40, 0],
+          width: this.preparedWidth,
+          margin: [this.preparedMarginLeft, this.preparedMarginTop, 40, 0],
         };
     if (!isShowSign) cellPicPrepared = cellDisplaySign;
 
@@ -3319,8 +3332,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         ? cellDisplaySign
         : {
           image: 'data:image/png;base64,' + po.PicDirector,
-          width: 170,
-          margin: [20, 0, 0, 0],
+          width: this.directorWidth,
+          margin: [this.directorMarginLeft, this.directorMarginTop, 0, 0],
         };
     if (!isShowSeal) cellPicDirector = cellDisplaySign;
     const EMPTY_IMAGE_BASE64 =
@@ -3331,6 +3344,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       'DAYhg0HIYBAyGIQMBiGDQchgEDIYhAwGIYNByGAQMhiEDAYhg0HIYBAyGIQMBiGDQchgEDIYhAwGIYNByGAQMhiEDAYhg' +
       '0HIYBAyGIQMBiGDQchgEDIYhC4EjgSgJ7qviAAAAABJRU5ErkJggg==';
     let docDefinition = {
+      pageMargins: [40, 20, 40, 10],
       info: {
         title: po.BillCode,
       },
@@ -3564,6 +3578,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
         {
           alignment: 'justify',
+          margin: [0, this.titleMarginTop, 0, 0],
           columns: [
             { text: 'Supplier', alignment: 'center', bold: true },
             { text: 'Prepared by', alignment: 'center', bold: true },
@@ -3642,6 +3657,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         isShowSign: true,
         isShowSeal: true,
         id: id,
+        preparedMarginTopTab: 0,
+        directorMarginTopTab: 0,
+        preparedWidthTab: 150,
+        directorWidthTab: 170,
+        preparedMarginLeftTab: 0,
+        directorMarginLeftTab: 0.53,
+        titleMarginTopTab: 0,
       });
 
       // Gọi API printPO để lấy data và render PDF
@@ -3663,6 +3685,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
   }
 
   toggleMerge(tab: any) {
+    this.setTab(tab);
     this.srv.printPO(tab.id, tab.isMerge).subscribe({
       next: (response) => {
         this.dataPrint = response.data;
@@ -3674,7 +3697,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
   }
 
   toggleSign(tab: any) {
-    this.srv.printPO(tab.id, tab.isShowSign).subscribe({
+    this.setTab(tab);
+    this.srv.printPO(tab.id, tab.isMerge).subscribe({
       next: (response) => {
         this.dataPrint = response.data;
 
@@ -3685,7 +3709,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
   }
 
   toggleSeal(tab: any) {
-    this.srv.printPO(tab.id, tab.isShowSign).subscribe({
+    this.setTab(tab);
+    this.srv.printPO(tab.id, tab.isMerge).subscribe({
       next: (response) => {
         this.dataPrint = response.data;
 
@@ -3726,6 +3751,72 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     pdfMake.createPdf(tab.docDefinition).download(title + '.pdf');
   }
+
+  //#region In excel poncc
+  onPrintPOExcel(tab: any) {
+    this.isLoadingExcel = true;
+    this.srv
+      .printPONCCExcel(tab.id, tab.isMerge, this.language, tab.isShowSign, tab.isShowSeal)
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${tab.title}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          this.isLoadingExcel = false;
+        },
+        error: (err) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            err?.error?.message || 'Lỗi khi in PO'
+          );
+          this.isLoadingExcel = false;
+        }
+      });
+  }
+
+  cmToPx(cm: number, dpi: number = 96): number {
+    return cm * dpi / 2.54;
+  }
+
+  resetNumber(tab: any) {
+    tab.preparedMarginTopTab = 0;
+    tab.directorMarginTopTab = 0;
+    tab.preparedWidthTab = 150;
+    tab.directorWidthTab = 170;
+    tab.preparedMarginLeftTab = 0;
+    tab.directorMarginLeftTab = 0.53;
+    tab.titleMarginTopTab = 0;
+    this.toggleSeal(tab);
+  }
+
+  setTab(tab: any) {
+    this.preparedMarginTop = this.cmToPx(tab.preparedMarginTopTab);
+    this.directorMarginTop = this.cmToPx(tab.directorMarginTopTab);
+    this.preparedWidth = tab.preparedWidthTab;
+    this.directorWidth = tab.directorWidthTab;
+    this.preparedMarginLeft = this.cmToPx(tab.preparedMarginLeftTab);
+    this.directorMarginLeft = this.cmToPx(tab.directorMarginLeftTab);
+    this.titleMarginTop = this.cmToPx(tab.titleMarginTopTab);
+  }
+
+  onClosePreview() {
+    this.showPreview = false;
+    this.preparedMarginTop = 0;
+    this.directorMarginTop = 0;
+    this.preparedWidth = 150;
+    this.directorWidth = 170;
+    this.preparedMarginLeft = 0;
+    this.directorMarginLeft = 20;
+    this.titleMarginTop = 0;
+  }
+  //#endregion
 
   // Initialize PrimeNG MenuBar items
   initMenuItems(): void {
@@ -3829,4 +3920,13 @@ interface PoTab {
   isShowSign: true;
   isShowSeal: true;
   id: 0;
+  preparedMarginTopTab: number;
+  directorMarginTopTab: number;
+  preparedWidthTab: number;
+  directorWidthTab: number;
+  preparedMarginLeftTab: number;
+  directorMarginLeftTab: number;
+  titleMarginTopTab: number;
 }
+
+

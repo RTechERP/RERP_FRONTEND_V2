@@ -18,6 +18,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
   AngularGridInstance,
   AngularSlickgridModule,
@@ -72,6 +73,7 @@ interface GroupedData {
     NzDatePickerModule,
     NzInputModule,
     NzInputNumberModule,
+    NzSpinModule,
     AngularSlickgridModule,
     Menubar,
   ],
@@ -169,6 +171,9 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     endDate: new Date(),
     keyword: '',
   };
+
+  // Loading state
+  isLoadingData: boolean = false;
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -958,6 +963,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       warehouseId: this.warehouseId || 0,
     };
 
+    this.isLoadingData = true;
     this.viewPokhSlickgridService.loadViewPOKH(
       startDate, endDate,
       params.employeeTeamSaleId, params.userId, params.poType,
@@ -973,14 +979,19 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         id: item.ID || idx,
       }));
 
-      // Khôi phục selections - checkbox formatter sẽ tự kiểm tra selectedRowsAll
       setTimeout(() => {
         if (this.angularGrid?.slickGrid) {
           this.angularGrid.slickGrid.invalidate();
           this.angularGrid.slickGrid.render();
         }
       }, 100);
-    });
+      this.isLoadingData = false;
+    },
+      (error) => {
+        this.isLoadingData = false;
+        this.notification.error('Lỗi', 'Không thể tải dữ liệu');
+      }
+    );
   }
 
   loadEmployeeTeamSale(): void {

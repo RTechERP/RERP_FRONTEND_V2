@@ -66,9 +66,9 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
   deletedFile: number[] = [];
   dataRequest: any[] = [];
   ngOnInit(): void {
-     // Set ngày yêu cầu mặc định là ngày hôm nay khi thêm mới
+    // Set ngày yêu cầu mặc định là ngày hôm nay khi thêm mới
     const today = new Date();
-     today.setHours(0, 0, 0, 0); // Set về 00:00:00 để tránh vấn đề timezone
+    today.setHours(0, 0, 0, 0); // Set về 00:00:00 để tránh vấn đề timezone
     this.form = this.fb.group({
       ProjectID: [
         { value: this.projectId, disabled: this.projectId > 0 },
@@ -86,7 +86,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
     this.loadProjectRequestList();
     this.loadFileData();
     this.loadTableData();
-    
+
     // Nếu là thêm mới và có projectRequestID được truyền vào, set giá trị và generate mã giải pháp
     if (!this.isEdit && this.projectRequestID > 0) {
       setTimeout(() => {
@@ -103,7 +103,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
     if (this.isEdit && this.solutionData) {
       this.fillFormData();
     }
-    
+
     setTimeout(() => {
       if (this.tb_FileSolutionTableElement?.nativeElement) {
         this.drawTbFileSolutionTable(this.tb_FileSolutionTableElement.nativeElement);
@@ -121,7 +121,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response.status === 1) {
           let requestData = response.data;
-          
+
           // Xử lý dữ liệu: có thể là array, object, hoặc null
           let dataRequest: any[] = [];
           if (!requestData) {
@@ -172,32 +172,32 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
 
   fillFormData(): void {
     if (!this.solutionData) return;
-    
+
     const data = this.solutionData;
-    
+
     // Convert date strings to Date objects nếu cần
     let solutionDate: Date | null = null;
     let deadlinePrice: Date | null = null;
-    
+
     if (data.DateSolution) {
       solutionDate = new Date(data.DateSolution);
     }
     if (data.PriceReportDeadline) {
       deadlinePrice = new Date(data.PriceReportDeadline);
     }
-    
+
     // Fill form với dữ liệu
     this.form.patchValue({
       ProjectID: this.projectId,
       RequestID: data.ProjectRequestID || null,
       SolutionCode: data.CodeSolution || '',
       STT: data.STT || 1,
-      IsPO: data.StatusSolution ===1 ? true : false, // 2 = PO
+      IsPO: data.StatusSolution === 1 ? true : false, // 2 = PO
       SolutionDate: solutionDate,
       DeadlinePrice: deadlinePrice,
       Content: data.ContentSolution || '',
     });
-    
+
     // Load file data nếu có solutionId
     if (this.solutionId > 0) {
       this.loadFileData();
@@ -310,7 +310,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
     private projectRequestService: ProjectRequestServiceService,
     private modal: NzModalService,
     private ngbModal: NgbModal
-  ) {}
+  ) { }
 
   trimRequiredValidator = (control: any) => {
     const value = control?.value;
@@ -321,7 +321,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
   };
 
   closeModal() {
-    this.activeModal.close({ success: true });
+    this.activeModal.close({ success: false });
   }
 
   saveData() {
@@ -335,9 +335,9 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
     const filesToUpload: File[] = this.fileSolutionData
       .filter((f) => f.File && !f.ServerPath)
       .map((f) => f.File!);
-    
+
     const subPath = this.getSubPath();
-    
+
     // Kiểm tra nếu có file mới nhưng không có subPath
     if (filesToUpload.length > 0 && !subPath) {
       this.notification.error(
@@ -349,7 +349,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-    
+
     // Nếu có file mới cần upload
     if (filesToUpload.length > 0 && subPath) {
       this.notification.info('Đang upload', 'Đang tải file lên...');
@@ -365,7 +365,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
               }
             });
           }
-          
+
           // Sau khi upload xong, gọi save
           this.callSaveSolutionApi(valueRaw);
         },
@@ -392,17 +392,17 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
       ID: this.solutionId || 0,
       ProjectRequestID: valueRaw.RequestID,
       STT: valueRaw.STT || 1,
-      CodeSolution: typeof valueRaw.SolutionCode === 'string' 
-        ? valueRaw.SolutionCode.trim() 
+      CodeSolution: typeof valueRaw.SolutionCode === 'string'
+        ? valueRaw.SolutionCode.trim()
         : valueRaw.SolutionCode,
-      ContentSolution: typeof valueRaw.Content === 'string' 
-        ? valueRaw.Content.trim() 
+      ContentSolution: typeof valueRaw.Content === 'string'
+        ? valueRaw.Content.trim()
         : valueRaw.Content,
       DateSolution: valueRaw.SolutionDate ? new Date(valueRaw.SolutionDate).toISOString() : null,
       PriceReportDeadline: valueRaw.DeadlinePrice ? new Date(valueRaw.DeadlinePrice).toISOString() : null,
-      StatusSolution: valueRaw.IsPO ? 1 : 0, 
+      StatusSolution: valueRaw.IsPO ? 1 : 0,
       projectSolutionFile: this.prepareFileData(),
-      deletedFileID : this.isEdit ? this.deletedFile : [],
+      deletedFileID: this.isEdit ? this.deletedFile : [],
     };
 
     // Gọi API save
@@ -410,7 +410,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response.status === 1) {
           this.notification.success('Thành công', response.message || 'Lưu dữ liệu thành công!');
-          this.closeModal();
+          this.activeModal.close({ success: true });
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể lưu dữ liệu');
         }
@@ -424,15 +424,15 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
 
   prepareFileData(): any[] {
     const fileData: any[] = [];
-    
+
     // Lấy danh sách file không bị xóa
     const activeFiles = this.fileSolutionData.filter(
       (file: any) => !file.IsDeleted
     );
-    
+
     activeFiles.forEach((file: any) => {
       if (!file) return; // Bỏ qua nếu file là null/undefined
-      
+
       if (file.ID && file.ID > 0) {
         // File đã tồn tại, cần update
         // Lấy extension từ FileName hoặc FileNameOrigin nếu có
@@ -444,7 +444,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
             extension = '.' + parts.pop();
           }
         }
-        
+
         fileData.push({
           ID: file.ID || 0,
           FileNameOrigin: file.FileNameOrigin || file.FileName || '',
@@ -463,7 +463,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
             extension = '.' + parts.pop();
           }
         }
-        
+
         fileData.push({
           ID: 0,
           FileNameOrigin: file.FileNameOrigin || file.FileName || (file.File ? file.File.name : ''),
@@ -518,13 +518,13 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
     fileInput.click();
     setTimeout(() => document.body.removeChild(fileInput), 100);
   }
-    //#region : xử lý file
+  //#region : xử lý file
   getSubPath(): string {
-    if(this.projectList != null && this.projectList.length > 0) {
+    if (this.projectList != null && this.projectList.length > 0) {
       const project = this.projectList.find(p => p.ID === this.projectId);
-      if(project) {
+      if (project) {
         const year = this.projectList.find(p => p.ID === this.projectId)?.CreatedDate;
-        if(year) {
+        if (year) {
           const yearString = new Date(year).getFullYear();
           return `${yearString}\\${project.ProjectCode}\\TaiLieuChung\\GiaiPhap`;
         }
@@ -580,7 +580,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
                       f['ServerPath'] === rowData['ServerPath'] &&
                       f['ID'] === rowData['ID']
                   );
-  
+
                   if (index > -1) {
                     const deletedFile = this.fileSolutionData[index];
                     if (deletedFile['ID']) {
@@ -588,7 +588,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
                     }
                     this.fileSolutionData.splice(index, 1);
                   }
-  
+
                   row.delete();
                 },
               });

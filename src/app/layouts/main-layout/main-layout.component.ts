@@ -242,7 +242,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // Subscribe to TabService for opening component tabs from other components
         this.tabService.tabCompRequest$.subscribe((payload: TabCompPayload) => {
             // console.log('[MainLayout] Received tabCompRequest:', payload);
-            this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
+            // this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
 
     }
@@ -290,7 +290,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         comp: Type<any>,
         title: string,
         key: string,
-        data?: any
+        data?: any,
     ) {
         this.isCollapsed = true;
 
@@ -328,7 +328,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                 comp,
                 key,
                 injector,
-                data,
+                data
             },
         ];
 

@@ -250,7 +250,7 @@ import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-rep
 import { VehicleBookingManagementSlickgridComponent } from './pages/hrm/vehicle/vehicle-booking-management/vehicle-booking-management-slickgrid/vehicle-booking-management-slickgrid.component';
 import { KpiPositionEmployeeComponent } from './pages/old/Technical/kpi-position-employee/kpi-position-employee.component';
 import { KpiEvaluationComponent } from './pages/old/Technical/kpi-evaluation/kpi-evaluation.component';
-import { KpiEmployeeTeamComponent } from './pages/old/Technical/kpi-employee-team/kpi-employee-team.component';
+// import { KpiEmployeeTeamComponent } from './pages/old/Technical/kpi-employee-team/kpi-employee-team.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -1016,7 +1016,7 @@ export const routes: Routes = [
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
             { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-evaluation', component: KpiEvaluationComponent, canActivate: [authGuard] },
-            { path: 'kpi-employee-team', component: KpiEmployeeTeamComponent, canActivate: [authGuard] },
+            // { path: 'kpi-employee-team', component: KpiEmployeeTeamComponent, canActivate: [authGuard] },
 
             { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
         ],

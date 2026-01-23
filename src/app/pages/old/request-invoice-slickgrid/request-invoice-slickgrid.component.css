@@ -167,6 +167,12 @@
     width: 100% !important;
 }
 
+:host ::ng-deep .grid-container-main nz-spin,
+:host ::ng-deep .grid-container-main .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-main .ant-spin-container {
+    height: 100% !important;
+}
+
 angular-slickgrid,
 .angular-slickgrid-container {
     height: 100% !important;
@@ -183,6 +189,9 @@ angular-slickgrid,
     height: 100%;
 }
 
+:host ::ng-deep .grid-container-detail nz-spin,
+:host ::ng-deep .grid-container-detail .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-detail .ant-spin-container,
 :host ::ng-deep .grid-container-detail angular-slickgrid,
 :host ::ng-deep .grid-container-detail .slickgrid-container,
 :host ::ng-deep .grid-container-detail .gridPane {
@@ -193,6 +202,9 @@ angular-slickgrid,
     height: 100%;
 }
 
+:host ::ng-deep .grid-container-file nz-spin,
+:host ::ng-deep .grid-container-file .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-file .ant-spin-container,
 :host ::ng-deep .grid-container-file angular-slickgrid,
 :host ::ng-deep .grid-container-file .slickgrid-container,
 :host ::ng-deep .grid-container-file .gridPane {
@@ -203,6 +215,9 @@ angular-slickgrid,
     height: 100%;
 }
 
+:host ::ng-deep .grid-container-pofile nz-spin,
+:host ::ng-deep .grid-container-pofile .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-pofile .ant-spin-container,
 :host ::ng-deep .grid-container-pofile angular-slickgrid,
 :host ::ng-deep .grid-container-pofile .slickgrid-container,
 :host ::ng-deep .grid-container-pofile .gridPane {

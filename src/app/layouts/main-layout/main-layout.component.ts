@@ -223,28 +223,28 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnInit(): void {
-
-        // console.log('this.menuComps ngOnInit:', this.menuComps);
-
-
-        // this.getMenus();
-        // console.log('this.menuComps:', this.menuComps);
-        // console.log('this.getMenus:', this.menuService.getMenus());
-
         this.menuService.menuKey$.subscribe((x) => {
             // console.log(x);
             this.menuCompKey = x;
             this.isCollapsed = x == '';
         });
-        this.menuComps = this.menuService.getCompMenus(this.menuCompKey);
+        // this.menuComps = this.menuService.getCompMenus(this.menuCompKey);
+        this.menuService.getCompMenus(this.menuCompKey).subscribe(menus => {
+            this.menuComps = menus;
+
+            console.log('menucomps sort:', this.menuComps);
+        });
+
+        // this.menuComps = this.menuService.sortBySTTImmutable(this.menuComps);
+
+
 
         // Subscribe to TabService for opening component tabs from other components
         this.tabService.tabCompRequest$.subscribe((payload: TabCompPayload) => {
-            console.log('[MainLayout] Received tabCompRequest:', payload);
+            // console.log('[MainLayout] Received tabCompRequest:', payload);
             this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
-        // console.log('menucomps:', menucomps);
-        // this.menuComps = this.sortBySTTImmutable(menucomps, i => i.stt ?? 0);
+
     }
 
     ngOnDestroy(): void {
@@ -252,9 +252,6 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.routerSubscription.unsubscribe();
         }
     }
-
-
-
 
     // newTabComp(comp: Type<any>, title: string, data?: any, key: string,) {
     //     this.isCollapsed = true;
@@ -297,7 +294,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     ) {
         this.isCollapsed = true;
 
-        console.log('newTabComp data:', data);
+        // console.log('newTabComp data:', data);
 
         // stringify ổn định (tránh khác thứ tự key)
         const normalize = (v: any): string =>

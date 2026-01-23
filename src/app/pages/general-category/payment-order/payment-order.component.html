@@ -278,7 +278,7 @@
 
 
 <nz-splitter nzLayout="vertical" style="height: 80vh !important;">
-    <nz-splitter-panel nzMin="20%" [nzCollapsible]="true" [nzDefaultSize]="defaultSizeSplit">
+    <nz-splitter-panel nzMin="20%" [nzCollapsible]="false" [nzDefaultSize]="'60%'">
         <p-tabs [(value)]="activeTab" class="tabs-full">
             <p-tablist>
                 <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
@@ -321,7 +321,7 @@
             </p-tabpanels>
         </p-tabs>
     </nz-splitter-panel>
-    <nz-splitter-panel [nzCollapsible]="true">
+    <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false">
         <nz-splitter>
             <nz-splitter-panel nzMin="20%" [nzCollapsible]="false" nzDefaultSize="70%">
                 <!-- <p>{{activeTab}}</p> -->

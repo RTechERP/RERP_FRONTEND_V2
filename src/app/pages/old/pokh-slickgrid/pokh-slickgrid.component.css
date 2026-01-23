@@ -129,3 +129,8 @@ label[nz-checkbox] {
 :host ::ng-deep .slick-footerrow-column:last-child {
   border-right: none;
 }
+
+/* Footer Row căn sang phải */
+:host ::ng-deep .slick-state-default .slick-footerrow-column {
+  justify-content: end !important;
+}

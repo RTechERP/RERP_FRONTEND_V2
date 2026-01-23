@@ -124,7 +124,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           NumberInStore: { title: 'SL tồn kho', field: 'NumberInStore' },
           SLKiemKe: { title: 'SL kiểm kê', field: 'SLKiemKe' },
           BorrowCustomer: {
-            title: 'Mượn KH?',
+            title: 'Đồ mượn khách',
             field: 'BorrowCustomer',
             formatter: 'tickCross',
           },
@@ -407,6 +407,9 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     'sl kiem ke': 'SLKiemKe',
     'muon kh?': 'BorrowCustomer',
     'muon kh': 'BorrowCustomer',
+    'do muon khach': 'BorrowCustomer',
+    'đo muon khach': 'BorrowCustomer',
+    borrowcustomer: 'BorrowCustomer',
     'trang thai': 'StatusProduct',
     'trang thai thiet bi': 'Status',
     'ghi chu': 'Note',
@@ -559,7 +562,8 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         };
         const getBoolByField = (field: string) => {
           const v = getValueByField(field).toLowerCase();
-          return (
+          // Trả về true nếu là các giá trị positive
+          if (
             v === 'true' ||
             v === '1' ||
             v === 'x' ||
@@ -567,7 +571,12 @@ export class TbProductRtcImportExcelComponent implements OnInit {
             v === 'y' ||
             v === 'co' ||
             v === 'có'
-          );
+          ) {
+            return true;
+          }
+          // Trả về false nếu là các giá trị negative hoặc rỗng
+          // 'khong', 'không', 'no', 'n', 'false', '0', ''
+          return false;
         };
 
         const rowData = {
@@ -673,6 +682,31 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     return isNaN(num) ? 0 : num;
   }
 
+  /**
+   * Helper function to convert value to boolean
+   * Supports: true, false, 1, 0, 'có', 'không', 'co', 'khong', 'yes', 'no', 'x'
+   */
+  private toBoolean(value: any): boolean {
+    if (value === true || value === false) {
+      return value;
+    }
+    if (value === 1) return true;
+    if (value === 0) return false;
+    if (typeof value === 'string') {
+      const v = value.trim().toLowerCase();
+      return (
+        v === 'true' ||
+        v === '1' ||
+        v === 'x' ||
+        v === 'yes' ||
+        v === 'y' ||
+        v === 'co' ||
+        v === 'có'
+      );
+    }
+    return false;
+  }
+
   async saveExcelData() {
     if (this.isSaving) return;
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
@@ -711,7 +745,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         Maker: row.FirmName?.trim() || '', // Backend dùng để tìm/tạo Firm
         AddressBox: row.AddressBox?.trim() || '', // Backend dùng để tìm/tạo ProductLocation
         Note: row.Note || '',
-        StatusProduct: row.StatusProduct === true || row.StatusProduct === '1',
+        StatusProduct: this.toBoolean(row.StatusProduct),
         CreateDate: formatDate(row.CreateDate),
         NumberInStore: this.toNumber(row.NumberInStore),
         Serial: row.Serial || '',
@@ -720,7 +754,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         CreatedBy: row.CreatedBy || '',
         LocationImg: row.LocationImg || '',
         ProductCodeRTC: null, // Không lấy từ Excel
-        BorrowCustomer: row.BorrowCustomer === true || row.BorrowCustomer === '1',
+        BorrowCustomer: this.toBoolean(row.BorrowCustomer),
         SLKiemKe: this.toNumber(row.SLKiemKe),
         ProductLocationID: 0, // Backend sẽ tự gán sau khi tìm/tạo ProductLocation
           WarehouseID: this.warehouseID,

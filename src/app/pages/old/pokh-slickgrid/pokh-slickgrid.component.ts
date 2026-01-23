@@ -143,6 +143,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     // @ViewChild('tb_POKHFile', { static: false })
     // tb_POKHFileElement!: ElementRef;
 
+    private static gridInstanceSeq = 0;
+    private readonly gridInstanceId = ++PokhSlickgridComponent.gridInstanceSeq;
+
+    gridPOKHId: string = 'gridPOKH';
+    gridPOKHProductId: string = 'gridPOKHProduct';
+    gridPOKHFileId: string = 'gridPOKHFile';
+
     // SlickGrid properties for POKH table
     angularGridPOKH!: AngularGridInstance;
     columnDefinitionsPOKH: Column[] = [];
@@ -365,6 +372,15 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
 
         this.filters.startDate = startDate;
         this.filters.endDate = endDate;
+
+        const warehouseId =
+            this.tabData?.warehouseID
+            ?? this.route.snapshot.queryParams['warehouseId']
+            ?? 1;
+        const gridSuffix = `${warehouseId}-${this.gridInstanceId}`;
+        this.gridPOKHId = `gridPOKH-${gridSuffix}`;
+        this.gridPOKHProductId = `gridPOKHProduct-${gridSuffix}`;
+        this.gridPOKHFileId = `gridPOKHFile-${gridSuffix}`;
 
         // Initialize SlickGrid tables trước
         this.initGridPOKH();
@@ -1774,6 +1790,21 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             contextMenu: {
                 commandItems: this.getContextMenuOptions(),
                 onCommand: (e, args) => this.handleContextMenuCommand(e, args),
+                onBeforeMenuShow: (e, args) => {
+                    // Select the row when right-clicking before showing context menu
+                    const grid = args.grid;
+                    const row = args.row;
+                    if (grid && row !== undefined) {
+                        const dataItem = grid.getDataItem(row);
+                        if (dataItem) {
+                            this.selectedId = dataItem['ID'];
+                            this.selectedRow = dataItem;
+                            grid.setActiveCell(row, 0);
+                            this.loadPOKHProducts(this.selectedId);
+                            this.loadPOKHFiles(this.selectedId);
+                        }
+                    }
+                },
             },
         };
 

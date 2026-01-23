@@ -2276,6 +2276,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       console.log('[GRID READY] Scheduling Solution data load');
       setTimeout(() => this.loadDataSolution(), 100);
     }
+
+    // Double click to edit
+    if (this.angularGridSolution?.slickGrid) {
+      this.angularGridSolution.slickGrid.onDblClick.subscribe(() => {
+        this.openProjectSolutionDetail(true);
+      });
+    }
   }
 
   onSolutionVersionGridReady(event: any): void {
@@ -2367,12 +2374,26 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       console.log('[GRID READY] Scheduling Merged Version data load');
       setTimeout(() => this.loadDataVersion(), 100);
     }
+
+    // Double click to edit
+    if (this.angularGridVersion?.slickGrid) {
+      this.angularGridVersion.slickGrid.onDblClick.subscribe(() => {
+        this.openProjectSolutionVersionDetail(0, true);
+      });
+    }
   }
 
   onPartListGridReady(event: any): void {
     console.log('[GRID READY] ========== PartList Grid ready ==========');
     this.angularGridPartList = event.detail;
     console.log('[GRID READY] PartList Grid instance:', !!this.angularGridPartList);
+
+    // Double click to edit
+    if (this.angularGridPartList?.slickGrid) {
+      this.angularGridPartList.slickGrid.onDblClick.subscribe(() => {
+        this.openProjectPartlistDetail(true);
+      });
+    }
 
     // Log thông tin grid để debug
     if (this.angularGridPartList) {
@@ -3766,7 +3787,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     // Kiểm tra đã chọn giải pháp chưa
     if (!this.projectSolutionId || this.projectSolutionId === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn giải pháp trước!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn lại giải pháp và thao tác lại!');
       return;
     }
 

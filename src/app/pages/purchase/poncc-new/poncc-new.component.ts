@@ -1245,7 +1245,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: true,
+      enableRowSelection: false,
       rowSelectionOptions: {
         selectActiveRow: false,
       },
@@ -2062,6 +2062,15 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         }, 50);
       });
     }
+
+    // if (angularGrid.slickGrid) {
+    //   angularGrid.slickGrid.onActiveCellChanged.subscribe((e, args) => {
+    //     setTimeout(() => {
+    //       console.log(args.row);
+    //       this.onActiveRowChanged(args.row);
+    //     }, 50);
+    //   });
+    // }
   }
 
 
@@ -2092,6 +2101,16 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         }, 50);
       });
     }
+
+    // if (angularGrid.slickGrid) {
+    //   angularGrid.slickGrid.onActiveCellChanged.subscribe((e, args) => {
+    //     setTimeout(() => {
+    //       this.onActiveRowChanged(args.row);
+    //     }, 50);
+    //   });
+    // }
+
+
   }
 
 
@@ -2863,6 +2882,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     }
   }
   onMasterDblClick(event: any): void {
+    clearTimeout(this.clickTimer);
     const args = event?.args;
     const row = args?.row;
 
@@ -3815,6 +3835,21 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     this.preparedMarginLeft = 0;
     this.directorMarginLeft = 20;
     this.titleMarginTop = 0;
+  }
+  private clickTimer: any;
+  onActiveRowChanged(row: number | undefined) {
+    clearTimeout(this.clickTimer);
+    if (row == null) return;
+    this.clickTimer = setTimeout(() => {
+      let rowData;
+      if (this.activeTabIndex === 0) {
+        rowData = this.angularGridPoThuongMai?.dataView.getItem(row);
+      } else if (this.activeTabIndex === 1) {
+        rowData = this.angularGridPoMuon?.dataView.getItem(row);
+      }
+
+      this.handleMasterSelectionChange([rowData]);
+    }, 300);
   }
   //#endregion
 

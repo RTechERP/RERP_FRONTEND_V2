@@ -49,8 +49,8 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ</nz-form-label>
                             <nz-form-control>
-                                <input nz-input type="date" [(ngModel)]="dateStart" name="dateStart" nzFormat="dd/MM/yyyy"
-                                    class="w-100" nzSize="small" nzAllowClear="false"/>
+                                <input nz-input type="date" [(ngModel)]="dateStart" name="dateStart"
+                                    nzFormat="dd/MM/yyyy" class="w-100" nzSize="small" nzAllowClear="false" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -60,8 +60,8 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Đến</nz-form-label>
                             <nz-form-control>
-                                <input nz-input type="date" [(ngModel)]="dateEnd" name="dateEnd" nzFormat="dd/MM/yyyy" class="w-100"
-                                    nzSize="small" nzAllowClear="false"/>
+                                <input nz-input type="date" [(ngModel)]="dateEnd" name="dateEnd" nzFormat="dd/MM/yyyy"
+                                    class="w-100" nzSize="small" nzAllowClear="false" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -142,7 +142,9 @@
         <!-- Content với bảng -->
         <div class="card-body p-0" [class.with-search-bar]="shouldShowSearchBar"
             [class.without-search-bar]="!shouldShowSearchBar">
-            <div #tb_daily_report_machine style="padding: 10px;"></div>
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+                <div #tb_daily_report_machine style="padding: 10px;"></div>
+            </nz-spin>
         </div>
     </div>
 </ng-container>

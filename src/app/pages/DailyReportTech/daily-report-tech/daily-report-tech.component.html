@@ -139,7 +139,9 @@
         <!-- Content với bảng -->
         <div class="card-body p-0" [class.with-search-bar]="shouldShowSearchBar"
             [class.without-search-bar]="!shouldShowSearchBar">
-            <div #tb_daily_report_tech style="padding: 10px;"></div>
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+                <div #tb_daily_report_tech style="padding: 10px;"></div>
+            </nz-spin>
         </div>
     </div>
 </ng-container>

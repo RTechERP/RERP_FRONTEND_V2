@@ -32,6 +32,8 @@ import { NzTreeNodeOptions } from 'ng-zorro-antd/tree';
 import { KPIService } from '../kpi-service/kpi.service';
 import { AppUserService } from '../../../services/app-user.service';
 import { ReadOnlyLongTextEditor } from '../kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { KpiRuleSumarizeTeamChooseEmployeeComponent } from '../kpi-rule-sumarize-team-choose-employee/kpi-rule-sumarize-team-choose-employee.component';
 
 @Component({
   selector: 'app-kpievaluation-factor-scoring',
@@ -162,6 +164,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
   private modal = inject(NzModalService);
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
+  private ngbModal = inject(NgbModal);
 
   constructor() {
     // Get user context
@@ -954,6 +957,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         identifierPropName: 'id',
         initiallyCollapsed: false
       },
+      frozenColumn: 1,
       multiColumnSort: false,
       enableFiltering: true,
       showHeaderRow: false,
@@ -1720,36 +1724,333 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     console.log('Đánh giá Rule');
   }
 
-  // btnLoadDataTeam - Load KPI Team
+  /**
+   * btnLoadDataTeam - Load KPI Team
+   * Logic từ WinForm frmKPIEvaluationFactorScoring.btnLoadDataTeam_Click
+   * 
+   * LUỒNG CHẠY:
+   * 1. Lấy employeeID của nhân viên đang chọn trong grid
+   * 2. Kiểm tra KPI Session đã chọn
+   * 3. Gọi API get-all-team-by-emp để lấy danh sách tất cả team của nhân viên
+   * 4. Mở modal để người dùng chọn các nhân viên trong team (mặc định chọn tất cả)
+   * 5. Khi người dùng xác nhận:
+   *    - Gọi API load-data-team với danh sách nhân viên đã chọn
+   *    - API sẽ xử lý cho từng nhân viên trong team:
+   *      + Lấy position và rule tương ứng
+   *      + Cập nhật/tạo KPIEmployeePoint
+   *      + Load dữ liệu sumarize và map vào rule detail
+   *      + Lưu KPIEmployeePointDetail  
+   * 6. Reload KPI Rule để hiển thị dữ liệu mới
+   */
   btnLoadDataTeam_Click(): void {
-    if (!this.selectedExamID) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn bài đánh giá!');
+    // 1. Lấy employeeID của nhân viên đang được chọn trong employee grid
+    const empID = this.selectedEmployeeID;
+    const kpiSessionID = this.selectedKPISessionID;
+
+    // 2. Kiểm tra kỳ đánh giá đã được chọn chưa
+    if (!kpiSessionID || kpiSessionID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn Kỳ đánh giá!');
       return;
     }
-    // TODO: Load KPI team data
-    console.log('Load KPI Team');
-    this.loadDataDetails();
-  }
 
-  // btnExportExcelByTeam - Xuất Excel theo Team
-  btnExportExcelByTeam_Click(): void {
-    if (!this.selectedKPISessionID) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn kỳ đánh giá!');
-      return;
-    }
-    // TODO: Export Excel by team
-    console.log('Xuất Excel theo team');
-  }
-
-  // btnExportExcelByEmployee - Xuất Excel theo nhân viên
-  btnExportExcelByEmployee_Click(): void {
-    if (!this.selectedEmployeeID || !this.selectedExamID) {
+    // 3. Kiểm tra nhân viên đã được chọn chưa
+    if (!empID || empID <= 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên!');
       return;
     }
-    // TODO: Export Excel by employee
-    console.log('Xuất Excel theo nhân viên');
+
+    // 4. Gọi API để lấy danh sách tất cả team của nhân viên
+    this.kpiService.getAllTeamByEmployeeID(empID, kpiSessionID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          // Kiểm tra response có thành công không
+          if (response.status != 1) {
+            this.notification.error('Lỗi', response.message || 'Không thể lấy danh sách team');
+            return;
+          }
+
+          const lstTeam = response.data || [];
+
+          // Kiểm tra có team nào không
+          if (lstTeam.length <= 0) {
+            this.notification.info('Thông báo', 'Không tìm thấy team nào cho nhân viên này');
+            return;
+          }
+
+          // 5. Mở modal để chọn nhân viên trong team (WinForm: frmKpiRuleSumarizeTeamChooseEmployee)
+          const modalRef = this.ngbModal.open(KpiRuleSumarizeTeamChooseEmployeeComponent, {
+            size: 'lg',
+            backdrop: 'static'
+          });
+
+          // Truyền danh sách team vào modal
+          modalRef.componentInstance.lstEmp = lstTeam;
+
+          // 6. Xử lý khi người dùng xác nhận chọn nhân viên
+          modalRef.closed.subscribe({
+            next: (lstEmpChose: any[]) => {
+              if (!lstEmpChose || lstEmpChose.length === 0) {
+                this.notification.info('Thông báo', 'Không có nhân viên nào được chọn');
+                return;
+              }
+
+              // 7. Gọi API load-data-team để xử lý dữ liệu cho các nhân viên đã chọn
+              const loadRequest = {
+                employeeID: empID,
+                kpiSessionID: kpiSessionID,
+                lstEmpChose: lstEmpChose.map(emp => ({ ID: emp.ID }))
+              };
+
+              this.kpiService.loadDataTeam(loadRequest)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (loadResponse: any) => {
+                    if (loadResponse.status != 1) {
+                      this.notification.error('Lỗi', loadResponse.message || 'Không thể load dữ liệu team');
+                      return;
+                    }
+
+                    // empPointMaster là ID của KPI Employee Point chính (của nhân viên đang chọn)
+                    const empPointMaster = loadResponse.data || 0;
+
+                    if (empPointMaster <= 0) {
+                      this.notification.warning('Thông báo', 'Không tìm thấy điểm KPI của nhân viên');
+                      return;
+                    }
+
+                    // 8. Load lại KPI Rule mới với empPointMaster
+                    this.kpiService.loadPointRuleNew(empPointMaster)
+                      .pipe(takeUntil(this.destroy$))
+                      .subscribe({
+                        next: (ruleResponse: any) => {
+                          if (ruleResponse.status != 1) {
+                            this.notification.error('Lỗi', ruleResponse.message || 'Không thể load KPI Rule');
+                            return;
+                          }
+
+                          // Cập nhật dữ liệu KPI Rule vào grid
+                          let ruleData = ruleResponse.data || [];
+
+                          // Transform ruleData để có cấu trúc tree nếu cần
+                          ruleData = this.transformToTreeData(ruleData);
+
+                          this.dataRule = ruleData;
+                          this.updateGrid(this.angularGridRule, this.dataRule);
+
+                          // Refresh grid và update footer
+                          setTimeout(() => {
+                            this.refreshGrid(this.angularGridRule, this.dataRule);
+                            this.updateRuleFooter();
+                          }, 100);
+
+                          // Thông báo thành công
+                          this.notification.success(
+                            'Thành công',
+                            `Đã load KPI cho ${lstEmpChose.length} nhân viên trong team`
+                          );
+
+                          // Reload toàn bộ dữ liệu chi tiết để cập nhật các tab khác
+                          this.loadDataDetails();
+                        },
+                        error: (error: any) => {
+                          console.error('Lỗi load KPI Rule:', error);
+                          this.notification.error('Lỗi', error.error?.message || 'Lỗi khi load KPI Rule');
+                        }
+                      });
+                  },
+                  error: (error: any) => {
+                    console.error('Lỗi load data team:', error);
+                    this.notification.error('Lỗi', error.error?.message || 'Lỗi khi load dữ liệu team');
+                  }
+                });
+            },
+            error: (error: any) => {
+              console.error('Lỗi modal:', error);
+            }
+          });
+        },
+        error: (error: any) => {
+          console.error('Lỗi get team:', error);
+          this.notification.error('Lỗi', error.error?.message || 'Lỗi khi lấy danh sách team');
+        }
+      });
   }
+  //#region Export Excel Functions
+
+  /**
+   * btnExportExcelByTeam - Xuất Excel theo Team
+   * Tham khảo: WinForm không có chức năng này trong code cung cấp
+   * Logic: Xuất tất cả dữ liệu KPI của team trong một file Excel
+   * 
+   * API Backend sẽ xử lý:
+   * - Tạo file Excel với multiple sheets
+   * - Mỗi sheet cho một nhân viên hoặc tổng hợp team
+   * - Auto-fit columns và rows
+   */
+  btnExportExcelByTeam_Click(): void {
+    // 1. Validate: Kiểm tra đã chọn kỳ đánh giá
+    if (!this.selectedKPISessionID || this.selectedKPISessionID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn kỳ đánh giá!');
+      return;
+    }
+
+    // 2. Validate: Kiểm tra đã chọn phòng ban
+    if (!this.selectedDepartmentID || this.selectedDepartmentID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phòng ban!');
+      return;
+    }
+
+    // 3. Lấy thông tin để tạo tên file
+    const selectedSession = this.kpiSessionData.find(s => s.ID === this.selectedKPISessionID);
+    const selectedDept = this.departmentData.find(d => d.ID === this.selectedDepartmentID);
+    const userTeamID = this.selectedUserTeamID || 0;
+
+    // 4. Hiển thị loading notification
+    const loadingMsg = this.notification.info(
+      'Đang xuất Excel',
+      'Vui lòng chờ trong giây lát...',
+      { nzDuration: 0 } // Không tự động đóng
+    );
+
+    // 5. Gọi API export Excel
+    this.kpiService.exportExcelByTeam(this.selectedKPISessionID, this.selectedDepartmentID, userTeamID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob: Blob) => {
+          // 6. Đóng loading message
+          this.notification.remove(loadingMsg.messageId);
+
+          // 7. Tạo tên file giống WinForm format: DanhGiaKPI_{session}_{dept}.xlsx
+          const sessionCode = selectedSession?.Code || 'Unknown';
+          const deptName = selectedDept?.Name || 'Unknown';
+          const fileName = `DanhGiaKPI_Team_${sessionCode}_${deptName}.xlsx`;
+
+          // 8. Download file (giống WinForm SaveFileDialog + Process.Start)
+          this.downloadExcelFile(blob, fileName);
+
+          // 9. Thông báo thành công
+          this.notification.success('Thành công', `Đã xuất Excel: ${fileName}`);
+        },
+        error: (error: any) => {
+          // 10. Đóng loading và hiển thị lỗi
+          this.notification.remove(loadingMsg.messageId);
+          console.error('Lỗi export Excel:', error);
+          this.notification.error('Lỗi', error.error?.message || 'Không thể xuất Excel');
+        }
+      });
+  }
+
+  /**
+   * btnExportExcelByEmployee - Xuất Excel theo nhân viên
+   * Tham khảo: WinForm btnExportExcel_Click
+   * 
+   * Logic WinForm:
+   * 1. Tạo SaveFileDialog với filter Excel
+   * 2. Tên file: DanhGiaKPI_{examCode}_{employeeName}.xlsx
+   * 3. Sử dụng CompositeLink để export tất cả các tab
+   * 4. Mỗi tab (XtraTabPage) có GridControl hoặc TreeList
+   * 5. Export thành single file với multiple sheets (mỗi sheet = 1 tab)
+   * 6. Dùng Excel Interop để AutoFit columns và rows
+   * 7. Mở file sau khi export xong
+   * 
+   * Logic Angular:
+   * 1. Validate input (employee và exam đã chọn)
+   * 2. Lấy thông tin để tạo tên file
+   * 3. Gọi API backend (backend xử lý việc tạo Excel với multiple sheets)
+   * 4. Download file blob
+   * 5. Browser tự động mở/download file
+   */
+  btnExportExcelByEmployee_Click(): void {
+    // 1. Validate: Kiểm tra đã chọn nhân viên và bài đánh giá
+    const employeeID = this.selectedEmployeeID;
+    const kpiExamID = this.selectedExamID;
+
+    if (!employeeID || employeeID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên!');
+      return;
+    }
+
+    if (!kpiExamID || kpiExamID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn bài đánh giá!');
+      return;
+    }
+
+    // 2. Lấy thông tin để tạo tên file (giống WinForm)
+    // WinForm: string exam = TextUtils.ToString(grvExam.GetFocusedRowCellValue(colExamCode));
+    // WinForm: string employeeName = TextUtils.ToString(grvData.GetFocusedRowCellValue(colEmployeeName));
+    const selectedExam = this.dataExam.find(e => e.ID === kpiExamID);
+    const selectedEmployee = this.dataEmployee.find(emp => emp.ID === employeeID);
+
+    const examCode = selectedExam?.ExamCode || 'Unknown';
+    const employeeName = selectedEmployee?.FullName || 'Unknown';
+
+    // 3. Hiển thị loading notification (giống WinForm WaitDialogForm)
+    const loadingMsg = this.notification.info(
+      'Đang xuất Excel',
+      'Vui lòng chờ trong giây lát...',
+      { nzDuration: 0 } // Không tự động đóng
+    );
+
+    // 4. Gọi API export Excel
+    // Backend sẽ xử lý:
+    // - Tạo CompositeLink với tất cả các tab (Kỹ năng, Chung, Chuyên môn, Tổng hợp, Rule, Team)
+    // - Export thành single file với multiple sheets
+    // - AutoFit columns và rows
+    this.kpiService.exportExcelByEmployee(kpiExamID, employeeID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob: Blob) => {
+          // 5. Đóng loading message
+          this.notification.remove(loadingMsg.messageId);
+
+          // 6. Tạo tên file giống WinForm
+          // WinForm format: DanhGiaKPI_{exam}_{employeeName}.xlsx
+          const fileName = `DanhGiaKPI_${examCode}_${employeeName}.xlsx`;
+
+          // 7. Download file (giống WinForm SaveFileDialog + Process.Start)
+          this.downloadExcelFile(blob, fileName);
+
+          // 8. Thông báo thành công
+          this.notification.success('Thành công', `Đã xuất Excel: ${fileName}`);
+        },
+        error: (error: any) => {
+          // 9. Đóng loading và hiển thị lỗi
+          this.notification.remove(loadingMsg.messageId);
+          console.error('Lỗi export Excel:', error);
+          this.notification.error('Lỗi', error.error?.message || 'Không thể xuất Excel');
+        }
+      });
+  }
+
+  /**
+   * Helper method: Download Excel file blob
+   * Thay thế cho WinForm SaveFileDialog + Process.Start
+   * 
+   * @param blob - File blob từ API
+   * @param fileName - Tên file để download
+   */
+  private downloadExcelFile(blob: Blob, fileName: string): void {
+    // Tạo URL từ blob
+    const url = window.URL.createObjectURL(blob);
+
+    // Tạo thẻ <a> ẩn để trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.style.display = 'none';
+
+    // Thêm vào DOM, click, và xóa
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Giải phóng URL object
+    window.URL.revokeObjectURL(url);
+  }
+
+  //#endregion
+
 
   // #region Admin Confirmation Methods
 

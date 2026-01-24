@@ -119,7 +119,7 @@ export class PaymentOrderComponent implements OnInit {
         keyword: '',
 
         isIgnoreHR: -1,
-        isApproved: -1,
+        isApproved: 1,
 
         isSpecialOrder: 0,
         approvedTBPID: 0,
@@ -262,13 +262,13 @@ export class PaymentOrderComponent implements OnInit {
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP)) {
                 this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
                 this.param.approvedTBPID = this.appUserService.currentUser?.EmployeeID;
-                this.param.step = 1;
+                this.param.step = 2;
             }
 
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD)) {
                 this.param.departmentID = 0;
                 this.param.approvedTBPID = 0;
-                this.param.step = 6;
+                this.param.step = 7;
             }
 
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
@@ -1740,6 +1740,8 @@ export class PaymentOrderComponent implements OnInit {
                 maxDecimal: 2,
                 thousandSeparator: ','
             },
+
+
         }
 
 
@@ -2544,9 +2546,11 @@ export class PaymentOrderComponent implements OnInit {
             }
         })
 
+        this.getSteps();
+
         this.isApproveds = [
-            { value: 0, text: "Chờ duyệt" },
-            { value: 1, text: "Đã duyệt" },
+            { value: 1, text: "Chờ duyệt" },
+            // { value: 1, text: "Đã duyệt" },
             { value: 2, text: "Hủy duyệt" },
             { value: 3, text: "Bổ sung chứng từ" },
         ]
@@ -2557,17 +2561,37 @@ export class PaymentOrderComponent implements OnInit {
             { value: 3, text: "Đề nghị thu tiền" },
         ]
 
-        this.steps = [
-            { value: 1, text: "NV đề nghị" },
-            { value: 2, text: "TBP duyệt" },
-            { value: 3, text: "HR check hồ sơ" },
-            { value: 4, text: "TBP HR duyệt" },
-            { value: 5, text: "Kế toán check hồ sơ" },
-            { value: 6, text: "KTT duyệt" },
-            { value: 7, text: "BGĐ duyệt" },
-            { value: 8, text: "Kế toán nhận chứng từ" },
-            { value: 9, text: "Kế toán thanh toán" },
-        ]
+        // this.steps = [
+        //     { value: 1, text: "NV đề nghị" },
+        //     { value: 2, text: "TBP duyệt" },
+        //     { value: 3, text: "HR check hồ sơ" },
+        //     { value: 4, text: "TBP HR duyệt" },
+        //     { value: 5, text: "Kế toán check hồ sơ" },
+        //     { value: 6, text: "KTT duyệt" },
+        //     { value: 7, text: "BGĐ duyệt" },
+        //     { value: 8, text: "Kế toán nhận chứng từ" },
+        //     { value: 9, text: "Kế toán thanh toán" },
+        // ]
+    }
+
+
+    getSteps() {
+        this.paymentService.getDataCombo().subscribe({
+            next: (response) => {
+
+                const followType = this.activeTab == '0' ? 1 : 3;
+                const data = response.data.steps.filter((x: any) => x.FollowType == followType && x.Step != 1);
+                // console.log(data, followType);
+
+                this.steps = data.map((x: any) => ({
+                    value: x.ID,
+                    text: x.Step + '. ' + x.StepName
+                }));
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            }
+        })
     }
 
     loadData() {
@@ -2663,7 +2687,8 @@ export class PaymentOrderComponent implements OnInit {
                     ...item,
                     parentid: item.ParentId == 0 ? null : item.ParentId,
                     id: item.Id,
-                    treeLevel: item.ParentId == 0 ? 0 : (item.ParentId == null ? 0 : 1)
+                    __treeLevel: item.ParentId == 0 ? 0 : (item.ParentId == null ? 0 : 1),
+                    __rowCssClass: item.ParentId == 0 ? 'tree-level-0-row' : undefined
                 }));
 
                 this.datasetSpecialDetail = this.datasetSpecialDetail.map(item => ({
@@ -4572,5 +4597,6 @@ export class PaymentOrderComponent implements OnInit {
         // console.log('tabValueChange e:', e);
         this.activeTab = e;
         // console.log('this.activeTab:', this.activeTab);
+        this.getSteps();
     }
 }

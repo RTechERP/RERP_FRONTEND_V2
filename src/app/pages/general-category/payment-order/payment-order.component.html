@@ -112,7 +112,20 @@
                     </nz-form-control>
                 </nz-form-item>
             </div>
-            <div nz-col [nzSpan]="6">
+            <div nz-col [nzSpan]="4">
+                <nz-form-item>
+                    <nz-form-label>Trạng thái</nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng"
+                            [(ngModel)]="param.isApproved" [ngModelOptions]="{ standalone: true }" nzSize="small">
+                            @for (item of isApproveds; track item) {
+                            <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="4">
                 <nz-form-item>
                     <nz-form-label>Loại đề nghị</nz-form-label>
                     <nz-form-control>
@@ -125,7 +138,7 @@
                     </nz-form-control>
                 </nz-form-item>
             </div>
-            <div nz-col [nzSpan]="8">
+            <div nz-col [nzSpan]="6">
                 <nz-form-item>
                     <nz-form-label>Loại nội dung</nz-form-label>
                     <nz-form-control>
@@ -279,7 +292,7 @@
 
 <nz-splitter nzLayout="vertical" style="height: 80vh !important;">
     <nz-splitter-panel nzMin="20%" [nzCollapsible]="false" [nzDefaultSize]="'60%'">
-        <p-tabs [(value)]="activeTab" class="tabs-full">
+        <p-tabs [(value)]="activeTab" class="tabs-full" (valueChange)="tabValueChange($event)">
             <p-tablist>
                 <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
                 <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>

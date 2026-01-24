@@ -2388,12 +2388,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     this.angularGridPartList = event.detail;
     console.log('[GRID READY] PartList Grid instance:', !!this.angularGridPartList);
 
-    // Double click to edit
-    if (this.angularGridPartList?.slickGrid) {
-      this.angularGridPartList.slickGrid.onDblClick.subscribe(() => {
-        this.openProjectPartlistDetail(true);
-      });
-    }
 
     // Log thông tin grid để debug
     if (this.angularGridPartList) {

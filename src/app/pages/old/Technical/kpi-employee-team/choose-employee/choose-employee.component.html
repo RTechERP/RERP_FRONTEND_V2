@@ -1,0 +1,51 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHỌN NHÂN VIÊN</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-2" style="height: 500px; display: flex; flex-direction: column;">
+    <!-- Department Filter -->
+    <div class="filter-bar mb-2">
+        <form nz-form nzLayout="inline" class="d-flex align-items-center gap-2">
+            <nz-form-item class="mb-0">
+                <nz-form-label class="fw-bold">Phòng ban</nz-form-label>
+                <nz-form-control>
+                    <nz-select [(ngModel)]="selectedDepartmentId" name="departmentId" nzShowSearch nzAllowClear
+                        nzPlaceHolder="Chọn phòng ban" style="width: 300px;" (ngModelChange)="onDepartmentChange()">
+                        <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID"
+                            [nzLabel]="dept.Name"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mb-0 ms-auto">
+                <button nz-button nzType="default" nzSize="small" (click)="selectAll()" class="me-1">
+                    <i class="fas fa-check-double"></i> Chọn tất cả
+                </button>
+                <button nz-button nzType="default" nzSize="small" (click)="deselectAll()">
+                    <i class="fas fa-times"></i> Bỏ chọn
+                </button>
+            </nz-form-item>
+        </form>
+    </div>
+
+    <!-- Employee Grid -->
+    <div class="employee-grid-container flex-grow-1" style="min-height: 0;">
+        <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." class="h-100 w-100">
+            <angular-slickgrid gridId="gridChooseEmployee" [columns]="columnDefinitions" [options]="gridOptions"
+                [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                (onClick)="onGridClick($event.detail.eventData, $event.detail.args)">
+            </angular-slickgrid>
+        </nz-spin>
+    </div>
+</div>
+
+<div class="modal-footer p-2">
+    <span class="me-auto text-muted">Đã chọn: {{ selectedEmployeeIds.length }} nhân viên</span>
+    <button nz-button nzType="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="save()">
+        <i class="fas fa-save"></i> Chọn
+    </button>
+</div>

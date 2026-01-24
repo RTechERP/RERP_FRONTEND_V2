@@ -49,9 +49,9 @@
   background-color: #fff3cd;
 }
 
-::ng-deep .slick-cell.active {
+/* ::ng-deep .slick-cell.active {
   border: 2px solid #0d6efd !important;
-}
+} */
 
 /* Filter row styling */
 ::ng-deep .slick-headerrow-column {
@@ -80,7 +80,7 @@
   z-index: 10000 !important;
   background: white !important;
   border: 1px solid #ccc !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 }
 
 ::ng-deep .slick-context-menu .slick-menu-item {
@@ -100,7 +100,7 @@
   z-index: 10001 !important;
   background: white !important;
   border: 1px solid #ccc !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 }
 
 ::ng-deep .slick-context-menu .slick-menu-icon {
@@ -123,11 +123,28 @@
     font-size: 11px;
     padding: 2px 4px;
   }
-  
+
   ::ng-deep .slick-header-column {
     font-size: 11px;
   }
 }
-::ng-deep div[id^="billImportSyntheticGrid-"]{
-  height: calc(91vh - 60px)!important;
+::ng-deep div[id^="billImportSyntheticGrid-"] {
+  height: calc(91vh - 60px) !important;
+}
+
+::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  justify-content: end !important;
+  
+}
+
+::ng-deep .slick-headerrow-column input {
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 12px !important;
 }

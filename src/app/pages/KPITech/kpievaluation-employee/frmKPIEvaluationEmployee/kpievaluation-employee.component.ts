@@ -33,6 +33,9 @@ import { KPIService } from '../../kpi-service/kpi.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { AuthService } from '../../../../auth/auth.service';
 import { HostListener } from '@angular/core';
+import { ProjectPartListSlickGridComponent } from '../../../project-part-list-slick-grid/project-part-list-slick-grid.component';
+import { KPIEvaluationFactorScoringDetailsComponent } from '../../kpievaluation-factor-scoring-details/kpievaluation-factor-scoring-details.component';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 interface LiXi {
   id: number;
@@ -167,6 +170,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   private appUserService = inject(AppUserService);
   private notification = inject(NzNotificationService);
   private modal = inject(NzModalService);
+  private modalService = inject(NgbModal);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
@@ -1918,8 +1922,46 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   // #endregion
 
   btnEmployeeApproved_Click(): void {
-    console.log('Employee approved clicked');
-    // Implement opening evaluation dialog like WinForm frmKPIEvaluationFactorScoringDetails
+    if (this.selectedExamID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn bài đánh giá!');
+      return;
+    }
+
+    // Get selected exam data
+    const selectedExam = this.dataExam.find((exam: any) => exam.ID === this.selectedExamID);
+    if (!selectedExam) {
+      this.notification.warning('Thông báo', 'Không tìm thấy thông tin bài đánh giá!');
+      return;
+    }
+
+    // Open modal KPIEvaluationFactorScoringDetails like WinForm frmKPIEvaluationFactorScoringDetails
+    const modalRef = this.modalService.open(KPIEvaluationFactorScoringDetailsComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+
+    // Pass data to component via componentInstance
+    modalRef.componentInstance.typePoint = 1; // 1 = Nhân viên tự đánh giá
+    modalRef.componentInstance.employeeID = this.employeeID;
+    modalRef.componentInstance.kpiExam = selectedExam;
+    modalRef.componentInstance.status = selectedExam.Status || 0;
+    modalRef.componentInstance.departmentID = this.departmentID;
+
+    // Handle modal close result
+    modalRef.result.then(
+      (result: any) => {
+        if (result?.success) {
+          // Reload data after successful save
+          this.loadDataDetails();
+          this.loadKPIExam(this.selectedSessionID);
+        }
+      },
+      (reason: any) => {
+        // Modal dismissed - do nothing
+      }
+    );
   }
 
   btnSuccessKPI_Click(): void {

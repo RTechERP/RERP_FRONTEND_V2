@@ -56,3 +56,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+
+:host :ng-deep #grvData{
+    height: 42vh !important;
+}
+
+:host :ng-deep #grvDataSpecial{
+    height: 42vh !important;
+}

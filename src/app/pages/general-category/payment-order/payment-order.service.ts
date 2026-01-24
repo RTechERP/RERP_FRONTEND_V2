@@ -56,10 +56,10 @@ export class PaymentOrderService {
         formData.append('PaymentOrderFile', paymentOrderFileID.toString());
         return this.http.post<any>(`${this.url}/upload-file`, formData);
     }
-// Thêm vào payment-order.service.ts
-getDataFromPONCC(ponccID: number): Observable<any> {
-    return this.http.get<any>(`${this.url}/get-data-from-poncc/${ponccID}`);
-}
+    // Thêm vào payment-order.service.ts
+    getDataFromPONCC(ponccID: number): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-data-from-poncc/${ponccID}`);
+    }
     uploadFileBankslip(files: File[], paymentOrderID: string): Observable<any> {
         const formData = new FormData();
         if (files) {
@@ -90,6 +90,10 @@ getDataFromPONCC(ponccID: number): Observable<any> {
 
     appovedBGD(data: any): Observable<any> {
         return this.http.post<any>(`${this.url}/appoved-bgd`, data);
+    }
+
+    appovedKHReceive(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/appoved-khreceive`, data);
     }
 
     uploadFiles(file: any): Observable<any> {

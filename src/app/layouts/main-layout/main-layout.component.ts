@@ -232,7 +232,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         this.menuService.getCompMenus(this.menuCompKey).subscribe(menus => {
             this.menuComps = menus;
 
-            console.log('menucomps sort:', this.menuComps);
+            // console.log('menucomps sort:', this.menuComps);
         });
 
         // this.menuComps = this.menuService.sortBySTTImmutable(this.menuComps);
@@ -242,7 +242,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // Subscribe to TabService for opening component tabs from other components
         this.tabService.tabCompRequest$.subscribe((payload: TabCompPayload) => {
             // console.log('[MainLayout] Received tabCompRequest:', payload);
-            // this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
+            this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
 
     }

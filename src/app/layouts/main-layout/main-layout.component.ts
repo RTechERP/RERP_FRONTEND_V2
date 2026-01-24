@@ -232,7 +232,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         this.menuService.getCompMenus(this.menuCompKey).subscribe(menus => {
             this.menuComps = menus;
 
-            console.log('menucomps sort:', this.menuComps);
+            // console.log('menucomps sort:', this.menuComps);
         });
 
         // this.menuComps = this.menuService.sortBySTTImmutable(this.menuComps);

@@ -1762,7 +1762,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         }
       },
       {
-        id: 'KhoType', field: 'KhoType', name: 'Kho nhập', width: 100, columnGroup: 'Nhập kho',
+        id: 'KhoType', field: 'KhoType', name: 'Kho nhập', width: 200, columnGroup: 'Nhập kho',
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],

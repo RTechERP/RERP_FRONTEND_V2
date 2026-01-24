@@ -1961,7 +1961,118 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
    * 4. Download file blob
    * 5. Browser tự động mở/download file
    */
-  btnExportExcelByEmployee_Click(): void {
+  /**
+ * Helper method: Thêm sheet vào workbook từ data và columns
+ * Tương đương WinForm: PrintableComponentLink.Component = GridControl/TreeList
+ * 
+ * @param workbook - ExcelJS workbook
+ * @param sheetName - Tên sheet (tương ứng tab name trong WinForm)
+ * @param data - Dữ liệu grid
+ * @param columns - Column definitions
+ */
+  private addSheetToWorkbook(
+    workbook: any,
+    sheetName: string,
+    data: any[],
+    columns: any[]
+  ): void {
+    // 1. Tạo worksheet
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    // 2. Lọc columns hiển thị (bỏ columns ẩn, selector, action)
+    const visibleColumns = columns.filter(col => {
+      // Bỏ columns không cần export
+      if (col.id === '_checkbox_selector') return false;
+      if (col.id === 'actions') return false;
+      if (col.excludeFromExport) return false;
+      if (col.hidden) return false;
+
+      return true;
+    });
+
+    // 3. Tạo header row
+    const headerRow = visibleColumns.map(col => col.name || col.id);
+    worksheet.addRow(headerRow);
+
+    // 4. Style header row (giống WinForm DevExpress default style)
+    const headerRowObj = worksheet.getRow(1);
+    headerRowObj.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRowObj.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' } // Blue color
+    };
+    headerRowObj.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRowObj.height = 25;
+
+    // 5. Thêm data rows
+    data.forEach(row => {
+      const rowData = visibleColumns.map(col => {
+        const fieldValue = row[col.field || col.id];
+
+        // Format giá trị theo type
+        if (fieldValue === null || fieldValue === undefined) {
+          return '';
+        }
+
+        // Number formatting
+        if (typeof fieldValue === 'number') {
+          return fieldValue;
+        }
+
+        // Date formatting
+        if (fieldValue instanceof Date) {
+          return fieldValue.toLocaleDateString('vi-VN');
+        }
+
+        // Boolean formatting
+        if (typeof fieldValue === 'boolean') {
+          return fieldValue ? 'Có' : 'Không';
+        }
+
+        return fieldValue.toString();
+      });
+
+      worksheet.addRow(rowData);
+    });
+
+    // 6. AutoFit columns (giống WinForm: sheet.Columns.AutoFit())
+    worksheet.columns = visibleColumns.map((col, index) => {
+      // Tính max width dựa trên header và data
+      const headerLength = (col.name || col.id).length;
+      const maxDataLength = Math.max(
+        ...data.map(row => {
+          const value = row[col.field || col.id];
+          return value ? value.toString().length : 0;
+        })
+      );
+
+      const maxLength = Math.max(headerLength, maxDataLength);
+
+      return {
+        key: col.field || col.id,
+        width: Math.min(Math.max(maxLength + 2, 10), 50) // Min 10, max 50
+      };
+    });
+
+    // 7. Add borders to all cells
+    worksheet.eachRow((row: any, rowNumber: any) => {
+      row.eachCell((cell: any) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+    });
+
+    // 8. Freeze header row (giống DevExpress freeze pane)
+    worksheet.views = [
+      { state: 'frozen', xSplit: 0, ySplit: 1 }
+    ];
+  }
+  async btnExportExcelByEmployee_Click(): Promise<void> {
     // 1. Validate: Kiểm tra đã chọn nhân viên và bài đánh giá
     const employeeID = this.selectedEmployeeID;
     const kpiExamID = this.selectedExamID;
@@ -1977,50 +2088,82 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     }
 
     // 2. Lấy thông tin để tạo tên file (giống WinForm)
-    // WinForm: string exam = TextUtils.ToString(grvExam.GetFocusedRowCellValue(colExamCode));
-    // WinForm: string employeeName = TextUtils.ToString(grvData.GetFocusedRowCellValue(colEmployeeName));
     const selectedExam = this.dataExam.find(e => e.ID === kpiExamID);
     const selectedEmployee = this.dataEmployee.find(emp => emp.ID === employeeID);
 
     const examCode = selectedExam?.ExamCode || 'Unknown';
     const employeeName = selectedEmployee?.FullName || 'Unknown';
 
-    // 3. Hiển thị loading notification (giống WinForm WaitDialogForm)
+    // 3. Hiển thị loading notification
     const loadingMsg = this.notification.info(
       'Đang xuất Excel',
       'Vui lòng chờ trong giây lát...',
-      { nzDuration: 0 } // Không tự động đóng
+      { nzDuration: 0 }
     );
 
-    // 4. Gọi API export Excel
-    // Backend sẽ xử lý:
-    // - Tạo CompositeLink với tất cả các tab (Kỹ năng, Chung, Chuyên môn, Tổng hợp, Rule, Team)
-    // - Export thành single file với multiple sheets
-    // - AutoFit columns và rows
-    this.kpiService.exportExcelByEmployee(kpiExamID, employeeID)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (blob: Blob) => {
-          // 5. Đóng loading message
-          this.notification.remove(loadingMsg.messageId);
+    try {
+      // 4. Import ExcelJS và FileSaver (dynamic import)
+      const ExcelJS = await import('exceljs');
+      const FileSaver = await import('file-saver');
 
-          // 6. Tạo tên file giống WinForm
-          // WinForm format: DanhGiaKPI_{exam}_{employeeName}.xlsx
-          const fileName = `DanhGiaKPI_${examCode}_${employeeName}.xlsx`;
+      // 5. Tạo workbook mới
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'RTech ERP';
+      workbook.created = new Date();
 
-          // 7. Download file (giống WinForm SaveFileDialog + Process.Start)
-          this.downloadExcelFile(blob, fileName);
+      // 6. Export các tabs (giống WinForm loop qua xtraTabControl1.TabPages)
+      // WinForm có 6 tabs: Kỹ năng, Chung, Chuyên môn, Tổng hợp, KPI Rule, Team Rule
 
-          // 8. Thông báo thành công
-          this.notification.success('Thành công', `Đã xuất Excel: ${fileName}`);
-        },
-        error: (error: any) => {
-          // 9. Đóng loading và hiển thị lỗi
-          this.notification.remove(loadingMsg.messageId);
-          console.error('Lỗi export Excel:', error);
-          this.notification.error('Lỗi', error.error?.message || 'Không thể xuất Excel');
-        }
+      // Tab 1: Kỹ năng (TreeData)
+      if (this.dataEvaluation && this.dataEvaluation.length > 0) {
+        this.addSheetToWorkbook(workbook, 'Kỹ năng', this.dataEvaluation, this.evaluationColumns);
+      }
+
+      // Tab 2: Chung (TreeList2)
+      if (this.dataEvaluation2 && this.dataEvaluation2.length > 0) {
+        this.addSheetToWorkbook(workbook, 'Chung', this.dataEvaluation2, this.evaluation2Columns);
+      }
+
+      // Tab 3: Chuyên môn (TreeList1)
+      if (this.dataEvaluation4 && this.dataEvaluation4.length > 0) {
+        this.addSheetToWorkbook(workbook, 'Chuyên môn', this.dataEvaluation4, this.evaluation4Columns);
+      }
+
+      // Tab 4: Tổng hợp (GridMaster)
+      if (this.dataMaster && this.dataMaster.length > 0) {
+        this.addSheetToWorkbook(workbook, 'Tổng hợp', this.dataMaster, this.masterColumns);
+      }
+
+      // Tab 5: KPI Rule (tlKPIRule)
+      if (this.dataRule && this.dataRule.length > 0) {
+        this.addSheetToWorkbook(workbook, 'KPI Rule', this.dataRule, this.ruleColumns);
+      }
+
+      // Tab 6: Team Rule (grdTeam)
+      if (this.dataTeam && this.dataTeam.length > 0) {
+        this.addSheetToWorkbook(workbook, 'Team Rule', this.dataTeam, this.teamColumns);
+      }
+
+      // 7. Tạo buffer và download file
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
+
+      // 8. Tên file giống WinForm: DanhGiaKPI_{exam}_{employeeName}.xlsx
+      const fileName = `DanhGiaKPI_${examCode}_${employeeName}.xlsx`;
+      FileSaver.saveAs(blob, fileName);
+
+      // 9. Đóng loading và thông báo thành công
+      this.notification.remove(loadingMsg.messageId);
+      this.notification.success('Thành công', `Đã xuất Excel: ${fileName}`);
+
+    } catch (error: any) {
+      // 10. Xử lý lỗi
+      this.notification.remove(loadingMsg.messageId);
+      console.error('Lỗi export Excel:', error);
+      this.notification.error('Lỗi', error.message || 'Không thể xuất Excel');
+    }
   }
 
   /**

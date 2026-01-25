@@ -276,14 +276,16 @@ export class KPIService {
   }
 
   /**
-   * Export Excel by Team
+   * Xuất Excel theo Team - gọi API backend để tạo file ZIP chứa Excel
    * API: GET api/KPIEvaluationFactorScoring/export-excel-by-team
+   * @param kpiSessionId - ID kỳ đánh giá
+   * @param departmentId - ID phòng ban
+   * @returns Blob file ZIP
    */
-  exportExcelByTeam(kpiSessionID: number, departmentID: number, userTeamID: number): Observable<any> {
+  exportExcelByTeam(kpiSessionId: number, departmentId: number): Observable<Blob> {
     const params = new HttpParams()
-      .set('kpiSessionID', kpiSessionID.toString())
-      .set('departmentID', departmentID.toString())
-      .set('userTeamID', userTeamID.toString());
+      .set('kpiSessionId', kpiSessionId.toString())
+      .set('departmentId', departmentId.toString());
     return this.http.get(this.apiUrlFactorScoring + 'export-excel-by-team', {
       params,
       responseType: 'blob'

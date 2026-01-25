@@ -97,12 +97,14 @@ export class KPIEvaluationFactorScoringDetailsService {
     );
   }
 
+  //#region Load combobox data - theo flow WinForms
   /**
-   * Get KPI Sessions
+   * Lấy danh sách kỳ đánh giá KPI
+   * Mapping: LoadKPISession() trong WinForms
    */
-  getKPISessions(): Observable<any[]> {
-    return this.http.get<any>(`${this.baseUrl}/KPISession/GetAll`).pipe(
-      map(response => response?.Data || []),
+  getComboboxSession(): Observable<any[]> {
+    return this.http.get<any>(`${this.baseUrl}api/KPIEvaluationFactorScoringDetails/get-combobox-session`).pipe(
+      map(response => response?.data || []),
       catchError(error => {
         console.error('Error loading KPI Sessions:', error);
         return of([]);
@@ -111,12 +113,15 @@ export class KPIEvaluationFactorScoringDetailsService {
   }
 
   /**
-   * Get KPI Exams by Session ID
-   * @param sessionID KPI Session ID
+   * Lấy danh sách bài đánh giá theo kỳ
+   * Mapping: LoadKPIExam() trong WinForms
+   * @param kpiSession ID của kỳ đánh giá
    */
-  getKPIExamsBySession(sessionID: number): Observable<any[]> {
-    return this.http.get<any>(`${this.baseUrl}/KPIExam/GetBySession/${sessionID}`).pipe(
-      map(response => response?.Data || []),
+  getComboboxExam(kpiSession: number): Observable<any[]> {
+    return this.http.get<any>(`${this.baseUrl}api/KPIEvaluationFactorScoringDetails/get-combobox-exam`, {
+      params: { kpiSession: kpiSession.toString() }
+    }).pipe(
+      map(response => response?.data || []),
       catchError(error => {
         console.error('Error loading KPI Exams:', error);
         return of([]);
@@ -125,16 +130,18 @@ export class KPIEvaluationFactorScoringDetailsService {
   }
 
   /**
-   * Get Employees
+   * Lấy danh sách nhân viên
+   * Mapping: LoadEmployee() trong WinForms
    */
-  getEmployees(): Observable<any[]> {
-    return this.http.get<any>(`${this.baseUrl}/Employee/GetActive`).pipe(
-      map(response => response?.Data || []),
+  getComboboxEmployee(): Observable<any[]> {
+    return this.http.get<any>(`${this.baseUrl}api/KPIEvaluationFactorScoringDetails/get-combobox-employee`).pipe(
+      map(response => response?.data || []),
       catchError(error => {
         console.error('Error loading Employees:', error);
         return of([]);
       })
     );
   }
+  //#endregion
 }
 

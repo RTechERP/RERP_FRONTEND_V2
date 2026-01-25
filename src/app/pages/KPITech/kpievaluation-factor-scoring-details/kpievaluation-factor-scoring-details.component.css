@@ -126,6 +126,18 @@ nz-tabset {
     background-color: #FFFFE0 !important;
 }
 
+/* Base editable field highlight (blue as requested) */
+:host ::ng-deep .editable-field {
+    background-color: #e6f7ff !important;
+}
+
+/* Unsaved highlight styling */
+:host ::ng-deep .unsaved-highlight {
+    background-color: #ffd24d !important;
+    /* Darker yellow/orange for unsaved */
+    font-weight: bold;
+}
+
 /* ==================== MULTI-LINE TEXT WRAPPING ==================== */
 :host ::ng-deep .cell-multiline {
     white-space: normal !important;

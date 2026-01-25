@@ -1,4 +1,14 @@
-<div class="modal-container" style="display: flex; flex-direction: column; height: 85vh;">
+<!-- <div class="modal-container" style="display: flex; flex-direction: column; height: 85vh;"> -->
+<div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
+    <!-- Modal Header -->
+    <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
+            Đánh giá KPI
+        </h6>
+        <button type="button" class="btn-close" (click)="dismissModal()" aria-label="Close"
+            style="background-color:lightcyan !important; font-weight: bold;"></button>
+    </div>
+
     <!-- Toolbar -->
     <div class="card-header bg-white p-1 d-flex gap-1 flex-wrap align-items-center toolbar" style="flex-shrink: 0;">
         <button nz-button nzType="primary" nzSize="small" (click)="saveData()" [disabled]="!canSave" class="fs-12">

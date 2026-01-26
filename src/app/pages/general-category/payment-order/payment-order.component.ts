@@ -119,7 +119,7 @@ export class PaymentOrderComponent implements OnInit {
         keyword: '',
 
         isIgnoreHR: -1,
-        isApproved: 1,
+        isApproved: -1,
 
         isSpecialOrder: 0,
         approvedTBPID: 0,
@@ -263,12 +263,14 @@ export class PaymentOrderComponent implements OnInit {
                 this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
                 this.param.approvedTBPID = this.appUserService.currentUser?.EmployeeID;
                 this.param.step = 2;
+                this.param.isApproved = 1;
             }
 
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD)) {
                 this.param.departmentID = 0;
                 this.param.approvedTBPID = 0;
                 this.param.step = 7;
+                this.param.isApproved = 1;
             }
 
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||

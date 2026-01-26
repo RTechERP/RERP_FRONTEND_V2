@@ -87,7 +87,7 @@
                                                     nzPlaceHolder="Chọn nhân viên" nzAllowClear nzShowSearch
                                                     class="w-100">
                                                     <nz-option *ngFor="let item of employees" [nzValue]="item.ID"
-                                                        [nzLabel]="item.FullName"></nz-option>
+                                                        [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
                                                 </nz-select>
                                             </nz-form-control>
                                         </nz-form-item>

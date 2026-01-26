@@ -57,6 +57,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
+import { NzResizeObserverDirective } from "ng-zorro-antd/cdk/resize-observer";
 // import { SlickGlobalEditorLock } from 'angular-slickgrid';
 
 // (SlickGlobalEditorLock as any).Logger = {
@@ -93,6 +94,7 @@ import { ActivatedRoute } from '@angular/router';
         NzIconModule,
         NzSpinModule,
         NzModalModule,
+        NzResizeObserverDirective
     ],
     templateUrl: './payment-order.component.html',
     styleUrl: './payment-order.component.css',
@@ -584,13 +586,13 @@ export class PaymentOrderComponent implements OnInit {
                 }
             },
 
-            {
-                separator: true,
-            },
+            // {
+            //     separator: true,
+            // },
             {
                 label: 'KH đã nhận',
                 icon: 'fa-solid fa-circle-check fa-lg text-success',
-                visible: this.activeTab == '1',
+                // visible: this.activeTab == '1',
                 command: () => {
                     this.onApprovedKHReceive(1, {
                         ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH đã nhận',
@@ -600,7 +602,7 @@ export class PaymentOrderComponent implements OnInit {
             {
                 label: 'KH hủy nhận',
                 icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-                visible: this.activeTab == '1',
+                // visible: this.activeTab == '1',
                 command: () => {
                     this.onApprovedKHReceive(2, {
                         ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH hủy nhận',
@@ -1616,7 +1618,7 @@ export class PaymentOrderComponent implements OnInit {
                 name: PaymentOrderDetailField.ContentPayment.name,
                 field: PaymentOrderDetailField.ContentPayment.field,
                 type: PaymentOrderDetailField.ContentPayment.type,
-                width: 250,
+                width: 300,
                 sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
                 filter: { model: Filters['compoundInputText'] },
@@ -2416,7 +2418,7 @@ export class PaymentOrderComponent implements OnInit {
                 name: 'Thông tin thanh toán',
                 field: PaymentOrderDetailField.PaymentInfor.field,
                 type: PaymentOrderDetailField.PaymentInfor.type,
-                width: 150,
+                width: 300,
                 sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
                 filter: { model: Filters['compoundInputText'] },
@@ -2506,7 +2508,7 @@ export class PaymentOrderComponent implements OnInit {
                 this.departments = response.data;
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         })
 
@@ -2529,7 +2531,7 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(this.employees);
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         })
 
@@ -2538,7 +2540,7 @@ export class PaymentOrderComponent implements OnInit {
                 this.paymentOrderTypes = response.data;
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         })
 
@@ -2605,7 +2607,7 @@ export class PaymentOrderComponent implements OnInit {
                 this.isLoading = false;
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
                 this.isLoading = false;
             }
         })
@@ -2641,7 +2643,7 @@ export class PaymentOrderComponent implements OnInit {
                 }
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         })
     }
@@ -3019,7 +3021,7 @@ export class PaymentOrderComponent implements OnInit {
                                 this.loadData();
                             },
                             error: (err) => {
-                                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
                             }
                         })
                     }
@@ -3056,10 +3058,6 @@ export class PaymentOrderComponent implements OnInit {
 
     handleApproved(data: any) {
 
-        if (data.length <= 0) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
-        }
-
         const action = data[0].Action.ButtonActionGroup || '';
 
         if (action == 'btnTBP') {
@@ -3069,7 +3067,10 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
                 }
             })
         } else if (action == 'btnHR') {
@@ -3079,7 +3080,10 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
                 }
             })
         } else if (action == 'btnKTTT') {
@@ -3089,7 +3093,10 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
                 }
             })
         } else if (action == 'btnKTT') {
@@ -3099,7 +3106,10 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
                 }
             })
         } else if (action == 'btnBGĐ') {
@@ -3109,7 +3119,24 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
+                }
+            })
+        } else {
+            this.paymentService.appovedKHReceive(data).subscribe({
+                next: (response) => {
+                    this.loadData();
+                    this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
                 }
             })
         }
@@ -3139,6 +3166,11 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
             Swal.fire({
                 title: 'Xác nhận duyệt?',
@@ -3151,7 +3183,7 @@ export class PaymentOrderComponent implements OnInit {
                 cancelButtonText: 'Hủy',
             }).then((result: any) => {
                 if (result.isConfirmed) {
-                    console.log('duyêt:', selectedItems);
+                    // console.log('duyêt:', selectedItems);
 
                     this.handleApproved(selectedItems);
                 }
@@ -3205,6 +3237,10 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
             Swal.fire({
                 title: 'Xác nhận duyệt?',
@@ -3217,7 +3253,7 @@ export class PaymentOrderComponent implements OnInit {
                 cancelButtonText: 'Hủy',
             }).then((result: any) => {
                 if (result.isConfirmed) {
-                    console.log('duyêt:', selectedItems);
+                    // console.log('duyêt:', selectedItems);
 
                     this.handleApproved(selectedItems);
                 }
@@ -3272,7 +3308,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -3299,8 +3335,12 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
-            console.log('action.ButtonActionName:', action.ButtonActionName);
+            // console.log('action.ButtonActionName:', action.ButtonActionName);
             if (action.ButtonActionName == "btnApproveDocument" || action.ButtonActionName == 'btnApproveKT') {
                 const result = await Swal.fire({
                     input: 'textarea',
@@ -3317,7 +3357,7 @@ export class PaymentOrderComponent implements OnInit {
                 });
                 if (result.isConfirmed) {
 
-                    console.log('result:', result);
+                    // console.log('result:', result);
 
                     selectedItems = selectedItems.map((x, i) => ({
                         ...x,
@@ -3329,7 +3369,7 @@ export class PaymentOrderComponent implements OnInit {
                         AccountingNote: result.value
                     }));
 
-                    console.log('D:', selectedItems);
+                    // console.log('D:', selectedItems);
                     this.handleApproved(selectedItems);
                 }
             } else {
@@ -3344,7 +3384,7 @@ export class PaymentOrderComponent implements OnInit {
                     cancelButtonText: 'Hủy',
                 }).then((result: any) => {
                     if (result.isConfirmed) {
-                        console.log('duyêt:', selectedItems);
+                        // console.log('duyêt:', selectedItems);
 
                         this.handleApproved(selectedItems);
                     }
@@ -3430,7 +3470,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -3459,6 +3499,10 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
 
             if (action.ButtonActionName == "btnApproveDocument" || action.ButtonActionName == 'btnApproveKT') {
@@ -3477,7 +3521,7 @@ export class PaymentOrderComponent implements OnInit {
                 });
                 if (result.isConfirmed) {
 
-                    console.log('result:', result);
+                    // console.log('result:', result);
 
                     selectedItems = selectedItems.map((x, i) => ({
                         ...x,
@@ -3489,7 +3533,7 @@ export class PaymentOrderComponent implements OnInit {
                         AccountingNote: result.value
                     }));
 
-                    console.log('D:', selectedItems);
+                    // console.log('D:', selectedItems);
                     this.handleApproved(selectedItems);
                 }
             } else {
@@ -3504,7 +3548,7 @@ export class PaymentOrderComponent implements OnInit {
                     cancelButtonText: 'Hủy',
                 }).then((result: any) => {
                     if (result.isConfirmed) {
-                        console.log('duyêt:', selectedItems);
+                        // console.log('duyêt:', selectedItems);
 
                         this.handleApproved(selectedItems);
                     }
@@ -3533,7 +3577,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -3567,6 +3611,10 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
             Swal.fire({
                 title: 'Xác nhận duyệt?',
@@ -3579,7 +3627,7 @@ export class PaymentOrderComponent implements OnInit {
                 cancelButtonText: 'Hủy',
             }).then((result: any) => {
                 if (result.isConfirmed) {
-                    console.log('duyêt:', selectedItems);
+                    // console.log('duyêt:', selectedItems);
 
                     this.handleApproved(selectedItems);
                 }
@@ -3608,7 +3656,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -3655,11 +3703,11 @@ export class PaymentOrderComponent implements OnInit {
 
                 this.paymentService.uploadFileBankslip(files, item.ID.toString()).subscribe({
                     next: (response) => {
-                        console.log(response);
+                        // console.log(response);
                         this.loadDetail(item.ID);
                     },
                     error: (err) => {
-                        this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
                     }
                 })
 
@@ -3753,6 +3801,10 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
             Swal.fire({
                 title: 'Xác nhận duyệt?',
@@ -3767,7 +3819,7 @@ export class PaymentOrderComponent implements OnInit {
                 if (result.isConfirmed) {
                     console.log('duyêt:', selectedItems);
 
-                    // this.handleApproved(selectedItems);
+                    this.handleApproved(selectedItems);
                 }
             });
 
@@ -3795,7 +3847,7 @@ export class PaymentOrderComponent implements OnInit {
                 }));
 
                 console.log('hủy duyêt:', selectedItems);
-                // this.handleApproved(selectedItems);
+                this.handleApproved(selectedItems);
             }
         }
     }
@@ -3834,7 +3886,6 @@ export class PaymentOrderComponent implements OnInit {
         })
 
 
-
         // console.log('this.dataPrint:', this.dataPrint);
 
 
@@ -3845,7 +3896,6 @@ export class PaymentOrderComponent implements OnInit {
         // console.log('.paymentOrder:', paymentOrder);
         // console.log('.details:', details);
         // console.log('.signs:', signs);
-
 
     }
 
@@ -3933,11 +3983,11 @@ export class PaymentOrderComponent implements OnInit {
                     widths: [120, '*', 40, 70],
                     body: [
                         [
-                            '- Hình thức chuyển khoản',
+                            { text: '- Hình thức chuyển khoản', margin: [15, 0, 0, 0] },
                             { colSpan: 3, text: `:${paymentOrder.TypeBankTransferText}` }, {}, {}
                         ],
                         [
-                            '- Nội dung chuyển khoản',
+                            { text: '- Nội dung chuyển khoản', margin: [15, 0, 0, 0] },
                             { colSpan: 3, text: `:${paymentOrder.ContentBankTransfer}` }, {}, {}
                         ]
 
@@ -3988,8 +4038,8 @@ export class PaymentOrderComponent implements OnInit {
         let signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
 
         const dateFix = new Date('2024-03-03T00:00:00');
-        console.log('dateOrder:', dateOrder);
-        console.log('dateFix:', dateFix);
+        // console.log('dateOrder:', dateOrder);
+        // console.log('dateFix:', dateFix);
 
         if (dateOrder.getTime() <= dateFix.getTime()) {
             if (!paymentOrder.IsIgnoreHR) {
@@ -4158,13 +4208,13 @@ export class PaymentOrderComponent implements OnInit {
                             ],
 
                             [
-                                { text: paymentOrder.TypeOrder == 3 ? '- Hình thức thu tiền' : '- Hình thức thanh toán' },
+                                { text: paymentOrder.TypeOrder == 3 ? '- Hình thức thu tiền' : '- Hình thức thanh toán', margin: [15, 0, 0, 0] },
                                 // {},
                                 { text: paymentOrder.TypePayment == 1 ? '[x] Chuyển khoản' : '[ ] Chuyển khoản' },
                                 { colSpan: 2, text: paymentOrder.TypePayment == 2 ? '[x] Tiền mặt' : '[ ] Tiền mặt' }
                             ],
                             [
-                                '- Số tài khoản', { text: `:${paymentOrder.AccountNumber}` },
+                                { text: '- Số tài khoản', margin: [15, 0, 0, 0] }, { text: `:${paymentOrder.AccountNumber}` },
                                 'Ngân hàng', `:${paymentOrder.Bank}`
                             ],
 
@@ -4212,7 +4262,7 @@ export class PaymentOrderComponent implements OnInit {
                             ],
                             ...items,
                             ...sumTotalFooter,
-                            [{ colSpan: 9, text: paymentOrder.TotalMoneyText, bold: true, italics: true }]
+                            [{ colSpan: 9, text: `Số tiền bằng chữ: ${paymentOrder.TotalMoneyText}`, bold: true, italics: true }]
 
                         ],
                     },
@@ -4305,7 +4355,7 @@ export class PaymentOrderComponent implements OnInit {
 
         //Chữ ký
 
-        console.log('signs:', signs);
+        // console.log('signs:', signs);
 
         const signEmp = signs.find((x: any) => x.Step == 1 && x.IsApproved == 1);
         const signTBP = signs.find((x: any) => x.Step == 2 && x.IsApproved == 1);
@@ -4430,7 +4480,7 @@ export class PaymentOrderComponent implements OnInit {
                                 {},
                                 {},
                             ],
-                            [{ colSpan: 7, text: paymentOrder.TotalMoneyText, bold: true, italics: true }]
+                            [{ colSpan: 7, text: `Số tiền bằng chữ: ${paymentOrder.TotalMoneyText}`, bold: true, italics: true }]
                         ],
 
                     },
@@ -4515,5 +4565,12 @@ export class PaymentOrderComponent implements OnInit {
             }
         });
 
+    }
+
+
+    tabValueChange(e: any) {
+        // console.log('tabValueChange e:', e);
+        this.activeTab = e;
+        // console.log('this.activeTab:', this.activeTab);
     }
 }

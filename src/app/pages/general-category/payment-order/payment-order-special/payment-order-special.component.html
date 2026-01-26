@@ -115,8 +115,8 @@
                         <nz-form-control nzErrorTip="Chọn loại">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
                                 [formControlName]="paymentOrderField.PaymentOrderTypeID.field">
-                                <nz-option nzLabel="Thanh toán trước" nzValue="31"></nz-option>
-                                <nz-option nzLabel="Thanh toán sau" nzValue="32"></nz-option>
+                                <nz-option nzLabel="Thanh toán trước" [nzValue]="31"></nz-option>
+                                <nz-option nzLabel="Thanh toán sau" [nzValue]="32"></nz-option>
                             </nz-select>
                         </nz-form-control>
                     </nz-form-item>

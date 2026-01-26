@@ -322,6 +322,9 @@
                           $event.detail.args
                         )
                       "
+                      (onActiveCellChanged)="
+                        onActiveRowChanged($event.detail.args?.row)
+                      "
                       (onDblClick)="onMasterDblClick($event.detail)"
                     >
                     </angular-slickgrid>
@@ -348,6 +351,7 @@
                           $event.detail.args
                         )
                       "
+                      (onClick)="onActiveRowChanged($event.detail.args?.row)"
                       (onDblClick)="onMasterDblClick($event.detail)"
                     >
                     </angular-slickgrid>
@@ -493,155 +497,162 @@
                       nzTheme="outline"
                       style="margin-right: 4px"
                     ></i>
-                    Lưu ý: KC-Khoảng cách: -10 ~ 10 cm, Độ lớn: 1 ~ 200%. Lề
-                    trái là khoảng cách so với tiêu đề không phải lề khổ giấy!
+                    Lưu ý: KC-Khoảng cách: -50 ~ 50 cm, Độ lớn: 1 ~ 200%. Lề
+                    trên/trái là khoảng cách so với tiêu đề chữ ký/con dấu không
+                    phải lề khổ giấy!
                   </div>
 
-                  <div
-                    style="
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      margin-bottom: 8px;
-                    "
-                  >
-                    <span>KC tiêu đề (cm)</span>
-                    <nz-input-number
-                      [(ngModel)]="t.titleMarginTopTab"
-                      [nzMin]="-10"
-                      [nzMax]="10"
-                      [nzStep]="0.01"
-                      nzSize="small"
-                      style="width: 80px"
-                      (keydown.enter)="toggleSeal(t)"
-                    ></nz-input-number>
-                  </div>
+                  <fieldset class="reset">
+                    <legend class="fs-12 reset fw-bold">Tiêu đề ký/dấu</legend>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 8px;
+                      "
+                    >
+                      <span>KC lề trên (cm)</span>
+                      <nz-input-number
+                        [(ngModel)]="t.titleMarginTopTab"
+                        [nzMin]="-50"
+                        [nzMax]="50"
+                        [nzStep]="0.01"
+                        nzSize="small"
+                        style="width: 80px"
+                        (keydown.enter)="toggleSeal(t)"
+                      ></nz-input-number>
+                    </div>
+                  </fieldset>
 
-                  <div
+                  <!-- <div
                     style="height: 1px; background: #f0f0f0; margin: 12px 0"
-                  ></div>
+                  ></div> -->
 
-                  <div
-                    style="
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      margin-bottom: 8px;
-                    "
-                  >
-                    <span>KC Chữ ký - Tiêu đề (cm)</span>
-                    <nz-input-number
-                      [(ngModel)]="t.preparedMarginTopTab"
-                      [nzMin]="-10"
-                      [nzMax]="10"
-                      [nzStep]="0.01"
-                      nzSize="small"
-                      style="width: 80px"
-                      (keydown.enter)="toggleSeal(t)"
-                    ></nz-input-number>
-                  </div>
+                  <fieldset class="reset">
+                    <legend class="fs-12 reset fw-bold">Chữ ký</legend>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 8px;
+                      "
+                    >
+                      <span>KC lề trên (cm)</span>
+                      <nz-input-number
+                        [(ngModel)]="t.preparedMarginTopTab"
+                        [nzMin]="-50"
+                        [nzMax]="50"
+                        [nzStep]="0.01"
+                        nzSize="small"
+                        style="width: 80px"
+                        (keydown.enter)="toggleSeal(t)"
+                      ></nz-input-number>
+                    </div>
 
-                  <div
-                    style="
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      margin-bottom: 8px;
-                    "
-                  >
-                    <span>KC Chữ ký - Lề trái (cm)</span>
-                    <nz-input-number
-                      [(ngModel)]="t.preparedMarginLeftTab"
-                      [nzMin]="-10"
-                      [nzMax]="10"
-                      [nzStep]="0.01"
-                      nzSize="small"
-                      style="width: 80px"
-                      (keydown.enter)="toggleSeal(t)"
-                    ></nz-input-number>
-                  </div>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 8px;
+                      "
+                    >
+                      <span>KC lề trái (cm)</span>
+                      <nz-input-number
+                        [(ngModel)]="t.preparedMarginLeftTab"
+                        [nzMin]="-50"
+                        [nzMax]="50"
+                        [nzStep]="0.01"
+                        nzSize="small"
+                        style="width: 80px"
+                        (keydown.enter)="toggleSeal(t)"
+                      ></nz-input-number>
+                    </div>
 
-                  <div
-                    style="
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      margin-bottom: 8px;
-                    "
-                  >
-                    <span>Độ lớn chữ ký (%)</span>
-                    <nz-input-number
-                      [(ngModel)]="t.preparedWidthTab"
-                      [nzMin]="1"
-                      [nzMax]="200"
-                      nzSize="small"
-                      style="width: 80px"
-                      (keydown.enter)="toggleSeal(t)"
-                    ></nz-input-number>
-                  </div>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 8px;
+                      "
+                    >
+                      <span>Độ lớn (%)</span>
+                      <nz-input-number
+                        [(ngModel)]="t.preparedWidthTab"
+                        [nzMin]="1"
+                        [nzMax]="200"
+                        nzSize="small"
+                        style="width: 80px"
+                        (keydown.enter)="toggleSeal(t)"
+                      ></nz-input-number>
+                    </div>
+                  </fieldset>
 
-                  <div
-                    style="height: 1px; background: #f0f0f0; margin: 12px 0"
-                  ></div>
+                  <fieldset class="reset">
+                    <legend class="fs-12 reset fw-bold">Con dấu</legend>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 8px;
+                      "
+                    >
+                      <span>KC lề trên (cm)</span>
+                      <nz-input-number
+                        [(ngModel)]="t.directorMarginTopTab"
+                        [nzMin]="-50"
+                        [nzMax]="50"
+                        [nzStep]="0.01"
+                        nzSize="small"
+                        style="width: 80px"
+                        (keydown.enter)="toggleSeal(t)"
+                      ></nz-input-number>
+                    </div>
 
-                  <div
-                    style="
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      margin-bottom: 8px;
-                    "
-                  >
-                    <span>KC Dấu - Tiêu đề (cm)</span>
-                    <nz-input-number
-                      [(ngModel)]="t.directorMarginTopTab"
-                      [nzMin]="-10"
-                      [nzMax]="10"
-                      [nzStep]="0.01"
-                      nzSize="small"
-                      style="width: 80px"
-                      (keydown.enter)="toggleSeal(t)"
-                    ></nz-input-number>
-                  </div>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 8px;
+                      "
+                    >
+                      <span>KC lề trái (cm)</span>
+                      <nz-input-number
+                        [(ngModel)]="t.directorMarginLeftTab"
+                        [nzMin]="-50"
+                        [nzMax]="50"
+                        [nzStep]="0.01"
+                        nzSize="small"
+                        style="width: 80px"
+                        (keydown.enter)="toggleSeal(t)"
+                      ></nz-input-number>
+                    </div>
 
-                  <div
-                    style="
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      margin-bottom: 8px;
-                    "
-                  >
-                    <span>KC Dấu - Lề trái (cm)</span>
-                    <nz-input-number
-                      [(ngModel)]="t.directorMarginLeftTab"
-                      [nzMin]="-10"
-                      [nzMax]="10"
-                      [nzStep]="0.01"
-                      nzSize="small"
-                      style="width: 80px"
-                      (keydown.enter)="toggleSeal(t)"
-                    ></nz-input-number>
-                  </div>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 8px;
+                      "
+                    >
+                      <span>Độ lớn (%)</span>
+                      <nz-input-number
+                        [(ngModel)]="t.directorWidthTab"
+                        [nzMin]="1"
+                        [nzMax]="200"
+                        nzSize="small"
+                        style="width: 80px"
+                        (keydown.enter)="toggleSeal(t)"
+                      ></nz-input-number>
+                    </div>
+                  </fieldset>
 
-                  <div
-                    style="
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      margin-bottom: 8px;
-                    "
-                  >
-                    <span>Độ lớn con dấu (%)</span>
-                    <nz-input-number
-                      [(ngModel)]="t.directorWidthTab"
-                      [nzMin]="1"
-                      [nzMax]="200"
-                      nzSize="small"
-                      style="width: 80px"
-                      (keydown.enter)="toggleSeal(t)"
-                    ></nz-input-number>
-                  </div>
                   <div
                     style="height: 1px; background: #f0f0f0; margin: 12px 0"
                   ></div>

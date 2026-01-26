@@ -276,7 +276,6 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   //#region SlickGrid initialization
   initGridProjects() {
     this.columnDefinitions = [
-      { id: 'ID', name: 'ID', field: 'ID', hidden: true },
       {
         id: 'ProjectStatusName',
         name: 'Trạng thái',
@@ -700,9 +699,11 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         selectActiveRow: true
       },
       enableCellNavigation: true,
+      enableSorting: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      frozenColumn: 3,
+      frozenColumn: 2,
+      syncColumnCellResize: true, // Sửa lỗi sort nhầm cột khi có frozen columns
       rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
       enableAutoTooltip: true,
     };

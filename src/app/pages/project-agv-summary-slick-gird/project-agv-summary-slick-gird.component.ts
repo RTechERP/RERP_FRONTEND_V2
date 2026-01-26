@@ -267,7 +267,6 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   //#region SlickGrid initialization
   initGridProjects() {
     this.columnDefinitions = [
-      { id: 'ID', name: 'ID', field: 'ID', hidden: true },
       {
         id: 'ProjectStatusName',
         name: 'Trạng thái',
@@ -719,10 +718,12 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         selectActiveRow: true,
       },
       enableCellNavigation: true,
+      enableSorting: true,
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      frozenColumn: 5,
+      frozenColumn: 4,
+      syncColumnCellResize: true, // Sửa lỗi sort nhầm cột khi có frozen columns
       rowHeight: 33,
     };
   }

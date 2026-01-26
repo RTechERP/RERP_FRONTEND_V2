@@ -1,7 +1,7 @@
 import { ProjectPartListPurchaseRequestSlickGridComponent } from './../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { Injectable, Type } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { FactoryVisitRegistrationComponent } from '../../../general-category/visit-factory-registation/factory-visit-registration.component';
 import { TsAssetRecoveryPersonalNewComponent } from '../../../hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
@@ -3654,36 +3654,67 @@ export class MenuService {
     }
 
 
-    getCompMenus(menukey: string): MenuItem[] {
-        let menus: MenuItem[] = [];
-        this.menuAppService.getAll().subscribe({
-            next: (response) => {
+    // getCompMenus(menukey: string): MenuItem[] {
+    //     let menus: MenuItem[] = [];
+    //     this.menuAppService.getAll().subscribe({
+    //         next: (response) => {
+    //             const map = new Map<number, any>();
+    //             // Tạo map trước
+    //             response.data.menus.forEach((item: any) => {
 
-                // console.log(response);
+    //                 const childrens = response.data.menus.filter((x: any) => x.ParentID == item.ID);
+    //                 // console.log(item.Router, this.componentRegistry[item.Router]);
+    //                 const menu: MenuItem = {
+    //                     id: item.ID,
+    //                     kind: childrens.length > 0 ? 'group' : 'leaf',
+    //                     key: item.Code,
+    //                     stt: item.STT,
+    //                     title: item.Title,
+    //                     isOpen: item.ParentID > 0 || item.Code == menukey,
+    //                     isPermission: item.IsPermission,
+    //                     icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+    //                     children: [],
+    //                     router: item.Router == '' ? '#' : `${item.Router}`,
+    //                     data: (item.QueryParam || '') == '' ? {} : JSON.parse((item.QueryParam || '')),
+    //                     comp: this.componentRegistry[item.Router]
+    //                 }
 
-                const map = new Map<number, any>();
-                // this.nodes = [];
-                // Tạo map trước
+    //                 // Log để debug queryParams từ database
+    //                 if (item.QueryParam && item.QueryParam !== '') {
+    //                     // console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
+    //                 }
+
+    //                 map.set(item.ID, menu);
+    //             });
+
+    //             // Gắn cha – con
+    //             response.data.menus.forEach((item: any) => {
+    //                 const node = map.get(item.ID);
+
+    //                 if (item.ParentID && map.has(item.ParentID)) {
+    //                     const parent = map.get(item.ParentID);
+    //                     parent.children.push(node);
+    //                 } else {
+    //                     menus.push(node);
+    //                 }
+    //             });
+    //         },
+    //         error: (err) => {
+    //             this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+    //         },
+    //     })
+    //     // menus = ;
+    //     return menus
+    // }
+
+    getCompMenus(menukey: string): Observable<MenuItem[]> {
+        return this.menuAppService.getAll().pipe(
+            map((response: any) => {
+                const mapMenu = new Map<number, MenuItem>();
+                let menus: MenuItem[] = [];
+
                 response.data.menus.forEach((item: any) => {
-                    // const menuItem = {
-                    //     id: item.ID,
-                    //     stt: item.STT,
-                    //     key: item.Code,
-                    //     title: item.Title,
-                    //     router: item.Router == '' ? '#' : `${item.Router}`,
-                    //     icon: `${environment.host}api/share/software/icon/${item.Icon}`,
-                    //     isPermission: item.IsPermission,
-                    //     ParentID: item.ParentID,
-                    //     children: [],
-                    //     isOpen: item.ParentID > 0,
-                    //     queryParams: (item.QueryParam || ''),
-                    // };
-
-
                     const childrens = response.data.menus.filter((x: any) => x.ParentID == item.ID);
-                    // console.log(item.ID, isParent);
-
-                    // console.log(this.componentRegistry['inventory'])
 
                     const menu: MenuItem = {
                         id: item.ID,
@@ -3695,99 +3726,81 @@ export class MenuService {
                         isPermission: item.IsPermission,
                         icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         children: [],
-                        router: item.Router == '' ? '#' : `${item.Router}`,
-                        data: (item.QueryParam || '') == '' ? {} : JSON.parse((item.QueryParam || '')),
+                        router: item.Router || '#',
+                        data: item.QueryParam ? JSON.parse(item.QueryParam) : {},
                         comp: this.componentRegistry[item.Router]
-                    }
+                    };
 
-                    // Log để debug queryParams từ database
-                    if (item.QueryParam && item.QueryParam !== '') {
-                        // console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
-                    }
-
-                    map.set(item.ID, menu);
+                    mapMenu.set(item.ID, menu);
                 });
 
-                // Gắn cha – con
+                // build tree
                 response.data.menus.forEach((item: any) => {
-                    const node = map.get(item.ID);
+                    const node = mapMenu.get(item.ID)!;
 
-                    if (item.ParentID && map.has(item.ParentID)) {
-                        const parent = map.get(item.ParentID);
-                        parent.children.push(node);
+                    if (item.ParentID && mapMenu.has(item.ParentID)) {
+                        const parent = mapMenu.get(item.ParentID)!;
+
+                        if (parent.kind === 'group') {
+                            parent.children.push(node);
+                        }
                     } else {
                         menus.push(node);
                     }
+
                 });
 
-                // console.log(this.menus);
+                // sort theo stt
+                menus = this.sortBySTTImmutable(menus);
+                // console.log('this.sortBySTTImmutable(menus):', this.sortBySTTImmutable(menus));
+                // console.log('menus', menus);
 
-                // const updateKind = (items: MenuItem[]) => {
-                //     items.forEach(item => {
-                //         if (this.isGroupItem(item)) {
-                //             if (item.children.length === 0) {
-                //                 // không có con → chuyển thành leaf
-                //                 item.kind = 'leaf';
-                //                 delete (item as any).children;
-                //             }
-                //         } else {
-                //             // leaf thì không làm gì
-                //         }
-
-                //         if (this.isGroupItem(item)) {
-                //             updateKind(item.children);
-                //         }
-                //     });
-                // };
-
-                // return 
-
-
-                // console.log('menus sortBySTTImmutable:', menus);
-
-                // const router = this.router.url.split('?')[0].replace('/', '');
-                // this.rootMenuKey = this.findRootKeyByRouter(this.menus, router) || '';
-                // if (this.rootMenuKey) {
-                //     this.menus.forEach(item => {
-                //         item.isOpen = item.key === this.rootMenuKey
-                //     });
-                // }
-
-                // Sau khi menus đã load, check current route và tự động tạo tab nếu cần
-                // (khi paste URL trực tiếp)
-                // setTimeout(() => {
-                //     this.checkAndCreateTabFromCurrentRoute();
-                // }, 0);
-
-                // Subscribe vào router events để tự động tạo tab khi navigate trực tiếp
-                // if (!this.routerSubscription) {
-                //     this.routerSubscription = this.router.events
-                //         .pipe(filter(event => event instanceof NavigationEnd))
-                //         .subscribe((event: any) => {
-                //             if (event instanceof NavigationEnd) {
-                //                 // Delay một chút để đảm bảo menus đã load
-                //                 setTimeout(() => {
-                //                     this.handleDirectNavigation(event.url);
-                //                 }, 100);
-                //             }
-                //         });
-                // }
-
-
-            },
-            error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-            },
-        })
-
-
-        menus = this.menuAppService.sortBySTTImmutable(menus, i => i.STT ?? i.stt ?? 0);
-        // console.log('menus:', menus);
-        return menus;
+                return menus;
+            })
+        );
     }
+
 
     isGroupItem(item: MenuItem): item is GroupItem {
         return item.kind === 'group';
+    }
+
+    sortBySTTImmutable(items: MenuItem[]): MenuItem[] {
+        if (!Array.isArray(items)) {
+            return [];
+        }
+
+
+        // console.log('items sort:', items);
+        const menus: MenuItem[] = [...items]
+            .sort((a, b) => (a.stt ?? 0) - (b.stt ?? 0))
+            .map(item => {
+                if (item.kind !== 'group') {
+                    return { ...item };
+                }
+
+                return {
+                    ...item,
+                    children: this.sortBySTTImmutable(item.children)
+                };
+            });
+
+        // const a = [...items]
+        //     .sort((a, b) => (a.stt ?? 0) - (b.stt ?? 0))
+        //     .map(item => {
+        //         if (item.kind !== 'group') {
+        //             return { ...item };
+        //         }
+
+        //         return {
+        //             ...item,
+        //             children: this.sortBySTTImmutable(item.children)
+        //         };
+        //     });
+
+        // console.log('menus a:', a);
+        // console.log('menus sort:', menus);
+        return menus;
     }
 
 }

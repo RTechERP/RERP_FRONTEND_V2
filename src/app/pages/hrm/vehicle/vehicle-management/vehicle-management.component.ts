@@ -145,9 +145,11 @@ export class VehicleManagementComponent implements AfterViewInit {
       data: this.vehicleMnagemens,
       columns: [
         {
-          title: 'STT',
-          field: 'STT',
-          headerHozAlign: 'center',
+          title: "STT",
+          formatter: "rownum",
+          headerHozAlign: "center",
+          hozAlign: "center",
+          width: 60,
         },
         {
           title: 'Tên xe',

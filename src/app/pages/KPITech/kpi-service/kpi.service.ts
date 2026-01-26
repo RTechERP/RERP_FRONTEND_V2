@@ -216,16 +216,63 @@ export class KPIService {
 
   /**
    * Admin confirm KPI
-   * API: POST api/KPIEvaluationFactorScoring/admin-confirm
+   * API: POST api/KPIEvaluationFactorScoring/admin-confirm-kpi
    * @param kpiExamID - KPI Exam ID
    * @param employeeID - Employee ID
    */
   adminConfirmKPI(kpiExamID: number, employeeID: number): Observable<any> {
-    const body = {
-      kpiExamID,
-      employeeID
-    };
-    return this.http.post<any>(this.apiUrlFactorScoring + 'admin-confirm', body);
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('empID', employeeID.toString());
+    return this.http.post<any>(this.apiUrlFactorScoring + 'admin-confirm-kpi', null, { params });
+  }
+
+  /**
+   * Save KPI Employee Point Detail (Rule data)
+   * API: POST api/KPIEvaluationFactorScoring/save-data-rule
+   * @param request - SaveKPIEmployeePointDetailRequest object
+   */
+  saveDataRule(request: {
+    KPISessionID: number;
+    EmployeeID: number;
+    PercentRemaining: number | null;
+    KPIEmployeePointID: number;
+    KPIEvaluationRuleID: number;
+    lstKPIEmployeePointDetail: Array<{
+      EmpPointDetailID: number | null;
+      ID: number;
+      FirstMonth: number | null;
+      SecondMonth: number | null;
+      ThirdMonth: number | null;
+      PercentBonus: number | null;
+      PercentRemaining: number | null;
+    }>;
+  }): Observable<any> {
+    return this.http.post<any>(this.apiUrlFactorScoring + 'save-data-rule', request);
+  }
+
+  /**
+   * Check if KPI status can be updated
+   * API: POST api/KPIEvaluationFactorScoring/check-update-status-kpi
+   */
+  checkUpdateStatusKPI(status: number, kpiExamID: number, empID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('status', status.toString())
+      .set('kpiExamID', kpiExamID.toString())
+      .set('empID', empID.toString());
+    return this.http.post<any>(this.apiUrlFactorScoring + 'check-update-status-kpi', null, { params });
+  }
+
+  /**
+   * Update KPI status
+   * API: POST api/KPIEvaluationFactorScoring/update-status-kpi
+   */
+  updateStatusKPIAction(status: number, kpiExamID: number, empID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('status', status.toString())
+      .set('kpiExamID', kpiExamID.toString())
+      .set('empID', empID.toString());
+    return this.http.post<any>(this.apiUrlFactorScoring + 'update-status-kpi', null, { params });
   }
 
   /**
@@ -255,6 +302,64 @@ export class KPIService {
       params,
       responseType: 'blob'
     });
+  }
+
+  // ==================== KPI Factor Scoring Tab Data Loading APIs ====================
+  // New APIs based on User Request for KPI Factor Scoring Data Loading Order
+
+  /**
+   * Load KPI Kỹ năng (Factor Scoring)
+   * API: GET api/KPIEvaluationFactorScoring/load-kpi-kynang
+   */
+  loadKPIKyNangFactorScoring(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'load-kpi-kynang', { params });
+  }
+
+  /**
+   * Load KPI Chung (Factor Scoring)
+   * API: GET api/KPIEvaluationFactorScoring/load-kpi-chung
+   */
+  loadKPIChungFactorScoring(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'load-kpi-chung', { params });
+  }
+
+  /**
+   * Load KPI Chuyên môn (Factor Scoring)
+   * API: GET api/KPIEvaluationFactorScoring/load-kpi-chuyenmon
+   */
+  loadKPIChuyenMonFactorScoring(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'load-kpi-chuyenmon', { params });
+  }
+
+  /**
+   * Load KPI Rule and Team (Factor Scoring)
+   * API: GET api/KPIEvaluationFactorScoring/load-kpi-rule-and-team
+   * Note: Params match the User provided C# code: kpiExamID, isAmdinConfirm (mapped to isPublic for consistency/or check logic), employeeID, sessionID
+   * User C# param name is 'isAmdinConfirm', but standard here is 'isPublic' or similar. 
+   * However, checking the user C# code: `LoadKPIRule(int kpiExamID, bool isAmdinConfirm, int employeeID, int sessionID)`
+   * But lines 78-79 of user request snippet show:
+   * `var data2 = SQLHelper<object>.ProcedureToList("spGetEmployeeRulePointByKPIEmpPointIDNew", new string[] { "@KPIEmployeePointID", "@IsPublic" }, new object[] { empPointId, 1 });`
+   * The controller method param is `isAmdinConfirm`. Let's assume we pass a boolean.
+   */
+  loadKPIRuleAndTeamFactorScoring(kpiExamID: number, isAmdinConfirm: boolean, employeeID: number, sessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isAmdinConfirm', isAmdinConfirm.toString())
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'load-kpi-rule-and-team', { params });
   }
 
   // ==================== KPI Tab Data Loading APIs ====================
@@ -333,6 +438,55 @@ export class KPIService {
     const params = new HttpParams()
       .set('kpiSessionID', kpiSessionID.toString());
     return this.http.get<any>(this.apiUrl + 'get-position-employee', { params });
+  }
+
+  /**
+   * Choice position for KPI evaluation
+   * API: POST api/KPIEvaluationEmployee/choice-position
+   * @param positionID - Position ID to choose
+   */
+  choicePosition(positionID: number): Observable<any> {
+    const body = { positionID };
+    return this.http.post<any>(this.apiUrl + 'choice-position', body);
+  }
+
+  // ==================== Load Data Team APIs ====================
+
+  /**
+   * Lấy danh sách tất cả team của nhân viên
+   * API: GET api/KPIEvaluationFactorScoring/get-all-team-by-empID
+   * @param employeeID - ID của nhân viên
+   * @param kpiSessionID - ID của kỳ đánh giá KPI
+   */
+  getAllTeamByEmployeeID(employeeID: number, kpiSessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('kpiSessionID', kpiSessionID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'get-all-team-by-empID', { params });
+  }
+
+  /**
+   * Load dữ liệu team và xử lý điểm KPI cho team
+   * API: POST api/KPIEvaluationFactorScoring/load-data-team
+   * @param request - Request object chứa employeeID, kpiSessionID, và danh sách nhân viên được chọn
+   */
+  loadDataTeam(request: {
+    employeeID: number;
+    kpiSessionID: number;
+    lstEmpChose: Array<{ ID: number }>;
+  }): Observable<any> {
+    return this.http.post<any>(this.apiUrlFactorScoring + 'load-data-team', request);
+  }
+
+  /**
+   * Load dữ liệu KPI Rule mới
+   * API: GET api/KPIEvaluationFactorScoring/load-point-rule-new
+   * @param empPointMaster - ID của KPI Employee Point chính
+   */
+  loadPointRuleNew(empPointMaster: number): Observable<any> {
+    const params = new HttpParams()
+      .set('empPointMaster', empPointMaster.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'load-point-rule-new', { params });
   }
 }
 

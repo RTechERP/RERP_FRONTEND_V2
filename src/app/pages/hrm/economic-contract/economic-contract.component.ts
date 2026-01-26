@@ -292,6 +292,21 @@ export class EconomicContractComponent implements OnInit {
         filterable: true,
         //  columnGroup: 'Thông tin hợp đồng',
         filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.ContractContent}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'TermName',
@@ -309,6 +324,21 @@ export class EconomicContractComponent implements OnInit {
             autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
+        },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.TermName}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
         },
       },
       {
@@ -346,6 +376,21 @@ export class EconomicContractComponent implements OnInit {
             filter: true,
           } as MultipleSelectOption,
         },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.NameNcc}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'MSTNcc',
@@ -368,6 +413,21 @@ export class EconomicContractComponent implements OnInit {
         filterable: true,
         /// columnGroup: 'NCC/KH',
         filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.AddressNcc}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'SDTNcc',
@@ -489,6 +549,21 @@ export class EconomicContractComponent implements OnInit {
         filterable: true,
         //columnGroup: 'Chi tiết hợp đồng',
         filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.Adjustment}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'StatusContractText',
@@ -519,6 +594,21 @@ export class EconomicContractComponent implements OnInit {
         filterable: true,
         //    columnGroup: 'Chi tiết hợp đồng',
         filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.Note}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'CreatedDate',
@@ -639,16 +729,10 @@ export class EconomicContractComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'OriginPath',
-        name: 'Tên file gốc',
-        field: 'OriginPath',
-        type: 'string',
-        width: 200,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: number, _cell: number, value: any, _columnDef: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="Double click để xem, chuột phải để tải" style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+        }
       },
       {
         id: 'CreatedDate',
@@ -691,6 +775,31 @@ export class EconomicContractComponent implements OnInit {
       enableAutoSizeColumns: true,
       rowHeight: 30,
       headerRowHeight: 35,
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'view-file',
+            title: '👁️ Xem file',
+            action: (_e: Event, args: any) => {
+              const item = args.dataContext;
+              if (item) {
+                this.viewFile(item);
+              }
+            }
+          },
+          {
+            command: 'download-file',
+            title: '⬇️ Tải file',
+            action: (_e: Event, args: any) => {
+              const item = args.dataContext;
+              if (item) {
+                this.downloadFile(item);
+              }
+            }
+          }
+        ]
+      }
     };
   }
 
@@ -725,21 +834,57 @@ export class EconomicContractComponent implements OnInit {
   onFileDoubleClick(e: Event, args: OnClickEventArgs) {
     const item = args.grid.getDataItem(args.row);
     if (item && item.ServerPath) {
-      // ServerPath format: \\192.168.1.190\Software\Teast\...
-      // Cần lấy phần từ Software trở đi: Software/Teast/...
-      const serverPath = item.ServerPath.replace(/\\/g, '/'); // Replace all \ with /
-
-      // Tìm vị trí của 'Software' và lấy từ đó
-      const softwareIndex = serverPath.indexOf('Software');
-      if (softwareIndex === -1) {
-        console.error('Không tìm thấy "Software" trong đường dẫn:', serverPath);
-        return;
-      }
-
-      const path = serverPath.substring(softwareIndex);
-      const fileUrl = environment.host + 'api/share/' + path;
-      window.open(fileUrl, '_blank');
+      this.viewFile(item);
     }
+  }
+
+  // Xem file trong tab mới
+  viewFile(item: any): void {
+    if (!item?.ServerPath) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy đường dẫn file!');
+      return;
+    }
+
+    // ServerPath đã bao gồm tên file: \\192.168.1.190\hc-rtc\...\file.pdf
+    // Replace \\192.168.1.190 thành api/share host
+    const host = environment.host + 'api/share';
+    let fileUrl = item.ServerPath.replace("\\\\192.168.1.190", host);
+    // Replace các \ còn lại thành /
+    fileUrl = fileUrl.replace(/\\/g, '/');
+
+    const newWindow = window.open(fileUrl, '_blank');
+    if (newWindow) {
+      newWindow.onload = () => {
+        newWindow.document.title = item.FileName || 'File';
+      };
+    }
+  }
+
+  // Tải file về
+  downloadFile(item: any): void {
+    if (!item?.ServerPath) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy đường dẫn file!');
+      return;
+    }
+
+    // ServerPath đã bao gồm tên file: \\192.168.1.190\hc-rtc\...\file.pdf
+    // Replace \\192.168.1.190 thành api/share host
+    const host = environment.host + 'api/share';
+    let fileUrl = item.ServerPath.replace("\\\\192.168.1.190", host);
+    // Replace các \ còn lại thành /
+    fileUrl = fileUrl.replace(/\\/g, '/');
+
+    // Tạo link tải file
+    const fileName = item.FileName || item.OriginPath || 'file';
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = fileName;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    this.notification.success(NOTIFICATION_TITLE.success, `Đang tải file: ${fileName}`);
   }
 
   // Load files by contract ID
@@ -801,13 +946,12 @@ export class EconomicContractComponent implements OnInit {
     if (!this.selectedRow) return;
 
     const contract = this.selectedRow;
-    // Build subPath: TypeCode/ContractNumber/SignDate
+    // Build subPath: TypeCode/SignDate
     const typeCode = contract.TypeCode || 'Unknown';
-    const contractNumber = contract.ContractNumber || 'Unknown';
     const signDate = contract.SignDate
       ? DateTime.fromISO(contract.SignDate).toFormat('yyyy-MM-dd')
       : 'UnknownDate';
-    const subPath = `${typeCode}/${contractNumber}/${signDate}`;
+    const subPath = `${typeCode}/${signDate}`;
 
     this.isLoading = true;
 
@@ -825,7 +969,7 @@ export class EconomicContractComponent implements OnInit {
           const payload = {
             ID: 0,
             EconomicContractID: contract.ID,
-            FileName: fileInfo.SavedFileName,
+            FileName: fileInfo.OriginalFileName,
             OriginPath: fileInfo.OriginalFileName,
             ServerPath: fileInfo.FilePath,
             IsDeleted: false
@@ -1063,7 +1207,9 @@ export class EconomicContractComponent implements OnInit {
       const templateBlob = await response.arrayBuffer();
 
       // Load template bằng ExcelJS
-      const ExcelJS = await import('exceljs');
+      const ExcelJSModule = await import('exceljs');
+      // Handle both ESM and CJS module formats (production vs development)
+      const ExcelJS = (ExcelJSModule as any).default || ExcelJSModule;
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(templateBlob);
 

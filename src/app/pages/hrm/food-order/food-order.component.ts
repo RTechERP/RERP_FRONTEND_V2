@@ -304,16 +304,16 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
 
     if (hasAdminPermission) {
       // Người có quyền N1/N2: set về hôm nay
-      const today = new Date();
-      dateStart = this.formatDateForInput(today);
-      dateEnd = this.formatDateForInput(today);
+      const today = DateTime.local();
+      dateStart = today.toISODate() || '';
+      dateEnd = today.toISODate() || '';
     } else {
       // Người không có quyền: set từ đầu tháng đến cuối tháng
-      const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      dateStart = this.formatDateForInput(firstDay);
-      dateEnd = this.formatDateForInput(lastDay);
+      const now = DateTime.local();
+      const firstDay = now.startOf('month');
+      const lastDay = now.endOf('month');
+      dateStart = firstDay.toISODate() || '';
+      dateEnd = lastDay.toISODate() || '';
     }
 
     this.searchForm = this.fb.group({

@@ -98,8 +98,8 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
   employees: any[] = [];
   projects: any[] = [];
 
-  dateStart: any = DateTime.local().set({ day: 1 }).toISO();
-  dateEnd: any = DateTime.local().plus({ month: 1 }).set({ day: 1 }).toISO();
+  dateStart: string = DateTime.local().set({ day: 1 }).toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local().plus({ month: 1 }).set({ day: 1 }).toFormat('yyyy-MM-dd');
   departmentId: any;
   employeeId: any;
   projectId: any;
@@ -163,8 +163,8 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
   }
 
   resetSearch() {
-    this.dateStart = DateTime.local().set({ day: 1 }).toISO();
-    this.dateEnd = DateTime.local().plus({ month: 1 }).set({ day: 1 }).toISO();
+    this.dateStart = DateTime.local().set({ day: 1 }).toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local().plus({ month: 1 }).set({ day: 1 }).toFormat('yyyy-MM-dd');
     this.departmentId = 0;
     this.employeeId = 0;
     this.projectId = 0;

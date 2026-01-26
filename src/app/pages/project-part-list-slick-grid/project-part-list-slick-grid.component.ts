@@ -70,6 +70,7 @@ import { ProjectPartlistPurchaseRequestDetailComponent } from '../purchase/proje
 import { environment } from '../../../environments/environment';
 import * as ExcelJS from 'exceljs';
 import { BillExportDetailNewComponent } from '../old/Sale/BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { TabServiceService } from '../../layouts/tab-service.service';
 
 @Component({
   selector: 'app-project-part-list-slick-grid',
@@ -150,6 +151,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   // Grid ready flags
   gridsInitialized = false;
+
+  // Dynamic Grid IDs to avoid collisions in tabs
+  solutionGridId: string = 'grid-solution';
+  versionGridId: string = 'grid-version';
+  partListGridId: string = 'grid-partlist';
 
   // Data
   dataSolution: any[] = [];
@@ -235,6 +241,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     private billExportService: BillExportService,
     private authService: AuthService,
     private route: ActivatedRoute,  //nhận param
+    @Optional() private tabService?: TabServiceService,
     @Optional() private translateService?: TranslateService,
     @Optional() @Inject('tabData') private tabData?: any
   ) { }
@@ -258,6 +265,28 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   ngOnInit(): void {
 
+    // Đọc data từ tabData nếu được mở như tab
+    if (this.tabData) {
+      console.log('[LIFECYCLE] tabData received:', this.tabData);
+      if (this.tabData.projectId !== undefined) {
+        this.projectId = this.tabData.projectId;
+
+        // Initialize unique grid IDs based on projectId
+        this.solutionGridId = `grid-solution-${this.projectId}`;
+        this.versionGridId = `grid-version-${this.projectId}`;
+        this.partListGridId = `grid-partlist-${this.projectId}`;
+      }
+      if (this.tabData.projectNameX !== undefined) {
+        this.projectNameX = this.tabData.projectNameX;
+      }
+      if (this.tabData.projectCodex !== undefined) {
+        this.projectCodex = this.tabData.projectCodex;
+      }
+      if (this.tabData.tbp !== undefined) {
+        this.tbp = this.tabData.tbp;
+      }
+    }
+
     // Đọc query parameter tbp, projectId, projectName, projectCode
     this.route.queryParams.subscribe((params: any) => {
       if (params['tbp'] !== undefined) {
@@ -267,6 +296,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       if (params['projectId'] !== undefined) {
         this.projectId = Number(params['projectId']);
         console.log('[LIFECYCLE] projectId from query params:', this.projectId);
+
+        // Update unique grid IDs based on projectId if not already set from tabData
+        // Update unique grid IDs based on projectId if not already set from tabData
+        if (!this.solutionGridId.includes('-')) {
+          this.solutionGridId = `grid-solution-${this.projectId}`;
+          this.versionGridId = `grid-version-${this.projectId}`;
+          this.partListGridId = `grid-partlist-${this.projectId}`;
+        }
       }
       if (params['projectName'] !== undefined) {
         this.projectNameX = decodeURIComponent(params['projectName']);
@@ -445,6 +482,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      rowHeight: 40,
+      headerRowHeight: 40,
     };
   }
 
@@ -518,6 +557,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      rowHeight: 40,
+      headerRowHeight: 40,
     };
   }
 
@@ -583,6 +624,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      rowHeight: 40,
+      headerRowHeight: 40,
     };
   }
 
@@ -647,6 +690,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      rowHeight: 40,
+      headerRowHeight: 40,
     };
   }
 
@@ -746,7 +791,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -784,7 +829,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -811,7 +856,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -860,7 +905,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -898,7 +943,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -936,7 +981,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1098,7 +1143,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1125,7 +1170,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${escaped}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1151,7 +1196,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.ReasonDeleted}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1219,7 +1264,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.FullNameQuote}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1248,7 +1293,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.FullNameRequestPrice}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1335,7 +1380,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.NameNCCPriceQuote}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1367,7 +1412,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.NoteQuote}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1421,7 +1466,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.FullNameRequestPurchase}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1471,7 +1516,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.FullNamePurchase}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1515,7 +1560,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.BillCodePurchase}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1584,7 +1629,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.SupplierNamePurchase}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1661,7 +1706,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.NotePurchase}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1700,7 +1745,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.BillImportCode}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1727,7 +1772,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.Reciver}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1818,8 +1863,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       multiColumnSort: false,
       enablePagination: false,
       // Row height - tăng để text wrap không bị đè
-      // rowHeight: 40,
-      // headerRowHeight: 40,
+      rowHeight: 45,
+      headerRowHeight: 40,
       // Checkbox Selector - thêm cột dấu tích ở đầu
       enableCheckboxSelector: true,
       // checkboxSelector: {
@@ -2231,6 +2276,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       console.log('[GRID READY] Scheduling Solution data load');
       setTimeout(() => this.loadDataSolution(), 100);
     }
+
+    // Double click to edit
+    if (this.angularGridSolution?.slickGrid) {
+      this.angularGridSolution.slickGrid.onDblClick.subscribe(() => {
+        this.openProjectSolutionDetail(true);
+      });
+    }
   }
 
   onSolutionVersionGridReady(event: any): void {
@@ -2322,12 +2374,26 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       console.log('[GRID READY] Scheduling Merged Version data load');
       setTimeout(() => this.loadDataVersion(), 100);
     }
+
+    // Double click to edit
+    if (this.angularGridVersion?.slickGrid) {
+      this.angularGridVersion.slickGrid.onDblClick.subscribe(() => {
+        this.openProjectSolutionVersionDetail(0, true);
+      });
+    }
   }
 
   onPartListGridReady(event: any): void {
     console.log('[GRID READY] ========== PartList Grid ready ==========');
     this.angularGridPartList = event.detail;
     console.log('[GRID READY] PartList Grid instance:', !!this.angularGridPartList);
+
+    // Double click to edit
+    if (this.angularGridPartList?.slickGrid) {
+      this.angularGridPartList.slickGrid.onDblClick.subscribe(() => {
+        this.openProjectPartlistDetail(true);
+      });
+    }
 
     // Log thông tin grid để debug
     if (this.angularGridPartList) {
@@ -2396,6 +2462,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         // Thêm event handler cho checkbox selection
         slickGrid.onSelectedRowsChanged.subscribe((e: any, args: any) => {
           this.onPartListRowSelectionChanged(e, args);
+        });
+
+        // Event double click vào dòng để sửa
+        slickGrid.onDblClick.subscribe((e: any, args: any) => {
+          console.log('[GRID EVENT] onDblClick fired', args);
+          // Đảm bảo click vào dòng dữ liệu (không phải header)
+          if (args.row !== undefined && args.row >= 0) {
+            this.openProjectPartlistDetail(true);
+          }
         });
 
 
@@ -3712,7 +3787,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     // Kiểm tra đã chọn giải pháp chưa
     if (!this.projectSolutionId || this.projectSolutionId === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn giải pháp trước!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn lại giải pháp và thao tác lại!');
       return;
     }
 
@@ -4814,6 +4889,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   // Hàm xác nhận và gọi API yêu cầu mua hàng
   confirmPurchaseRequest(requestItems: any[], projectTypeID: number): void {
+    if (this.projectSolutionId === 0 || this.projectSolutionId == null) {
+      this.notification.error('Lỗi', 'Vui lòng chọn lại giải pháp và thao tác yêu cầu mua lại!');
+      return;
+    }
     this.projectPartListService.approvePurchaseRequest(requestItems, true, projectTypeID, this.projectSolutionId, this.projectId).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
@@ -6866,5 +6945,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       });
     }
   }
+  //#endregion
+
   //#endregion
 }

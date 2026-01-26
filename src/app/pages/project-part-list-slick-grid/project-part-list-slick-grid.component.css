@@ -150,6 +150,7 @@
   background-color: #fff7e6 !important;
   /* Cam nhạt */
 }
+
 /* ==================== CÁC GROUP KHÁC - MÀU SẮC PHÂN BIỆT ==================== */
 
 /* Nhóm: Yêu cầu báo giá - Xanh lá nhạt */
@@ -227,9 +228,35 @@
   cursor: pointer;
 }
 
+@keyframes bounce-up-down {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.btn-filter-active {
+  border: 2.5px solid #007bff !important;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.6);
+  font-weight: bold !important;
+  animation: bounce-up-down 0.8s ease-in-out infinite;
+  z-index: 10;
+  position: relative;
+}
+
 :host ::ng-deep .slick-cell {
   padding: 4px 6px;
+  white-space: normal !important;
+  line-height: 1.4 !important;
+  display: flex;
+  align-items: center;
 }
+
 /* ==================== GRID CONTAINER STYLES ==================== */
 .grid-partlist-container {
   width: 100%;
@@ -254,7 +281,9 @@ angular-slickgrid,
 :host ::ng-deep .slickgrid-container {
   height: 100% !important;
 }
- ----
+
+----
+
 /* ==================== FOOTER ROW STYLES ==================== */
 :host ::ng-deep .slick-footer-row {
   background-color: #f0f0f0 !important;
@@ -283,4 +312,3 @@ nz-dropdown-menu ul {
   font-family: inherit;
   font-size: inherit;
 }
-

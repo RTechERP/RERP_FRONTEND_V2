@@ -120,7 +120,13 @@
                     justifyContent: 'center'
                 }"></nz-spin>
             </div>
-            <div id="tb_over_time"></div>
+            <div id="grvOverTimeContainer" class="grid-container-overtime">
+                <angular-slickgrid gridId="grvOverTime" [columns]="columnDefinitions" [options]="gridOptions"
+                    [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                    (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                </angular-slickgrid>
+            </div>
         </div>
     </div>
 </ng-container>

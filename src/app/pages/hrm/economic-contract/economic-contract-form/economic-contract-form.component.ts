@@ -131,7 +131,7 @@ export class EconomicContractFormComponent implements OnInit {
             ContractNumber: ['', Validators.required],
             TypeNCC: [1, Validators.required],
             EconomicContractTypeID: [null, Validators.required],
-            EconomicContractTermID: [null, Validators.required],
+            EconomicContractTermID: [null],
             ContractContent: ['', Validators.required],
             NameNcc: ['', Validators.required],
             MSTNcc: [''],

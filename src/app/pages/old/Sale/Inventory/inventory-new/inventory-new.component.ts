@@ -84,6 +84,7 @@ interface ProductGroup {
 })
 export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     warehouseCode: string = 'HN';
+    readonly componentId: string = 'inventory-' + Math.random().toString(36).substring(2, 11);
     productGroupID: number = 0;
 
     // Data
@@ -209,6 +210,10 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.angularGridInventory.slickGrid.scrollRowToTop(0);
                 }
 
+                // Re-initialize grids if warehouse code changed
+                this.initGridColumns();
+                this.initGridOptions();
+
                 // Trigger change detection
                 this.cdr.detectChanges();
             }
@@ -308,7 +313,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsProductGroup = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-product-group' + this.warehouseCode,
+                container: '.grid-container-product-group-' + this.componentId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -321,6 +326,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             enableCellNavigation: true,
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: true,
+            forceFitColumns: true,
             enableAutoSizeColumns: true,
             enableHeaderMenu: false,
         };
@@ -329,7 +335,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsPGWarehouse = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-pg-warehouse' + this.warehouseCode,
+                container: '.grid-container-pg-warehouse-' + this.componentId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -337,6 +343,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             datasetIdPropertyName: 'id',
             enableCellNavigation: true,
             autoFitColumnsOnFirstLoad: true,
+            forceFitColumns: true,
             enableAutoSizeColumns: true,
             enableHeaderMenu: false,
         };
@@ -345,7 +352,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gridOptionsInventory = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-inventory' + this.warehouseCode,
+                container: '.grid-container-inventory-' + this.componentId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -404,24 +411,36 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#region Grid Ready Events
 
+    resizeGrids(): void {
+        if (this.angularGridProductGroup?.resizerService) {
+            this.angularGridProductGroup.resizerService.resizeGrid();
+        }
+        if (this.angularGridPGWarehouse?.resizerService) {
+            this.angularGridPGWarehouse.resizerService.resizeGrid();
+        }
+        if (this.angularGridInventory?.resizerService) {
+            this.angularGridInventory.resizerService.resizeGrid();
+        }
+    }
+
     angularGridReadyProductGroup(angularGrid: AngularGridInstance) {
         this.angularGridProductGroup = angularGrid;
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
         }, 100);
     }
 
     angularGridReadyPGWarehouse(angularGrid: AngularGridInstance) {
         this.angularGridPGWarehouse = angularGrid;
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
         }, 100);
     }
 
     angularGridReadyInventory(angularGrid: AngularGridInstance) {
         this.angularGridInventory = angularGrid;
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            this.resizeGrids();
             // Update footer row
             this.updateInventoryFooterRow();
         }, 100);
@@ -521,6 +540,11 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
                         this.cdr.detectChanges();
 
+                        // Resize grids after data is loaded
+                        setTimeout(() => {
+                            this.resizeGrids();
+                        }, 50);
+
                         // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
                         setTimeout(() => {
                             if (this.searchParam.checkedAll) {
@@ -563,9 +587,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.cdr.detectChanges();
 
                     setTimeout(() => {
-                        if (this.angularGridPGWarehouse) {
-                            this.angularGridPGWarehouse.resizerService.resizeGrid();
-                        }
+                        this.resizeGrids();
                     }, 100);
                 }
             },
@@ -606,11 +628,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.cdr.detectChanges();
 
                         setTimeout(() => {
-                            if (this.angularGridInventory) {
-                                this.angularGridInventory.resizerService.resizeGrid();
-                                // Update footer row sau khi dữ liệu được load
-                                this.updateInventoryFooterRow();
-                            }
+                            this.resizeGrids();
+                            // Update footer row sau khi dữ liệu được load
+                            this.updateInventoryFooterRow();
                         }, 100);
                     }
 
@@ -1087,7 +1107,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#region Lt.anh mapping cột theo warehouse
     buildPGWarehouseColumns(warehouseCode: string): Column[] {
-        console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
+        // console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
         return [
             {
                 id: 'ProductGroupName' + warehouseCode,
@@ -1099,6 +1119,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'IsFix' + warehouseCode,
@@ -1130,6 +1151,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductName' + warehouseCode,
@@ -1145,6 +1167,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductNewCode' + warehouseCode,
@@ -1171,6 +1194,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Deliver' + warehouseCode,
@@ -1387,6 +1411,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Detail' + warehouseCode,
@@ -1402,6 +1427,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Note' + warehouseCode,
@@ -1417,9 +1443,24 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
         ];
     }
 
     //#endregion
+
+
+    cleanXml(value: any): string {
+        if (value === null || value === undefined) return '';
+
+        return String(value)
+            // remove invalid XML chars
+            .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+            // remove nbsp
+            .replace(/\u00A0/g, ' ')
+            // remove emoji (optional nhưng nên)
+            .replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
+    }
+
 }

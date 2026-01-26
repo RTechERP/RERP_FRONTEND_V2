@@ -184,7 +184,7 @@
 /*
 /* Cột cha */
 .fixed-col {
-  height: 92vh;
+  height: 90vh;
   display: flex;
   flex-direction: column;
   gap: 0.5rem; 
@@ -384,3 +384,29 @@
     width: 20px;
     height: 20px;
 }
+
+
+
+/* Style layout */
+:host ::ng-deep .logo {
+        width: 120px;
+        height: 31px;
+        background: rgba(255, 255, 255, 0.2);
+        margin: 16px 24px 16px 0;
+        float: left;
+      }
+
+      
+      :host ::ng-deep nz-content {
+        padding: 0 50px;
+      }
+
+      :host ::ng-deep nz-footer {
+        text-align: center;
+      }
+
+      :host ::ng-deep .inner-content {
+        background: #fff;
+        padding: 24px;
+        min-height: 280px;
+      }

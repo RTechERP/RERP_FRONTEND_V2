@@ -124,6 +124,7 @@ export class BillImportNewComponent implements OnInit {
 
     // Component state
     wareHouseCode: string = 'HN';
+    readonly componentId: string = 'billimport-' + Math.random().toString(36).substring(2, 11);
     isLoadTable: boolean = false;
     isDetailLoad: boolean = false;
     sizeTbDetail: any = '0';
@@ -135,6 +136,7 @@ export class BillImportNewComponent implements OnInit {
     isCheckmode: boolean = false;
     id: number = 0;
     selectBillImport: any[] = [];
+    private savedSelectedRows: number[] = []; // Lưu các row đã chọn
 
     isLoading: boolean = false;
 
@@ -207,11 +209,20 @@ export class BillImportNewComponent implements OnInit {
             // console.log('params:', params);
             // console.log('this.tabData:', this.tabData);
 
-            this.wareHouseCode =
+            const newWarehouseCode =
                 params['warehouseCode']
                 ?? this.tabData?.warehouseCode
                 ?? 'HN';
+
+            // Check if warehouse code changed
+            const warehouseCodeChanged = this.wareHouseCode !== newWarehouseCode;
+            this.wareHouseCode = newWarehouseCode;
             this.searchParams.warehousecode = this.wareHouseCode;
+
+            // Re-initialize grids if warehouse code changed
+            if (warehouseCodeChanged) {
+                this.initGrids();
+            }
 
             this.getProductGroup();
             this.loadDataBillImport();
@@ -626,12 +637,12 @@ export class BillImportNewComponent implements OnInit {
         this.gridOptionsMaster = {
             enableAutoResize: true,
             // autoResize: {
-            //     container: '.grid-container-master' + this.wareHouseCode,
+            //     container: '.grid-container-master-' + this.componentId,
             //     calculateAvailableSizeBy: 'container',
             //     resizeDetection: 'container',
             // },
             autoResize: {
-                container: '.grid-container-master' + this.wareHouseCode,
+                container: '.grid-container-master-' + this.componentId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -645,7 +656,7 @@ export class BillImportNewComponent implements OnInit {
             },
             enableRowSelection: true,
             rowSelectionOptions: {
-                selectActiveRow: false,
+                selectActiveRow: false, // Để có thể chọn nhiều dòng bằng checkbox
             },
             enablePagination: false,
 
@@ -848,7 +859,7 @@ export class BillImportNewComponent implements OnInit {
         this.gridOptionsDetail = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-detail' + this.wareHouseCode,
+                container: '.grid-container-detail-' + this.componentId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -863,14 +874,63 @@ export class BillImportNewComponent implements OnInit {
     // GRID EVENTS
     // =================================================================
 
+    resizeGrids(): void {
+        if (this.angularGridMaster?.resizerService) {
+            this.angularGridMaster.resizerService.resizeGrid();
+        }
+        if (this.angularGridDetail?.resizerService) {
+            this.angularGridDetail.resizerService.resizeGrid();
+        }
+    }
+
     angularGridMasterReady(angularGrid: AngularGridInstance): void {
         this.angularGridMaster = angularGrid;
 
         // Subscribe to filter changed event to update distinct filters based on visible data
         // Use dataView's onRowCountChanged which fires after filtering
         this.angularGridMaster.dataView.onRowCountChanged.subscribe(() => {
-            this.applyDistinctFiltersToMaster(true); // true = use filtered data
+            // this.applyDistinctFiltersToMaster(true); // true = use filtered data
         });
+
+        // Subscribe to onClick event để handle cell click
+        this.angularGridMaster.slickGrid.onClick.subscribe((e, args) => {
+            const row = args.row;
+            const cell = args.cell;
+
+            // Lấy column definition của cell được click
+            const column = this.angularGridMaster.slickGrid.getColumns()[cell];
+
+            // Nếu click vào checkbox column thì không làm gì (để checkbox handle)
+            if (column?.id === '_checkbox_selector') {
+                return;
+            }
+
+            // Lấy danh sách các row đã chọn hiện tại
+            const currentSelectedRows = this.angularGridMaster.slickGrid.getSelectedRows() || [];
+
+            // Kiểm tra xem row này đã được chọn chưa
+            const rowIndex = currentSelectedRows.indexOf(row);
+
+            if (e.ctrlKey || e.metaKey) {
+                // Nếu giữ Ctrl/Cmd: toggle row (thêm hoặc bỏ)
+                if (rowIndex >= 0) {
+                    // Nếu đã chọn thì bỏ chọn
+                    currentSelectedRows.splice(rowIndex, 1);
+                } else {
+                    // Nếu chưa chọn thì thêm vào
+                    currentSelectedRows.push(row);
+                }
+                this.angularGridMaster.slickGrid.setSelectedRows(currentSelectedRows);
+            } else {
+                // Nếu không giữ Ctrl: chọn duy nhất row này
+                this.angularGridMaster.slickGrid.setSelectedRows([row]);
+            }
+        });
+
+        // Manually resize grid to ensure proper display
+        setTimeout(() => {
+            this.resizeGrids();
+        }, 100);
 
         // Load data on init
         setTimeout(() => {
@@ -880,12 +940,21 @@ export class BillImportNewComponent implements OnInit {
 
     angularGridDetailReady(angularGrid: AngularGridInstance): void {
         this.angularGridDetail = angularGrid;
+
+        // Manually resize grid to ensure proper display
+        setTimeout(() => {
+            this.resizeGrids();
+        }, 100);
     }
 
     onMasterRowSelectionChanged(event: Event, args: OnSelectedRowsChangedEventArgs): void {
         if (!args || !args.rows || !this.angularGridMaster) return;
 
         const selectedIndexes = args.rows;
+
+        // Lưu lại các row đã chọn
+        this.savedSelectedRows = [...selectedIndexes];
+
         if (selectedIndexes.length > 0) {
             const firstRowIndex = selectedIndexes[0];
             const rowData = this.angularGridMaster.dataView.getItem(firstRowIndex);
@@ -961,6 +1030,11 @@ export class BillImportNewComponent implements OnInit {
                         id: item.ID
                     }));
                     this.applyDistinctFiltersToMaster();
+
+                    // Resize grids after data is loaded
+                    setTimeout(() => {
+                        this.resizeGrids();
+                    }, 100);
                 }
             },
             error: (err) => {
@@ -983,6 +1057,13 @@ export class BillImportNewComponent implements OnInit {
                     id: item.ID
                 }));
                 this.isDetailLoad = false;
+
+                // Resize detail grid after data is loaded
+                setTimeout(() => {
+                    if (this.angularGridDetail?.resizerService) {
+                        this.angularGridDetail.resizerService.resizeGrid();
+                    }
+                }, 100);
             },
             error: (err) => {
                 this.notification.error(
@@ -1129,7 +1210,22 @@ export class BillImportNewComponent implements OnInit {
         modalRef.result.finally(() => {
             this.loadDataBillImport();
             this.getBillImportDetail(this.id);
-            this.id = 0;
+
+            // Restore selected rows sau khi đóng modal
+            setTimeout(() => {
+                if (this.angularGridMaster && this.savedSelectedRows.length > 0) {
+                    this.angularGridMaster.slickGrid.setSelectedRows(this.savedSelectedRows);
+
+                    // Restore this.id from first selected row
+                    const firstRowIndex = this.savedSelectedRows[0];
+                    const rowData = this.angularGridMaster.dataView.getItem(firstRowIndex);
+                    this.id = rowData?.ID || 0;
+                    this.selectedRow = rowData;
+                } else {
+                    this.id = 0;
+                    this.selectedRow = null;
+                }
+            }, 300);
         });
     }
 

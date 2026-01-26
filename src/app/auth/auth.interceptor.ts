@@ -27,20 +27,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     // return next(req);
     return next(req).pipe(
         catchError((error: HttpErrorResponse) => {
-            // Session hết hạn / token invalid
-            // if (error.status === 401 || error.status === 419) {
-            //     auth.logout(); // optional: clear token, user info
-            //     location.reload();
-            //     // hoặc: window.location.href = '/login';
-            // }
 
             if ((error.status === 401 || error.status === 419) && !isLoggingOut) {
                 isLoggingOut = true;
 
                 auth.logout(); // clear token, user
-
-                // ❌ KHÔNG reload
-                // location.reload();
 
                 // ✅ navigate về login
                 window.location.href = '/rerpweb/login';

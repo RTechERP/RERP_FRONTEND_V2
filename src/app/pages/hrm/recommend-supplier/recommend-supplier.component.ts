@@ -144,7 +144,7 @@ export class RecommendSupplierComponent implements OnInit, AfterViewInit {
     this.getJobrequirement();
     this.getdataEmployee();
     this.getdataDepartment();
-    
+
   }
   ngAfterViewInit(): void {
     this.draw_JobrequirementTable();
@@ -161,7 +161,7 @@ export class RecommendSupplierComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private message: NzMessageService,
     private menuEventService: MenuEventService
-  ) {}
+  ) { }
 
   //search
   filterOption = (input: string, option: any): boolean => {
@@ -258,7 +258,7 @@ export class RecommendSupplierComponent implements OnInit, AfterViewInit {
     );
   }
 
-     getdataDepartment() {
+  getdataDepartment() {
     this.RecommendSupplierService.getDataDepartment().subscribe((response: any) => {
       this.dataDepartment = response.data || [];
     });
@@ -269,7 +269,7 @@ export class RecommendSupplierComponent implements OnInit, AfterViewInit {
     });
   }
 
-    getHCNSData(JobrequirementID: number): void {
+  getHCNSData(JobrequirementID: number): void {
     if (!JobrequirementID || JobrequirementID === 0) {
       this.HCNSApprovalData = [];
       this.isHCNSApproved = false;
@@ -286,7 +286,7 @@ export class RecommendSupplierComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (response: any) => {
           this.HCNSApprovalData = response.data?.HCNSProPosalData || [];
-          
+
           // Chỉ chặn khi có bản ghi đã được duyệt (IsApproved = 1)
           // 0: Chưa duyệt, 1: Đã duyệt, 2: Hủy duyệt
           this.isHCNSApproved = this.HCNSApprovalData.some((item: any) => {
@@ -351,23 +351,23 @@ export class RecommendSupplierComponent implements OnInit, AfterViewInit {
           }
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   onOpenDepartmentRequired() {
     const selected = this.JobrequirementTable?.getSelectedData() || [];
     const rowData = { ...selected[0] };
-    
+
     // Lấy JobrequirementID từ row đã chọn hoặc từ biến
     const jobRequirementID = rowData?.ID || this.JobrequirementID || 0;
-    
+
     const title = 'Đề xuất mua hàng';
     const data = {
       JobrequirementID: jobRequirementID,
       isCheckmode: this.isCheckmode,
       dataInput: rowData
     };
-    
+
     this.menuEventService.openNewTab(
       HrPurchaseProposalComponent,
       title,
@@ -375,7 +375,7 @@ export class RecommendSupplierComponent implements OnInit, AfterViewInit {
     );
   }
 
-  onDeleteJobrequirement() {}
+  onDeleteJobrequirement() { }
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -485,7 +485,7 @@ export class RecommendSupplierComponent implements OnInit, AfterViewInit {
           {
             title: 'Ngày yêu cầu',
             field: 'DateRequest',
-            hozAlign: 'left',
+            hozAlign: 'center',
             headerHozAlign: 'center',
             width: 200,
             formatter: (cell: any) => {
@@ -541,7 +541,7 @@ export class RecommendSupplierComponent implements OnInit, AfterViewInit {
           this.getJobrequirementbyID(jobRequirementID);
           this.getJobrequirementFilebyID(jobRequirementID);
           this.getJobrequirementApprovedbyID(jobRequirementID);
-          
+
           // Kiểm tra trạng thái duyệt HCNS khi click row
           if (jobRequirementID) {
             this.getHCNSData(jobRequirementID);
@@ -554,7 +554,7 @@ export class RecommendSupplierComponent implements OnInit, AfterViewInit {
         const rowData = row.getData();
         this.data = [rowData]; // Giả sử bạn luôn muốn this.data chứa mảng 1 phần tử
         this.JobrequirementID = this.data[0].ID;
-        
+
         // Kiểm tra trạng thái duyệt HCNS khi chọn row
         if (this.JobrequirementID) {
           this.getHCNSData(this.JobrequirementID);

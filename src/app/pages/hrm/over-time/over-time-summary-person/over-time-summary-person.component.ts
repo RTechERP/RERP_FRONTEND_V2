@@ -125,7 +125,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
   resetSearch() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     this.searchForm.reset({
       startDate: today,
       endDate: today,
@@ -136,7 +136,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
       employeeId: 0,
       teamId: 0
     });
-    
+
     if (this.tabulator) {
       this.tabulator.setData();
     }
@@ -173,30 +173,30 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
     if (!this.tbOverTimePersonSummaryRef?.nativeElement) {
       return;
     }
-    
+
     this.tabulator = new Tabulator(this.tbOverTimePersonSummaryRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       height: '90vh',
       pagination: true,
       paginationMode: 'remote',
-      paginationSize: 10000000,
+      paginationSize: 100000,
       rowHeader: false,
       paginationSizeSelector: [10, 20, 30, 50, 100],
       ajaxURL: 'dummy',
       ajaxRequestFunc: (_url, _config, params) => {
         this.isLoadTable = true;
         const formValue = this.searchForm.value;
-        
+
         let startDate: string | null = null;
         let endDate: string | null = null;
-        
+
         if (formValue.startDate) {
           const start = new Date(formValue.startDate);
           start.setHours(0, 0, 0, 0);
           startDate = start.toISOString();
         }
-        
+
         if (formValue.endDate) {
           const end = new Date(formValue.endDate);
           end.setHours(23, 59, 59, 999);
@@ -225,10 +225,10 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           if (this.summaryTabulator) {
             this.summaryTabulator.setData(this.summaryData);
           }
-          
+
           const dataArray = response.data.data || [];
           const totalPages = dataArray.length > 0 ? (dataArray[0].TotalPage || 1) : 1;
-          
+
           return {
             data: dataArray,
             last_page: totalPages
@@ -264,7 +264,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           width: 80,
           headerSort: false,
           formatter: 'tickCross',
-         
+
         },
         {
           title: 'Tên',
@@ -379,7 +379,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           formatter: 'textarea',
           headerSort: false,
         },
-    
+
         {
           title: 'Phòng ban',
           field: 'DepartmentName',
@@ -409,8 +409,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       height: '90vh',
-      rowHeader: false,
-      paginationSize: 10000000,
+      paginationSize: 100000,
       paginationMode: 'local',
       data: this.summaryData,
       columns: [
@@ -482,7 +481,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
     try {
       // Lấy data trực tiếp từ Tabulator
       const tabulatorData = this.tabulator.getData();
-      
+
       if (!tabulatorData || tabulatorData.length === 0) {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
         this.exportingExcel = false;
@@ -498,7 +497,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           return isNaN(date.getTime()) ? '' : DateTime.fromJSDate(date).toFormat('dd/MM/yyyy');
         }
       };
-      
+
       const formatDateTime = (val: any) => {
         if (!val) return '';
         try {
@@ -507,7 +506,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           return val;
         }
       };
-      
+
       const formatNumber = (val: any) => {
         if (val == null || val === undefined) return '';
         return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 2 }).format(Number(val));
@@ -516,7 +515,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
       // Map data từ Tabulator sang format Excel
       const exportData = tabulatorData.map((item: any, idx: number) => ({
         'STT': idx + 1,
-      
+
         'Tên nhân viên': item.FullName || '',
         'Phòng ban': item.DepartmentName || '',
         'Ngày': formatDate(item.DateRegister),
@@ -533,7 +532,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
 
       worksheet.columns = [
         { header: 'STT', key: 'STT', width: 8 },
-     
+
         { header: 'Tên nhân viên', key: 'Tên nhân viên', width: 30 },
         { header: 'Phòng ban', key: 'Phòng ban', width: 25 },
         { header: 'Ngày', key: 'Ngày', width: 18 },
@@ -565,9 +564,9 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           row.height = 30;
           row.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
             cell.font = { name: 'Times New Roman', size: 10 };
-            cell.alignment = { 
+            cell.alignment = {
               horizontal: colNumber === 8 ? 'right' : 'left',
-              vertical: 'middle', 
+              vertical: 'middle',
               wrapText: true
             };
           });
@@ -581,7 +580,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
       const startDateStr = startDate ? DateTime.fromJSDate(new Date(startDate)).toFormat('ddMMyyyy') : '';
       const endDateStr = endDate ? DateTime.fromJSDate(new Date(endDate)).toFormat('ddMMyyyy') : '';
       saveAs(blob, `TongHopLamThem_${startDateStr}_${endDateStr}.xlsx`);
-      
+
       this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
     } catch (error: any) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xuất Excel: ' + error.message);

@@ -26,6 +26,7 @@ import { AuthService } from '../../../../../../auth/auth.service';
 import { EmployeeService } from '../../../../employee/employee-service/employee.service';
 import { VehicleSelectModalComponent } from './vehicle-select-modal/vehicle-select-modal.component';
 import { HomeLayoutService } from '../../../../../../layouts/home-layout/home-layout-service/home-layout.service';
+import { PermissionService } from '../../../../../../services/permission.service';
 
 @Component({
   selector: 'app-employee-register-bussiness-form',
@@ -91,7 +92,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     private employeeService: EmployeeService,
     private message: NzMessageService,
     private modalService: NgbModal,
-    private homeLayoutService: HomeLayoutService
+    private homeLayoutService: HomeLayoutService,
+    private permissionService: PermissionService
   ) {
     this.initializeForm();
   }
@@ -261,6 +263,18 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         ? convertNotCheckIn(data.NotChekIn)
         : 1);
 
+    // Convert NotCheckIn from boolean to number (1 or 0)
+    const convertNotCheckIn = (value: any): number => {
+      if (value === true || value === 1) return 1;
+      if (value === false || value === 0) return 0;
+      return 1; // default
+    };
+    const notCheckInValue = data.NotCheckIn !== undefined && data.NotCheckIn !== null
+      ? convertNotCheckIn(data.NotCheckIn)
+      : (data.NotChekIn !== undefined && data.NotChekIn !== null
+        ? convertNotCheckIn(data.NotChekIn)
+        : 1);
+
     this.bussinessForm.patchValue({
       ID: data.ID !== null && data.ID !== undefined ? data.ID : 0,
       EmployeeID: employeeID,
@@ -371,33 +385,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
 
       this.isProblemValue = value || false;
 
+      // Khi IsProblem = false, chỉ xóa file đính kèm (không reset ngày)
       if (!value) {
-        const dayBussiness = this.bussinessForm.get('DayBussiness')?.value;
-
-        if (dayBussiness) {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          const yesterday = new Date(today);
-          yesterday.setDate(yesterday.getDate() - 1);
-          yesterday.setHours(0, 0, 0, 0);
-
-          const bussinessDate = new Date(dayBussiness);
-          bussinessDate.setHours(0, 0, 0, 0);
-
-          const isToday = bussinessDate.getTime() === today.getTime();
-          const isYesterday = bussinessDate.getTime() === yesterday.getTime();
-
-          if (!isToday && !isYesterday) {
-            const todayDate = new Date();
-            todayDate.setHours(0, 0, 0, 0);
-
-            this.bussinessForm.patchValue({
-              DayBussiness: todayDate
-            }, { emitEvent: false });
-          }
-        }
-
         this.selectedFile = null;
         this.uploadedFileData = null;
         this.tempFileRecord = null;
@@ -666,6 +655,11 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     }
 
     try {
+      // Nếu có quyền N1, N2 hoặc IsAdmin thì enable tất cả các ngày
+      if (this.canEditAllDates()) {
+        return false;
+      }
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -1132,6 +1126,15 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
 
   onCancel() {
     this.activeModal.dismiss();
+  }
+
+  // Helper method để kiểm tra user có quyền chỉnh sửa tất cả ngày (N1, N2 hoặc IsAdmin)
+  private canEditAllDates(): boolean {
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
+
+    return hasN1Permission || hasN2Permission || isAdmin;
   }
 }
 

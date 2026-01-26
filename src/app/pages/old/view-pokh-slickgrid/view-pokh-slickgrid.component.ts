@@ -18,6 +18,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
   AngularGridInstance,
   AngularSlickgridModule,
@@ -72,6 +73,7 @@ interface GroupedData {
     NzDatePickerModule,
     NzInputModule,
     NzInputNumberModule,
+    NzSpinModule,
     AngularSlickgridModule,
     Menubar,
   ],
@@ -169,6 +171,9 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     endDate: new Date(),
     keyword: '',
   };
+
+  // Loading state
+  isLoadingData: boolean = false;
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -365,9 +370,12 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         width: 40,
         maxWidth: 40,
         formatter: (row, cell, value, columnDef, dataContext) => {
-          const isSelected = this.selectedExportRowsAll.some(r => r.BillExportDetailID === dataContext.BillExportDetailID);
+          // Dùng Code + POKHDetailID làm composite key
+          const isSelected = this.selectedExportRowsAll.some(r =>
+            r.POKHDetailID === dataContext.POKHDetailID && r.Code === dataContext.Code
+          );
           return `<div style="text-align: center;">
-            <input type="checkbox" ${isSelected ? 'checked' : ''} class="export-row-checkbox" data-id="${dataContext.BillExportDetailID}" data-parent-id="${dataContext.POKHDetailID}" style="cursor: pointer; width: 16px; height: 16px;"/>
+            <input type="checkbox" ${isSelected ? 'checked' : ''} class="export-row-checkbox" data-code="${dataContext.Code}" data-parent-id="${dataContext.POKHDetailID}" style="cursor: pointer; width: 16px; height: 16px;"/>
           </div>`;
         },
         excludeFromExport: true,
@@ -612,14 +620,15 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
   }
 
   handleExportRowSelect(dataContext: any, parentId: number, isSelected: boolean): void {
-    const billExportDetailID = dataContext.BillExportDetailID || dataContext.ID;
+    const code = dataContext.Code || '';
 
     if (isSelected) {
-      if (!this.selectedExportRowsAll.some(x => x.BillExportDetailID === billExportDetailID)) {
+      // Dùng Code + POKHDetailID làm composite key
+      if (!this.selectedExportRowsAll.some(x => x.POKHDetailID === parentId && x.Code === code)) {
         this.selectedExportRowsAll.push({
           POKHDetailID: parentId,
-          BillExportDetailID: billExportDetailID,
-          Code: dataContext.Code || '',
+          BillExportDetailID: dataContext.BillExportDetailID || dataContext.ID,
+          Code: code,
         });
       }
       // Auto-select parent if not already selected
@@ -628,7 +637,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         this.selectedRowsAll.push({ ...parentData });
       }
     } else {
-      this.selectedExportRowsAll = this.selectedExportRowsAll.filter(x => x.BillExportDetailID !== billExportDetailID);
+      // Xóa dựa trên Code + POKHDetailID
+      this.selectedExportRowsAll = this.selectedExportRowsAll.filter(x => !(x.POKHDetailID === parentId && x.Code === code));
       // Deselect parent if no more exports selected
       const remainingExportsForParent = this.selectedExportRowsAll.filter(x => x.POKHDetailID === parentId);
       if (remainingExportsForParent.length === 0) {
@@ -642,12 +652,13 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
   selectAllExportsForParent(parentData: any): void {
     if (parentData.exportDetails && parentData.exportDetails.length > 0) {
       parentData.exportDetails.forEach((ex: any) => {
-        const billExportDetailID = ex.BillExportDetailID || ex.ID;
-        if (!this.selectedExportRowsAll.some(x => x.BillExportDetailID === billExportDetailID)) {
+        const code = ex.Code || '';
+        // Dùng Code + POKHDetailID làm composite key
+        if (!this.selectedExportRowsAll.some(x => x.POKHDetailID === parentData.ID && x.Code === code)) {
           this.selectedExportRowsAll.push({
             POKHDetailID: parentData.ID,
-            BillExportDetailID: billExportDetailID,
-            Code: ex.Code || '',
+            BillExportDetailID: ex.BillExportDetailID || ex.ID,
+            Code: code,
           });
         }
       });
@@ -846,8 +857,9 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       }
 
       const selectedExports = (row.exportDetails || []).filter((ex: any) => {
+        // Match dùng Code + POKHDetailID (vì BillExportDetailID có thể undefined)
         return selectedExportsForThisParent.some((selected: any) =>
-          selected.BillExportDetailID === ex.BillExportDetailID
+          selected.POKHDetailID === row.ID && selected.Code === ex.Code
         );
       });
 
@@ -951,6 +963,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       warehouseId: this.warehouseId || 0,
     };
 
+    this.isLoadingData = true;
     this.viewPokhSlickgridService.loadViewPOKH(
       startDate, endDate,
       params.employeeTeamSaleId, params.userId, params.poType,
@@ -966,14 +979,19 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         id: item.ID || idx,
       }));
 
-      // Khôi phục selections - checkbox formatter sẽ tự kiểm tra selectedRowsAll
       setTimeout(() => {
         if (this.angularGrid?.slickGrid) {
           this.angularGrid.slickGrid.invalidate();
           this.angularGrid.slickGrid.render();
         }
       }, 100);
-    });
+      this.isLoadingData = false;
+    },
+      (error) => {
+        this.isLoadingData = false;
+        this.notification.error('Lỗi', 'Không thể tải dữ liệu');
+      }
+    );
   }
 
   loadEmployeeTeamSale(): void {

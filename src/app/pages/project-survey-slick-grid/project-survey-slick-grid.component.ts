@@ -162,11 +162,11 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
   selectedRow: any = '';
 
   // Filter params
-  dateStart: any = DateTime.local()
+  dateStart: string = DateTime.local()
     .minus({ month: 1 })
     .set({ hour: 0, minute: 0, second: 0 })
-    .toISO();
-  dateEnd: any = DateTime.local().plus({ month: 2 }).toISO();
+    .toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local().plus({ month: 2 }).toFormat('yyyy-MM-dd');
   projectId: any = 0;
   technicalId: any = 0;
   saleId: any = 0;
@@ -313,8 +313,8 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
     this.dateStart = DateTime.local()
       .minus({ month: 1 })
       .set({ hour: 0, minute: 0, second: 0 })
-      .toISO();
-    this.dateEnd = DateTime.local().plus({ month: 2 }).toISO();
+      .toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local().plus({ month: 2 }).toFormat('yyyy-MM-dd');
     this.projectId = 0;
     this.technicalId = 0;
     this.saleId = 0;

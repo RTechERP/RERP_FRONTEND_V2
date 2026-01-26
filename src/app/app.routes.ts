@@ -222,7 +222,7 @@ import { CourseManagementComponent } from './pages/Course/course-management/cour
 import { EconimicContractTermComponent } from './pages/hrm/economic-contract/econimic-contract-term/econimic-contract-term.component';
 import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/economic-contract-type/economic-contract-type.component';
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
-import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/kpievaluation-employee.component';
+import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/kpievaluation-employee.component';
 import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
 import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
 import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';
@@ -244,9 +244,13 @@ import { InventoryProjectNewComponent } from './pages/purchase/inventory-project
 // import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
 // // import { SummaryKpiErrorEmployeeCloneComponent } from './pages/old/Technical/summary-kpi-error-employee-clone/summary-kpi-error-employee-clone.component';
 import { SummaryKpiErrorEmployeeNewComponent } from './pages/old/Technical/summary-kpi-error-employee/summary-kpi-error-employee-new/summary-kpi-error-employee-new.component';
+import { KpiCriteriaComponent } from './pages/old/Technical/kpi-criteria/kpi-criteria.component';
 
 import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
 import { VehicleBookingManagementSlickgridComponent } from './pages/hrm/vehicle/vehicle-booking-management/vehicle-booking-management-slickgrid/vehicle-booking-management-slickgrid.component';
+import { KpiPositionEmployeeComponent } from './pages/old/Technical/kpi-position-employee/kpi-position-employee.component';
+import { KpiEvaluationComponent } from './pages/old/Technical/kpi-evaluation/kpi-evaluation.component';
+// import { KpiEmployeeTeamComponent } from './pages/old/Technical/kpi-employee-team/kpi-employee-team.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -453,7 +457,7 @@ export const routes: Routes = [
             { path: 'economic-contract-term', component: EconimicContractTermComponent, canActivate: [authGuard] },
             { path: 'economic-contract-type', component: EconomicContractTypeComponent, canActivate: [authGuard] },
             { path: 'economic-contract', component: EconomicContractComponent, canActivate: [authGuard] },
-            // { path: 'setting-hr-config', component: SettingHrConfigComponent, canActivate: [authGuard] },
+            { path: 'setting-hr-config', component: SettingHrConfigComponent, canActivate: [authGuard] },
 
 
 
@@ -608,6 +612,8 @@ export const routes: Routes = [
             { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
             { path: 'kpi-tech', component: KPIEvaluationEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
+
 
 
             //Mua hàng
@@ -951,7 +957,7 @@ export const routes: Routes = [
             { path: 'asset-allocation-person', component: TsAssetAllocationPersonalComponent, canActivate: [authGuard] },
             { path: 'asset-recovery-person', component: TsAssetRecoveryPersonalNewComponent, canActivate: [authGuard] },
             { path: 'vehicle-management', component: VehicleManagementComponent, canActivate: [authGuard] },
-            { path: 'vehicle-booking', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
+            { path: 'vehicle-booking', component: VehicleBookingManagementSlickgridComponent, canActivate: [authGuard] },
             { path: 'vehicle-repair-type', component: VehicleRepairTypeComponent, canActivate: [authGuard] },
             { path: 'vehicle-repair-propose', component: ProposeVehicleRepairComponent, canActivate: [authGuard] },
             { path: 'vehicle-repair-history', component: VehicleRepairHistoryComponent, canActivate: [authGuard] },
@@ -1006,7 +1012,11 @@ export const routes: Routes = [
             { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-new', component: SummaryKpiErrorEmployeeNewComponent, canActivate: [authGuard] },
-            // { path: 'summary-kpi-error-employee-clone', component: SummaryKpiErrorEmployeeCloneComponent, canActivate: [authGuard] },
+            //Cài đặt phòng kỹ thuật
+            { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
+            { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation', component: KpiEvaluationComponent, canActivate: [authGuard] },
+            // { path: 'kpi-employee-team', component: KpiEmployeeTeamComponent, canActivate: [authGuard] },
 
             { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
         ],

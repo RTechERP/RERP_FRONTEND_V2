@@ -95,6 +95,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     isModalOpening: boolean = false; // Flag để ngăn mở modal 2 lần
     sizeTbDetail: number | string = '0';
     warehouseCode: string = '';
+    readonly componentId: string = 'billexport-' + Math.random().toString(36).substring(2, 11);
     checked: boolean = false;
     selectedKhoTypes: number[] = [];
     dataProductGroup: any[] = [];
@@ -319,6 +320,11 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                     model: Filters['compoundInput'],
                 },
                 minWidth: 200,
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const text = String(value);
+                    return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
+                },
             },
             {
                 id: 'Address',
@@ -395,7 +401,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
 
         this.gridOptionsMaster = {
             autoResize: {
-                container: '.grid-container-master' + this.warehouseCode,
+                container: '.grid-container-master-' + this.componentId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -603,7 +609,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
 
         this.gridOptionsDetail = {
             autoResize: {
-                container: '.grid-container-detail' + this.warehouseCode,
+                container: '.grid-container-detail-' + this.componentId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -1017,9 +1023,9 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             keyboard: false,
             fullscreen: true,
         });
-        modalRef.componentInstance.newBillExport = this.newBillExport;
+        modalRef.componentInstance.newBillExport = !isCheckmode; // true khi thêm mới, false khi sửa
         modalRef.componentInstance.isCheckmode = this.isCheckmode;
-        modalRef.componentInstance.id = this.id;
+        modalRef.componentInstance.id = isCheckmode ? this.id : 0; // Chỉ truyền id khi sửa
         modalRef.componentInstance.wareHouseCode = this.warehouseCode;
         modalRef.result.then(() => {
             this.isModalOpening = false;
@@ -1788,20 +1794,37 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     }
 
     openModalBillExportSynthetic() {
-        import('../Modal/bill-export-synthetic/bill-export-synthetic.component').then(m => {
-            const modalRef = this.modalService.open(m.BillExportSyntheticComponent, {
-                centered: true,
-                size: 'xl',
-                backdrop: 'static',
-                keyboard: false,
-            });
-            modalRef.componentInstance.warehouseCode = this.warehouseCode;
-            modalRef.result.catch((result) => {
-                if (result == true) {
-                    // this.id=0;
-                    // this.loadDataBillExport();
-                }
-            });
+        // OLD CODE - using BillExportSyntheticComponent
+        // import('../Modal/bill-export-synthetic/bill-export-synthetic.component').then(m => {
+        //     const modalRef = this.modalService.open(m.BillExportSyntheticComponent, {
+        //         centered: true,
+        //         size: 'xl',
+        //         backdrop: 'static',
+        //         keyboard: false,
+        //     });
+        //     modalRef.componentInstance.warehouseCode = this.warehouseCode;
+        //     modalRef.result.catch((result) => {
+        //         if (result == true) {
+        //             // this.id=0;
+        //             // this.loadDataBillExport();
+        //         }
+        //     });
+        // });
+
+        // NEW CODE - using BillExportSyntheticNewComponent
+        import('../Modal/bill-export-synthetic-new/bill-export-synthetic-new.component').then(m => {
+          const modalRef = this.modalService.open(m.BillExportSyntheticNewComponent, {
+            centered: true,
+            backdrop: 'static',
+            keyboard: false,
+            fullscreen: true,
+          });
+          modalRef.componentInstance.warehouseCode = this.warehouseCode;
+          modalRef.result.catch((result) => {
+            if (result == true) {
+              this.loadDataBillExport();
+            }
+          });
         });
     }
 
@@ -1840,6 +1863,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             .map(([value, label]) => ({ value, label }))
             .sort((a, b) => a.label.localeCompare(b.label));
 
+        // Lưu lại selected rows trước khi update columns
+        const selectedRows = this.angularGridMaster.slickGrid.getSelectedRows() || [];
+        const selectedIds = selectedRows.map(rowIndex => {
+            const item = this.angularGridMaster.slickGrid.getDataItem(rowIndex);
+            return item?.ID;
+        }).filter(id => id != null);
+
         // Cập nhật filter collection cho cột nameStatus
         const columns = this.angularGridMaster.slickGrid.getColumns();
         const statusColumn = columns.find((col: any) => col.id === 'nameStatus');
@@ -1854,6 +1884,21 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         }
 
         this.angularGridMaster.slickGrid.setColumns(columns);
+
+        // Restore selected rows dựa trên ID
+        if (selectedIds.length > 0) {
+            setTimeout(() => {
+                const rowsToSelect: number[] = [];
+                this.datasetMaster.forEach((item: any, index: number) => {
+                    if (selectedIds.includes(item.ID)) {
+                        rowsToSelect.push(index);
+                    }
+                });
+                if (rowsToSelect.length > 0) {
+                    this.angularGridMaster.slickGrid?.setSelectedRows(rowsToSelect);
+                }
+            }, 0);
+        }
     }
 
     private applyDistinctFiltersToDetail(): void {

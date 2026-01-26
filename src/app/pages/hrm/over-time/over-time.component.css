@@ -127,3 +127,56 @@
     z-index: 1 !important;
   }
 }
+
+
+/* SlickGrid container */
+#grvOverTimeContainer,
+.grid-container-overtime {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible !important;
+}
+
+/* Ensure grid fills the container */
+::ng-deep #grvOverTime {
+  min-height: 80vh !important;
+}
+
+/* SlickGrid styles */
+::ng-deep #grvOverTimeContainer .slickgrid-container {
+  font-size: 12px !important;
+  height: 100% !important;
+  min-height: 790px !important;
+  overflow: visible !important;
+}
+
+
+
+
+
+
+::ng-deep .slick-header-column {
+  font-size: 12px !important;
+  font-weight: bold;
+}
+
+::ng-deep .slick-cell {
+  font-size: 12px !important;
+}
+
+::ng-deep .slick-footerrow-cell {
+  font-size: 12px !important;
+  font-weight: bold;
+  background-color: #f0f0f0 !important;
+  border-top: 2px solid #1677ff !important;
+}
+
+::ng-deep .sli ck-footerrow {
+  background-color: #f0f0f0 !important;
+}
+
+/* Footer row styling for TimeReality column */
+:host ::ng-deep .slick-footerrow-column[data-column-id="TimeReality"] {
+  text-align: right !important;
+  padding-right: 8px !important;
+}

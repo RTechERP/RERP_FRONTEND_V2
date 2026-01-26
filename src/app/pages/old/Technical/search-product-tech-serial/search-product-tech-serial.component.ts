@@ -236,8 +236,8 @@ export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
         },
       },
       {
-        id: 'BillImportCode',
-        field: 'BillImportCode',
+        id: 'BillCode',
+        field: 'BillCode',
         name: 'Mã phiếu nhập',
         width: 100,
         sortable: true,

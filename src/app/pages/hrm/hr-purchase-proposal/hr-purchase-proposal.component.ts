@@ -62,6 +62,8 @@ import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ActivatedRoute } from '@angular/router';
+import { PaymentOrder } from '../../general-category/payment-order/model/payment-order';
+import { PaymentOrderDetailComponent } from '../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
 
 interface DepartmentRequired {
     ID: number;
@@ -422,6 +424,7 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
                     data: this.DepartmentRequiredData || [],
                     ...DEFAULT_TABLE_CONFIG,
                     selectableRows: 1,
+                    layout: 'fitDataStretch',
                     paginationMode: 'local',
                     height: '100%',
                     columns: [
@@ -436,22 +439,23 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
                             field: 'EmployeeName',
                             headerHozAlign: 'center',
                         },
-                        {
-                            title: 'Vị trí',
-                            field: 'ChucVu',
-                            headerHozAlign: 'center',
-                        },
+                        // {
+                        //     title: 'Vị trí',
+                        //     field: 'ChucVu',
+                        //     headerHozAlign: 'center',
+                        // },
                         {
                             title: 'Bộ phận',
                             field: 'EmployeeDepartment',
                             headerHozAlign: 'center',
+                            width: 200,
                         },
                         {
                             title: 'Ngày yêu cầu',
                             field: 'DateRequest',
-                            hozAlign: 'left',
+                            hozAlign: 'center',
                             headerHozAlign: 'center',
-                            width: 200,
+                            width: 120,
                             formatter: (cell: any) => {
                                 const value = cell.getValue();
                                 return value
@@ -482,10 +486,10 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
                         },
                         {
                             title: 'Ngày yêu cầu hoàn thành',
-                            field: 'CompletionDate',
-                            hozAlign: 'left',
+                            field: 'DeadlineRequest',
+                            hozAlign: 'center',
                             headerHozAlign: 'center',
-                            width: 200,
+                            width: 120,
                             formatter: (cell: any) => {
                                 const value = cell.getValue();
                                 return value
@@ -741,5 +745,75 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
             error: (err) => {
             },
         });
+    }
+
+    /**
+     * Mở modal đề nghị thanh toán
+     */
+    initPaymentModal(paymentOrder: any = new PaymentOrder(), isCopy: boolean = false, initialContentPayment: string = '') {
+        const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            scrollable: true,
+            fullscreen: true,
+        });
+        modalRef.componentInstance.paymentOrder = paymentOrder;
+        modalRef.componentInstance.isCopy = isCopy;
+        modalRef.componentInstance.initialContentPayment = initialContentPayment;
+    }
+
+    /**
+     * Mở đề nghị thanh toán từ dòng được chọn
+     */
+    openPaymentOrder() {
+        // Kiểm tra đã chọn dòng chưa
+        if (!this.DepartmentRequiredTable) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng dữ liệu chưa được khởi tạo!');
+            return;
+        }
+
+        const selectedData = this.DepartmentRequiredTable.getSelectedData();
+        if (!selectedData || selectedData.length === 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để đề nghị thanh toán!');
+            return;
+        }
+
+        if (selectedData.length > 1) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Chỉ được chọn một dòng để đề nghị thanh toán!');
+            return;
+        }
+
+        const selectedItem = selectedData[0];
+        console.log('Selected row data for payment:', selectedItem);
+
+        // Tạo PaymentOrder mới với dữ liệu từ dòng được chọn
+        const paymentOrder = new PaymentOrder();
+        paymentOrder.ID = 0;
+        paymentOrder.TypeOrder = 2; // Loại đề nghị
+        paymentOrder.PaymentOrderTypeID = 22; // Loại thanh toán
+        paymentOrder.ReceiverInfo = selectedItem.EmployeeName || '';
+
+        // Format ngày
+        const formatDate = (dateStr: string): string => {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        };
+
+        // Lý do đề nghị thanh toán
+        paymentOrder.ReasonOrder = `Đề nghị thanh toán mua hàng ngày ${formatDate(selectedItem.DateRequest)} - ${selectedItem.RequestContent || ''}`;
+
+        // Thông tin khác từ dòng được chọn
+        paymentOrder.EmployeeID = selectedItem.RequesterID || null;
+        paymentOrder.FullName = selectedItem.EmployeeName || '';
+        paymentOrder.DepartmentName = selectedItem.EmployeeDepartment || '';
+        paymentOrder.Note = selectedItem.Note || selectedItem.Reason || '';
+
+        // Nội dung thanh toán
+        const contentPayment = `Đề nghị thanh toán: ${selectedItem.RequestContent || ''} - Số lượng: ${selectedItem.Quantity || ''} ${selectedItem.Unit || ''}`;
+
+        this.initPaymentModal(paymentOrder, false, contentPayment);
     }
 }

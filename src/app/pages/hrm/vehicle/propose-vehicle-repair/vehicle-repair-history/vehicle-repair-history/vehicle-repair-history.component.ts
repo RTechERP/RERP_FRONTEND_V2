@@ -387,6 +387,18 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
               title: 'THÔNG TIN HẠNG MỤC',
               columns: [
                 {
+                  title: 'Thời gian kỳ trước',
+                  field: 'TimePrevious',
+                  width: 120,
+                  hozAlign: 'center',
+                  formatter: (cell) => {
+                    const v = cell.getValue();
+                    if (!v) return '';
+                    const d = new Date(v);
+                    return d.toLocaleDateString('vi-VN');
+                  },
+                },
+                {
                   title: 'Km kỳ trước',
                   field: 'KmPreviousPeriod',
                   hozAlign: 'right',
@@ -917,6 +929,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         { key: 'ProposeContent' },
         { key: 'Reason' },
         { key: 'DateApprove', type: COL.date },
+        { key: 'TimePrevious', type: COL.date },
         { key: 'KmPreviousPeriod', type: COL.number },
         { key: 'KmCurrentPeriod', type: COL.number },
         { key: 'KmInPeriod', type: COL.number },
@@ -952,6 +965,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
             r?.ProposeContent ?? r?.Content ?? r?.VehicleRepairTypeName ?? '',
           Reason: r?.Reason ?? '',
           DateApprove: r?.DateApprove ?? r?.DateReportApprove ?? '',
+          TimePrevious: r?.TimePrevious ?? '',
           KmPreviousPeriod: kmPrev || null,
           KmCurrentPeriod: kmCurr || null,
           KmInPeriod: (kmPrev === 0 && kmCurr === 0) ? null : kmIn,

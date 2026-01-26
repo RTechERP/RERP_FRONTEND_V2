@@ -89,8 +89,7 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
   styleUrl: './vehicle-repair-history-form.component.css',
 })
 export class VehicleRepairHistoryFormComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   @ViewChild('fileTable', { static: false }) tbFileElement!: ElementRef;
   @ViewChild('tblNcc', { static: false })
   tblNccRef!: ElementRef<HTMLDivElement>;
@@ -155,6 +154,7 @@ export class VehicleRepairHistoryFormComponent
       IsDeleted: [false],
       RepairGarageName: [''],
       ContactPhone: [''],
+      TimePrevious: [''],
     });
   }
   private syncEmployeeFields(id?: number) {
@@ -291,7 +291,7 @@ export class VehicleRepairHistoryFormComponent
         this.updateFileTable();
         try {
           this.fileTable?.redraw(true);
-        } catch {}
+        } catch { }
       });
     }
   }
@@ -313,6 +313,7 @@ export class VehicleRepairHistoryFormComponent
           DateReport: DateReport?.slice(0, 10) || '',
           TimeStartRepair: TimeStartRepair?.slice(0, 10) || '',
           TimeEndRepair: TimeEndRepair?.slice(0, 10) || '',
+          TimePrevious: this.dataInput.TimePrevious?.slice(0, 10) || '',
         },
         { emitEvent: false }
       );
@@ -729,6 +730,7 @@ export class VehicleRepairHistoryFormComponent
         IsDeleted: !!fv.IsDeleted,
         RepairGarageName: fv.RepairGarageName || '',
         ContactPhone: fv.ContactPhone || '',
+        TimePrevious: fv.TimePrevious || null,
       },
       vehicleRepairHistoryFiles: [], // để trống ở lượt 1
     };

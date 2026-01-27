@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormsModule, FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
 import { AngularGridInstance, AngularSlickgridModule, Column, Editors, Formatters, GridOption, OnEventArgs } from 'angular-slickgrid';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -112,6 +112,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
         private appUserService: AppUserService,
         private paymentService: PaymentOrderService,
         private http: HttpClient,
+        private cdr: ChangeDetectorRef
     ) { }
 
     ngOnInit(): void {
@@ -128,10 +129,12 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
         // console.log('this.userTeamNames$:', this.userTeamNames$);
 
+
         this.initDataCombo();
         this.initForm();
         this.initGrid();
         this.initGridFile();
+
     }
 
     initGrid() {
@@ -380,7 +383,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
 
-        this.updateTotal(3);
+        // this.updateTotal(3);
     }
     angularGridFileReady(angularGrid: AngularGridInstance) {
         this.angularGridFile = angularGrid;
@@ -391,7 +394,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
     initDataCombo() {
         this.paymentService.getDataCombo().subscribe({
             next: (response) => {
-                console.log('initDataCombo:', response);
+                // console.log('initDataCombo:', response);
                 this.customers = response.data.customers;
                 this.approverSales = response.data.approverSales;
                 this.pokhs = response.data.pokhs;
@@ -434,11 +437,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
             PaymentOrderPOs: this.fb.control(this.paymentOrder.PaymentOrderPOs),
             PaymentOrderBillNumbers: this.fb.control(this.paymentOrder.PaymentOrderBillNumbers),
             ReasonOrder: this.fb.control(this.paymentOrder.ReasonOrder, [Validators.required]),
-            Unit: this.fb.control(this.paymentOrder.Unit, [Validators.required]),
+            Unit: this.fb.control(this.paymentOrder.Unit?.toLowerCase(), [Validators.required]),
         });
-
-
-
 
         //Sự kiện tích gấp
         this.validateForm
@@ -470,8 +470,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 this.selectedPOKHs = value;
                 this.selectedBillNumbers = this.validateForm.get('PaymentOrderBillNumbers')?.value;
 
-                console.log('this.selectedPOKHs:', this.selectedPOKHs);
-                console.log('this.selectedBillNumbers:', this.selectedBillNumbers);
+                // console.log('this.selectedPOKHs:', this.selectedPOKHs);
+                // console.log('this.selectedBillNumbers:', this.selectedBillNumbers);
 
                 //Check add thêm vào billNumber
                 for (let i = 0; i < this.selectedPOKHs.length; i++) {
@@ -501,8 +501,13 @@ export class PaymentOrderSpecialComponent implements OnInit {
             .subscribe((value: string) => {
                 const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
                 const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
+
                 this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(parseFloat(columnElement.textContent || ''), value);
+                this.cdr.detectChanges();
             });
+
+        // this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(this.paymentOrder.TotalMoney?.toString() || '', this.paymentOrder.Unit || '');
+        // this.cdr.detectChanges();
     }
 
     submitForm() {
@@ -556,10 +561,10 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 ...this.paymentOrder,
                 ...this.validateForm.getRawValue(),
                 PaymentOrderDetails: paymentOrderDetails,
-                TotalMoney: parseFloat(columnElement.textContent ?? ''),
+                TotalMoney: parseFloat((columnElement.textContent ?? '').replace(/,/g, '')),
                 PaymentOrderPOs: paymentOrderPOs,
             };
-            console.log('submit data', this.paymentOrder);
+            // console.log('submit data', this.paymentOrder);
 
             this.paymentService.save(this.paymentOrder).subscribe({
                 next: (response) => {
@@ -713,6 +718,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
             columnElement.textContent = `${total}`;
 
             this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);
+            this.cdr.detectChanges();
         }
     }
 

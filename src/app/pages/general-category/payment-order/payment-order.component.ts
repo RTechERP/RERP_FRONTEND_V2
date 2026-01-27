@@ -57,6 +57,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
+import { NzResizeObserverDirective } from "ng-zorro-antd/cdk/resize-observer";
 // import { SlickGlobalEditorLock } from 'angular-slickgrid';
 
 // (SlickGlobalEditorLock as any).Logger = {
@@ -93,6 +94,7 @@ import { ActivatedRoute } from '@angular/router';
         NzIconModule,
         NzSpinModule,
         NzModalModule,
+        NzResizeObserverDirective
     ],
     templateUrl: './payment-order.component.html',
     styleUrl: './payment-order.component.css',
@@ -223,7 +225,7 @@ export class PaymentOrderComponent implements OnInit {
                 ?? this.tabData?.activeTab
                 ?? '0';
 
-            console.log('this.activeTab:', this.activeTab)
+            // console.log('this.activeTab:', this.activeTab)
         });
 
         this.loadDataCombo();
@@ -260,13 +262,15 @@ export class PaymentOrderComponent implements OnInit {
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP)) {
                 this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
                 this.param.approvedTBPID = this.appUserService.currentUser?.EmployeeID;
-                this.param.step = 1;
+                this.param.step = 2;
+                this.param.isApproved = 1;
             }
 
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD)) {
                 this.param.departmentID = 0;
                 this.param.approvedTBPID = 0;
-                this.param.step = 6;
+                this.param.step = 7;
+                this.param.isApproved = 1;
             }
 
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
@@ -580,6 +584,30 @@ export class PaymentOrderComponent implements OnInit {
                 command: () => {
                     this.onApprovedBGD(2, {
                         ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnUnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
+                    });
+                }
+            },
+
+            // {
+            //     separator: true,
+            // },
+            {
+                label: 'KH đã nhận',
+                icon: 'fa-solid fa-circle-check fa-lg text-success',
+                // visible: this.activeTab == '1',
+                command: () => {
+                    this.onApprovedKHReceive(1, {
+                        ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH đã nhận',
+                    });
+                }
+            },
+            {
+                label: 'KH hủy nhận',
+                icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                // visible: this.activeTab == '1',
+                command: () => {
+                    this.onApprovedKHReceive(2, {
+                        ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH hủy nhận',
                     });
                 }
             },
@@ -1592,7 +1620,7 @@ export class PaymentOrderComponent implements OnInit {
                 name: PaymentOrderDetailField.ContentPayment.name,
                 field: PaymentOrderDetailField.ContentPayment.field,
                 type: PaymentOrderDetailField.ContentPayment.type,
-                width: 250,
+                width: 300,
                 sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
                 filter: { model: Filters['compoundInputText'] },
@@ -1714,6 +1742,8 @@ export class PaymentOrderComponent implements OnInit {
                 maxDecimal: 2,
                 thousandSeparator: ','
             },
+
+
         }
 
 
@@ -2392,7 +2422,7 @@ export class PaymentOrderComponent implements OnInit {
                 name: 'Thông tin thanh toán',
                 field: PaymentOrderDetailField.PaymentInfor.field,
                 type: PaymentOrderDetailField.PaymentInfor.type,
-                width: 150,
+                width: 300,
                 sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
                 filter: { model: Filters['compoundInputText'] },
@@ -2482,7 +2512,7 @@ export class PaymentOrderComponent implements OnInit {
                 this.departments = response.data;
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         })
 
@@ -2505,7 +2535,7 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(this.employees);
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         })
 
@@ -2514,13 +2544,15 @@ export class PaymentOrderComponent implements OnInit {
                 this.paymentOrderTypes = response.data;
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         })
 
+        this.getSteps();
+
         this.isApproveds = [
-            { value: 0, text: "Chờ duyệt" },
-            { value: 1, text: "Đã duyệt" },
+            { value: 1, text: "Chờ duyệt" },
+            // { value: 1, text: "Đã duyệt" },
             { value: 2, text: "Hủy duyệt" },
             { value: 3, text: "Bổ sung chứng từ" },
         ]
@@ -2531,17 +2563,37 @@ export class PaymentOrderComponent implements OnInit {
             { value: 3, text: "Đề nghị thu tiền" },
         ]
 
-        this.steps = [
-            { value: 1, text: "NV đề nghị" },
-            { value: 2, text: "TBP duyệt" },
-            { value: 3, text: "HR check hồ sơ" },
-            { value: 4, text: "TBP HR duyệt" },
-            { value: 5, text: "Kế toán check hồ sơ" },
-            { value: 6, text: "KTT duyệt" },
-            { value: 7, text: "BGĐ duyệt" },
-            { value: 8, text: "Kế toán nhận chứng từ" },
-            { value: 9, text: "Kế toán thanh toán" },
-        ]
+        // this.steps = [
+        //     { value: 1, text: "NV đề nghị" },
+        //     { value: 2, text: "TBP duyệt" },
+        //     { value: 3, text: "HR check hồ sơ" },
+        //     { value: 4, text: "TBP HR duyệt" },
+        //     { value: 5, text: "Kế toán check hồ sơ" },
+        //     { value: 6, text: "KTT duyệt" },
+        //     { value: 7, text: "BGĐ duyệt" },
+        //     { value: 8, text: "Kế toán nhận chứng từ" },
+        //     { value: 9, text: "Kế toán thanh toán" },
+        // ]
+    }
+
+
+    getSteps() {
+        this.paymentService.getDataCombo().subscribe({
+            next: (response) => {
+
+                const followType = this.activeTab == '0' ? 1 : 3;
+                const data = response.data.steps.filter((x: any) => x.FollowType == followType && x.Step != 1);
+                // console.log(data, followType);
+
+                this.steps = data.map((x: any) => ({
+                    value: x.ID,
+                    text: x.Step + '. ' + x.StepName
+                }));
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            }
+        })
     }
 
     loadData() {
@@ -2581,20 +2633,18 @@ export class PaymentOrderComponent implements OnInit {
                 this.isLoading = false;
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
                 this.isLoading = false;
             }
         })
     }
 
     loadDataSpecial() {
-        // this.param.isSpecialOrder = 1;
-
-        if (!this.isPermisstionDB) return;
         const p = {
             ...this.param,
             isSpecialOrder: 1,
-            typeOrder: 0
+            typeOrder: 0,
+            employeeID: this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
         }
         this.paymentService.get(p).subscribe({
             next: (response) => {
@@ -2619,7 +2669,7 @@ export class PaymentOrderComponent implements OnInit {
                 }
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         })
     }
@@ -2639,7 +2689,8 @@ export class PaymentOrderComponent implements OnInit {
                     ...item,
                     parentid: item.ParentId == 0 ? null : item.ParentId,
                     id: item.Id,
-                    treeLevel: item.ParentId == 0 ? 0 : (item.ParentId == null ? 0 : 1)
+                    __treeLevel: item.ParentId == 0 ? 0 : (item.ParentId == null ? 0 : 1),
+                    __rowCssClass: item.ParentId == 0 ? 'tree-level-0-row' : undefined
                 }));
 
                 this.datasetSpecialDetail = this.datasetSpecialDetail.map(item => ({
@@ -2718,7 +2769,7 @@ export class PaymentOrderComponent implements OnInit {
 
     applyDistinctFilters(angularGrid: AngularGridInstance): void {
         // const angularGrid = this.angularGrid;
-        console.log('angularGrid:', angularGrid);
+        // console.log('angularGrid:', angularGrid);
         if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
 
         // const data: any[] = [];
@@ -2997,7 +3048,7 @@ export class PaymentOrderComponent implements OnInit {
                                 this.loadData();
                             },
                             error: (err) => {
-                                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
                             }
                         })
                     }
@@ -3034,10 +3085,6 @@ export class PaymentOrderComponent implements OnInit {
 
     handleApproved(data: any) {
 
-        if (data.length <= 0) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
-        }
-
         const action = data[0].Action.ButtonActionGroup || '';
 
         if (action == 'btnTBP') {
@@ -3047,7 +3094,10 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
                 }
             })
         } else if (action == 'btnHR') {
@@ -3057,7 +3107,10 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
                 }
             })
         } else if (action == 'btnKTTT') {
@@ -3067,7 +3120,10 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
                 }
             })
         } else if (action == 'btnKTT') {
@@ -3077,7 +3133,10 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
                 }
             })
         } else if (action == 'btnBGĐ') {
@@ -3087,7 +3146,24 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
+                }
+            })
+        } else {
+            this.paymentService.appovedKHReceive(data).subscribe({
+                next: (response) => {
+                    this.loadData();
+                    this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
                 }
             })
         }
@@ -3117,6 +3193,11 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
             Swal.fire({
                 title: 'Xác nhận duyệt?',
@@ -3129,7 +3210,7 @@ export class PaymentOrderComponent implements OnInit {
                 cancelButtonText: 'Hủy',
             }).then((result: any) => {
                 if (result.isConfirmed) {
-                    console.log('duyêt:', selectedItems);
+                    // console.log('duyêt:', selectedItems);
 
                     this.handleApproved(selectedItems);
                 }
@@ -3183,6 +3264,10 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
             Swal.fire({
                 title: 'Xác nhận duyệt?',
@@ -3195,7 +3280,7 @@ export class PaymentOrderComponent implements OnInit {
                 cancelButtonText: 'Hủy',
             }).then((result: any) => {
                 if (result.isConfirmed) {
-                    console.log('duyêt:', selectedItems);
+                    // console.log('duyêt:', selectedItems);
 
                     this.handleApproved(selectedItems);
                 }
@@ -3250,7 +3335,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -3277,8 +3362,12 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
-            console.log('action.ButtonActionName:', action.ButtonActionName);
+            // console.log('action.ButtonActionName:', action.ButtonActionName);
             if (action.ButtonActionName == "btnApproveDocument" || action.ButtonActionName == 'btnApproveKT') {
                 const result = await Swal.fire({
                     input: 'textarea',
@@ -3295,7 +3384,7 @@ export class PaymentOrderComponent implements OnInit {
                 });
                 if (result.isConfirmed) {
 
-                    console.log('result:', result);
+                    // console.log('result:', result);
 
                     selectedItems = selectedItems.map((x, i) => ({
                         ...x,
@@ -3307,7 +3396,7 @@ export class PaymentOrderComponent implements OnInit {
                         AccountingNote: result.value
                     }));
 
-                    console.log('D:', selectedItems);
+                    // console.log('D:', selectedItems);
                     this.handleApproved(selectedItems);
                 }
             } else {
@@ -3322,7 +3411,7 @@ export class PaymentOrderComponent implements OnInit {
                     cancelButtonText: 'Hủy',
                 }).then((result: any) => {
                     if (result.isConfirmed) {
-                        console.log('duyêt:', selectedItems);
+                        // console.log('duyêt:', selectedItems);
 
                         this.handleApproved(selectedItems);
                     }
@@ -3408,7 +3497,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -3437,6 +3526,10 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
 
             if (action.ButtonActionName == "btnApproveDocument" || action.ButtonActionName == 'btnApproveKT') {
@@ -3455,7 +3548,7 @@ export class PaymentOrderComponent implements OnInit {
                 });
                 if (result.isConfirmed) {
 
-                    console.log('result:', result);
+                    // console.log('result:', result);
 
                     selectedItems = selectedItems.map((x, i) => ({
                         ...x,
@@ -3467,7 +3560,7 @@ export class PaymentOrderComponent implements OnInit {
                         AccountingNote: result.value
                     }));
 
-                    console.log('D:', selectedItems);
+                    // console.log('D:', selectedItems);
                     this.handleApproved(selectedItems);
                 }
             } else {
@@ -3482,7 +3575,7 @@ export class PaymentOrderComponent implements OnInit {
                     cancelButtonText: 'Hủy',
                 }).then((result: any) => {
                     if (result.isConfirmed) {
-                        console.log('duyêt:', selectedItems);
+                        // console.log('duyêt:', selectedItems);
 
                         this.handleApproved(selectedItems);
                     }
@@ -3511,7 +3604,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -3545,6 +3638,10 @@ export class PaymentOrderComponent implements OnInit {
             Step: x.Step || 0
         }));
 
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         if (isApproved == 1) {
             Swal.fire({
                 title: 'Xác nhận duyệt?',
@@ -3557,7 +3654,7 @@ export class PaymentOrderComponent implements OnInit {
                 cancelButtonText: 'Hủy',
             }).then((result: any) => {
                 if (result.isConfirmed) {
-                    console.log('duyêt:', selectedItems);
+                    // console.log('duyêt:', selectedItems);
 
                     this.handleApproved(selectedItems);
                 }
@@ -3586,7 +3683,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -3633,11 +3730,11 @@ export class PaymentOrderComponent implements OnInit {
 
                 this.paymentService.uploadFileBankslip(files, item.ID.toString()).subscribe({
                     next: (response) => {
-                        console.log(response);
+                        // console.log(response);
                         this.loadDetail(item.ID);
                     },
                     error: (err) => {
-                        this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
                     }
                 })
 
@@ -3709,6 +3806,79 @@ export class PaymentOrderComponent implements OnInit {
 
     }
 
+    async onApprovedKHReceive(isApproved: number, action: any) {
+        // let gridInstance = this.angularGrid;
+        let gridInstance = this.angularGridSpecial;
+        // if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
+
+        const rowIndexes = grid.getSelectedRows();
+        let selectedItems = rowIndexes
+            .map(i => dataView.getItem(i));
+
+        selectedItems = selectedItems.map((x, i) => ({
+            ...x,
+            Action: action,
+            PaymentOrderLog: {
+                IsApproved: isApproved,
+            },
+            CurrentApproved: x.IsApproved || 0,
+            Step: x.Step || 0
+        }));
+
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
+        if (isApproved == 1) {
+            Swal.fire({
+                title: 'Xác nhận duyệt?',
+                text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Duyệt',
+                cancelButtonText: 'Hủy',
+            }).then((result: any) => {
+                if (result.isConfirmed) {
+                    console.log('duyêt:', selectedItems);
+
+                    this.handleApproved(selectedItems);
+                }
+            });
+
+
+        }
+        else if (isApproved == 2) {
+            const { value: reason }: { value?: string } = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Lý do hủy',
+                inputPlaceholder: 'Nhập lý do hủy duyệt...',
+                inputAttributes: {
+                    'aria-label': 'Vui lòng nhập Lý do hủy',
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Hủy duyệt',
+                cancelButtonText: 'Hủy',
+            });
+            if (reason) {
+
+                selectedItems = selectedItems.map((x, i) => ({
+                    ...x,
+                    ReasonCancel: reason
+                }));
+
+                console.log('hủy duyêt:', selectedItems);
+                this.handleApproved(selectedItems);
+            }
+        }
+    }
+
     formatNumber(num: number, digits: number = 2) {
         num = num || 0;
         return num.toLocaleString('vi-VN', {
@@ -3743,7 +3913,6 @@ export class PaymentOrderComponent implements OnInit {
         })
 
 
-
         // console.log('this.dataPrint:', this.dataPrint);
 
 
@@ -3754,7 +3923,6 @@ export class PaymentOrderComponent implements OnInit {
         // console.log('.paymentOrder:', paymentOrder);
         // console.log('.details:', details);
         // console.log('.signs:', signs);
-
 
     }
 
@@ -3842,11 +4010,11 @@ export class PaymentOrderComponent implements OnInit {
                     widths: [120, '*', 40, 70],
                     body: [
                         [
-                            '- Hình thức chuyển khoản',
+                            { text: '- Hình thức chuyển khoản', margin: [15, 0, 0, 0] },
                             { colSpan: 3, text: `:${paymentOrder.TypeBankTransferText}` }, {}, {}
                         ],
                         [
-                            '- Nội dung chuyển khoản',
+                            { text: '- Nội dung chuyển khoản', margin: [15, 0, 0, 0] },
                             { colSpan: 3, text: `:${paymentOrder.ContentBankTransfer}` }, {}, {}
                         ]
 
@@ -3897,8 +4065,8 @@ export class PaymentOrderComponent implements OnInit {
         let signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
 
         const dateFix = new Date('2024-03-03T00:00:00');
-        console.log('dateOrder:', dateOrder);
-        console.log('dateFix:', dateFix);
+        // console.log('dateOrder:', dateOrder);
+        // console.log('dateFix:', dateFix);
 
         if (dateOrder.getTime() <= dateFix.getTime()) {
             if (!paymentOrder.IsIgnoreHR) {
@@ -4067,13 +4235,13 @@ export class PaymentOrderComponent implements OnInit {
                             ],
 
                             [
-                                { text: paymentOrder.TypeOrder == 3 ? '- Hình thức thu tiền' : '- Hình thức thanh toán' },
+                                { text: paymentOrder.TypeOrder == 3 ? '- Hình thức thu tiền' : '- Hình thức thanh toán', margin: [15, 0, 0, 0] },
                                 // {},
                                 { text: paymentOrder.TypePayment == 1 ? '[x] Chuyển khoản' : '[ ] Chuyển khoản' },
                                 { colSpan: 2, text: paymentOrder.TypePayment == 2 ? '[x] Tiền mặt' : '[ ] Tiền mặt' }
                             ],
                             [
-                                '- Số tài khoản', { text: `:${paymentOrder.AccountNumber}` },
+                                { text: '- Số tài khoản', margin: [15, 0, 0, 0] }, { text: `:${paymentOrder.AccountNumber}` },
                                 'Ngân hàng', `:${paymentOrder.Bank}`
                             ],
 
@@ -4121,7 +4289,7 @@ export class PaymentOrderComponent implements OnInit {
                             ],
                             ...items,
                             ...sumTotalFooter,
-                            [{ colSpan: 9, text: paymentOrder.TotalMoneyText, bold: true, italics: true }]
+                            [{ colSpan: 9, text: `Số tiền bằng chữ: ${paymentOrder.TotalMoneyText}`, bold: true, italics: true }]
 
                         ],
                     },
@@ -4214,7 +4382,7 @@ export class PaymentOrderComponent implements OnInit {
 
         //Chữ ký
 
-        console.log('signs:', signs);
+        // console.log('signs:', signs);
 
         const signEmp = signs.find((x: any) => x.Step == 1 && x.IsApproved == 1);
         const signTBP = signs.find((x: any) => x.Step == 2 && x.IsApproved == 1);
@@ -4339,7 +4507,7 @@ export class PaymentOrderComponent implements OnInit {
                                 {},
                                 {},
                             ],
-                            [{ colSpan: 7, text: paymentOrder.TotalMoneyText, bold: true, italics: true }]
+                            [{ colSpan: 7, text: `Số tiền bằng chữ: ${paymentOrder.TotalMoneyText}`, bold: true, italics: true }]
                         ],
 
                     },
@@ -4424,5 +4592,13 @@ export class PaymentOrderComponent implements OnInit {
             }
         });
 
+    }
+
+
+    tabValueChange(e: any) {
+        // console.log('tabValueChange e:', e);
+        this.activeTab = e;
+        // console.log('this.activeTab:', this.activeTab);
+        this.getSteps();
     }
 }

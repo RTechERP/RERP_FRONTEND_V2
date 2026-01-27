@@ -83,6 +83,9 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         },
         rowHeight: 35,
         headerRowHeight: 40,
+        createFooterRow: true,
+        showFooterRow: true,
+        footerRowHeight: 30,
     };
 
     imageUrl: string = '';
@@ -152,7 +155,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
             { id: 'Quantity', name: 'Tỉ lệ', field: 'Quantity', sortable: true, minWidth: 80 },
             { id: 'TotalErrorReal', name: 'Số lần vi phạm/Tỉ lệ', field: 'TotalErrorReal', sortable: true, minWidth: 80 },
             { id: 'Coefficient', name: 'Hệ số', field: 'Coefficient', sortable: true, minWidth: 70, formatter: this.coefficientFormatter },
-            { id: 'TotalMoney', name: 'Tiền phạt', field: 'TotalMoney', sortable: true, minWidth: 100, formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 0 } },
+            { id: 'TotalMoney', name: 'Tiền phạt', field: 'TotalMoney', sortable: true, minWidth: 100, formatter: this.moneyFormatter.bind(this) },
             { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, filterable: true, minWidth: 150 },
             { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 120 },
             { id: 'ErrorDateText', name: 'Ngày vi phạm', field: 'ErrorDateText', sortable: true, minWidth: 100 },
@@ -197,7 +200,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
             { id: 'Content', name: 'Nội dung', field: 'Content', sortable: true, filterable: true, minWidth: 250 },
             { id: 'Quantity', name: 'Số vi phạm', field: 'Quantity', sortable: true, minWidth: 80 },
             { id: 'Unit', name: 'Đơn vị', field: 'Unit', sortable: true, minWidth: 70 },
-            { id: 'Monney', name: 'Tiền phạt', field: 'Monney', sortable: true, minWidth: 90, formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 0 } },
+            { id: 'Monney', name: 'Tiền phạt', field: 'Monney', sortable: true, minWidth: 90, formatter: this.moneyFormatter.bind(this) },
             { id: 'Week1', name: 'Tuần 1', field: 'Week1', sortable: true, minWidth: 70, formatter: this.weekHighlightFormatter.bind(this) },
             { id: 'Week2', name: 'Tuần 2', field: 'Week2', sortable: true, minWidth: 70, formatter: this.weekHighlightFormatter.bind(this) },
             { id: 'Week3', name: 'Tuần 3', field: 'Week3', sortable: true, minWidth: 70, formatter: this.weekHighlightFormatter.bind(this) },
@@ -229,6 +232,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
                 this.applyGrouping(this.gridTH1, 'FullName', 'Nhân viên');
                 this.applyGrouping(this.gridTH2, 'FullName', 'Nhân viên');
                 this.applyGrouping(this.gridTH3, 'FullName', 'Nhân viên');
+                setTimeout(() => this.updateFooterRowTH1(), 100);
             }
         });
 
@@ -270,6 +274,36 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         const mm = (d.getMonth() + 1).toString().padStart(2, '0');
         const yyyy = d.getFullYear();
         return `${dd}/${mm}/${yyyy}`;
+    }
+
+    moneyFormatter(row: number, cell: number, value: any, columnDef: Column, dataContext: any) {
+        if (value === null || value === undefined || value === '') return '';
+        const num = Number(value);
+        if (isNaN(num)) return value;
+        return num.toLocaleString('vi-VN');
+    }
+
+    updateFooterRowTH1(): void {
+        if (!this.gridTH1 || !this.gridTH1.slickGrid) return;
+
+        const items = this.gridTH1.dataView.getItems();
+        const totalMoney = items.reduce((sum: number, item: any) => {
+            return sum + (Number(item.TotalMoney) || 0);
+        }, 0);
+
+        this.gridTH1.slickGrid.setFooterRowVisibility(true);
+
+        const columns = this.gridTH1.slickGrid.getColumns();
+        columns.forEach((col: any) => {
+            const footerCell = this.gridTH1.slickGrid.getFooterRowColumn(col.id);
+            if (!footerCell) return;
+
+            if (col.id === 'TotalMoney') {
+                footerCell.innerHTML = `<div style="text-align: right; padding-right: 4px;"><b>${totalMoney.toLocaleString('vi-VN')}</b></div>`;
+            } else {
+                footerCell.innerHTML = '';
+            }
+        });
     }
 
     applyGrouping(grid: AngularGridInstance, field: string, label: string) {

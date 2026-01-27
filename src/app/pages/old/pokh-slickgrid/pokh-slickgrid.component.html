@@ -115,12 +115,15 @@
         <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
           <div class="card h-100 border-0 rounded-0 d-flex flex-column">
             <div class="card-body p-0 flex-grow-1 grid-container-pokh" style="overflow: hidden;">
-              <angular-slickgrid gridId="gridPOKH" [columns]="columnDefinitionsPOKH" [options]="gridOptionsPOKH"
-                [dataset]="datasetPOKH" (onAngularGridCreated)="angularGridReadyPOKH($event.detail)"
-                (onClick)="onPOKHRowClick($event.detail.eventData, $event.detail.args)"
-                (onDblClick)="onPOKHRowDblClick($event.detail.eventData, $event.detail.args)">
-              </angular-slickgrid>
+              <nz-spin [nzSpinning]="isLoadingPOKH" nzTip="Đang tải dữ liệu..." class="h-100 w-100">
+                <angular-slickgrid [gridId]="gridPOKHId" [columns]="columnDefinitionsPOKH" [options]="gridOptionsPOKH"
+                  [dataset]="datasetPOKH" (onAngularGridCreated)="angularGridReadyPOKH($event.detail)"
+                  (onClick)="onPOKHRowClick($event.detail.eventData, $event.detail.args)"
+                  (onDblClick)="onPOKHRowDblClick($event.detail.eventData, $event.detail.args)">
+                </angular-slickgrid>
+              </nz-spin>
             </div>
+
             <div class="card-footer bg-white p-1" style="flex-shrink: 0;">
               <div class="d-flex align-items-center justify-content-between gap-2" style="flex-wrap: wrap;">
                 <div></div>
@@ -164,10 +167,12 @@
                 </div>
                 <div class="card-body p-0 flex-grow-1 grid-container-pokh-product"
                   style="overflow: hidden; position: relative; min-height: 0;">
-                  <angular-slickgrid gridId="gridPOKHProduct" [columns]="columnDefinitionsPOKHProduct"
-                    [options]="gridOptionsPOKHProduct" [dataset]="datasetPOKHProduct"
-                    (onAngularGridCreated)="angularGridReadyPOKHProduct($event.detail)">
-                  </angular-slickgrid>
+                  <nz-spin [nzSpinning]="isLoadingPOKHProduct" nzTip="Đang tải..." class="h-100 w-100">
+                    <angular-slickgrid [gridId]="gridPOKHProductId" [columns]="columnDefinitionsPOKHProduct"
+                      [options]="gridOptionsPOKHProduct" [dataset]="datasetPOKHProduct"
+                      (onAngularGridCreated)="angularGridReadyPOKHProduct($event.detail)">
+                    </angular-slickgrid>
+                  </nz-spin>
                 </div>
               </div>
             </nz-splitter-panel>
@@ -178,11 +183,13 @@
                 </div>
                 <div class="card-body p-0 flex-grow-1 grid-container-pokh-file"
                   style="overflow: hidden; position: relative; min-height: 0;">
-                  <angular-slickgrid gridId="gridPOKHFile" [columns]="columnDefinitionsPOKHFile"
-                    [options]="gridOptionsPOKHFile" [dataset]="datasetPOKHFile"
-                    (onAngularGridCreated)="angularGridReadyPOKHFile($event.detail)"
-                    (onDblClick)="onPOKHFileRowDblClick($event.detail.eventData, $event.detail.args)">
-                  </angular-slickgrid>
+                  <nz-spin [nzSpinning]="isLoadingPOKHFile" nzTip="Đang tải..." class="h-100 w-100">
+                    <angular-slickgrid [gridId]="gridPOKHFileId" [columns]="columnDefinitionsPOKHFile"
+                      [options]="gridOptionsPOKHFile" [dataset]="datasetPOKHFile"
+                      (onAngularGridCreated)="angularGridReadyPOKHFile($event.detail)"
+                      (onDblClick)="onPOKHFileRowDblClick($event.detail.eventData, $event.detail.args)">
+                    </angular-slickgrid>
+                  </nz-spin>
                 </div>
               </div>
             </nz-splitter-panel>

@@ -933,6 +933,9 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 type: FieldType.number,
                 cssClass: 'text-end',
             },
+            { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             {
                 id: 'ProjectCode',
                 name: 'Mã dự án',
@@ -1046,7 +1049,6 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 width: 120,
                 minWidth: 150,
                 sortable: true,
-                formatter: dateFormatter,
                 cssClass: 'text-center',
             },
             {
@@ -1058,7 +1060,6 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 width: 120,
                 minWidth: 150,
                 sortable: true,
-                formatter: dateFormatter,
                 cssClass: 'text-center',
             },
             {
@@ -1096,7 +1097,6 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 width: 150,
                 minWidth: 150,
                 sortable: true,
-                formatter: dateFormatter,
                 cssClass: 'text-center',
             },
             {
@@ -1346,6 +1346,11 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 positionOrder: 60,
             }
         ];
+    }
+
+    moneyFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+        if (value === null || value === undefined) return '';
+        return new Intl.NumberFormat('vi-VN').format(value);
     }
 
     handlePOFileContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {

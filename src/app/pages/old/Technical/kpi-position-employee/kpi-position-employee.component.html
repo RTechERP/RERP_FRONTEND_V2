@@ -105,3 +105,32 @@
         </div>
     </div>
 </ng-container>
+
+<!-- Copy Position Modal Template -->
+<ng-template #copyModalContent>
+    <form nz-form nzLayout="vertical">
+        <nz-form-item>
+            <nz-form-label nzRequired>Kỳ đánh giá nguồn (Copy từ)</nz-form-label>
+            <nz-form-control>
+                <nz-select nzShowSearch nzPlaceHolder="Chọn kỳ đánh giá nguồn" style="width: 100%;"
+                    [(ngModel)]="copyFromSessionId" name="copyFromSession">
+                    <nz-option *ngFor="let session of kpiSessions" [nzValue]="session.ID"
+                        [nzLabel]="session.Code + ' - ' + session.Name">
+                    </nz-option>
+                </nz-select>
+            </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+            <nz-form-label nzRequired>Kỳ đánh giá đích (Copy đến)</nz-form-label>
+            <nz-form-control>
+                <nz-select nzShowSearch nzPlaceHolder="Chọn kỳ đánh giá đích" style="width: 100%;"
+                    [(ngModel)]="copyToSessionId" name="copyToSession">
+                    <nz-option *ngFor="let session of kpiSessions" [nzValue]="session.ID"
+                        [nzLabel]="session.Code + ' - ' + session.Name">
+                    </nz-option>
+                </nz-select>
+            </nz-form-control>
+        </nz-form-item>
+    </form>
+</ng-template>

@@ -108,8 +108,8 @@ export class SupplierSaleDetailComponent {
     ID: this.fb.control(0),
     NgayUpdate: this.fb.control('', [Validators.required]),
     CodeNCC: this.fb.control('', [Validators.required,
-      Validators.pattern(/^[^àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴ]+$/)
-,
+    Validators.pattern(/^[^àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴ]+$/)
+      ,
     ]),
     NameNCC: this.fb.control('', [Validators.required]),
     NganHang: this.fb.control('', [Validators.required]),
@@ -126,7 +126,7 @@ export class SupplierSaleDetailComponent {
     MaNhom: this.fb.control(''),
     TenTiengAnh: this.fb.control(''),
     Website: this.fb.control(''),
-    SoTK: this.fb.control('', [Validators.required]),
+    SoTK: this.fb.control(''),
     MaSoThue: this.fb.control(''),
     Note: this.fb.control(''),
     ShortNameSupplier: this.fb.control(''),
@@ -147,7 +147,7 @@ export class SupplierSaleDetailComponent {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private projectService: ProjectService
-  ) {}
+  ) { }
   //#endregion
 
   //#region Hàm chạy khi mở chương trình

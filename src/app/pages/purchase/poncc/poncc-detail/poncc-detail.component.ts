@@ -41,7 +41,7 @@ import { environment } from '../../../../../environments/environment';
 import { SafeUrlPipe } from '../../../../../safeUrl.pipe';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { FormsModule } from '@angular/forms';
-
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
   Times: {
@@ -73,7 +73,8 @@ import { FormsModule } from '@angular/forms';
     NzModalModule,
     NzSwitchModule,
     HasPermissionDirective,
-    SafeUrlPipe
+    SafeUrlPipe,
+    NzSpinModule
   ],
   templateUrl: './poncc-detail.component.html',
   styleUrl: './poncc-detail.component.css'
@@ -101,6 +102,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   isAdmin: boolean = false;
   supplierSales: any[] = [];
   isEditMode: boolean = false;
+  isLoadingData: boolean = false;
 
   // Print properties
   showPreview = false;
@@ -265,23 +267,18 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     else if (this.isAddPoYCMH) {
       this.getSupplierSale().then(() => {
         this.mapDataToForm();
-        // Không gọi getBillCode() ở đây vì BillCode đã được set từ component cha (YCMH)
-        // Nếu skipBillCodeGeneration = false, sẽ được generate tự động khi POType changes
         if (!this.skipBillCodeGeneration) {
           this.getBillCode(0);
         }
       });
     }
-    // Trường hợp copy: poncc.ID = 0 nhưng có data sẵn từ component cha
     else if (this.isCopy && this.poncc) {
       this.rupayId = this.poncc.RulePayID;
-      // Đợi các dropdown load xong rồi mới map data
       Promise.all([
         this.getSupplierSale(),
         this.getRulePay(),
         this.getCurrencies()
       ]).then(() => {
-        console.log('🔷 Copy mode: data loaded, calling mapDataToForm');
         this.mapDataToForm();
       });
     }
@@ -296,27 +293,18 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     this.getRulePay();
     this.getCurrencies();
 
-    // Subscribe to POType changes to get BillCode
     this.informationForm.get('POType')?.valueChanges.subscribe((poTypeId: number) => {
-      console.log('POType changed to:', poTypeId);
-      // Nếu skipBillCodeGeneration = true (đã có BillCode từ YCMH), không generate lại
       if (this.skipBillCodeGeneration) {
-        console.log('Skipping BillCode generation - already set from YCMH');
         return;
       }
-      // Nếu đang ở chế độ edit, không generate lại BillCode
       if (this.isEditMode) {
-        console.log('Skipping BillCode generation - in edit mode');
         return;
       }
-      // Chỉ tự động generate BillCode khi đang tạo mới (ID = 0 hoặc undefined)
-      // Khi edit/copy, không tự động generate để tránh ghi đè
       if ((poTypeId === 0 || poTypeId === 1) && (!this.poncc || this.poncc.ID === 0 || this.isCopy)) {
         this.getBillCode(poTypeId);
       }
     });
 
-    // Subscribe to CurrencyID changes to update CurrencyRate automatically
     this.companyForm.get('CurrencyID')?.valueChanges.subscribe((currencyId: number) => {
       if (currencyId !== null && currencyId !== undefined) {
         this.onCurrencyChange(currencyId);
@@ -370,6 +358,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   private mapDataToForm(): void {
     if (!this.poncc) return;
 
+    this.isLoadingData = true;
 
     // Map data vào informationForm
     this.informationForm.patchValue({
@@ -415,50 +404,26 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       ReasonForFailure: this.poncc.ReasonForFailure || '',
       OrderQualityNotMet: this.poncc.OrderQualityNotMet || false,
       NCCNew: this.poncc.NCCNew || false,
-      DeptSupplier: this.poncc.DeptSupplier || true
+      DeptSupplier: this.poncc.DeptSupplier || false
     });
 
-    // Sau khi map xong, trigger các sự kiện để load thông tin đầy đủ
-    // Đợi một chút để đảm bảo supplierSales, rulepays và currencies đã được load
     setTimeout(() => {
-      // Load thông tin NCC (địa chỉ, mã số thuế, diễn giải)
-      if (this.poncc.SupplierSaleID) {
-        const selectedSupplier = this.supplierSales.find(s => s.ID === this.poncc.SupplierSaleID);
-        if (selectedSupplier) {
-          // Vì AddressSupplier và MaSoThueNCC là disabled fields, cần dùng setValue trực tiếp
-          this.informationForm.get('AddressSupplier')?.setValue(selectedSupplier.AddressNCC || '');
-          this.informationForm.get('MaSoThueNCC')?.setValue(selectedSupplier.MaSoThue || '');
-          this.informationForm.get('Note')?.setValue(this.poncc.Note || selectedSupplier.Note || '');
-
-          // Nếu poncc không có RulePayID, lấy từ supplier
-          if (!this.poncc.RulePayID && selectedSupplier.RulePayID) {
-            this.informationForm.get('RulePayID')?.setValue(selectedSupplier.RulePayID);
-          }
-
-        }
+      if (this.poncc.SupplierSaleID > 0) {
+        this.onSupplierChange(this.poncc.SupplierSaleID);
       }
 
-      // Load thông tin Currency (tỷ giá) và trigger onCurrencyChange để cập nhật bảng
-      // Đảm bảo currencies đã được load trước khi gọi onCurrencyChange
       if (this.poncc.CurrencyID && this.currencies.length > 0) {
         this.onCurrencyChange(this.poncc.CurrencyID);
       } else if (this.poncc.CurrencyID && this.currencies.length === 0) {
-        // Nếu currencies chưa load xong, đợi thêm một chút
         setTimeout(() => {
           if (this.poncc.CurrencyID && this.currencies.length > 0) {
             this.onCurrencyChange(this.poncc.CurrencyID);
           }
-        }, 500);
+        }, 1000);
       }
-    }, 1000); // Tăng thời gian chờ lên 1000ms
 
-    console.log('Data mapped to forms:', {
-      poncc: this.poncc,
-      information: this.informationForm.value,
-      company: this.companyForm.value,
-      diff: this.diffForm.value,
-      extra: this.extraForm.value
-    });
+      this.isLoadingData = false;
+    }, 1000);
   }
 
   initDiffForm(): void {
@@ -482,7 +447,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       OrderQualityNotMet: [false],
       ReasonForFailure: [{ value: '', disabled: true }],
       NCCNew: [false],
-      DeptSupplier: [true]
+      DeptSupplier: [false]
     });
   }
 
@@ -540,59 +505,54 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
   onSupplierChange(selectedSupplierID: number): void {
     const selectedSupplier = this.supplierSales.find(s => s.ID === selectedSupplierID);
-    if (this.poncc && this.poncc.ID > 0) {
-
-
-    }
     if (selectedSupplier) {
-      console.log('selectedSupplier', selectedSupplier);
       this.ponccService.getPOCode(selectedSupplier.CodeNCC).subscribe({
         next: (response: any) => {
           this.informationForm.patchValue({
             POCode: response.data || '',
-            AddressSupplier: selectedSupplier.AddressNCC || '',
-            MaSoThueNCC: selectedSupplier.MaSoThue || '',
-            Note: selectedSupplier.Note || '',
-            RulePayID: selectedSupplier.RulePayID || null,
+            AddressSupplier: selectedSupplier.AddressNCC || this.poncc.AddressNCC || '',
+            MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc.MaSoThueNCC || '',
+            Note: selectedSupplier.Description || this.poncc.Note || '',
+            RulePayID: this.rupayId || selectedSupplier.RulePayID || null,
           });
         },
         error: (error) => {
           this.informationForm.patchValue({
-            POCode: selectedSupplier.CodeNCC || '',
-            AddressSupplier: selectedSupplier.AddressNCC || '',
-            MaSoThueNCC: selectedSupplier.MaSoThue || '',
-            Note: selectedSupplier.Note || '',
-            RulePayID: selectedSupplier.RulePayID || null,
+            POCode: this.poncc.CodeNCC || selectedSupplier.CodeNCC || '',
+            AddressSupplier: selectedSupplier.AddressNCC || this.poncc.AddressNCC || '',
+            MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc.MaSoThueNCC || '',
+            Note: selectedSupplier.Description || this.poncc.Note || '',
+            RulePayID: this.rupayId || selectedSupplier.RulePayID || null,
           });
         },
       });
 
       // udpate ở đây - update thông tin supplier vào các form
       this.extraForm.patchValue({
-        AccountNumberSupplier: selectedSupplier.SoTK || '',
-        BankSupplier: selectedSupplier.NganHang || '',
-        FedexAccount: selectedSupplier.FedexAccount || '',
-        OriginItem: selectedSupplier.OriginItem || '',
-        BankCharge: selectedSupplier.BankCharge || '',
-        DeptSupplier: selectedSupplier.IsDebt ?? true,
-        RuleIncoterm: selectedSupplier.RuleIncoterm || ''
+        AccountNumberSupplier: selectedSupplier.SoTK || this.poncc.SoTK || '',
+        BankSupplier: selectedSupplier.NganHang || this.poncc.NganHang || '',
+        FedexAccount: selectedSupplier.FedexAccount || this.poncc.FedexAccount || '',
+        OriginItem: selectedSupplier.OriginItem || this.poncc.OriginItem || '',
+        BankCharge: selectedSupplier.BankCharge || this.poncc.BankCharge || '',
+        DeptSupplier: selectedSupplier.IsDebt || this.poncc.IsDebt || false,
+        RuleIncoterm: selectedSupplier.RuleIncoterm || this.poncc.RuleIncoterm || ''
       });
 
       this.diffForm.patchValue({
-        AddressDelivery: selectedSupplier.AddressDelivery || ''
+        AddressDelivery: selectedSupplier.AddressDelivery || this.poncc.AddressDelivery || ''
       });
 
       // Update Note vào informationForm (nếu chưa có)
       if (!this.informationForm.get('Note')?.value) {
         this.informationForm.patchValue({
-          Note: selectedSupplier.Description || ''
-        });
+          Note: selectedSupplier.Description || this.poncc.Note || ''
+        })
       }
 
       // Update Company vào informationForm nếu supplier có
       if (selectedSupplier.Company !== null && selectedSupplier.Company !== undefined) {
         this.informationForm.patchValue({
-          Company: selectedSupplier.Company
+          Company: selectedSupplier.Company || this.poncc.Company
         });
       }
 
@@ -605,9 +565,6 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         RulePayID: null,
       });
     }
-
-
-
   }
 
   onCurrencyChange(selectedCurrencyID: number): void {

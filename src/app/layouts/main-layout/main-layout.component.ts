@@ -222,7 +222,16 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         return this.dynamicTabComps.length > 0;
     }
 
+
+    tabOpens: string[] = [];
+
     ngOnInit(): void {
+
+        const tabOpenedsRaw = localStorage.getItem('tabOpeneds');
+        this.tabOpens = tabOpenedsRaw ? JSON.parse(tabOpenedsRaw) : []
+        // console.log('this.tabOpens:', this.tabOpens);
+        // console.log('this.tabOpenedsRaw:', tabOpenedsRaw);
+
         this.menuService.menuKey$.subscribe((x) => {
             // console.log(x);
             this.menuCompKey = x;
@@ -231,13 +240,21 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // this.menuComps = this.menuService.getCompMenus(this.menuCompKey);
         this.menuService.getCompMenus(this.menuCompKey).subscribe(menus => {
             this.menuComps = menus;
+            const router = this.router.url.split('?')[0].replace('/', '');
 
-            // console.log('menucomps sort:', this.menuComps);
+            this.toggleMenuComp(this.findRootKeyByRouter(this.menuComps, router) || '');
+
+            if (this.tabOpens.length > 0) {
+                this.tabOpens.forEach((item, i) => {
+                    const menu = this.findMenuByRouter(menus, item) as LeafItem;
+                    this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
+                })
+            } else {
+                const menu = this.findMenuByRouter(menus, router) as LeafItem;
+                this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
+            }
+
         });
-
-        // this.menuComps = this.menuService.sortBySTTImmutable(this.menuComps);
-
-
 
         // Subscribe to TabService for opening component tabs from other components
         this.tabService.tabCompRequest$.subscribe((payload: TabCompPayload) => {
@@ -285,6 +302,10 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
     // }
+
+    // tabOpens: any[] = localStorage.getItem('tabOpened') || [];
+
+
 
     newTabComp(
         comp: Type<any>,
@@ -335,6 +356,13 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         setTimeout(() => {
             this.selectedCompIndex = this.dynamicTabComps.length - 1;
         });
+
+        if (!this.tabOpens.includes(key)) {
+            this.tabOpens.push(key);
+            localStorage.setItem('tabOpeneds', JSON.stringify(this.tabOpens));
+        }
+
+
     }
 
     // closeTabComp({ index }: { index: number }) {
@@ -347,6 +375,16 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     // }
 
     closeTabComp({ index }: { index: number }) {
+
+        const closedTab = this.dynamicTabComps[index];
+        const key = closedTab?.key; // hoặc closedTab.key
+
+        // 1️⃣ Remove khỏi tabOpens + localStorage
+        if (key) {
+            this.tabOpens = this.tabOpens.filter(t => t !== key);
+            localStorage.setItem('tabOpeneds', JSON.stringify(this.tabOpens));
+        }
+
         // 1️⃣ Xóa tab → component tab bị destroy
         this.dynamicTabComps.splice(index, 1);
 
@@ -373,17 +411,10 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     isMenuCompOpen = (key: string) =>
         this.menuComps.some((m) => m.key === key && m.isOpen);
     toggleMenuComp(key: string) {
-        // this.menus.forEach((x) => (x.isOpen = false));
-
-        // console.log('this.menuComps:', this.menuComps);
-        // console.log('this.this.menuCompKey:', key);
-        // const m = this.menuComps.find((x) => x.key == key);
         const m = Array.from(this.menuComps).find(x => x.key === key);
         if (m) m.isOpen = !m.isOpen;
-
         if (m?.isOpen) this.menuCompKey = key;
-
-        // console.log('toggleMenuComp:', m);
+        this.isCollapsed = false;
     }
 
     // Hàm check và tạo tab từ current route (khi paste URL trực tiếp lần đầu)
@@ -555,6 +586,33 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         return null;
     }
+
+    findByRouter(node: any, router: string): any | null {
+        if (!node) return null;
+
+        if (node.router === router) {
+            return node;
+        }
+
+        if (node.children && node.children.length > 0) {
+            for (const child of node.children) {
+                const found = this.findByRouter(child, router);
+                if (found) return found;
+            }
+        }
+
+        return null;
+    }
+
+    findMenuByRouter(menus: any[], router: string): any | null {
+        for (const menu of menus) {
+            const found = this.findByRouter(menu, router);
+            if (found) return found;
+        }
+        return null;
+    }
+
+
 
 
 

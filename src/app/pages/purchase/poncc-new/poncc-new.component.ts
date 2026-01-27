@@ -1245,7 +1245,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
-      enableRowSelection: false,
+      enableRowSelection: true,
       rowSelectionOptions: {
         selectActiveRow: false,
       },
@@ -2784,6 +2784,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     if (index >= listData.length) {
       //   console.log('Đã hoàn thành việc mở danh sách modal.');
+      this.onSearch();
       return;
     }
 

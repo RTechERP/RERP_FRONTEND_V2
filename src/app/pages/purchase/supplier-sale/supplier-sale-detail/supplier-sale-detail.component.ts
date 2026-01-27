@@ -126,7 +126,7 @@ export class SupplierSaleDetailComponent {
     MaNhom: this.fb.control(''),
     TenTiengAnh: this.fb.control(''),
     Website: this.fb.control(''),
-    SoTK: this.fb.control(''),
+    SoTK: this.fb.control('', [Validators.required]),
     MaSoThue: this.fb.control(''),
     Note: this.fb.control(''),
     ShortNameSupplier: this.fb.control(''),

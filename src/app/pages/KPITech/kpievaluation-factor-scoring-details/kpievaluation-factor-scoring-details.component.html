@@ -1,1 +1,135 @@
-<p>kpievaluation-factor-scoring-details works!</p>
+<!-- <div class="modal-container" style="display: flex; flex-direction: column; height: 85vh;"> -->
+<div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
+    <!-- Modal Header -->
+    <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
+            Đánh giá KPI
+        </h6>
+        <button type="button" class="btn-close" (click)="dismissModal()" aria-label="Close"
+            style="background-color:lightcyan !important; font-weight: bold;"></button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="card-header bg-white p-1 d-flex gap-1 flex-wrap align-items-center toolbar" style="flex-shrink: 0;">
+        <button nz-button nzType="primary" nzSize="small" (click)="saveData()" [disabled]="!canSave" class="fs-12">
+            <i nz-icon nzType="save"></i> Lưu
+        </button>
+        <button nz-button nzType="primary" nzSize="small" (click)="saveAndClose()" [disabled]="!canSave" class="fs-12">
+            <i nz-icon nzType="save"></i> Lưu & Đóng
+        </button>
+
+        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
+
+        <button nz-button nzType="default" nzSize="small" (click)="openCriteriaView()" class="fs-12">
+            <i nz-icon nzType="unordered-list"></i> Bảng tiêu chí
+        </button>
+        <button nz-button nzType="default" nzSize="small" (click)="loadData()" [disabled]="!canLoadData" class="fs-12">
+            <i nz-icon nzType="reload"></i> Load dữ liệu
+        </button>
+        <button nz-button nzType="default" nzSize="small" (click)="loadKPITeam()" *ngIf="showLoadTeamButton"
+            class="fs-12">
+            <i nz-icon nzType="team"></i> Load KPI Team
+        </button>
+    </div>
+
+    <!-- Control Panel: Dropdowns -->
+    <div class="control-panel d-flex gap-2 align-items-center flex-wrap" style="flex-shrink: 0;">
+        <div class="d-flex align-items-center gap-1">
+            <label class="fs-12 mb-0">Kỳ đánh giá:</label>
+            <nz-select [(ngModel)]="selectedKPISessionId" nzPlaceHolder="Chọn kỳ đánh giá" style="width: 200px;"
+                nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onSessionChange()">
+                @for (session of kpiSessions; track session.ID) {
+                <nz-option [nzValue]="session.ID" [nzLabel]="session.Code"></nz-option>
+                }
+            </nz-select>
+        </div>
+
+        <div class="d-flex align-items-center gap-1">
+            <label class="fs-12 mb-0">Bài đánh giá:</label>
+            <nz-select [(ngModel)]="selectedKPIExamId" nzPlaceHolder="Chọn bài đánh giá" style="width: 250px;"
+                nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onExamChange()">
+                @for (exam of kpiExams; track exam.ID) {
+                <nz-option [nzValue]="exam.ID" [nzLabel]="exam.ExamName"></nz-option>
+                }
+            </nz-select>
+        </div>
+
+        <div class="d-flex align-items-center gap-1">
+            <label class="fs-12 mb-0">Nhân viên:</label>
+            <nz-select [(ngModel)]="selectedEmployeeId" nzPlaceHolder="Chọn nhân viên" style="width: 200px;"
+                nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onEmployeeChange()">
+                @for (emp of employees; track emp.ID) {
+                <nz-option [nzValue]="emp.ID" [nzLabel]="emp.FullName"></nz-option>
+                }
+            </nz-select>
+        </div>
+    </div>
+
+    <!-- Main Content: Tabs with Grids -->
+    <div class="flex-grow-1" style="min-height: 0; overflow: hidden; flex: 1;">
+        <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectedIndexChange)="onTabChange($event)" nzType="card"
+            style="height: 100%;">
+
+            <!-- Tab 1: KPI Kỹ năng -->
+            <nz-tab nzTitle="KPI Kỹ năng">
+                <div class="grid-skill-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 0" gridId="grid-skill"
+                        [columns]="skillColumns" [options]="skillGridOptions" [dataset]="dataSkill"
+                        (onAngularGridCreated)="onSkillGridReady($event)">
+                    </angular-slickgrid>
+                </div>
+            </nz-tab>
+
+            <!-- Tab 2: KPI Chung -->
+            <nz-tab nzTitle="KPI Chung" *ngIf="showTabGeneral">
+                <div class="grid-general-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 1" gridId="grid-general"
+                        [columns]="generalColumns" [options]="generalGridOptions" [dataset]="dataGeneral"
+                        (onAngularGridCreated)="onGeneralGridReady($event)">
+                    </angular-slickgrid>
+                </div>
+            </nz-tab>
+
+            <!-- Tab 3: KPI Chuyên môn -->
+            <nz-tab nzTitle="KPI Chuyên môn">
+                <div class="grid-specialization-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 2" gridId="grid-specialization"
+                        [columns]="specializationColumns" [options]="specializationGridOptions"
+                        [dataset]="dataSpecialization" (onAngularGridCreated)="onSpecializationGridReady($event)">
+                    </angular-slickgrid>
+                </div>
+            </nz-tab>
+
+            <!-- Tab 4: Tổng hợp đánh giá -->
+            <nz-tab nzTitle="Tổng hợp đánh giá">
+                <div class="grid-master-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 3" gridId="grid-master"
+                        [columns]="masterColumns" [options]="masterGridOptions" [dataset]="dataMaster"
+                        (onAngularGridCreated)="onMasterGridReady($event)">
+                    </angular-slickgrid>
+                </div>
+            </nz-tab>
+
+            <!-- Tab 5: Rule -->
+            <nz-tab nzTitle="Rule" *ngIf="showTabRule">
+                <div class="grid-rule-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 4" gridId="grid-rule"
+                        [columns]="ruleColumns" [options]="ruleGridOptions" [dataset]="dataRule"
+                        (onAngularGridCreated)="onRuleGridReady($event)">
+                    </angular-slickgrid>
+                </div>
+            </nz-tab>
+
+            <!-- Tab 6: Team -->
+            <nz-tab nzTitle="Team" *ngIf="showTabTeam">
+                <div class="grid-team-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 5" gridId="grid-team"
+                        [columns]="teamColumns" [options]="teamGridOptions" [dataset]="dataTeam"
+                        (onAngularGridCreated)="onTeamGridReady($event)">
+                    </angular-slickgrid>
+                </div>
+            </nz-tab>
+
+        </nz-tabset>
+    </div>
+</div>

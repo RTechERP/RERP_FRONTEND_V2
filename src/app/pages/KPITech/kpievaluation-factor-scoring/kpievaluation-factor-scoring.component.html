@@ -120,7 +120,7 @@
 
         <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Kỳ đánh giá:</label>
         <nz-select [(ngModel)]="selectedKPISessionID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn kỳ đánh giá"
-            (ngModelChange)="onKPISessionChange()" style="width: 200px; font-size: 0.75rem !important;" nzSize="small"
+            (ngModelChange)="onKPISessionChange()" style="width: 300px; font-size: 0.75rem !important;" nzSize="small"
             class="fs-12">
             @for (session of kpiSessionData; track session.ID) {
             <nz-option [nzValue]="session.ID" [nzLabel]="session.Code"></nz-option>
@@ -130,7 +130,7 @@
         <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Team:</label>
         <nz-tree-select [(ngModel)]="selectedUserTeamID" [nzNodes]="userTeamTreeNodes" nzShowSearch
             nzPlaceHolder="Chọn team" [nzDefaultExpandAll]="true" nzSize="small" (ngModelChange)="onFilterChange()"
-            style="width: 200px; font-size: 0.75rem !important;" class="fs-12">
+            style="width: 300px; font-size: 0.75rem !important;" class="fs-12">
         </nz-tree-select>
 
         <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái:</label>
@@ -142,7 +142,7 @@
             }
         </nz-select>
 
-        <input nz-input nzSize="small" placeholder="Nhập từ khóa" style="width: 150px; font-size: 0.75rem !important;"
+        <input nz-input nzSize="small" placeholder="Nhập từ khóa" style="width: 230px; font-size: 0.75rem !important;"
             [(ngModel)]="txtKeywords" (keyup.enter)="btnSearch_Click()" class="fs-12" />
 
         <button style="font-size: 0.75rem !important;" type="button" nz-button nzType="primary" nzSize="small"
@@ -262,7 +262,9 @@
                                 <div class="grid-rule-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 4"
                                         gridId="grid-rule" [columns]="ruleColumns" [options]="ruleGridOptions"
-                                        [dataset]="dataRule" (onAngularGridCreated)="onRuleGridReady($event)">
+                                        [dataset]="dataRule" (onAngularGridCreated)="onRuleGridReady($event)"
+                                        (onBeforeEditCell)="onRuleBeforeEditCell($event)"
+                                        (onCellChange)="onRuleCellChange($event)">
                                     </angular-slickgrid>
                                 </div>
                             </nz-tab>

@@ -158,8 +158,8 @@ export class SupplierSaleDetailComponent {
 
   //#region Hàm chạy khi mở chương trình
   ngOnInit() {
-    this.isAddNew = (this.permissionService.hasPermission("N27, N33, N52, N53, N35, N1") && this.supplierSaleID <= 0);
-    this.isUpdate = (this.permissionService.hasPermission("N27, N33, N35, N1") && this.supplierSaleID > 0);
+    this.isAddNew = this.supplierSaleID <= 0;
+    this.isUpdate = this.supplierSaleID > 0;
     this.getEmpployee();
     this.getRulePay();
     this.fillData(this.supplierSaleID);

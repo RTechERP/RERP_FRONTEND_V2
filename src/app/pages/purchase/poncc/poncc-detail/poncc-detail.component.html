@@ -45,6 +45,25 @@
           </button>
         </div>
       </div>
+
+      <div
+        *ngIf="isLoadingData"
+        style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.4);
+          z-index: 999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        <nz-spin [nzSpinning]="isLoadingData"></nz-spin>
+      </div>
+
       <div
         class="card-body p-0"
         style="

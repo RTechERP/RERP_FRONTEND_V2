@@ -60,6 +60,8 @@ import { toArray } from 'rxjs';
 import { lastValueFrom } from 'rxjs';
 import { from } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
+import { HasPermissionDirective } from "../../../../directives/has-permission.directive";
+import { PermissionService } from '../../../../services/permission.service';
 @Component({
   selector: 'app-supplier-sale-detail',
   imports: [
@@ -87,6 +89,7 @@ import { concatMap } from 'rxjs/operators';
     NzModalModule,
     NzCheckboxModule,
     CommonModule,
+    HasPermissionDirective
   ],
   templateUrl: './supplier-sale-detail.component.html',
   styleUrl: './supplier-sale-detail.component.css',
@@ -101,6 +104,8 @@ export class SupplierSaleDetailComponent {
   employees: any[] = [];
   rulepays: any[] = [];
   companies: any[] = [];
+  isUpdate: boolean = false;
+  isAddNew: boolean = false;
 
   private fb = inject(NonNullableFormBuilder);
 
@@ -108,8 +113,8 @@ export class SupplierSaleDetailComponent {
     ID: this.fb.control(0),
     NgayUpdate: this.fb.control('', [Validators.required]),
     CodeNCC: this.fb.control('', [Validators.required,
-      Validators.pattern(/^[^àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴ]+$/)
-,
+    Validators.pattern(/^[^àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴ]+$/)
+      ,
     ]),
     NameNCC: this.fb.control('', [Validators.required]),
     NganHang: this.fb.control('', [Validators.required]),
@@ -146,12 +151,15 @@ export class SupplierSaleDetailComponent {
     private supplierSaleService: SupplierSaleService,
     private notification: NzNotificationService,
     private modalService: NgbModal,
-    private projectService: ProjectService
-  ) {}
+    private projectService: ProjectService,
+    private permissionService: PermissionService
+  ) { }
   //#endregion
 
   //#region Hàm chạy khi mở chương trình
   ngOnInit() {
+    this.isAddNew = this.supplierSaleID <= 0;
+    this.isUpdate = this.supplierSaleID > 0;
     this.getEmpployee();
     this.getRulePay();
     this.fillData(this.supplierSaleID);

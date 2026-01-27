@@ -410,7 +410,17 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
           field: 'ProjectID',
           editor: 'list',
           editorParams: {
-            values: this.projectList
+            values: this.projectList,
+            autocomplete: true,
+            filterFunc: (term: string, label: string, value: any, item: any) => {
+              // Tìm kiếm không phân biệt hoa thường
+              if (!term) return true;
+              const searchTerm = term.toLowerCase();
+              return label.toLowerCase().includes(searchTerm);
+            },
+            allowEmpty: true,
+            listOnEmpty: true,
+            freetext: false
           },
           formatter: (cell: any) => {
             const value = cell.getValue();

@@ -1,202 +1,152 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
+
+    <ng-template #end>
+        <div class="flex items-center gap-2">
+            <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile"
+                (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
+                <nz-icon nzType="search" />
+            </button>
+        </div>
+    </ng-template>
+</p-menubar>
+
 <ng-container class="w-100">
-    <nz-splitter style="height: 94vh!important;">
-        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-            <div class="card h-100 border-0 rounded-0">
-                <!-- Header -->
-                <div class="card-header bg-white p-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
-                            (click)="toggleSearchPanel()">
-                            <nz-icon nzType="close" nzTheme="outline"></nz-icon>
-                        </button>
-                    </div>
-                </div>
+    <div class="card border-0 rounded-0 " style="height: 89vh !important;">
+        <!-- Backdrop overlay cho mobile -->
+        <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile" (click)="ToggleSearchPanelNew()"></div>
 
-                <!-- Body -->
-                <div class="card-body">
-                    <form nz-form nzLayout="vertical">
-                        <!-- Từ ngày -->
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="dateStart"
-                                    name="dateStart"></nz-date-picker>
+        <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, modal trên mobile -->
+        <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+            <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile">
+                <span class="fw-bold" style="font-size: 12px;">Tìm kiếm</span>
+                <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger
+                    (click)="ToggleSearchPanelNew()">
+                    <nz-icon nzType="close" />
+                </button>
+            </div>
+            <form nz-form class="mobile-filter-form">
+                <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+                    <!-- Từ ngày -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
+                            <nz-form-control>
+                                <input type="date" [(ngModel)]="dateStart" name="dateStart"
+                                    class="form-control form-control-sm w-100" />
                             </nz-form-control>
                         </nz-form-item>
+                    </nz-col>
 
-                        <!-- Đến ngày -->
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="dateEnd"
-                                    name="dateEnd"></nz-date-picker>
+                    <!-- Đến ngày -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
+                            <nz-form-control>
+                                <input type="date" [(ngModel)]="dateEnd" name="dateEnd"
+                                    class="form-control form-control-sm w-100" />
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Lọc theo trạng thái</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
+                    </nz-col>
+
+                    <!-- Lọc theo trạng thái -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="4">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
+                            <nz-form-control>
                                 <nz-select class="w-100" nzShowSearch nzAllowClear nzMode="multiple" nzSize="small"
-                                    [(ngModel)]="status" name="status">
+                                    [(ngModel)]="status" name="status" nzPlaceHolder="Chọn trạng thái">
                                     <nz-option *ngFor="let item of statusData" [nzValue]="item.ID"
                                         [nzLabel]="item.Status">
-                                        <span>{{ item.Status }}</span>
                                     </nz-option>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Lọc theo phòng ban</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
+                    </nz-col>
+
+                    <!-- Lọc theo phòng ban -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="4">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
+                            <nz-form-control>
                                 <nz-select class="w-100" nzShowSearch nzAllowClear nzMode="multiple" nzSize="small"
-                                    [(ngModel)]="department" name="status">
+                                    [(ngModel)]="department" name="department" nzPlaceHolder="Chọn phòng ban">
                                     <nz-option *ngFor="let item of departmentData" [nzValue]="item.ID"
                                         [nzLabel]="item.Name">
-                                        <span>{{ item.Name }}</span>
                                     </nz-option>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
-                        <!-- Từ khóa -->
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filterText"
-                                    name="filterText" />
+                    </nz-col>
+
+                    <!-- Từ khóa và nút tìm kiếm -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="6">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
+                            <nz-form-control>
+                                <div class="d-flex gap-1">
+                                    <input nz-input placeholder="Nhập từ khóa..." nzSize="small"
+                                        [(ngModel)]="filterText" name="filterText" class="flex-grow-1"
+                                        (keyup.enter)="getAssetmanagement()" />
+                                    <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
+                                        (click)="getAssetmanagement()">
+                                        <nz-icon nzType="search" />
+                                    </button>
+                                    <button nz-button nzType="default" nzSize="small" (click)="clearAllFilters()">
+                                        Đặt lại
+                                    </button>
+                                </div>
                             </nz-form-control>
                         </nz-form-item>
-                    </form>
-                </div>
+                    </nz-col>
+                </nz-row>
+            </form>
+        </div>
 
-                <!-- Footer -->
-                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
-                    <button nz-button nzType="default" nzSize="small" (click)="clearAllFilters()">Đặt lại</button>
-                    <button nz-button nzType="primary" nzSize="small" (click)="getAssetmanagement()">Tìm kiếm</button>
-                </div>
-            </div>
-        </nz-splitter-panel>
-
-        <nz-splitter-panel nzDefaultSize="100%">
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header  bg-white p-1">
-                    <nav class="navbar navbar-expand-md navbar-light p-0">
-                        <!-- Nút toggle hiện trên mobile -->
-                        <button class="navbar-toggler mb-2" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#assetToolbar" aria-controls="assetToolbar" aria-expanded="false"
-                            aria-label="Toggle navigation">
-                            <span class="navbar-toggler-icon border-radius-0"></span>
-                            <!-- Nếu chưa có icon thì dùng text -->
-                            <!-- <span class="small">Menu</span> -->
-                        </button>
-
-                        <!-- Phần button sẽ collapse trên mobile -->
-                        <div class="collapse navbar-collapse" id="assetToolbar">
-                            <div class="d-flex flex-wrap gap-1 align-items-center">
-
-                                <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-                                    <nz-icon nzType="search"></nz-icon>
-                                </button>
-
-                                <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="onAddAsset()"
-                                    *hasPermission="'N2,N23,N1'">
-                                    <img src="assets/icon/action_add_item_16.png" /> Thêm
-                                </button>
-
-                                <button class="btn-edit" nz-button nzType="default" nzSize="small"
-                                    (click)="onEitAsset()" *hasPermission="'N2,N23,N1'">
-                                    <img src="assets/icon/action_edit_item_16.png" /> Sửa
-                                </button>
-
-                                <button class="btn-delete" nz-button nzType="default" nzSize="small"
-                                    (click)="onDeleteAsset()" *hasPermission="'N2,N23,N1'">
-                                    <img src="assets/icon/action_delete_item_16.png" /> Xóa
-                                </button>
-
-                                <span class="mx-2"
-                                    style="display:inline-block;height:20px;border-left:1px solid #e5e5e5;align-self:center;"></span>
-
-                                <button nz-button nzType="default" nzSize="small" (click)="onReportLoss()"
-                                    *hasPermission="'N2,N23,N1'">
-                                    <img src="assets/icon/btn_report_lost.png" /> Báo mất
-                                </button>
-
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                    (click)="onReportBroken()" *hasPermission="'N2,N23,N1'">
-                                    <img src="assets/icon/btn_report_broken.png" /> Báo hỏng
-                                </button>
-
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                    (click)="onRepaireAsset()" *hasPermission="'N2,N23,N1'">
-                                    <img src="assets/icon/btn_repair_tool.png" /> Sửa chữa, bảo dưỡng
-                                </button>
-
-                                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReuseAsset()"
-                                    *hasPermission="'N2,N23,N1'">
-                                    <img src="assets/icon/btn_reuse.png" /> Đưa vào sử dụng lại
-                                </button>
-
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                    (click)="onReportLiquidation()" *hasPermission="'N2,N23,N1'">
-                                    <img src="assets/icon/btn_propose_liquidation.png" /> Đề nghị thanh lí
-                                </button>
-
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                    (click)="onLiquidation()" *hasPermission="'N2,N23,N1'">
-                                    <img src="assets/icon/btn_liquidation.png" /> Thanh lí
-                                </button>
-
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                    (click)="openModalImportExcel()" *hasPermission="'N2,N23,N1'">
-                                    <img src="assets/icon/action_import_16.png" /> Nhập Excel
-                                </button>
-
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                    (click)="onExportExcel()">
-                                    <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
-                                </button>
-                            </div>
+        <!-- Content với bảng -->
+        <div class="card-body p-0 position-relative" [class.with-search-bar]="shouldShowSearchBar"
+            [class.without-search-bar]="!shouldShowSearchBar">
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+                <nz-splitter nzLayout="vertical" style="height: 100%; flex: 1;">
+                    <!-- Bảng Master (ở trên) - 60% -->
+                    <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="60%">
+                        <div class="grid-container" id="demo-container" style="height: 100%;">
+                            <angular-slickgrid gridId="grvAssetManagement" [columns]="columnDefinitions"
+                                [options]="gridOptions" [dataset]="dataset"
+                                (onAngularGridCreated)="angularGridReady($event.detail)"
+                                (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                            </angular-slickgrid>
                         </div>
-                    </nav>
-                </div>
-                <div class="card-body p-0" style="height: calc(100vh - 150px); display: flex; flex-direction: column;">
-                    <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
-                        <nz-splitter nzLayout="vertical" style="height: 100%; flex: 1;">
-                            <!-- Bảng Master (ở trên) - 60% -->
-                            <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="60%">
-                                <div class="grid-container" id="demo-container" style="height: 100%;">
-                                    <angular-slickgrid gridId="grvAssetManagement" [columns]="columnDefinitions"
-                                        [options]="gridOptions" [dataset]="dataset"
-                                        (onAngularGridCreated)="angularGridReady($event.detail)"
-                                        (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                                        (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-                                    </angular-slickgrid>
-                                </div>
-                            </nz-splitter-panel>
+                    </nz-splitter-panel>
 
-                            <!-- Bảng Detail (ở dưới) - 40% -->
-                            <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="40%">
-                                <div style="height: 100%; display: flex; flex-direction: column;">
-                                    <nz-tabset
-                                        style="padding-left: 10px; flex: 1; display: flex; flex-direction: column; min-height: 0;">
-                                        <nz-tab [nzTitle]="detailTabTitle" style="height: 100%;">
-                                            <div id="grid-container-detail" style="height: 100%; width: 100%;">
-                                                <angular-slickgrid gridId="grvAssetDetail"
-                                                    [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
-                                                    [dataset]="datasetDetail"
-                                                    (onAngularGridCreated)="angularGridDetailReady($event.detail)">
-                                                </angular-slickgrid>
-                                            </div>
-                                        </nz-tab>
-                                    </nz-tabset>
-                                </div>
-                            </nz-splitter-panel>
-                        </nz-splitter>
-                    </nz-spin>
-                </div>
-            </div>
-        </nz-splitter-panel>
-    </nz-splitter>
+                    <!-- Bảng Detail (ở dưới) - 40% -->
+                    <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="40%">
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <nz-tabset
+                                style="padding-left: 10px; flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                                <nz-tab [nzTitle]="detailTabTitle" style="height: 100%;">
+                                    <div id="grid-container-detail" style="height: 100%; width: 100%;">
+                                        <angular-slickgrid gridId="grvAssetDetail" [columns]="columnDefinitionsDetail"
+                                            [options]="gridOptionsDetail" [dataset]="datasetDetail"
+                                            (onAngularGridCreated)="angularGridDetailReady($event.detail)">
+                                        </angular-slickgrid>
+                                    </div>
+                                </nz-tab>
+                            </nz-tabset>
+                        </div>
+                    </nz-splitter-panel>
+                </nz-splitter>
+            </nz-spin>
+        </div>
+    </div>
 </ng-container>
+
 <div class="modal fade" id="addRecoveryModal" tabindex="-1" #addRecoveryModalRef aria-labelledby="addRecoveryModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -304,3 +254,4 @@
             </div>
         </div>
     </div>
+</div>

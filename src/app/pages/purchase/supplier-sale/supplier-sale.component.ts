@@ -1037,6 +1037,9 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
   }
 
   onMasterDblClick(event: any) {
+    if (!this.permissionService.hasAllPermissions(['N27', 'N33', 'N35', 'N1'])) {
+      return;
+    }
     const args = event?.args;
     const row = args?.row;
     this.angularGrid?.slickGrid?.setSelectedRows([row]);

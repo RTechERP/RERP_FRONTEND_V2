@@ -40,12 +40,12 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
 
     keyword: string = '';
     departmentId: number = -1;
-    groupType: number = 1;
+    groupType: number = 2;
     departments: any[] = [];
     documentData: any[] = [];
     totalDocuments: number = 0;
 
-    private downloadBasePath = '\\\\192.168.1.2\\ftp\\Upload\\RTCDocument\\';
+    private downloadBasePath = '\\\\113.190.234.64\\ftp\\Upload\\RTCDocument\\';
 
     constructor(
         private documentService: DocumentService,

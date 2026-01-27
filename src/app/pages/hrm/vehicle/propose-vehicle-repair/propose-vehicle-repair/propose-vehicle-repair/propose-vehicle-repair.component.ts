@@ -1023,6 +1023,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
               DateApprove: detail?.DateApprove || new Date().toISOString(),
               TotalPrice: detail?.TotalPrice ?? (detail?.Quantity ?? 0) * (detail?.UnitPrice ?? 0),
               Note: detail?.Note || '',
+              TimePrevious: master?.TimePrevious ?? null,
               KmPreviousPeriod: master?.KmPreviousPeriod ?? null,
               KmCurrentPeriod: master?.KmCurrentPeriod ?? null,
               WarrantyPeriod: detail?.WarrantyPeriod ?? null,

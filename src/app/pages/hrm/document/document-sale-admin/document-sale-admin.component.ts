@@ -141,6 +141,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
   selectedDocumentId: number = 0;
   selectedDocumentName: string = '';
   selectedDocumentTypeID: number = 0;
+  selectedDocumentTypeCode: string = '';
   documentFileID: number = 0;
 
   currentUser: any = null;
@@ -552,6 +553,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
       this.selectedDocumentId = rowData.ID;
       this.selectedDocumentName = rowData.NameDocument || rowData.Code || '';
       this.selectedDocumentTypeID = rowData.DocumentTypeID || 0;
+      this.selectedDocumentTypeCode = rowData.CodeDocumentType || '';
       this.getDocumentFileByID(this.selectedDocumentId);
     }
   }
@@ -578,6 +580,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         this.selectedDocumentId = rowData.ID;
         this.selectedDocumentName = rowData.NameDocument || rowData.Code || '';
         this.selectedDocumentTypeID = rowData.DocumentTypeID || 0;
+        this.selectedDocumentTypeCode = rowData.CodeDocumentType || '';
         this.getDocumentFileByID(this.selectedDocumentId);
       }
     }
@@ -681,6 +684,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
               const firstItem = this.dataset[0];
               if (firstItem && firstItem.ID) {
                 this.selectedDocumentId = firstItem.ID;
+                this.selectedDocumentTypeCode = firstItem.CodeDocumentType || '';
                 this.angularGrid.slickGrid.setSelectedRows([0]);
                 this.getDocumentFileByID(this.selectedDocumentId);
               } else {
@@ -897,7 +901,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
     }).messageId;
 
     this.documentService
-      .uploadMultipleFiles([file], this.selectedDocumentTypeID, subPath)
+      .uploadMultipleFiles([file], this.selectedDocumentTypeCode, subPath)
       .subscribe({
         next: (res) => {
           this.message.remove(loadingMsg);
@@ -1060,7 +1064,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
     }).messageId;
 
     this.documentService
-      .downloadFileSale(file.FileName, this.selectedDocumentName, this.selectedDocumentTypeID)
+      .downloadFileSale(file.FileName, this.selectedDocumentName, this.selectedDocumentTypeCode)
       .subscribe({
         next: (blob: Blob) => {
           this.message.remove(loadingMsg);

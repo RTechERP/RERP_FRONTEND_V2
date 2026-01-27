@@ -683,7 +683,7 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
     this.supplierSaleService
       .getSupplierSaleNew(this.keyword, 1, 99999999)
       .subscribe(res => {
-        
+
         this.dataset = res.data.data.map((item: any, index: number) => ({
           ...item,
           id: `${this.idMaster}_${index}`,
@@ -1037,9 +1037,6 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
   }
 
   onMasterDblClick(event: any) {
-    if (!this.permissionService.hasAllPermissions(['N27', 'N33', 'N35', 'N1'])) {
-      return;
-    }
     const args = event?.args;
     const row = args?.row;
     this.angularGrid?.slickGrid?.setSelectedRows([row]);

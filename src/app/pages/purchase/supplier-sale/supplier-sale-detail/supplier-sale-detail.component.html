@@ -516,7 +516,10 @@
     <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
       Đóng
     </button>
-    <button nz-button nzType="primary" (click)="onSubmit()">
+    <button nz-button nzType="primary" (click)="onSubmit()" *ngIf="isUpdate">
+      <i class="fas fa-save me-1"></i> Cập nhật
+    </button>
+    <button nz-button nzType="primary" (click)="onSubmit()" *ngIf="isAddNew">
       <i class="fas fa-save me-1"></i> Lưu
     </button>
   </div>

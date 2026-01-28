@@ -1489,6 +1489,13 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
   ) {
     return (cell: any, onRendered: any, success: any, cancel: any) => {
       const container = document.createElement('div');
+      container.style.width = '100%';
+      container.style.height = '100%';
+
+      // Xoá padding của ô khi ở chế độ edit để select box lấp đầy ô
+      const cellEl = cell.getElement();
+      cellEl.style.padding = '0';
+
       const componentRef = createComponent(component, {
         environmentInjector: injector,
       });
@@ -1833,7 +1840,17 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitColumns',
         height: this.height,
-        selectableRows: true,
+        selectableRows: true, // Cho phép chọn nhiều dòng
+        selectableRowsRangeMode: "click",
+        rowHeader: {
+          formatter: "rowSelection",
+          titleFormatter: "rowSelection",
+          headerSort: false,
+          width: 30,
+          frozen: true,
+          headerHozAlign: "center",
+          hozAlign: "center"
+        },
         columns: [
           {
             title: 'STT',
@@ -1902,12 +1919,10 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
               const field = cell.getField();
               const newValue = cell.getValue();
               const table = cell.getTable();
-              const selectedRows = table.getSelectedRows();
 
-              // Nếu dòng đang sửa nằm trong vung chọn, cập nhật tất cả các dòng được chọn
-              if (selectedRows.some((r: any) => r.getIndex() === row.getIndex())) {
-                selectedRows.forEach((r: any) => {
-                  if (r.getIndex() !== row.getIndex()) {
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
                     r.update({ [field]: newValue });
                   }
                 });
@@ -1934,11 +1949,10 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
               const field = cell.getField();
               const newValue = cell.getValue();
               const table = cell.getTable();
-              const selectedRows = table.getSelectedRows();
 
-              if (selectedRows.some((r: any) => r.getIndex() === row.getIndex())) {
-                selectedRows.forEach((r: any) => {
-                  if (r.getIndex() !== row.getIndex()) {
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
                     r.update({ [field]: newValue });
                   }
                 });
@@ -1951,6 +1965,20 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             field: 'Note',
             headerHozAlign: 'center',
             editor: 'input',
+            cellEdited: (cell) => {
+              const row = cell.getRow();
+              const field = cell.getField();
+              const newValue = cell.getValue();
+              const table = cell.getTable();
+
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
+                    r.update({ [field]: newValue });
+                  }
+                });
+              }
+            },
           },
           {
             title: 'BorrowID',
@@ -1972,9 +2000,19 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.handoverAssetManagementTable = new Tabulator('#handoverAsset', {
         data: this.HandoverAssetManagementData,
         ...DEFAULT_TABLE_CONFIG,
-        layout: 'fitData',
+        layout: 'fitColumns',
         height: this.height,
-        selectableRows: false,
+        selectableRows: false, // Cho phép chọn nhiều dòng
+        selectableRowsRangeMode: "click",
+        rowHeader: {
+          formatter: "rowSelection",
+          titleFormatter: "rowSelection",
+          headerSort: false,
+          width: 30,
+          frozen: true,
+          headerHozAlign: "center",
+          hozAlign: "center"
+        },
         reactiveData: true,
         columns: [
 
@@ -2056,11 +2094,10 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
               const field = cell.getField();
               const newValue = cell.getValue();
               const table = cell.getTable();
-              const selectedRows = table.getSelectedRows();
 
-              if (selectedRows.some((r: any) => r.getIndex() === row.getIndex())) {
-                selectedRows.forEach((r: any) => {
-                  if (r.getIndex() !== row.getIndex()) {
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
                     r.update({ [field]: newValue });
                   }
                 });
@@ -2089,11 +2126,10 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
               const field = cell.getField();
               const newValue = cell.getValue();
               const table = cell.getTable();
-              const selectedRows = table.getSelectedRows();
 
-              if (selectedRows.some((r: any) => r.getIndex() === row.getIndex())) {
-                selectedRows.forEach((r: any) => {
-                  if (r.getIndex() !== row.getIndex()) {
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
                     r.update({ [field]: newValue });
                   }
                 });
@@ -2114,11 +2150,10 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
               const field = cell.getField();
               const newValue = cell.getValue();
               const table = cell.getTable();
-              const selectedRows = table.getSelectedRows();
 
-              if (selectedRows.some((r: any) => r.getIndex() === row.getIndex())) {
-                selectedRows.forEach((r: any) => {
-                  if (r.getIndex() !== row.getIndex()) {
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
                     r.update({ [field]: newValue });
                   }
                 });
@@ -2131,6 +2166,20 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             minWidth: 150,
             editor: 'input',
+            cellEdited: (cell) => {
+              const row = cell.getRow();
+              const field = cell.getField();
+              const newValue = cell.getValue();
+              const table = cell.getTable();
+
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
+                    r.update({ [field]: newValue });
+                  }
+                });
+              }
+            },
           },
         ],
       });

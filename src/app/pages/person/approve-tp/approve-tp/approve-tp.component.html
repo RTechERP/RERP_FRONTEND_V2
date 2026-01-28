@@ -8,13 +8,14 @@
 
     <ng-template #end>
         <div class="flex items-center gap-2">
-            <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
+            <button nz-button nzType="text" nzShape="circle"
                 (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
                 <nz-icon nzType="search" />
             </button>
         </div>
     </ng-template>
 </p-menubar>
+
 
 
 <ng-container class="w-100">
@@ -123,8 +124,8 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
                             <nz-form-control>
-                                <nz-date-picker formControlName="startDate" nzFormat="dd/MM/yyyy" class="w-100"
-                                    nzSize="small" nzAllowClear="false"></nz-date-picker>
+                                <input type="date" class="ant-input w-100" style="font-size: 12px; height: 24px;"
+                                    formControlName="startDate" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -133,31 +134,33 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
                             <nz-form-control>
-                                <nz-date-picker formControlName="endDate" nzFormat="dd/MM/yyyy" class="w-100"
-                                    nzSize="small" nzAllowClear="false"></nz-date-picker>
+                                <input type="date" class="ant-input w-100" style="font-size: 12px; height: 24px;"
+                                    formControlName="endDate" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
 
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="4">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Team</nz-form-label>
                             <nz-form-control>
                                 <nz-select formControlName="teamId" nzAllowClear nzShowSearch nzSize="small"
-                                    nzPlaceHolder="Chọn Team" class="w-100">
+                                    nzPlaceHolder="Chọn Team" class="w-100" nzDropdownClassName="team-select-dropdown"
+                                    (ngModelChange)="loadData()">
                                     <nz-option *ngFor="let team of teamList" [nzValue]="team.ID"
-                                        [nzLabel]="team.Name"></nz-option>
+                                        [nzLabel]="team.Name | uppercase"></nz-option>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
 
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="5">
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="5">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
                             <nz-form-control>
                                 <nz-select formControlName="employeeId" nzAllowClear nzShowSearch nzSize="small"
-                                    nzPlaceHolder="Chọn nhân viên" class="w-100">
+                                    nzPlaceHolder="Chọn nhân viên" class="w-100"
+                                    nzDropdownClassName="employee-select-dropdown" (ngModelChange)="loadData()">
                                     <nz-option-group *ngFor="let group of employeeList" [nzLabel]="group.label">
                                         <nz-option *ngFor="let option of group.options"
                                             [nzValue]="option.item.ID || option.item.EmployeeID"
@@ -170,12 +173,13 @@
                     </nz-col>
 
 
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="4">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái BGĐ</nz-form-label>
                             <nz-form-control>
                                 <nz-select formControlName="statusBGD" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Chọn trạng thái" class="w-100">
+                                    nzPlaceHolder="Chọn trạng thái" class="w-100"
+                                    nzDropdownClassName="status-select-dropdown" (ngModelChange)="loadData()">
                                     <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                                     <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                                     <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
@@ -186,12 +190,13 @@
                         </nz-form-item>
                     </nz-col>
 
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="4">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái HR</nz-form-label>
                             <nz-form-control>
                                 <nz-select formControlName="statusHR" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Chọn trạng thái" class="w-100">
+                                    nzPlaceHolder="Chọn trạng thái" class="w-100"
+                                    nzDropdownClassName="status-select-dropdown" (ngModelChange)="loadData()">
                                     <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                                     <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                                     <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
@@ -201,12 +206,13 @@
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
-                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="4">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái Senior</nz-form-label>
                             <nz-form-control>
                                 <nz-select formControlName="statusSenior" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Chọn trạng thái" class="w-100">
+                                    nzPlaceHolder="Chọn trạng thái" class="w-100"
+                                    nzDropdownClassName="status-select-dropdown" (ngModelChange)="loadData()">
                                     <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                                     <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                                     <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
@@ -216,12 +222,13 @@
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
-                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="4">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái TBP</nz-form-label>
                             <nz-form-control>
                                 <nz-select formControlName="status" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Chọn trạng thái" class="w-100">
+                                    nzPlaceHolder="Chọn trạng thái" class="w-100"
+                                    nzDropdownClassName="status-select-dropdown" (ngModelChange)="loadData()">
                                     <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                                     <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                                     <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
@@ -232,12 +239,13 @@
                         </nz-form-item>
                     </nz-col>
 
-                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="4">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Loại</nz-form-label>
                             <nz-form-control>
                                 <nz-select formControlName="type" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Chọn loại" class="w-100">
+                                    nzPlaceHolder="Chọn loại" class="w-100" nzDropdownClassName="type-select-dropdown"
+                                    (ngModelChange)="loadData()">
                                     <nz-option [nzValue]="1" nzLabel="Đăng ký nghỉ"></nz-option>
                                     <nz-option [nzValue]="2" nzLabel="Đăng ký Đi muộn về sớm"></nz-option>
                                     <nz-option [nzValue]="3" nzLabel="Đăng ký Làm thêm"></nz-option>
@@ -252,12 +260,12 @@
                         </nz-form-item>
                     </nz-col>
 
-                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="3">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Đã xóa</nz-form-label>
                             <nz-form-control>
                                 <nz-select formControlName="deleteFlag" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Chọn trạng thái" class="w-100">
+                                    nzPlaceHolder="Chọn trạng thái" class="w-100" (ngModelChange)="loadData()">
                                     <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
                                     <nz-option [nzValue]="0" nzLabel="Chưa xóa"></nz-option>
                                     <nz-option [nzValue]="1" nzLabel="Đã xóa"></nz-option>
@@ -267,7 +275,7 @@
                     </nz-col>
 
                     <!-- Từ khóa và nút tìm kiếm -->
-                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="9">
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="9">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
                             <nz-form-control>
@@ -275,7 +283,7 @@
                                     <input nz-input placeholder="Nhập từ khóa..." nzSize="small"
                                         formControlName="keyWord" class="flex-grow-1" (keyup.enter)="loadData()" />
                                     <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
-                                        (click)="loadData()">
+                                        (click)="loadData()" [nzLoading]="loadingData" [disabled]="loadingData">
                                         <nz-icon nzType="search" />
                                     </button>
                                 </div>

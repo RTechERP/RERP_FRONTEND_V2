@@ -339,7 +339,7 @@ export class PaymentOrderComponent implements OnInit {
             {
                 label: 'TBP duyệt',
                 icon: 'fa-solid fa-circle-check fa-lg text-success',
-                visible: this.permissionService.hasPermission("N57"),
+                visible: this.permissionService.hasPermission("'N57,N83'"),
                 command: () => {
                     this.onApprovedTBP(1, {
                         ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
@@ -349,7 +349,7 @@ export class PaymentOrderComponent implements OnInit {
             {
                 label: 'TBP hủy duyệt',
                 icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-                visible: this.permissionService.hasPermission("N57"),
+                visible: this.permissionService.hasPermission("'N57,N83'"),
                 command: () => {
                     this.onApprovedTBP(2, {
                         ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnUnApproveTBP', ButtonActionText: 'Trưởng bộ phận',

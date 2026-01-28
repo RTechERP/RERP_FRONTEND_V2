@@ -282,10 +282,10 @@ export class ImportExcelPokhComponent implements OnInit {
     const excelDataForAPI = this.tableData.map((row, index) => {
       return {
         RowIndex: index,
-        ProductNewCode: row['Mã nội bộ'] || '',
+        ProductNewCode: String(row['Mã nội bộ'] || ''),
         ProductGroupName: String(row['Tên nhóm'] || ''),
-        ProductCode: row['Mã sản phẩm'] || '',
-        ProductName: row['Tên sản phẩm'] || ''
+        ProductCode: String(row['Mã sản phẩm'] || ''),
+        ProductName: String(row['Tên sản phẩm'] || '')
       };
     });
 
@@ -331,12 +331,12 @@ export class ImportExcelPokhComponent implements OnInit {
             ParentTT: parentTT,
             ParentID: 0,
             ProductID: productIdMap[index] || null,
-            ProductNewCode: row['Mã nội bộ'] || '',
-            ProductCode: row['Mã sản phẩm'] || '',
-            ProductName: row['Tên sản phẩm'] || '',
-            GuestCode: row['Model'] || '',
-            Maker: row['Maker'] || '',
-            Unit: row['Unit'] || '',
+            ProductNewCode: String(row['Mã nội bộ'] || ''),
+            ProductCode: String(row['Mã sản phẩm'] || ''),
+            ProductName: String(row['Tên sản phẩm'] || ''),
+            GuestCode: String(row['Model'] || ''),
+            Maker: String(row['Maker'] || ''),
+            Unit: String(row['Unit'] || ''),
             Qty: qty,
             UnitPrice: unitPrice,
             IntoMoney: intoMoney,

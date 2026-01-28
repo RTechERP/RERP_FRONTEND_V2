@@ -1,0 +1,19 @@
+.modal-header {
+    border-bottom: none;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+}
+
+.fs-xs {
+    font-size: 0.75rem;
+}
+
+nz-card {
+    margin-bottom: 1rem;
+}
+
+nz-card:last-child {
+    margin-bottom: 0;
+}

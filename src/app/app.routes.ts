@@ -875,7 +875,7 @@ export const routes: Routes = [
             { path: 'product-report-hcm', component: ProductReportNewComponent, canActivate: [authGuard] },
             { path: 'product-export-borrow-hcm', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report-hcm', component: BorrowReportComponent, canActivate: [authGuard] },
-            //{ path: 'borrow-product-history-hcm', component: HistoryProductRtcComponent, canActivate: [authGuard] },
+            { path: 'borrow-product-history-hcm', component: HistoryProductRtcComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-tech-hcm', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
             { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
             { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },

@@ -247,11 +247,17 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             if (this.tabOpens.length > 0) {
                 this.tabOpens.forEach((item, i) => {
                     const menu = this.findMenuByRouter(menus, item) as LeafItem;
-                    this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
+                    if (menu) {
+                        this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
+                    }
                 })
             } else {
                 const menu = this.findMenuByRouter(menus, router) as LeafItem;
-                this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
+                console.log('menu:', menu, router);
+                console.log('menus:', menus);
+                if (menu) {
+                    this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
+                }
             }
 
         });

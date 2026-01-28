@@ -83,6 +83,7 @@ import { environment } from '../../../../environments/environment';
 import { ActivatedRoute } from '@angular/router';
 import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../services/permission.service';
+import { TabServiceService } from '../../../layouts/tab-service.service';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -442,6 +443,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         private authService: AuthService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
+        private tabService: TabServiceService,
         @Optional() @Inject('tabData') private tabData: any
     ) {
     }
@@ -897,23 +899,24 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
     onOpenDepartmentRequired() {
         const selected = this.getSelectedData() || [];
+        if (selected.length !== 1) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 bản ghi!');
+            return;
+        }
+
         const rowData = { ...selected[0] };
-
-        // Lấy JobrequirementID từ row đã chọn hoặc từ biến
         const jobRequirementID = rowData?.ID || this.JobrequirementID || 0;
+        const numberRequest = rowData?.NumberRequest || '';
 
-        const title = 'Đề xuất mua hàng';
-        const data = {
-            JobrequirementID: jobRequirementID,
-            isCheckmode: this.isCheckmode,
-            dataInput: rowData
-        };
-
-        this.menuEventService.openNewTab(
-            HrPurchaseProposalComponent,
-            title,
-            data
-        );
+        this.tabService.openTabComp({
+            comp: HrPurchaseProposalComponent,
+            title: `Đề xuất mua hàng - ${numberRequest}`,
+            key: `hr-purchase-proposal-${jobRequirementID}`,
+            data: {
+                JobrequirementID: jobRequirementID,
+                isCheckmode: true
+            }
+        });
     }
 
     /**

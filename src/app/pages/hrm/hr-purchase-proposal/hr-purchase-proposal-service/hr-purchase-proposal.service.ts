@@ -9,9 +9,9 @@ import { environment } from '../../../../../environments/environment';
 })
 export class HrPurchaseProposalService {
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-   getDepartmentRequired(
+  getDepartmentRequired(
     JobRequirementID: number,
     EmployeeID: number,
     DepartmentID: number,
@@ -20,7 +20,7 @@ export class HrPurchaseProposalService {
     DateEnd: Date
   ): Observable<any> {
     const asset: any = {
-      JobRequirementID: JobRequirementID|| 0,
+      JobRequirementID: JobRequirementID || 0,
       EmployeeID: EmployeeID || 0,
       DepartmentID: DepartmentID || 0,
       Keyword: Keyword?.trim() || '',
@@ -32,14 +32,14 @@ export class HrPurchaseProposalService {
       asset
     );
   }
-      getHCNSProposals(
+  getHCNSProposals(
     JobRequirementID: number,
     DepartmentRequiredID: number,
     DateStart: Date,
     DateEnd: Date
   ): Observable<any> {
     const asset: any = {
-      JobRequirementID: JobRequirementID|| 0,
+      JobRequirementID: JobRequirementID || 0,
       DepartmentRequiredID: DepartmentRequiredID || 0,
       DateStart: DateStart,
       DateEnd: DateEnd
@@ -56,10 +56,24 @@ export class HrPurchaseProposalService {
   getAllEmployee(): Observable<any> {
     return this.http.get<any>(environment.host + `api/handover/get-all-employees`);
   }
-      saveData(data: any): Observable<any> {
+  saveData(data: any): Observable<any> {
     return this.http.post<any>(
       environment.host + `api/recommendsupplier/save-data-department-required`,
       data
+    );
+  }
+
+  exportExcel(JobRequirementID: number, DepartmentRequiredID: number, DateStart: Date, DateEnd: Date): Observable<Blob> {
+    const asset: any = {
+      JobRequirementID: JobRequirementID || 0,
+      DepartmentRequiredID: DepartmentRequiredID || 0,
+      DateStart: DateStart,
+      DateEnd: DateEnd
+    };
+    return this.http.post(
+      environment.host + `api/recommendsupplier/export-excel`,
+      asset,
+      { responseType: 'blob' }
     );
   }
 }

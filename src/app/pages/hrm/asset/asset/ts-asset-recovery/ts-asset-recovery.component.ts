@@ -113,6 +113,16 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   pageNumber: number = 1;
   selectedRow: any = "";
   public detailTabTitle: string = 'Thông tin biên bản thu hồi:';
+  gridId = this.generateUUIDv4();
+  gridIdDetail = this.generateUUIDv4();
+
+  generateUUIDv4(): string {
+    return 'g-' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
   private ngbModal = inject(NgbModal);
   isSearchVisible: boolean = false;
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
@@ -416,7 +426,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     ];
 
     this.gridOptions = {
-      autoResize: { container: '#grid-container-recovery', calculateAvailableSizeBy: 'container' },
+      autoResize: { container: '#' + this.gridId + '_container', calculateAvailableSizeBy: 'container' },
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,
@@ -465,7 +475,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     ];
 
     this.gridOptionsDetail = {
-      autoResize: { container: '#grid-container-recovery-detail', calculateAvailableSizeBy: 'container' },
+      autoResize: { container: '#' + this.gridIdDetail + '_container', calculateAvailableSizeBy: 'container' },
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: true,

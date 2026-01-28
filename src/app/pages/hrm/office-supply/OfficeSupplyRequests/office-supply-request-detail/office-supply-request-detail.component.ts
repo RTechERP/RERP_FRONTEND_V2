@@ -51,7 +51,6 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
   mainForm!: FormGroup;
   currentUser: any;
   officeSupplyList: any[] = [];
-  unitList: any[] = [];
   isLoading = false;
   isSaving = false;
 
@@ -69,7 +68,6 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
   ngOnInit(): void {
     this.getCurrentUser();
     this.loadOfficeSupplies();
-    this.loadUnits();
 
     if (this.editData) {
       this.patchEditData();
@@ -97,7 +95,8 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
     const group = this.fb.group({
       ID: [data?.ID || 0],
       OfficeSupplyID: [data?.OfficeSupplyID || null, [Validators.required]],
-      OfficeSupplyUnitID: [{ value: data?.OfficeSupplyUnitID || null, disabled: true }],
+      OfficeSupplyUnitID: [data?.OfficeSupplyUnitID || null], // Keep for API if needed
+      UnitName: [{ value: data?.UnitName || data?.Unit || '', disabled: true }],
       Quantity: [data?.Quantity || 1, [Validators.required, Validators.min(1)]],
       QuantityReceived: [{ value: data?.QuantityReceived || null, disabled: true }],
       ExceedsLimit: [data?.ExceedsLimit || false],
@@ -149,15 +148,6 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
     });
   }
 
-  private loadUnits(): void {
-    this.officeSupplyService.getUnit().subscribe({
-      next: (res) => {
-        if (res?.data) {
-          this.unitList = Array.isArray(res.data) ? res.data : [];
-        }
-      }
-    });
-  }
 
   private patchEditData(): void {
     if (!this.editData) return;
@@ -187,7 +177,8 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
 
     if (supply) {
       itemGroup.patchValue({
-        OfficeSupplyUnitID: supply.SupplyUnitID, // Check field name from API
+        OfficeSupplyUnitID: supply.SupplyUnitID || supply.UnitID || supply.OfficeSupplyUnitID,
+        UnitName: supply.Unit || '',
         RequestLimit: supply.RequestLimit || 0
       });
       this.checkLimit(index);
@@ -197,17 +188,19 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
   checkLimit(index: number): void {
     const itemGroup = this.items.at(index) as FormGroup;
     const quantity = itemGroup.get('Quantity')?.value || 0;
-    const limit = itemGroup.get('RequestLimit')?.value || 0;
+    const requestLimit = itemGroup.get('RequestLimit')?.value || 0;
 
-    if (limit > 0 && quantity > limit) {
+    const limitToCompare = requestLimit > 0 ? requestLimit : 1;
+
+    if (quantity > limitToCompare) {
       itemGroup.patchValue({ ExceedsLimit: true });
       itemGroup.get('Reason')?.setValidators([Validators.required]);
     } else {
-      // Auto-set false ONLY if it wasn't manually checked?
-      // For simplicity, let's just update validators
-      if (!itemGroup.get('ExceedsLimit')?.value) {
-        itemGroup.get('Reason')?.clearValidators();
-      }
+      itemGroup.patchValue({
+        ExceedsLimit: false,
+        Reason: ''
+      });
+      itemGroup.get('Reason')?.clearValidators();
     }
     itemGroup.get('Reason')?.updateValueAndValidity();
   }
@@ -241,6 +234,45 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
   };
 
   onSubmit(): void {
+    // Check registration date: only allowed from 1st to 5th of the month
+    // Except for Admin or EmployeeID = 395
+    const currentDate = new Date();
+    const currentDay = currentDate.getDate();
+
+    if (currentDay > 5 && !this.currentUser?.IsAdmin && this.currentUser?.EmployeeID !== 395) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Chỉ được đăng ký VPP từ ngày 1 đến ngày 5 của tháng. Hiện tại đã quá thời hạn đăng ký!'
+      );
+      return;
+    }
+
+    // Validation similar to admin detail
+    const items = this.items.value;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const quantity = item.Quantity || 0;
+      const requestLimit = item.RequestLimit || 0;
+      const limitToCompare = requestLimit > 0 ? requestLimit : 1;
+      const exceedsLimit = item.ExceedsLimit;
+
+      if (quantity > limitToCompare) {
+        if (!exceedsLimit) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn định mức ở dòng ${i + 1}. Vui lòng tích "Vượt định mức" và nhập lý do`);
+          return;
+        }
+        if (!item.Reason || item.Reason.trim() === '') {
+          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn định mức ở dòng ${i + 1}. Vui lòng nhập lý do vượt định mức`);
+          return;
+        }
+      }
+
+      if (exceedsLimit && (!item.Reason || item.Reason.trim() === '')) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Vui lòng nhập lý do vượt định mức ở dòng ${i + 1}`);
+        return;
+      }
+    }
+
     if (this.mainForm.invalid) {
       Object.values(this.mainForm.controls).forEach(control => {
         if (control.invalid) {
@@ -303,7 +335,7 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
       },
       error: (err) => {
         this.isSaving = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ');
+        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || err.message || 'Lỗi kết nối máy chủ');
       }
     });
   }

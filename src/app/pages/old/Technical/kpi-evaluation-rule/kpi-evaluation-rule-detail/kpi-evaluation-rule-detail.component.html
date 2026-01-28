@@ -1,0 +1,135 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT RULE ĐÁNH GIÁ</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-3">
+    <nz-spin [nzSpinning]="isLoading" nzTip="Đang xử lý...">
+        <!-- Copy checkbox -->
+        <div class="d-flex justify-content-end mb-2">
+            <label nz-checkbox [(ngModel)]="isCopy" (ngModelChange)="onCopyChange()">
+                Sao chép
+            </label>
+        </div>
+
+        <!-- Group: TỪ (Source for copy) -->
+        <nz-card nzTitle="TỪ" class="mb-3" [nzBodyStyle]="{'padding': '12px'}" *ngIf="isCopy">
+            <!-- Kỳ đánh giá copy -->
+            <div class="row mb-2 align-items-center">
+                <div class="col-md-3">
+                    <label class="m-0 text-nowrap">
+                        Kỳ đánh giá copy
+                        <span class="text-danger">(*)</span>
+                    </label>
+                </div>
+                <div class="col-md-9">
+                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn kỳ đánh giá"
+                        [(ngModel)]="selectedSessionCopyId" style="width: 100%;" nzSize="small"
+                        (ngModelChange)="onSessionCopyChange()">
+                        <nz-option *ngFor="let item of sessions" [nzValue]="item.ID"
+                            [nzLabel]="item.Code + ' - ' + item.Name">
+                        </nz-option>
+                    </nz-select>
+                    <span class="text-danger fs-xs" *ngIf="errors.sessionCopyId">{{ errors.sessionCopyId }}</span>
+                </div>
+            </div>
+
+            <!-- Rule đánh giá copy -->
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <label class="m-0 text-nowrap">
+                        Rule đánh giá copy
+                        <span class="text-danger">(*)</span>
+                    </label>
+                </div>
+                <div class="col-md-9">
+                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn Rule đánh giá"
+                        [(ngModel)]="selectedRuleCopyId" style="width: 100%;" nzSize="small">
+                        <nz-option *ngFor="let item of rulesCopy" [nzValue]="item.ID"
+                            [nzLabel]="item.RuleCode + ' - ' + item.RuleName">
+                        </nz-option>
+                    </nz-select>
+                    <span class="text-danger fs-xs" *ngIf="errors.ruleCopyId">{{ errors.ruleCopyId }}</span>
+                </div>
+            </div>
+        </nz-card>
+
+        <!-- Group: ĐẾN (Target details) -->
+        <nz-card nzTitle="ĐẾN" [nzBodyStyle]="{'padding': '12px'}">
+            <!-- Kỳ đánh giá (disabled) -->
+            <div class="row mb-2 align-items-center">
+                <div class="col-md-3">
+                    <label class="m-0 text-nowrap">
+                        Kỳ đánh giá
+                        <span class="text-danger">(*)</span>
+                    </label>
+                </div>
+                <div class="col-md-9">
+                    <nz-select nzShowSearch nzPlaceHolder="Chọn kỳ đánh giá" [(ngModel)]="selectedSessionId"
+                        style="width: 100%;" nzSize="small" [nzDisabled]="true">
+                        <nz-option *ngFor="let item of sessions" [nzValue]="item.ID"
+                            [nzLabel]="item.Code + ' - ' + item.Name">
+                        </nz-option>
+                    </nz-select>
+                    <span class="text-danger fs-xs" *ngIf="errors.sessionId">{{ errors.sessionId }}</span>
+                </div>
+            </div>
+
+            <!-- Mã Rule đánh giá -->
+            <div class="row mb-2 align-items-center">
+                <div class="col-md-3">
+                    <label class="m-0 text-nowrap">
+                        Mã Rule đánh giá
+                        <span class="text-danger">(*)</span>
+                    </label>
+                </div>
+                <div class="col-md-9">
+                    <input nz-input nzSize="small" [(ngModel)]="ruleCode" (blur)="errors.ruleCode = ''" />
+                    <span class="text-danger fs-xs" *ngIf="errors.ruleCode">{{ errors.ruleCode }}</span>
+                </div>
+            </div>
+
+            <!-- Tên Rule đánh giá -->
+            <div class="row mb-2 align-items-center">
+                <div class="col-md-3">
+                    <label class="m-0 text-nowrap">
+                        Tên Rule đánh giá
+                        <span class="text-danger">(*)</span>
+                    </label>
+                </div>
+                <div class="col-md-9">
+                    <input nz-input nzSize="small" [(ngModel)]="ruleName" (blur)="errors.ruleName = ''" />
+                    <span class="text-danger fs-xs" *ngIf="errors.ruleName">{{ errors.ruleName }}</span>
+                </div>
+            </div>
+
+            <!-- Vị trí -->
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <label class="m-0 text-nowrap">
+                        Vị trí
+                        <span class="text-danger">(*)</span>
+                    </label>
+                </div>
+                <div class="col-md-9">
+                    <nz-select nzShowSearch nzPlaceHolder="Chọn vị trí" [(ngModel)]="selectedPositionId"
+                        style="width: 100%;" nzSize="small" (ngModelChange)="onPositionChange()">
+                        <nz-option *ngFor="let item of positions" [nzValue]="item.ID"
+                            [nzLabel]="item.PositionCode + ' - ' + item.PositionName">
+                        </nz-option>
+                    </nz-select>
+                    <span class="text-danger fs-xs" *ngIf="errors.positionId">{{ errors.positionId }}</span>
+                </div>
+            </div>
+        </nz-card>
+    </nz-spin>
+</div>
+
+<div class="modal-footer p-2">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" nzSize="default" (click)="save()" [nzLoading]="isLoading">
+        <i class="fas fa-save"></i> Lưu
+    </button>
+</div>

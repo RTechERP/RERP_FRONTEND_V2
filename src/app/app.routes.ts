@@ -291,6 +291,7 @@ export const routes: Routes = [
 
             //#region kế toán
             { path: 'paymentorder', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'kt-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
 
             //#endregion
 

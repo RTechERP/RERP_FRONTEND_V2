@@ -1,41 +1,63 @@
-<div class="d-flex align-items-center mb-3" style="width: 100%">
-  <div class="card border-1 rounded-0 w-100" style="max-width: 100%">
-    <!-- Header filter -->
-    <div class="card-header bg-white p-2">
-      <div class="d-flex align-items-center gap-2">
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0">
+    <div class="card-header bg-white p-1">
+      <div class="d-flex gap-1 align-items-center">
         <input
-          nz-input
-          placeholder="Nhập từ khóa tìm kiếm..."
+          type="text"
           [(ngModel)]="serialNumber"
-          style="width: 250px"
+          name="serialNumber"
+          nz-input
+          class="fs-12"
+          style="font-style: italic; flex: 1 1 auto; max-width: 350px"
+          placeholder="Tìm kiếm"
+          (keyup.enter)="getSearchProductTechSerial()"
         />
         <button
+          class="fs-12"
           nz-button
           nzType="primary"
           nzSize="small"
           (click)="getSearchProductTechSerial()"
         >
-          <nz-icon nzType="search"></nz-icon>
           Tìm kiếm
         </button>
       </div>
     </div>
-
-    <nz-splitter style="height: 86vh">
-      <!-- Phiếu nhập -->
-      <nz-splitter-panel>
-        <div class="border-bottom px-2 py-1 fw-bold text-uppercase bg-light">
-          Phiếu nhập
-        </div>
-        <div id="importTable" style="height: calc(100% - 32px)"></div>
-      </nz-splitter-panel>
-      <!-- Phiếu xuất -->
-      <nz-splitter-panel>
-        <div class="border-bottom px-2 py-1 fw-bold text-uppercase bg-light">
-          Phiếu xuất
-        </div>
-        <div id="exportTable" style="height: calc(100% - 32px)"></div>
-      </nz-splitter-panel>
-    </nz-splitter>
+    <div class="card-body p-0 w-100">
+      <nz-splitter>
+        <nz-splitter-panel nzDefaultSize="50%">
+          <nz-spin [nzSpinning]="isLoadingTableImport">
+            <nz-card nzTitle="Danh sách phiếu nhập" class="full-card">
+              <div class="grid-container-import-tech-{{idTable}}">
+                <angular-slickgrid
+                  gridId="gridImportTech-{{idTable}}"
+                  [columns]="columnDefinitionsImport"
+                  [options]="gridOptionsImport"
+                  [dataset]="datasetImport"
+                  (onAngularGridCreated)="angularGridReadyImport($event.detail)"
+                >
+                </angular-slickgrid>
+              </div>
+            </nz-card>
+          </nz-spin>
+        </nz-splitter-panel>
+        <nz-splitter-panel>
+          <nz-spin [nzSpinning]="isLoadingTableExport">
+            <nz-card nzTitle="Danh sách phiếu xuất" class="full-card">
+              <div class="grid-container-export-tech-{{idTable}}">
+                <angular-slickgrid
+                  gridId="gridExportTech-{{idTable}}"
+                  [columns]="columnDefinitionsExport"
+                  [options]="gridOptionsExport"
+                  [dataset]="datasetExport"
+                  (onAngularGridCreated)="angularGridReadyExport($event.detail)"
+                >
+                </angular-slickgrid>
+              </div>
+            </nz-card>
+          </nz-spin>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </div>
   </div>
-</div>
+</ng-container>

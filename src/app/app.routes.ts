@@ -216,6 +216,8 @@ import { ProjectPartlistPriceRequestOldComponent } from './pages/purchase/projec
 import { MeetingMinuteSlickGridComponent } from './pages/meeting-minute-slick-grid/meeting-minute-slick-grid.component';
 import { DocumentSaleAdminComponent } from './pages/hrm/document/document-sale-admin/document-sale-admin.component';
 import { InventoryBorrowNCCComponent } from './pages/old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
+import { OfficeSupplyRequestPersonComponent } from './pages/hrm/office-supply/OfficeSupplyRequests/office-supply-request-person/office-supply-request-person.component';
+
 
 import { NewsletterFormViewAllComponent } from './pages/old/newsletter/newsletter/newsletter-form-view-all/newsletter-form-view-all.component';
 import { CourseManagementComponent } from './pages/Course/course-management/course-management.component';
@@ -451,6 +453,8 @@ export const routes: Routes = [
             { path: 'asset-personal', component: AssetPersonalComponent, canActivate: [authGuard] },
             { path: 'approve-tp', component: ApproveTpComponent, canActivate: [authGuard] },
             { path: 'office-supply-requests', component: OfficeSupplyRequestsComponent, canActivate: [authGuard] },
+            { path: 'office-supply-request-person', component: OfficeSupplyRequestPersonComponent, canActivate: [authGuard] },
+
             { path: 'project-partlist', component: ProjectPartListComponent, canActivate: [authGuard] },
             { path: 'org-chart-rtc', component: OrgChartRtcComponent, canActivate: [authGuard] },
             { path: 'org-chart-rtc-management', component: OrgChartRtcManagementComponent, canActivate: [authGuard] },

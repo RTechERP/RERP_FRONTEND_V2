@@ -152,8 +152,18 @@
                         </nz-col>
                     </nz-row>
 
+
                     <nz-row [nzGutter]="16" class="mt-2">
-                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="8">
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="6">
+                            <nz-form-item class="col-md-12">
+                                <nz-form-label [nzSpan]="24">Thời gian kỳ trước</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <input nz-input type="date" placeholder="Chọn thời gian kỳ trước"
+                                        formControlName="TimePrevious" />
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="6">
                             <nz-form-item class="col-md-12">
                                 <nz-form-label [nzSpan]="24">Km kỳ trước</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
@@ -163,7 +173,7 @@
                                 </nz-form-control>
                             </nz-form-item>
                         </nz-col>
-                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="8">
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="6">
                             <nz-form-item class="col-md-12">
                                 <nz-form-label [nzSpan]="24">Km kỳ này</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
@@ -173,7 +183,7 @@
                                 </nz-form-control>
                             </nz-form-item>
                         </nz-col>
-                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="8">
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="6">
                             <nz-form-item class="col-md-12">
                                 <nz-form-label [nzSpan]="24">Số KM trong kỳ</nz-form-label>
                                 <nz-form-control [nzSpan]="24">

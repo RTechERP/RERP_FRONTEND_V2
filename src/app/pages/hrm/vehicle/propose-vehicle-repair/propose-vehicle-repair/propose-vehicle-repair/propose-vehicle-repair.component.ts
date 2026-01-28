@@ -404,6 +404,17 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
         filter: { model: Filters['compoundDate'] },
       },
       {
+        id: 'TimePrevious',
+        name: 'Thời gian kỳ trước',
+        field: 'TimePrevious',
+        width: 160,
+        sortable: true,
+        cssClass: 'text-center',
+        formatter: formatDate,
+        filterable: true,
+        filter: { model: Filters['compoundDate'] },
+      },
+      {
         id: 'KmPreviousPeriod',
         name: 'Km kỳ trước',
         field: 'KmPreviousPeriod',
@@ -428,7 +439,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       {
         id: 'KMDifference',
         name: 'Km chênh lệch',
-        field: 'KmDifference',
+        field: 'KMDifference',
         width: 120,
         sortable: true,
         cssClass: 'text-right',
@@ -889,7 +900,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
     this.dataset.forEach((row: any) => {
       const rowData = columns.map((col: any) => {
         const value = row[col.field];
-        if (col.field === 'TimeStartRepair' || col.field === 'TimeEndRepair') {
+        if (col.field === 'TimeStartRepair' || col.field === 'TimeEndRepair' || col.field === 'TimePrevious') {
           return value ? new Date(value).toLocaleDateString('vi-VN') : '';
         }
         return value !== null && value !== undefined ? value : '';
@@ -1012,6 +1023,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
               DateApprove: detail?.DateApprove || new Date().toISOString(),
               TotalPrice: detail?.TotalPrice ?? (detail?.Quantity ?? 0) * (detail?.UnitPrice ?? 0),
               Note: detail?.Note || '',
+              TimePrevious: master?.TimePrevious ?? null,
               KmPreviousPeriod: master?.KmPreviousPeriod ?? null,
               KmCurrentPeriod: master?.KmCurrentPeriod ?? null,
               WarrantyPeriod: detail?.WarrantyPeriod ?? null,

@@ -1,0 +1,44 @@
+:host {
+    font-size: 12px;
+}
+
+::ng-deep .ant-form-item-label>label {
+    font-size: 12px;
+    height: auto;
+}
+
+::ng-deep .ant-input,
+::ng-deep .ant-select-selection-item,
+::ng-deep .ant-input-number-input,
+::ng-deep .ant-picker-input>input {
+    font-size: 12px !important;
+}
+
+.modal-header {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.bg-info-subtle {
+    background-color: #e6f7ff;
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fs-14 {
+    font-size: 14px;
+}
+
+.fs-12 {
+    font-size: 12px;
+}
+
+::ng-deep .ant-form-item-explain-error {
+    font-size: 11px;
+}

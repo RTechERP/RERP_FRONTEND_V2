@@ -112,6 +112,30 @@ angular-slickgrid,
     cursor: pointer;
 }
 
+/* fix grouping bị xuống dòng */
+
+:host ::ng-deep .slick-row.slick-group {
+    height: 40px !important;
+    line-height: 40px !important;
+}
+
+:host ::ng-deep .slick-row.slick-group .slick-cell {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+:host ::ng-deep .slick-group-title {
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+}
+
+/*end */
+
 :host ::ng-deep .slick-cell {
     padding: 4px 6px;
 }
@@ -290,6 +314,7 @@ nz-tabset {
     align-items: center;
     padding-right: 4px;
 }
+
 /* ==================== CUSTOM EDITOR CLICKABLE INDICATORS ==================== */
 :host ::ng-deep .slick-cell.EvaluationContent,
 :host ::ng-deep .slick-cell.VerificationToolsContent,
@@ -301,4 +326,9 @@ nz-tabset {
 :host ::ng-deep .slick-cell.VerificationToolsContent:hover,
 :host ::ng-deep .slick-cell.RuleContent:hover {
     background-color: rgba(24, 144, 255, 0.05) !important;
+}
+
+/* Footer Row căn sang phải */
+:host ::ng-deep .slick-state-default .slick-footerrow-column {
+    justify-content: end !important;
 }

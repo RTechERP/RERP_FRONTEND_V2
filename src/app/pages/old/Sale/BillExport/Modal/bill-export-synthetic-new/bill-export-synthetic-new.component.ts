@@ -145,27 +145,27 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
     initGrid() {
         // Dynamic document columns will be added after loading
         const dynamicDocumentColumns: Column[] = [];
- const checkboxColumn: Column = {
-        id: '_checkbox_selector',
-        name: '',
-        field: '_checkbox',
-        width: 40,
-        minWidth: 40,
-        maxWidth: 40,
-        resizable: false,
-        sortable: false,
-        filterable: false,
-        cssClass: 'cell-selection',
-        headerCssClass: 'header-checkbox',
-        excludeFromExport: true, // Không export checkbox column
-        formatter: (_row, _cell, _value, _columnDef, dataContext) => {
-            // Checkbox cho từng row
-            const isSelected = this.angularGrid?.gridService?.getSelectedRows()?.includes(dataContext.id) || false;
-            return `<input type="checkbox" ${isSelected ? 'checked' : ''} />`;
-        },
-        // Header với checkbox "Select All"
+        const checkboxColumn: Column = {
+            id: '_checkbox_selector',
+            name: '',
+            field: '_checkbox',
+            width: 40,
+            minWidth: 40,
+            maxWidth: 40,
+            resizable: false,
+            sortable: false,
+            filterable: false,
+            cssClass: 'cell-selection',
+            headerCssClass: 'header-checkbox',
+            excludeFromExport: true, // Không export checkbox column
+            formatter: (_row, _cell, _value, _columnDef, dataContext) => {
+                // Checkbox cho từng row
+                const isSelected = this.angularGrid?.gridService?.getSelectedRows()?.includes(dataContext.id) || false;
+                return `<input type="checkbox" ${isSelected ? 'checked' : ''} />`;
+            },
+            // Header với checkbox "Select All"
 
-    };
+        };
 
         // Note: Checkbox selector column is automatically added by SlickGrid
         // when enableCheckboxSelector: true is set in gridOptions
@@ -178,6 +178,9 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.checkmarkMaterial,
+                exportCustomFormatter: (_row, _cell, value) => {
+                    return value === true || value === 1 ? 'V' : 'X';
+                },
                 cssClass: 'text-center',
                 filter: {
                     collection: [
@@ -198,7 +201,10 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 width: 120,
                 sortable: true,
                 filterable: true,
-                formatter: this.dateFormatter,
+                formatter: Formatters.date,
+                exportCustomFormatter: Formatters.date,
+                type: 'date',
+                params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center',
             },
@@ -224,7 +230,10 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 width: 150,
                 sortable: true,
                 filterable: true,
-                formatter: this.dateFormatter,
+                formatter: Formatters.date,
+                exportCustomFormatter: Formatters.date,
+                type: 'date',
+                params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center',
             },
@@ -236,11 +245,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
                 },
             },
             {
@@ -319,7 +324,10 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 width: 120,
                 sortable: true,
                 filterable: true,
-                formatter: this.dateFormatter,
+                formatter: Formatters.date,
+                exportCustomFormatter: Formatters.date,
+                type: 'date',
+                params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center',
             },
@@ -454,7 +462,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 filter: { model: Filters['compoundInputText'] },
             },
             // Dynamic document columns
-            ...dynamicDocumentColumns,
+            //...dynamicDocumentColumns,
         ];
 
         this.gridOptions = {
@@ -489,27 +497,27 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
     // #region Grid Events
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
- this.angularGrid.slickGrid.onClick.subscribe((e: any) => {
-        const cell = this.angularGrid.slickGrid.getCellFromEvent(e);
+        this.angularGrid.slickGrid.onClick.subscribe((e: any) => {
+            const cell = this.angularGrid.slickGrid.getCellFromEvent(e);
 
-        if (cell && cell.cell === 0) { // Column 0 là checkbox column
-            const row = cell.row;
-            const dataContext = this.angularGrid.slickGrid.getDataItem(row);
+            if (cell && cell.cell === 0) { // Column 0 là checkbox column
+                const row = cell.row;
+                const dataContext = this.angularGrid.slickGrid.getDataItem(row);
 
-            // Toggle selection
-            const selectedRows = this.angularGrid.gridService.getSelectedRows() || [];
-            const index = selectedRows.indexOf(dataContext.id);
+                // Toggle selection
+                const selectedRows = this.angularGrid.gridService.getSelectedRows() || [];
+                const index = selectedRows.indexOf(dataContext.id);
 
-            if (index >= 0) {
-                selectedRows.splice(index, 1);
-            } else {
-                selectedRows.push(dataContext.id);
+                if (index >= 0) {
+                    selectedRows.splice(index, 1);
+                } else {
+                    selectedRows.push(dataContext.id);
+                }
+
+                this.angularGrid.gridService.setSelectedRows(selectedRows);
+                this.angularGrid.slickGrid.render(); // Re-render để update checkbox
             }
-
-            this.angularGrid.gridService.setSelectedRows(selectedRows);
-            this.angularGrid.slickGrid.render(); // Re-render để update checkbox
-        }
-    });
+        });
 
         // COMMENTED FOR TESTING - Subscribe to onRowCountChanged to update filter collections
         // this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
@@ -737,28 +745,33 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
     //         this.angularGrid.slickGrid.render();
     //     }
     // }
-loadDynamicColumns(): void {
-    const dynamicColumns = this.generateDynamicColumns();
+    loadDynamicColumns(): void {
+        const dynamicColumns = this.generateDynamicColumns();
 
-    if (dynamicColumns.length === 0) return;
+        if (dynamicColumns.length === 0) return;
 
-    const existingIds = this.columnDefinitions.map((col) => col.id);
-    const newColumns = dynamicColumns.filter(
-        (col) => !existingIds.includes(col.id)
-    );
+        if (dynamicColumns.length > 0) {
+            const allColumns = this.angularGrid.gridService.getAllColumnDefinitions();
+            allColumns.push(...dynamicColumns);
+            this.columnDefinitions = [...allColumns];
+        }
+        // const existingIds = this.columnDefinitions.map((col) => col.id);
+        // const newColumns = dynamicColumns.filter(
+        //     (col) => !existingIds.includes(col.id)
+        // );
 
-    if (newColumns.length === 0) return;
+        // if (newColumns.length === 0) return;
 
-    // ✅ Checkbox column đã ở trong columnDefinitions từ đầu
-    // Chỉ cần thêm dynamic columns vào cuối
-    this.columnDefinitions = [...this.columnDefinitions, ...newColumns];
+        // // ✅ Checkbox column đã ở trong columnDefinitions từ đầu
+        // // Chỉ cần thêm dynamic columns vào cuối
+        // this.columnDefinitions = [...this.columnDefinitions, ...newColumns];
 
-    // ✅ Nếu grid đã khởi tạo, update columns
-    if (this.angularGrid && this.angularGrid.slickGrid) {
-        this.angularGrid.slickGrid.setColumns(this.columnDefinitions);
-        this.angularGrid.slickGrid.render();
+        // // ✅ Nếu grid đã khởi tạo, update columns
+        // if (this.angularGrid && this.angularGrid.slickGrid) {
+        //     this.angularGrid.slickGrid.setColumns(this.columnDefinitions);
+        //     this.angularGrid.slickGrid.render();
+        // }
     }
-}
     /**
      * Populate multipleSelect filter collections with unique values from dataset
      */

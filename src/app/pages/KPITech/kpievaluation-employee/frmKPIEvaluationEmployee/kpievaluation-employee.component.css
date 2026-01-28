@@ -381,3 +381,63 @@ textarea {
 :host ::ng-deep .slick-state-default .slick-footerrow-column {
     justify-content: end !important;
 }
+
+/* fix grouping bị xuống dòng */
+
+:host ::ng-deep .slick-row.slick-group {
+    height: 40px !important;
+    line-height: 40px !important;
+}
+
+:host ::ng-deep .slick-row.slick-group .slick-cell {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+:host ::ng-deep .slick-group-title {
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+}
+
+/*end */
+/* Generic class for cells that need multi-line wrapping (max 3 lines) */
+:host ::ng-deep .cell-multiline {
+    white-space: normal !important;
+    overflow: hidden !important;
+    line-height: 1.4 !important;
+}
+
+:host ::ng-deep .cell-multiline>span,
+:host ::ng-deep .cell-wrap-text>span {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+    line-height: 1.4 !important;
+}
+
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
+    color: #141a24 !important;
+    opacity: 1 !important;
+    padding: 4px !important;
+    padding-left: 12px !important;
+}
+
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #0e1114 !important;
+    font-weight: 600;
+}
+
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
+    background: #1677ff !important;
+}

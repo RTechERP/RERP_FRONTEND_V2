@@ -42,3 +42,20 @@
 ::ng-deep .ant-form-item-explain-error {
     font-size: 11px;
 }
+
+/* Fix height discrepancy between Reason (inside input-group) and Note (regular textarea) */
+::ng-deep .ant-input-group-wrapper {
+    display: block !important;
+}
+
+::ng-deep .ant-input-group-addon {
+    padding: 0 8px !important;
+}
+
+::ng-deep .ant-input-group>textarea.ant-input {
+    height: auto !important;
+}
+
+::ng-deep .ant-input-group {
+    display: flex !important;
+}

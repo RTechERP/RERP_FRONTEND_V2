@@ -117,7 +117,7 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
             ...DEFAULT_TABLE_CONFIG,
             data: this.dataTable,
             paginationMode: 'local',
-            layout: 'fitDataStretch',
+            layout: 'fitColumns',
             height: '100%',
             selectableRows: 1,
             pagination: true,
@@ -150,33 +150,27 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
                         return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
                     },
                 },
-                {
-                    title: 'Họ tên TBP duyệt',
-                    field: 'FullNameApproved',
-                    hozAlign: 'left',
-                    headerHozAlign: 'center',
-                    width: 200,
-                },
+
                 {
                     title: 'Người đăng ký',
                     field: 'UserName',
                     hozAlign: 'left',
                     headerHozAlign: 'center',
-                    width: 150,
+
                 },
                 {
                     title: 'Phòng ban',
                     field: 'DepartmentName',
                     hozAlign: 'left',
                     headerHozAlign: 'center',
-                    width: 160,
+
                 },
                 {
                     title: 'Ngày đăng ký',
                     field: 'DateRequest',
-                    hozAlign: 'left',
+                    hozAlign: 'center',
                     headerHozAlign: 'center',
-                    width: 200,
+
                     formatter: (cell: any) => {
                         const value = cell.getValue();
                         return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
@@ -299,7 +293,10 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
         }
 
         const rowData = selectedRows[0].getData();
-        if (rowData.IsApproved || rowData.IsAdminApproved) {
+        const isAdminApproved = ['true', true, 1, '1'].includes(rowData.IsAdminApproved);
+        const isApproved = ['true', true, 1, '1'].includes(rowData.IsApproved);
+
+        if (isAdminApproved || isApproved) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể sửa yêu cầu đã được duyệt');
             return;
         }
@@ -341,7 +338,10 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
         }
 
         const rowData = selectedRows[0].getData();
-        if (rowData.IsApproved || rowData.IsAdminApproved) {
+        const isAdminApproved = ['true', true, 1, '1'].includes(rowData.IsAdminApproved);
+        const isApproved = ['true', true, 1, '1'].includes(rowData.IsApproved);
+
+        if (isAdminApproved || isApproved) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể xóa yêu cầu đã được duyệt');
             return;
         }

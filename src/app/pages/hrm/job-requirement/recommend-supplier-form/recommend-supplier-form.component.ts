@@ -41,6 +41,7 @@ interface SupplierProposalRow {
   Supplier: string;
   Contact: string;
   UnitPrice: string | number;
+  Quantity: string | number;
   TotalAmount: string | number;
   Note: string;
 }
@@ -145,6 +146,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       Supplier: supplier?.Supplier || '',
       Contact: supplier?.Contact || '',
       UnitPrice: supplier && supplier.UnitPrice !== undefined ? supplier.UnitPrice : '',
+      Quantity: supplier && supplier.Quantity !== undefined ? supplier.Quantity : '',
       TotalAmount: supplier && supplier.TotalAmount !== undefined ? supplier.TotalAmount : '',
       Note: supplier?.Note || '',
     };
@@ -327,6 +329,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
         Supplier: row.Supplier || '',
         Contact: row.Contact || '',
         UnitPrice: row.UnitPrice || '',
+        Quantity: row.Quantity || '',
         TotalAmount: row.TotalAmount || '',
         Note: row.Note || '',
       };
@@ -640,6 +643,9 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   }
 
   private buildSupplierPayload(product: ProductProposalRow, supplier: SupplierProposalRow) {
+    const topData = this.DepartmentRequiredTable?.getData() || this.DepartmentRequiredData;
+    const requirementQuantity = this.parseCurrency(topData[0]?.Quantity);
+
     const departmentRequiredID = supplier.DepartmentRequiredID
       || (this.DepartmentRequiredData && this.DepartmentRequiredData.length > 0
         ? (this.DepartmentRequiredData[0].ID || this.DepartmentRequiredData[0].DepartmentRequiredID || 0)
@@ -653,6 +659,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       ProductName: product.ProductName || '',
       Supplier: supplier.Supplier || '',
       Contact: supplier.Contact || '',
+      Quantity: requirementQuantity,
       UnitPrice: this.parseCurrency(supplier.UnitPrice),
       TotalAmount: this.parseCurrency(supplier.TotalAmount),
       Note: supplier.Note || '',
@@ -848,6 +855,15 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
 
     // Lưu giá trị số vào model
     supplier[field] = number;
+
+    // Tự động tính Thành tiền nếu nhập Đơn giá (Số lượng lấy từ bảng trên)
+    if (field === 'UnitPrice') {
+      const topData = this.DepartmentRequiredTable?.getData() || this.DepartmentRequiredData;
+      const quantity = this.parseCurrency(topData[0]?.Quantity);
+      const unitPrice = this.parseCurrency(supplier.UnitPrice);
+
+      supplier.TotalAmount = quantity * unitPrice;
+    }
 
     // Format hiển thị
     const formattedValue = number.toLocaleString('vi-VN');

@@ -157,6 +157,7 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
     // HCNS Data
     HCNSApprovalData: any[] = [];
     selectedDepartmentRequiredID: number = 0;
+    selectedNumberRequest: string = '';
 
     // Product selection for approval
     selectedProductIndices = new Set<number>();
@@ -439,11 +440,12 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
                             field: 'EmployeeName',
                             headerHozAlign: 'center',
                         },
-                        // {
-                        //     title: 'Vị trí',
-                        //     field: 'ChucVu',
-                        //     headerHozAlign: 'center',
-                        // },
+                        {
+                            title: 'Vị trí',
+                            field: 'ChucVu',
+                            headerHozAlign: 'center',
+                            hozAlign: 'left',
+                        },
                         {
                             title: 'Bộ phận',
                             field: 'EmployeeDepartment',
@@ -520,6 +522,7 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
 
                 // Lấy DepartmentRequiredID từ ID của row
                 this.selectedDepartmentRequiredID = rowData['ID'] || 0;
+                this.selectedNumberRequest = rowData['NumberRequest'] || '';
 
                 // Load HCNS data khi chọn DepartmentRequired
                 if (this.selectedDepartmentRequiredID) {
@@ -530,6 +533,7 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
                 const selectedRows = this.DepartmentRequiredTable!.getSelectedRows();
                 this.JobrequirementID = 0;
                 this.selectedDepartmentRequiredID = 0;
+                this.selectedNumberRequest = '';
                 this.HCNSApprovalData = [];
                 if (selectedRows.length === 0) {
                     this.data = []; // Reset data
@@ -815,5 +819,40 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
         const contentPayment = `Đề nghị thanh toán: ${selectedItem.RequestContent || ''} - Số lượng: ${selectedItem.Quantity || ''} ${selectedItem.Unit || ''}`;
 
         this.initPaymentModal(paymentOrder, false, contentPayment);
+    }
+
+    /**
+     * Xuất Excel đề xuất mua hàng
+     */
+    exportExcel() {
+        if (!this.selectedDepartmentRequiredID) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một yêu cầu để xuất Excel!');
+            return;
+        }
+
+        const loadingMsg = this.message.loading('Đang chuẩn bị file Excel...', { nzDuration: 0 }).messageId;
+
+        this.hrPurchaseProposalService.exportExcel(
+            this.JobrequirementID,
+            this.selectedDepartmentRequiredID,
+            this.searchParams.DateStart,
+            this.searchParams.DateEnd
+        ).subscribe({
+            next: (blob: Blob) => {
+                this.message.remove(loadingMsg);
+                if (!blob || blob.size === 0) {
+                    this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel!');
+                    return;
+                }
+
+                const fileName = `De_xuat_mua_hang_${this.selectedNumberRequest || this.selectedDepartmentRequiredID}_${DateTime.now().toFormat('yyyyMMdd')}.xlsx`;
+                saveAs(blob, fileName);
+                this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
+            },
+            error: (err) => {
+                this.message.remove(loadingMsg);
+                this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất Excel!');
+            }
+        });
     }
 }

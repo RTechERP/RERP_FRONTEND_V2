@@ -143,6 +143,24 @@
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+                  <nz-form-item class="col-md-12">
+                    <nz-form-label [nzSpan]="24">Km kỳ trước</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <nz-input-number formControlName="KmPreviousPeriod" [nzMin]="0" [nzStep]="1"
+                        class="w-100"></nz-input-number>
+                    </nz-form-control>
+                  </nz-form-item>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+                  <nz-form-item class="col-md-12">
+                    <nz-form-label [nzSpan]="24">Km kỳ này</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <nz-input-number formControlName="KmCurrentPeriod" [nzMin]="0" [nzStep]="1"
+                        class="w-100"></nz-input-number>
+                    </nz-form-control>
+                  </nz-form-item>
+                </nz-col>
               </nz-row>
 
               <!-- Hàng 2: Reason / ProposeContent / Note -->

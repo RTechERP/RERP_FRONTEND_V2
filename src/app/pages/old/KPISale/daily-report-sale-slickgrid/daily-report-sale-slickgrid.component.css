@@ -11,7 +11,8 @@
 }
 
 .grid-container-daily-report {
-    height: 100% !important;
+    /* 100vh minus: header(40px) + menubar(~40px) + filter bar(~50px) + footer(~45px) = ~175px */
+    height: calc(100vh - 175px) !important;
     width: 100% !important;
 }
 

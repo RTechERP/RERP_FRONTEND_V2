@@ -1,0 +1,31 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.custom-tabulator {
+    height: 100%;
+    font-size: 12px;
+}
+
+.btn-add,
+.btn-edit,
+.btn-delete {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+}
+
+.card-header h6 {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+::ng-deep .tabulator-cell {
+    font-size: 12px !important;
+}
+
+::ng-deep .tabulator-col-title {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}

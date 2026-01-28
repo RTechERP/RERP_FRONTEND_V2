@@ -216,13 +216,15 @@ import { ProjectPartlistPriceRequestOldComponent } from './pages/purchase/projec
 import { MeetingMinuteSlickGridComponent } from './pages/meeting-minute-slick-grid/meeting-minute-slick-grid.component';
 import { DocumentSaleAdminComponent } from './pages/hrm/document/document-sale-admin/document-sale-admin.component';
 import { InventoryBorrowNCCComponent } from './pages/old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
+import { OfficeSupplyRequestPersonComponent } from './pages/hrm/office-supply/OfficeSupplyRequests/office-supply-request-person/office-supply-request-person.component';
+
 
 import { NewsletterFormViewAllComponent } from './pages/old/newsletter/newsletter/newsletter-form-view-all/newsletter-form-view-all.component';
 import { CourseManagementComponent } from './pages/Course/course-management/course-management.component';
 import { EconimicContractTermComponent } from './pages/hrm/economic-contract/econimic-contract-term/econimic-contract-term.component';
 import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/economic-contract-type/economic-contract-type.component';
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
-import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/kpievaluation-employee.component';
+import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/kpievaluation-employee.component';
 import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
 import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
 import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';
@@ -251,6 +253,7 @@ import { VehicleBookingManagementSlickgridComponent } from './pages/hrm/vehicle/
 import { KpiPositionEmployeeComponent } from './pages/old/Technical/kpi-position-employee/kpi-position-employee.component';
 import { KpiEvaluationComponent } from './pages/old/Technical/kpi-evaluation/kpi-evaluation.component';
 import { KpiEmployeeTeamComponent } from './pages/old/Technical/kpi-employee-team/kpi-employee-team.component';
+import { KpiEvaluationRuleComponent } from './pages/old/Technical/kpi-evaluation-rule/kpi-evaluation-rule.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -288,6 +291,7 @@ export const routes: Routes = [
 
             //#region kế toán
             { path: 'paymentorder', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'kt-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
 
             //#endregion
 
@@ -451,6 +455,8 @@ export const routes: Routes = [
             { path: 'asset-personal', component: AssetPersonalComponent, canActivate: [authGuard] },
             { path: 'approve-tp', component: ApproveTpComponent, canActivate: [authGuard] },
             { path: 'office-supply-requests', component: OfficeSupplyRequestsComponent, canActivate: [authGuard] },
+            { path: 'office-supply-request-person', component: OfficeSupplyRequestPersonComponent, canActivate: [authGuard] },
+
             { path: 'project-partlist', component: ProjectPartListComponent, canActivate: [authGuard] },
             { path: 'org-chart-rtc', component: OrgChartRtcComponent, canActivate: [authGuard] },
             { path: 'org-chart-rtc-management', component: OrgChartRtcManagementComponent, canActivate: [authGuard] },
@@ -871,7 +877,7 @@ export const routes: Routes = [
             { path: 'product-report-hcm', component: ProductReportNewComponent, canActivate: [authGuard] },
             { path: 'product-export-borrow-hcm', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report-hcm', component: BorrowReportComponent, canActivate: [authGuard] },
-            //{ path: 'borrow-product-history-hcm', component: HistoryProductRtcComponent, canActivate: [authGuard] },
+            { path: 'borrow-product-history-hcm', component: HistoryProductRtcComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-tech-hcm', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
             { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
             { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
@@ -1016,7 +1022,9 @@ export const routes: Routes = [
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
             { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-evaluation', component: KpiEvaluationComponent, canActivate: [authGuard] },
+
             { path: 'kpi-employee-team', component: KpiEmployeeTeamComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation-rule', component: KpiEvaluationRuleComponent, canActivate: [authGuard] },
 
             { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
         ],

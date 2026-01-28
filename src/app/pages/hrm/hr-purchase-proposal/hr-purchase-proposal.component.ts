@@ -62,6 +62,8 @@ import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ActivatedRoute } from '@angular/router';
+import { PaymentOrder } from '../../general-category/payment-order/model/payment-order';
+import { PaymentOrderDetailComponent } from '../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
 
 interface DepartmentRequired {
     ID: number;
@@ -155,6 +157,7 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
     // HCNS Data
     HCNSApprovalData: any[] = [];
     selectedDepartmentRequiredID: number = 0;
+    selectedNumberRequest: string = '';
 
     // Product selection for approval
     selectedProductIndices = new Set<number>();
@@ -422,6 +425,7 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
                     data: this.DepartmentRequiredData || [],
                     ...DEFAULT_TABLE_CONFIG,
                     selectableRows: 1,
+                    layout: 'fitDataStretch',
                     paginationMode: 'local',
                     height: '100%',
                     columns: [
@@ -440,18 +444,20 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
                             title: 'Vị trí',
                             field: 'ChucVu',
                             headerHozAlign: 'center',
+                            hozAlign: 'left',
                         },
                         {
                             title: 'Bộ phận',
                             field: 'EmployeeDepartment',
                             headerHozAlign: 'center',
+                            width: 200,
                         },
                         {
                             title: 'Ngày yêu cầu',
                             field: 'DateRequest',
-                            hozAlign: 'left',
+                            hozAlign: 'center',
                             headerHozAlign: 'center',
-                            width: 200,
+                            width: 120,
                             formatter: (cell: any) => {
                                 const value = cell.getValue();
                                 return value
@@ -482,10 +488,10 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
                         },
                         {
                             title: 'Ngày yêu cầu hoàn thành',
-                            field: 'CompletionDate',
-                            hozAlign: 'left',
+                            field: 'DeadlineRequest',
+                            hozAlign: 'center',
                             headerHozAlign: 'center',
-                            width: 200,
+                            width: 120,
                             formatter: (cell: any) => {
                                 const value = cell.getValue();
                                 return value
@@ -516,6 +522,7 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
 
                 // Lấy DepartmentRequiredID từ ID của row
                 this.selectedDepartmentRequiredID = rowData['ID'] || 0;
+                this.selectedNumberRequest = rowData['NumberRequest'] || '';
 
                 // Load HCNS data khi chọn DepartmentRequired
                 if (this.selectedDepartmentRequiredID) {
@@ -526,6 +533,7 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
                 const selectedRows = this.DepartmentRequiredTable!.getSelectedRows();
                 this.JobrequirementID = 0;
                 this.selectedDepartmentRequiredID = 0;
+                this.selectedNumberRequest = '';
                 this.HCNSApprovalData = [];
                 if (selectedRows.length === 0) {
                     this.data = []; // Reset data
@@ -740,6 +748,111 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
             },
             error: (err) => {
             },
+        });
+    }
+
+    /**
+     * Mở modal đề nghị thanh toán
+     */
+    initPaymentModal(paymentOrder: any = new PaymentOrder(), isCopy: boolean = false, initialContentPayment: string = '') {
+        const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            scrollable: true,
+            fullscreen: true,
+        });
+        modalRef.componentInstance.paymentOrder = paymentOrder;
+        modalRef.componentInstance.isCopy = isCopy;
+        modalRef.componentInstance.initialContentPayment = initialContentPayment;
+    }
+
+    /**
+     * Mở đề nghị thanh toán từ dòng được chọn
+     */
+    openPaymentOrder() {
+        // Kiểm tra đã chọn dòng chưa
+        if (!this.DepartmentRequiredTable) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng dữ liệu chưa được khởi tạo!');
+            return;
+        }
+
+        const selectedData = this.DepartmentRequiredTable.getSelectedData();
+        if (!selectedData || selectedData.length === 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để đề nghị thanh toán!');
+            return;
+        }
+
+        if (selectedData.length > 1) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Chỉ được chọn một dòng để đề nghị thanh toán!');
+            return;
+        }
+
+        const selectedItem = selectedData[0];
+        console.log('Selected row data for payment:', selectedItem);
+
+        // Tạo PaymentOrder mới với dữ liệu từ dòng được chọn
+        const paymentOrder = new PaymentOrder();
+        paymentOrder.ID = 0;
+        paymentOrder.TypeOrder = 2; // Loại đề nghị
+        paymentOrder.PaymentOrderTypeID = 22; // Loại thanh toán
+        paymentOrder.ReceiverInfo = selectedItem.EmployeeName || '';
+
+        // Format ngày
+        const formatDate = (dateStr: string): string => {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        };
+
+        // Lý do đề nghị thanh toán
+        paymentOrder.ReasonOrder = `Đề nghị thanh toán mua hàng ngày ${formatDate(selectedItem.DateRequest)} - ${selectedItem.RequestContent || ''}`;
+
+        // Thông tin khác từ dòng được chọn
+        paymentOrder.EmployeeID = selectedItem.RequesterID || null;
+        paymentOrder.FullName = selectedItem.EmployeeName || '';
+        paymentOrder.DepartmentName = selectedItem.EmployeeDepartment || '';
+        paymentOrder.Note = selectedItem.Note || selectedItem.Reason || '';
+
+        // Nội dung thanh toán
+        const contentPayment = `Đề nghị thanh toán: ${selectedItem.RequestContent || ''} - Số lượng: ${selectedItem.Quantity || ''} ${selectedItem.Unit || ''}`;
+
+        this.initPaymentModal(paymentOrder, false, contentPayment);
+    }
+
+    /**
+     * Xuất Excel đề xuất mua hàng
+     */
+    exportExcel() {
+        if (!this.selectedDepartmentRequiredID) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một yêu cầu để xuất Excel!');
+            return;
+        }
+
+        const loadingMsg = this.message.loading('Đang chuẩn bị file Excel...', { nzDuration: 0 }).messageId;
+
+        this.hrPurchaseProposalService.exportExcel(
+            this.JobrequirementID,
+            this.selectedDepartmentRequiredID,
+            this.searchParams.DateStart,
+            this.searchParams.DateEnd
+        ).subscribe({
+            next: (blob: Blob) => {
+                this.message.remove(loadingMsg);
+                if (!blob || blob.size === 0) {
+                    this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel!');
+                    return;
+                }
+
+                const fileName = `De_xuat_mua_hang_${this.selectedNumberRequest || this.selectedDepartmentRequiredID}_${DateTime.now().toFormat('yyyyMMdd')}.xlsx`;
+                saveAs(blob, fileName);
+                this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
+            },
+            error: (err) => {
+                this.message.remove(loadingMsg);
+                this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất Excel!');
+            }
         });
     }
 }

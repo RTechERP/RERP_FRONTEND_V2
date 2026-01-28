@@ -151,6 +151,11 @@ export class KpiEvaluationComponent implements OnInit {
 
     this.gridOptions = {
       enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: true,

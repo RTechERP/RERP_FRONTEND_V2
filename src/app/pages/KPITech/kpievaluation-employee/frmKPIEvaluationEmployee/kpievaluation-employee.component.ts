@@ -16,7 +16,7 @@ import {
   SortDirectionNumber,
   EditCommand,
 } from 'angular-slickgrid';
-import { ReadOnlyLongTextEditor } from './frmKPIEvaluationEmployee/readonly-long-text-editor';
+import { ReadOnlyLongTextEditor } from './readonly-long-text-editor';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -29,10 +29,13 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
-import { KPIService } from '../kpi-service/kpi.service';
-import { AppUserService } from '../../../services/app-user.service';
-import { AuthService } from '../../../auth/auth.service';
+import { KPIService } from '../../kpi-service/kpi.service';
+import { AppUserService } from '../../../../services/app-user.service';
+import { AuthService } from '../../../../auth/auth.service';
 import { HostListener } from '@angular/core';
+import { ProjectPartListSlickGridComponent } from '../../../project-part-list-slick-grid/project-part-list-slick-grid.component';
+import { KPIEvaluationFactorScoringDetailsComponent } from '../../kpievaluation-factor-scoring-details/kpievaluation-factor-scoring-details.component';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 interface LiXi {
   id: number;
@@ -167,6 +170,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   private appUserService = inject(AppUserService);
   private notification = inject(NzNotificationService);
   private modal = inject(NzModalService);
+  private modalService = inject(NgbModal);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
@@ -177,9 +181,19 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.departmentID = this.appUserService.departmentID || 2;
     this.isAdmin = this.appUserService.isAdmin || false;
 
-    // Check query params for isTBPView
+    // Check query params for isTBPView and employeeID
     this.route.queryParams.subscribe(params => {
       this.isTBPView = params['isTBPView'] === 'true' || params['isTBPView'] === true;
+
+      // Nếu có employeeID trên query params thì ưu tiên dùng (giống WinForm passed from parent)
+      if (params['employeeID']) {
+        this.employeeID = Number(params['employeeID']);
+      } else {
+        // Nếu không có và không phải isTBPView thì dùng ID hiện tại (mapping Load() line 46 WinForm)
+        if (!this.isTBPView) {
+          this.employeeID = this.appUserService.employeeID || 0;
+        }
+      }
     });
   }
 
@@ -359,21 +373,39 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         name: 'Mã kỳ đánh giá',
         width: 120,
         sortable: true,
-        filterable: true
+        filterable: true,
+        cssClass: 'cell-multiline',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Code);
+          return `<span title="${escaped}">${value}</span>`;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'Name',
         field: 'Name',
         name: 'Tên kỳ đánh giá',
-        width: 200,
+        width: 280,
         sortable: true,
-        filterable: true
+        filterable: true,
+        cssClass: 'cell-multiline',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Name);
+          return `<span title="${escaped}">${value}</span>`;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'YearEvaluation',
         field: 'YearEvaluation',
         name: 'Năm',
-        width: 70,
+        width: 50,
         sortable: true,
         cssClass: 'text-center'
       },
@@ -388,6 +420,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
     this.sessionGridOptions = {
       enableAutoResize: true,
+      rowHeight: 45,
       autoResize: {
         container: '.grid-session-container',
         calculateAvailableSizeBy: 'container',
@@ -402,7 +435,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableSorting: true,
       enableFiltering: false,
       enablePagination: false,
-      forceFitColumns: true
+      forceFitColumns: false
     };
   }
 
@@ -413,22 +446,49 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'ExamCode',
         field: 'ExamCode',
         name: 'Mã bài đánh giá',
-        width: 120,
-        sortable: true
+        width: 140,
+        sortable: true,
+        cssClass: 'cell-multiline',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ExamCode);
+          return `<span title="${escaped}">${value}</span>`;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'ExamName',
         field: 'ExamName',
         name: 'Tên bài đánh giá',
-        width: 200,
-        sortable: true
+        width: 130,
+        sortable: true,
+        cssClass: 'cell-multiline',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ExamName);
+          return `<span title="${escaped}">${value}</span>`;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'StatusText',
         field: 'StatusText',
         name: 'Trạng thái',
-        width: 100,
-        sortable: true
+        width: 90,
+        sortable: true,
+        cssClass: 'cell-multiline',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ExamName);
+          return `<span title="${escaped}">${value}</span>`;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'Deadline',
@@ -441,6 +501,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
     this.examGridOptions = {
       enableAutoResize: true,
+      rowHeight: 50,
       autoResize: {
         container: '.grid-exam-container',
         calculateAvailableSizeBy: 'container',
@@ -454,7 +515,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       },
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: true,
+      forceFitColumns: false,
     };
   }
 
@@ -983,6 +1044,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       else if (isTeam) {
         bgColor = '#d1e7dd';
       }
+      // Node KPINL/KPINQ: Cột TotalError được tô màu vàng (theo WinForm)
+      else if (isNQNL) {
+        bgColor = '#FFFFE0';
+      }
       // Node thường (không phải KPI, KPINL, KPINQ) - vàng nhạt
       else if (!isKPI && !isNQNL) {
         bgColor = '#FFFFE0';
@@ -1192,9 +1257,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
-          const escaped = this.escapeHtml(dataContext.RuleContent);
+          const escaped = this.escapeHtml(dataContext.EvaluationCode);
           const formattedValue = String(value).replace(/\r\n/g, '<br>').replace(/\n/g, '<br>');
-          return `<span title="${escaped}">${formattedValue}</span>`;
+          return `<span title="${escaped}" style="cursor: help;">${formattedValue}</span>`;
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -1918,8 +1983,49 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   // #endregion
 
   btnEmployeeApproved_Click(): void {
-    console.log('Employee approved clicked');
-    // Implement opening evaluation dialog like WinForm frmKPIEvaluationFactorScoringDetails
+    if (this.selectedExamID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn bài đánh giá!');
+      return;
+    }
+
+    // Get selected exam data
+    const selectedExam = this.dataExam.find((exam: any) => exam.ID === this.selectedExamID);
+    if (!selectedExam) {
+      this.notification.warning('Thông báo', 'Không tìm thấy thông tin bài đánh giá!');
+      return;
+    }
+
+    // Open modal KPIEvaluationFactorScoringDetails like WinForm frmKPIEvaluationFactorScoringDetails
+    const modalRef = this.modalService.open(KPIEvaluationFactorScoringDetailsComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+
+    // mapping logic WinForm line 517-525
+    const empId = this.isTBPView ? this.employeeID : (this.appUserService.employeeID || 0);
+
+    // Pass data to component via componentInstance
+    modalRef.componentInstance.typePoint = 1; // 1 = Nhân viên tự đánh giá
+    modalRef.componentInstance.employeeID = this.isAdmin ? empId : (this.appUserService.employeeID || 0);
+    modalRef.componentInstance.kpiExam = selectedExam;
+    modalRef.componentInstance.status = selectedExam.Status || 0;
+    modalRef.componentInstance.departmentID = this.departmentID;
+
+    // Handle modal close result
+    modalRef.result.then(
+      (result: any) => {
+        if (result?.success) {
+          // Reload data after successful save
+          this.loadDataDetails();
+          this.loadKPIExam(this.selectedSessionID);
+        }
+      },
+      (reason: any) => {
+        // Modal dismissed - do nothing
+      }
+    );
   }
 
   btnSuccessKPI_Click(): void {
@@ -2888,6 +2994,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         const stt = String(row.STT || '');
         const ruleCode = String(row.EvaluationCode || '').toUpperCase();
         const isDiemThuong = ruleCode === 'THUONG';
+        console.log(`[Employee] Start - STT: ${stt}, Rule: ${ruleCode}`);
 
         // Lấy các giá trị cấu hình từ row
         const maxPercentBonus = Number(row.MaxPercent) || 0;
@@ -2898,7 +3005,6 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         const childNodes = dataList.filter((child: any) =>
           child.ParentID === row.ID || child.parentId === row.id
         );
-
         if (childNodes.length > 0) {
           // ============ XỬ LÝ NODE CHA (có node con) ============
           let totalPercentBonus = 0;
@@ -3000,6 +3106,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         if (!isPublish && !this.isTBPView) {
           row.PercentRemaining = 0;
         }
+        console.log(`[Employee] End - Rule: ${ruleCode}, TotalError: ${row.TotalError}, PercentBonus: ${row.PercentBonus}, PercentRemaining: ${row.PercentRemaining}`);
       }
 
       // Bước 3: Cập nhật lại grid

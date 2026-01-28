@@ -80,7 +80,7 @@ export class DocumentService {
 
   uploadMultipleFiles(
     files: File[],
-    typeID?: number,
+    typeCode?: string,
     subPath?: string
   ): Observable<any> {
     const formData = new FormData();
@@ -88,11 +88,11 @@ export class DocumentService {
       formData.append('files', file);
     });
 
-    // Set key based on typeID: 57=Certificate, 58=Critical, default=TrainingRegistration
+    // Set key based on typeCode: CER=Certificate, COP=Critical, default=TrainingRegistration
     let key = 'TrainingRegistration';
-    if (typeID === 57) {
+    if (typeCode === 'CER') {
       key = 'Certificate';
-    } else if (typeID === 58) {
+    } else if (typeCode === 'COP') {
       key = 'Critical';
     }
     formData.append('key', key);
@@ -103,12 +103,12 @@ export class DocumentService {
     return this.http.post<any>(`${this.apiUrl}/home/upload-multiple`, formData);
   }
 
-  downloadFile(filePath: string, typeID?: number): Observable<Blob> {
-    // Set key based on typeID: 57=Certificate, 58=Critical, default=TrainingRegistration
+  downloadFile(filePath: string, typeCode?: string): Observable<Blob> {
+    // Set key based on typeCode: CER=Certificate, COP=Critical, default=TrainingRegistration
     let key = 'TrainingRegistration';
-    if (typeID === 57) {
+    if (typeCode === 'CER') {
       key = 'Certificate';
-    } else if (typeID === 58) {
+    } else if (typeCode === 'COP') {
       key = 'Critical';
     }
 
@@ -124,13 +124,13 @@ export class DocumentService {
   downloadFileSale(
     fileName: string,
     documentName?: string,
-    typeID?: number
+    typeCode?: string
   ): Observable<Blob> {
-    // Set key based on typeID: 57=Certificate, 58=Critical, default=EconomicContract
+    // Set key based on typeCode: CER=Certificate, COP=Critical, default=EconomicContract
     let key = 'TrainingRegistration';
-    if (typeID === 57) {
+    if (typeCode === 'CER') {
       key = 'Certificate';
-    } else if (typeID === 58) {
+    } else if (typeCode === 'COP') {
       key = 'Critical';
     }
 

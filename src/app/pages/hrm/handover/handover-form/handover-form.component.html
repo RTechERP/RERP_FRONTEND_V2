@@ -50,7 +50,7 @@
                             <div nz-col [nzSpan]="24">
                                 <nz-select [(ngModel)]="newHandover.PositionID" nzPlaceHolder="Chọn chức vụ"
                                     style="width: 100%" name="PositionID" nzShowSearch [nzFilterOption]="filterOption"
-                                    nzAllowClear>
+                                    nzAllowClear nzDisabled>
                                     <nz-option *ngFor="let item of dataPosition" [nzLabel]="item.Name"
                                         [nzValue]="item.ID">
                                     </nz-option>
@@ -70,7 +70,7 @@
                             <div nz-col [nzSpan]="24">
                                 <nz-select [(ngModel)]="newHandover.DepartmentID" nzPlaceHolder="Chọn phòng ban"
                                     style="width: 100%" name="Name" nzShowSearch [nzFilterOption]="filterOption"
-                                    nzAllowClear>
+                                    nzAllowClear nzDisabled>
                                     <nz-option *ngFor="let item of dataDepartment" [nzLabel]="item.Name"
                                         [nzValue]="item.ID">
                                     </nz-option>
@@ -85,47 +85,47 @@
 
     <div class="box">
         <nz-tabset nzType="card" (nzSelectedIndexChange)="onTabChange($event)" style="height: 100%">
-            <nz-tab nzTitle="Người nhận bàn giao" [tabIndex]="0" style="height: 100%">
+            <nz-tab nzTitle="Người nhận bàn giao" [nzForceRender]="true" style="height: 100%">
                 <div class="card-body p-0" style="height: 100%;">
                     <div id="handoverReceiver" style="width: 100%; height: 100%"></div>
                 </div>
             </nz-tab>
-            <nz-tab nzTitle="Công việc bàn giao">
+            <nz-tab nzTitle="Công việc bàn giao" [nzForceRender]="true">
                 <div class="box" style="height: 100%">
                     <div class="card-body" style="height: 100%">
                         <div id="handoverWork" style="width: 100%; height: 100%"></div>
                     </div>
                 </div>
             </nz-tab>
-            <nz-tab nzTitle="Tài sản cấp phát">
+            <nz-tab nzTitle="Tài sản cấp phát" [nzForceRender]="true">
                 <div class="box" style="height: 100%">
                     <div class="card-body" style="height: 100%">
                         <div id="handoverAsset" style="width: 100%; height: 100%"></div>
                     </div>
                 </div>
             </nz-tab>
-            <nz-tab nzTitle="Tài sản kho">
+            <nz-tab nzTitle="Tài sản kho" [nzForceRender]="true">
                 <div class="box" style="height: 100%">
                     <div class="card-body" style="height: 100%">
                         <div id="handoverWarehouse" style="width: 100%; height: 100%"></div>
                     </div>
                 </div>
             </nz-tab>
-            <nz-tab nzTitle="Công nợ">
+            <nz-tab nzTitle="Công nợ" [nzForceRender]="true">
                 <div class="box" style="height: 100%">
                     <div class="card-body" style="height: 100%">
                         <div id="handoverFinance" style="width: 100%; height: 100%"></div>
                     </div>
                 </div>
             </nz-tab>
-            <nz-tab nzTitle="Nhân viên trực thuộc">
+            <nz-tab nzTitle="Nhân viên trực thuộc" [nzForceRender]="true">
                 <div class="box" style="height: 100%">
                     <div class="card-body" style="height: 100%">
                         <div id="handoverSubordinate" style="width: 100%; height: 100%"></div>
                     </div>
                 </div>
             </nz-tab>
-            <nz-tab nzTitle="Duyệt">
+            <nz-tab nzTitle="Duyệt" [nzForceRender]="true">
                 <div class="box" style="height: 100%">
                     <div class="card-body" style="height: 100%">
                         <div id="handoverApprove" style="width: 100%; height: 100%"></div>

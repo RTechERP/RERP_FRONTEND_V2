@@ -53,6 +53,8 @@ import { TsAssetSourceFormComponent } from '../ts-asset-source/ts-asset-source-f
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { Menubar } from 'primeng/menubar';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
     standalone: true,
@@ -80,6 +82,8 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
         NzModalModule,
         NzDropDownModule,
         NzSpinModule,
+        NzFormModule,
+        Menubar,
         AngularSlickgridModule
     ],
     selector: 'app-ts-asset-management',
@@ -117,7 +121,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     dateEnd: string = '';
     employeeID: number | null = null;
     status: number[] = [];
-    isMobile = false;
+    isMobile = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
 
     department: number[] = [];
     sizeSearch: string = '0';
@@ -130,6 +134,14 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     isLoading: boolean = false;
     private resizeHandler = () => this.onResize();
 
+    // Menu bars
+    menuBars: any[] = [];
+    showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+    get shouldShowSearchBar(): boolean {
+        return this.showSearchBar;
+    }
+
     constructor(
         private ngZone: NgZone,
         private modal: NzModalService,
@@ -139,8 +151,120 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         private assetStatusService: AssetStatusService
     ) { }
     ngOnInit() {
+        this.initializeDates();
+        this.initMenuBar();
         this.initGrid();
         this.initGridDetail();
+    }
+
+    /** Helper function to format date to yyyy-MM-dd for HTML date input */
+    private formatDateToString(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    /** Initialize default dates */
+    private initializeDates(): void {
+        const today = new Date();
+        const dateStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const dateEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        this.dateStart = this.formatDateToString(dateStart);
+        this.dateEnd = this.formatDateToString(dateEnd);
+    }
+
+    initMenuBar() {
+        this.menuBars = [
+            {
+                label: 'Thêm',
+                icon: 'fa-solid fa-plus fa-lg text-success',
+                visible: true,
+                command: () => {
+                    this.onAddAsset();
+                }
+            },
+            {
+                label: 'Sửa',
+                icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+                visible: true,
+                command: () => {
+                    this.onEitAsset();
+                }
+            },
+            {
+                label: 'Xóa',
+                icon: 'fa-solid fa-trash fa-lg text-danger',
+                visible: true,
+                command: () => {
+                    this.onDeleteAsset();
+                }
+            },
+            {
+                label: 'Báo mất',
+                icon: 'fa-solid fa-magnifying-glass-minus fa-lg text-warning',
+                visible: true,
+                command: () => {
+                    this.onReportLoss();
+                }
+            },
+            {
+                label: 'Báo hỏng',
+                icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                visible: true,
+                command: () => {
+                    this.onReportBroken();
+                }
+            },
+            {
+                label: 'Sửa chữa, bảo dưỡng',
+                icon: 'fa-solid fa-screwdriver-wrench fa-lg text-info',
+                visible: true,
+                command: () => {
+                    this.onRepaireAsset();
+                }
+            },
+            {
+                label: 'Đưa vào sử dụng lại',
+                icon: 'fa-solid fa-rotate-right fa-lg text-success',
+                visible: true,
+                command: () => {
+                    this.onReuseAsset();
+                }
+            },
+            {
+                label: 'Đề nghị thanh lí',
+                icon: 'fa-solid fa-file-invoice fa-lg text-warning',
+                visible: true,
+                command: () => {
+                    this.onReportLiquidation();
+                }
+            },
+            {
+                label: 'Thanh lí',
+                icon: 'fa-solid fa-file-circle-check fa-lg text-primary',
+                visible: true,
+                command: () => {
+                    this.onLiquidation();
+                }
+            },
+            {
+                label: 'Nhập Excel',
+                icon: 'fa-solid fa-file-import fa-lg text-info',
+                visible: true,
+                command: () => {
+                    this.openModalImportExcel();
+                }
+            },
+            {
+                label: 'Xuất Excel',
+                icon: 'fa-solid fa-file-excel fa-lg text-success',
+                visible: true,
+                command: () => {
+                    this.onExportExcel();
+                }
+            }
+        ];
     }
 
     ngAfterViewInit(): void {
@@ -182,15 +306,12 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
                 ? this.department.join(',')
                 : '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24';
 
-        const formatDate = (date: any) => {
-            return date ? DateTime.fromJSDate(date).toISODate() : '';
-        };
         const request = {
             filterText: this.filterText || '',
             pageNumber: 1,
             pageSize: 10000,
-            dateStart: formatDate(this.dateStart) || '2024-05-22',
-            dateEnd: formatDate(this.dateEnd) || '2027-05-22',
+            dateStart: this.dateStart || '2024-05-22',
+            dateEnd: this.dateEnd || '2027-05-22',
             status: statusString,
             department: departmentString,
         };
@@ -221,8 +342,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         const now = new Date();
         const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
         const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        this.dateStart = firstDay.toISOString().split('T')[0] + 'T00:00:00';
-        this.dateEnd = lastDay.toISOString().split('T')[0] + 'T23:59:59';
+        this.dateStart = this.formatDateToString(firstDay);
+        this.dateEnd = this.formatDateToString(lastDay);
         this.employeeID = null;
         this.filterText = '';
         this.status = [];
@@ -277,6 +398,13 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     }
     toggleSearchPanel() {
         this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+    }
+
+    ToggleSearchPanelNew(event?: Event): void {
+        if (event) {
+            event.stopPropagation();
+        }
+        this.showSearchBar = !this.showSearchBar;
     }
 
     onFilterChange(): void {

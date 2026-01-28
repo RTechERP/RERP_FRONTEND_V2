@@ -145,6 +145,7 @@ export class ProposeVehicleRepairFormComponent
       IsDeleted: [false],
       RepairGarageName: [''],
       ContactPhone: [''],
+      TimePrevious: [''],
     });
   }
   formGroup: FormGroup;
@@ -429,6 +430,7 @@ export class ProposeVehicleRepairFormComponent
           DatePropose: DatePropose?.slice(0, 10) || '',
           TimeStartRepair: TimeStartRepair?.slice(0, 10) || '',
           TimeEndRepair: TimeEndRepair?.slice(0, 10) || '',
+          TimePrevious: this.dataInput.TimePrevious?.slice(0, 10) || '',
         },
         { emitEvent: false }
       );
@@ -781,6 +783,7 @@ export class ProposeVehicleRepairFormComponent
         ContactPhone: formValue.ContactPhone,
         EmployeeProposeID: 92,
         ProposeContent: formValue.ProposeContent,
+        TimePrevious: formValue.TimePrevious || null,
       },
       proposeVehicleRepairDetails: mergedDetails,
     };

@@ -1,0 +1,28 @@
+.fs-xs {
+    font-size: 0.75rem;
+}
+
+.modal-body {
+    padding: 12px !important;
+}
+
+:host ::ng-deep .ant-input-number {
+    width: 100%;
+}
+
+:host ::ng-deep .ant-select {
+    width: 100%;
+}
+
+label {
+    font-size: 13px;
+    margin-bottom: 0;
+}
+
+.font-weight-bold {
+    font-weight: 600;
+}
+
+textarea.ant-input {
+    resize: none;
+}

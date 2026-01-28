@@ -122,6 +122,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
   dataset: any[] = [];
   excelExportService = new ExcelExportService();
 
+  contextMenu: any[] = [];
   // Formatter cho date
   dateFormatter: Formatter = (_row, _cell, value) => {
     if (!value) return '';
@@ -206,17 +207,34 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
+        exportCustomFormatter: (_row, _cell, value) => {
+          return value === true || value === 1 ? 'V' : 'X';
+        },
       },
       {
-        id: 'CreatedDate',
-        name: 'Ngày nhận',
-        field: 'CreatedDate',
+        id: 'DateStatus',
+        name: 'Ngày nhận/hủy CT',
+        field: 'DateStatus',
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: this.dateFormatter,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center',
+      },
+      {
+        id: 'DoccumentReceiver',
+        name: 'Người nhận/hủy CT',
+        field: 'DoccumentReceiver',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputText'],
+        },
       },
       {
         id: 'BillTypeText',
@@ -241,7 +259,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 130,
         sortable: true,
         filterable: true,
-        formatter: this.dateFormatter,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center',
       },
@@ -253,14 +274,20 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
       },
+      // {
+      //   id: 'CreatedDate',
+      //   name: 'Ngày nhận',
+      //   field: 'CreatedDate',
+      //   width: 120,
+      //   sortable: true,
+      //   filterable: true,
+      //   formatter: this.dateFormatter,
+      //   filter: { model: Filters['compoundDate'] },
+      //   cssClass: 'text-center',
+      // },
       {
         id: 'CodeNCC',
         name: 'Mã NCC',
@@ -329,7 +356,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: this.dateFormatter,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center',
       },
@@ -402,6 +432,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         type: FieldType.number,
         filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
       },
       {
         id: 'Maker',
@@ -420,6 +454,9 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         formatter: this.checkboxFormatter,
+        exportCustomFormatter: (_row, _cell, value) => {
+          return value === true || value === 1 ? 'V' : 'X';
+        },
         cssClass: 'text-center',
         filter: {
           collection: [
@@ -450,7 +487,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 150,
         sortable: true,
         filterable: true,
-        formatter: this.dateFormatter,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         editor: { model: Editors['date'] },
         cssClass: 'text-center',
@@ -466,6 +506,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filter: { model: Filters['compoundInputNumber'] },
         editor: { model: Editors['integer'] },
         cssClass: 'text-right',
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
       },
       {
         id: 'DueDate',
@@ -474,7 +518,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 150,
         sortable: true,
         filterable: true,
-        formatter: this.dateFormatter,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center',
       },
@@ -486,7 +533,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         type: FieldType.number,
-        formatter: this.moneyFormatter,
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
         filter: { model: Filters['compoundInputNumber'] },
         editor: { model: Editors['float'] },
         cssClass: 'text-right',
@@ -499,20 +549,32 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         type: FieldType.number,
-        formatter: this.moneyFormatter,
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
         filter: { model: Filters['compoundInputNumber'] },
         editor: { model: Editors['float'] },
         cssClass: 'text-right',
       },
       {
-        id: 'ProjectCode',
+        id: 'ProjectCodeText',
         name: 'Mã dự án',
-        field: 'ProjectCode',
+        field: 'ProjectCodeText',
         width: 130,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
       },
+      // {
+      //   id: 'FullNameSender',
+      //   name: 'Người giao',
+      //   field: 'FullNameSender',
+      //   width: 150,
+      //   sortable: true,
+      //   filterable: true,
+      //   filter: { model: Filters['compoundInputText'] },
+      // },
       {
         id: 'ProductName',
         name: 'Tên sản phẩm',
@@ -523,9 +585,18 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filter: { model: Filters['compoundInputText'] },
       },
       {
-        id: 'ProjectName',
+        id: 'ProjectCode',
+        name: 'Mã theo dự án',
+        field: 'ProjectCode',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'ProjectNameText',
         name: 'Tên dự án',
-        field: 'ProjectName',
+        field: 'ProjectNameText',
         width: 300,
         sortable: true,
         filterable: true,
@@ -548,7 +619,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         type: FieldType.number,
-        formatter: this.moneyFormatter,
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
         filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
       },
@@ -556,10 +630,15 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         id: 'VATPO',
         name: 'Thuế',
         field: 'VATPO',
+        cssClass: 'text-end',
         width: 100,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
       },
       {
         id: 'TotalPricePO',
@@ -569,7 +648,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         type: FieldType.number,
-        formatter: this.moneyFormatter,
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
         filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
       },
@@ -582,15 +664,15 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
       },
-      {
-        id: 'SerialNumber',
-        name: 'SerialNumber',
-        field: 'SerialNumber',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-      },
+      // {
+      //   id: 'SerialNumber',
+      //   name: 'SerialNumber',
+      //   field: 'SerialNumber',
+      //   width: 150,
+      //   sortable: true,
+      //   filterable: true,
+      //   filter: { model: Filters['compoundInputText'] },
+      // },
       {
         id: 'Note',
         name: 'Ghi chú',
@@ -610,7 +692,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filter: { model: Filters['compoundInputText'] },
       },
       // Dynamic document columns
-      ...dynamicDocumentColumns,
+      //...dynamicDocumentColumns,
     ];
 
     this.gridOptions = {
@@ -639,9 +721,13 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       editable: true,
       autoEdit: false,
       autoCommitEdit: true,
-      frozenColumn: 4,
+      frozenColumn: 6,
       gridHeight: 600,
       enableContextMenu: true,
+      rowHeight: 30,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
       contextMenu: {
         commandItems: [
           {
@@ -672,9 +758,9 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
             action: () => {
               this.onUpdateDocument(3);
             }
-          }
+          },
         ]
-      }
+      },
     };
   }
 
@@ -773,12 +859,18 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
     );
 
     // Subscribe to onRowCountChanged to update filter collections
-    this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
-      setTimeout(() => this.applyDistinctFilters(), 100);
-    });
+    // this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
+    //   setTimeout(() => {
+    //     this.applyDistinctFilters();
+    //     this.updateMasterFooterRow();
+    //   }, 100);
+    // });
 
     // Apply filters on initial load
-    setTimeout(() => this.applyDistinctFilters(), 200);
+    setTimeout(() => {
+      this.applyDistinctFilters();
+      this.updateMasterFooterRow();
+    }, 200);
   }
 
   updateDueDate(rowIndex: number) {
@@ -790,6 +882,84 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         this.angularGrid.dataView.updateItem(item.id, item);
         this.angularGrid.slickGrid.invalidate();
       }
+    }
+  }
+
+  updateMasterFooterRow() {
+    if (this.angularGrid && this.angularGrid.slickGrid) {
+      const dataView = this.angularGrid.dataView;
+      const filteredItems = dataView.getFilteredItems() || [];
+      console.log(filteredItems);
+      // Đếm số lượng sản phẩm (đã bỏ qua group)
+      const codeCount = filteredItems.length;
+
+      // Tính tổng các cột số liệu
+      const totals = (filteredItems || []).reduce(
+        (acc, item) => {
+          acc.Qty += Number(item.Qty) || 0;
+          acc.DPO += Number(item.DPO) || 0;
+          acc.COFormE += Number(item.COFormE) || 0;
+          acc.UnitPricePO += Number(item.UnitPricePO) || 0;
+          acc.VATPO += Number(item.VATPO) || 0;
+          acc.TotalPricePO += Number(item.TotalPricePO) || 0;
+          acc.TaxReduction += Number(item.TaxReduction) || 0;
+          return acc;
+        },
+        {
+          Qty: 0,
+          DPO: 0,
+          COFormE: 0,
+          UnitPricePO: 0,
+          VATPO: 0,
+          TotalPricePO: 0,
+          TaxReduction: 0,
+        }
+      );
+
+      // Set footer values cho từng column
+      const columns = this.angularGrid.slickGrid.getColumns();
+      columns.forEach((col: any) => {
+        const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(
+          col.id
+        );
+        if (!footerCell) return;
+
+        // Đếm cho cột Code
+        if (col.id === 'BillImportCode') {
+          footerCell.innerHTML = `<b>${codeCount.toLocaleString('en-US')}</b>`;
+        }
+        // Tổng các cột số liệu
+        else if (col.id === 'Qty') {
+          footerCell.innerHTML = `<b>${totals.Qty.toLocaleString(
+            'en-US'
+          )}</b>`;
+        } else if (col.id === 'DPO') {
+          footerCell.innerHTML = `<b>${totals.DPO.toLocaleString(
+            'en-US'
+          )}</b>`;
+        } else if (col.id === 'COFormE') {
+          footerCell.innerHTML = `<b>${totals.COFormE.toLocaleString(
+            'en-US'
+          )}</b>`;
+        } else if (col.id === 'UnitPricePO') {
+          footerCell.innerHTML = `<b>${totals.UnitPricePO.toLocaleString(
+            'en-US'
+          )}</b>`;
+        } else if (col.id === 'VATPO') {
+          footerCell.innerHTML = `<b>${totals.VATPO.toLocaleString(
+            'en-US'
+          )}</b>`;
+        } else if (col.id === 'TotalPricePO') {
+          footerCell.innerHTML = `<b>${totals.TotalPricePO.toLocaleString(
+            'en-US'
+          )}</b>`;
+        }
+        else if (col.id === 'TaxReduction') {
+          footerCell.innerHTML = `<b>${totals.TaxReduction.toLocaleString(
+            'en-US'
+          )}</b>`;
+        }
+      });
     }
   }
 
@@ -845,22 +1015,28 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       dataToSave.push(updateData);
     });
 
-    if (deniedRows.length > 0) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        `Bạn không có quyền sửa ${deniedRows.length} phiếu: ${deniedRows
-          .slice(0, 3)
-          .join(', ')}${deniedRows.length > 3 ? '...' : ''}`
-      );
-    }
-
-    if (dataToSave.length === 0) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Không có dữ liệu hợp lệ để lưu!'
-      );
+    // Nếu không có quyền với tất cả các dòng thì bỏ qua không làm gì
+    if (dataToSave.length === 0 && deniedRows.length > 0) {
       return;
     }
+
+    if (deniedRows.length >= 0) {
+      // this.notification.warning(
+      //   NOTIFICATION_TITLE.warning,
+      //   `Bạn không có quyền sửa ${deniedRows.length} phiếu: ${deniedRows
+      //     .slice(0, 3)
+      //     .join(', ')}${deniedRows.length > 3 ? '...' : ''}`
+      // );
+      return;
+    }
+
+    // if (dataToSave.length === 0) {
+    //   // this.notification.warning(
+    //   //   NOTIFICATION_TITLE.warning,
+    //   //   'Không có dữ liệu hợp lệ để lưu!'
+    //   // );
+    //   return;
+    // }
 
     this.billImportService.SaveDataBillDetail(dataToSave).subscribe({
       next: (res) => {
@@ -1002,7 +1178,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
               this.getDataContextMenu();
             } else {
               // Apply distinct filters when data is reloaded
-              setTimeout(() => this.applyDistinctFilters(), 100);
+              setTimeout(() => {
+                this.applyDistinctFilters();
+                this.updateMasterFooterRow();
+              }, 100);
             }
           }
         },
@@ -1038,75 +1217,25 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
     });
   }
 
-  /**
-   * Thêm các cột dynamic (chứng từ) vào grid sau khi load xong documents
-   * Cũng cập nhật context menu với các document items
-   */
   private addDynamicDocumentColumns(): void {
-    // if (!this.documents || this.documents.length === 0) return;
+    if (!this.documents || this.documents.length === 0) return;
 
-    // // Tạo dynamic columns từ documents
-    // const dynamicDocumentColumns: Column[] = this.documents.map((doc) => ({
-    //   id: `D${doc.ID}`,
-    //   name: doc.DocumentImportName,
-    //   field: `D${doc.ID}`,
-    //   width: 250,
-    //   sortable: true,
-    //   filterable: true,
-    //   filter: { model: Filters['compoundInputText'] },
-    // }));
+    // Tạo dynamic columns từ documents
+    const dynamicDocumentColumns: Column[] = this.documents.map((doc) => ({
+      id: `D${doc.ID}`,
+      name: doc.DocumentImportName,
+      field: `D${doc.ID}`,
+      width: 250,
+      sortable: true,
+      filterable: true,
+      filter: { model: Filters['compoundInputText'] },
+    }));
 
-    // // Lấy columns hiện tại từ grid (bao gồm checkbox selector)
-    // if (this.angularGrid && this.angularGrid.slickGrid) {
-    //   const currentColumns = this.angularGrid.slickGrid.getColumns();
-
-    //   // Debug: Log tất cả columns để xem checkbox column có ID gì
-    //   console.log('🔍 All columns:', currentColumns.map((c: any) => ({ id: c.id, field: c.field, name: c.name })));
-
-    //   // Tách checkbox selector column - nó thường là cột đầu tiên
-    //   // và có thể có các đặc điểm: không có field, hoặc có behavior đặc biệt
-    //   const checkboxColumns: any[] = [];
-    //   const dataColumns: any[] = [];
-
-    //   currentColumns.forEach((col: any) => {
-    //     // Checkbox selector thường không có field hoặc có id chứa 'selector' hoặc '_checkbox'
-    //     if (!col.field || col.id?.includes('selector') || col.id?.includes('_checkbox')) {
-    //       checkboxColumns.push(col);
-    //     } else {
-    //       dataColumns.push(col);
-    //     }
-    //   });
-
-    //   console.log('✅ Checkbox columns:', checkboxColumns.length);
-    //   console.log('📊 Data columns:', dataColumns.length);
-
-    //   const existingIds = dataColumns.map((col: any) => col.id);
-
-    //   // Lọc các cột mới chưa có
-    //   const newColumns = dynamicDocumentColumns.filter(
-    //     (col) => !existingIds.includes(col.id)
-    //   );
-
-    //   if (newColumns.length > 0) {
-    //     // Giữ nguyên checkbox columns ở đầu, sau đó là data columns và new columns
-    //     const updatedColumns = [...checkboxColumns, ...dataColumns, ...newColumns];
-
-    //     this.angularGrid.slickGrid.setColumns(updatedColumns);
-    //     this.angularGrid.slickGrid.render();
-
-    //     // Cập nhật columnDefinitions để đồng bộ
-    //     this.columnDefinitions = [...this.columnDefinitions, ...newColumns];
-    //   }
-    // } else {
-    //   // Grid chưa khởi tạo, chỉ cập nhật columnDefinitions
-    //   const existingIds = this.columnDefinitions.map((col) => col.id);
-    //   const newColumns = dynamicDocumentColumns.filter(
-    //     (col) => !existingIds.includes(col.id)
-    //   );
-    //   if (newColumns.length > 0) {
-    //     this.columnDefinitions = [...this.columnDefinitions, ...newColumns];
-    //   }
-    // }
+    if (dynamicDocumentColumns.length > 0) {
+      const allColumns = this.angularGrid.gridService.getAllColumnDefinitions();
+      allColumns.push(...dynamicDocumentColumns);
+      this.columnDefinitions = [...allColumns];
+    }
   }
 
   UpdateDocument() {
@@ -1160,7 +1289,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       'WarehouseName',
     ];
 
-    // Chỉ cập nhật filter collection, không gọi setColumns để tránh mất checkbox selector
+    let hasChanges = false;
     columns.forEach((column: any) => {
       if (
         column.filter &&
@@ -1169,11 +1298,14 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       ) {
         const uniqueValues = getUniqueValues(column.field);
         column.filter.collection = uniqueValues;
+        hasChanges = true;
       }
     });
 
-    // Chỉ invalidate grid để re-render, không setColumns
-    this.angularGrid.slickGrid.invalidate();
+    // Set lại columns để filter collection được cập nhật
+    if (hasChanges) {
+      this.angularGrid.slickGrid.setColumns(columns);
+    }
   }
   // #endregion
 }

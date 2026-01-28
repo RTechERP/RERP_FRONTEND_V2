@@ -1,1 +1,146 @@
-<p>office-supply-request-detail works!</p>
+<div class="modal-content border-0">
+    <div class="modal-header bg-primary py-2 px-3">
+        <h5 class="modal-title text-uppercase text-white fs-12 m-0">đăng ký văn phòng phẩm</h5>
+        <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+    </div>
+
+    <div class="modal-body p-3" style="max-height: 80vh; overflow-y: auto;">
+        <form nz-form [formGroup]="mainForm" nzLayout="vertical">
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSm]="8" [nzXs]="24">
+                    <nz-form-item>
+                        <nz-form-label>Họ tên <span class="text-danger">(*)</span></nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="FullName" placeholder="Họ tên" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSm]="8" [nzXs]="24">
+                    <nz-form-item>
+                        <nz-form-label>Phòng ban <span class="text-danger">(*)</span></nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="DepartmentName" placeholder="Phòng ban" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSm]="8" [nzXs]="24">
+                    <nz-form-item>
+                        <nz-form-label>Ngày đăng ký <span class="text-danger">(*)</span></nz-form-label>
+                        <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian (Ngày 1 đến ngày 5 hằng tháng)'">
+                            <nz-date-picker formControlName="DateRequest" [nzFormat]="'dd/MM/yyyy'"
+                                [nzDisabledDate]="disabledDate" class="w-100"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+            <div class="mt-2 border rounded">
+                <div class="bg-info-subtle p-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-dark text-uppercase fs-12">DANH SÁCH VPP</span>
+                    <button nz-button nzType="primary" nzSize="small" (click)="addItem()">
+                        <i nz-icon nzType="plus"></i> Thêm VPP
+                    </button>
+                </div>
+
+                <div class="p-2 bg-light" formArrayName="items">
+                    <div *ngFor="let item of items.controls; let i = index" [formGroupName]="i"
+                        class="card mb-3 shadow-sm border-0">
+                        <div class="card-body p-3 position-relative">
+                            <button type="button" class="position-absolute top-0 end-0 btn btn-link text-danger p-2"
+                                (click)="removeItem(i)" nz-tooltip nzTooltipTitle="Xóa mặt hàng">
+                                <i nz-icon nzType="close-circle" nzTheme="outline"></i>
+                            </button>
+
+                            <div nz-row [nzGutter]="12">
+                                <!-- VPP -->
+                                <div nz-col [nzLg]="12" [nzMd]="12" [nzSm]="24" [nzXs]="24">
+                                    <nz-form-item class="mb-2">
+                                        <nz-form-label nzRequired>Văn phòng phẩm</nz-form-label>
+                                        <nz-form-control [nzErrorTip]="'Vui lòng chọn văn phòng phẩm'">
+                                            <nz-select formControlName="OfficeSupplyID" nzShowSearch nzAllowClear
+                                                nzPlaceHolder="-- Chọn VPP --"
+                                                (ngModelChange)="onOfficeSupplyChange(i)">
+                                                <nz-option *ngFor="let s of officeSupplyList" [nzValue]="s.ID"
+                                                    [nzLabel]="s.NameNCC || s.NameRTC"></nz-option>
+                                            </nz-select>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+
+                                <!-- ĐVT -->
+                                <div nz-col [nzLg]="4" [nzMd]="4" [nzSm]="12" [nzXs]="12">
+                                    <nz-form-item class="mb-2">
+                                        <nz-form-label>ĐVT</nz-form-label>
+                                        <nz-form-control>
+                                            <input nz-input formControlName="UnitName" class="w-100" readonly
+                                                placeholder="ĐVT" />
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+
+                                <!-- Số lượng -->
+                                <div nz-col [nzLg]="4" [nzMd]="4" [nzSm]="12" [nzXs]="12">
+                                    <nz-form-item class="mb-2">
+                                        <nz-form-label nzRequired>Số lượng</nz-form-label>
+                                        <nz-form-control [nzErrorTip]="'Số lượng >= 1'">
+                                            <nz-input-number formControlName="Quantity" [nzMin]="1" [nzStep]="1"
+                                                class="w-100" (ngModelChange)="checkLimit(i)"></nz-input-number>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+
+                                <!-- SL Nhận -->
+                                <div nz-col [nzLg]="4" [nzMd]="4" [nzSm]="24" [nzXs]="24">
+                                    <nz-form-item class="mb-2">
+                                        <nz-form-label>Số lượng nhận</nz-form-label>
+                                        <nz-form-control>
+                                            <nz-input-number formControlName="QuantityReceived" [nzDisabled]="true"
+                                                class="w-100"></nz-input-number>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                            </div>
+
+                            <div nz-row [nzGutter]="12">
+                                <!-- Vượt định mức -->
+                                <div nz-col [nzMd]="12" [nzXs]="24">
+                                    <nz-form-item class="mb-0">
+                                        <nz-form-label>Vượt định mức</nz-form-label>
+                                        <nz-form-control [nzErrorTip]="'Vui lòng nhập lý do vượt định mức'">
+                                            <nz-input-group [nzPrefix]="prefixCheckbox">
+                                                <textarea nz-input formControlName="Reason"
+                                                    placeholder="Lý do vượt định mức" rows="2"></textarea>
+                                            </nz-input-group>
+                                            <ng-template #prefixCheckbox>
+                                                <label nz-checkbox formControlName="ExceedsLimit"
+                                                    (ngModelChange)="onExceedsLimitChange(i)"></label>
+                                            </ng-template>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+
+                                <!-- Ghi chú -->
+                                <div nz-col [nzMd]="12" [nzXs]="24">
+                                    <nz-form-item class="mb-0">
+                                        <nz-form-label>Ghi chú</nz-form-label>
+                                        <nz-form-control>
+                                            <textarea nz-input formControlName="Note" placeholder="Ghi chú thêm"
+                                                rows="2"></textarea>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-footer bg-light p-2 border-top">
+        <button nz-button nzDanger nzType="default" (click)="cancel()">Đóng</button>
+        <button nz-button nzType="primary" [nzLoading]="isSaving" (click)="onSubmit()">
+            <i nz-icon nzType="save"></i> Đăng ký
+        </button>
+    </div>
+</div>

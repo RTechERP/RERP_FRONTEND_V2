@@ -52,7 +52,7 @@ export class ImportExcelPokhComponent implements OnInit {
   // F10 = Unit, F11 = Qty, F14 = UnitPrice
   columnMapping: { [key: string]: string } = {
     'TT': 'TT',
-    'STT': 'STT', 
+    'STT': 'STT',
     'Mã nội bộ': 'ProductNewCode',
     'Nhóm': 'ProductGroupName',
     'Mã sản phẩm': 'ProductCode',
@@ -90,10 +90,10 @@ export class ImportExcelPokhComponent implements OnInit {
       }
       return;
     }
-    
+
     // Reset preview trước khi load file mới
     this.resetPreview();
-    
+
     if (target.files.length !== 1) {
       // Reset input để có thể chọn lại file
       if (target) {
@@ -107,7 +107,7 @@ export class ImportExcelPokhComponent implements OnInit {
       const bstr: string = e.target.result;
       this.workbook = XLSX.read(bstr, { type: 'binary' });
       this.sheetNames = this.workbook.SheetNames;
-      
+
       // Không reset input ở đây để giữ tên file hiển thị
       // Input sẽ được reset khi chọn file mới (trong lần gọi onFileChange tiếp theo)
     };
@@ -132,7 +132,7 @@ export class ImportExcelPokhComponent implements OnInit {
       this.tabulator.clearData();
       this.tabulator.setColumns([]);
     }
-    
+
     // Reset input file khi chọn file mới để có thể chọn lại file cùng tên
     if (this.excelFileInput && this.excelFileInput.nativeElement) {
       this.excelFileInput.nativeElement.value = '';
@@ -143,7 +143,7 @@ export class ImportExcelPokhComponent implements OnInit {
     if (this.workbook && this.selectedSheet) {
       const ws = this.workbook.Sheets[this.selectedSheet];
       // Bắt đầu từ hàng 4 (index 3) như code WinForm: for (int i = 3; i < grvData.RowCount; i++)
-      const rawData = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { 
+      const rawData = XLSX.utils.sheet_to_json<Record<string, any>>(ws, {
         defval: '',
         range: 2 // Bắt đầu từ hàng 4 (0-indexed = 3)
       });
@@ -162,8 +162,8 @@ export class ImportExcelPokhComponent implements OnInit {
       }).filter(row => {
         // Bỏ qua các dòng không có cột TT hoặc TT rỗng
         const tt = row['TT'];
-        return tt !== null && tt !== undefined && tt !== '' && 
-               (typeof tt === 'string' ? tt.trim() !== '' : true);
+        return tt !== null && tt !== undefined && tt !== '' &&
+          (typeof tt === 'string' ? tt.trim() !== '' : true);
       });
 
       this.tableHeaders = this.tableData.length > 0 ? Object.keys(this.tableData[0]) : [];
@@ -282,10 +282,10 @@ export class ImportExcelPokhComponent implements OnInit {
     const excelDataForAPI = this.tableData.map((row, index) => {
       return {
         RowIndex: index,
-        ProductNewCode: row['Mã nội bộ'] || '',
+        ProductNewCode: String(row['Mã nội bộ'] || ''),
         ProductGroupName: String(row['Tên nhóm'] || ''),
-        ProductCode: row['Mã sản phẩm'] || '',
-        ProductName: row['Tên sản phẩm'] || ''
+        ProductCode: String(row['Mã sản phẩm'] || ''),
+        ProductName: String(row['Tên sản phẩm'] || '')
       };
     });
 
@@ -314,12 +314,12 @@ export class ImportExcelPokhComponent implements OnInit {
         const rawProcessedData = this.tableData.map((row, index) => {
           tempId--;
           const tt = (row['TT']?.toString()?.trim()) || '';
-          
+
           let parentTT = '';
           if (tt && tt.includes('.')) {
             parentTT = tt.substring(0, tt.lastIndexOf('.'));
           }
-          
+
           const qty = this.parseNumber(row["Q'ty"]);
           const unitPrice = this.parseNumber(row['Đơn giá']);
           const intoMoney = qty * unitPrice;
@@ -331,12 +331,12 @@ export class ImportExcelPokhComponent implements OnInit {
             ParentTT: parentTT,
             ParentID: 0,
             ProductID: productIdMap[index] || null,
-            ProductNewCode: row['Mã nội bộ'] || '',
-            ProductCode: row['Mã sản phẩm'] || '',
-            ProductName: row['Tên sản phẩm'] || '',
-            GuestCode: row['Mã theo khách'] || '',
-            Maker: row['Maker'] || '',
-            Unit: row['Unit'] || '',
+            ProductNewCode: String(row['Mã nội bộ'] || ''),
+            ProductCode: String(row['Mã sản phẩm'] || ''),
+            ProductName: String(row['Tên sản phẩm'] || ''),
+            GuestCode: String(row['Model'] || ''),
+            Maker: String(row['Maker'] || ''),
+            Unit: String(row['Unit'] || ''),
             Qty: qty,
             UnitPrice: unitPrice,
             IntoMoney: intoMoney,
@@ -389,10 +389,10 @@ export class ImportExcelPokhComponent implements OnInit {
         console.log('=== END LOG ===');
 
         this.notification.success(NOTIFICATION_TITLE.success, `Đã nhập ${processedData.length} dòng dữ liệu`);
-        
-        this.activeModal.close({ 
-          success: true, 
-          processedData: processedData 
+
+        this.activeModal.close({
+          success: true,
+          processedData: processedData
         });
       },
       error: (err) => {

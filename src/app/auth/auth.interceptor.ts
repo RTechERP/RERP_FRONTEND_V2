@@ -37,6 +37,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
                 window.location.href = '/rerpweb/login';
             }
 
+            console.log("HttpErrorResponse:", error);
+
             return throwError(() => error);
         })
     );

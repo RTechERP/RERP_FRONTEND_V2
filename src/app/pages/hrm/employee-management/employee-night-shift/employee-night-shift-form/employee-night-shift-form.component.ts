@@ -217,7 +217,7 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
         dateFormat: 'd/m/Y H:i',
         locale: Vietnamese,
         minDate: dateRegister ? new Date(dateRegister) : undefined,
-        minTime: '00:00',
+        minTime: '20:00',
         defaultDate: defaultDate,
         allowInput: true,
         disableMobile: false,
@@ -387,7 +387,7 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
       DateRegister: [null, [Validators.required]],
       DateStart: [null, [Validators.required, this.dateStartValidator]],
       DateEnd: [null, [Validators.required, this.dateEndValidator]],
-      BreaksTime: [0, [Validators.min(0), Validators.max(24), this.breaksTimeValidator]],
+      BreaksTime: [0, [Validators.required, Validators.min(0), Validators.max(8), this.breaksTimeValidator]],
       TotalHours: [{ value: 0, disabled: true }], // Tự động tính
       Location: ['', [Validators.required]],
       Note: [''],
@@ -505,11 +505,11 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
     return null;
   };
 
-  // Validator: Thời gian kết thúc phải lớn hơn thời gian bắt đầu và không vượt quá 24 giờ
+  // Validator: Thời gian kết thúc phải lớn hơn thời gian bắt đầu và không vượt quá 8 giờ
   dateEndValidator = (control: AbstractControl): ValidationErrors | null => {
     const value = control.value;
     if (!value) {
-      return null; // Required validator sẽ xử lý
+      return null;
     }
 
     const dateEnd = new Date(value);
@@ -524,13 +524,12 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
         };
       }
 
-      // Kiểm tra khoảng thời gian không vượt quá 24 giờ
       const diffMs = dateEnd.getTime() - dateStartObj.getTime();
       const diffHours = diffMs / (1000 * 60 * 60);
-      if (diffHours > 24) {
+      if (diffHours > 8) {
         return {
-          exceed24Hours: true,
-          message: 'Khoảng thời gian làm đêm không được vượt quá 24 giờ.'
+          exceed8Hours: true,
+          message: 'Khoảng thời gian làm đêm không được vượt quá 8 giờ.'
         };
       }
     }
@@ -538,17 +537,18 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
     return null;
   };
 
-  // Validator: Giờ nghỉ không được lớn hơn 24
+  // Validator: Giờ nghỉ bắt buộc và không lớn hơn 8 giờ
   breaksTimeValidator = (control: AbstractControl): ValidationErrors | null => {
     const value = control.value;
-    if (value === null || value === undefined) {
-      return null; // Required validator sẽ xử lý nếu cần
+
+    if (value === null || value === undefined || value === 0) {
+      return { required: true, message: 'Vui lòng nhập thời gian nghỉ.' };
     }
 
-    if (value > 24) {
+    if (value > 8) {
       return {
-        exceed24Hours: true,
-        message: 'Giờ nghỉ không được lớn hơn 24 giờ.'
+        exceed8Hours: true,
+        message: 'Giờ nghỉ không được lớn hơn 8 giờ.'
       };
     }
 
@@ -708,7 +708,7 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
           // Removed auto-clear logic to allow any date selection
           /*
           let shouldClear = false;
-          
+
           if (!isProblem) {
              if (selectedDate.getTime() < today.getTime()) {
               shouldClear = true;
@@ -720,7 +720,7 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
               shouldClear = true;
             }
           }
-          
+
           if (shouldClear) {
             this.formGroup.patchValue({ DateRegister: null }, { emitEvent: false });
           }
@@ -840,50 +840,66 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
       if (end > start) {
         const diffMs = end.getTime() - start.getTime();
         const diffHours = diffMs / (1000 * 60 * 60);
+        const totalHours = diffHours - breaksTime;
 
-        // Kiểm tra khoảng thời gian không vượt quá 24 giờ
-        if (diffHours > 24) {
+        // Kiểm tra khoảng thời gian không vượt quá 8 giờ
+        if (totalHours > 8) {
           // Set error cho DateEnd
           this.formGroup.get('DateEnd')?.setErrors({
-            exceed24Hours: true,
-            message: 'Khoảng thời gian làm đêm không được vượt quá 24 giờ.'
+            exceed8Hours: true,
+            message: 'Khoảng thời gian làm đêm không được vượt quá 8 giờ.'
           });
-          this.formGroup.patchValue({ TotalHours: 0 }, { emitEvent: false });
+          this.formGroup.patchValue({ TotalHours: diffHours }, { emitEvent: false });
           return;
         } else {
           // Clear error nếu hợp lệ
           const dateEndErrors = this.formGroup.get('DateEnd')?.errors;
-          if (dateEndErrors?.['exceed24Hours']) {
+          if (dateEndErrors?.['exceed8Hours']) {
             const newErrors = { ...dateEndErrors };
-            delete newErrors['exceed24Hours'];
+            delete newErrors['exceed8Hours'];
             this.formGroup.get('DateEnd')?.setErrors(Object.keys(newErrors).length > 0 ? newErrors : null);
+          }
+        }
+
+        // Kiểm tra giờ nghỉ phải nhỏ hơn tổng thời gian
+        if (breaksTime >= diffHours) {
+          this.formGroup.get('BreaksTime')?.setErrors({
+            breakTooLarge: true,
+            message: 'Thời gian nghỉ phải nhỏ hơn tổng thời gian làm việc.'
+          });
+        } else {
+          const breaksErrors = this.formGroup.get('BreaksTime')?.errors;
+          if (breaksErrors?.['breakTooLarge']) {
+            const newErrors = { ...breaksErrors };
+            delete newErrors['breakTooLarge'];
+            this.formGroup.get('BreaksTime')?.setErrors(Object.keys(newErrors).length > 0 ? newErrors : null);
           }
         }
 
         // Tổng số giờ = (DateEnd - DateStart) - BreaksTime
         const finalHours = Math.max(0, diffHours - breaksTime);
 
-        // Kiểm tra TotalHours không được lớn hơn 24
-        if (finalHours > 24) {
+        // Kiểm tra TotalHours không được lớn hơn 8
+        if (finalHours > 8) {
           // Set error cho DateEnd vì khoảng thời gian quá dài
           const dateEndErrors = this.formGroup.get('DateEnd')?.errors || {};
           this.formGroup.get('DateEnd')?.setErrors({
             ...dateEndErrors,
-            exceed24Hours: true,
-            message: 'Tổng số giờ làm đêm không được vượt quá 24 giờ.'
+            exceed8Hours: true,
+            message: 'Tổng số giờ làm đêm không được vượt quá 8 giờ.'
           });
         } else {
-          // Clear error nếu hợp lệ (chỉ clear error từ TotalHours, giữ lại các error khác)
+          // Clear error nếu hợp lệ
           const dateEndErrors = this.formGroup.get('DateEnd')?.errors;
-          if (dateEndErrors?.['exceed24Hours'] && dateEndErrors?.['message']?.includes('Tổng số giờ')) {
+          if (dateEndErrors?.['exceed8Hours'] && dateEndErrors?.['message']?.includes('Tổng số giờ')) {
             const newErrors = { ...dateEndErrors };
-            delete newErrors['exceed24Hours'];
+            delete newErrors['exceed8Hours'];
             delete newErrors['message'];
             this.formGroup.get('DateEnd')?.setErrors(Object.keys(newErrors).length > 0 ? newErrors : null);
           }
         }
 
-        this.formGroup.patchValue({ TotalHours: finalHours }, { emitEvent: false });
+        this.formGroup.patchValue({ TotalHours: diffHours }, { emitEvent: false });
       }
     }
   }
@@ -896,6 +912,8 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
     const commonFormValue = this.formGroup.getRawValue();
     const employeeID = commonFormValue.EmployeeID || this.dataInput?.EmployeeID;
     const approvedTBP = commonFormValue.ApprovedTBP || this.dataInput?.ApprovedTBP;
+    const breaksTime = commonFormValue.BreaksTime || this.dataInput?.BreaksTime;
+    const totalHours = commonFormValue.TotalHours || this.dataInput?.TotalHours;
 
     if (!employeeID || employeeID <= 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên!');
@@ -904,6 +922,21 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
 
     if (!approvedTBP || approvedTBP <= 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn người duyệt!');
+      return;
+    }
+
+    if (!breaksTime || breaksTime <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng nhập thời gian nghỉ!');
+      return;
+    }
+
+    if (totalHours - breaksTime > 8) {
+      this.notification.warning('Thông báo', 'Tổng số giờ làm đêm không được vượt quá 8 giờ!');
+      return;
+    }
+
+    if (breaksTime >= totalHours) {
+      this.notification.warning('Thông báo', 'Thời gian nghỉ phải nhỏ hơn tổng số giờ làm đêm!');
       return;
     }
 
@@ -1051,26 +1084,28 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
           }
           return 'Vui lòng chọn thời gian bắt đầu.';
         case 'DateEnd':
-          if (errors['exceed24Hours']) {
-            // Kiểm tra xem lỗi đến từ validator (khoảng thời gian) hay từ TotalHours
-            if (errors['message'] && errors['message'].includes('Tổng số giờ')) {
-              return 'Tổng số giờ làm đêm không được vượt quá 24 giờ.';
-            }
-            return 'Khoảng thời gian làm đêm không được vượt quá 24 giờ.';
+          if (errors['exceed8Hours']) {
+            return errors['message'] || 'Khoảng thời gian làm đêm không được vượt quá 8 giờ.';
           }
           if (errors['endBeforeStart']) {
             return 'Thời gian kết thúc phải lớn hơn thời gian bắt đầu.';
           }
           return 'Vui lòng chọn thời gian kết thúc.';
         case 'BreaksTime':
-          if (errors['exceed24Hours']) {
-            return 'Giờ nghỉ không được lớn hơn 24 giờ.';
+          if (errors['required']) {
+            return 'Vui lòng nhập thời gian nghỉ.';
+          }
+          if (errors['exceed8Hours']) {
+            return 'Giờ nghỉ không được lớn hơn 8 giờ.';
+          }
+          if (errors['breakTooLarge']) {
+            return errors['message'] || 'Thời gian nghỉ phải nhỏ hơn tổng thời gian làm việc.';
           }
           if (errors['min']) {
             return 'Giờ nghỉ không được nhỏ hơn 0.';
           }
           if (errors['max']) {
-            return 'Giờ nghỉ không được lớn hơn 24 giờ.';
+            return 'Giờ nghỉ không được lớn hơn 8 giờ.';
           }
           return '';
         case 'Location': return 'Vui lòng nhập Lý do.';

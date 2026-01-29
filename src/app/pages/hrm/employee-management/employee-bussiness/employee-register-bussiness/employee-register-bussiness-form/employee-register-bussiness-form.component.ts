@@ -250,18 +250,6 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     const typeValue = data.Type || data.TypeID || data.TypeBusiness || null;
     const approvedId = data.ApprovedID || data.ApprovedId || data.ApproverID || null;
     const workEarlyValue = this.convertToBoolean(data.WorkEarly);
-    
-    // Convert NotCheckIn from boolean to number (1 or 0)
-    const convertNotCheckIn = (value: any): number => {
-      if (value === true || value === 1) return 1;
-      if (value === false || value === 0) return 0;
-      return 1; // default
-    };
-    const notCheckInValue = data.NotCheckIn !== undefined && data.NotCheckIn !== null 
-      ? convertNotCheckIn(data.NotCheckIn)
-      : (data.NotChekIn !== undefined && data.NotChekIn !== null 
-        ? convertNotCheckIn(data.NotChekIn)
-        : 1);
 
     // Convert NotCheckIn from boolean to number (1 or 0)
     const convertNotCheckIn = (value: any): number => {
@@ -274,6 +262,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       : (data.NotChekIn !== undefined && data.NotChekIn !== null
         ? convertNotCheckIn(data.NotChekIn)
         : 1);
+
 
     this.bussinessForm.patchValue({
       ID: data.ID !== null && data.ID !== undefined ? data.ID : 0,

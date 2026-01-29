@@ -26,12 +26,17 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
-  TabulatorFull as Tabulator,
-  CellComponent,
-  ColumnDefinition,
-  RowComponent,
-} from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  Formatter,
+  Formatters,
+  GridOption,
+  MultipleSelectOption,
+  OnClickEventArgs,
+  OnSelectedRowsChangedEventArgs,
+} from 'angular-slickgrid';
 import { DateTime } from 'luxon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { EmployeeNightShiftService } from '../employee-night-shift-service/employee-night-shift.service';
@@ -47,6 +52,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { PermissionService } from '../../../../../services/permission.service';
 import { AuthService } from '../../../../../auth/auth.service';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { Menubar } from 'primeng/menubar';
 
 (window as any).luxon = { DateTime };
@@ -74,7 +80,9 @@ import { Menubar } from 'primeng/menubar';
     NgbDropdownModule,
     NzDropDownModule,
     NzFormModule,
-    Menubar
+    NzSpinModule,
+    Menubar,
+    AngularSlickgridModule
   ],
   selector: 'app-employee-night-shift',
   templateUrl: './employee-night-shift.component.html',
@@ -91,7 +99,12 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     private authService: AuthService,
   ) { }
 
-  nightShiftTable: Tabulator | null = null;
+  // SlickGrid properties
+  angularGrid!: AngularGridInstance;
+  columnDefinitions: Column[] = [];
+  gridOptions: GridOption = {};
+  dataset: any[] = [];
+  isLoading = false;
   isSearchVisible: boolean = false;
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
@@ -186,8 +199,10 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     this.dateStart = this.getFirstDayOfMonth();
     this.dateEnd = this.getLastDayOfMonth();
 
+    this.initGrid();
     this.loadDepartments();
     this.loadEmployees();
+    this.getNightShift();
 
     // Setup debounce cho keyword search
     this.keywordSearchSubject.pipe(
@@ -283,7 +298,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   }
 
   ngAfterViewInit(): void {
-    this.drawTable();
+    // Grid initialized in ngOnInit
   }
 
   loadDepartments(): void {
@@ -367,206 +382,385 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   }
 
   getNightShift() {
-    if (this.nightShiftTable) {
-      this.nightShiftTable.replaceData();
+    this.isLoading = true;
+
+    // Convert string date (YYYY-MM-DD) to ISO format
+    let dateStartISO: string | null = null;
+    let dateEndISO: string | null = null;
+
+    if (this.dateStart) {
+      const startDate = typeof this.dateStart === 'string'
+        ? DateTime.fromISO(this.dateStart)
+        : DateTime.fromJSDate(this.dateStart);
+      dateStartISO = startDate.isValid ? startDate.startOf('day').toISO() : null;
+    }
+
+    if (this.dateEnd) {
+      const endDate = typeof this.dateEnd === 'string'
+        ? DateTime.fromISO(this.dateEnd)
+        : DateTime.fromJSDate(this.dateEnd);
+      dateEndISO = endDate.isValid ? endDate.endOf('day').toISO() : null;
+    }
+
+    const request = {
+      EmployeeID: this.employeeID || 0,
+      DateStart: dateStartISO,
+      DateEnd: dateEndISO,
+      IsApproved: this.isApproved === null ? -1 : this.isApproved,
+      DepartmentID: this.departmentID || 0,
+      KeyWord: this.keyWord || '',
+      Page: 1,
+      Size: 1000000,
+    };
+
+    this.employeeNightShiftService.getEmployeeNightShift(request).subscribe({
+      next: (res: any) => {
+        const data = res.data.nightShiftdata || [];
+        this.dataset = data.map((item: any, index: number) => ({
+          ...item,
+          id: item.ID || index
+        }));
+        setTimeout(() => this.applyDistinctFilters(), 100);
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi tải dữ liệu làm đêm');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  initGrid(): void {
+    this.columnDefinitions = [
+      {
+        id: 'IsApprovedTBP',
+        name: 'TBP duyệt',
+        field: 'IsApprovedTBP',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        formatter: this.approvalBadgeFormatter,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'IsApprovedHR',
+        name: 'HR duyệt',
+        field: 'IsApprovedHR',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        formatter: this.approvalBadgeFormatter,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'Code',
+        name: 'Mã NV',
+        field: 'Code',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'FullName',
+        name: 'Tên nhân viên',
+        field: 'FullName',
+        sortable: true,
+        filterable: true,
+        width: 200,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'DepartmentName',
+        name: 'Phòng ban',
+        field: 'DepartmentName',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'IsProblem',
+        name: 'Bổ sung',
+        field: 'IsProblem',
+        sortable: true,
+        filterable: true,
+        width: 90,
+        formatter: Formatters.checkmarkMaterial,
+        filter: {
+          collection: [
+            { value: '', label: 'Tất cả' },
+            { value: true, label: 'Có' },
+            { value: false, label: 'Không' },
+          ],
+          model: Filters['singleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'DateRegister',
+        name: 'Ngày',
+        field: 'DateRegister',
+        sortable: true,
+        filterable: true,
+        width: 120,
+        formatter: Formatters.dateIso,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        type: 'date',
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'TotalHours',
+        name: 'Số giờ',
+        field: 'TotalHours',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-end',
+        formatter: (row, cell, value) => {
+          return value ? parseFloat(value).toFixed(2) : '0.00';
+        }
+      },
+      {
+        id: 'Location',
+        name: 'Địa điểm',
+        field: 'Location',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'ReasonHREdit',
+        name: 'Lý do sửa',
+        field: 'ReasonHREdit',
+        sortable: true,
+        filterable: true,
+        width: 200,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'Note',
+        name: 'Ghi chú',
+        field: 'Note',
+        sortable: true,
+        filterable: true,
+        width: 200,
+        filter: { model: Filters['compoundInputText'] },
+      },
+    ];
+
+    this.gridOptions = {
+      autoResize: {
+        container: '#grvNightShiftContainer',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false
+      },
+      checkboxSelector: {
+        hideInFilterHeaderRow: true,
+        hideInColumnTitleRow: false,
+        applySelectOnAllPages: true,
+      },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      frozenColumn: this.isMobile() ? -1 : 3,
+      showFooterRow: true,
+      createFooterRow: true,
+      forceFitColumns: true,
+      formatterOptions: {
+        decimalSeparator: '.',
+        displayNegativeNumberWithParentheses: true,
+        minDecimal: 0,
+        maxDecimal: 2,
+        thousandSeparator: ','
+      },
+    };
+  }
+
+  // SlickGrid lifecycle methods
+  angularGridReady(angularGrid: AngularGridInstance) {
+    this.angularGrid = angularGrid;
+
+    angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      this.updateFooterTotals();
+    });
+
+    angularGrid.dataView.onRowsChanged.subscribe(() => {
+      this.updateFooterTotals();
+    });
+
+    angularGrid.slickGrid.onRendered.subscribe(() => {
+      setTimeout(() => this.updateFooterTotals(), 0);
+    });
+
+    setTimeout(() => {
+      this.applyDistinctFilters();
+      this.updateFooterTotals();
+    }, 100);
+  }
+
+  private updateFooterTotals(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid || !this.angularGrid.dataView) return;
+
+    const totalCount = this.angularGrid.dataView.getLength();
+
+    // Update count for FullName column
+    const countElement = this.angularGrid.slickGrid?.getFooterRowColumn('FullName');
+    if (countElement) {
+      countElement.innerHTML = `<div style="font-weight: bold;">${totalCount}</div>`;
+    }
+
+    // Calculate and update sum for TotalHours column
+    const filteredItems = this.angularGrid.dataView.getFilteredItems() as any[];
+    const totalHours = filteredItems.reduce((sum, item) => {
+      const hours = parseFloat(item.TotalHours) || 0;
+      return sum + hours;
+    }, 0);
+
+    const hoursElement = this.angularGrid.slickGrid?.getFooterRowColumn('TotalHours');
+    if (hoursElement) {
+      hoursElement.innerHTML = `<div style="text-align: right; padding-right: 8px; font-weight: bold;">${totalHours.toFixed(2)}</div>`;
     }
   }
 
-  drawTable() {
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    this.nightShiftTable = new Tabulator('#dataTableNightShift', {
-      ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataStretch',
-      ajaxURL: this.employeeNightShiftService.getEmployeeNightShiftAjax(),
-      ajaxConfig: 'POST',
-      groupBy: 'DepartmentName',
-      groupHeader: (value: any, count: number, data: any, group: any) => {
-        return `<strong>Phòng ban: ${value || 'Không xác định'}</strong> <span style="color: #666; margin-left: 10px;">(${count} bản ghi)</span>`;
-      },
-      ajaxRequestFunc: (url, config, params) => {
-        // Convert string date (YYYY-MM-DD) to ISO format
-        let dateStartISO: string | null = null;
-        let dateEndISO: string | null = null;
-        
-        if (this.dateStart) {
-          const startDate = typeof this.dateStart === 'string' 
-            ? DateTime.fromISO(this.dateStart) 
-            : DateTime.fromJSDate(this.dateStart);
-          dateStartISO = startDate.isValid ? startDate.startOf('day').toISO() : null;
-        }
-        
-        if (this.dateEnd) {
-          const endDate = typeof this.dateEnd === 'string' 
-            ? DateTime.fromISO(this.dateEnd) 
-            : DateTime.fromJSDate(this.dateEnd);
-          dateEndISO = endDate.isValid ? endDate.endOf('day').toISO() : null;
-        }
-        
-        const request = {
-          EmployeeID: this.employeeID || 0,
-          DateStart: dateStartISO,
-          DateEnd: dateEndISO,
-          IsApproved: this.isApproved || -1,
-          DepartmentID: this.departmentID || 0,
-          KeyWord: this.keyWord || '',
-          Page: params.page || 1,
-          Size: params.size || 50,
-        };
-        return this.employeeNightShiftService.getEmployeeNightShift(request).toPromise();
-      },
-      ajaxResponse: (url, params, response) => {
-        return {
-          data: response.data.nightShiftdata || [],
-          last_page: response.data.TotalPage?.[0]?.TotalPage || 1,
-        };
-      },
-      columns: [
-        { title: 'ID', field: 'ID', visible: false, frozen: true },
-        {
-          title: 'STT',
-          formatter: 'rownum',
-          width: 60,
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          frozen: !isMobile,
-        },
-        {
-          title: 'Mã nhân viên',
-          field: 'Code',
-          minWidth: 120,
-          frozen: !isMobile,
-        },
-        {
-          title: 'Tên nhân viên',
-          field: 'FullName',
-          minWidth: 200,
-          frozen: !isMobile,
-          formatter: 'textarea',
-          bottomCalc: 'count',
-        },
-        {
-          title: 'TBP duyệt',
-          field: 'IsApprovedTBP',
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            const numValue = value === null || value === undefined ? 0 : Number(value);
-            return this.formatApprovalBadge(numValue);
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          frozen: !isMobile,
-          width: 100,
-        },
-        {
-          title: 'HR Duyệt',
-          field: 'IsApprovedHR',
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            const numValue = value === null || value === undefined ? 0 : Number(value);
-            return this.formatApprovalBadge(numValue);
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          frozen: !isMobile,
-          width: 100,
-        },
-        {
-          title: 'Phòng ban',
-          field: 'DepartmentName',
-          minWidth: 150,
-          visible: false, // Ẩn cột vì đã hiển thị trong group header
-        },
-        {
-          title: 'Bổ sung',
-          field: 'IsProblem',
-          formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-          ,
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
-        },
+  applyDistinctFilters(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid || !this.angularGrid.dataView) return;
 
-        {
-          title: 'Ngày đăng ký',
-          field: 'DateRegister',
-          minWidth: 120,
-          hozAlign: 'center',
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            if (!value) return '';
-            try {
-              // Thử parse từ ISO string hoặc Date object
-              let dt: DateTime | null = null;
-              if (value instanceof Date) {
-                dt = DateTime.fromJSDate(value);
-              } else if (typeof value === 'string') {
-                dt = DateTime.fromISO(value);
-                if (!dt.isValid) {
-                  dt = DateTime.fromSQL(value);
-                }
-              }
-              return dt && dt.isValid ? dt.toFormat('dd/MM/yyyy') : value;
-            } catch {
-              return value;
+    this.updateFooterTotals();
+
+    const data = this.angularGrid.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (items: any[], field: string): Array<{ value: any; label: string }> => {
+      const map = new Map<string, { value: any; label: string }>();
+      items.forEach((row: any) => {
+        let value = row?.[field];
+
+        // Handle numeric values for approval columns
+        if (field === 'IsApprovedTBP' || field === 'IsApprovedHR') {
+          value = (value === null || value === undefined) ? 0 : Number(value);
+        }
+
+        if (value === null || value === undefined || value === '') return;
+
+        const key = `${typeof value}:${String(value)}`;
+        if (!map.has(key)) {
+          let label = String(value);
+          if (field === 'IsApprovedTBP' || field === 'IsApprovedHR') {
+            switch (value) {
+              case 0: label = 'Chưa duyệt'; break;
+              case 1: label = 'Đã duyệt'; break;
+              case 2: label = 'Không duyệt'; break;
+              default: label = 'Không xác định';
             }
-          },
-        },
+          }
+          map.set(key, { value, label });
+        }
+      });
+      return Array.from(map.values());
+    };
 
-        {
-          title: 'Số giờ',
-          field: 'TotalHours',
-          minWidth: 100,
-          hozAlign: 'right',
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            return value ? parseFloat(value).toFixed(2) : '0.00';
-          },
-        },
+    const gridColumns = this.angularGrid.slickGrid.getColumns();
+    if (gridColumns) {
+      gridColumns.forEach((column: any) => {
+        if (column.filter && column.filter.model === Filters['multipleSelect']) {
+          const field = column.field;
+          if (!field) return;
+          const collection = getUniqueValues(data, field);
 
-        // {
-        //   title: 'Người duyệt',
-        //   field: 'ApprovedBy',
-        //   minWidth: 150,
-        // },
-        // {
-        //   title: 'Ngày duyệt',
-        //   field: 'ApprovedDate',
-        //   minWidth: 120,
-        //   hozAlign: 'center',
-        //   formatter: 'datetime',
-        //   formatterParams: { outputFormat: 'DD/MM/YYYY HH:mm' },
-        // },
-        {
-          title: 'Địa điểm',
-          field: 'Location',
-          minWidth: 200,
-          formatter: 'textarea',
-        },
-        {
-          title: 'Lý do sửa',
-          field: 'ReasonHREdit',
-          minWidth: 200,
-          formatter: 'textarea',
-        },
-        {
-          title: 'Ghi chú',
-          field: 'Note',
-          minWidth: 200,
-          formatter: 'textarea',
-        },
+          // Sort logic
+          if (field === 'IsApprovedTBP' || field === 'IsApprovedHR') {
+            collection.sort((a, b) => (Number(a.value) || 0) - (Number(b.value) || 0));
+          } else {
+            collection.sort((a, b) => String(a.label).localeCompare(String(b.label)));
+          }
 
-      ],
-    });
+          column.filter.collection = collection;
+        }
+      });
+      this.angularGrid.slickGrid.setColumns(gridColumns);
+    }
 
-    this.nightShiftTable.on(
-      'rowDblClick',
-      (e: UIEvent, row: RowComponent) => {
-        const selectedData = row.getData();
-        // TODO: Mở form edit
-        console.log('Selected night shift:', selectedData);
-      }
-    );
+    if (this.columnDefinitions) {
+      this.columnDefinitions.forEach((colDef: any) => {
+        if (colDef.filter && colDef.filter.model === Filters['multipleSelect']) {
+          const field = colDef.field;
+          if (!field) return;
+          const collection = getUniqueValues(data, field);
+
+          if (field === 'IsApprovedTBP' || field === 'IsApprovedHR') {
+            collection.sort((a, b) => (Number(a.value) || 0) - (Number(b.value) || 0));
+          } else {
+            collection.sort((a, b) => String(a.label).localeCompare(String(b.label)));
+          }
+
+          colDef.filter.collection = collection;
+        }
+      });
+    }
+
+    this.angularGrid.slickGrid.invalidate();
+    this.angularGrid.slickGrid.render();
+    setTimeout(() => this.updateFooterTotals(), 50);
   }
+
+  handleRowSelection(e: Event, args: OnSelectedRowsChangedEventArgs) { }
+  onCellClicked(e: Event, args: OnClickEventArgs) { }
+
+  getSelectedRows(): any[] {
+    if (!this.angularGrid || !this.angularGrid.slickGrid) return [];
+    const selectedRowIndexes = this.angularGrid.slickGrid.getSelectedRows();
+    return selectedRowIndexes.map((idx: number) => this.angularGrid.dataView.getItem(idx));
+  }
+
+  approvalBadgeFormatter: Formatter = (row, cell, value, columnDef, dataContext) => {
+    let numValue = 0;
+    if (value === null || value === undefined) {
+      numValue = 0;
+    } else if (typeof value === 'number') {
+      numValue = value;
+    } else if (typeof value === 'string') {
+      if (value === 'Đã duyệt') numValue = 1;
+      else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+      else numValue = 0;
+    }
+    return this.formatApprovalBadge(numValue);
+  };
+
 
   onAddNightShift() {
     const modalRef = this.ngbModal.open(EmployeeNightShiftFormComponent, {
@@ -591,7 +785,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   }
 
   onEditNightShift() {
-    const selectedRows = this.nightShiftTable?.getSelectedData();
+    const selectedRows = this.getSelectedRows();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một bản ghi để sửa!');
       return;
@@ -637,7 +831,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
 
   // TBP Duyệt
   onTBPApprove(): void {
-    const selectedRows = this.nightShiftTable?.getSelectedData();
+    const selectedRows = this.getSelectedRows();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên muốn duyệt/huỷ duyệt!');
       return;
@@ -698,7 +892,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
 
   // TBP Hủy duyệt
   onTBPCancel(): void {
-    const selectedRows = this.nightShiftTable?.getSelectedData();
+    const selectedRows = this.getSelectedRows();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên muốn duyệt/huỷ duyệt!');
       return;
@@ -742,7 +936,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
 
   // HR Duyệt
   onHRApprove(): void {
-    const selectedRows = this.nightShiftTable?.getSelectedData();
+    const selectedRows = this.getSelectedRows();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên muốn duyệt/huỷ duyệt!');
       return;
@@ -814,7 +1008,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
 
   // HR Hủy duyệt
   onHRCancel(): void {
-    const selectedRows = this.nightShiftTable?.getSelectedData();
+    const selectedRows = this.getSelectedRows();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên muốn duyệt/huỷ duyệt!');
       return;
@@ -888,10 +1082,9 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   private updateTBPApprove(listID: number[], isApprove: boolean): void {
     if (listID.length === 0) return;
 
-    // Lấy dữ liệu từ table để build payload
+    // Lấy dữ liệu từ dataset để build payload
     const payload = listID.map(id => {
-      const row = this.nightShiftTable?.getRows().find(r => r.getData()['ID'] === id);
-      const rowData: any = row?.getData() || {};
+      const rowData = this.dataset.find(r => r.ID === id) || {};
 
       return {
         ID: id,
@@ -933,10 +1126,9 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   private updateHRApprove(listID: number[], isApprove: boolean): void {
     if (listID.length === 0) return;
 
-    // Lấy dữ liệu từ table để build payload
+    // Lấy dữ liệu từ dataset để build payload
     const payload = listID.map(id => {
-      const row = this.nightShiftTable?.getRows().find(r => r.getData()['ID'] === id);
-      const rowData: any = row?.getData() || {};
+      const rowData = this.dataset.find(r => r.ID === id) || {};
 
       return {
         ID: id,
@@ -975,7 +1167,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   }
 
   onDeleteNightShift() {
-    const selectedRows = this.nightShiftTable?.getSelectedData();
+    const selectedRows = this.getSelectedRows();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một bản ghi để xóa!');
       return;
@@ -1083,27 +1275,25 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   }
 
   async exportToExcel() {
-    if (!this.nightShiftTable) return;
+    if (!this.angularGrid || !this.dataset || this.dataset.length === 0) {
+      this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+      return;
+    }
 
-    const selectedData = this.nightShiftTable.getData();
-    if (!selectedData || selectedData.length === 0) {
+    const filteredData = this.angularGrid.dataView.getFilteredItems();
+    if (!filteredData || filteredData.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
       return;
     }
 
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách làm thêm');
+    const worksheet = workbook.addWorksheet('Danh sách làm đêm');
 
-    const columns = this.nightShiftTable
-      .getColumnDefinitions()
-      .filter(
-        (col: any) =>
-          col.visible !== false && col.field && col.field.trim() !== ''
-      );
+    const columns = this.columnDefinitions.filter(col => col.id !== 'checkbox-selector' && col.id !== 'STT');
 
     const headerRow = worksheet.addRow(
-      columns.map((col) => col.title || col.field)
+      columns.map((col) => col.name || col.field)
     );
     headerRow.font = { bold: true };
     headerRow.fill = {
@@ -1112,16 +1302,18 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
       fgColor: { argb: 'FFE0E0E0' },
     };
 
-    selectedData.forEach((row: any) => {
+    filteredData.forEach((row: any) => {
       const rowData = columns.map((col: any) => {
-        const value = row[col.field];
-        switch (col.field) {
-          case 'IsApproved':
+        const field = col.field as string;
+        const value = row[field];
+        switch (field) {
+          case 'IsApprovedTBP':
+          case 'IsApprovedHR':
+            return value === 1 ? 'Đã duyệt' : (value === 2 ? 'Không duyệt' : 'Chưa duyệt');
+          case 'IsProblem':
             return value ? 'Có' : 'Không';
-          case 'NightShiftDate':
-          case 'ApprovedDate':
-          case 'CreateDate':
-            return value ? new Date(value).toLocaleDateString('vi-VN') : '';
+          case 'DateRegister':
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           default:
             return value !== null && value !== undefined ? value : '';
         }
@@ -1160,6 +1352,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
   }
+
   private formatApprovalBadge(status: number): string {
     // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
     const numStatus = status === null || status === undefined ? 0 : Number(status);

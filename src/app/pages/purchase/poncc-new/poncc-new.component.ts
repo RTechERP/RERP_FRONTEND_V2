@@ -1,3 +1,4 @@
+import { AppUserService } from './../../../services/app-user.service';
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -53,6 +54,7 @@ import { SafeUrlPipe } from '../../../../safeUrl.pipe';
 import { PaymentOrderDetailComponent } from '../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
+import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
   Times: {
@@ -181,8 +183,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private supplierSaleService: SupplierSaleService,
     private modalService: NgbModal,
-    private cdr: ChangeDetectorRef
-  ) { }
+    private cdr: ChangeDetectorRef,
+    public appUserService: AppUserService
+  ) {
+    this.employeeId = this.appUserService.employeeID || 0;
+  }
 
   ngOnInit(): void {
     this.loadLookups();
@@ -1359,6 +1364,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         );
       },
     });
+  }
+
+  // Handle date input change
+  onDateChange(field: 'dateStart' | 'dateEnd', value: string): void {
+    if (value) {
+      (this as any)[field] = new Date(value);
+    }
   }
 
   onSearch(): void {
@@ -2798,7 +2810,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     // console.log('PO NCC ID:', ponccId);
 
     if (type === 0) {
-      const modalRef = this.modalService.open(BillImportDetailComponent, {
+      const modalRef = this.modalService.open(BillImportDetailNewComponent, {
         backdrop: 'static',
         keyboard: false,
         centered: true,

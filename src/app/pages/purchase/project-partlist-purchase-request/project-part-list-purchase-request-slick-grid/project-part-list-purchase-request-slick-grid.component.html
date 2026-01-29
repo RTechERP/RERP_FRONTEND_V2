@@ -6,7 +6,7 @@
         <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close" style="margin-right: 15px;"></button>
     </div>
 
-    <div class="card border-0 rounded-0 h-100">
+    <div class="card border-0 rounded-0">
         <div class="card-header bg-white p-1">
             <!-- PrimeNG Menubar -->
             <p-menubar [model]="menuItems" styleClass="p-0 border-0">
@@ -60,7 +60,7 @@
                     <div class="table-container mt-1 grid-container h-100" [class]="'grid-container-' + tab.id"
                         *ngIf="shouldRenderGrid(tab.id) && columnDefinitionsMap.has(tab.id)"
                         style="height: 100%; width: 100%;">
-                        <angular-slickgrid [gridId]="'grid-' + tab.id"
+                        <angular-slickgrid [gridId]="'gridPurchase-' + tab.id"
                             [columns]="columnDefinitionsMap.get(tab.id) || []"
                             [options]="gridOptionsMap.get(tab.id) || {}" [dataset]="datasetsMap.get(tab.id) || []"
                             (onAngularGridCreated)="angularGridReady(tab.id, $event.detail)"
@@ -83,16 +83,22 @@
             <nz-form-item class="mb-0" nzFlex="1 1 auto">
                 <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
                 <nz-form-control>
-                    <nz-date-picker [(ngModel)]="dateStart" name="dateStart" nzFormat="dd/MM/yyyy"
-                        style="width: 150px; font-size: 12px;" nzSize="small" nzAllowClear="false"></nz-date-picker>
+                    <input type="date" class="form-control form-control-sm date-input-sm"
+                        [ngModel]="dateStart | date:'yyyy-MM-dd'"
+                        (ngModelChange)="onDateChange('dateStart', $event)"
+                        name="dateStart"
+                        title="Từ ngày" />
                 </nz-form-control>
             </nz-form-item>
 
             <nz-form-item class="mb-0" nzFlex="1 1 auto">
                 <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
                 <nz-form-control>
-                    <nz-date-picker [(ngModel)]="dateEnd" name="dateEnd" nzFormat="dd/MM/yyyy"
-                        style="width: 150px; font-size: 12px;" nzSize="small" nzAllowClear="false"></nz-date-picker>
+                    <input type="date" class="form-control form-control-sm date-input-sm"
+                        [ngModel]="dateEnd | date:'yyyy-MM-dd'"
+                        (ngModelChange)="onDateChange('dateEnd', $event)"
+                        name="dateEnd"
+                        title="Đến ngày" />
                 </nz-form-control>
             </nz-form-item>
 

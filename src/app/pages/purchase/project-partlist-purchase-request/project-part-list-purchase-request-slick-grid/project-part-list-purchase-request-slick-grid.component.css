@@ -31,8 +31,8 @@
   font-size: 12px;
   font-size: 0.75rem;
 }
-::ng-deep div[id^="grid-"] {
-  height: 78vh!important;
+::ng-deep div[id^="gridPurchase-"] {
+  height: 73vh!important;
 }
 
 /* Căn phải các cột số */
@@ -68,4 +68,14 @@
   border-right: 1px solid #ddd !important;
   padding: 4px 6px;
   font-size: 0.75rem;
+}
+::ng-deep .card{
+  height: 94vh !important;
+}
+/* Input date styling */
+.date-input-sm {
+  width: 150px;
+  font-size: 12px !important;
+  padding: 0.25rem 0.5rem;
+  height: calc(1.5em + 0.5rem + 2px);
 }

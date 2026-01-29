@@ -1,0 +1,85 @@
+.modal-body {
+  overflow-y: unset;
+  height: 88vh !important;
+}
+
+.grid-container-detail {
+  min-height: 300px;
+  height: 36vh;
+}
+
+.fs-12 {
+  font-size: 12px;
+}
+
+/* SlickGrid styling */
+::ng-deep .slick-cell {
+  font-size: 12px;
+  line-height: 1.4;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+::ng-deep .slick-header-column {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+::ng-deep .slick-footerrow-columns .slick-footerrow-column {
+  font-size: 12px;
+  background-color: #fafafa;
+  border-top: 1px solid #e8e8e8;
+}
+
+::ng-deep .slick-row.odd {
+  background-color: #fafafa;
+}
+
+::ng-deep .slick-row:hover {
+  background-color: #e6f7ff;
+}
+
+::ng-deep .slick-cell.editable {
+  background-color: #fff8e6;
+}
+
+::ng-deep .slick-cell.selected {
+  background-color: #bae7ff;
+}
+
+::ng-deep .fa-trash {
+  cursor: pointer;
+  color: #ff4d4f;
+}
+
+::ng-deep .fa-trash:hover {
+  color: #ff7875;
+}
+
+::ng-deep .fa-plus {
+  cursor: pointer;
+  color: #1890ff;
+}
+
+::ng-deep .fa-plus:hover {
+  color: #40a9ff;
+}
+
+::ng-deep div[id^="billImportDetail_"] {
+  height: 50vh !important;
+}
+::ng-deep div[id^="billImportDocDetail_"] {
+  height: 50vh !important;
+}
+/* Multiline cell with max 3 lines and ellipsis */
+::ng-deep .cell-multiline {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  max-height: 4.2em;
+  word-wrap: break-word;
+  white-space: normal;
+}

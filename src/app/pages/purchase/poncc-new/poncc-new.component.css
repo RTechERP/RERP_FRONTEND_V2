@@ -156,3 +156,11 @@
   padding: 4px 6px;
   font-size: 0.75rem;
 }
+
+/* Input date styling */
+.date-input-sm {
+  width: 150px;
+  font-size: 12px !important;
+  padding: 0.25rem 0.5rem;
+  height: calc(1.5em + 0.5rem + 2px);
+}

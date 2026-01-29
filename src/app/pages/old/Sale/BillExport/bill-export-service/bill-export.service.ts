@@ -8,7 +8,7 @@ import { environment } from '../../../../../../environments/environment';
   providedIn: 'root',
 })
 export class BillExportService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // Product Group - Using correct endpoint
   getProductGroup(isadmin: boolean, departmentID: number): Observable<any> {
@@ -167,11 +167,11 @@ export class BillExportService {
   getBillExportByID(id: number): Observable<any> {
     return this.http.get<any>(environment.host + `api/billexport/${id}`);
   }
-getBillImportDetail(billIDs: number[]): Observable<any> {
-  return this.http.get(
-    environment.host + `api/BillImportDetail/BillImportID/${billIDs.join(',')}`
-  );
-}
+  getBillImportDetail(billIDs: number[]): Observable<any> {
+    return this.http.get(
+      environment.host + `api/BillImportDetail/BillImportID/${billIDs.join(',')}`
+    );
+  }
   // Get History Delete Bill
   getHistoryDeleteBill(data: any): Observable<any> {
     return this.http.post<any>(
@@ -236,7 +236,7 @@ getBillImportDetail(billIDs: number[]): Observable<any> {
   getBillExportQR(warehouseID: number, code: string): Observable<any> {
     return this.http.get<any>(
       environment.host +
-        `api/billexport/scan?code=${code}&warehouseId=${warehouseID}`
+      `api/billexport/scan?code=${code}&warehouseId=${warehouseID}`
     );
   }
 
@@ -394,20 +394,27 @@ getBillImportDetail(billIDs: number[]): Observable<any> {
     });
   }
   getInventoryProjectImportExport(
-  warehouseID: number,
-  productID: number,
-  projectID: number,
-  pokhDetailID: number,
-  billExportDetailIds: string  // ✅ Nhận CSV: "123,456,789"
-): Observable<any> {
-  return this.http.get(`${environment.host}api/billexport/get-inventory-project-import-export`, {
-    params: {
-      warehouseId: warehouseID.toString(),
-      productId: productID.toString(),
-      projectId: projectID.toString(),
-      pokhDetailId: pokhDetailID.toString(),
-      billExportDetailIds: billExportDetailIds || ''  // ✅ Truyền empty string nếu null
-    }
-  });
-}
+    warehouseID: number,
+    productID: number,
+    projectID: number,
+    pokhDetailID: number,
+    billExportDetailIds: string  // ✅ Nhận CSV: "123,456,789"
+  ): Observable<any> {
+    return this.http.get(`${environment.host}api/billexport/get-inventory-project-import-export`, {
+      params: {
+        warehouseId: warehouseID.toString(),
+        productId: productID.toString(),
+        projectId: projectID.toString(),
+        pokhDetailId: pokhDetailID.toString(),
+        billExportDetailIds: billExportDetailIds || ''  // ✅ Truyền empty string nếu null
+      }
+    });
+  }
+
+  exportExcelFile(billExportId: number): Observable<Blob> {
+    const url = `${environment.host}api/billexport/export-excel-file?billExportId=${billExportId}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+    });
+  }
 }

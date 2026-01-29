@@ -325,7 +325,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
         if (this.paymentOrder.ID > 0) {
             this.paymentService.getDetail(this.paymentOrder.ID).subscribe({
                 next: (response) => {
-                    console.log(response);
+                    // console.log(response);
 
                     this.dataset = response.data.details;
                     this.dataset = this.dataset.map((x, i) => ({

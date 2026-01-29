@@ -1488,52 +1488,100 @@ export class ProjectPartlistPriceRequestFormComponent
         this.jobRequirementID > 0
           ? this.jobRequirementID
           : Number(data['JobRequirementID'] ?? baseJobRequirementId) || null;
-      const isJobRequirement = data['IsJobRequirement'] ?? baseIsJobRequirement;
-      const isCommercialProduct =
-        data['IsCommercialProduct'] ?? baseIsCommercialProduct;
+      const isJobRequirement = data['IsJobRequirement'] !== undefined && data['IsJobRequirement'] !== null
+        ? (data['IsJobRequirement'] === true || data['IsJobRequirement'] === 'true' || data['IsJobRequirement'] === 1)
+        : baseIsJobRequirement;
+      const isCommercialProduct = data['IsCommercialProduct'] !== undefined && data['IsCommercialProduct'] !== null
+        ? (data['IsCommercialProduct'] === true || data['IsCommercialProduct'] === 'true' || data['IsCommercialProduct'] === 1)
+        : baseIsCommercialProduct;
 
-      const record: any = {
-        ...(original || {}),
-        ID: data['ID'] ?? 0,
-        ProductCode: (data['ProductCode'] || '').toString(),
-        ProductName: (data['ProductName'] || '').toString(),
-        Maker: (data['Maker'] || '').toString(),
-        Unit: (data['Unit'] || '').toString(),
-        Quantity: Number(data['Quantity']) || 0,
-        Deadline: data['Deadline']
-          ? DateTime.fromJSDate(new Date(data['Deadline'])).toJSDate()
-          : null,
-        Note: note || '',
-        DateRequest: this.requestDate ? new Date(this.requestDate) : null,
-        EmployeeID: Number(this.requester) || null,
-        // CustomerID: Number(this.customerID) || null,
-        IsJobRequirement: isJobRequirement || false,
-        IsCommercialProduct: isCommercialProduct || false,
-        ProjectPartlistID: projectPartlistId ||0,
-        JobRequirementID: jobRequirementId ||0,
-        ProjectPartlistPriceRequestTypeID: this.priceRequestTypeID || null,
-        StatusRequest: isNew ? 1 : oldStatus,
-        NoteHR: data['NoteHR'] || null,
-        IsDeleted: false,
-        SupplierSaleID: data['SupplierSaleID'] || 0,
-      };
+      // Nếu là bản ghi mới, gửi đầy đủ các trường
+      if (isNew) {
+        const record: any = {
+          ID: 0,
+          ProductCode: (data['ProductCode'] || '').toString(),
+          ProductName: (data['ProductName'] || '').toString(),
+          Maker: (data['Maker'] || '').toString(),
+          Unit: (data['Unit'] || '').toString(),
+          Quantity: Number(data['Quantity']) || 0,
+          Deadline: data['Deadline']
+            ? DateTime.fromJSDate(new Date(data['Deadline'])).toJSDate()
+            : null,
+          Note: note || '',
+          DateRequest: this.requestDate ? new Date(this.requestDate) : null,
+          EmployeeID: Number(this.requester) || null,
+          IsJobRequirement: Boolean(isJobRequirement) || false,
+          IsCommercialProduct: Boolean(isCommercialProduct) || false,
+          ProjectPartlistID: Number(projectPartlistId) || 0,
+          JobRequirementID: Number(jobRequirementId) || 0,
+          ProjectPartlistPriceRequestTypeID: Number(this.priceRequestTypeID) || null,
+          StatusRequest: 1,
+          NoteHR: data['NoteHR'] || null,
+          IsDeleted: false,
+          SupplierSaleID: Number(data['SupplierSaleID']) || 0,
+        };
 
-      if (
-        isNew &&
-        record['ProjectPartlistPriceRequestTypeID'] !== 4 &&
-        record['ProjectPartlistPriceRequestTypeID'] !== 3 &&
-        record['ProjectPartlistPriceRequestTypeID'] !== 6
-      ) {
-        if (jobRequirementId && jobRequirementId > 0) {
-          record['IsJobRequirement'] = true;
-          record['IsCommercialProduct'] = false;
-        } else {
-          record['IsJobRequirement'] = false;
-          record['IsCommercialProduct'] = true;
+        if (
+          record['ProjectPartlistPriceRequestTypeID'] !== 4 &&
+          record['ProjectPartlistPriceRequestTypeID'] !== 3 &&
+          record['ProjectPartlistPriceRequestTypeID'] !== 6
+        ) {
+          if (jobRequirementId && jobRequirementId > 0) {
+            record['IsJobRequirement'] = true;
+            record['IsCommercialProduct'] = false;
+          } else {
+            record['IsJobRequirement'] = false;
+            record['IsCommercialProduct'] = true;
+          }
+        }
+
+        recordsToSave.push(record);
+      } else {
+        // Nếu là bản ghi cũ, chỉ gửi ID và các trường đã thay đổi
+        const record: any = {
+          ID: Number(data['ID']),
+        };
+
+        // So sánh và chỉ thêm các trường đã thay đổi
+        if ((data['ProductCode'] || '') !== (original['ProductCode'] || '')) {
+          record['ProductCode'] = (data['ProductCode'] || '').toString();
+        }
+        if ((data['ProductName'] || '') !== (original['ProductName'] || '')) {
+          record['ProductName'] = (data['ProductName'] || '').toString();
+        }
+        if ((data['Maker'] || '') !== (original['Maker'] || '')) {
+          record['Maker'] = (data['Maker'] || '').toString();
+        }
+        if ((data['Unit'] || '') !== (original['Unit'] || '')) {
+          record['Unit'] = (data['Unit'] || '').toString();
+        }
+        if (Number(data['Quantity']) !== Number(original['Quantity'])) {
+          record['Quantity'] = Number(data['Quantity']) || 0;
+        }
+
+        const newDeadline = data['Deadline'] ? new Date(data['Deadline']).getTime() : null;
+        const oldDeadline = original['Deadline'] ? new Date(original['Deadline']).getTime() : null;
+        if (newDeadline !== oldDeadline) {
+          record['Deadline'] = data['Deadline']
+            ? DateTime.fromJSDate(new Date(data['Deadline'])).toJSDate()
+            : null;
+        }
+
+        if (note !== (original['Note'] || '')) {
+          record['Note'] = note || '';
+        }
+        if ((data['NoteHR'] || '') !== (original['NoteHR'] || '')) {
+          record['NoteHR'] = data['NoteHR'] || null;
+        }
+        if (Number(data['SupplierSaleID']) !== Number(original['SupplierSaleID'])) {
+          record['SupplierSaleID'] = Number(data['SupplierSaleID']) || 0;
+        }
+
+        // Chỉ push nếu có thay đổi (có nhiều hơn chỉ ID)
+        if (Object.keys(record).length > 1) {
+          recordsToSave.push(record);
         }
       }
-
-      recordsToSave.push(record);
     });
 
     const currentIds = rows
@@ -1545,11 +1593,10 @@ export class ProjectPartlistPriceRequestFormComponent
     );
 
     removedIds.forEach((id) => {
-      const original = this.originalRowsMap.get(id);
-      if (!original) return;
+      if (!id) return;
 
       recordsToSave.push({
-        ...original,
+        ID: Number(id),
         IsDeleted: true,
       });
     });

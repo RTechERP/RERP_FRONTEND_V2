@@ -23,25 +23,21 @@
             <nz-form-item>
               <nz-form-label class="fs-12">Từ ngày</nz-form-label>
               <nz-form-control>
-                <nz-date-picker
-                  nzFormat="dd/MM/yyyy"
-                  class="w-100"
-                  [(ngModel)]="dateStart"
-                  nzAllowClear="false"
+                <input type="date" class="form-control form-control-sm date-input-sm w-100"
+                  [ngModel]="dateStart | date:'yyyy-MM-dd'"
+                  (ngModelChange)="onDateChange('dateStart', $event)"
                   name="dateStart"
-                ></nz-date-picker>
+                  title="Từ ngày" />
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12">Đến ngày</nz-form-label>
               <nz-form-control>
-                <nz-date-picker
-                  nzFormat="dd/MM/yyyy"
-                  class="w-100"
-                  [(ngModel)]="dateEnd"
-                  nzAllowClear="false"
+                <input type="date" class="form-control form-control-sm date-input-sm w-100"
+                  [ngModel]="dateEnd | date:'yyyy-MM-dd'"
+                  (ngModelChange)="onDateChange('dateEnd', $event)"
                   name="dateEnd"
-                ></nz-date-picker>
+                  title="Đến ngày" />
               </nz-form-control>
             </nz-form-item>
 
@@ -165,14 +161,11 @@
                 >Từ ngày</nz-form-label
               >
               <nz-form-control>
-                <nz-date-picker
-                  [(ngModel)]="dateStart"
-                  name="dateStart"
-                  nzFormat="dd/MM/yyyy"
-                  style="width: 150px; font-size: 12px"
-                  nzSize="small"
-                  nzAllowClear="false"
-                ></nz-date-picker>
+                <input type="date" class="form-control form-control-sm date-input-sm"
+                  [ngModel]="dateStart | date:'yyyy-MM-dd'"
+                  (ngModelChange)="onDateChange('dateStart', $event)"
+                  name="dateStart2"
+                  title="Từ ngày" />
               </nz-form-control>
             </nz-form-item>
 
@@ -181,14 +174,11 @@
                 >Đến ngày</nz-form-label
               >
               <nz-form-control>
-                <nz-date-picker
-                  [(ngModel)]="dateEnd"
-                  name="dateEnd"
-                  nzFormat="dd/MM/yyyy"
-                  style="width: 150px; font-size: 12px"
-                  nzSize="small"
-                  nzAllowClear="false"
-                ></nz-date-picker>
+                <input type="date" class="form-control form-control-sm date-input-sm"
+                  [ngModel]="dateEnd | date:'yyyy-MM-dd'"
+                  (ngModelChange)="onDateChange('dateEnd', $event)"
+                  name="dateEnd2"
+                  title="Đến ngày" />
               </nz-form-control>
             </nz-form-item>
 

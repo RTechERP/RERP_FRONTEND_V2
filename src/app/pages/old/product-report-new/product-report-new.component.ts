@@ -1,4 +1,5 @@
 //import
+import * as ExcelJS from 'exceljs';
 import { CommonModule } from '@angular/common';
 import { BillImportTechnicalService } from '../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
 import { FormsModule } from '@angular/forms';
@@ -386,7 +387,6 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
             this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
             return;
         }
-        const ExcelJS = await import('exceljs');
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Danh sách thiết bị');
         const columns = this.historyBillTable

@@ -50,6 +50,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { BillExportDetailNewComponent } from './bill-export-detail-new/bill-export-detail-new.component';
 interface BillExport {
     Id?: number;
     TypeBill: boolean;
@@ -393,7 +394,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             this.id = 0;
             return;
         }
-        const modalRef = this.modalService.open(BillExportDetailComponent, {
+        const modalRef = this.modalService.open(BillExportDetailNewComponent, {
             centered: true,
             // windowClass: 'full-screen-modal',
             size: 'xl',
@@ -1172,18 +1173,35 @@ export class BillExportComponent implements OnInit, AfterViewInit {
 
     //#region tong hop phieu xuat
     openModalBillExportSynthetic() {
-        const modalRef = this.modalService.open(BillExportSyntheticComponent, {
-            centered: true,
-            size: 'xl',
-            backdrop: 'static',
-            keyboard: false,
-        });
-        modalRef.componentInstance.warehouseCode = this.warehouseCode;
-        modalRef.result.catch((result) => {
-            if (result == true) {
-                // this.id=0;
-                // this.loadDataBillExport();
-            }
+        // OLD CODE - using BillExportSyntheticComponent
+        // const modalRef = this.modalService.open(BillExportSyntheticComponent, {
+        //     centered: true,
+        //     size: 'xl',
+        //     backdrop: 'static',
+        //     keyboard: false,
+        // });
+        // modalRef.componentInstance.warehouseCode = this.warehouseCode;
+        // modalRef.result.catch((result) => {
+        //     if (result == true) {
+        //         // this.id=0;
+        //         // this.loadDataBillExport();
+        //     }
+        // });
+
+        // NEW CODE - using BillExportSyntheticNewComponent
+        import('./Modal/bill-export-synthetic-new/bill-export-synthetic-new.component').then(m => {
+            const modalRef = this.modalService.open(m.BillExportSyntheticNewComponent, {
+                centered: true,
+                backdrop: 'static',
+                keyboard: false,
+                fullscreen: true,
+            });
+            modalRef.componentInstance.warehouseCode = this.warehouseCode;
+            modalRef.result.catch((result) => {
+                if (result == true) {
+                    this.loadDataBillExport();
+                }
+            });
         });
     }
     //#endregion

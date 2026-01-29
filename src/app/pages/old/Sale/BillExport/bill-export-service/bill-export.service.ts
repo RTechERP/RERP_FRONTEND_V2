@@ -115,6 +115,14 @@ export class BillExportService {
     );
   }
 
+  checkBillCode(billCode: string): Observable<any> {
+    return this.http.post<any>(
+      `${environment.host}api/billexport/check-bill-code`,
+      JSON.stringify(billCode),
+      { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
+    );
+  }
+
   // Get New Bill Code
   getNewCodeBillExport(billType: number, billId?: number, currentStatus?: number, currentCode?: string): Observable<any> {
     let params = new HttpParams().set('billTypeId', billType.toString());

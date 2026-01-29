@@ -39,6 +39,7 @@ import { BillImportDetailComponent } from '../../BillImport/Modal/bill-import-de
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 import { ClipboardService } from '../../../../../services/clipboard.service';
+import { BillImportDetailNewComponent } from '../../BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 
 @Component({
     selector: 'app-history-import-export-new',
@@ -508,7 +509,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
     }
 
     openBillImportDetail(rowData: any): void {
-        const modalRef = this.modalService.open(BillImportDetailComponent, {
+        const modalRef = this.modalService.open(BillImportDetailNewComponent, {
             centered: true,
             size: 'xl',
             backdrop: 'static',

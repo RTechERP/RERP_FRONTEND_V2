@@ -25,7 +25,7 @@
             <nz-icon nzType="save"></nz-icon> Lưu phiếu này
           </button> -->
         <!-- </div> -->
-        <app-bill-import-detail
+        <app-bill-import-detail-new
           #billDetail
           [hidden]="selectedIndex !== i"
           [createImport]="createImport"
@@ -35,7 +35,7 @@
           [id]="0"
           [isEmbedded]="true"
           (saveSuccess)="onTabSaveSuccess(i)">
-        </app-bill-import-detail>
+        </app-bill-import-detail-new>
       </div>
     </nz-tab>
 

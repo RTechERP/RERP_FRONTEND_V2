@@ -490,5 +490,17 @@ export class KPIService {
       .set('empPointMaster', empPointMaster.toString());
     return this.http.get<any>(this.apiUrlFactorScoring + 'load-point-rule-new', { params });
   }
+
+  /**
+   * Lấy điểm cuối cùng của nhân viên
+   * API: GET api/KPIEvaluationFactorScoring/get-final-point?employeeID={employeeID}&sessionID={sessionID}
+   */
+  getFinalPoint(employeeID: number, sessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-final-point', { params });
+  }
 }
+
 

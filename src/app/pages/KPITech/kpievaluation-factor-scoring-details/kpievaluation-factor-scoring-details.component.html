@@ -36,7 +36,7 @@
     <div class="control-panel d-flex gap-2 align-items-center flex-wrap" style="flex-shrink: 0;">
         <div class="d-flex align-items-center gap-1">
             <label class="fs-12 mb-0">Kỳ đánh giá:</label>
-            <nz-select [(ngModel)]="selectedKPISessionId" nzPlaceHolder="Chọn kỳ đánh giá" style="width: 200px;"
+            <nz-select [(ngModel)]="selectedKPISessionId" nzPlaceHolder="Chọn kỳ đánh giá" style="width: 150px;"
                 nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onSessionChange()">
                 @for (session of kpiSessions; track session.ID) {
                 <nz-option [nzValue]="session.ID" [nzLabel]="session.Code"></nz-option>
@@ -46,7 +46,7 @@
 
         <div class="d-flex align-items-center gap-1">
             <label class="fs-12 mb-0">Bài đánh giá:</label>
-            <nz-select [(ngModel)]="selectedKPIExamId" nzPlaceHolder="Chọn bài đánh giá" style="width: 250px;"
+            <nz-select [(ngModel)]="selectedKPIExamId" nzPlaceHolder="Chọn bài đánh giá" style="width: 200px;"
                 nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onExamChange()">
                 @for (exam of kpiExams; track exam.ID) {
                 <nz-option [nzValue]="exam.ID" [nzLabel]="exam.ExamName"></nz-option>
@@ -67,7 +67,7 @@
 
     <!-- Main Content: Tabs with Grids -->
     <div class="flex-grow-1" style="min-height: 0; overflow: hidden; flex: 1;">
-        <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectedIndexChange)="onTabChange($event)" nzType="card"
+        <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectedIndexChange)="onTabChange($event)"
             style="height: 100%;">
 
             <!-- Tab 1: KPI Kỹ năng -->
@@ -99,7 +99,6 @@
                     </angular-slickgrid>
                 </div>
             </nz-tab>
-
             <!-- Tab 4: Tổng hợp đánh giá -->
             <nz-tab nzTitle="Tổng hợp đánh giá">
                 <div class="grid-master-container" style="height: 100%; position: relative;">
@@ -113,7 +112,7 @@
             <!-- Tab 5: Rule -->
             <nz-tab nzTitle="Rule" *ngIf="showTabRule">
                 <div class="grid-rule-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 4" gridId="grid-rule"
+                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 4" gridId="grid-rule-details"
                         [columns]="ruleColumns" [options]="ruleGridOptions" [dataset]="dataRule"
                         (onAngularGridCreated)="onRuleGridReady($event)">
                     </angular-slickgrid>

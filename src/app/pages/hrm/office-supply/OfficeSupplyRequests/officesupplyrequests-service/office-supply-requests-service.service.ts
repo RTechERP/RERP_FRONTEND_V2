@@ -21,12 +21,12 @@ export class DangkyvppServiceService {
 
   getOfficeSupplyRequests(
     keyword: string,
-    month: Date,
+    month: Date | null,
     departmentID: number
   ): Observable<any> {
     const params = {
-      keyword,
-      monthInput: month.toISOString(),
+      keyword: keyword || '',
+      monthInput: month ? month.toISOString() : new Date().toISOString(),
       departmentID: departmentID.toString()
     };
 

@@ -5,10 +5,6 @@
     display: block;
 }
 
-.modal-header .btn-close {
-    filter: brightness(0) invert(1);
-}
-
 :host ::ng-deep .ant-input-number {
     width: 100%;
 }

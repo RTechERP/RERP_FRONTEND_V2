@@ -257,6 +257,7 @@ export class KpiErrorEmployeeDetailComponent implements OnInit {
             formData.append('files', fileObj.file);
         });
         formData.append('key', 'KPIErrorEmployeeFile');
+        // formData.append('key', 'TuanBeoTest');
 
         const errorDate = new Date(this.model.ErrorDate);
         const year = errorDate.getFullYear().toString();

@@ -325,7 +325,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
         if (this.paymentOrder.ID > 0) {
             this.paymentService.getDetail(this.paymentOrder.ID).subscribe({
                 next: (response) => {
-                    // console.log(response);
+                    console.log(response);
 
                     this.dataset = response.data.details;
                     this.dataset = this.dataset.map((x, i) => ({
@@ -421,8 +421,25 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
     initForm() {
 
-        console.log('this.paymentOrder edit:', this.paymentOrder);
+        // console.log('this.paymentOrder edit:', this.paymentOrder);
         const dateOrder = this.paymentOrder.DateOrder || new Date();
+        const paymentOrderPOs: number[] = (this.paymentOrder.PaymentOrderPOss || '')
+            .split(',')
+            .map(x => Number(x.trim()));
+        const paymentOrderBillNumbers: string[] = (this.paymentOrder.PaymentOrderBillNumberss || '')
+            .split(',')
+            .map((x: string) => x.trim())
+            .filter(x => x !== '');
+
+        paymentOrderBillNumbers.forEach((item) => {
+            this.billNumbers.push({
+                POKHID: 0,
+                BillNumber: item
+            })
+        })
+
+        // console.log('paymentOrderBillNumbers:', paymentOrderBillNumbers);
+
         this.validateForm = this.fb.group({
             FullName: this.fb.control({ value: this.appUserService.currentUser?.FullName, disabled: true }),
             DepartmentName: this.fb.control({ value: this.appUserService.currentUser?.DepartmentName, disabled: true }),
@@ -434,8 +451,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
             DateOrder: this.fb.control(dateOrder, [Validators.required]),
             DatePayment: this.fb.control(this.paymentOrder.DatePayment),
             PaymentOrderTypeID: this.fb.control(this.paymentOrder.PaymentOrderTypeID, [Validators.required]),
-            PaymentOrderPOs: this.fb.control(this.paymentOrder.PaymentOrderPOs),
-            PaymentOrderBillNumbers: this.fb.control(this.paymentOrder.PaymentOrderBillNumbers),
+            PaymentOrderPOs: this.fb.control(paymentOrderPOs),
+            PaymentOrderBillNumbers: this.fb.control(paymentOrderBillNumbers),
             ReasonOrder: this.fb.control(this.paymentOrder.ReasonOrder, [Validators.required]),
             Unit: this.fb.control(this.paymentOrder.Unit?.toLowerCase(), [Validators.required]),
         });
@@ -467,6 +484,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
             .get("PaymentOrderPOs")
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((value: any) => {
+
+                // console.log('PaymentOrderPOs value:', value);
                 this.selectedPOKHs = value;
                 this.selectedBillNumbers = this.validateForm.get('PaymentOrderBillNumbers')?.value;
 
@@ -544,12 +563,22 @@ export class PaymentOrderSpecialComponent implements OnInit {
             }));
 
             let paymentOrderPOs: any[] = [];
+
+
+            // console.log('formData.PaymentOrderPOs:', formData.PaymentOrderPOs);
+            // console.log('formData.PaymentOrderBillNumbers:', formData.PaymentOrderBillNumbers);
+
             if ((formData.PaymentOrderPOs && formData.PaymentOrderPOs.length > 0) ||
                 (formData.PaymentOrderBillNumbers && formData.PaymentOrderBillNumbers.length > 0)) {
-                const maxLen = Math.max(formData.PaymentOrderPOs.length, formData.PaymentOrderBillNumbers.length);
+
+                const pos = formData.PaymentOrderPOs ?? [];
+                const bills = formData.PaymentOrderBillNumbers ?? [];
+
+                const maxLen = Math.max(pos.length, bills.length);
+                // console.log('maxLen:', maxLen);
                 paymentOrderPOs = Array.from({ length: maxLen }, (_, i) => ({
-                    POKHID: formData.PaymentOrderPOs[i] ?? 0,
-                    BillNumber: formData.PaymentOrderBillNumbers[i] ?? ''
+                    POKHID: pos[i] ?? 0,
+                    BillNumber: bills[i] ?? ''
                 }));
                 paymentOrderPOs = Object.values(paymentOrderPOs);
             }

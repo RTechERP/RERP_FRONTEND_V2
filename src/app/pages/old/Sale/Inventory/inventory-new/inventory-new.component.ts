@@ -136,6 +136,10 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private subscriptions: Subscription[] = [];
 
+    // ResizeObserver để detect khi tab được hiển thị lại
+    private resizeObserver: ResizeObserver | null = null;
+    private lastVisibleWidth: number = 0;
+
     constructor(
         private productsaleSV: ProductsaleServiceService,
         private inventoryService: InventoryService,
@@ -145,7 +149,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         private zone: NgZone,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        @Optional() @Inject('tabData') private tabData: any
+        @Optional() @Inject('tabData') private tabData: any,
+        private elementRef: ElementRef
     ) { }
 
     ngOnInit(): void {
@@ -230,10 +235,47 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit(): void {
         // Data đã được load trong ngOnInit qua queryParams subscribe
+        // Sử dụng ResizeObserver để detect khi component được hiển thị lại (tab switch)
+        this.setupResizeObserver();
     }
 
     ngOnDestroy(): void {
         this.subscriptions.forEach((sub) => sub.unsubscribe());
+
+        // Cleanup ResizeObserver khi component bị destroy
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+    }
+
+    /**
+     * Setup ResizeObserver để detect khi tab được hiển thị lại
+     * Khi tab bị ẩn (hidden), width = 0. Khi hiện lại, width > 0
+     * Lúc đó cần trigger resize grid để SlickGrid tính toán lại kích thước
+     */
+    private setupResizeObserver(): void {
+        const element = this.elementRef.nativeElement;
+
+        this.resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const currentWidth = entry.contentRect.width;
+
+                // Detect khi chuyển từ hidden (width = 0) sang visible (width > 0)
+                if (this.lastVisibleWidth === 0 && currentWidth > 0) {
+                    // Tab vừa được hiển thị lại, cần resize grids
+                    this.zone.run(() => {
+                        setTimeout(() => {
+                            this.resizeGrids();
+                        }, 50);
+                    });
+                }
+
+                this.lastVisibleWidth = currentWidth;
+            }
+        });
+
+        this.resizeObserver.observe(element);
     }
 
     //#region Grid Initialization
@@ -412,14 +454,26 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     //#region Grid Ready Events
 
     resizeGrids(): void {
-        if (this.angularGridProductGroup?.resizerService) {
-            this.angularGridProductGroup.resizerService.resizeGrid();
+        try {
+            if (this.angularGridProductGroup?.resizerService) {
+                this.angularGridProductGroup.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
-        if (this.angularGridPGWarehouse?.resizerService) {
-            this.angularGridPGWarehouse.resizerService.resizeGrid();
+        try {
+            if (this.angularGridPGWarehouse?.resizerService) {
+                this.angularGridPGWarehouse.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
-        if (this.angularGridInventory?.resizerService) {
-            this.angularGridInventory.resizerService.resizeGrid();
+        try {
+            if (this.angularGridInventory?.resizerService) {
+                this.angularGridInventory.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
     }
 
@@ -1097,7 +1151,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         window.open(
-            `${environment.baseHref}/chi-tiet-san-pham-sale?${params.toString()}`,
+            // `${environment.baseHref}/chi-tiet-san-pham-sale?${params.toString()}`,
+            `/chi-tiet-san-pham-sale?${params.toString()}`,
             '_blank',
             'width=1400,height=900,scrollbars=yes,resizable=yes'
         );

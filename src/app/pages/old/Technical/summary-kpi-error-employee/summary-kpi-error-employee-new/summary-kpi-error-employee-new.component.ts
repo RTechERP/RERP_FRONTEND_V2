@@ -78,6 +78,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         enableSorting: true,
         enableGrouping: true,
         enableRowSelection: true,
+        forceFitColumns: true,
         rowSelectionOptions: {
             selectActiveRow: true,
         },

@@ -1,31 +1,100 @@
 :host {
-    display: block;
-    height: 100%;
+    font-size: 12px !important;
 }
 
-.custom-tabulator {
-    height: 100%;
+.tabulator {
     font-size: 12px;
 }
 
-.btn-add,
-.btn-edit,
-.btn-delete {
+.card {
     display: flex;
-    align-items: center;
-    font-size: 12px;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
 }
 
-.card-header h6 {
-    font-size: 14px;
-    font-weight: 600;
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
-::ng-deep .tabulator-cell {
-    font-size: 12px !important;
+.card-body>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
 }
 
-::ng-deep .tabulator-col-title {
-    font-size: 12px !important;
-    font-weight: 600 !important;
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+.btn {
+    font-size: 0.75rem;
+}
+
+:host ::ng-deep .tabulator-cell {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+}
+
+/* Search form positioning and z-index fixes */
+.filter-bar {
+    position: relative;
+    z-index: 10;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Ensure buttons stay above search form on desktop */
+.card-header {
+    position: relative;
+    z-index: 20;
+    background: white;
+}
+
+/* Mobile modal styles */
+@media (max-width: 768px) {
+    .filter-bar.mobile-modal {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 16px;
+        border-radius: 8px;
+    }
+
+    .filter-backdrop {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1040;
+    }
+}
+
+/* Desktop - keep search form always visible */
+@media (min-width: 769px) {
+    .filter-backdrop {
+        display: none !important;
+    }
+
+    .filter-bar {
+        position: static !important;
+        z-index: 1 !important;
+    }
 }

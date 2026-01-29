@@ -1,6 +1,7 @@
 :host {
-    height: 100%;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
 }
 
 .fs-12 {

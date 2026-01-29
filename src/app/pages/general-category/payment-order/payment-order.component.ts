@@ -3024,7 +3024,7 @@ export class PaymentOrderComponent implements OnInit {
             const item = grid.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
             // console.log('Row index:', rowIndex);
-            console.log('Row data:', item);
+            // console.log('Row data:', item);
             this.initModal(item);
         }
     }

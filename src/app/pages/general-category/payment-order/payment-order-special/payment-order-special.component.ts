@@ -154,7 +154,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 header: {
                     buttons: [
                         {
-                            cssClass: 'btn btn-success fa fa-plus',
+                            cssClass: 'fa fa-plus',
                             tooltip: 'Thêm mới',
                             command: 'add'
                         },
@@ -330,7 +330,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
                     this.dataset = response.data.details;
                     this.dataset = this.dataset.map((x, i) => ({
                         ...x,
-                        id: x.Id   // dành riêng cho SlickGrid
+                        id: x.Id,
+                        PaymentMethods: x.PaymentMethods + 1
                     }));
 
                     this.datasetFile = response.data.files;
@@ -600,6 +601,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
                     // console.log(response);
                     this.uploadFile(response.data.ID);
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
+
+                    this.activeModal.close();
 
                 },
                 error: (err) => {

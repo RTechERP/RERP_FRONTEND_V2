@@ -1,36 +1,54 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
+
+    <ng-template #end>
+        <div class="flex items-center gap-2">
+            <button nz-button nzType="text" nzShape="circle"
+                (click)="toggleSearchPanelNew($event); $event.stopPropagation()">
+                <nz-icon nzType="search" />
+            </button>
+        </div>
+    </ng-template>
+</p-menubar>
+
 <ng-container class="w-100">
-    <nz-splitter>
-        <!-- Search Panel -->
-        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                        <button class="border-0 me-2 btn" nz-button nzSize="small" nzType="default" nzDanger
-                            (click)="toggleSearchPanel()">
-                            <nz-icon nzType="close" nzTheme="outline" />
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <form nz-form nzLayout="vertical">
+    <div class="card border-0 rounded-0" style="height:89vh !important">
+        <!-- Backdrop overlay cho mobile -->
+        <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="toggleSearchPanelNew()"></div>
 
-
-                        <nz-form-item class="searchform">
-                            <nz-form-label>Thời gian</nz-form-label>
+        <!-- Filter bar -->
+        <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+            <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile()">
+                <span class="fw-bold" style="font-size: 12px;">Tìm kiếm</span>
+                <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger
+                    (click)="toggleSearchPanelNew()">
+                    <nz-icon nzType="close" />
+                </button>
+            </div>
+            <form nz-form class="mobile-filter-form">
+                <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Thời gian</nz-form-label>
                             <nz-form-control>
                                 <nz-date-picker nzMode="month" [nzFormat]="monthFormat" [(ngModel)]="searchParams.month"
-                                    name="month" nzPlaceHolder="Chọn thời gian" class="w-100">
+                                    name="month" nzPlaceHolder="Chọn thời gian" class="w-100" nzSize="small">
                                 </nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
+                    </nz-col>
 
-                        <!-- Phòng ban -->
-                        <nz-form-item>
-                            <nz-form-label>Phòng ban</nz-form-label>
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="6">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
                             <nz-form-control>
                                 <nz-select nzShowSearch nzAllowClear [(ngModel)]="searchParams.departmentId"
-                                    name="departmentId" nzPlaceHolder="Chọn phòng ban" class="w-100">
+                                    name="departmentId" nzPlaceHolder="Chọn phòng ban" class="w-100" nzSize="small">
                                     <nz-option *ngFor="let dept of dataDeparment" [nzValue]="dept.ID"
                                         [nzLabel]="dept.Name">
                                         <div class="row text-center">
@@ -41,128 +59,55 @@
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
+                    </nz-col>
 
-                        <!-- Từ khóa -->
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                    <!-- Từ khóa và nút tìm kiếm -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="9">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
                             <nz-form-control>
-                                <input nz-input [(ngModel)]="searchParams.keyword" name="keyword"
-                                    placeholder="Nhập từ khóa...">
+                                <div class="d-flex gap-1">
+                                    <input nz-input placeholder="Nhập từ khóa..." nzSize="small"
+                                        [(ngModel)]="searchParams.keyword" name="keyword" class="flex-grow-1"
+                                        (keyup.enter)="getOfficeSupplyRequest()" />
+                                    <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
+                                        (click)="getOfficeSupplyRequest()" [nzLoading]="isLoading"
+                                        [disabled]="isLoading">
+                                        <nz-icon nzType="search" />
+                                    </button>
+                                </div>
                             </nz-form-control>
                         </nz-form-item>
-                    </form>
-                </div>
-                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-                    <button nz-button nzType="default" nzSize="small" class="btn">Đặt lại</button>
-                    <button nz-button nzType="primary" nzSize="small" (click)="getOfficeSupplyRequest()" class="btn">Tìm
-                        kiếm</button>
-                </div>
+                    </nz-col>
+                </nz-row>
+            </form>
+        </div>
+
+        <!-- Content với bảng -->
+        <div class="card-body p-0 position-relative" [class.with-search-bar]="shouldShowSearchBar"
+            [class.without-search-bar]="!shouldShowSearchBar">
+            <div *ngIf="isLoading">
+                <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          width: '100%',
+          height: '100%',
+          background: 'rgba(255,255,255,0.4)',
+          zIndex: '999',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }"></nz-spin>
             </div>
-        </nz-splitter-panel>
-
-        <!-- Main Content -->
-        <nz-splitter-panel nzDefaultSize="100%">
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-1">
-                    <div class="d-flex gap-1">
-                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()" class="btn">
-                            <nz-icon nzType="search" />
-                        </button>
-                        <!-- <button class="btn-add" nz-button nzType="default" nzSize="small"
-                            (click)="menuService.goToOldLink('/dangkyvpp','')">
-                            <img src="assets/icon/action_add_item_16.png" />Thêm
-                        </button> -->
-
-
-
-                        <button class="btn-add" nz-button nzType="default" nzSize="small"
-                            (click)="openAdminRegistrationModal()" *hasPermission="'N2,N34,N1,N54,N72'">
-                            <img src="assets/icon/action_add_item_16.png" />Đăng ký VPP Admin
-                        </button>
-                        <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="editRequest()"
-                            *hasPermission="'N2,N34,N1,N54,N72'">
-                            <img src="assets/icon/action_edit_item_16.png" />Sửa
-                        </button>
-                        <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="deleteRequests()"
-                            *hasPermission="'N2,N34,N1,N54,N72'">
-                            <img src="assets/icon/action_delete_item_16.png" />Xóa
-                        </button>
-
-                        <span class="mx-2"
-                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
-
-                        <div class="btn-group">
-                            <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
-                                *hasPermission="'N72'" [nzDropdownMenu]="menuAdmin">
-                                <img src="assets/icon/action_confirm_tbp_16.png" />Admin xác nhận
-                                <i nz-icon nzType="down"></i>
-                            </button>
-
-                            <nz-dropdown-menu #menuAdmin="nzDropdownMenu">
-                                <ul nz-menu>
-                                    <li nz-menu-item (click)="IsAdminApproved()">
-                                        <img src="assets/icon/action_approved_16.png" />
-                                        <span class="ms-1">Admin duyệt</span>
-                                    </li>
-                                    <li nz-menu-item (click)="UnAdminApproved()">
-                                        <img src="assets/icon/action_unapproved_16.png" />
-                                        <span class="ms-1">Admin hủy duyệt</span>
-                                    </li>
-
-                                </ul>
-
-                            </nz-dropdown-menu>
-                        </div>
-                        <!-- <span class="mx-2"
-              style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span> -->
-                        <div class="btn-group">
-                            <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                *hasPermission="'N2,N34,N1,N70'" nz-dropdown [nzDropdownMenu]="menuTBP">
-                                <img src="assets/icon/action_confirm_tbp_16.png" />TBP xác nhận
-                                <i nz-icon nzType="down"></i>
-                            </button>
-
-                            <nz-dropdown-menu #menuTBP="nzDropdownMenu">
-                                <ul nz-menu>
-                                    <li nz-menu-item (click)="IsApproved()">
-                                        <img src="assets/icon/action_approved_16.png" />
-                                        <span class="ms-1">TBP duyệt</span>
-                                    </li>
-                                    <li nz-menu-item (click)="UnIsApproved()">
-                                        <img src="assets/icon/action_unapproved_16.png" />
-                                        <span class="ms-1">TBP hủy duyệt</span>
-                                    </li>
-
-                                </ul>
-
-                            </nz-dropdown-menu>
-                        </div>
-
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <nz-splitter nzLayout="vertical">
-                        <nz-splitter-panel>
-                            <div id="datatable1" class="custom-tabulator"></div>
-                        </nz-splitter-panel>
-                        <nz-splitter-panel>
-                            <div id="datatable2" class="custom-tabulator"></div>
-                        </nz-splitter-panel>
-                    </nz-splitter>
-                    <!-- <nz-splitter> -->
-                    <!-- First Table -->
-                    <!-- <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
-              <div id="datatable1" class="custom-tabulator"></div>
-            </nz-splitter-panel> -->
-
-                    <!-- Second Table -->
-                    <!-- <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-              <div id="datatable2" class="custom-tabulator"></div>
-            </nz-splitter-panel> -->
-                    <!-- </nz-splitter> -->
-
-                </div>
-            </div>
-        </nz-splitter-panel>
-    </nz-splitter>
+            <nz-splitter nzLayout="vertical">
+                <nz-splitter-panel>
+                    <div id="datatable1" class="custom-tabulator"></div>
+                </nz-splitter-panel>
+                <nz-splitter-panel>
+                    <div id="datatable2" class="custom-tabulator"></div>
+                </nz-splitter-panel>
+            </nz-splitter>
+        </div>
+    </div>
 </ng-container>

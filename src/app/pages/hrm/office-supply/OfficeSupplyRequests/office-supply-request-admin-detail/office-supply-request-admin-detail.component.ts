@@ -542,6 +542,11 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
 
             row.delete();
             this.updateSelectedEmployeeList();
+
+            // Focus vào dòng đầu tiên sau khi xóa
+            setTimeout(() => {
+              this.focusFirstEmployee();
+            }, 100);
           }
         },
         {

@@ -243,6 +243,9 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
                     field: 'Reason',
                     hozAlign: 'left',
                     headerHozAlign: 'center',
+                    width: 250,
+                    formatter: 'textarea',
+
                 },
                 {
                     title: 'Ghi chú',

@@ -481,7 +481,16 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
         field: 'FullName',
         sortable: true,
         filterable: true,
-        width: 200,
+        width: 170,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'ApprovedTBPName',
+        name: 'TBP',
+        field: 'ApprovedTBPName',
+        sortable: true,
+        filterable: true,
+        width: 170,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -526,17 +535,56 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
         field: 'DateRegister',
         sortable: true,
         filterable: true,
-        width: 120,
-        formatter: Formatters.dateIso,
+        width: 110,
+        formatter: Formatters.dateEuro,
         params: { dateFormat: 'DD/MM/YYYY' },
         type: 'date',
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center'
       },
       {
-        id: 'TotalHours',
-        name: 'Số giờ',
-        field: 'TotalHours',
+        id: 'DateStart',
+        name: 'Từ ngày',
+        field: 'DateStart',
+        sortable: true,
+        filterable: true,
+        width: 130,
+        formatter: Formatters.dateTimeShortEuro,
+        params: { dateFormat: 'DD/MM/YYYY HH:mm' },
+        type: 'date',
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'DateEnd',
+        name: 'Đến ngày',
+        field: 'DateEnd',
+        sortable: true,
+        filterable: true,
+        width: 130,
+        formatter: Formatters.dateTimeShortEuro,
+        params: { dateFormat: 'DD/MM/YYYY HH:mm' },
+        type: 'date',
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+      {
+        id: 'WorkTime',
+        name: 'Số giờ làm',
+        field: 'WorkTime',
+        sortable: true,
+        filterable: true,
+        width: 100,
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-end',
+        formatter: (row, cell, value) => {
+          return value ? parseFloat(value).toFixed(2) : '0.00';
+        }
+      },
+      {
+        id: 'BreaksTime',
+        name: 'Số giờ nghỉ',
+        field: 'BreaksTime',
         sortable: true,
         filterable: true,
         width: 100,
@@ -552,17 +600,23 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
         field: 'Location',
         sortable: true,
         filterable: true,
-        width: 150,
+        width: 300,
         filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'ReasonHREdit',
-        name: 'Lý do sửa',
-        field: 'ReasonHREdit',
-        sortable: true,
-        filterable: true,
-        width: 200,
-        filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${value}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true
+        },
       },
       {
         id: 'Note',
@@ -570,8 +624,47 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
         field: 'Note',
         sortable: true,
         filterable: true,
-        width: 200,
+        width: 300,
         filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${value}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true
+        },
+      },
+      {
+        id: 'ReasonHREdit',
+        name: 'Lý do sửa',
+        field: 'ReasonHREdit',
+        sortable: true,
+        filterable: true,
+        width: 300,
+        filter: { model: Filters['compoundInputText'] },
+        cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${value}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true
+        },
       },
     ];
 
@@ -600,7 +693,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
       frozenColumn: this.isMobile() ? -1 : 3,
       showFooterRow: true,
       createFooterRow: true,
-      forceFitColumns: true,
+      // forceFitColumns: true,
       formatterOptions: {
         decimalSeparator: '.',
         displayNegativeNumberWithParentheses: true,

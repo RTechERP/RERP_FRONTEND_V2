@@ -930,6 +930,11 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
       return;
     }
 
+    if (breaksTime > 8) {
+      this.notification.warning('Thông báo', 'Thời gian nghỉ không được vượt quá 8 giờ!');
+      return;
+    }
+
     if (totalHours - breaksTime > 8) {
       this.notification.warning('Thông báo', 'Tổng số giờ làm đêm không được vượt quá 8 giờ!');
       return;
@@ -1007,6 +1012,7 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
         IsProblem: tabData.IsProblem || false,
         ReasonHREdit: reasonHREdit,
         IsDeleted: false,
+        WorkTime: tabData.TotalHours - tabData.BreaksTime,
         // Khi sửa, reset trạng thái duyệt về chưa duyệt
         IsApprovedTBP: 0,
         IsApprovedHR: 0,

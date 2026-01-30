@@ -102,6 +102,9 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
   selectedRow: any = null;
   selectedId: number = 0;
 
+  // Selected rows for batch operations
+  selectedRows: any[] = [];
+
   // Check if can edit/delete
   get canEditOrDelete(): boolean {
     if (!this.selectedRow) return false;
@@ -242,7 +245,7 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
       keyword,
       this.filters.employeeId || 0,
       this.filters.departmentId || 0,
-      this.filters.status || -1
+      this.filters.status ?? -1
     ).subscribe({
       next: (response: any) => {
         if (response && response.status === 1) {
@@ -352,7 +355,7 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
       rowHeader: false,
       pagination: false,
       paginationMode: 'local',
-      selectableRows: 1,
+      selectableRows: true,
       rowContextMenu: rowMenu,
       rowFormatter: (row: any) => {
         const data = row.getData();
@@ -374,6 +377,14 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
       },
       data: [],
       columns: [
+        {
+          title: '',
+          formatter: 'rowSelection',
+          titleFormatter: 'rowSelection',
+          hozAlign: 'center',
+          headerSort: false,
+          width: 40,
+        },
         {
           title: 'STT',
           field: 'STT',
@@ -451,8 +462,8 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
           width: 120,
           formatter: (cell: any) => {
             const value = cell.getValue();
-            if (value === 1) return '<span>Hoàn thành</span>';
-            if (value === 2) return '<span>Đã hủy</span>';
+            if (value === 1) return '<span style="color: #52c41a; font-weight: 500;">Hoàn thành</span>';
+            if (value === 2) return '<span style="color: #ff4d4f;">Đã hủy</span>';
             return '<span>Chưa hoàn thành</span>';
           },
         },
@@ -535,6 +546,11 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
       const data = row.getData();
       this.selectedRow = data;
       this.selectedId = data?.['ID'] || data?.['Id'] || 0;
+    });
+
+    // Lắng nghe sự kiện row selection changed (multi-select)
+    this.tb_Master.on('rowSelectionChanged', (data: any[], rows: RowComponent[]) => {
+      this.selectedRows = data;
     });
   }
 
@@ -688,6 +704,79 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         // Xử lý lỗi từ HTTP error response
+        const errorMessage = error?.error?.message || error?.message || 'Lỗi khi duyệt phiếu';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+      }
+    });
+  }
+
+  // Batch approve/cancel selected rows
+  batchApprove(status: number) {
+    if (!this.selectedRows || this.selectedRows.length === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn ít nhất một dòng');
+      return;
+    }
+
+    const statusText = status === 2 ? 'Hủy duyệt' : 'Xác nhận hoàn thành';
+    const count = this.selectedRows.length;
+
+    if (status === 2) {
+      this.reasonCancelValue = '';
+      const modal = this.nzModal.create({
+        nzTitle: statusText,
+        nzContent: this.reasonCancelModalContent,
+        nzOkText: 'Xác nhận',
+        nzOkType: 'primary',
+        nzOkDanger: true,
+        nzCancelText: 'Hủy',
+        nzWidth: 500,
+        nzOnOk: () => {
+          if (!this.reasonCancelValue || !this.reasonCancelValue.trim()) {
+            this.notification.warning('Cảnh báo', 'Vui lòng nhập lý do hủy duyệt');
+            return;
+          }
+          this.doBatchApprove(status, this.reasonCancelValue);
+          modal.close();
+        },
+        nzOnCancel: () => {
+          this.reasonCancelValue = '';
+        }
+      });
+    } else {
+      this.nzModal.confirm({
+        nzTitle: statusText,
+        nzContent: `Bạn có chắc muốn xác nhận hoàn thành ${count} phiếu theo dõi đóng dấu không?`,
+        nzOkText: 'Xác nhận',
+        nzOkType: 'primary',
+        nzCancelText: 'Hủy',
+        nzOnOk: () => {
+          this.doBatchApprove(status, '');
+        }
+      });
+    }
+  }
+
+  doBatchApprove(status: number, reasonCancel: string) {
+    const listID = this.selectedRows.map((row: any) => row.ID || row.Id);
+
+    const model = {
+      listID: listID,
+      status: status,
+      reasonCancel: reasonCancel
+    };
+
+    this.trackingMarksService.approve(model).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.notification.success(NOTIFICATION_TITLE.success, res?.message || 'Thành công');
+          this.selectedRows = [];
+          this.search();
+        } else {
+          const errorMessage = res?.message || res?.error?.message || 'Thất bại';
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        }
+      },
+      error: (error) => {
         const errorMessage = error?.error?.message || error?.message || 'Lỗi khi duyệt phiếu';
         this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       }

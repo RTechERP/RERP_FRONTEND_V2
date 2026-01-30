@@ -10,6 +10,16 @@
       <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteTrackingMark()">
         <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
       </button>
+      <div class="border-start mx-1" style="height: 20px;"></div>
+      <button class="fs-12" nz-button nzType="primary" nzSize="small" (click)="batchApprove(1)">
+        <span nz-icon nzType="check" nzTheme="outline"></span> Xác nhận hoàn thành
+      </button>
+      <button class="fs-12" nz-button nzType="default" nzSize="small" nzDanger (click)="batchApprove(2)">
+        <span nz-icon nzType="close" nzTheme="outline"></span> Hủy duyệt
+      </button>
+      <span *ngIf="selectedRows.length > 0" class="ms-2 text-primary" style="font-size: 12px;">
+        (Đã chọn: {{selectedRows.length}})
+      </span>
       <div class="ms-auto d-flex gap-2 align-items-center" style="font-size: 12px;">
         <div class="d-flex align-items-center gap-1">
           <div style="width: 20px; height: 16px; background-color: #ffcdd2; border: 1px solid #ccc;"></div>

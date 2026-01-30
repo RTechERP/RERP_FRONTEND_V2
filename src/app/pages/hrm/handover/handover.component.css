@@ -21,7 +21,7 @@
 
 ::ng-deep .ant-card-body {
   padding: 0 !important;
-  height: 100% !important;
+  height: 39vh !important;
 }
 
 ::ng-deep .card {

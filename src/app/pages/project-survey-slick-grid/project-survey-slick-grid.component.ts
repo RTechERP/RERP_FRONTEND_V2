@@ -885,6 +885,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
       headerRowHeight: 35,
       rowHeight: 35,
       frozenColumn: 5,
+      enableGrouping: true,
       explicitInitialization: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,

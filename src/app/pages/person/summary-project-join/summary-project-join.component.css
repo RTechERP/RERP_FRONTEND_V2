@@ -45,12 +45,41 @@
     font-weight: 500;
 }
 
+/* Detail section header - THÔNG TIN DỰ ÁN */
+.detail-header {
+    background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
 /* Grid container */
 .grid-container {
     width: 100%;
     height: 100%;
     position: relative;
 }
+
+.grid-container {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#grid-container-projects,
+#grid-container-project-type-links,
+#grid-container-project-employee,
+#grid-container-project-work-reports {
+    height: 100%;
+    width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
 
 ::ng-deep .grid-container .slickgrid-container {
     height: 100% !important;
@@ -63,76 +92,14 @@
     font-size: 0.75rem !important;
 }
 
-/* Fix nz-tab height for grid */
-::ng-deep nz-tabset {
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-}
-
-::ng-deep .ant-tabs {
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-}
-
-::ng-deep .ant-tabs-content-holder {
-    flex: 1 !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-    height: 100% !important;
-}
-
-::ng-deep .ant-tabs-content {
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-::ng-deep .ant-tabs-tabpane {
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-::ng-deep .ant-tabs-tabpane-active {
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-/* Grid container detail */
-::ng-deep .grid-container-detail {
-    flex: 1 !important;
-    min-height: 0 !important;
-}
-
-/* Hide scrollbar in frozen columns */
-::ng-deep .slick-frozen-left .slick-viewport {
-    overflow-x: hidden !important;
-}
-
-::ng-deep .slick-frozen-left .slick-header-columns {
-    overflow-x: hidden !important;
-}
-
-::ng-deep .slick-frozen-left .slick-headerrow-columns {
-    overflow-x: hidden !important;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-    .navbar-collapse {
-        margin-top: 0.5rem;
-    }
-    
-    .d-flex.flex-wrap.gap-1 {
-        gap: 0.25rem !important;
-    }
-}
-
 /* Cell wrap */
 .cell-wrap {
     white-space: normal;
     word-wrap: break-word;
+}
+
+/* Ensure SlickGrid custom footer is visible */
+::ng-deep .slick-custom-footer {
+    display: flex !important;
+    font-size: 0.75rem !important;
 }

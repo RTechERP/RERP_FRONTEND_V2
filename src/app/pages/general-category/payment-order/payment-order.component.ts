@@ -2364,6 +2364,20 @@ export class PaymentOrderComponent implements OnInit {
                 maxDecimal: 2,
                 thousandSeparator: ','
             },
+
+            contextMenu: {
+                hideCloseButton: false,
+                commandTitle: '', // optional, add title
+                commandItems: [
+
+                    {
+                        command: '', title: 'Bổ sung file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        action: (e, args) => {
+                            this.onAttachFileExtend();
+                        }
+                    },
+                ],
+            }
         }
 
         this.loadData();
@@ -2512,7 +2526,10 @@ export class PaymentOrderComponent implements OnInit {
                 this.departments = response.data;
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
             }
         })
 
@@ -2535,7 +2552,10 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(this.employees);
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
             }
         })
 
@@ -2544,7 +2564,10 @@ export class PaymentOrderComponent implements OnInit {
                 this.paymentOrderTypes = response.data;
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
             }
         })
 
@@ -2591,7 +2614,10 @@ export class PaymentOrderComponent implements OnInit {
                 }));
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
             }
         })
     }
@@ -2633,7 +2659,10 @@ export class PaymentOrderComponent implements OnInit {
                 this.isLoading = false;
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
                 this.isLoading = false;
             }
         })
@@ -2669,7 +2698,10 @@ export class PaymentOrderComponent implements OnInit {
                 }
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
             }
         })
     }
@@ -2992,7 +3024,7 @@ export class PaymentOrderComponent implements OnInit {
             const item = grid.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
             // console.log('Row index:', rowIndex);
-            // console.log('Row data:', item);
+            console.log('Row data:', item);
             this.initModal(item);
         }
     }
@@ -3048,7 +3080,10 @@ export class PaymentOrderComponent implements OnInit {
                                 this.loadData();
                             },
                             error: (err) => {
-                                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                                    {
+                                        nzStyle: { whiteSpace: 'pre-line' }
+                                    });
                             }
                         })
                     }
@@ -3094,7 +3129,7 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
                         });
@@ -3107,7 +3142,7 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
                         });
@@ -3120,7 +3155,7 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
                         });
@@ -3133,7 +3168,7 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
                         });
@@ -3146,7 +3181,7 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
                         }
@@ -3160,7 +3195,7 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message,
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
                         });
@@ -3734,7 +3769,10 @@ export class PaymentOrderComponent implements OnInit {
                         this.loadDetail(item.ID);
                     },
                     error: (err) => {
-                        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                            {
+                                nzStyle: { whiteSpace: 'pre-line' }
+                            })
                     }
                 })
 
@@ -3796,7 +3834,10 @@ export class PaymentOrderComponent implements OnInit {
                         }
                     },
                     error: (err) => {
-                        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                            {
+                                nzStyle: { whiteSpace: 'pre-line' }
+                            });
                     }
                 })
 

@@ -151,6 +151,7 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
             enableFiltering: true,
             enableSorting: true,
             enableGrouping: true,
+            forceFitColumns: true,
             rowHeight: 35,
             headerRowHeight: 40,
         };

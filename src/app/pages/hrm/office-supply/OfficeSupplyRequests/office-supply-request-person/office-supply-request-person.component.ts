@@ -15,6 +15,11 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+
+// PrimeNG
+import { Menubar } from 'primeng/menubar';
 
 // Services & Components
 import { DangkyvppServiceService } from '../officesupplyrequests-service/office-supply-requests-service.service';
@@ -35,7 +40,10 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
         NzFormModule,
         NzInputModule,
         NzDatePickerModule,
-        NzModalModule
+        NzModalModule,
+        NzSpinModule,
+        NzGridModule,
+        Menubar
     ],
     templateUrl: './office-supply-request-person.component.html',
     styleUrls: ['./office-supply-request-person.component.css']
@@ -48,12 +56,24 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
     isLoading = false;
     currentUser: any;
     monthFormat = 'MM/yyyy';
-    sizeSearch = '0';
+
+    // Search panel toggle
+    showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+    get shouldShowSearchBar(): boolean {
+        return this.showSearchBar;
+    }
+
+    isMobile(): boolean {
+        return typeof window !== 'undefined' && window.innerWidth <= 768;
+    }
 
     searchParams = {
         month: new Date(),
         keyword: ''
     };
+
+    menuBars: any[] = [];
 
     constructor(
         private officeSupplyRequestService: DangkyvppServiceService,
@@ -64,6 +84,7 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
     ) { }
 
     ngOnInit(): void {
+        this.initMenuBar();
         this.authService.getCurrentUser().subscribe(res => {
             this.currentUser = res.data;
             this.getRequests();
@@ -75,8 +96,37 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
         this.initTableDetail();
     }
 
-    toggleSearchPanel() {
-        this.sizeSearch = this.sizeSearch === '0' ? '22%' : '0';
+    initMenuBar() {
+        this.menuBars = [
+            {
+                label: 'Đăng ký VPP',
+                icon: 'fa-solid fa-plus fa-lg text-success',
+                command: () => {
+                    this.openAddModal();
+                }
+            },
+            {
+                label: 'Sửa',
+                icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+                command: () => {
+                    this.editRequest();
+                }
+            },
+            {
+                label: 'Xóa',
+                icon: 'fa-solid fa-trash fa-lg text-danger',
+                command: () => {
+                    this.deleteRequest();
+                }
+            }
+        ];
+    }
+
+    toggleSearchPanelNew(event?: Event): void {
+        if (event) {
+            event.stopPropagation();
+        }
+        this.showSearchBar = !this.showSearchBar;
     }
 
     getRequests(): void {
@@ -243,6 +293,9 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
                     field: 'Reason',
                     hozAlign: 'left',
                     headerHozAlign: 'center',
+                    width: 250,
+                    formatter: 'textarea',
+
                 },
                 {
                     title: 'Ghi chú',

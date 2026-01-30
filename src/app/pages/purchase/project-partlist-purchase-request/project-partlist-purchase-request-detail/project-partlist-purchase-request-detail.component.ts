@@ -113,11 +113,12 @@ export class ProjectPartlistPurchaseRequestDetailComponent
     private pokhService: PokhService,
     private whService: WarehouseReleaseRequestService,
     private currencyService: CurrencyService,
-    private projectPartlistPurchaseRequestService: ProjectPartlistPurchaseRequestService
+    private projectPartlistPurchaseRequestService: ProjectPartlistPurchaseRequestService,
+    private modal: NzModalService
   ) { }
 
   @Input() projectPartlistDetail: any;
-  
+
   validateForm!: FormGroup;
   customers: any[] = [];
   employees: any[] = [];
@@ -130,6 +131,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
   isDisable: any = false;
   IsTechBought: any = false;
   isLoadingData: boolean = false; // Flag để tránh trigger valueChanges khi đang load data
+  isLimitedEditMode: boolean = false; // Chế độ edit giới hạn cho HR/Marketing - chỉ sửa số lượng và deadline
 
   private initForm() {
     this.validateForm = this.fb.group({
@@ -198,7 +200,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
 
   ngOnInit(): void {
     this.initForm();
-    
+
     // Load common data
     this.getCustomer();
     this.getEmployee();
@@ -219,7 +221,8 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       this.isDisable = id > 0;
 
       this.IsTechBought = data.IsTechBought;
-      
+      this.isLimitedEditMode = data.isLimitedEditMode ?? false;
+
       // Set flag để tránh trigger valueChanges khi đang load
       this.isLoadingData = true;
 
@@ -242,7 +245,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         TotalPriceExchange: data.TotalPriceExchange ?? 0,
         TotalMoneyVAT: data.TotaMoneyVAT ?? 0,
 
-        CurrencyID: data.CurrencyID ?? '',
+        CurrencyID: data.CurrencyID ?? null,
         HistoryPrice: data.HistoryPrice ?? 0,
         CurrencyRate: data.CurrencyRate ?? 0,
         VAT: data.VAT ?? 0,
@@ -252,14 +255,14 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         TotalImportPrice: data.TotalImportPrice ?? 0,
 
         Note: data.Note ?? '',
-        LeadTime: data.TotalDayLeadTime ?? '',
+        LeadTime: data.TotalDayLeadTime ?? 0,
 
         IsImport: data.IsImport ?? false,
         ProductSaleID: data.ProductSaleID ?? 0,
         Unit: data.UnitName ?? '',
         ProductGroupID: data.ProductGroupID ?? 0,
       };
-      
+
       this.validateForm.setValue(formValue);
 
       // Reset flag sau khi setValue xong
@@ -297,6 +300,38 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         this.updateEditForm(controlsToDisable, false);
       }
 
+      // Chế độ edit giới hạn cho HR/Marketing - chỉ cho sửa Quantity và DateReturnExpected
+      if (this.isLimitedEditMode) {
+        const controlsToDisable = [
+          'CustomerID',
+          'Maker',
+          'StatusRequest',
+          'ProductSaleID',
+          'ProductName',
+          'Unit',
+          'EmployeeRequestID',
+          'ProductGroupID',
+          'EmployeeBuyID',
+          'DateRequest',
+          'UnitPrice',
+          'TotalPrice',
+          'SupplierSaleID',
+          'TotalPriceExchange',
+          'TotalMoneyVAT',
+          'CurrencyID',
+          'HistoryPrice',
+          'CurrencyRate',
+          'VAT',
+          'UnitFactoryExportPrice',
+          'UnitImportPrice',
+          'TotalImportPrice',
+          'Note',
+          'LeadTime',
+          'IsImport',
+        ];
+        this.updateEditForm(controlsToDisable, false);
+      }
+
       // Disable ProductName nếu có ProductSaleID
       if (data.ProductSaleID && data.ProductSaleID > 0) {
         this.validateForm.get('ProductName')?.disable();
@@ -308,7 +343,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         DateRequest: new Date(),
         StatusRequest: 'Yêu cầu mua hàng',
       });
-      
+
       // Disable StatusRequest
       this.validateForm.get('StatusRequest')?.disable();
     }
@@ -343,7 +378,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         this.customers = rs.data;
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || error.message);
       },
     });
   }
@@ -354,7 +389,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         this.products = rs.data;
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || error.message);
       },
     });
   }
@@ -366,7 +401,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
           this.projectService.createdDataGroup(response.data, 'DepartmentName');
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || error.message);
       },
     });
   }
@@ -377,7 +412,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         this.currencys = response.data;
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || error.message);
       },
     });
   }
@@ -388,7 +423,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         this.productGroup = response.data;
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || error.message);
       },
     });
   }
@@ -399,7 +434,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         this.supplierSales = response.data;
       },
       error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || error.message);
       },
     });
   }
@@ -639,16 +674,25 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       // Cảnh báo nếu có ngày cuối tuần trong khoảng thời gian
       if (countWeekday > 0) {
         const formattedDeadline = deadline.toLocaleDateString('vi-VN');
-        const confirmed = confirm(
-          `Deadline sẽ không tính Thứ 7 và Chủ nhật.\nBạn có chắc muốn chọn Deadline là ngày [${formattedDeadline}] không?`
-        );
-        if (!confirmed) {
-          return;
-        }
+        this.modal.confirm({
+          nzTitle: 'Xác nhận Deadline',
+          nzContent: `Deadline sẽ không tính <b>Thứ 7</b> và <b>Chủ nhật</b>.<br/>
+                      Bạn có chắc muốn chọn Deadline là ngày <b>[${formattedDeadline}]</b> không?`,
+          nzOkText: 'Xác nhận',
+          nzCancelText: 'Hủy',
+          nzOnOk: () => {
+            this.executeSave(data);
+          },
+        });
+        return;
       }
     }
     // Kiểm tra Deadline - end
 
+    this.executeSave(data);
+  }
+
+  private executeSave(data: any) {
     // Kiểm tra Ghi chú khi IsTechBought = true
     if (this.IsTechBought && (!data.Note || data.Note.trim() === '')) {
       this.notification.error(
@@ -670,7 +714,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         this.activeModal.dismiss();
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || error.message);
       },
     });
   }
@@ -684,7 +728,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       DateRequest: data.DateRequest,
       DateReturnExpected: data.DateReturnExpected,
       Quantity: data.Quantity,
-      CurrencyID: data.CurrencyID,
+      CurrencyID: data.CurrencyID || null,
       CurrencyRate: data.CurrencyRate,
       UnitPrice: data.UnitPrice,
       TotalPrice: data.TotalPrice,
@@ -696,15 +740,15 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       UnitFactoryExportPrice: data.UnitFactoryExportPrice,
       UnitImportPrice: data.UnitImportPrice,
       TotalImportPrice: data.TotalImportPrice,
-      TotalDayLeadTime: data.LeadTime,
+      TotalDayLeadTime: data.LeadTime ? Number(data.LeadTime) : null,
       IsImport: data.IsImport,
       Note: data.Note,
       IsTechBought: this.IsTechBought,
       ProjectPartListID: this.projectPartlistDetail?.ProjectPartListID ?? 0,
     };
-    
+
     const selectedProduct = this.products.find(p => p.ID === data.ProductSaleID);
-    
+
     return {
       ...baseModel,
       ProductSaleID: data.ProductSaleID,

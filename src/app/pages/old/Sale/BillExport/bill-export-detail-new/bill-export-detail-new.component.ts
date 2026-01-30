@@ -56,6 +56,7 @@ import { BillImportDetailComponent } from '../../BillImport/Modal/bill-import-de
 import { ClipboardService } from '../../../../../services/clipboard.service';
 import { BillImportChoseSerialComponent } from '../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
 import { AppUserService } from '../../../../../services/app-user.service';
+import { BillImportDetailNewComponent } from '../../BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 
 interface ProductSale {
   Id?: number;
@@ -326,7 +327,9 @@ export class BillExportDetailNewComponent
   }
   //#endregion
 
-  //#region Form subscriptions
+  //#region Form subscriptions - Đăng ký lắng nghe thay đổi form
+
+  /** Đăng ký các sự kiện thay đổi giá trị trên form */
   private setupFormSubscriptions(): void {
     this.validateForm
       .get('CustomerID')
@@ -356,6 +359,7 @@ export class BillExportDetailNewComponent
       });
   }
 
+  /** Khởi tạo dữ liệu form ban đầu (thêm mới hoặc chỉnh sửa) */
   private initializeFormData(): void {
     if (this.isCheckmode) {
       this.getBillExportByID();
@@ -429,6 +433,7 @@ export class BillExportDetailNewComponent
     this.handleSpecialFlows();
   }
 
+  /** Xử lý các luồng đặc biệt: dự án, xuất kho, trả NCC, mượn */
   private handleSpecialFlows(): void {
     if (this.isFromProjectPartList) {
       this.handleProjectPartListFlow();
@@ -467,6 +472,7 @@ export class BillExportDetailNewComponent
     }
   }
 
+  /** Luồng tạo phiếu xuất từ danh sách vật tư dự án */
   private handleProjectPartListFlow(): void {
     console.log('🟢 [handleProjectPartListFlow] START');
     console.log('🟢 [handleProjectPartListFlow] selectedList:', this.selectedList);
@@ -545,6 +551,7 @@ export class BillExportDetailNewComponent
     console.log('🟢 [handleProjectPartListFlow] END');
   }
 
+  /** Luồng tạo phiếu xuất từ yêu cầu xuất kho */
   private handleWarehouseReleaseFlow(): void {
     console.log('🔵 [handleWarehouseReleaseFlow] START');
     console.log('🔵 [handleWarehouseReleaseFlow] selectedList:', this.selectedList);
@@ -628,6 +635,7 @@ export class BillExportDetailNewComponent
     console.log('🔵 [handleWarehouseReleaseFlow] END');
   }
 
+  /** Luồng tạo phiếu xuất trả nhà cung cấp */
   private handleReturnToSupplierFlow(): void {
     this.validateForm.patchValue({
       Code: this.newBillExport.Code || '',
@@ -661,6 +669,7 @@ export class BillExportDetailNewComponent
     }
   }
 
+  /** Luồng tạo phiếu mượn hàng */
   private handleBorrowFlow(): void {
     this.newBillExport.Status = 7;
     this.newBillExport.KhoTypeID = this.KhoTypeID;
@@ -706,6 +715,7 @@ export class BillExportDetailNewComponent
     }
   }
 
+  /** Luồng thêm phiếu xuất từ phiếu nhập */
   private handleAddExportFlow(): void {
     if (this.billImport) {
       const defaults: any = {
@@ -729,7 +739,9 @@ export class BillExportDetailNewComponent
   }
   //#endregion
 
-  //#region SlickGrid configuration
+  //#region SlickGrid configuration - Cấu hình grid chi tiết phiếu xuất
+
+  /** Khởi tạo tùy chọn grid (kích thước, filter, checkbox, ...) */
   initGridOptions(): void {
     this.gridOptionsDetail = {
       enableGridMenu: true,
@@ -779,6 +791,7 @@ export class BillExportDetailNewComponent
     };
   }
 
+  /** Khởi tạo cấu hình cột cho grid chi tiết phiếu xuất */
   initGridColumns(): void {
     this.columnDefinitionsDetail = [
       {
@@ -909,9 +922,9 @@ export class BillExportDetailNewComponent
         },
       },
             {
-        id: 'ProjectCode',
+        id: 'ProductFullName',
         name: 'Mã sp theo dự án',
-        field: 'ProjectCode',
+        field: 'ProductFullName',
         width: 250,
         sortable: true,
         filterable: true,
@@ -1171,6 +1184,7 @@ export class BillExportDetailNewComponent
     ];
   }
 
+  /** Callback khi grid detail đã sẵn sàng - đăng ký sự kiện click, change */
   angularGridDetailReady(angularGrid: AngularGridInstance): void {
     this.angularGridDetail = angularGrid;
 
@@ -1217,6 +1231,7 @@ export class BillExportDetailNewComponent
     }, 100);
   }
 
+  /** Xử lý click header grid (nút thêm dòng mới) */
   onGridDetailHeaderClick(e: Event, args: any): void {
     if (this.newBillExport.IsApproved) return;
 
@@ -1230,6 +1245,7 @@ export class BillExportDetailNewComponent
     }
   }
 
+  /** Xử lý click cell (xóa dòng, thêm serial, download PO) */
   onGridDetailClick(e: Event, args: OnClickEventArgs): void {
     const column = args.grid.getColumns()[args.cell];
     const clickedElement = e.target as HTMLElement;
@@ -1239,8 +1255,8 @@ export class BillExportDetailNewComponent
       if (clickedElement.classList.contains('fa-trash')) {
         const item = args.grid.getDataItem(args.row);
         this.modal.confirm({
-          nzTitle: 'Xac nhan xoa',
-          nzContent: `Ban co chac chan muon xoa dong nay khong?`,
+          nzTitle: 'Thông báo',
+          nzContent: `Bạn có chắc chắn muốn xóa dòng này không?`,
           nzOnOk: () => {
             this.deleteRow(item);
           },
@@ -1271,6 +1287,7 @@ export class BillExportDetailNewComponent
     }
   }
 
+  /** Xử lý thay đổi giá trị cell (chọn sản phẩm, dự án, số lượng) */
   onCellChange(args: any): void {
     const columnDef = this.angularGridDetail.slickGrid.getColumns()[args.cell];
 
@@ -1380,6 +1397,7 @@ export class BillExportDetailNewComponent
     }
   }
 
+  /** Thêm dòng trống mới vào grid chi tiết */
   addNewRow(): void {
     const tempIds = this.dataDetail
       .filter((x) => Number(x?.ID) < 0)
@@ -1391,6 +1409,7 @@ export class BillExportDetailNewComponent
       ProductID: 0,
       ProductNewCode: '',
       ProductCode: '',
+      ProductFullName: '',
       ProductName: '',
       Unit: '',
       TotalInventory: 0,
@@ -1418,6 +1437,7 @@ export class BillExportDetailNewComponent
     setTimeout(() => this.updateDetailFooter(), 0);
   }
 
+  /** Xóa dòng chi tiết khỏi grid */
   deleteRow(item: any): void {
     const rowId = item?.ID;
     if (rowId !== undefined && rowId !== null) {
@@ -1432,6 +1452,7 @@ export class BillExportDetailNewComponent
     }
   }
 
+  /** Refresh grid: cập nhật lại dữ liệu & giữ nguyên selected rows */
   refreshGrid(): void {
     if (this.angularGridDetail?.dataView) {
       // Lưu lại selected rows trước khi refresh
@@ -1463,6 +1484,7 @@ export class BillExportDetailNewComponent
     }
   }
 
+  /** Cập nhật footer grid: tổng sản phẩm, tổng số lượng */
   private updateDetailFooter(): void {
     const grid = this.angularGridDetail?.slickGrid;
     if (!grid) return;
@@ -1527,7 +1549,9 @@ export class BillExportDetailNewComponent
   }
   //#endregion
 
-  //#region API calls
+  //#region API calls - Gọi API lấy dữ liệu phiếu xuất
+
+  /** Lấy thông tin phiếu xuất theo ID (chế độ chỉnh sửa) */
   getBillExportByID(): void {
     this.isLoading = true;
     this.billExportService.getBillExportByID(this.id).subscribe({
@@ -1586,6 +1610,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Lấy danh sách chi tiết phiếu xuất theo BillExport ID */
   getBillExportDetailID(): void {
     this.isLoading = true;
     this.billExportService.getBillExportDetail(this.id).subscribe({
@@ -1652,6 +1677,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Lấy chi tiết phiếu nhập để chuyển đổi sang phiếu xuất */
   getBillExportDetailConvert(ids: number[]): void {
     this.isLoading = true;
     this.billExportService.getBillImportDetail(ids).subscribe({
@@ -1728,6 +1754,7 @@ export class BillExportDetailNewComponent
       });
   }
 
+  /** Thay đổi loại kho -> load lại danh sách sản phẩm cho grid */
   changeProductGroup(ID: number): void {
     if (!ID) {
       this.productGridCollection = [];
@@ -1785,6 +1812,7 @@ export class BillExportDetailNewComponent
       });
   }
 
+  /** Load danh sách dự án cho dropdown trong grid */
   loadOptionProject(): void {
     this.billExportService.getOptionProject().subscribe({
       next: (res: any) => {
@@ -1810,6 +1838,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Lấy mã phiếu xuất mới từ server */
   getNewCode(): void {
     this.billExportService
       .getNewCodeBillExport(this.newBillExport.Status)
@@ -1824,11 +1853,10 @@ export class BillExportDetailNewComponent
       });
   }
 
+  /** Khi thay đổi trạng thái phiếu -> cập nhật cột hiển thị & validator ngày */
   onStatusChange(value: number): void {
     this.newBillExport.Status = value;
-    // Update ExpectReturnDate column visibility based on status
     this.updateColumnVisibility();
-    // Update date validators based on status
     this.updateDateValidators(value);
   }
 
@@ -1919,6 +1947,7 @@ export class BillExportDetailNewComponent
     }
   }
 
+  /** Khi thay đổi loại kho -> clear cache tồn kho & load lại sản phẩm */
   onKhoTypeChange(khoTypeID: number): void {
     if (!khoTypeID || khoTypeID <= 0) return;
     if (this.isLoadingEditData) return;
@@ -1927,6 +1956,7 @@ export class BillExportDetailNewComponent
     this.changeProductGroup(khoTypeID);
   }
 
+  /** Load danh sách phiếu nhập liên kết (khi phiếu xuất là chuyển kho) */
   loadReferenceLinks(): void {
     this.referenceLinks = [];
     const billExportID = this.newBillExport.Id || 0;
@@ -1962,10 +1992,11 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Click vào link phiếu nhập liên kết -> mở modal xem chi tiết phiếu nhập */
   onReferenceLinkClick(link: any): void {
     if (!link || link.isDeleted) return;
 
-    const modalRef = this.modalService.open(BillImportDetailComponent, {
+    const modalRef = this.modalService.open(BillImportDetailNewComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
@@ -1987,7 +2018,9 @@ export class BillExportDetailNewComponent
   }
   //#endregion
 
-  //#region Dropdown data
+  //#region Dropdown data - Load dữ liệu dropdown
+
+  /** Lấy ID kho theo mã kho hiện tại */
   getWarehouseID(): void {
     this.billExportService.getWarehouses().subscribe({
       next: (res: any) => {
@@ -2012,6 +2045,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Load danh sách kho chuyển (loại bỏ kho hiện tại) */
   getDataCbbWareHouseTransfer(): void {
     this.billExportService.getWarehouses().subscribe({
       next: (res: any) => {
@@ -2031,6 +2065,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Load danh sách nhà cung cấp */
   getDataCbbSupplierSale(): void {
     this.billExportService.getCbbSupplierSale().subscribe({
       next: (res: any) => {
@@ -2042,6 +2077,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Load danh sách người nhận */
   getDataCbbUser(): void {
     this.billExportService.getCbbUser().subscribe({
       next: (res: any) => {
@@ -2053,6 +2089,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Load danh sách người giao */
   getDataCbbSender(): void {
     this.billExportService.getCbbSender().subscribe({
       next: (res: any) => {
@@ -2064,6 +2101,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Load danh sách địa chỉ kho */
   getDataCbbAdressStock(): void {
     this.billExportService.getCbbAddressStock(this.customerID).subscribe({
       next: (res: any) => {
@@ -2075,6 +2113,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Load danh sách khách hàng */
   getDataCbbCustomer(): void {
     this.billExportService.getCbbCustomer().subscribe({
       next: (res: any) => {
@@ -2092,6 +2131,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Khi thay đổi khách hàng -> cập nhật địa chỉ & load danh sách địa chỉ kho */
   changeCustomer(): void {
     const id = this.validateForm.get('CustomerID')?.value;
     if (!id || id <= 0) {
@@ -2122,6 +2162,7 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Load danh sách loại kho (nhóm sản phẩm) */
   getDataCbbProductGroup(): void {
     this.billExportService.getCbbProductGroup().subscribe({
       next: (res: any) => {
@@ -2176,20 +2217,21 @@ export class BillExportDetailNewComponent
   }
   //#endregion
 
-  //#region Save & Validate
+  //#region Save & Validate - Lưu phiếu xuất & kiểm tra hợp lệ
 
-  // Method to show error notification popup
+  /** Hiển thị popup thông báo lỗi */
   showErrorNotification(message: string): void {
     this.errorMessage = message;
     this.showErrorPopup = true;
   }
 
-  // Method to close error notification popup
+  /** Đóng popup thông báo lỗi */
   closeErrorPopup(): void {
     this.showErrorPopup = false;
     this.errorMessage = '';
   }
 
+  /** Kiểm tra dữ liệu form hợp lệ trước khi lưu */
   private validateFormData(): { isValid: boolean; message: string } {
     const formValues = this.validateForm.getRawValue();
     const status = formValues.Status;
@@ -2363,6 +2405,8 @@ export class BillExportDetailNewComponent
   //     this.productInventoryDetailMap.set(productID, { keepByProject: new Map(), generalStock: 0 });
   //   }
   // }
+
+  /** Kiểm tra tồn kho đủ hay không trước khi lưu phiếu xuất */
   private validateInventoryStock(): { isValid: boolean; message: string } {
     const tableData = this.dataDetail || [];
     if (tableData.length === 0) return { isValid: true, message: '' };
@@ -2439,7 +2483,7 @@ export class BillExportDetailNewComponent
         insufficientMessages.push(
           `[${productDisplay}]\n` +
           `SL xuất: ${group.totalQty.toFixed(2)} > Tổng tồn: ${totalStock.toFixed(2)}\n` +
-          `(${keepQtyText}SL còn lại: ${invInfo.totalQuantityRemain.toFixed(2)} + Tồn CK: ${invInfo.totalQuantityLast.toFixed(2)})`
+          `(${keepQtyText}SL giữ: ${invInfo.totalQuantityRemain.toFixed(2)} + Tồn CK: ${invInfo.totalQuantityLast.toFixed(2)})`
         );
 
       }
@@ -2450,6 +2494,8 @@ export class BillExportDetailNewComponent
       message: insufficientMessages.join('\n\n')
     };
   }
+
+  /** Nạp dữ liệu tồn kho (tồn dự án + hàng tự do) để validate trước khi lưu */
   private async loadInventoryForValidation(): Promise<void> {
     const tableData = this.dataDetail || [];
     const warehouseID = this.newBillExport.WarehouseID || 0;
@@ -2555,6 +2601,8 @@ export class BillExportDetailNewComponent
       }
     }
   }
+
+  /** Map dữ liệu từ bảng grid sang payload gửi API lưu chi tiết phiếu xuất */
   private mapTableDataToBillExportDetails(tableData: any[]): any[] {
     return tableData.map((row: any, index: number) => {
       const rowKey = row.ID || index;
@@ -2573,7 +2621,7 @@ export class BillExportDetailNewComponent
         ProductName: row.ProductName || '',
         ProductCode: row.ProductCode || '',
         ProductNewCode: row.ProductNewCode || '',
-        ProductFullName: row.ProductName || '',
+        ProductFullName: row.ProductFullName || '',
         Qty: row.Qty || 0,
         ProjectName: row.ProjectNameText || '',
         Note: row.Note || '',
@@ -2611,11 +2659,13 @@ export class BillExportDetailNewComponent
     });
   }
 
+  /** Kiểm tra số lượng serial đã đủ chưa trước khi lưu */
   async checkSerial(): Promise<boolean> {
     // Placeholder - implement serial check if needed
     return true;
   }
 
+  /** Lưu phiếu xuất: kiểm tra serial, quyền, form, tồn kho, trùng mã phiếu rồi gửi API */
   async saveDataBillExport(): Promise<void> {
     // --- 1. KIỂM TRA SERIAL ---
     const isSerialValid = await this.checkSerial();
@@ -2631,7 +2681,7 @@ export class BillExportDetailNewComponent
     }
 
     // --- 2. KIỂM TRA QUYỀN & FORM ---
-    const formValues = this.validateForm.getRawValue();
+    let formValues = this.validateForm.getRawValue();
     const billID = this.newBillExport.Id || 0;
     if ((billID > 0 || this.id > 0) && !this.permissionService.hasPermission('N27,N1,N33,N34,N69')) {
       this.showErrorNotification('Bạn không có quyền thực hiện hành động này!');
@@ -2650,7 +2700,6 @@ export class BillExportDetailNewComponent
       return;
     }
 
-    // --- 3. NẠP TỒN KHO BẤT ĐỒNG BỘ ---
     this.isSaving = true;
     try {
       // Lấy danh sách ProductID unique
@@ -2671,8 +2720,43 @@ export class BillExportDetailNewComponent
         return;
       }
 
+      // --- 4.5. KIỂM TRA TRÙNG MÃ PHIẾU (chỉ khi thêm mới) ---
+      if (!this.isCheckmode || (this.newBillExport.Id || 0) === 0) {
+        try {
+          const checkRes = await firstValueFrom(
+            this.billExportService.checkBillCode(formValues.Code)
+          );
+          if (checkRes.status === 1 && checkRes.data === true) {
+            const oldCode = formValues.Code;
+            const newCodeRes = await firstValueFrom(
+              this.billExportService.getNewCodeBillExport(this.newBillExport.Status)
+            );
+            if (newCodeRes.data) {
+              const newCode = newCodeRes.data;
+              const confirmed = await new Promise<boolean>((resolve) => {
+                this.modal.confirm({
+                  nzTitle: 'Xác nhận',
+                  nzContent: `Mã phiếu [${oldCode}] đã tồn tại, đổi thành [${newCode}] và tiếp tục lưu?`,
+                  nzOkText: 'Đồng ý',
+                  nzCancelText: 'Hủy',
+                  nzOnOk: () => resolve(true),
+                  nzOnCancel: () => resolve(false),
+                });
+              });
+              if (!confirmed) {
+                this.isSaving = false;
+                return;
+              }
+              this.validateForm.patchValue({ Code: newCode });
+              formValues = this.validateForm.getRawValue();
+            }
+          }
+        } catch (err) {
+          console.error('Check bill code error:', err);
+        }
+      }
+
       // --- 5. GỬI PAYLOAD LƯU ---
-      console.log('🚀 Gửi dữ liệu lưu...');
 
       const wareHouseCode = this.dataCbbProductGroup.find((p: any) => p.ID === formValues.KhoTypeID);
 
@@ -2736,6 +2820,7 @@ export class BillExportDetailNewComponent
       this.isSaving = false;
     }
   }
+  //#endregion
 
   //#region Download PO Files
   /**

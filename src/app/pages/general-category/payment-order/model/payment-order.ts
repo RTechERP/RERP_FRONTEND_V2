@@ -116,6 +116,8 @@ export class PaymentOrder {
     ApprovedBGDID: number | null = 0;
     PaymentOrderPOs: any[] = []
     PaymentOrderBillNumbers: any[] = []
+    PaymentOrderBillNumberss: string | null = ''
+    PaymentOrderPOss: string | null = ''
 
     // ===== Optional: constructor map từ object =====
     constructor(init?: Partial<PaymentOrder>) {

@@ -155,19 +155,19 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
     this.supplierSaleMenu = [
       {
         label: 'Thêm',
-        visible: this.permissionService.hasPermission("N27, N33, N52, N53, N35, N1"),
+        visible: this.permissionService.hasPermission("N27,N33,N52,N53,N35,N1"),
         icon: 'fa-solid fa-plus fa-lg text-success',
         command: () => this.onAddSupplierSale(),
       },
       {
         label: 'Sửa',
-        visible: this.permissionService.hasPermission("N27, N33, N52, N53, N35, N1"),
+        visible: this.permissionService.hasPermission("N27,N33,N35,N1"),
         icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
         command: () => this.onEditSupplierSale(),
       },
       {
         label: 'Xóa',
-        visible: this.permissionService.hasPermission("N27, N33, N52, N53, N35, N1"),
+        visible: this.permissionService.hasPermission("N27,N33,N35,N1"),
         icon: 'fa-solid fa-trash fa-lg text-danger',
         command: () => this.onDeleteSupplierSale(),
       },
@@ -178,7 +178,7 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       },
       {
         label: 'Nhập Excel',
-        visible: this.permissionService.hasPermission("N27, N33, N52, N53, N35, N1"),
+        visible: this.permissionService.hasPermission("N27,N33,N35,N1"),
         icon: 'fa-solid fa-file-import fa-lg text-warning',
         command: () => this.onImportExcel(),
       },

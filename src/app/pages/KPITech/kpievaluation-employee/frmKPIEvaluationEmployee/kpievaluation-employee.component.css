@@ -48,7 +48,7 @@ angular-slickgrid,
 }
 
 /* ==================== HEADER STYLES ==================== */
-:host ::ng-deep .slick-header-column {
+/* :host ::ng-deep .slick-header-column {
     background-color: #fafafa;
     border-right: 1px solid #ddd !important;
     font-weight: 600;
@@ -58,7 +58,7 @@ angular-slickgrid,
 
 :host ::ng-deep .slick-header-columns {
     height: 90px !important;
-}
+} */
 
 :host ::ng-deep .slick-row.active {
     background-color: #e6f7ff;

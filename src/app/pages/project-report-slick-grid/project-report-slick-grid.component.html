@@ -16,37 +16,27 @@
         <div class="d-flex gap-2 align-items-center flex-wrap">
           <div class="d-flex align-items-center gap-2">
             <label class="fs-12 mb-0">Dự án:</label>
-            <nz-select
-              name="projectId"
-              class="fs-12"
-              style="width: 400px;"
-              nzShowSearch
-              nzPlaceHolder="Chọn dự án"
-              [(ngModel)]="projectId"
-              [nzAllowClear]="false"
-              nzSize="small"
-              (ngModelChange)="onProjectChange()"
-            >
+            <nz-select name="projectId" class="fs-12" style="width: 400px;" nzShowSearch nzPlaceHolder="Chọn dự án"
+              [(ngModel)]="projectId" [nzAllowClear]="false" nzSize="small" (ngModelChange)="onProjectChange()">
               @for (item of projects; track $index) {
-                <nz-option
-                  [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
-                  [nzValue]="item.ID"
-                ></nz-option>
+              <nz-option [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID"></nz-option>
+              }
+            </nz-select>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="fs-12 mb-0">Team:</label>
+            <nz-select name="teamId" class="fs-12" style="width: 200px;" nzShowSearch nzPlaceHolder="Chọn team"
+              [(ngModel)]="teamId" [nzAllowClear]="false" nzSize="small" (ngModelChange)="onTeamChange()">
+              <nz-option [nzLabel]="'Tất cả'" [nzValue]="0"></nz-option>
+              @for (item of teams; track $index) {
+              <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
               }
             </nz-select>
           </div>
           <div class="d-flex align-items-center gap-2">
             <label class="fs-12 mb-0">Từ khóa:</label>
-            <input
-              name="keyword"
-              nz-input
-              nzSize="small"
-              class="fs-12"
-              style="width: 200px;"
-              placeholder="Nhập từ khóa"
-              [(ngModel)]="keyword"
-              (keyup.enter)="onSearch()"
-            />
+            <input name="keyword" nz-input nzSize="small" class="fs-12" style="width: 200px;" placeholder="Nhập từ khóa"
+              [(ngModel)]="keyword" (keyup.enter)="onSearch()" />
           </div>
           <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
             Tìm kiếm
@@ -55,23 +45,20 @@
             <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất excel
           </button>
           <div class="bg-light border-bottom p-1 ms-auto d-flex gap-3 fs-12" style="flex-shrink: 0;">
-        <span><strong>Số báo cáo:</strong> {{ totalAllData.count }}</span>
-        <span><strong>Tổng số giờ:</strong> {{ totalAllData.sumTimeReality.toFixed(2) }}</span>
-        <span><strong>Tổng giờ (có hệ số):</strong> {{ totalAllData.sumTotalHours.toFixed(2) }}</span>
-        <span><strong>Tổng số ngày:</strong> {{ totalAllData.totalDays.toFixed(1) }}</span>
-      </div>
+            <span><strong>Số báo cáo:</strong> {{ totalAllData.count }}</span>
+            <span><strong>Tổng số giờ:</strong> {{ totalAllData.sumTimeReality.toFixed(2) }}</span>
+            <span><strong>Tổng giờ (có hệ số):</strong> {{ totalAllData.sumTotalHours.toFixed(2) }}</span>
+            <span><strong>Tổng số ngày:</strong> {{ totalAllData.totalDays.toFixed(1) }}</span>
+          </div>
         </div>
       </div>
       <!-- Grid container -->
-      <div class="card-body p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
+      <div class="card-body p-0"
+        style="flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
         <div id="grid-container-report" style="flex: 1; width: 100%; height: 100%; min-width: 0;">
           <nz-spin [nzSpinning]="isLoading" style="height: 100%; display: block;">
-            <angular-slickgrid
-              gridId="grvProjectReport"
-              [columns]="columnDefinitions"
-              [options]="gridOptions"
-              [dataset]="dataset"
-              (onAngularGridCreated)="angularGridReady($event.detail)">
+            <angular-slickgrid gridId="grvProjectReport" [columns]="columnDefinitions" [options]="gridOptions"
+              [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
             </angular-slickgrid>
           </nz-spin>
         </div>

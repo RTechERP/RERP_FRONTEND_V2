@@ -26,6 +26,7 @@ import {
 } from 'angular-slickgrid';
 import { ProjectService } from '../project/project-service/project.service';
 import { ProjectChangeComponent } from '../project/project-change/project-change.component';
+import { EmployeeService } from '../hrm/employee/employee-service/employee.service';
 
 @Component({
   selector: 'app-project-report-slick-grid',
@@ -50,9 +51,11 @@ import { ProjectChangeComponent } from '../project/project-change/project-change
 })
 export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() projectId: number = 0;
+  @Input() teamId: number = 0;
 
   constructor(
     private projectService: ProjectService,
+    private employeeService: EmployeeService,
     private notification: NzNotificationService,
     private modalService: NgbModal,
     public activeModal: NgbActiveModal
@@ -68,6 +71,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   // Data variables
   dataProject: any[] = [];
   projects: any[] = [];
+  teams: any[] = [];
   keyword: string = '';
   totalTime: number = 0;
   projectCode: string = '';
@@ -88,6 +92,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   ngOnInit() {
     this.initGrid();
     this.getProject();
+    this.getTeam();
   }
 
   ngAfterViewInit() {
@@ -388,7 +393,8 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       this.projectId || 0,
       this.keyword || '',
       1,
-      999999 // Lấy tất cả dữ liệu
+      999999, // Lấy tất cả dữ liệu
+      this.teamId || 0,
     ).subscribe({
       next: (response: any) => {
         this.isLoading = false;
@@ -478,6 +484,23 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   onProjectChange() {
     this.updateProjectCode();
     this.onSearch();
+  }
+
+  onTeamChange() {
+    this.onSearch();
+  }
+
+  getTeam() {
+    this.employeeService.getEmployeeTeam().subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.teams = response.data;
+        }
+      },
+      error: () => {
+        this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách team!');
+      },
+    });
   }
 
   updateProjectCode() {
@@ -737,7 +760,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   //   angularGrid.slickGrid.invalidate();
   //   angularGrid.slickGrid.render();
   // }
-   applyDistinctFiltersToGrid(): void {
+  applyDistinctFiltersToGrid(): void {
     const angularGrid = this.angularGrid;
     if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
 

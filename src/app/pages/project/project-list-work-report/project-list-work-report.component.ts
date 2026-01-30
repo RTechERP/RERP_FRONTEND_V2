@@ -29,6 +29,7 @@ import { ProjectService } from '../project-service/project.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { ProjectChangeComponent } from '../project-change/project-change.component';
+import { EmployeeService } from '../../hrm/employee/employee-service/employee.service';
 import * as ExcelJS from 'exceljs';
 
 
@@ -63,10 +64,12 @@ import * as ExcelJS from 'exceljs';
 })
 export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   @Input() projectId: number = 0;
+  @Input() teamId: number = 0;
   sizeSearch: string = '0';
 
   constructor(
     private projectService: ProjectService,
+    private employeeService: EmployeeService,
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
@@ -77,7 +80,9 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   tb_projectListWorkReportContainer!: ElementRef;
   tb_projectListWorkReport: any;
   dataProject: any[] = [];
+  dataTeam: any[] = [];
   projects: any[] = [];
+  teams: any[] = [];
   keyword: string = '';
   totalTime: number = 0;
   projectCode: string = '';
@@ -230,6 +235,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
             keyword: this.keyword || '',
             page: params.page || 1,
             size: params.size || 50,
+            teamId: this.teamId || 0,
           };
 
           console.log('Loading project list work report data:', request);
@@ -243,7 +249,8 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
             request.projectId,
             request.keyword,
             request.page,
-            request.size
+            request.size,
+            request.teamId
           ).toPromise().catch((error) => {
             console.error('Error loading project list work report data:', error);
             this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách báo cáo công việc!');
@@ -568,6 +575,10 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
     this.onSearch();
   }
 
+  onTeamChange() {
+    this.onSearch();
+  }
+
   updateProjectCode() {
     if (this.projectId > 0) {
       const selectedProject = this.projects.find(p => p.ID === this.projectId);
@@ -599,6 +610,21 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
     this.refreshTable();
   }
 
+  getTeam() {
+    this.employeeService.getEmployeeTeam().subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          // this.dataTeam = response.data;
+          this.teams = response.data;
+          console.log('dataTeam', this.dataTeam);
+        }
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách đội!');
+      },
+    });
+  }
+
   refreshTable() {
     if (this.tb_projectListWorkReport) {
       // Reload data từ trang đầu tiên
@@ -618,7 +644,8 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
         this.projectId || 0,
         this.keyword || '',
         1, // page = 1
-        999999 // size rất lớn để lấy tất cả
+        999999, // size rất lớn để lấy tất cả
+        this.teamId || 0,
       ).toPromise();
 
       if (!allDataResponse || allDataResponse.status !== 1 || !allDataResponse.data) {
@@ -762,13 +789,13 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
       /* ===== FIX WIDTH + WRAP TEXT ===== */
       const fixedWidths: { [field: string]: number } = {
         Content: 50,
-        Results:50,
+        Results: 50,
         DateReport: 15,
         Note: 50,
-        Backlog:40,
-        Problem:40,
-        ProblemSolve:40,
-        PlanNextDay:40,
+        Backlog: 40,
+        Problem: 40,
+        ProblemSolve: 40,
+        PlanNextDay: 40,
       };
 
       columns.forEach((col: any, index: number) => {
@@ -977,7 +1004,8 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
       this.projectId || 0,
       this.keyword || '',
       1, // page = 1
-      999999 // size rất lớn để lấy tất cả
+      999999, // size rất lớn để lấy tất cả
+      this.teamId || 0,
     ).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {

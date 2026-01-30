@@ -257,11 +257,11 @@
                         </ng-container>
                         <nz-dropdown-menu #menuTBPduyetmoi="nzDropdownMenu">
                             <ul nz-menu>
-                                <li nz-menu-item (click)="approveNewCode(true)" *ngIf="!tbp">
+                                <li nz-menu-item (click)="approveNewCode(true)">
                                     <img src="assets/icon/action_approved_16.png" />
                                     <span class="ms-1">TBP duyệt mới</span>
                                 </li>
-                                <li nz-menu-item (click)="approveNewCode(false)" *ngIf="!tbp">
+                                <li nz-menu-item (click)="approveNewCode(false)">
                                     <img src="assets/icon/action_unapproved_16.png" />
                                     <span class="ms-1">TBP hủy duyệt mới</span>
                                 </li>

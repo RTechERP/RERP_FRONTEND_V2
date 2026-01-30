@@ -377,7 +377,7 @@ export class ProjectService {
 
   getSelectedRowsRecursive(data: any[]): any[] {
     let selected: any[] = [];
-  
+
     data.forEach((row) => {
       // Lấy dòng cha (parent) - lấy tất cả các dòng
       selected.push({
@@ -387,7 +387,7 @@ export class ProjectService {
         Selected: row.Selected,
         projectTypeID: row.ProjectTypeID || row.ID
       });
-      
+
       // Đệ quy lấy tất cả các dòng con (children) nếu có
       if (row._children && Array.isArray(row._children)) {
         selected = selected.concat(
@@ -395,7 +395,7 @@ export class ProjectService {
         );
       }
     });
-  
+
     return selected;
   }
   // Chức năng người tham gia dự án
@@ -879,7 +879,7 @@ export class ProjectService {
 
       const excelRow = worksheet.addRow(rowData);
       rowIndex = excelRow.number;
-      
+
       // Kiểm tra nếu là dòng cuối cùng (bottom row) - có thể chứa text như "Số báo cáo = ..." hoặc "Tổng số ngày = ..."
       const isBottomRow = index === data.length - 1;
       if (isBottomRow) {
@@ -935,7 +935,7 @@ export class ProjectService {
         };
       });
     });
-    
+
 
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();
@@ -1048,7 +1048,7 @@ export class ProjectService {
       }
     );
   }
-  
+
 
   //#endregion
   //#region kiểu dự án
@@ -1081,63 +1081,64 @@ export class ProjectService {
   }
   //#end
 
-    //#region Tổng hợp nhân công
-    getProjectWorkerSynthetic(projectID:number, projectworkertypeID:number, keyword:string): Observable<any> {
-      const filter: any = {
-        projectID: projectID.toString(),
-        projectworkertypeID: projectworkertypeID.toString(),
-        keyword: keyword.trim(),
-      };
-      return this.http.post<any>(this.urlProjectSummary + `get-project-worker-synthetic`, filter);
-    }
-    getProjectCombobox(): Observable<any> {
-      return this.http.get<any>(this.urlProjectSummary + `get-combobox-project`);
-    }
-    getProjectWorkerType(): Observable<any> {
-      return this.http.get<any>(this.urlProjectSummary + `get-worker-type`);
-    }
-    //#endregion
-    //#region Danh sách báo cáo công việc
-    getProjectListWorkReport(projectId: number, keyword: string, page: number, size: number): Observable<any> {
-      const filter: any = {
-        projectId: projectId.toString()||0,
-        keyword: keyword.trim() ||'',
-        page: page.toString(),
-        size: size.toString(),
-      };
-      return this.http.get<any>(this.urlProject + `get-project-work-reports`, { params: filter });
-    }
-    //#endregion
+  //#region Tổng hợp nhân công
+  getProjectWorkerSynthetic(projectID: number, projectworkertypeID: number, keyword: string): Observable<any> {
+    const filter: any = {
+      projectID: projectID.toString(),
+      projectworkertypeID: projectworkertypeID.toString(),
+      keyword: keyword.trim(),
+    };
+    return this.http.post<any>(this.urlProjectSummary + `get-project-worker-synthetic`, filter);
+  }
+  getProjectCombobox(): Observable<any> {
+    return this.http.get<any>(this.urlProjectSummary + `get-combobox-project`);
+  }
+  getProjectWorkerType(): Observable<any> {
+    return this.http.get<any>(this.urlProjectSummary + `get-worker-type`);
+  }
+  //#endregion
+  //#region Danh sách báo cáo công việc
+  getProjectListWorkReport(projectId: number, keyword: string, page: number, size: number, teamId: number): Observable<any> {
+    const filter: any = {
+      projectId: projectId.toString() || 0,
+      keyword: keyword.trim() || '',
+      page: page.toString(),
+      size: size.toString(),
+      teamId: teamId.toString() || 0,
+    };
+    return this.http.get<any>(this.urlProject + `get-project-work-reports`, { params: filter });
+  }
+  //#endregion
 
-    //#region Kiểm tra quyền nhân viên
-    getEmployeePermission(projectId: number, employeeId: number): Observable<any> {
-      const params = new HttpParams()
-        .set('projectId', projectId.toString())
-        .set('employeeId', employeeId.toString());
-      return this.http.get<any>(this.urlProject + `get-employee-permission`, { params });
-    }
-    //#endregion
+  //#region Kiểm tra quyền nhân viên
+  getEmployeePermission(projectId: number, employeeId: number): Observable<any> {
+    const params = new HttpParams()
+      .set('projectId', projectId.toString())
+      .set('employeeId', employeeId.toString());
+    return this.http.get<any>(this.urlProject + `get-employee-permission`, { params });
+  }
+  //#endregion
 
-    //#region Leader project
-    getLeaderProject(keyword: string): Observable<any> {
-      return this.http.get<any>(this.urlProject + `get-project-leader/${keyword}`);
-    }
-    saveProjectLeader(payload: any): Observable<any> {
-      return this.http.post<any>(this.urlProject + `save-data-project-leader`, payload);
-    }
-    //#endregion
+  //#region Leader project
+  getLeaderProject(keyword: string): Observable<any> {
+    return this.http.get<any>(this.urlProject + `get-project-leader/${keyword}`);
+  }
+  saveProjectLeader(payload: any): Observable<any> {
+    return this.http.post<any>(this.urlProject + `save-data-project-leader`, payload);
+  }
+  //#endregion
 
-    //#region Upload file
-    uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
-      const formData = new FormData();
-      files.forEach((file) => {
-        formData.append('files', file);
-      });
-      formData.append('key', 'Projects');  //192.268.1.190/duan/Projects
-      if (subPath && subPath.trim()) {
-        formData.append('subPath', subPath.trim());
-      }
-      return this.http.post<any>(this.apiUrl + `home/upload-multiple`, formData);
+  //#region Upload file
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('key', 'Projects');  //192.268.1.190/duan/Projects
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
     }
-    //#endregion
+    return this.http.post<any>(this.apiUrl + `home/upload-multiple`, formData);
+  }
+  //#endregion
 }

@@ -70,6 +70,7 @@ import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/project-report-slick-grid.component';
 import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-grid/project-part-list-slick-grid.component';
+import { TabServiceService } from '../../layouts/tab-service.service';
 
 @Component({
   selector: 'app-project-department-summary-slick-grid',
@@ -179,6 +180,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
     private route: ActivatedRoute,
     private authService: AuthService,
     private permissionService: PermissionService,
+    private tabService: TabServiceService,
   ) {
     this.searchSubject
       .pipe(debounceTime(1200))
@@ -294,10 +296,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProjectStatusName);
           return `
             <span
-              title="${dataContext.ProjectStatusName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -363,10 +375,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProjectName);
           return `
             <span
-              title="${dataContext.ProjectName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -395,10 +417,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.CurrentSituation);
           return `
             <span
-              title="${dataContext.CurrentSituation}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -426,10 +458,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNameSale);
           return `
             <span
-              title="${dataContext.FullNameSale}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -457,10 +499,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNameTech);
           return `
             <span
-              title="${dataContext.FullNameTech}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -488,10 +540,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNamePM);
           return `
             <span
-              title="${dataContext.FullNamePM}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -519,10 +581,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.CustomerName);
           return `
             <span
-              title="${dataContext.CustomerName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -599,10 +671,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.EndUserName);
           return `
             <span
-              title="${dataContext.EndUserName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -704,7 +786,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       enableAutoSizeColumns: false,
       frozenColumn: 2,
       syncColumnCellResize: true, // Sửa lỗi sort nhầm cột khi có frozen columns
-      rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
+      rowHeight: 43, // Base height - sẽ tự động tăng theo nội dung qua CSS
       enableAutoTooltip: true,
     };
   }
@@ -745,7 +827,6 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         width: 150,
         sortable: true,
         filterable: true,
-        cssClass: 'cell-wrap',
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
@@ -753,6 +834,30 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
+        },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.StatusText);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
         },
       },
       {
@@ -949,6 +1054,17 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       enableAutoTooltip: true,
     };
   }
+  // Helper function to escape HTML special characters for title attributes
+  private escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
 
   initGridTypeLinks() {
     this.columnDefinitionsTypeLink = [
@@ -1599,6 +1715,31 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
 
     const url = `/rerpweb/project-part-list?projectId=${projectId}&projectName=${encodeURIComponent(projectName)}&projectCode=${encodeURIComponent(projectCode)}&tbp=false`;
     window.open(url, '_blank', 'width=1280,height=960,resizable=yes');
+  }
+  openProjectPartListTab() {
+    const selectedIDs = this.getSelectedIds();
+    const selectedRows = this.getSelectedRows();
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+      return;
+    }
+
+    const projectName = selectedRows[0]?.ProjectName;
+    const projectCode = selectedRows[0]?.ProjectCode;
+
+    // Mở như tab thực sự thông qua TabService
+    this.tabService.openTabComp({
+      comp: ProjectPartListSlickGridComponent,
+      title: `Danh mục vật tư - ${projectCode}`,
+      key: `project-part-list-${this.projectId}`,
+      data: {
+        projectId: this.projectId,
+        projectNameX: projectName,
+        projectCodex: projectCode,
+        tbp: false
+      }
+    });
   }
 
   openProjectEmployee() {

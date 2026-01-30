@@ -1146,6 +1146,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     }
 
     const workbook = new ExcelJS.Workbook();
+
+    // Sheet 1: View POKH (dữ liệu chính)
     const worksheet = workbook.addWorksheet('View POKH');
 
     const columnDefs = [
@@ -1198,6 +1200,90 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
           excelRow.getCell(colIndex + 1).numFmt = '#,##0';
         }
       });
+    });
+
+    // Sheet 2: Chi tiết Xuất hàng (Export Details)
+    const exportSheet = workbook.addWorksheet('Chi tiết xuất hàng');
+    const exportColumnDefs = [
+      { field: 'PONumber', title: 'Số POKH', width: 20 },
+      { field: 'ProductCode', title: 'Mã sản phẩm', width: 18 },
+      { field: 'CustomerName', title: 'Khách hàng', width: 25 },
+      { field: 'Code', title: 'Mã phiếu xuất', width: 25 },
+      { field: 'TotalQty', title: 'Tổng SL PO', width: 15 },
+      { field: 'Qty', title: 'SL xuất', width: 15 },
+    ];
+
+    exportSheet.columns = exportColumnDefs.map(col => ({
+      header: col.title,
+      key: col.field,
+      width: col.width,
+    }));
+
+    const exportHeaderRow = exportSheet.getRow(1);
+    exportHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    exportHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF70AD47' } };
+    exportHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    exportHeaderRow.height = 25;
+
+    let exportRowIndex = 2;
+    this.dataset.forEach((parentRow: any) => {
+      if (parentRow.exportDetails && parentRow.exportDetails.length > 0) {
+        parentRow.exportDetails.forEach((exportItem: any) => {
+          const excelRow = exportSheet.getRow(exportRowIndex);
+          excelRow.getCell(1).value = parentRow.PONumber ?? '';
+          excelRow.getCell(2).value = parentRow.ProductCode ?? '';
+          excelRow.getCell(3).value = parentRow.CustomerName ?? '';
+          excelRow.getCell(4).value = exportItem.Code ?? '';
+          excelRow.getCell(5).value = exportItem.TotalQty ?? 0;
+          excelRow.getCell(6).value = exportItem.Qty ?? 0;
+          exportRowIndex++;
+        });
+      }
+    });
+
+    // Sheet 3: Chi tiết Hóa đơn (Invoice Details)
+    const invoiceSheet = workbook.addWorksheet('Chi tiết hóa đơn');
+    const invoiceColumnDefs = [
+      { field: 'PONumber', title: 'Số POKH', width: 20 },
+      { field: 'ProductCode', title: 'Mã sản phẩm', width: 18 },
+      { field: 'CustomerName', title: 'Khách hàng', width: 25 },
+      { field: 'RequestInvoiceCode', title: 'Mã lệnh xuất HĐ', width: 25 },
+      { field: 'TaxCompanyName', title: 'Công ty xuất HĐ', width: 25 },
+      { field: 'InvoiceNumber', title: 'Số hóa đơn', width: 18 },
+      { field: 'InvoiceDate', title: 'Ngày hóa đơn', width: 15, isDate: true },
+    ];
+
+    invoiceSheet.columns = invoiceColumnDefs.map(col => ({
+      header: col.title,
+      key: col.field,
+      width: col.width,
+    }));
+
+    const invoiceHeaderRow = invoiceSheet.getRow(1);
+    invoiceHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    invoiceHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFED7D31' } };
+    invoiceHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    invoiceHeaderRow.height = 25;
+
+    let invoiceRowIndex = 2;
+    this.dataset.forEach((parentRow: any) => {
+      if (parentRow.invoiceDetails && parentRow.invoiceDetails.length > 0) {
+        parentRow.invoiceDetails.forEach((invoiceItem: any) => {
+          const excelRow = invoiceSheet.getRow(invoiceRowIndex);
+          excelRow.getCell(1).value = parentRow.PONumber ?? '';
+          excelRow.getCell(2).value = parentRow.ProductCode ?? '';
+          excelRow.getCell(3).value = parentRow.CustomerName ?? '';
+          excelRow.getCell(4).value = invoiceItem.RequestInvoiceCode ?? '';
+          excelRow.getCell(5).value = invoiceItem.TaxCompanyName ?? '';
+          excelRow.getCell(6).value = invoiceItem.InvoiceNumber ?? '';
+          if (invoiceItem.InvoiceDate) {
+            excelRow.getCell(7).value = new Date(invoiceItem.InvoiceDate).toLocaleDateString('vi-VN');
+          } else {
+            excelRow.getCell(7).value = '';
+          }
+          invoiceRowIndex++;
+        });
+      }
     });
 
     const buffer = await workbook.xlsx.writeBuffer();

@@ -12,6 +12,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { AngularSlickgridModule, Column, GridOption, AngularGridInstance, Formatters } from 'angular-slickgrid';
 import { ChartModule } from 'primeng/chart';
 import * as ExcelJS from 'exceljs';
@@ -32,6 +33,7 @@ import { SummaryKpiErrorEmployeeService } from '../summary-kpi-error-employee-se
         NzFormModule,
         NzDropDownModule,
         NzSplitterModule,
+        NzToolTipModule,
         AngularSlickgridModule,
         ChartModule,
         RouterModule

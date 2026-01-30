@@ -183,3 +183,39 @@
 .mw-100 {
     max-width: 100%;
 }
+/* Info icon red styling */
+.info-icon-red {
+    font-size: 18px;
+    color: #ff4d4f;
+    cursor: pointer;
+}
+
+.info-icon-red:hover {
+    color: #cf1322;
+}
+
+/* Tooltip content styling */
+.tooltip-content {
+    color: #ff4d4f;
+    font-size: 13px;
+}
+
+.tooltip-content .tooltip-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.tooltip-content .tooltip-body p {
+    margin: 4px 0;
+}
+
+/* Custom tooltip override */
+:host ::ng-deep .custom-tooltip-large .ant-tooltip-inner {
+    max-width: 500px;
+    min-width: 400px;
+    background: #fff;
+    color: #ff4d4f;
+    padding: 12px 16px;
+    border: 1px solid #ffa39e;
+}

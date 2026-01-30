@@ -89,6 +89,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         return typeof window !== 'undefined' && window.innerWidth <= 768;
     }
 
+    private isInitializing = true;
+
     ToggleSearchPanelNew(event?: Event): void {
         if (event) {
             event.stopPropagation();
@@ -269,12 +271,18 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                     this.searchForm.patchValue({
                         IDApprovedTP: idApprovedTP,
                         type: isRealBGD ? 5 : null
-                    });
+                    }, { emitEvent: false });
                 }
                 // Auto bind team nếu teamList đã được load
                 this.bindDefaultTeam();
+
+
                 if (this.tabulator) {
+
+                    this.isInitializing = false; // Kết thúc khởi tạo
                     this.loadData();
+                } else {
+                    this.isInitializing = false;
                 }
             }
         });
@@ -309,7 +317,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         if (myTeam && this.searchForm) {
             this.searchForm.patchValue({
                 teamId: myTeam.ID
-            });
+            }, { emitEvent: false });
         }
     }
 
@@ -514,7 +522,15 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     }
 
     loadData() {
+
+        // Skip nếu đang trong quá trình khởi tạo
+        if (this.isInitializing) {
+            console.log('loadData: Skipping because component is initializing');
+            return;
+        }
+
         if (!this.tabulator) {
+            console.log('loadData: tabulator not ready, skipping');
             return;
         }
 
@@ -806,9 +822,9 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         });
 
         // Chỉ load data nếu đã có currentUser, nếu không sẽ được gọi trong getCurrentUser()
-        if (this.currentUser) {
-            this.loadData();
-        }
+        // if (this.currentUser) {
+        //     this.loadData();
+        // }
     }
 
     getSelectedRows(): any[] {

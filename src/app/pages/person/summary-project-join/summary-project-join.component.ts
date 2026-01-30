@@ -282,6 +282,16 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
   }
   //#endregion
 
+  // Helper function to escape HTML special characters for title attributes
+  private escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
   //#region xử lý bảng danh sách dự án với SlickGrid
   initGridProjects() {
     // Format date helper
@@ -300,19 +310,201 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
 
     this.columnDefinitionsProjects = [
       { id: 'ID', name: 'ID', field: 'ID', type: 'number', width: 70, sortable: true, excludeFromExport: true, hidden: true },
-      { id: 'ProjectStatusName', name: 'Trạng thái', field: 'ProjectStatusName', type: 'string', width: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'PersonalPriotity', name: 'Ưu tiên cá nhân', field: 'PersonalPriotity', type: 'number', width: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-right' },
+      {
+        id: 'ProjectStatusName', name: 'Trạng thái', field: 'ProjectStatusName', type: 'string', width: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProjectName);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      { id: 'PersonalPriotity', name: 'Ưu tiên cá nhân', field: 'PersonalPriotity', type: 'number', width: 90, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-end' },
       { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'ProjectName', name: 'Tên dự án', field: 'ProjectName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'FullNameSale', name: 'Người phụ trách(sale)', field: 'FullNameSale', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'FullNameTech', name: 'Người phụ trách(kỹ thuật)', field: 'FullNameTech', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'FullNamePM', name: 'PM', field: 'FullNamePM', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+      {
+        id: 'ProjectName', name: 'Tên dự án', field: 'ProjectName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProjectName);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'FullNameSale', name: 'Người phụ trách(sale)', field: 'FullNameSale', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNameSale);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'FullNameTech', name: 'Người phụ trách(kỹ thuật)', field: 'FullNameTech', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNameTech);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'FullNamePM', name: 'PM', field: 'FullNamePM', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNamePM);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.CustomerName);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
       { id: 'PlanDateStart', name: 'Ngày bắt đầu (dự kiến)', field: 'PlanDateStart', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'PlanDateEndSummary', name: 'Ngày kết thúc (dự kiến)', field: 'PlanDateEndSummary', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'ActualDateStart', name: 'Ngày bắt đầu (thực tế)', field: 'ActualDateStart', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'ActualDateEnd', name: 'Ngày kết thúc (thực tế)', field: 'ActualDateEnd', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
-      { id: 'EndUserName', name: 'End User', field: 'EndUserName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+      {
+        id: 'EndUserName', name: 'End User', field: 'EndUserName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.EndUserName);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
       { id: 'PODate', name: 'Ngày PO', field: 'PODate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'CreatedDate', name: 'Ngày tạo', field: 'CreatedDate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'CreatedBy', name: 'Người tạo', field: 'CreatedBy', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -342,6 +534,7 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 25,
+      rowHeight: 43
     };
   }
 
@@ -366,7 +559,32 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
       { id: 'StatusName', name: 'Trạng thái', field: 'StatusName', type: 'string', sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'UpdatedDate', name: 'Ngày cập nhật', field: 'UpdatedDate', type: 'date', sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', type: 'string', sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'ProjectName', name: 'Tên dự án', field: 'ProjectName', type: 'string', sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+      {
+        id: 'ProjectName', name: 'Tên dự án', field: 'ProjectName', type: 'string', sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap', formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProjectName);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
     ];
 
     this.gridOptionsProjectEmployee = {
@@ -769,7 +987,32 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
       { id: 'ProjectTypeName', name: 'Kiểu hạng mục', field: 'ProjectTypeName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'FullName', name: 'Người phụ trách', field: 'FullName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
       { id: 'PercentItem', name: '%', field: 'PercentItem', type: 'number', width: 50, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-right' },
-      { id: 'Mission', name: 'Công việc', field: 'Mission', type: 'string', width: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+      {
+        id: 'Mission', name: 'Công việc', field: 'Mission', type: 'string', width: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap', formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Mission);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
       { id: 'EmployeeRequest', name: 'Người giao việc', field: 'EmployeeRequest', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
       { id: 'PlanStartDate', name: 'Ngày bắt đầu (dự kiến)', field: 'PlanStartDate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'TotalDayPlan', name: 'Số ngày (dự kiến)', field: 'TotalDayPlan', type: 'number', width: 80, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-right' },

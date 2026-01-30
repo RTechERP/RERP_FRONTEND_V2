@@ -18,6 +18,10 @@
     font-size: 0.75rem;
 }
 
+::ng-deep .text-end {
+    text-align: right !important;
+}
+
 .navbar-toggler-icon {
     border-radius: 0 !important;
     width: 20px;
@@ -93,9 +97,12 @@ angular-slickgrid,
 }
 
 /* Cell wrap */
-.cell-wrap {
-    white-space: normal;
+::ng-deep .cell-wrap {
+    white-space: normal !important;
     word-wrap: break-word;
+    line-height: 1.4 !important;
+    display: flex !important;
+    align-items: center;
 }
 
 /* Ensure SlickGrid custom footer is visible */

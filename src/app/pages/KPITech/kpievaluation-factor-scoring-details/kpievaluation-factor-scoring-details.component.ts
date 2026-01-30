@@ -9,8 +9,6 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalRef, NZ_MODAL_DATA } from 'ng-zorro-antd/modal';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 
 import {
   AngularGridInstance,
@@ -30,6 +28,8 @@ import { KPIEvaluationFactorScoringDetailsService } from './kpievaluation-factor
 import { ReadOnlyLongTextEditor } from '../kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
 import { KPICriteriaViewComponent } from '../kpicriteria-view/kpicriteria-view.component';
 import { KpiRuleSumarizeTeamChooseEmployeeComponent } from '../kpi-rule-sumarize-team-choose-employee/kpi-rule-sumarize-team-choose-employee.component';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-kpievaluation-factor-scoring-details',
@@ -54,19 +54,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   @Input() kpiExam: any = null;
   @Input() status: number = 0;
   @Input() departmentID: number = 0;
+  @Input() isPublish: boolean = false; // IsPublish flag từ empPoint
 
   // Constants
   private readonly DEPARTMENT_CO_KHI = 10;
-  private destroy$ = new Subject<void>();
-
-  // Danh sách mã Team cho TBP (Trưởng Bộ Phận)
-  private readonly lstTeamTBP: string[] = ['TEAM01', 'TEAM02', 'TEAM03'];
-
-  // Danh sách mã để tính tổng lỗi (không có lỗi) cho MA09
-  private readonly listCodesNoError: string[] = ['MA01', 'MA02', 'MA03', 'MA04', 'MA05', 'MA06', 'MA07', 'WorkLate', 'NotWorking'];
-
-  // Biến để xác định view TBP (Trưởng Bộ Phận)
-  private isTBPView: boolean = false;
 
   // DI
   private notification = inject(NzNotificationService);
@@ -152,6 +143,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   private editCommandQueue: EditCommand[] = [];
   private cellCssStyleQueue: string[] = [];
 
+  // Subject for cleanup
+  private destroy$ = new Subject<void>();
+
   private customEditableInputFormatter: Formatter = (_row, _cell, value, columnDef, dataContext, grid) => {
     const gridOptions = grid.getOptions();
     // Loại trừ các cột dùng để xem nội dung dài và các dòng là node cha
@@ -231,7 +225,6 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       // Nhân viên: ẩn tab Rule, Team
       this.showTabRule = false;
       this.showTabTeam = false;
-      this.showLoadTeamButton = true;
       this.canSave = this.status <= 2;
     } else if (this.typePoint === 2) {
       // TBP
@@ -340,7 +333,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'EvaluationContent',
         field: 'EvaluationContent',
         name: 'Yếu tố đánh giá',
-        width: 467,
+        minWidth: 467,
         sortable: true,
         cssClass: 'cell-multiline',
         editor: {
@@ -363,7 +356,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'StandardPoint',
         field: 'StandardPoint',
         name: 'Điểm chuẩn',
-        width: 67,
+        minWidth: 67,
         cssClass: 'text-right',
         sortable: true,
       },
@@ -371,7 +364,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'Coefficient',
         field: 'Coefficient',
         name: 'Hệ số điểm',
-        width: 67,
+        minWidth: 67,
         cssClass: 'text-right',
         sortable: true,
       },
@@ -379,7 +372,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'EmployeePoint',
         field: 'EmployeePoint',
         name: 'Mức tự đánh giá',
-        width: 93,
+        minWidth: 93,
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
         editor: (this.typePoint === 1) ? {
@@ -392,8 +385,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       {
         id: 'TBPPointInput',
         field: 'TBPPointInput',
-        name: 'Điểm nhập',
-        width: 93,
+        name: 'Điểm TBP đánh giá',
+        minWidth: 93,
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
         editor: this.typePoint === 2 ? {
@@ -406,8 +399,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       {
         id: 'TBPPoint',
         field: 'TBPPoint',
-        name: 'Điểm tính',
-        width: 93,
+        name: 'Điểm TB của TBP/PBP',
+        minWidth: 93,
         cssClass: 'text-right',
         sortable: true,
         formatter: Formatters.decimal,
@@ -417,8 +410,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       {
         id: 'BGDPointInput',
         field: 'BGDPointInput',
-        name: 'Điểm nhập',
-        width: 93,
+        name: 'Điểm BGĐ đánh giá',
+        minWidth: 93,
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
         editor: this.typePoint === 3 ? {
@@ -431,8 +424,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       {
         id: 'BGDPoint',
         field: 'BGDPoint',
-        name: 'Điểm tính',
-        width: 93,
+        name: 'Điểm TB của BGĐ',
+        minWidth: 93,
         cssClass: 'text-right',
         sortable: true,
         formatter: Formatters.decimal,
@@ -443,7 +436,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'VerificationToolsContent',
         field: 'VerificationToolsContent',
         name: 'Phương tiện xác minh tiêu chí',
-        width: 533,
+        minWidth: 533,
         sortable: true,
         cssClass: 'cell-multiline',
         editor: {
@@ -467,7 +460,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'Unit',
         field: 'Unit',
         name: 'ĐVT',
-        width: 53,
+        minWidth: 53,
         cssClass: 'text-center',
         sortable: true,
       },
@@ -475,7 +468,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'EmployeeEvaluation',
         field: 'EmployeeEvaluation',
         name: 'Điểm đánh giá',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
         formatter: Formatters.decimal,
@@ -486,7 +479,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'EmployeeCoefficient',
         field: 'EmployeeCoefficient',
         name: 'Điểm theo hệ số',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
         formatter: Formatters.decimal,
@@ -497,7 +490,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'TBPEvaluation',
         field: 'TBPEvaluation',
         name: 'Điểm đánh giá',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
         formatter: Formatters.decimal,
@@ -508,7 +501,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'TBPCoefficient',
         field: 'TBPCoefficient',
         name: 'Điểm theo hệ số',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
         formatter: Formatters.decimal,
@@ -519,7 +512,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'BGDEvaluation',
         field: 'BGDEvaluation',
         name: 'Điểm đánh giá',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
         formatter: Formatters.decimal,
@@ -530,7 +523,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         id: 'BGDCoefficient',
         field: 'BGDCoefficient',
         name: 'Điểm theo hệ số',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
         formatter: Formatters.decimal,
@@ -562,7 +555,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       enableCellNavigation: true,
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: false,
+      forceFitColumns: true,
       editable: true,
       autoEdit: true,
       autoCommitEdit: false, // Thay đổi để cho phép dùng mũi tên điều hướng mà không mất focus
@@ -843,7 +836,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       { id: 'PercentageAdjustment', field: 'PercentageAdjustment', name: 'Số % trừ (cộng) 1 lần', minWidth: 100, cssClass: 'text-right', sortable: true, formatter: decimalFormatter },
       { id: 'MaxPercentageAdjustment', field: 'MaxPercentageAdjustment', name: 'Số % trừ (cộng) lớn nhất', minWidth: 100, cssClass: 'text-right', sortable: true, formatter: decimalFormatter },
       { id: 'PercentBonus', field: 'PercentBonus', name: 'Tổng số % trừ(cộng)', minWidth: 100, cssClass: 'text-right', sortable: true, formatter: percentBonusFormatter },
-      { id: 'PercentRemaining', field: 'PercentRemaining', name: '% thưởng còn lại', minWidth: 100, cssClass: 'text-right', sortable: true, formatter: percentRemainingFormatter },
+      { id: 'PercentRemaining', field: 'PercentRemaining', name: '% thưởng còn lại', minWidth: 140, cssClass: 'text-right', sortable: true, formatter: percentRemainingFormatter },
       { id: 'Rule', field: 'Rule', name: 'Rule', minWidth: 100, sortable: true },
       { id: 'Note', field: 'Note', name: 'Ghi chú', minWidth: 150, sortable: true, resizable: true },
     ];
@@ -1171,7 +1164,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     }
 
     // Logic tính toán isPublic (mapping WinForms)
-    const isPublic = this.typePoint === 2 || this.typePoint === 3 || this.status === 3;
+    // WinForm: bool isPublic = typePoint == 2 || typePoint == 3 || empPoint.IsPublish == true;
+    const isPublic = this.typePoint === 2 || this.typePoint === 3 || this.isPublish === true;
 
     const empId = Number(this.selectedEmployeeId);
     const kpiExamID = Number(this.selectedKPIExamId);
@@ -1812,8 +1806,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     );
 
     let totalPercentRemaining = 0;
+    let totalPercentBonusRoot = 0;
     rootNodes.forEach((node: any) => {
       totalPercentRemaining += this.formatDecimalNumber(Number(node.PercentRemaining) || 0, 2);
+      totalPercentBonusRoot += this.formatDecimalNumber(Number(node.PercentBonus) || 0, 2);
     });
 
     // Lấy xếp loại dựa vào tổng % thưởng còn lại
@@ -1857,9 +1853,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
 
           case 'PercentBonus':
-            footerCol.innerHTML = `<b>Xếp loại: ${rank}</b>`;
-            footerCol.style.textAlign = 'left';
-            footerCol.style.paddingLeft = '8px';
+            // 
+            // Hiển thị tổng % trừ/cộng của các node cha theo yêu cầu người dùng
+            footerCol.innerHTML = `<b>${totalPercentBonusRoot.toFixed(2)}</b>`;
+            footerCol.style.textAlign = 'right';
+            footerCol.style.paddingRight = '8px';
             break;
         }
       } catch (e) {
@@ -1910,203 +1908,33 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.loadData();
   }
 
-  loadKPITeam(): void {
-    // 1. Lấy employeeID của nhân viên đang được chọn
-    const empID = this.selectedEmployeeId;
-    const kpiSessionID = this.selectedKPISessionId;
-
-    // 2. Kiểm tra kỳ đánh giá đã được chọn chưa
-    if (!kpiSessionID || kpiSessionID <= 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn Kỳ đánh giá!');
-      return;
-    }
-
-    // 3. Kiểm tra nhân viên đã được chọn chưa
-    if (!empID || empID <= 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên!');
-      return;
-    }
-
-    // 4. Gọi API để lấy danh sách tất cả team của nhân viên
-    this.kpiSharedService.getAllTeamByEmployeeID(empID, kpiSessionID)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          // Kiểm tra response có thành công không
-          if (response.status != 1) {
-            this.notification.error('Lỗi', response.message || 'Không thể lấy danh sách team');
-            return;
-          }
-
-          const lstTeam = response.data || [];
-
-          // Kiểm tra có team nào không
-          if (lstTeam.length <= 0) {
-            this.notification.info('Thông báo', 'Không tìm thấy team nào cho nhân viên này');
-            return;
-          }
-
-          // 5. Mở modal để chọn nhân viên trong team
-          const modalRef = this.ngbModal.open(KpiRuleSumarizeTeamChooseEmployeeComponent, {
-            size: 'lg',
-            backdrop: 'static'
-          });
-
-          // Truyền danh sách team vào modal
-          modalRef.componentInstance.lstEmp = lstTeam;
-
-          // 6. Xử lý khi người dùng xác nhận chọn nhân viên
-          modalRef.closed.subscribe({
-            next: (lstEmpChose: any[]) => {
-              if (!lstEmpChose || lstEmpChose.length === 0) {
-                this.notification.info('Thông báo', 'Không có nhân viên nào được chọn');
-                return;
-              }
-
-              // 7. Gọi API load-data-team để xử lý dữ liệu cho các nhân viên đã chọn
-              const loadRequest = {
-                employeeID: empID,
-                kpiSessionID: kpiSessionID,
-                lstEmpChose: lstEmpChose.map(emp => ({ ID: emp.ID }))
-              };
-
-              this.kpiSharedService.loadDataTeam(loadRequest)
-                .pipe(takeUntil(this.destroy$))
-                .subscribe({
-                  next: (loadResponse: any) => {
-                    if (loadResponse.status != 1) {
-                      this.notification.error('Lỗi', loadResponse.message || 'Không thể load dữ liệu team');
-                      return;
-                    }
-
-                    // empPointMaster là ID của KPI Employee Point chính (của nhân viên đang chọn)
-                    const empPointMaster = loadResponse.data || 0;
-
-                    if (empPointMaster <= 0) {
-                      this.notification.warning('Thông báo', 'Không tìm thấy điểm KPI của nhân viên');
-                      return;
-                    }
-
-                    // 8. Load lại KPI Rule mới với empPointMaster
-                    this.kpiSharedService.loadPointRuleNew(empPointMaster)
-                      .pipe(takeUntil(this.destroy$))
-                      .subscribe({
-                        next: (ruleResponse: any) => {
-                          if (ruleResponse.status != 1) {
-                            this.notification.error('Lỗi', ruleResponse.message || 'Không thể load KPI Rule');
-                            return;
-                          }
-
-                          // Cập nhật dữ liệu KPI Rule vào grid
-                          let ruleData = ruleResponse.data || [];
-
-                          // Transform ruleData để có cấu trúc tree nếu cần
-                          ruleData = this.transformToTreeData(ruleData);
-
-                          this.dataRule = ruleData;
-                          this.updateGrid(this.angularGridRule, this.dataRule);
-
-                          // Refresh grid và update footer
-                          setTimeout(() => {
-                            this.refreshGrid(this.angularGridRule, this.dataRule);
-                            this.updateRuleFooter();
-                          }, 200);
-
-                          // Thông báo thành công
-                          this.notification.success(
-                            'Thành công',
-                            `Đã load KPI cho ${lstEmpChose.length} nhân viên trong team`
-                          );
-
-                          // Reload toàn bộ dữ liệu chi tiết để cập nhật các tab khác
-                          this.loadData();
-                        },
-                        error: (error: any) => {
-                          console.error('Lỗi load KPI Rule:', error);
-                          this.notification.error('Lỗi', error.error?.message || 'Lỗi khi load KPI Rule');
-                        }
-                      });
-                  },
-                  error: (error: any) => {
-                    console.error('Lỗi load data team:', error);
-                    this.notification.error('Lỗi', error.error?.message || 'Lỗi khi load dữ liệu team');
-                  }
-                });
-            },
-            error: (error: any) => {
-              console.error('Lỗi modal:', error);
-            }
-          });
-        },
-        error: (error: any) => {
-          console.error('Lỗi get team:', error);
-          this.notification.error('Lỗi', error.error?.message || 'Lỗi khi lấy danh sách team');
-        }
-      });
-  }
-  //#endregion
-
-  //#region Load Point Rule New
+  //#region Load Team Data
   /**
-   * Load Point Rule New
-   * Mapping từ WinForm: frmKPIEvaluationFactorScoring.LoadPointRuleNew
-   * 
-   * Chức năng:
-   * - Gọi API load-point-rule-new để lấy dữ liệu KPI Rule mới
-   * - Cập nhật dữ liệu vào grid Rule
-   * - Tính toán và update footer
-   * 
-   * @param empPointMaster - ID của KPI Employee Point chính
+   * Load KPI Team data
+   * Mapping từ WinForm: btnLoadData_Click
    */
-  loadPointRuleNew(empPointMaster: number): void {
-    if (!empPointMaster || empPointMaster <= 0) {
-      this.notification.warning('Cảnh báo', 'Không tìm thấy điểm KPI của nhân viên');
-      return;
-    }
+  loadKPITeam(): void {
+    try {
+      // Hiển thị thông báo đang tải
+      this.notification.info('Thông báo', 'Đang tải dữ liệu Team...');
 
-    // Hiển thị thông báo đang tải
-    this.notification.info('Thông báo', 'Đang tải dữ liệu KPI Rule...');
+      // Gọi hàm lấy summary từ grid team và thêm các dòng TEAM
+      this.loadTeamSummaryAndAddTeamNodes();
 
-    // Gọi API load-point-rule-new
-    this.kpiSharedService.loadPointRuleNew(empPointMaster)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          if (response.status !== 1) {
-            this.notification.error('Lỗi', response.message || 'Không thể load KPI Rule');
-            return;
-          }
-
-          // Lấy dữ liệu KPI Rule từ response
-          let ruleData = response.data || [];
-
-          // Transform ruleData để có cấu trúc tree nếu cần
-          ruleData = this.transformToTreeData(ruleData);
-
-          // Cập nhật dữ liệu vào grid Rule
-          this.dataRule = ruleData;
-          this.updateGrid(this.angularGridRule, this.dataRule);
-
-          // Refresh grid và update footer
-          setTimeout(() => {
-            // Gọi hàm lấy summary từ grid team và thêm các dòng TEAM
-            this.loadTeamSummaryAndAddTeamNodes();
-            this.refreshGrid(this.angularGridRule, this.dataRule);
-            this.updateRuleFooter();
-          }, 200);
-
-          // Thông báo thành công
-          this.notification.success('Thành công', 'Đã tải dữ liệu KPI Rule thành công');
-        },
-        error: (error: any) => {
-          console.error('Lỗi load KPI Rule:', error);
-          this.notification.error('Lỗi', error.error?.message || 'Lỗi khi load KPI Rule');
+      // Refresh grid và update footer
+      setTimeout(() => {
+        if (this.angularGridRule?.slickGrid) {
+          this.angularGridRule.slickGrid.invalidate();
+          this.angularGridRule.slickGrid.render();
         }
-      });
+        this.notification.success('Thành công', 'Đã tải dữ liệu Team thành công');
+      }, 200);
+    } catch (error) {
+      console.error('Lỗi khi tải dữ liệu Team:', error);
+      this.notification.error('Lỗi', 'Không thể tải dữ liệu Team');
+    }
   }
-  //#endregion
 
-  //#region Load Team Summary and Add Team Nodes
   /**
    * Lấy summary từ grid Team và thêm các dòng TEAM vào dataRule
    * Mapping từ WinForm: frmKPIEvaluationFactorScoring.LoadPointRuleNew (dòng 3235-3286)
@@ -2187,188 +2015,146 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   }
   //#endregion
 
-  //#region Calculator Point Functions
+  //#region Load Data Team
   /**
-   * Tính toán điểm KPI
-   * Mapping từ WinForm: frmKPIEvaluationFactorScoring.CalculatorPoint
-   *
-   * Chức năng:
-   * - Tính toán PercentBonus, PercentRemaining, TotalError cho từng node
-   * - Xử lý đặc biệt cho các node cha và node lá
-   * - Xử lý đặc biệt cho các mã rule như KPI, TEAMKPI, MA09, OT, THUONG
-   *
-   * @param isTBP - Có phải là vị trí TBP (Trưởng Bộ Phận) không
-   * @param isPublish - Đã công bố điểm chưa
+   * Load Data Team - Load dữ liệu KPI cho team
+   * Mapping từ WinForm: btnLoadDataTeam_Click
    */
-  calculatorPoint(isTBP: boolean = false, isPublish: boolean = true): void {
-    try {
-      // Bước 1: Tính tổng lỗi cho MA09 trước
-      this.calculatorNoError();
+  btnLoadDataTeam_Click(): void {
+    // 1. Lấy employeeID của nhân viên đang được chọn
+    const empID = this.selectedEmployeeId;
+    const kpiSessionID = this.selectedKPISessionId;
 
-      // Bước 2: Lấy danh sách node và duyệt từ cuối lên đầu
-      const dataList = [...this.dataRule];
+    // 2. Kiểm tra kỳ đánh giá đã được chọn chưa
+    if (!kpiSessionID || kpiSessionID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn Kỳ đánh giá!');
+      return;
+    }
 
-      for (let i = dataList.length - 1; i >= 0; i--) {
-        const row = dataList[i];
-        if (!row) continue;
+    // 3. Kiểm tra nhân viên đã được chọn chưa
+    if (!empID || empID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên!');
+      return;
+    }
 
-        const stt = String(row.STT || '');
-        const ruleCode = String(row.EvaluationCode || '').toUpperCase();
-        const isDiemThuong = ruleCode === 'THUONG';
-
-        // Lấy các giá trị cấu hình từ row
-        const maxPercentBonus = Number(row.MaxPercent) || 0;
-        const percentageAdjustment = Number(row.PercentageAdjustment) || 0;
-        const maxPercentageAdjustment = Number(row.MaxPercentageAdjustment) || 0;
-
-        // Tìm các node con của row hiện tại
-        const childNodes = dataList.filter((child: any) =>
-          child.ParentID === row.ID || child.parentId === row.id
-        );
-
-        if (childNodes.length > 0) {
-          // ============ XỬ LÝ NODE CHA (có node con) ============
-          let totalPercentBonus = 0;
-          let totalPercentRemaining = 0;
-          let isKPI = false;
-          let total = 0;
-
-          // Tính tổng từ các node con
-          for (const childNode of childNodes) {
-            const childRuleCode = String(childNode.EvaluationCode || '');
-            isKPI = childRuleCode.toUpperCase().startsWith('KPI');
-
-            totalPercentBonus += this.formatDecimalNumber(Number(childNode.PercentBonus) || 0, 2);
-            totalPercentRemaining += this.formatDecimalNumber(Number(childNode.PercentRemaining) || 0, 2);
-            total += this.formatDecimalNumber(Number(childNode.TotalError) || 0, 2);
+    // 4. Gọi API để lấy danh sách tất cả team của nhân viên
+    this.kpiSharedService.getAllTeamByEmployeeID(empID, kpiSessionID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          // Kiểm tra response có thành công không
+          if (response.status != 1) {
+            this.notification.error('Lỗi', response.message || 'Không thể lấy danh sách team');
+            return;
           }
 
-          // Gán giá trị mặc định
-          row.PercentBonus = totalPercentBonus;
-          row.TotalError = total;
+          const lstTeam = response.data || [];
 
-          // Xử lý đặc biệt cho Team TBP - Tính trực tiếp node cha bên PP
-          if (this.lstTeamTBP.includes(ruleCode) && isTBP) {
-            row.TotalError = Number(row.ThirdMonth) || 0;
-          } else if (isKPI) {
-            // Tính tổng KPI lên node cha
-            row.PercentRemaining = totalPercentRemaining;
-          } else if (isDiemThuong) {
-            // Điểm thưởng
-            row.PercentRemaining = maxPercentBonus > totalPercentBonus ? totalPercentBonus : maxPercentBonus;
-          } else if (maxPercentBonus > 0) {
-            // Có giới hạn % thưởng tối đa
-            row.PercentRemaining = maxPercentBonus > totalPercentBonus ? maxPercentBonus - totalPercentBonus : 0;
-          } else {
-            // Mặc định
-            row.PercentBonus = totalPercentBonus;
-            row.PercentRemaining = totalPercentRemaining;
+          // Kiểm tra có team nào không
+          if (lstTeam.length <= 0) {
+            this.notification.info('Thông báo', 'Không tìm thấy team nào cho nhân viên này');
+            return;
           }
 
-          // Xử lý đặc biệt: Tính % thưởng KPITeam PP
-          if (this.lstTeamTBP.includes(ruleCode) && isTBP) {
-            const thirdMonth = Number(row.ThirdMonth) || 0;
-            row.PercentBonus = thirdMonth * percentageAdjustment > maxPercentageAdjustment
-              ? maxPercentageAdjustment
-              : thirdMonth * percentageAdjustment;
-          } else if (maxPercentageAdjustment > 0) {
-            row.PercentBonus = maxPercentageAdjustment > totalPercentBonus ? totalPercentBonus : maxPercentageAdjustment;
-          }
+          // 5. Mở modal để chọn nhân viên trong team (WinForm: frmKpiRuleSumarizeTeamChooseEmployee)
+          const modalRef = this.ngbModal.open(KpiRuleSumarizeTeamChooseEmployeeComponent, {
+            size: 'lg',
+            backdrop: 'static'
+          });
 
-          // Nếu có % điều chỉnh mỗi lần
-          if (percentageAdjustment > 0) {
-            const totalPercentDeduction = percentageAdjustment * (Number(row.TotalError) || 0);
-            row.PercentBonus = maxPercentageAdjustment > 0
-              ? (totalPercentDeduction > maxPercentageAdjustment ? maxPercentageAdjustment : totalPercentDeduction)
-              : totalPercentDeduction;
-          }
+          // Truyền danh sách team vào modal
+          modalRef.componentInstance.lstEmp = lstTeam;
 
-        } else {
-          // ============ XỬ LÝ NODE LÁ (không có node con) ============
+          // 6. Xử lý khi người dùng xác nhận chọn nhân viên
+          modalRef.closed.subscribe({
+            next: (lstEmpChose: any[]) => {
+              if (!lstEmpChose || lstEmpChose.length === 0) {
+                this.notification.info('Thông báo', 'Không có nhân viên nào được chọn');
+                return;
+              }
 
-          // Tính tổng lỗi từ 3 tháng
-          const firstMonth = Number(row.FirstMonth) || 0;
-          const secondMonth = Number(row.SecondMonth) || 0;
-          const thirdMonth = Number(row.ThirdMonth) || 0;
-          let totalError = firstMonth + secondMonth + thirdMonth;
-          row.TotalError = totalError;
+              // 7. Gọi API load-data-team để xử lý dữ liệu cho các nhân viên đã chọn
+              const loadRequest = {
+                employeeID: empID,
+                kpiSessionID: kpiSessionID,
+                lstEmpChose: lstEmpChose.map(emp => ({ ID: emp.ID }))
+              };
 
-          // Xử lý đặc biệt cho OT: nếu trung bình >= 20 thì = 1, ngược lại = 0
-          if (ruleCode === 'OT') {
-            row.TotalError = (totalError / 3) >= 20 ? 1 : 0;
-          }
+              this.kpiSharedService.loadDataTeam(loadRequest)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (loadResponse: any) => {
+                    if (loadResponse.status != 1) {
+                      this.notification.error('Lỗi', loadResponse.message || 'Không thể load dữ liệu team');
+                      return;
+                    }
 
-          // Tính % trừ (cộng)
-          const totalPercentDeduction = percentageAdjustment * (Number(row.TotalError) || 0);
-          row.PercentBonus = maxPercentageAdjustment > 0
-            ? (totalPercentDeduction > maxPercentageAdjustment ? maxPercentageAdjustment : totalPercentDeduction)
-            : totalPercentDeduction;
+                    // empPointMaster là ID của KPI Employee Point chính (của nhân viên đang chọn)
+                    const empPointMaster = loadResponse.data || 0;
 
-          // Xử lý đặc biệt theo mã
-          if (ruleCode.startsWith('KPI') && !(ruleCode === 'KPINL' || ruleCode === 'KPINQ')) {
-            // KPI (trừ KPINL, KPINQ): Tổng = tháng 3, % còn lại = tổng * maxPercent / 5
-            row.TotalError = thirdMonth;
-            row.PercentRemaining = thirdMonth * maxPercentBonus / 5;
-          } else if (ruleCode.startsWith('TEAMKPI')) {
-            // Team KPI: PercentBonus = tổng lỗi * maxPercentageAdjustment / 5
-            row.PercentBonus = (Number(row.TotalError) || 0) * maxPercentageAdjustment / 5;
-          } else if (ruleCode === 'MA09') {
-            // MA09: Không lỗi thì được thưởng, có lỗi thì trừ
-            row.PercentBonus = totalPercentDeduction > maxPercentageAdjustment
-              ? 0
-              : maxPercentageAdjustment - totalPercentDeduction;
-          } else {
-            // Mặc định: PercentRemaining = TotalError * MaxPercent
-            row.PercentRemaining = (Number(row.TotalError) || 0) * maxPercentBonus;
-          }
+                    if (empPointMaster <= 0) {
+                      this.notification.warning('Thông báo', 'Không tìm thấy điểm KPI của nhân viên');
+                      return;
+                    }
+
+                    // 8. Load lại KPI Rule mới với empPointMaster
+                    this.kpiSharedService.loadPointRuleNew(empPointMaster)
+                      .pipe(takeUntil(this.destroy$))
+                      .subscribe({
+                        next: (ruleResponse: any) => {
+                          if (ruleResponse.status != 1) {
+                            this.notification.error('Lỗi', ruleResponse.message || 'Không thể load KPI Rule');
+                            return;
+                          }
+
+                          // Cập nhật dữ liệu KPI Rule vào grid
+                          let ruleData = ruleResponse.data || [];
+
+                          // Transform ruleData để có cấu trúc tree nếu cần
+                          ruleData = this.transformToTreeData(ruleData);
+
+                          this.dataRule = ruleData;
+                          this.updateGrid(this.angularGridRule, this.dataRule);
+
+                          // Refresh grid và update footer
+                          setTimeout(() => {
+                            // Gọi hàm lấy summary từ grid team và thêm các dòng TEAM
+                            this.loadTeamSummaryAndAddTeamNodes();
+                            this.refreshGrid(this.angularGridRule, this.dataRule);
+                            this.updateRuleFooter();
+                          }, 200);
+
+                          // Thông báo thành công
+                          this.notification.success(
+                            'Thành công',
+                            `Đã load KPI cho ${lstEmpChose.length} nhân viên trong team`
+                          );
+
+                          // Reload toàn bộ dữ liệu chi tiết để cập nhật các tab khác
+                          this.loadData();
+                        },
+                        error: (error: any) => {
+                          console.error('Lỗi load KPI Rule:', error);
+                          this.notification.error('Lỗi', error.error?.message || 'Lỗi khi load KPI Rule');
+                        }
+                      });
+                  },
+                  error: (error: any) => {
+                    console.error('Lỗi load data team:', error);
+                    this.notification.error('Lỗi', error.error?.message || 'Lỗi khi load dữ liệu team');
+                  }
+                });
+            },
+            error: (error: any) => {
+              console.error('Lỗi modal:', error);
+            }
+          });
+        },
+        error: (error: any) => {
+          console.error('Lỗi get team:', error);
+          this.notification.error('Lỗi', error.error?.message || 'Lỗi khi lấy danh sách team');
         }
-      }
-
-      // Bước 3: Cập nhật lại grid
-      if (this.angularGridRule?.dataView) {
-        this.angularGridRule.dataView.setItems(this.dataRule);
-        this.angularGridRule.slickGrid?.invalidate();
-        this.angularGridRule.slickGrid?.render();
-      }
-
-    } catch (error) {
-      console.error('Lỗi khi tính toán điểm KPI:', error);
-    }
-  }
-
-  /**
-   * Tính tổng lỗi cho MA09 (Không có lỗi)
-   * Mapping từ WinForm: frmKPIEvaluationFactorScoring.CalculatorNoError
-   *
-   * Luồng chạy:
-   * 1. Tìm các node có mã trong listCodesNoError
-   * 2. Tính tổng FirstMonth, SecondMonth, ThirdMonth
-   * 3. Gán vào node MA09
-   */
-  private calculatorNoError(): void {
-    // Tìm các node có mã trong danh sách
-    const filteredNodes = this.dataRule.filter((row: any) =>
-      this.listCodesNoError.includes(row.EvaluationCode)
-    );
-
-    // Tính tổng các tháng
-    let firstMonth = 0;
-    let secondMonth = 0;
-    let thirdMonth = 0;
-
-    for (const node of filteredNodes) {
-      firstMonth += this.formatDecimalNumber(Number(node.FirstMonth) || 0, 2);
-      secondMonth += this.formatDecimalNumber(Number(node.SecondMonth) || 0, 2);
-      thirdMonth += this.formatDecimalNumber(Number(node.ThirdMonth) || 0, 2);
-    }
-
-    // Tìm node MA09 và gán giá trị
-    const ma09Node = this.dataRule.find((row: any) => row.EvaluationCode === 'MA09');
-    if (ma09Node) {
-      ma09Node.FirstMonth = firstMonth;
-      ma09Node.SecondMonth = secondMonth;
-      ma09Node.ThirdMonth = thirdMonth;
-    }
+      });
   }
   //#endregion
 

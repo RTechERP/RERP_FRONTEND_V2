@@ -1235,7 +1235,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'PercentRemaining',
         field: 'PercentRemaining',
         name: '% thưởng còn lại',
-        minWidth: 160,
+        minWidth: 185,
         cssClass: 'text-right',
         sortable: true,
         formatter: percentRemainingFormatter
@@ -2901,8 +2901,10 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       const items = this.angularGridRule?.dataView?.getFilteredItems() || ruleData;
       const parentNodes = items.filter((item: any) => !item.parentId || item.ParentID === 0);
       let totalPercentRemaining = 0;
+      let totalPercentBonusRoot = 0;
       parentNodes.forEach((node: any) => {
         totalPercentRemaining += this.formatDecimalNumber(node.PercentRemaining || 0, 1);
+        totalPercentBonusRoot += this.formatDecimalNumber(node.PercentBonus || 0, 1);
       });
 
       // Build lstKPIEmployeePointDetail from all grid nodes
@@ -3704,8 +3706,10 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     );
 
     let totalPercentRemaining = 0;
+    let totalPercentBonusRoot = 0;
     rootNodes.forEach((node: any) => {
       totalPercentRemaining += this.formatDecimalNumber(Number(node.PercentRemaining) || 0, 2);
+      totalPercentBonusRoot += this.formatDecimalNumber(Number(node.PercentBonus) || 0, 2);
     });
 
     // Lấy xếp loại dựa vào tổng % thưởng còn lại
@@ -3756,9 +3760,11 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
               break;
             case 'PercentBonus':
               // SummaryFooter = Custom - Hiển thị xếp loại (A+/A/.../D)
-              footerCol.innerHTML = `<b>Xếp loại: ${rank}</b>`;
-              footerCol.style.textAlign = 'left';
-              footerCol.style.paddingLeft = '8px';
+
+              // Hiển thị tổng % trừ/cộng của các node cha theo yêu cầu người dùng
+              footerCol.innerHTML = `<b>${totalPercentBonusRoot.toFixed(2)}</b>`;
+              footerCol.style.textAlign = 'right';
+              footerCol.style.paddingRight = '8px';
               break;
           }
         } catch (e) {

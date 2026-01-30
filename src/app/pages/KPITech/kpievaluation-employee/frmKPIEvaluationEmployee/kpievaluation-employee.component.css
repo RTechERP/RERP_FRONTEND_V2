@@ -414,15 +414,12 @@ textarea {
 
 :host ::ng-deep .cell-multiline>span,
 :host ::ng-deep .cell-wrap-text>span {
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
+    display: block !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
-    white-space: normal !important;
+    white-space: pre-wrap !important;
     line-height: 1.4 !important;
 }
 

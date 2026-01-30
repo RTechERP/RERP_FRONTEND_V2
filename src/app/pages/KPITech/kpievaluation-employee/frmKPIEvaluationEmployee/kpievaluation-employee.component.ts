@@ -882,7 +882,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'PercentageAchieved',
         field: 'PercentageAchieved',
         name: 'Phần trăm đạt được',
-      minWidth: 150,
+        minWidth: 150,
         cssClass: 'text-right',
         sortable: true,
         hidden: true
@@ -891,7 +891,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'EvaluationRank',
         field: 'EvaluationRank',
         name: 'Xếp loại',
-       minWidth: 120,
+        minWidth: 120,
         cssClass: 'text-center',
         sortable: true,
         hidden: true
@@ -909,7 +909,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'VisionPoint',
         field: 'VisionPoint',
         name: 'VISION',
-       minWidth: 120,
+        minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
         hidden: true
@@ -918,7 +918,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'SoftWarePoint',
         field: 'SoftWarePoint',
         name: 'SOFTWARE',
-       minWidth: 120,
+        minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
         hidden: true
@@ -1341,7 +1341,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'PercentRemaining',
         field: 'PercentRemaining',
         name: '% thưởng còn lại',
-        minWidth: 160,
+        minWidth: 185,
         cssClass: 'text-right',
         sortable: true,
         formatter: percentRemainingFormatter
@@ -1404,6 +1404,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         editCommand.execute();
       },
     };
+    (this.ruleGridOptions as any).enableAutoRowHeight = true;
+    (this.ruleGridOptions as any).rowHeight = 45;
   }
 
   // Team Grid (Tab 6 - grdTeam)
@@ -2870,7 +2872,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     if (totalPercent < 100) return 'A';
     return 'A+';
   }
-    private formatDecimalNumber(value: number, precision: number): number {
+  private formatDecimalNumber(value: number, precision: number): number {
     return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
   }
 
@@ -2997,8 +2999,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     );
 
     let totalPercentRemaining = 0;
+    let totalPercentBonusRoot = 0;
     rootNodes.forEach((node: any) => {
       totalPercentRemaining += this.formatDecimalNumber(Number(node.PercentRemaining) || 0, 2);
+      totalPercentBonusRoot += this.formatDecimalNumber(Number(node.PercentBonus) || 0, 2);
     });
 
     // Lấy xếp loại dựa vào tổng % thưởng còn lại
@@ -3048,10 +3052,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
               footerCol.style.padding = '0';
               break;
             case 'PercentBonus':
-              // SummaryFooter = Custom - Hiển thị xếp loại (A+/A/.../D)
-              footerCol.innerHTML = `<b>Xếp loại: ${rank}</b>`;
-              footerCol.style.textAlign = 'left';
-              footerCol.style.paddingLeft = '8px';
+              // Hiển thị tổng % trừ/cộng của các node cha theo yêu cầu người dùng
+              footerCol.innerHTML = `<b>${totalPercentBonusRoot.toFixed(2)}</b>`;
+              footerCol.style.textAlign = 'right';
+              footerCol.style.paddingRight = '8px';
               break;
           }
         } catch (e) {

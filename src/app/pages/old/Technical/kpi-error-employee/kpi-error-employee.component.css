@@ -76,3 +76,12 @@
 .fs-12 {
     font-size: 0.75rem;
 }
+
+/* Cell wrap */
+::ng-deep .cell-wrap {
+    white-space: normal !important;
+    word-wrap: break-word;
+    line-height: 1.4 !important;
+    display: flex !important;
+    align-items: center;
+}

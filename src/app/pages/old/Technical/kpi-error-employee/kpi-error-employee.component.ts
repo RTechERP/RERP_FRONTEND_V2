@@ -134,6 +134,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
         this.loadDepartments();
         this.loadEmployees();
         this.loadKPIErrorTypes();
+        this.loadKPIErrors();
 
         this.search();
     }
@@ -180,7 +181,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
     }
 
     loadKPIErrors(): void {
-        this.kpiErrorEmployeeService.getKPIError(this.kpiErrorTypeId).subscribe({
+        this.kpiErrorEmployeeService.getKPIError(this.kpiErrorTypeId || 0).subscribe({
             next: (response: any) => {
                 if (response.status === 1) {
                     this.kpiErrors = response.data;
@@ -194,11 +195,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
 
     onTypeChange(): void {
         this.kpiErrorId = 0;
-        if (this.kpiErrorTypeId) {
-            this.loadKPIErrors();
-        } else {
-            this.kpiErrors = [];
-        }
+        this.loadKPIErrors();
         this.search();
     }
 
@@ -528,6 +525,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 80,
+                formatter: this.commonTooltipFormatter,
             },
             {
                 id: 'TypeName',
@@ -537,6 +535,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 minWidth: 150,
                 hidden: true,
+                formatter: this.commonTooltipFormatter,
             },
             {
                 id: 'Content',
@@ -545,6 +544,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 300,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -559,6 +559,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 120,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -573,6 +574,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 170,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -608,6 +610,8 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 200,
+                cssClass: 'cell-wrap',
+                formatter: this.commonTooltipFormatter,
             },
         ];
 
@@ -616,6 +620,8 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 container: '.grid-container-main',
                 calculateAvailableSizeBy: 'container',
             },
+            gridWidth: '100%',
+            forceFitColumns: true,
             enableAutoResize: true,
             enableCellNavigation: true,
             enableColumnReorder: true,
@@ -662,6 +668,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 200,
+                formatter: this.commonTooltipFormatter,
             },
         ];
 
@@ -670,6 +677,8 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 container: '.grid-container-file',
                 calculateAvailableSizeBy: 'container',
             },
+            gridWidth: '100%',
+            forceFitColumns: true,
             enableAutoResize: true,
             enableCellNavigation: true,
             enableSorting: true,
@@ -691,6 +700,39 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 onCommand: (e, args) => this.handleFileContextMenuCommand(e, args),
             },
         };
+    }
+
+    // Helper function to escape HTML special characters for title attributes
+    private escapeHtml(text: string | null | undefined): string {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+        if (!value) return '';
+        const escaped = this.escapeHtml(value);
+        return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
     }
 
     // Grid events

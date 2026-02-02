@@ -81,18 +81,20 @@ export class DocumentService {
   uploadMultipleFiles(
     files: File[],
     typeCode?: string,
-    subPath?: string
+    subPath?: string,
+    defaultKey: string = 'TrainingRegistration'
   ): Observable<any> {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('files', file);
     });
 
-    // Set key based on typeCode: CER=Certificate, COP=Critical, default=TrainingRegistration
-    let key = 'TrainingRegistration';
-    if (typeCode === 'CER') {
+    // Set key based on typeCode: CER=Certificate, COP=Critical, default=defaultKey
+    let key = defaultKey;
+    const normalizedCode = (typeCode || '').trim().toUpperCase();
+    if (normalizedCode === 'CER') {
       key = 'Certificate';
-    } else if (typeCode === 'COP') {
+    } else if (normalizedCode === 'COP') {
       key = 'Critical';
     }
     formData.append('key', key);
@@ -106,9 +108,10 @@ export class DocumentService {
   downloadFile(filePath: string, typeCode?: string): Observable<Blob> {
     // Set key based on typeCode: CER=Certificate, COP=Critical, default=TrainingRegistration
     let key = 'TrainingRegistration';
-    if (typeCode === 'CER') {
+    const normalizedCode = (typeCode || '').trim().toUpperCase();
+    if (normalizedCode === 'CER') {
       key = 'Certificate';
-    } else if (typeCode === 'COP') {
+    } else if (normalizedCode === 'COP') {
       key = 'Critical';
     }
 
@@ -127,10 +130,11 @@ export class DocumentService {
     typeCode?: string
   ): Observable<Blob> {
     // Set key based on typeCode: CER=Certificate, COP=Critical, default=EconomicContract
-    let key = 'TrainingRegistration';
-    if (typeCode === 'CER') {
+    let key = 'EconomicContract';
+    const normalizedCode = (typeCode || '').trim().toUpperCase();
+    if (normalizedCode === 'CER') {
       key = 'Certificate';
-    } else if (typeCode === 'COP') {
+    } else if (normalizedCode === 'COP') {
       key = 'Critical';
     }
 

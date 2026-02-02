@@ -48,7 +48,7 @@ angular-slickgrid,
 }
 
 /* ==================== HEADER STYLES ==================== */
-:host ::ng-deep .slick-header-column {
+/* :host ::ng-deep .slick-header-column {
     background-color: #fafafa;
     border-right: 1px solid #ddd !important;
     font-weight: 600;
@@ -68,7 +68,7 @@ angular-slickgrid,
     white-space: normal !important;
     line-height: 1.2 !important;
     padding: 0 4px !important;
-}
+} */
 
 /* ==================== COLUMN GROUP STYLES (Pre-Header Panel) ==================== */
 :host ::ng-deep .slick-preheader-panel {
@@ -255,21 +255,6 @@ nz-tabset {
     line-height: 1.4 !important;
 }
 
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
-    color: #141a24 !important;
-    opacity: 1 !important;
-    padding: 4px !important;
-    padding-left: 12px !important;
-}
-
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-    color: #0e1114 !important;
-    font-weight: 600;
-}
-
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
-    background: #1677ff !important;
-}
 
 /* ==================== EMPLOYEE GRID STATUS COLORING ==================== */
 /* Wrapper to ensure full cell fill */
@@ -331,4 +316,12 @@ nz-tabset {
 /* Footer Row căn sang phải */
 :host ::ng-deep .slick-state-default .slick-footerrow-column {
     justify-content: end !important;
+}
+
+:host ::ng-deep .slick-viewport .slick-viewport-top .slick-viewport-left {
+    max-height: 250px !important;
+}
+
+::ng-deep .type-select-dropdown {
+    min-width: 35vh !important;
 }

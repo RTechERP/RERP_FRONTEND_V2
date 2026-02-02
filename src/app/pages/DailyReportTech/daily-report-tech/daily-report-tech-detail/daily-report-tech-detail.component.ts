@@ -503,7 +503,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
             item.ProjectItemName = selectedItem.Mission || selectedItem.ProjectItemName || '';
             // Tự động điền nội dung công việc từ Mission
             if (selectedItem.Mission && !item.Content) {
-              item.Content = selectedItem.Mission;
+              //item.Content = selectedItem.Mission;
             }
             // Tự động điền % hoàn thành
             if (selectedItem.PercentageActual !== undefined && selectedItem.PercentageActual !== null) {

@@ -142,6 +142,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
   selectedDocumentName: string = '';
   selectedDocumentTypeID: number = 0;
   selectedDocumentTypeCode: string = '';
+  selectedRowData: any = null;
   documentFileID: number = 0;
 
   currentUser: any = null;
@@ -275,6 +276,22 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         id: 'NameDocumentType',
         name: 'Loại văn bản',
         field: 'NameDocumentType',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            autoAdjustDropPosition: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'TypeCode',
+        name: 'Mã loại văn bản',
+        field: 'CodeDocumentType',
         width: 150,
         sortable: true,
         filterable: true,
@@ -554,6 +571,13 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
       this.selectedDocumentName = rowData.NameDocument || rowData.Code || '';
       this.selectedDocumentTypeID = rowData.DocumentTypeID || 0;
       this.selectedDocumentTypeCode = rowData.CodeDocumentType || '';
+      this.selectedRowData = rowData;
+      console.log('>>> Document selected:', {
+        id: this.selectedDocumentId,
+        name: this.selectedDocumentName,
+        typeCode: this.selectedDocumentTypeCode,
+        selectedRowData: this.selectedRowData
+      });
       this.getDocumentFileByID(this.selectedDocumentId);
     }
   }
@@ -581,6 +605,13 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         this.selectedDocumentName = rowData.NameDocument || rowData.Code || '';
         this.selectedDocumentTypeID = rowData.DocumentTypeID || 0;
         this.selectedDocumentTypeCode = rowData.CodeDocumentType || '';
+        this.selectedRowData = rowData;
+        console.log('>>> Document selected (row change):', {
+          id: this.selectedDocumentId,
+          name: this.selectedDocumentName,
+          typeCode: this.selectedDocumentTypeCode,
+          selectedRowData: this.selectedRowData
+        });
         this.getDocumentFileByID(this.selectedDocumentId);
       }
     }
@@ -610,6 +641,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
     const columnsToDistinct = [
       'STT',
       'NameDocumentType',
+      'CodeDocumentType',
       'Code',
       'NameDocument',
       'DepartmentCode',
@@ -685,6 +717,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
               if (firstItem && firstItem.ID) {
                 this.selectedDocumentId = firstItem.ID;
                 this.selectedDocumentTypeCode = firstItem.CodeDocumentType || '';
+                this.selectedRowData = firstItem;
                 this.angularGrid.slickGrid.setSelectedRows([0]);
                 this.getDocumentFileByID(this.selectedDocumentId);
               } else {
@@ -900,8 +933,14 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
       nzDuration: 0,
     }).messageId;
 
+    console.log('>>> DocumentSaleAdminComponent.uploadFile:', {
+      selectedDocumentId: this.selectedDocumentId,
+      selectedDocumentTypeCode: this.selectedDocumentTypeCode,
+      subPath: subPath
+    });
+
     this.documentService
-      .uploadMultipleFiles([file], this.selectedDocumentTypeCode, subPath)
+      .uploadMultipleFiles([file], this.selectedDocumentTypeCode, subPath, 'EconomicContract')
       .subscribe({
         next: (res) => {
           this.message.remove(loadingMsg);
@@ -1050,6 +1089,28 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
     }
 
     const file = this.data[0];
+
+    //Fallback download if FilePath is missing (Legacy Sale Admin structure)
+    if (!file.FilePath && file.FileName) {
+      if (this.selectedRowData) {
+        const deptCode = this.selectedRowData.DepartmentCode || 'Unknown';
+        const typeName = this.selectedRowData.NameDocumentType || 'Unknown';
+        const directUrl = `http://14.232.152.154:8083/api/formadminsale/${deptCode}/${typeName}/${file.FileName}`;
+
+        const link = document.createElement('a');
+        link.href = directUrl;
+        link.download = file.FileName || 'downloaded_file';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.notification.success('Thông báo', 'Đang tải xuống file từ server dự phòng...');
+        return;
+      } else {
+        this.notification.error('Thông báo', 'Không có thông tin văn bản để tải file dự phòng!');
+        return;
+      }
+    }
 
     if (!file.FilePath) {
       this.notification.error(

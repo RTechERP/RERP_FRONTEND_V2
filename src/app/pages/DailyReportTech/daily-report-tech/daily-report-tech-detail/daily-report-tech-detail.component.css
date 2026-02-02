@@ -193,3 +193,8 @@ legend.reset {
 }
 
 /* --- KẾT THÚC --- */
+::ng-deep .select-dropdown .ant-select-item-option-content {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.5;
+}

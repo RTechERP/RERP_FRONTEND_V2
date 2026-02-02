@@ -108,6 +108,7 @@ export class HistoryProductRtcComponent
   @Input() isModalMode: boolean = false;
   @Output() productsExported = new EventEmitter<any[]>();
   public activeModal = inject(NgbActiveModal, { optional: true });
+  // Menu
   historyProductMenu: MenuItem[] = [];
   // Parameters
   warehouseType: number = 0;
@@ -128,7 +129,7 @@ export class HistoryProductRtcComponent
   selectedProductName: any = '';
   selectedProductCode: any = '';
   selectedProductsMap: Map<number, any> = new Map();
-
+  gridId: string = `historyProductRtcGrid-`;
   // AngularSlickGrid
   angularGrid!: AngularGridInstance;
   columnDefinitions: Column[] = [];
@@ -165,6 +166,7 @@ export class HistoryProductRtcComponent
       this.warehouseID = params['warehouseID'] || 1;
       this.warehouseType = params['warehouseType'] || 1;
     });
+    this.gridId += `${this.warehouseID}-${this.warehouseType}-${crypto.randomUUID()}`;
 
     this.loadDate();
     this.loadEmployee();
@@ -1291,6 +1293,7 @@ export class HistoryProductRtcComponent
       );
       return;
     }
+    console.log('selectedProducts:', selectedProducts);
 
     this.productsExported.emit(selectedProducts);
     this.activeModal?.close(selectedProducts);

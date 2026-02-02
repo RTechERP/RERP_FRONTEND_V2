@@ -46,7 +46,8 @@ import { UpdateQrcodeFormComponent } from '../update-qrcode-form/update-qrcode-f
 import { InventoryBorrowSupplierDemoComponent } from '../inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { TbProductRtcFormComponent } from '../../tb-product-rtc/tb-product-rtc-form/tb-product-rtc-form.component';
-import { environment } from '../../../../../environments/environment';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { MaterialDetailOfProductRtcComponent } from '../material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 
 @Component({
     selector: 'app-inventory-demo-new',
@@ -177,6 +178,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
         private ClipboardService: ClipboardService,
+        private tabService: TabServiceService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -1193,6 +1195,15 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             selectedProduct = { ...item };
         }
 
+        // Map ProductRTCID to ID for form compatibility
+        if (selectedProduct.ProductRTCID && !selectedProduct.ID) {
+            selectedProduct.ID = selectedProduct.ProductRTCID;
+        }
+        // Map WarehouseID if not present
+        if (!selectedProduct.WarehouseID) {
+            selectedProduct.WarehouseID = this.warehouseID;
+        }
+
         const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
             size: 'xl',
             backdrop: 'static',
@@ -1331,24 +1342,26 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     openDetailTab(rowData: any): void {
-        const params = new URLSearchParams({
-            productRTCID1: String(rowData.ProductRTCID || 0),
-            warehouseID1: String(this.warehouseID || 1),
-            ProductCode: rowData.ProductCode || '',
-            ProductName: rowData.ProductName || '',
-            NumberBegin: String(rowData.Number || 0),
-            InventoryLatest: String(rowData.InventoryLatest || 0),
-            NumberImport: String(rowData.NumberImport || 0),
-            NumberExport: String(rowData.NumberExport || 0),
-            NumberBorrowing: String(rowData.NumberBorrowing || 0),
-            InventoryReal: String(rowData.InventoryReal || 0),
-        });
+        const productCode = rowData.ProductCode || '';
+        const productRTCID = rowData.ProductRTCID || 0;
 
-        window.open(
-            `${environment.baseHref}/material-detail-of-product-rtc?${params.toString()}`,
-            '_blank',
-            'width=1200,height=800,scrollbars=yes,resizable=yes'
-        );
+        this.tabService.openTabComp({
+            comp: MaterialDetailOfProductRtcComponent,
+            title: `Chi tiết SP - ${productCode}`,
+            key: `material-detail-product-rtc-${productRTCID}`,
+            data: {
+                productRTCID1: productRTCID,
+                warehouseID1: this.warehouseID || 1,
+                ProductCode: productCode,
+                ProductName: rowData.ProductName || '',
+                NumberBegin: rowData.Number || 0,
+                InventoryLatest: rowData.InventoryLatest || 0,
+                NumberImport: rowData.NumberImport || 0,
+                NumberExport: rowData.NumberExport || 0,
+                NumberBorrowing: rowData.NumberBorrowing || 0,
+                InventoryReal: rowData.InventoryReal || 0,
+            },
+        });
     }
 
     onSetLocation(): void {

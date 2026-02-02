@@ -586,10 +586,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.ProjectStatusName);
                     return `
             <span
-              title="${dataContext.ProjectStatusName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -597,7 +607,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 customTooltip: {
                     useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
                 },
             },
             {
@@ -636,10 +645,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 cssClass: 'cell-wrap',
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.ProjectName);
                     return `
             <span
-              title="${dataContext.ProjectName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -647,7 +666,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 customTooltip: {
                     useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
                 },
             },
             {
@@ -669,10 +687,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 cssClass: 'cell-wrap',
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.EndUserName);
                     return `
             <span
-              title="${dataContext.EndUserName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -680,7 +708,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 customTooltip: {
                     useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
                 },
             },
             {
@@ -853,10 +880,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 // filter: { model: Filters['compoundInputText'] },
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.CustomerName);
                     return `
             <span
-              title="${dataContext.CustomerName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -1015,7 +1052,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             enableAutoSizeColumns: false,
             frozenColumn: 2,
             syncColumnCellResize: true, // Sửa lỗi sort nhầm cột khi có frozen columns
-            rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
+            rowHeight: 43, // Base height - sẽ tự động tăng theo nội dung qua CSS
             // Thêm Excel Export Service
             externalResources: [this.excelExportService],
             enableExcelExport: true,

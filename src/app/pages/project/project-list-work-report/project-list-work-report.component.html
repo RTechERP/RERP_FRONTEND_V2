@@ -1,16 +1,13 @@
 <div style="display: flex; flex-direction: column; height: 100vh;">
   <!-- Modal Header -->
-  <div
-  class="modal-header bg-primary align-items-center ps-2"
-  style="flex-shrink: 0"
->
+  <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0">
     <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem;">
       Danh sách báo cáo công việc {{projectCode}}
     </h6>
     <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"
-    style="background-color:lightcyan !important; font-weight: bold;"></button>
+      style="background-color:lightcyan !important; font-weight: bold;"></button>
   </div>
-  
+
   <!-- Modal Body -->
   <div class="p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
     <div class="card h-100 border-0 rounded-0" style="display: flex; flex-direction: column; height: 100%;">
@@ -18,44 +15,29 @@
         <div class="d-flex gap-2 align-items-center flex-wrap">
           <div class="d-flex align-items-center gap-2">
             <label class="fs-12 mb-0">Dự án:</label>
-            <nz-select
-              name="projectId"
-              class="fs-12"
-              style="width: 400px;"
-              nzShowSearch
-              nzPlaceHolder="Chọn dự án"
-              [(ngModel)]="projectId"
-              [nzAllowClear]="false"
-              nzSize="small"
-              (ngModelChange)="onProjectChange()"
-            >
+            <nz-select name="projectId" class="fs-12" style="width: 400px;" nzShowSearch nzPlaceHolder="Chọn dự án"
+              [(ngModel)]="projectId" [nzAllowClear]="false" nzSize="small" (ngModelChange)="onProjectChange()">
               @for (item of projects; track $index) {
-                <nz-option
-                  [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
-                  [nzValue]="item.ID"
-                ></nz-option>
+              <nz-option [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID"></nz-option>
+              }
+            </nz-select>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="fs-12 mb-0">Team:</label>
+            <nz-select name="teamId" class="fs-12" style="width: 400px;" nzShowSearch nzPlaceHolder="Chọn team"
+              [(ngModel)]="teamId" [nzAllowClear]="false" nzSize="small" (ngModelChange)="onTeamChange()">
+              <nz-option [nzLabel]="'Tất cả'" [nzValue]="0"></nz-option>
+              @for (item of teams; track $index) {
+              <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
               }
             </nz-select>
           </div>
           <div class="d-flex align-items-center gap-2">
             <label class="fs-12 mb-0">Từ khóa:</label>
-            <input
-              name="keyword"
-              nz-input
-              nzSize="small"
-              class="fs-12"
-              style="width: 200px;"
-              placeholder="Nhập từ khóa"
-              [(ngModel)]="keyword"
-              (keyup.enter)="onSearch()"
-            />
+            <input name="keyword" nz-input nzSize="small" class="fs-12" style="width: 200px;" placeholder="Nhập từ khóa"
+              [(ngModel)]="keyword" (keyup.enter)="onSearch()" />
           </div>
-          <button 
-            nz-button 
-            nzType="primary" 
-            nzSize="small" 
-            (click)="onSearch()"
-          >
+          <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
             Tìm kiếm
           </button>
           <!-- <button

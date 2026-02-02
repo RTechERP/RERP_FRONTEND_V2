@@ -1,0 +1,126 @@
+.video-upload-container {
+  width: 100%;
+}
+
+/* Compact upload section - matching PDF style */
+.video-upload-container .d-flex {
+  display: flex;
+}
+
+.video-upload-container .flex-column {
+  flex-direction: column;
+}
+
+.video-upload-container .flex-sm-row {
+  flex-direction: row;
+}
+
+.video-upload-container .gap-2 {
+  gap: 0.5rem;
+}
+
+.video-upload-container .align-items-start {
+  align-items: flex-start;
+}
+
+/* Progress section */
+.video-upload-container .upload-progress-section {
+  padding: 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.video-upload-container .file-details-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.video-upload-container .file-details-row small {
+  font-size: 13px;
+  color: #8c8c8c;
+}
+
+.video-upload-container .file-details-row i {
+  color: #1890ff;
+}
+
+/* Progress bar */
+.video-upload-container .progress-bar-container {
+  margin-bottom: 16px;
+}
+
+/* Control buttons */
+.video-upload-container .upload-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.video-upload-container .upload-controls button {
+  min-width: 120px;
+}
+
+.video-upload-container .upload-controls .text-success {
+  color: #52c41a;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.video-upload-container .upload-controls .text-success i {
+  font-size: 18px;
+}
+
+/* Utility classes */
+.video-upload-container .mt-3 {
+  margin-top: 1rem;
+}
+
+.video-upload-container .mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.video-upload-container .mb-3 {
+  margin-bottom: 1rem;
+}
+
+.video-upload-container .text-muted {
+  color: #8c8c8c;
+}
+
+.video-upload-container .text-primary {
+  color: #1890ff;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .video-upload-container .flex-sm-row {
+    flex-direction: column;
+  }
+  
+  .video-upload-container .upload-controls button {
+    width: 100%;
+  }
+}
+
+/* Animation for progress */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.upload-progress-section ::ng-deep .ant-progress-bg {
+  transition: all 0.3s ease;
+}
+
+.upload-progress-section ::ng-deep .ant-progress-status-active .ant-progress-bg::before {
+  animation: pulse 2s ease-in-out infinite;
+}

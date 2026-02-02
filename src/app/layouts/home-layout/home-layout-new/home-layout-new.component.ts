@@ -445,11 +445,6 @@ export class HomeLayoutNewComponent implements OnInit {
       this.router.navigate(['/app']); // hoặc route tới MainLayout
     }
   }
-            this.menuService.setMenuKey(key);
-            this.router.navigate(['/app']); // hoặc route tới MainLayout
-            localStorage.removeItem('tabOpeneds');
-        }
-    }
 
   // newTab(route: string, title: string, data?: any) {
   //     route = route.replace(environment.baseHref, '');
@@ -558,16 +553,6 @@ export class HomeLayoutNewComponent implements OnInit {
       this.newTab(route, title, queryParam);
     }
   }
-    handleClickLink(event: MouseEvent, route: string, title: string, queryParam?: string) {
-        // console.log('route:', route);
-        if (route == '') return;
-        if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
-            event.preventDefault(); // chặn reload
-            this.newTab(route, title, queryParam);
-
-            localStorage.removeItem('tabOpeneds');
-        }
-    }
 
   onSelectChangeCalendar(value: Date): void {
     // this.calendarDate = value;

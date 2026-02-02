@@ -1,0 +1,64 @@
+<div class="video-upload-container">
+    <!-- Compact Upload Section -->
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-start">
+        <!-- Upload Button -->
+        <nz-upload [nzAccept]="acceptedFormats" [nzBeforeUpload]="beforeUpload" [nzShowUploadList]="false"
+            [nzMultiple]="false">
+            <button nz-button nzBlock class="w-100 w-sm-auto">
+                <span nz-icon nzType="upload"></span>
+                Chọn Video
+            </button>
+        </nz-upload>
+        <!-- Remove Button -->
+        <button *ngIf="fileName && !isUploading" nz-button nzType="default" nzSize="small" nzDanger
+            (click)="removeFile()" title="Xóa file">
+            <span nz-icon nzType="delete" nzTheme="outline"></span>
+        </button>
+    </div>
+
+    <!-- Progress Section (only show when file is selected) -->
+    <div *ngIf="selectedFile" class="upload-progress-section mt-3">
+        <!-- File Details -->
+        <div class="file-details-row mb-2">
+            <small class="text-muted">
+                <i nz-icon nzType="video-camera" nzTheme="outline"></i>
+                {{ formatFileSize(fileSize) }}
+                <span *ngIf="isUploading" class="text-primary"> • {{ uploadSpeed }}</span>
+            </small>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar-container mb-3" *ngIf="uploadPercent > 0">
+            <nz-progress [nzPercent]="uploadPercent" [nzStatus]="getProgressStatus()" [nzStrokeWidth]="6"
+                [nzShowInfo]="true"></nz-progress>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="upload-controls d-flex gap-2 flex-wrap">
+            <!-- Start/Resume Button -->
+            <button nz-button nzType="primary" (click)="startUpload()" *ngIf="!isUploading && uploadPercent < 100">
+                <i nz-icon [nzType]="isPaused ? 'play-circle' : 'upload'" nzTheme="outline"></i>
+                {{ isPaused ? 'Tiếp tục' : 'Bắt đầu tải' }}
+            </button>
+
+            <!-- Pause Button -->
+            <button nz-button nzType="default" (click)="pauseUpload()" *ngIf="isUploading">
+                <i nz-icon nzType="pause-circle" nzTheme="outline"></i>
+                Tạm dừng
+            </button>
+
+            <!-- Cancel Button -->
+            <button nz-button nzType="default" nzDanger (click)="cancelUpload()"
+                *ngIf="uploadPercent > 0 && uploadPercent < 100">
+                <i nz-icon nzType="stop" nzTheme="outline"></i>
+                Hủy
+            </button>
+
+            <!-- Success Message -->
+            <span *ngIf="uploadPercent === 100" class="text-success">
+                <i nz-icon nzType="check-circle" nzTheme="fill"></i>
+                Upload thành công!
+            </span>
+        </div>
+    </div>
+</div>

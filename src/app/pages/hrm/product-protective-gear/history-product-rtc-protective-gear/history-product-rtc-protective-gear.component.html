@@ -131,7 +131,7 @@
             <nz-spin [nzSpinning]="isLoading"></nz-spin>
         </div>
         <div class="grid-container" style="height: 100%;">
-            <angular-slickgrid [gridId]="'historyProductRtcGrid-' + warehouseID" [columns]="columnDefinitions"
+            <angular-slickgrid [gridId]="'grid-container-history-product-rtc'" [columns]="columnDefinitions"
                 [options]="gridOptions" [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
                 (onSelectedRowsChanged)="onRowSelectionChanged($event.detail.eventData, $event.detail.args)"
                 (onDblClick)="productHistoryBorrowDetail()">

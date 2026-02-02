@@ -64,8 +64,8 @@
     <!-- Grid Content -->
     <div class="card-body p-0">
       <!-- Master Grid -->
-      <div class="grid-container-master">
-        <angular-slickgrid [gridId]="'gridMaster-' + wareHouseID" [columns]="columnDefinitionsMaster"
+      <div class="grid-container-master-export">
+        <angular-slickgrid [gridId]="'grid-container-master-export'" [columns]="columnDefinitionsMaster"
           [options]="gridOptionsMaster" [dataset]="datasetMaster"
           (onAngularGridCreated)="angularGridMasterReady($event.detail)"
           (onSelectedRowsChanged)="onMasterRowSelectionChanged($event.detail.eventData, $event.detail.args)"
@@ -80,8 +80,8 @@
           </legend>
 
           <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
-            <div class="grid-container-detail">
-              <angular-slickgrid [gridId]="'gridDetail-' + wareHouseID" [columns]="columnDefinitionsDetail"
+            <div class="grid-container-detail-export">
+              <angular-slickgrid [gridId]="'grid-container-detail-export'" [columns]="columnDefinitionsDetail"
                 [options]="gridOptionsDetail" [dataset]="datasetDetail"
                 (onAngularGridCreated)="angularGridDetailReady($event.detail)">
               </angular-slickgrid>

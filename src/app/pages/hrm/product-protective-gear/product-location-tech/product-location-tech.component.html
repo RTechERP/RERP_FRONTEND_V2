@@ -20,8 +20,8 @@
 <div class="card  border-0 rounded-0">
   <nz-splitter style="height: 100%;">
     <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false">
-      <div class="grid-container-product-group" style="height: 100%;">
-        <angular-slickgrid gridId="gridProductLocation" [columns]="columnDefinitionsProductLocationTech"
+      <div class="grid-container-product-location-tech" style="height: 100%;">
+        <angular-slickgrid gridId="grid-container-product-location-tech" [columns]="columnDefinitionsProductLocationTech"
           [options]="gridOptionsProductLocation" [dataset]="datasetProductLocation"
           (onAngularGridCreated)="angularGridProductGLocationReady($event.detail)"
           (onSelectedRowsChanged)="handleProductLocationRowSelection($event.detail.eventData, $event.detail.args)">

@@ -12,7 +12,6 @@
     overflow: hidden;
 }
 
-.grid-container-product-group {
+.grid-container-product-location-tech {
     overflow: auto;
-    height: calc(100vh - 110px) !important;
 }

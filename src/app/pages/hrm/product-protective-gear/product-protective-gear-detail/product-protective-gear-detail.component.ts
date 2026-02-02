@@ -312,14 +312,14 @@ export class ProductProtectiveGearDetailComponent implements OnInit, OnDestroy {
 
   // Quick add methods
   onAddUnit() {
-    this.notification.info('Thông báo', 'Chức năng thêm hãng đang được phát triển');
+    this.notification.info('Thông báo', 'Chức năng đang được phát triển');
   }
 
   onAddFirm() {
-    this.notification.info('Thông báo', 'Chức năng thêm hãng đang được phát triển');
+    this.notification.info('Thông báo', 'Chức năng đang được phát triển');
   }
 
   onAddLocation() {
-    this.notification.info('Thông báo', 'Chức năng thêm hãng đang được phát triển');
+    this.notification.info('Thông báo', 'Chức năng đang được phát triển');
   }
 }

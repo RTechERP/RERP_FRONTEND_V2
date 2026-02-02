@@ -1,7 +1,19 @@
-import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  HostListener,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CdkDragDrop, CdkDragEnd, CdkDragMove, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import {
+  CdkDragDrop,
+  CdkDragEnd,
+  CdkDragMove,
+  DragDropModule,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import { Subscription } from 'rxjs';
 import { DateTime } from 'luxon';
 
@@ -35,7 +47,7 @@ import { HistoryProductRtcProtectiveGearDetailComponent } from '../history-produ
 import { ID_ADMIN_DEMO_LIST, NOTIFICATION_TITLE } from '../../../../app.config';
 import { BorrowProductHistoryEditPersonComponent } from '../../../old/inventory-demo/borrow/borrow-product-history/borrow-product-history-edit-person/borrow-product-history-edit-person.component';
 import { HistoryProductExtendModalComponent } from '../history-product-extend-modal/history-product-extend-modal.component';
-import { Menubar } from "primeng/menubar";
+import { Menubar } from 'primeng/menubar';
 @Component({
   selector: 'app-history-product-rtc-protective-gear-new',
   standalone: true,
@@ -56,12 +68,14 @@ import { Menubar } from "primeng/menubar";
     NzTabsModule,
     NzDropDownModule,
     NzModalModule,
-    Menubar
+    Menubar,
   ],
   templateUrl: './history-product-rtc-protective-gear-new.component.html',
-  styleUrls: ['./history-product-rtc-protective-gear-new.component.css']
+  styleUrls: ['./history-product-rtc-protective-gear-new.component.css'],
 })
-export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDestroy {
+export class HistoryProductRtcProtectiveGearNewComponent
+  implements OnInit, OnDestroy
+{
   // Parameters
   keyword: string = '';
   menuBars: MenuItem[] = [];
@@ -89,8 +103,8 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
     private modal: NzModalService,
     private productProtectiveGearService: ProductProtectiveGearService,
     private appUserService: AppUserService,
-    private cdr: ChangeDetectorRef
-  ) { }
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -101,71 +115,75 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
         label: 'Đăng kí mượn',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
         visible: true,
-        command: () => {
-        },
+        command: () => {},
       },
-
-
-    ]
+    ];
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
 
   loadData() {
     this.isLoading = true;
-    const sub = this.productProtectiveGearService.getProductRTCDetailNew(this.keyword).subscribe({
-      next: (response: any) => {
-        const data = response.data || [];
-        this.dataset = data.map((item: any, index: number) => ({
-          ...item,
-          id: (item.ID || 0) * 1000000 + index,
-        }));
+    const sub = this.productProtectiveGearService
+      .getProductRTCDetailNew(this.keyword)
+      .subscribe({
+        next: (response: any) => {
+          const data = response.data || [];
+          this.dataset = data.map((item: any, index: number) => ({
+            ...item,
+            id: (item.ID || 0) * 1000000 + index,
+          }));
 
-        // Group by LocationType (1, 2, 3) and calculate SortOrder
-        this.datasetByType.clear();
-        for (let i = 1; i <= 3; i++) {
-          let typeData = this.dataset.filter(x => x.LocationType === i);
+          // Group by LocationType (1, 2, 3) and calculate SortOrder
+          this.datasetByType.clear();
+          for (let i = 1; i <= 3; i++) {
+            let typeData = this.dataset.filter((x) => x.LocationType === i);
 
-          if (this.isDefault) {
-            // ✅ Reset to default: Sort by STT (original order) like WinForm
-            typeData = typeData.sort((a, b) => (a.STT || 0) - (b.STT || 0));
-            // Assign new SortOrder based on index
-            typeData.forEach((item, index) => {
-              item.SortOrder = index + 1;
-            });
-          } else {
-            // Normal: Calculate SortOrder from CoordinatesX/Y
-            typeData = this.productProtectiveGearService.calculateSortOrderFromCoordinates(typeData);
+            if (this.isDefault) {
+              // ✅ Reset to default: Sort by STT (original order) like WinForm
+              typeData = typeData.sort((a, b) => (a.STT || 0) - (b.STT || 0));
+              // Assign new SortOrder based on index
+              typeData.forEach((item, index) => {
+                item.SortOrder = index + 1;
+              });
+            } else {
+              // Normal: Calculate SortOrder from CoordinatesX/Y
+              typeData =
+                this.productProtectiveGearService.calculateSortOrderFromCoordinates(
+                  typeData,
+                );
+            }
+
+            this.datasetByType.set(i, typeData);
           }
 
-          this.datasetByType.set(i, typeData);
-        }
+          // Reset isDefault flag after loading
+          if (this.isDefault) {
+            this.isDefault = false;
+          }
 
-        // Reset isDefault flag after loading
-        if (this.isDefault) {
-          this.isDefault = false;
-        }
-
-        console.log('datasetByType 1 (with calculated SortOrder)', this.datasetByType.get(1));
-        this.isLoading = false;
-      },
-      error: (error: any) => {
-        this.isLoading = false;
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu: ' + (error.message || error)
-        );
-      }
-    });
+          console.log(
+            'datasetByType 1 (with calculated SortOrder)',
+            this.datasetByType.get(1),
+          );
+          this.isLoading = false;
+        },
+        error: (error: any) => {
+          this.isLoading = false;
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải dữ liệu: ' + (error.message || error),
+          );
+        },
+      });
     this.subscriptions.push(sub);
   }
 
   filter() {
     this.loadData();
   }
-
 
   // Drag and drop handler - INSERT at position (1 2 3 4 5 -> drag 5 between 2&3 -> 1 2 5 3 4)
   drop(event: CdkDragDrop<any[]>) {
@@ -176,7 +194,7 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
     if (!items) return;
 
     const draggedItem = event.item.data; // cdkDragData
-    const draggedIndex = items.findIndex(x => x.id === draggedItem.id);
+    const draggedIndex = items.findIndex((x) => x.id === draggedItem.id);
 
     if (draggedIndex === -1) return;
 
@@ -185,15 +203,40 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
 
     // Find the target card element at drop position
     const elements = document.elementsFromPoint(dropPoint.x, dropPoint.y);
-    const targetCard = elements.find(el => el.classList.contains('card-wrapper-absolute'));
+    const targetCard = elements.find((el) =>
+      el.classList.contains('card-wrapper-absolute'),
+    );
 
     if (!targetCard) return;
 
-    // Find target index by matching DOM element with items
-    const allCards = Array.from(document.querySelectorAll('.tab-container:not([hidden]) .card-wrapper-absolute'));
+    // ✅ Get all tab containers and select the one for current tab using selectedTab index
+    const allTabContainers = document.querySelectorAll('.tab-container');
+    const currentTabContainer = allTabContainers[this.selectedTab];
+
+    if (!currentTabContainer) {
+      console.error(
+        'Cannot find current tab container for index:',
+        this.selectedTab,
+      );
+      return;
+    }
+
+    // Get all cards from ONLY the current tab container
+    const allCards = Array.from(
+      currentTabContainer.querySelectorAll('.card-wrapper-absolute'),
+    );
     const targetIndex = allCards.indexOf(targetCard);
 
-    console.log('Drag item', draggedItem.ProductCode, 'from index', draggedIndex, 'to index', targetIndex);
+    console.log(
+      'Tab:',
+      this.selectedTab,
+      'Drag item',
+      draggedItem.ProductCode,
+      'from index',
+      draggedIndex,
+      'to index',
+      targetIndex,
+    );
 
     if (targetIndex === -1 || targetIndex === draggedIndex) return;
 
@@ -201,7 +244,7 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
     moveItemInArray(items, draggedIndex, targetIndex);
 
     console.log('Inserted at position', targetIndex);
-    console.log('New order:', items.map(x => x.ProductCode).join(', '));
+    console.log('New order:', items.map((x) => x.ProductCode).join(', '));
 
     // Update SortOrder for all items
     items.forEach((item, index) => {
@@ -218,11 +261,6 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
     // Mark as changed
     this.hasUnsavedChanges = true;
   }
-
-
-
-
-
 
   // Drag end handler - not needed for grid layout but kept for compatibility
   onDragEnded(event: CdkDragEnd, item: any) {
@@ -243,18 +281,30 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
     const elements = document.elementsFromPoint(point.x, point.y);
 
     // Find target card, excluding the dragged card itself
-    const targetCard = elements.find(el =>
-      el.classList.contains('card-wrapper-absolute') &&
-      !el.classList.contains('cdk-drag-preview')
+    const targetCard = elements.find(
+      (el) =>
+        el.classList.contains('card-wrapper-absolute') &&
+        !el.classList.contains('cdk-drag-preview'),
     );
 
     if (targetCard) {
-      const allCards = Array.from(document.querySelectorAll('.tab-container:not([hidden]) .card-wrapper-absolute'));
+      // ✅ Get all tab containers and select the one for current tab using selectedTab index
+      const allTabContainers = document.querySelectorAll('.tab-container');
+      const currentTabContainer = allTabContainers[this.selectedTab];
+
+      if (!currentTabContainer) return;
+
+      // Get all cards from ONLY the current tab container
+      const allCards = Array.from(
+        currentTabContainer.querySelectorAll('.card-wrapper-absolute'),
+      );
       const targetIndex = allCards.indexOf(targetCard);
 
       if (targetIndex !== this.currentInsertionTarget && targetIndex !== -1) {
         // Clear previous indicator
-        document.querySelectorAll('.insertion-target').forEach(el => el.classList.remove('insertion-target'));
+        document
+          .querySelectorAll('.insertion-target')
+          .forEach((el) => el.classList.remove('insertion-target'));
 
         // Add indicator to new target
         targetCard.classList.add('insertion-target');
@@ -271,13 +321,17 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
   // Clear insertion indicator when drag starts
   onDragStarted() {
     this.currentInsertionTarget = -1;
-    document.querySelectorAll('.insertion-target').forEach(el => el.classList.remove('insertion-target'));
+    document
+      .querySelectorAll('.insertion-target')
+      .forEach((el) => el.classList.remove('insertion-target'));
   }
 
   // Clear insertion target
   clearInsertionTarget() {
     this.currentInsertionTarget = -1;
-    document.querySelectorAll('.insertion-target').forEach(el => el.classList.remove('insertion-target'));
+    document
+      .querySelectorAll('.insertion-target')
+      .forEach((el) => el.classList.remove('insertion-target'));
   }
 
   // Detect scroll within container to disable insertion indicator
@@ -298,7 +352,6 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
       this.scrollPositions.set(locationType, target.scrollTop);
     }
   }
-
 
   // TrackBy function for better performance
   trackByItemId(index: number, item: any): any {
@@ -323,42 +376,91 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
   onTabChange(index: number) {
     // Save current scroll position before switching
     const currentLocationType = this.selectedTab + 1;
-    const scrollContainer = document.querySelector('.tab-container') as HTMLElement;
+    const scrollContainer = document.querySelector(
+      '.tab-container',
+    ) as HTMLElement;
     if (scrollContainer) {
       this.scrollPositions.set(currentLocationType, scrollContainer.scrollTop);
     }
 
     if (this.hasUnsavedChanges) {
-      const confirm = window.confirm('Bạn vừa thay đổi vị trí.\nBạn có muốn lưu lại vị trí trước không?');
-      if (confirm) {
-        this.saveLayout(false);
-      }
-      this.selectedTab = index;
-      if (!confirm) {
-        this.hasUnsavedChanges = false;
-      }
+      this.modal.confirm({
+        nzTitle: 'Xác nhận',
+        nzContent: `Bạn vừa thay đổi vị trí.\nBạn có muốn lưu lại vị trí trước không?`,
+        nzOkText: 'Đồng ý',
+        nzCancelText: 'Hủy',
+        nzOnOk: () => {
+          // Lưu layout (không confirm lại)
+          this.saveLayout(false);
+          // Chuyển sang tab mới sau khi lưu
+          this.selectedTab = index;
+          this.hasUnsavedChanges = false;
+
+          // Restore scroll position for new tab
+          setTimeout(() => {
+            const newLocationType = index + 1;
+            const container = document.querySelector(
+              '.tab-container',
+            ) as HTMLElement;
+            if (container) {
+              const savedPosition =
+                this.scrollPositions.get(newLocationType) || 0;
+              container.scrollTop = savedPosition;
+            }
+          }, 0);
+        },
+        nzOnCancel: () => {
+          // Không lưu, chuyển tab và bỏ flag
+          this.selectedTab = index;
+          this.hasUnsavedChanges = false;
+
+          // Restore scroll position for new tab
+          setTimeout(() => {
+            const newLocationType = index + 1;
+            const container = document.querySelector(
+              '.tab-container',
+            ) as HTMLElement;
+            if (container) {
+              const savedPosition =
+                this.scrollPositions.get(newLocationType) || 0;
+              container.scrollTop = savedPosition;
+            }
+          }, 0);
+        },
+      });
     } else {
       this.selectedTab = index;
-    }
 
-    // Restore scroll position for new tab
-    setTimeout(() => {
-      const newLocationType = index + 1;
-      const container = document.querySelector('.tab-container') as HTMLElement;
-      if (container) {
-        const savedPosition = this.scrollPositions.get(newLocationType) || 0;
-        container.scrollTop = savedPosition;
-      }
-    }, 0);
+      // Restore scroll position for new tab
+      setTimeout(() => {
+        const newLocationType = index + 1;
+        const container = document.querySelector(
+          '.tab-container',
+        ) as HTMLElement;
+        if (container) {
+          const savedPosition = this.scrollPositions.get(newLocationType) || 0;
+          container.scrollTop = savedPosition;
+        }
+      }, 0);
+    }
   }
 
   // Save layout positions
   saveLayout(showConfirm: boolean = true) {
     if (showConfirm) {
-      const confirm = window.confirm('Bạn có chắc muốn lưu lại layout không?');
-      if (!confirm) return;
+      this.modal.confirm({
+        nzTitle: 'Xác nhận',
+        nzContent: `Bạn có chắc chắn muốn lưu lại layout không?`,
+        nzOkText: 'Đồng ý',
+        nzCancelText: 'Hủy',
+        nzOnOk: () => {
+          this.performSaveLayout();
+        },
+      });
+    } else {
+      // Lưu trực tiếp không confirm
+      this.performSaveLayout();
     }
-    this.performSaveLayout();
   }
 
   private performSaveLayout() {
@@ -372,7 +474,7 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
           itemsToSave.push({
             productLocationID: item.ProductLocationID,
             locationType: locationType,
-            sortOrder: item.SortOrder || (index + 1)
+            sortOrder: item.SortOrder || index + 1,
           });
         }
       });
@@ -382,31 +484,44 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
       return;
     }
     // Call API to save sort order
-    this.productProtectiveGearService.saveProductSortOrder(itemsToSave).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          this.notification.success('Thông báo', 'Lưu vị trí thành công!');
-          this.hasUnsavedChanges = false;
-          this.loadData();
-        } else {
-          this.notification.error('Lỗi', response.message || 'Lưu vị trí thất bại!');
-        }
-      },
-      error: (error: any) => {
-        this.notification.error('Lỗi', 'Không thể lưu vị trí: ' + (error.message || error));
-      }
-    });
+    this.productProtectiveGearService
+      .saveProductSortOrder(itemsToSave)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            this.notification.success('Thông báo', 'Lưu vị trí thành công!');
+            this.hasUnsavedChanges = false;
+            this.loadData();
+          } else {
+            this.notification.error(
+              'Lỗi',
+              response.message || 'Lưu vị trí thất bại!',
+            );
+          }
+        },
+        error: (error: any) => {
+          this.notification.error(
+            'Lỗi',
+            'Không thể lưu vị trí: ' + (error.message || error),
+          );
+        },
+      });
   }
-
 
   // Reset to default grid layout
   resetLayout() {
-    const confirm = window.confirm('Bạn có chắc muốn cài đặt lại vị trí mặc định không?\nLayout trước đó sẽ bị mất và không thể lấy lại!');
-    if (confirm) {
-      this.isDefault = true;
-      this.hasUnsavedChanges = true;
-      this.loadData();
-    }
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent:
+        'Bạn có chắc muốn cài đặt lại vị trí mặc định không?\nLayout trước đó sẽ bị mất và không thể lấy lại!',
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.isDefault = true;
+        this.hasUnsavedChanges = true;
+        this.loadData();
+      },
+    });
   }
 
   // Warning before leaving page with unsaved changes
@@ -468,7 +583,7 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
       case 'return': // trả
         this.openReturnModal(item);
         break;
-      case 'extend':// gia hạn 
+      case 'extend': // gia hạn
         this.openExtendModal(item);
         break;
       case 'approve-borrow': // duyệt mượn
@@ -477,7 +592,7 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
       case 'approve-return': // duyệt trả
         this.approveReturn(item);
         break;
-      case 'approve-extend': // duyệt gia hạn 
+      case 'approve-extend': // duyệt gia hạn
         this.approveExtend(item);
         break;
       case 'edit-borrower': // sửa người mượn
@@ -486,7 +601,7 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
       case 'washing': // đang giặt
         this.markAsWashing(item);
         break;
-      case 'in-use':// đưa vào sử dụng
+      case 'in-use': // đưa vào sử dụng
         this.markAsInUse(item);
         break;
       case 'delete': // xóa
@@ -496,103 +611,116 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
   }
 
   private openBorrowModal(item: any) {
-    // mượn 
+    // mượn
     // thêm sản phẩm luôn vào form mượn
-    this.productProtectiveGearService.getHistoryProductRTCByID(item.HistortyID).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          const data = response.data;
-          console.log('data mượn', data);
-          console.log('item mượn', item);
-          if (data.Status > 0) {
-            this.notification.warning('Thông báo', 'Sản phẩm ' + item.ProductName + ' đang được mượn!');
-            return;
+    this.productProtectiveGearService
+      .getHistoryProductRTCByID(item.HistortyID)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            const data = response.data;
+            console.log('data mượn', data);
+            console.log('item mượn', item);
+            if (data.Status > 0) {
+              this.notification.warning(
+                'Thông báo',
+                'Sản phẩm ' + item.ProductName + ' đang được mượn!',
+              );
+              return;
+            } else if (item.Status == 1) {
+              this.notification.warning(
+                'Thông báo',
+                'Sản phẩm ' + item.ProductName + ' đang được giặt!',
+              );
+              return;
+            } else {
+              const modalRef = this.modalService.open(
+                HistoryProductRtcProtectiveGearDetailComponent,
+                {
+                  backdrop: 'static',
+                  keyboard: false,
+                  scrollable: true,
+                  modalDialogClass: 'modal-fullscreen modal-dialog-scrollable',
+                },
+              );
+              // Pass preselected product to modal
+              modalRef.componentInstance.preselectedProduct = item;
+              modalRef.result.finally(() => {
+                // Delay to ensure API save completes before reloading
+                setTimeout(() => {
+                  this.loadData();
+                }, 800);
+              });
+            }
           }
-          else if (item.Status == 1) {
-            this.notification.warning('Thông báo', 'Sản phẩm ' + item.ProductName + ' đang được giặt!');
-            return;
-          }
-          else {
-            const modalRef = this.modalService.open(
-              HistoryProductRtcProtectiveGearDetailComponent,
-              {
-                backdrop: 'static',
-                keyboard: false,
-                scrollable: true,
-                modalDialogClass: 'modal-fullscreen modal-dialog-scrollable',
-              }
-            )
-            // Pass preselected product to modal
-            modalRef.componentInstance.preselectedProduct = item;
-            modalRef.result.finally(() => {
-              // Delay to ensure API save completes before reloading
-              setTimeout(() => {
-                this.loadData();
-              }, 800);
-            });
-
-          }
-        }
-      },
-      error: (error: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error)
-        );
-      }
-    });
-
+        },
+        error: (error: any) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error),
+          );
+        },
+      });
   }
 
   private openReturnModal(item: any) {
-    // trả thiết bị 
+    // trả thiết bị
     if (item.HistortyID == 0) {
       return;
     }
-    this.productProtectiveGearService.getHistoryProductRTCByID(item.HistortyID).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          const data = response.data;
-          let isValid = data.Status != 1 && data.Status != 4 && data.Status != 7;
-          if (isValid) {
-            this.notification.warning('Thông báo', 'Trạng thái hiện tại không cho phép trả sản phẩm!');
-            return;
+    this.productProtectiveGearService
+      .getHistoryProductRTCByID(item.HistortyID)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            const data = response.data;
+            let isValid =
+              data.Status != 1 && data.Status != 4 && data.Status != 7;
+            if (isValid) {
+              this.notification.warning(
+                'Thông báo',
+                'Trạng thái hiện tại không cho phép trả sản phẩm!',
+              );
+              return;
+            } else {
+              this.modal.confirm({
+                nzTitle: 'Xác nhận',
+                nzContent: `Bạn có chắc chắn muốn trả sản phẩm ${item.ProductName} không?`,
+                nzOkText: 'Đồng ý',
+                nzCancelText: 'Hủy',
+                nzOnOk: () => {
+                  this.productProtectiveGearService
+                    .postReturnProductRTC(item.HistortyID, false, 0)
+                    .subscribe({
+                      next: (response: any) => {
+                        if (response.status === 1) {
+                          this.notification.success(
+                            'Thông báo',
+                            'Trả sản phẩm thành công!',
+                          );
+                          // nếu chưa lưu layout thì hỏi
+                          this.loadData();
+                        }
+                      },
+                      error: (error: any) => {
+                        this.notification.error(
+                          NOTIFICATION_TITLE.error,
+                          'Lỗi khi trả sản phẩm: ' + (error.message || error),
+                        );
+                      },
+                    });
+                },
+              });
+            }
           }
-          else {
-            this.modal.confirm({
-              nzTitle: 'Xác nhận trả',
-              nzContent: `Bạn có chắc chắn muốn trả sản phẩm ${item.ProductName} không?`,
-              nzOkText: 'Đồng ý',
-              nzCancelText: 'Hủy',
-              nzOnOk: () => {
-                this.productProtectiveGearService.postReturnProductRTC(item.HistortyID, false, 0).subscribe({
-                  next: (response: any) => {
-                    if (response.status === 1) {
-                      this.notification.success('Thông báo', 'Trả sản phẩm thành công!');
-                      // nếu chưa lưu layout thì hỏi
-                      this.loadData();
-                    }
-                  },
-                  error: (error: any) => {
-                    this.notification.error(
-                      NOTIFICATION_TITLE.error,
-                      'Lỗi khi trả sản phẩm: ' + (error.message || error)
-                    );
-                  }
-                });
-              },
-            });
-
-          }
-        }
-      },
-      error: (error: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error)
-        );
-      }
-    });
+        },
+        error: (error: any) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error),
+          );
+        },
+      });
   }
 
   private openExtendModal(item: any) {
@@ -601,70 +729,86 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
       return;
     }
 
-    this.productProtectiveGearService.getHistoryProductRTCByID(item.HistortyID).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          const data = response.data;
+    this.productProtectiveGearService
+      .getHistoryProductRTCByID(item.HistortyID)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            const data = response.data;
 
-          // Check if product can be extended
-          if (data.Status == 0) {
-            this.notification.warning('Thông báo', 'Sản phẩm ' + item.ProductName + ' đã trả, không thể gia hạn!');
-            return;
+            // Check if product can be extended
+            if (data.Status == 0) {
+              this.notification.warning(
+                'Thông báo',
+                'Sản phẩm ' + item.ProductName + ' đã trả, không thể gia hạn!',
+              );
+              return;
+            }
+
+            // Open extend modal using NzModalService
+            const modalRef = this.modal.create({
+              nzTitle: 'GIA HẠN',
+              nzContent: HistoryProductExtendModalComponent,
+              nzWidth: 400,
+              nzFooter: null,
+              nzClosable: true,
+              nzMaskClosable: false,
+              nzData: {
+                item: item,
+                currentReturnDate: data.DateReturnExpected
+                  ? new Date(data.DateReturnExpected)
+                  : null,
+              },
+            });
+
+            // Listen for modal close
+            modalRef.afterClose.subscribe((extendDate: Date) => {
+              if (extendDate) {
+                // User clicked Yes - proceed with extend
+                const extendData = {
+                  ID: data.ID,
+                  DateReturnExpected: extendDate.toISOString(),
+                };
+
+                this.productProtectiveGearService
+                  .postSaveExtendProduct(extendData)
+                  .subscribe({
+                    next: (extendResponse: any) => {
+                      if (extendResponse.status === 1) {
+                        this.notification.success(
+                          'Thông báo',
+                          'Gia hạn sản phẩm thành công!',
+                        );
+                        // Delay để đảm bảo API save đã hoàn thành trước khi reload data
+                        setTimeout(() => {
+                          this.loadData();
+                        }, 800);
+                      } else {
+                        this.notification.error(
+                          'Lỗi',
+                          extendResponse.message ||
+                            'Gia hạn sản phẩm thất bại!',
+                        );
+                      }
+                    },
+                    error: (error: any) => {
+                      this.notification.error(
+                        NOTIFICATION_TITLE.error,
+                        'Lỗi khi gia hạn sản phẩm: ' + (error.message || error),
+                      );
+                    },
+                  });
+              }
+            });
           }
-
-          // Open extend modal using NzModalService
-          const modalRef = this.modal.create({
-            nzTitle: 'GIA HẠN',
-            nzContent: HistoryProductExtendModalComponent,
-            nzWidth: 400,
-            nzFooter: null,
-            nzClosable: true,
-            nzMaskClosable: false,
-            nzData: {
-              item: item,
-              currentReturnDate: data.DateReturnExpected ? new Date(data.DateReturnExpected) : null
-            }
-          });
-
-          // Listen for modal close
-          modalRef.afterClose.subscribe((extendDate: Date) => {
-            if (extendDate) {
-              // User clicked Yes - proceed with extend
-              const extendData = {
-                ID: data.ID,
-                DateReturnExpected: extendDate.toISOString()
-              };
-
-              this.productProtectiveGearService.postSaveExtendProduct(extendData).subscribe({
-                next: (extendResponse: any) => {
-                  if (extendResponse.status === 1) {
-                    this.notification.success('Thông báo', 'Gia hạn sản phẩm thành công!');
-                    // Delay để đảm bảo API save đã hoàn thành trước khi reload data
-                    setTimeout(() => {
-                      this.loadData();
-                    }, 800);
-                  } else {
-                    this.notification.error('Lỗi', extendResponse.message || 'Gia hạn sản phẩm thất bại!');
-                  }
-                },
-                error: (error: any) => {
-                  this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    'Lỗi khi gia hạn sản phẩm: ' + (error.message || error)
-                  );
-                }
-              });
-            }
-          });
-        }
-      },
-      error: (error: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error)
-        );
-      }
-    });
+        },
+        error: (error: any) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error),
+          );
+        },
+      });
   }
 
   private approveBorrow(item: any) {
@@ -672,99 +816,116 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
     if (item.HistortyID == 0) {
       return;
     }
-    this.productProtectiveGearService.getHistoryProductRTCByID(item.HistortyID).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          const data = response.data;
-          if (data.ID <= 0) {
-            let isValid = data.Status != 1 && data.Status != 4 && data.Status != 7;
-            if (isValid) {
-              this.notification.warning('Thông báo', 'Trạng thái hiện tại không cho phép trả sản phẩm!');
-              return;
+    this.productProtectiveGearService
+      .getHistoryProductRTCByID(item.HistortyID)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            const data = response.data;
+            if (data.ID <= 0) {
+              let isValid =
+                data.Status != 1 && data.Status != 4 && data.Status != 7;
+              if (isValid) {
+                this.notification.warning(
+                  'Thông báo',
+                  'Trạng thái hiện tại không cho phép trả sản phẩm!',
+                );
+                return;
+              }
+            } else {
+              this.modal.confirm({
+                nzTitle: 'Xác nhận',
+                nzContent: `Bạn có chắc chắn muốn duyệt mượn sản phẩm ${item.ProductName} không?`,
+                nzOkText: 'Đồng ý',
+                nzCancelText: 'Hủy',
+                nzOnOk: () => {
+                  this.productProtectiveGearService
+                    .postApproveBorrowingRTC(item.HistortyID, false)
+                    .subscribe({
+                      next: (response: any) => {
+                        if (response.status === 1) {
+                          this.notification.success(
+                            'Thông báo',
+                            'Duyệt mượn sản phẩm thành công!',
+                          );
+                          // nếu chưa lưu layout thì hỏi
+                          this.loadData();
+                        }
+                      },
+                      error: (error: any) => {
+                        this.notification.error(
+                          NOTIFICATION_TITLE.error,
+                          'Lỗi khi trả sản phẩm: ' + (error.message || error),
+                        );
+                      },
+                    });
+                },
+              });
             }
           }
-          else {
-            this.modal.confirm({
-              nzTitle: 'Xác nhận duyệt mượn',
-              nzContent: `Bạn có chắc chắn muốn duyệt mượn sản phẩm ${item.ProductName} không?`,
-              nzOkText: 'Đồng ý',
-              nzCancelText: 'Hủy',
-              nzOnOk: () => {
-                this.productProtectiveGearService.postApproveBorrowingRTC(item.HistortyID, false).subscribe({
-                  next: (response: any) => {
-                    if (response.status === 1) {
-                      this.notification.success('Thông báo', 'Duyệt mượn sản phẩm thành công!');
-                      // nếu chưa lưu layout thì hỏi
-                      this.loadData();
-                    }
-                  },
-                  error: (error: any) => {
-                    this.notification.error(
-                      NOTIFICATION_TITLE.error,
-                      'Lỗi khi trả sản phẩm: ' + (error.message || error)
-                    );
-                  }
-                });
-              },
-            });
-          }
-        }
-      },
-      error: (error: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error)
-        );
-      }
-    });
+        },
+        error: (error: any) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error),
+          );
+        },
+      });
   }
 
   private approveReturn(item: any) {
     if (item.HistortyID == 0) {
       return;
     }
-    this.productProtectiveGearService.getHistoryProductRTCByID(item.HistortyID).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          const data = response.data;
-          if (data.ID <= 0) {
-            // this.notification.warning('Thông báo', 'Sản phẩm ' + item.ProductName + ' không tồn tại!');
-            return;
+    this.productProtectiveGearService
+      .getHistoryProductRTCByID(item.HistortyID)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            const data = response.data;
+            if (data.ID <= 0) {
+              // this.notification.warning('Thông báo', 'Sản phẩm ' + item.ProductName + ' không tồn tại!');
+              return;
+            } else {
+              this.modal.confirm({
+                nzTitle: 'Xác nhận',
+                nzContent: `Bạn có chắc chắn muốn duyệt trả sản phẩm ${item.ProductName} không?`,
+                nzOkText: 'Đồng ý',
+                nzCancelText: 'Hủy',
+                nzOnOk: () => {
+                  this.productProtectiveGearService
+                    .postReturnProductRTC(item.HistortyID, false, 0)
+                    .subscribe({
+                      next: (response: any) => {
+                        if (response.status === 1) {
+                          this.notification.success(
+                            'Thông báo',
+                            'Trả sản phẩm thành công!',
+                          );
+                          // nếu chưa lưu layout thì hỏi
+                          this.loadData();
+                        }
+                      },
+                      error: (error: any) => {
+                        this.notification.error(
+                          NOTIFICATION_TITLE.error,
+                          'Lỗi khi duyệt trả sản phẩm: ' +
+                            (error.message || error),
+                        );
+                      },
+                    });
+                },
+              });
+            }
           }
-          else {
-            this.modal.confirm({
-              nzTitle: 'Xác nhận duyệt trả',
-              nzContent: `Bạn có chắc chắn muốn duyệt trả sản phẩm ${item.ProductName} không?`,
-              nzOkText: 'Đồng ý',
-              nzCancelText: 'Hủy',
-              nzOnOk: () => {
-                this.productProtectiveGearService.postReturnProductRTC(item.HistortyID, false, 0).subscribe({
-                  next: (response: any) => {
-                    if (response.status === 1) {
-                      this.notification.success('Thông báo', 'Trả sản phẩm thành công!');
-                      // nếu chưa lưu layout thì hỏi
-                      this.loadData();
-                    }
-                  },
-                  error: (error: any) => {
-                    this.notification.error(
-                      NOTIFICATION_TITLE.error,
-                      'Lỗi khi duyệt trả sản phẩm: ' + (error.message || error)
-                    );
-                  }
-                });
-              },
-            });
-          }
-        }
-      },
-      error: (error: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error)
-        );
-      }
-    });
+        },
+        error: (error: any) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error),
+          );
+        },
+      });
   }
 
   private approveExtend(item: any) {
@@ -772,48 +933,55 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
     if (item.HistortyID == 0) {
       return;
     }
-    this.productProtectiveGearService.getHistoryProductRTCByID(item.HistortyID).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          const data = response.data;
-          if (data.ID <= 0) {
-            // this.notification.warning('Thông báo', 'Sản phẩm ' + item.ProductName + ' không tồn tại!');
-            return;
+    this.productProtectiveGearService
+      .getHistoryProductRTCByID(item.HistortyID)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            const data = response.data;
+            if (data.ID <= 0) {
+              // this.notification.warning('Thông báo', 'Sản phẩm ' + item.ProductName + ' không tồn tại!');
+              return;
+            } else {
+              this.modal.confirm({
+                nzTitle: 'Xác nhận',
+                nzContent: `Bạn có chắc chắn muốn duyệt gia hạn sản phẩm ${item.ProductName} không?`,
+                nzOkText: 'Đồng ý',
+                nzCancelText: 'Hủy',
+                nzOnOk: () => {
+                  this.productProtectiveGearService
+                    .postReturnProductRTC(item.HistortyID, false, 0)
+                    .subscribe({
+                      next: (response: any) => {
+                        if (response.status === 1) {
+                          this.notification.success(
+                            'Thông báo',
+                            'Duyệt gia hạn sản phẩm thành công!',
+                          );
+                          // nếu chưa lưu layout thì hỏi
+                          this.loadData();
+                        }
+                      },
+                      error: (error: any) => {
+                        this.notification.error(
+                          NOTIFICATION_TITLE.error,
+                          'Lỗi khi duyệt gia hạn sản phẩm: ' +
+                            (error.message || error),
+                        );
+                      },
+                    });
+                },
+              });
+            }
           }
-          else {
-            this.modal.confirm({
-              nzTitle: 'Xác nhận duyệt gia hạn',
-              nzContent: `Bạn có chắc chắn muốn duyệt gia hạn sản phẩm ${item.ProductName} không?`,
-              nzOkText: 'Đồng ý',
-              nzCancelText: 'Hủy',
-              nzOnOk: () => {
-                this.productProtectiveGearService.postReturnProductRTC(item.HistortyID, false, 0).subscribe({
-                  next: (response: any) => {
-                    if (response.status === 1) {
-                      this.notification.success('Thông báo', 'Duyệt gia hạn sản phẩm thành công!');
-                      // nếu chưa lưu layout thì hỏi
-                      this.loadData();
-                    }
-                  },
-                  error: (error: any) => {
-                    this.notification.error(
-                      NOTIFICATION_TITLE.error,
-                      'Lỗi khi duyệt gia hạn sản phẩm: ' + (error.message || error)
-                    );
-                  }
-                });
-              },
-            });
-          }
-        }
-      },
-      error: (error: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error)
-        );
-      }
-    });
+        },
+        error: (error: any) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error),
+          );
+        },
+      });
   }
 
   private editBorrower(item: any) {
@@ -821,82 +989,98 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
     if (item.HistortyID == 0) {
       return;
     }
-    this.productProtectiveGearService.getHistoryProductRTCByID(item.HistortyID).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          console.log('response.data', response.data);
-          if (response.data.Status == 0) {
-            this.notification.error(
-              NOTIFICATION_TITLE.error,
-              'Sản phẩm ' + item.ProductName + ' đã trả, không thể sửa người mượn!');
-          } else {
-            const modalRef = this.modalService.open(
-              BorrowProductHistoryEditPersonComponent,
-              {
-                backdrop: 'static',
-                keyboard: false,
-                centered: true,
-                scrollable: true,
-                size: 'xl',
-              }
-            );
-            modalRef.componentInstance.arrHistoryProductID = [
-              response.data.ID
-            ];
-            modalRef.componentInstance.ProductName = item.ProductName;
-            modalRef.componentInstance.ProductCode = item.ProductCode;
-            modalRef.result.finally(() => {
-              // Delay để đảm bảo API save đã hoàn thành trước khi reload data
-              setTimeout(() => {
-                this.loadData();
-              }, 800);
-            });
+    this.productProtectiveGearService
+      .getHistoryProductRTCByID(item.HistortyID)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            console.log('response.data', response.data);
+            if (response.data.Status == 0) {
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Sản phẩm ' +
+                  item.ProductName +
+                  ' đã trả, không thể sửa người mượn!',
+              );
+            } else {
+              const modalRef = this.modalService.open(
+                BorrowProductHistoryEditPersonComponent,
+                {
+                  backdrop: 'static',
+                  keyboard: false,
+                  centered: true,
+                  scrollable: true,
+                  size: 'xl',
+                },
+              );
+              modalRef.componentInstance.arrHistoryProductID = [
+                response.data.ID,
+              ];
+              modalRef.componentInstance.ProductName = item.ProductName;
+              modalRef.componentInstance.ProductCode = item.ProductCode;
+              modalRef.result.finally(() => {
+                // Delay để đảm bảo API save đã hoàn thành trước khi reload data
+                setTimeout(() => {
+                  this.loadData();
+                }, 800);
+              });
+            }
           }
-        }
-      },
-      error: (error: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error)
-        );
-      }
-    });
+        },
+        error: (error: any) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error),
+          );
+        },
+      });
   }
 
   private markAsWashing(item: any) {
     // đang giặt
-    console.log('item', item)
-    const confirm = window.confirm(`Bạn có chắc muốn cập nhật thành ${item.ProductCode} đang giặt?`);
-    if (confirm) {
-      this.updateStatus(item, 1);
-    }
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: `Bạn có chắc muốn cập nhật thành ${item.ProductCode} đang giặt?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.updateStatus(item, 1);
+      },
+    });
   }
   private updateStatus(item: any, status: number) {
-
-    this.productProtectiveGearService.saveUpdateStatusProductRTC(item.ID, status).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          this.notification.success('Thành công', 'Cập nhật trạng thái thành công!');
-          this.loadData();
-        }
-      },
-      error: (error: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi cập nhật trạng thái: ' + (error.message || error)
-        );
-      }
-    });
-
-
+    this.productProtectiveGearService
+      .saveUpdateStatusProductRTC(item.ID, status)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            this.notification.success(
+              'Thành công',
+              'Cập nhật trạng thái thành công!',
+            );
+            this.loadData();
+          }
+        },
+        error: (error: any) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi cập nhật trạng thái: ' + (error.message || error),
+          );
+        },
+      });
   }
 
   private markAsInUse(item: any) {
     // đưa vào sử dụng
-    const confirm = window.confirm(`Bạn có chắc muốn cập nhật thành ${item.ProductCode} vào sử dụng?`);
-    if (confirm) {
-      this.updateStatus(item, 0);
-    }
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: `Bạn có chắc muốn cập nhật thành ${item.ProductCode} vào sử dụng?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.updateStatus(item, 0);
+      },
+    });
   }
 
   private deleteItem(item: any) {
@@ -904,37 +1088,47 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
     if (item.HistortyID <= 0) {
       return;
     }
-    this.productProtectiveGearService.getHistoryProductRTCByID(item.HistortyID).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          const confirm = window.confirm(`Bạn có chắc muốn xóa ${item.ProductCode}?\nHành động này không thể hoàn tác!`);
-          if (confirm) {
-            this.productProtectiveGearService.postDeleteHistoryProduct([item.HistortyID]).subscribe({
-              next: (response: any) => {
-                if (response.status === 1) {
-                  this.notification.success('Thành công', 'Xóa thành công!');
-                  this.loadData();
-                }
+    this.productProtectiveGearService
+      .getHistoryProductRTCByID(item.HistortyID)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            this.modal.confirm({
+              nzTitle: 'Xác nhật',
+              nzContent: `Bạn có chắc muốn cập nhật thành ${item.ProductCode} vào sử dụng?`,
+              nzOkText: 'Đồng ý',
+              nzCancelText: 'Hủy',
+              nzOnOk: () => {
+                this.productProtectiveGearService
+                  .postDeleteHistoryProduct([item.HistortyID])
+                  .subscribe({
+                    next: (response: any) => {
+                      if (response.status === 1) {
+                        this.notification.success(
+                          'Thành công',
+                          'Xóa thành công!',
+                        );
+                        this.loadData();
+                      }
+                    },
+                    error: (error: any) => {
+                      this.notification.error(
+                        NOTIFICATION_TITLE.error,
+                        'Lỗi khi xóa: ' + (error.message || error),
+                      );
+                    },
+                  });
               },
-              error: (error: any) => {
-                this.notification.error(
-                  NOTIFICATION_TITLE.error,
-                  'Lỗi khi xóa: ' + (error.message || error)
-                );
-              }
-            })
+            });
           }
-        }
-
-      },
-      error: (error: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error)
-        );
-      }
-    });
-
+        },
+        error: (error: any) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải dữ liệu sản phẩm: ' + (error.message || error),
+          );
+        },
+      });
   }
 
   // Get image URL (matching WinForm LoadImage logic)
@@ -962,6 +1156,4 @@ export class HistoryProductRtcProtectiveGearNewComponent implements OnInit, OnDe
     // Otherwise just return the file location as path
     return `${apiUrl}/${pathPattern}/${fileName}`;
   }
-
-
 }

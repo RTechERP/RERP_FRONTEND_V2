@@ -44,7 +44,6 @@ import { environment } from '../../../../../environments/environment';
 import { BillExportTechnicalProtectiveGear } from '../model/bill-export-technical-protective-gear';
 import { BillExportTechnicalProtectiveGearDetailComponent } from '../bill-export-technical-protective-gear-detail/bill-export-technical-protective-gear-detail.component';
 
-
 @Component({
   standalone: true,
   imports: [
@@ -68,14 +67,13 @@ import { BillExportTechnicalProtectiveGearDetailComponent } from '../bill-export
     NzSpinModule,
     NzTabsModule,
     AngularSlickgridModule,
-    Menubar
+    Menubar,
   ],
   selector: 'app-bill-export-technical-protective-gear',
   templateUrl: './bill-export-technical-protective-gear.component.html',
-  styleUrls: ['./bill-export-technical-protective-gear.component.css']
+  styleUrls: ['./bill-export-technical-protective-gear.component.css'],
 })
 export class BillExportTechnicalProtectiveGearComponent implements OnInit {
-
   // Angular SlickGrid instances
   angularGridMaster!: AngularGridInstance;
   angularGridDetail!: AngularGridInstance;
@@ -104,6 +102,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
   selectedKhoTypes: number[] = [];
   isCheckmode: boolean = false;
   id: number = 0;
+  private shouldClearFilters: boolean = false;
   selectBillExport: any[] = [];
   menuBars: MenuItem[] = [];
 
@@ -166,9 +165,8 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
 
     SupplierSaleID: null,
     BillDocumentExportType: null,
-    ApproverID: null
+    ApproverID: null,
   };
-
 
   constructor(
     private ProductProtectiveGearService: ProductProtectiveGearService,
@@ -177,11 +175,10 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
     private modalService: NgbModal,
     private appUserService: AppUserService,
     private permissionService: PermissionService,
-    private route: ActivatedRoute
-  ) { }
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit(): void {
-
     this.initMenuBar();
     this.initGrids();
   }
@@ -190,7 +187,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
       {
         label: 'Thêm',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.openModalBillExportDetail(false);
         },
@@ -198,22 +195,21 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
       {
         label: 'Sửa',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.openModalBillExportDetail(true);
-        }
+        },
       },
 
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.deleteBillExport();
-        }
+        },
       },
-
-    ]
+    ];
   }
 
   // =================================================================
@@ -248,13 +244,14 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         width: 120,
         formatter: Formatters.checkmarkMaterial,
         filter: {
-          model: Filters['singleSelect'], collection: [
+          model: Filters['singleSelect'],
+          collection: [
             { value: '', label: '' },
             { value: true, label: 'Đã nhận' },
-            { value: false, label: 'Chưa nhận' }
-          ]
+            { value: false, label: 'Chưa nhận' },
+          ],
         },
-        cssClass: 'text-center'
+        cssClass: 'text-center',
       },
       {
         id: 'DateStatus',
@@ -263,9 +260,17 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 130,
-        formatter: Formatters.dateIso,
-        filter: { model: Filters['compoundDate'] },
-        cssClass: 'text-center'
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: {
+          model: Filters['compoundDate'],
+          collectionOptions: {
+            addBlankEntry: true,
+          },
+        },
+        cssClass: 'text-center',
       },
       {
         id: 'BillTypeText',
@@ -274,7 +279,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Code',
@@ -283,7 +288,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 300,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'ProjectName',
@@ -292,7 +297,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'NameNCC',
@@ -301,7 +306,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'CustomerName',
@@ -310,7 +315,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 200,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Deliver',
@@ -319,7 +324,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 250,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'DepartmentName',
@@ -328,7 +333,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'EmployeeCode',
@@ -337,7 +342,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
 
       {
@@ -347,7 +352,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 250,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
 
       {
@@ -357,10 +362,17 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        formatter: Formatters.dateIso,
-        params: { parseDateFormat: 'YYYY-MM-DD HH:mm:ss', displayFormat: 'DD/MM/YYYY HH:mm' },
-        filter: { model: Filters['compoundDate'] },
-        cssClass: 'text-center'
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: {
+          model: Filters['compoundDate'],
+          collectionOptions: {
+            addBlankEntry: true,
+          },
+        },
+        cssClass: 'text-center',
       },
       {
         id: 'WarehouseType',
@@ -369,7 +381,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Addres',
@@ -378,14 +390,14 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
     ];
 
     this.gridOptionsMaster = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-container-master',
+        container: '.grid-container-master-export',
         calculateAvailableSizeBy: 'container',
       },
       enableFiltering: true,
@@ -426,7 +438,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
 
       {
@@ -436,7 +448,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
 
       {
@@ -446,7 +458,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'ProductName',
@@ -455,7 +467,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
 
       {
@@ -465,7 +477,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 100,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'UnitName',
@@ -475,7 +487,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         filterable: true,
         width: 100,
         filter: { model: Filters['compoundInputText'] },
-        cssClass: 'text-center'
+        cssClass: 'text-center',
       },
       {
         id: 'WarehouseType',
@@ -484,7 +496,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Maker',
@@ -494,7 +506,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         filterable: true,
         width: 130,
         filter: { model: Filters['compoundInputText'] },
-        cssClass: 'text-center'
+        cssClass: 'text-center',
       },
       {
         id: 'Note',
@@ -504,14 +516,14 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         filterable: true,
         width: 250,
         filter: { model: Filters['compoundInputText'] },
-        cssClass: 'text-center'
+        cssClass: 'text-center',
       },
     ];
 
     this.gridOptionsDetail = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-container-detail',
+        container: '.grid-container-detail-export',
         calculateAvailableSizeBy: 'container',
       },
       enableFiltering: true,
@@ -537,7 +549,10 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
     this.angularGridDetail = angularGrid;
   }
 
-  onMasterRowSelectionChanged(event: Event, args: OnSelectedRowsChangedEventArgs): void {
+  onMasterRowSelectionChanged(
+    event: Event,
+    args: OnSelectedRowsChangedEventArgs,
+  ): void {
     if (!args || !args.rows || !this.angularGridMaster) return;
 
     const selectedIndexes = args.rows;
@@ -575,12 +590,16 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
     return new Promise((resolve, reject) => {
       this.isLoadTable = true;
 
-
-      this.ProductProtectiveGearService.getBillExport(this.DateStart, this.DateEnd, this.Status, this.wareHouseID, this.FilterText).subscribe({
+      this.ProductProtectiveGearService.getBillExport(
+        this.DateStart,
+        this.DateEnd,
+        this.Status,
+        this.wareHouseID,
+        this.FilterText,
+      ).subscribe({
         next: (res) => {
           this.isLoadTable = false;
           if (res.status === 1 && res.data) {
-
             resolve({
               data: res.data,
             });
@@ -592,7 +611,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
           this.isLoadTable = false;
           this.notification.error(
             NOTIFICATION_TITLE.error,
-            err?.error?.message || 'Không thể tải dữ liệu phiếu nhập'
+            err?.error?.message || 'Không thể tải dữ liệu phiếu nhập',
           );
           reject(err);
         },
@@ -605,14 +624,14 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
     if (!this.DateStart) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn ngày bắt đầu!'
+        'Vui lòng chọn ngày bắt đầu!',
       );
       return;
     }
     if (!this.DateEnd) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn ngày kết thúc!'
+        'Vui lòng chọn ngày kết thúc!',
       );
       return;
     }
@@ -622,29 +641,52 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
     if (dateStart > dateEnd) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Ngày bắt đầu không thể lớn hơn ngày kết thúc'
+        'Ngày bắt đầu không thể lớn hơn ngày kết thúc',
       );
       return;
     }
 
     this.isLoadTable = true;
-    this.ProductProtectiveGearService.getBillExport(this.DateStart, this.DateEnd, this.Status, this.wareHouseID, this.FilterText).subscribe({
+    this.ProductProtectiveGearService.getBillExport(
+      this.DateStart,
+      this.DateEnd,
+      this.Status,
+      this.wareHouseID,
+      this.FilterText,
+    ).subscribe({
       next: (res) => {
         this.isLoadTable = false;
         if (res.status === 1 && res.data) {
           console.log(res.data);
           this.datasetMaster = res.data.map((item: any, index: number) => ({
             ...item,
-            id: item.ID ?? index
+            id: item.ID ?? index,
           }));
           this.applyDistinctFiltersToMaster();
+
+          // Clear filters after data is loaded and columns are updated
+          if (this.shouldClearFilters) {
+            setTimeout(() => {
+              // Clear master grid filters
+              if (this.angularGridMaster?.filterService) {
+                this.angularGridMaster.filterService.updateFilters([]);
+                this.angularGridMaster.filterService.clearFilters();
+              }
+              // Clear detail grid filters
+              if (this.angularGridDetail?.filterService) {
+                this.angularGridDetail.filterService.updateFilters([]);
+                this.angularGridDetail.filterService.clearFilters();
+              }
+              this.shouldClearFilters = false;
+            }, 100);
+          }
         }
       },
       error: (err) => {
         this.isLoadTable = false;
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          err?.error?.message || 'Không thể tải dữ liệu phiếu nhập'
+          err?.error?.message || 'Không thể tải dữ liệu phiếu nhập',
         );
       },
     });
@@ -657,14 +699,14 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         this.datasetDetail = res.data || [];
         this.datasetDetail = this.datasetDetail.map((item: any) => ({
           ...item,
-          id: item.ID
+          id: item.ID,
         }));
         this.isDetailLoad = false;
       },
       error: (err) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          err.error?.message || 'Có lỗi xảy ra khi lấy chi tiết'
+          err.error?.message || 'Có lỗi xảy ra khi lấy chi tiết',
         );
         this.isDetailLoad = false;
       },
@@ -680,7 +722,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
         } else {
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
-            res.message || 'Lỗi'
+            res.message || 'Lỗi',
           );
         }
       },
@@ -694,19 +736,27 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
   openModalBillExportDetail(ischeckmode: boolean): void {
     this.isCheckmode = ischeckmode;
     if (this.isCheckmode == true && this.selectBillExport.length == 0) {
-      this.notification.info(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 phiếu nhập để sửa');
+      this.notification.info(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn 1 phiếu nhập để sửa',
+      );
       return;
     }
-    const modalRef = this.modalService.open(BillExportTechnicalProtectiveGearDetailComponent, {
-      centered: true,
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-    });
+    const modalRef = this.modalService.open(
+      BillExportTechnicalProtectiveGearDetailComponent,
+      {
+        centered: true,
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+      },
+    );
 
     // Truyền đúng object - lấy phần tử đầu tiên nếu là array
     if (this.isCheckmode && this.selectBillExport.length > 0) {
-      modalRef.componentInstance.newBillExport = Array.isArray(this.selectBillExport)
+      modalRef.componentInstance.newBillExport = Array.isArray(
+        this.selectBillExport,
+      )
         ? this.selectBillExport[0]
         : this.selectBillExport;
     }
@@ -729,13 +779,12 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
   private getSelectedRows(): any[] {
     if (!this.angularGridMaster) return [];
 
-    const selectedIndexes = this.angularGridMaster.slickGrid?.getSelectedRows() || [];
-    return selectedIndexes.map((index: number) =>
-      this.angularGridMaster.dataView.getItem(index)
-    ).filter((item: any) => item);
+    const selectedIndexes =
+      this.angularGridMaster.slickGrid?.getSelectedRows() || [];
+    return selectedIndexes
+      .map((index: number) => this.angularGridMaster.dataView.getItem(index))
+      .filter((item: any) => item);
   }
-
-
 
   // =================================================================
   // ADDITIONAL UI AND DATA METHODS
@@ -782,10 +831,10 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
   }
 
   onSearch() {
+    // Set flag to clear filters after data is loaded
+    this.shouldClearFilters = true;
     this.loadDataBillExport();
   }
-
-
 
   closePanel() {
     this.sizeTbDetail = '0';
@@ -803,14 +852,12 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
   // MODAL AND ACTION METHODS
   // =================================================================
 
-
-
   deleteBillExport() {
     // Chỉ cho phép chọn và xóa 1 phiếu
     if (!this.selectedRow) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn phiếu muốn xóa!'
+        'Vui lòng chọn phiếu muốn xóa!',
       );
       return;
     }
@@ -819,7 +866,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
     if (this.selectedRow.Status == true) {
       this.notification.warning(
         'Thông báo',
-        `Phiếu đã được duyệt không thể xóa: ${this.selectedRow.Code}`
+        `Phiếu đã được duyệt không thể xóa: ${this.selectedRow.Code}`,
       );
       return;
     }
@@ -837,7 +884,7 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
             if (res.status === 1) {
               this.notification.success(
                 NOTIFICATION_TITLE.success,
-                `Đã xóa thành công phiếu: ${billCode}!`
+                `Đã xóa thành công phiếu: ${billCode}!`,
               );
               // Reset selection và reload data
               this.id = 0;
@@ -848,14 +895,14 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
             } else {
               this.notification.warning(
                 NOTIFICATION_TITLE.warning,
-                res.message || 'Xóa thất bại!'
+                res.message || 'Xóa thất bại!',
               );
             }
           },
           error: (err: any) => {
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              err.error?.message || 'Có lỗi xảy ra khi xóa dữ liệu!'
+              err.error?.message || 'Có lỗi xảy ra khi xóa dữ liệu!',
             );
           },
         });
@@ -863,18 +910,21 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
     });
   }
 
-
   // =================================================================
   // DISTINCT FILTERS
   // =================================================================
 
   private applyDistinctFiltersToMaster(): void {
-    if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
+    if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView)
+      return;
 
     const data = this.angularGridMaster.dataView.getItems();
     if (!data || data.length === 0) return;
 
-    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+    const getUniqueValues = (
+      dataArray: any[],
+      field: string,
+    ): Array<{ value: string; label: string }> => {
       const map = new Map<string, string>();
       dataArray.forEach((row: any) => {
         const value = String(row?.[field] ?? '');
@@ -899,9 +949,8 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
       'Receiver',
       'CreatDate',
       'CreatedBy',
-      'WarehouseType'
+      'WarehouseType',
     ];
-
 
     const columns = this.angularGridMaster.slickGrid.getColumns();
     if (!columns) return;
@@ -924,6 +973,8 @@ export class BillExportTechnicalProtectiveGearComponent implements OnInit {
       }
     });
 
-    this.angularGridMaster.slickGrid.setColumns(this.angularGridMaster.slickGrid.getColumns());
+    this.angularGridMaster.slickGrid.setColumns(
+      this.angularGridMaster.slickGrid.getColumns(),
+    );
   }
 }

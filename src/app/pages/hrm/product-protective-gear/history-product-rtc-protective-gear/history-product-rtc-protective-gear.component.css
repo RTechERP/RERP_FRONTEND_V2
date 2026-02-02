@@ -1,4 +1,4 @@
-::ng-deep div[id^="historyProductRtcGrid-"] {
+::ng-deep div[id^="grid-container-history-product-rtc"] {
        height: 74vh !important;
 }
 
@@ -18,4 +18,9 @@
 
 ::ng-deep .ant-splitter {
        height: 74vh !important;
+}
+
+:host ::ng-deep .slick-row.row-red {
+       background-color: red !important;
+       color: white !important;
 }

@@ -141,12 +141,36 @@ export class InventoryDemoProtectiveGearComponent implements OnInit {
         icon: 'fa-solid fa-arrows-rotate fa-lg text-info',
         // visible: this.permissionService.hasPermission(""),
         command: () => {
-          this.getProductGroup();
+          this.refreshData();
         },
       },
 
     ]
   }
+
+  refreshData(): void {
+    // Clear all filters in product group grid
+    if (this.angularGridProductGroup && this.angularGridProductGroup.filterService) {
+      this.angularGridProductGroup.filterService.clearFilters();
+    }
+
+    // Clear all filters in product RTC grid
+    if (this.angularGridProductRTC && this.angularGridProductRTC.filterService) {
+      this.angularGridProductRTC.filterService.clearFilters();
+    }
+
+    // Clear filter text
+    this.filterText = '';
+
+    // Clear selections
+    this.selectedProductRTCRows = [];
+    this.selectedProductRTCRow = null;
+    this.selectedRow = null;
+
+    // Reload data
+    this.getProductGroup();
+  }
+
   onSearch(): void {
     if (this.selectedRow && this.selectedRow.ID) {
       this.getProductRTC(this.selectedRow.ID, this.filterText, this.warehouseID);
@@ -270,6 +294,11 @@ export class InventoryDemoProtectiveGearComponent implements OnInit {
       gridMenu: {
         hideExportCsvCommand: true,
         hideExportTextDelimitedCommand: true,
+      },
+      autoResize: {
+        container: '.grid-container-product-group-demo',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
       },
     };
   }
@@ -406,6 +435,11 @@ export class InventoryDemoProtectiveGearComponent implements OnInit {
       gridMenu: {
         hideExportCsvCommand: true,
         hideExportTextDelimitedCommand: true,
+      },
+      autoResize: {
+        container: '.grid-container-product-rtc-demo',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
       },
     };
   }

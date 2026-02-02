@@ -4,7 +4,7 @@
     <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
 
-<div class="modal-body modal-body-scrollable" style="max-height: 83vh !important; overflow-y: auto;">
+<div class="modal-body modal-body-scrollable" style="max-height: 75vh !important; overflow-y: auto;">
     <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7 mt-2">
 
         <nz-tabset>
@@ -69,7 +69,7 @@
                         </nz-col>
                     </nz-row>
                     <nz-row [nzGutter]="24">
-                        <nz-col [nzSpan]="12">
+                        <nz-col [nzSpan]="18">
                             <nz-form-item>
                                 <nz-form-label for="codeInput" class="fs-12 p-0">Mã bài học<span
                                         class="text-danger ps-1">(*)</span></nz-form-label>
@@ -86,6 +86,8 @@
                                 </nz-form-control>
                             </nz-form-item>
                         </nz-col>
+
+
                         <nz-col [nzSpan]="6">
                             <nz-form-item>
                                 <nz-form-label for="sttInput" class="fs-12 p-0">STT</nz-form-label>
@@ -95,6 +97,7 @@
                                 </nz-form-control>
                             </nz-form-item>
                         </nz-col>
+
                     </nz-row>
 
                     <nz-row [nzGutter]="24">
@@ -116,47 +119,6 @@
                             </nz-form-item>
                         </nz-col>
                     </nz-row>
-
-                    <nz-row [nzGutter]="24">
-                        <nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label for="videoUrlInput" class="fs-12 p-0">Đường dẫn video</nz-form-label>
-                                <nz-form-control [nzSpan]="24">
-                                    <input id="videoUrlInput" nz-input name="VideoUrl" placeholder="Nhập URL video"
-                                        formControlName="VideoUrl" />
-                                </nz-form-control>
-                            </nz-form-item>
-                        </nz-col>
-                    </nz-row>
-
-                    <nz-row [nzGutter]="24">
-                        <nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label class="fs-12 p-0">File PDF đính kèm</nz-form-label>
-                                <nz-form-control>
-                                    <div class="d-flex flex-column gap-2">
-                                        <div class="d-flex flex-column flex-sm-row gap-2">
-                                            <nz-upload nzAccept="application/pdf" [nzFileList]="[]"
-                                                [nzBeforeUpload]="beforeUploadPDF" [nzShowUploadList]="false"
-                                                [nzMultiple]="false">
-                                                <button nz-button nzBlock class="w-100 w-sm-auto">
-                                                    <span nz-icon nzType="upload"></span>
-                                                    Chọn PDF
-                                                </button>
-                                            </nz-upload>
-                                            <input nz-input [value]="attachPDFName || ''" placeholder="Chưa chọn PDF"
-                                                readonly style="flex: 1" />
-                                            <button *ngIf="attachPDFName" nz-button nzType="default" nzSize="small"
-                                                (click)="removePDF()">
-                                                <span nz-icon nzType="delete" nzTheme="outline"></span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </nz-col>
-                    </nz-row>
-
                     <nz-row [nzGutter]="24">
                         <nz-col [nzSpan]="24">
                             <nz-form-item>
@@ -172,6 +134,107 @@
                             </nz-form-item>
                         </nz-col>
                     </nz-row>
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="18">
+                            <nz-form-item>
+                                <nz-form-label for="videoUrlInput" class="fs-12 p-0">Đường dẫn video</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <!-- Video File Selection -->
+                                        <nz-upload nzAccept="video/*" [nzBeforeUpload]="beforeUploadVideo"
+                                            [nzShowUploadList]="false" [nzMultiple]="false">
+                                            <button nz-button>
+                                                <span nz-icon nzType="upload"></span>
+                                                Chọn Video
+                                            </button>
+                                        </nz-upload>
+
+                                        <!-- Selected Video Info -->
+                                        <span *ngIf="selectedVideoFile" class="text-muted"
+                                            style="display: flex; align-items: center; gap: 8px;">
+                                            <i nz-icon nzType="video-camera" nzTheme="outline"></i>
+                                            {{ selectedVideoFile.name }} ({{ formatFileSize(selectedVideoFile.size) }})
+                                            <button nz-button nzType="text" nzSize="small" nzDanger
+                                                (click)="removeSelectedVideo()" title="Xóa file">
+                                                <span nz-icon nzType="delete" nzTheme="outline"></span>
+                                            </button>
+                                        </span>
+
+                                        <!-- URL Input -->
+                                        <input id="videoUrlInput" nz-input name="VideoUrl"
+                                            placeholder="Nhập URL video hoặc chọn file từ máy tính"
+                                            formControlName="VideoUrl" style="flex: 1;" />
+                                    </div>
+
+                                    <!-- Progress Bar (hiển thị khi đang upload) -->
+                                    <div *ngIf="videoUploadProgress > 0 && videoUploadProgress < 100" class="mt-2">
+                                        <nz-progress [nzPercent]="videoUploadProgress" nzStatus="active"
+                                            [nzShowInfo]="true">
+                                        </nz-progress>
+                                        <small class="text-muted">Đang upload video... {{ videoUploadSpeed }}</small>
+                                    </div>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <nz-col [nzSpan]="6">
+                            <nz-form-item>
+                                <nz-form-label for="RequiredWatchedPercent" class="fs-12 p-0">Cần xem tối thiểu
+                                    (%)</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-input-number id="RequiredWatchedPercent"
+                                        formControlName="RequiredWatchedPercent" [nzMin]="0" [nzMax]="100" [nzStep]="5"
+                                        style="width: 100%" placeholder="Bắt buộc xem"></nz-input-number>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+
+
+
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="24">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">File PDF đính kèm</nz-form-label>
+                                <nz-form-control>
+                                    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center">
+                                        <nz-upload nzAccept="application/pdf" [nzFileList]="[]"
+                                            [nzBeforeUpload]="beforeUploadPDF" [nzShowUploadList]="false"
+                                            [nzMultiple]="false">
+                                            <button nz-button nzBlock class="w-100 w-sm-auto">
+                                                <span nz-icon nzType="upload"></span>
+                                                Chọn PDF
+                                            </button>
+                                        </nz-upload>
+                                        <input nz-input [value]="isPDFDeleted ? '' : (attachPDFName || '')"
+                                            [placeholder]="isPDFDeleted ? 'File đã bị xóa' : 'Chưa chọn file PDF'"
+                                            readonly style="flex: 1" />
+
+                                        <!-- Nút View - chỉ hiển thị khi có file và chưa bị xóa -->
+                                        <button *ngIf="attachPDFName && !isPDFDeleted && existingPDFPath" nz-button
+                                            nzType="default" nzSize="small" (click)="viewExistingPDF()" title="Xem PDF">
+                                            <i nz-icon nzType="eye" nzTheme="outline"></i>
+                                        </button>
+
+                                        <!-- Nút Delete - hiển thị khi có file và chưa bị xóa -->
+                                        <button *ngIf="attachPDFName && !isPDFDeleted" nz-button nzType="default"
+                                            nzSize="small" nzDanger
+                                            (click)="existingPDFPath ? deleteExistingPDF() : removePDF()"
+                                            title="Xóa PDF">
+                                            <span nz-icon nzType="delete" nzTheme="outline"></span>
+                                        </button>
+
+                                        <!-- Nút Restore - chỉ hiển thị khi file bị xóa -->
+                                        <button *ngIf="isPDFDeleted" nz-button nzType="default" nzSize="small"
+                                            (click)="deleteExistingPDF()" title="Hoàn tác">
+                                            <span nz-icon nzType="undo" nzTheme="outline"></span>
+                                        </button>
+                                    </div>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+
+
                 </fieldset>
             </nz-tab>
             <!-- Fieldset 3: File đính kèm -->
@@ -248,10 +311,9 @@
                     <nz-row [nzGutter]="24">
                         <nz-col [nzSpan]="24">
                             <nz-form-item>
-                                <nz-form-label class="fs-12 p-0">Nội dung</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
                                     <p-editor #editor formControlName="Content"
-                                        [style]="{'height': '400px', 'margin-bottom': '10px'}"
+                                        [style]="{'height': '320px', 'margin-bottom': '-45px'}"
                                         [modules]="editorModules">
                                         <ng-template pTemplate="header">
                                             <span class="ql-formats">
@@ -308,12 +370,24 @@
     </form>
 </div>
 
-<div class="modal-footer">
-    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
-        Đóng
-    </button>
-    <button nz-button nzType="primary" (click)="saveLesson()" [disabled]="saving">
-        <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
-        {{ saving ? 'Đang lưu...' : 'Lưu' }}
-    </button>
+<div class="modal-footer flex-column">
+    <!-- Progress Bar cho Video Upload -->
+    <div *ngIf="videoUploadProgress > 0 && videoUploadProgress < 100" class="w-100 mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <small class="text-muted">Đang upload video...</small>
+            <small class="text-primary">{{ videoUploadProgress }}% • {{ videoUploadSpeed }}</small>
+        </div>
+        <nz-progress [nzPercent]="videoUploadProgress" nzStatus="active" [nzShowInfo]="false" [nzStrokeWidth]="6">
+        </nz-progress>
+    </div>
+
+    <div class="d-flex gap-2 w-100 justify-content-end">
+        <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+            Đóng
+        </button>
+        <button nz-button nzType="primary" (click)="saveLesson()" [disabled]="saving">
+            <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
+            {{ saving ? (videoUploadProgress > 0 && videoUploadProgress < 100 ? 'Đang upload video...' : 'Đang lưu...' )
+                : 'Lưu' }} </button>
+    </div>
 </div>

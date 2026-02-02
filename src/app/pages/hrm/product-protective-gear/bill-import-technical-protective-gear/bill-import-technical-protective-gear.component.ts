@@ -44,8 +44,6 @@ import { environment } from '../../../../../environments/environment';
 import { BillImportTechnicalProtectiveGear } from '../model/bill-import-technical-protective-gear';
 import { BillImportTechnicalProtectiveGearDetailComponent } from '../bill-import-technical-protective-gear-detail/bill-import-technical-protective-gear-detail.component';
 
-
-
 @Component({
   standalone: true,
   imports: [
@@ -69,14 +67,13 @@ import { BillImportTechnicalProtectiveGearDetailComponent } from '../bill-import
     NzSpinModule,
     NzTabsModule,
     AngularSlickgridModule,
-    Menubar
+    Menubar,
   ],
   selector: 'app-bill-import-technical-protective-gear',
   templateUrl: './bill-import-technical-protective-gear.component.html',
-  styleUrls: ['./bill-import-technical-protective-gear.component.css']
+  styleUrls: ['./bill-import-technical-protective-gear.component.css'],
 })
 export class BillImportTechnicalProtectiveGearComponent implements OnInit {
-
   // Angular SlickGrid instances
   angularGridMaster!: AngularGridInstance;
   angularGridDetail!: AngularGridInstance;
@@ -105,6 +102,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
   selectedKhoTypes: number[] = [];
   isCheckmode: boolean = false;
   id: number = 0;
+  private shouldClearFilters: boolean = false;
   selectBillImport: any[] = [];
   menuBars: MenuItem[] = [];
 
@@ -129,7 +127,6 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     { ID: -1, Name: '--Tất cả--' },
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' },
-
   ];
 
   newBillImport: BillImportTechnicalProtectiveGear = {
@@ -167,9 +164,8 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     RulePayID: null,
     IsNormalize: false,
     ApproverID: null,
-    IsDeleted: false
+    IsDeleted: false,
   };
-
 
   constructor(
     private ProductProtectiveGearService: ProductProtectiveGearService,
@@ -178,11 +174,10 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     private modalService: NgbModal,
     private appUserService: AppUserService,
     private permissionService: PermissionService,
-    private route: ActivatedRoute
-  ) { }
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit(): void {
-
     this.initMenuBar();
     this.initGrids();
   }
@@ -191,7 +186,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
       {
         label: 'Thêm',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.openModalBillImportDetail(false);
         },
@@ -199,73 +194,87 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
       {
         label: 'Sửa',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.openModalBillImportDetail(true);
-        }
+        },
       },
 
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.deleteBillImport();
-        }
+        },
       },
-
-    ]
+    ];
   }
   onCreate() {
-    const modalRef = this.modalService.open(BillImportTechnicalProtectiveGearDetailComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      centered: true
-    });
+    const modalRef = this.modalService.open(
+      BillImportTechnicalProtectiveGearDetailComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        centered: true,
+      },
+    );
 
     // modalRef.componentInstance.warehouseID = this.warehouseID,
     // modalRef.componentInstance.warehouseType = this.warehouseType,
-    modalRef.componentInstance.isEdit = false
+    modalRef.componentInstance.isEdit = false;
 
     modalRef.result.then(
       (result) => {
         if (result) {
           // Refresh grid after save
           // this.getProductLocation();
-          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Thêm mới thành công',
+          );
         }
       },
       (reason) => {
         // Modal dismissed
-      }
+      },
     );
   }
 
   onEdit() {
     if (!this.selectedRow) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn vị trí cần sửa');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn vị trí cần sửa',
+      );
       return;
     }
 
-    const modalRef = this.modalService.open(BillImportTechnicalProtectiveGearDetailComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      centered: true
-    });
+    const modalRef = this.modalService.open(
+      BillImportTechnicalProtectiveGearDetailComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        centered: true,
+      },
+    );
     modalRef.componentInstance.productLocationTech = { ...this.selectedRow };
     // modalRef.componentInstance.warehouseID = this.warehouseID,
     // modalRef.componentInstance.warehouseType = this.warehouseType,
-    modalRef.componentInstance.isEdit = true
+    modalRef.componentInstance.isEdit = true;
     modalRef.result.then(
       (result) => {
         if (result) {
           // this.getProductLocation();
-          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Cập nhật thành công',
+          );
         }
       },
       (reason) => {
         // Modal dismissed
-      }
+      },
     );
   }
 
@@ -274,14 +283,12 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một vị trí cần xóa');
     //   return;
     // }
-
     // const count = this.selectedRows.length;
     // const productNames = this.selectedRows
     //   .map(row => `Mã vị trí : ${row.LocationCode}`)
     //   .slice(0, 3)
     //   .join(', ');
     // const moreText = count > 3 ? ` và ${count - 3} vị trí khác khác` : '';
-
     // this.nzModalService.confirm({
     //   nzTitle: 'Xác nhận xóa',
     //   nzContent: `Bạn có chắc chắn muốn xóa ${count} vị trí đã chọn?<br><strong>${productNames}${moreText}</strong>`,
@@ -293,7 +300,6 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     //   }
     // });
   }
-
 
   // =================================================================
   // GRID INITIALIZATION
@@ -327,13 +333,14 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         width: 120,
         formatter: Formatters.checkmarkMaterial,
         filter: {
-          model: Filters['singleSelect'], collection: [
+          model: Filters['singleSelect'],
+          collection: [
             { value: '', label: '' },
             { value: true, label: 'Đã nhận' },
-            { value: false, label: 'Chưa nhận' }
-          ]
+            { value: false, label: 'Chưa nhận' },
+          ],
         },
-        cssClass: 'text-center'
+        cssClass: 'text-center',
       },
       {
         id: 'DateStatus',
@@ -342,9 +349,17 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 130,
-        formatter: Formatters.dateIso,
-        filter: { model: Filters['compoundDate'] },
-        cssClass: 'text-center'
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: {
+          model: Filters['compoundDate'],
+          collectionOptions: {
+            addBlankEntry: true,
+          },
+        },
+        cssClass: 'text-center',
       },
       {
         id: 'BillTypeNewText',
@@ -353,7 +368,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'BillCode',
@@ -362,7 +377,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 300,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
 
       {
@@ -372,7 +387,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'CustomerName',
@@ -381,7 +396,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 200,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'DepartmentName',
@@ -390,7 +405,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Deliver',
@@ -399,7 +414,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 250,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Reciver',
@@ -408,7 +423,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 250,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
 
       {
@@ -418,10 +433,17 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        formatter: Formatters.dateIso,
-        params: { parseDateFormat: 'YYYY-MM-DD HH:mm:ss', displayFormat: 'DD/MM/YYYY HH:mm' },
-        filter: { model: Filters['compoundDate'] },
-        cssClass: 'text-center'
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: {
+          model: Filters['compoundDate'],
+          collectionOptions: {
+            addBlankEntry: true,
+          },
+        },
+        cssClass: 'text-center',
       },
       {
         id: 'WarehouseType',
@@ -430,14 +452,14 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
     ];
 
     this.gridOptionsMaster = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-container-master',
+        container: '.grid-container-master-import',
         calculateAvailableSizeBy: 'container',
       },
       enableFiltering: true,
@@ -478,7 +500,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'ProductCode',
@@ -487,7 +509,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Quantity',
@@ -496,7 +518,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 100,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'UnitName',
@@ -506,7 +528,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         filterable: true,
         width: 100,
         filter: { model: Filters['compoundInputText'] },
-        cssClass: 'text-center'
+        cssClass: 'text-center',
       },
       {
         id: 'WarehouseType',
@@ -515,7 +537,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'ProductCodeRTC',
@@ -527,7 +549,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         formatter: Formatters.decimal,
         params: { minDecimal: 0, maxDecimal: 2 },
         filter: { model: Filters['compoundInputNumber'] },
-        cssClass: 'text-end'
+        cssClass: 'text-end',
       },
       {
         id: 'BillCodePO',
@@ -536,7 +558,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 300,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Maker',
@@ -546,7 +568,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         filterable: true,
         width: 130,
         filter: { model: Filters['compoundInputText'] },
-        cssClass: 'text-center'
+        cssClass: 'text-center',
       },
       {
         id: 'Note',
@@ -556,15 +578,16 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         filterable: true,
         width: 200,
         filter: { model: Filters['compoundInputText'] },
-        cssClass: 'text-center'
+        cssClass: 'text-center',
       },
     ];
 
     this.gridOptionsDetail = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-container-detail',
+        container: '.grid-container-detail-import',
         calculateAvailableSizeBy: 'container',
+        maxHeight: 200, // Limit detail grid height
       },
       enableFiltering: true,
       enableCellNavigation: true,
@@ -589,7 +612,10 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     this.angularGridDetail = angularGrid;
   }
 
-  onMasterRowSelectionChanged(event: Event, args: OnSelectedRowsChangedEventArgs): void {
+  onMasterRowSelectionChanged(
+    event: Event,
+    args: OnSelectedRowsChangedEventArgs,
+  ): void {
     if (!args || !args.rows || !this.angularGridMaster) return;
 
     const selectedIndexes = args.rows;
@@ -627,12 +653,16 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     return new Promise((resolve, reject) => {
       this.isLoadTable = true;
 
-
-      this.ProductProtectiveGearService.getBillImport(this.DateStart, this.DateEnd, this.Status, this.wareHouseID, this.FilterText).subscribe({
+      this.ProductProtectiveGearService.getBillImport(
+        this.DateStart,
+        this.DateEnd,
+        this.Status,
+        this.wareHouseID,
+        this.FilterText,
+      ).subscribe({
         next: (res) => {
           this.isLoadTable = false;
           if (res.status === 1 && res.data) {
-
             resolve({
               data: res.data,
             });
@@ -644,7 +674,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
           this.isLoadTable = false;
           this.notification.error(
             NOTIFICATION_TITLE.error,
-            err?.error?.message || 'Không thể tải dữ liệu phiếu nhập'
+            err?.error?.message || 'Không thể tải dữ liệu phiếu nhập',
           );
           reject(err);
         },
@@ -657,14 +687,14 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     if (!this.DateStart) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn ngày bắt đầu!'
+        'Vui lòng chọn ngày bắt đầu!',
       );
       return;
     }
     if (!this.DateEnd) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn ngày kết thúc!'
+        'Vui lòng chọn ngày kết thúc!',
       );
       return;
     }
@@ -674,29 +704,52 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     if (dateStart > dateEnd) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Ngày bắt đầu không thể lớn hơn ngày kết thúc'
+        'Ngày bắt đầu không thể lớn hơn ngày kết thúc',
       );
       return;
     }
 
     this.isLoadTable = true;
-    this.ProductProtectiveGearService.getBillImport(this.DateStart, this.DateEnd, this.Status, this.wareHouseID, this.FilterText).subscribe({
+    this.ProductProtectiveGearService.getBillImport(
+      this.DateStart,
+      this.DateEnd,
+      this.Status,
+      this.wareHouseID,
+      this.FilterText,
+    ).subscribe({
       next: (res) => {
         this.isLoadTable = false;
         if (res.status === 1 && res.data) {
           console.log(res.data);
           this.datasetMaster = res.data.map((item: any, index: number) => ({
             ...item,
-            id: item.ID ?? index
+            id: item.ID ?? index,
           }));
           this.applyDistinctFiltersToMaster();
+
+          // Clear filters after data is loaded and columns are updated
+          if (this.shouldClearFilters) {
+            setTimeout(() => {
+              // Clear master grid filters
+              if (this.angularGridMaster?.filterService) {
+                this.angularGridMaster.filterService.updateFilters([]);
+                this.angularGridMaster.filterService.clearFilters();
+              }
+              // Clear detail grid filters
+              if (this.angularGridDetail?.filterService) {
+                this.angularGridDetail.filterService.updateFilters([]);
+                this.angularGridDetail.filterService.clearFilters();
+              }
+              this.shouldClearFilters = false;
+            }, 100);
+          }
         }
       },
       error: (err) => {
         this.isLoadTable = false;
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          err?.error?.message || 'Không thể tải dữ liệu phiếu nhập'
+          err?.error?.message || 'Không thể tải dữ liệu phiếu nhập',
         );
       },
     });
@@ -709,14 +762,14 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         this.datasetDetail = res.data || [];
         this.datasetDetail = this.datasetDetail.map((item: any) => ({
           ...item,
-          id: item.ID
+          id: item.ID,
         }));
         this.isDetailLoad = false;
       },
       error: (err) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          err.error?.message || 'Có lỗi xảy ra khi lấy chi tiết'
+          err.error?.message || 'Có lỗi xảy ra khi lấy chi tiết',
         );
         this.isDetailLoad = false;
       },
@@ -732,7 +785,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
         } else {
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
-            res.message || 'Lỗi'
+            res.message || 'Lỗi',
           );
         }
       },
@@ -740,25 +793,35 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
   }
 
   searchData(): void {
+    // Set flag to clear filters after data is loaded
+    this.shouldClearFilters = true;
     this.loadDataBillImport();
   }
 
   openModalBillImportDetail(ischeckmode: boolean): void {
     this.isCheckmode = ischeckmode;
     if (this.isCheckmode == true && this.selectBillImport.length == 0) {
-      this.notification.info(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 phiếu nhập để sửa');
+      this.notification.info(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn 1 phiếu nhập để sửa',
+      );
       return;
     }
-    const modalRef = this.modalService.open(BillImportTechnicalProtectiveGearDetailComponent, {
-      centered: true,
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-    });
+    const modalRef = this.modalService.open(
+      BillImportTechnicalProtectiveGearDetailComponent,
+      {
+        centered: true,
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+      },
+    );
 
     // Truyền đúng object - lấy phần tử đầu tiên nếu là array
     if (this.isCheckmode && this.selectBillImport.length > 0) {
-      modalRef.componentInstance.newBillImport = Array.isArray(this.selectBillImport)
+      modalRef.componentInstance.newBillImport = Array.isArray(
+        this.selectBillImport,
+      )
         ? this.selectBillImport[0]
         : this.selectBillImport;
     }
@@ -781,13 +844,12 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
   private getSelectedRows(): any[] {
     if (!this.angularGridMaster) return [];
 
-    const selectedIndexes = this.angularGridMaster.slickGrid?.getSelectedRows() || [];
-    return selectedIndexes.map((index: number) =>
-      this.angularGridMaster.dataView.getItem(index)
-    ).filter((item: any) => item);
+    const selectedIndexes =
+      this.angularGridMaster.slickGrid?.getSelectedRows() || [];
+    return selectedIndexes
+      .map((index: number) => this.angularGridMaster.dataView.getItem(index))
+      .filter((item: any) => item);
   }
-
-
 
   // =================================================================
   // ADDITIONAL UI AND DATA METHODS
@@ -837,8 +899,6 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     this.loadDataBillImport();
   }
 
-
-
   closePanel() {
     this.sizeTbDetail = '0';
   }
@@ -855,14 +915,12 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
   // MODAL AND ACTION METHODS
   // =================================================================
 
-
-
   deleteBillImport() {
     // Chỉ cho phép chọn và xóa 1 phiếu
     if (!this.selectedRow) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn phiếu muốn xóa!'
+        'Vui lòng chọn phiếu muốn xóa!',
       );
       return;
     }
@@ -871,7 +929,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     if (this.selectedRow.Status == true) {
       this.notification.warning(
         'Thông báo',
-        `Phiếu đã được duyệt không thể xóa: ${this.selectedRow.BillCode}`
+        `Phiếu đã được duyệt không thể xóa: ${this.selectedRow.BillCode}`,
       );
       return;
     }
@@ -890,7 +948,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
             if (res.status === 1) {
               this.notification.success(
                 NOTIFICATION_TITLE.success,
-                `Đã xóa thành công phiếu: ${billCode}!`
+                `Đã xóa thành công phiếu: ${billCode}!`,
               );
               // Reset selection và reload data
               this.id = 0;
@@ -901,14 +959,14 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
             } else {
               this.notification.warning(
                 NOTIFICATION_TITLE.warning,
-                res.message || 'Xóa thất bại!'
+                res.message || 'Xóa thất bại!',
               );
             }
           },
           error: (err: any) => {
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              err.error?.message || 'Có lỗi xảy ra khi xóa dữ liệu!'
+              err.error?.message || 'Có lỗi xảy ra khi xóa dữ liệu!',
             );
           },
         });
@@ -916,18 +974,21 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     });
   }
 
-
   // =================================================================
   // DISTINCT FILTERS
   // =================================================================
 
   private applyDistinctFiltersToMaster(): void {
-    if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
+    if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView)
+      return;
 
     const data = this.angularGridMaster.dataView.getItems();
     if (!data || data.length === 0) return;
 
-    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+    const getUniqueValues = (
+      dataArray: any[],
+      field: string,
+    ): Array<{ value: string; label: string }> => {
       const map = new Map<string, string>();
       dataArray.forEach((row: any) => {
         const value = String(row?.[field] ?? '');
@@ -952,9 +1013,8 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
       'Reciver',
       'CreatDate',
       'CreatedBy',
-      'WarehouseType'
+      'WarehouseType',
     ];
-
 
     const columns = this.angularGridMaster.slickGrid.getColumns();
     if (!columns) return;
@@ -977,6 +1037,8 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
       }
     });
 
-    this.angularGridMaster.slickGrid.setColumns(this.angularGridMaster.slickGrid.getColumns());
+    this.angularGridMaster.slickGrid.setColumns(
+      this.angularGridMaster.slickGrid.getColumns(),
+    );
   }
 }

@@ -59,9 +59,11 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { MenuItem, PrimeIcons, SharedModule } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
-import { BillExportTechnicalProtectiveGear, BillExportTechnicalProtectiveGearField } from '../model/bill-export-technical-protective-gear';
+import {
+  BillExportTechnicalProtectiveGear,
+  BillExportTechnicalProtectiveGearField,
+} from '../model/bill-export-technical-protective-gear';
 import { ProductProtectiveGearService } from '../product-protective-gear-service/product-protective-gear.service';
-
 
 @Component({
   standalone: true,
@@ -89,10 +91,11 @@ import { ProductProtectiveGearService } from '../product-protective-gear-service
   ],
   selector: 'app-bill-export-technical-protective-gear-detail',
   templateUrl: './bill-export-technical-protective-gear-detail.component.html',
-  styleUrls: ['./bill-export-technical-protective-gear-detail.component.css']
+  styleUrls: ['./bill-export-technical-protective-gear-detail.component.css'],
 })
 export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit {
-  billExportTechnicalProtectiveGearField = BillExportTechnicalProtectiveGearField;
+  billExportTechnicalProtectiveGearField =
+    BillExportTechnicalProtectiveGearField;
   supplierList: any[] = [];
   customerList: any[] = [];
   receiverAndDeliverList: any[] = [];
@@ -109,7 +112,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
   menuBars: MenuItem[] = [];
 
   isLoading: boolean = false;
-  isSaving: boolean = false;  // Loading state cho nút lưu
+  isSaving: boolean = false; // Loading state cho nút lưu
   deletedDetailIds: number[] = [];
 
   dataCbbReciver: any[] = [];
@@ -122,7 +125,6 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
   dataCbbSupplier: any[] = [];
   dataCbbRulePay: any[] = [];
   customerID: number = 0;
-
 
   productOptions: any = [];
   projectOptions: any = [];
@@ -180,11 +182,10 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
 
     SupplierSaleID: null,
     BillDocumentExportType: null,
-    ApproverID: null
+    ApproverID: null,
   };
   isEditPM: boolean = true;
   cbbStatus: any[] = [
-
     { ID: 0, Name: 'Trả' },
     { ID: 1, Name: 'Cho mượn' },
     { ID: 2, Name: 'Tặng / Bán' },
@@ -192,7 +193,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     { ID: 4, Name: 'Bảo hành' },
     { ID: 5, Name: 'Xuất dự án' },
     { ID: 6, Name: 'Hỏng' },
-    { ID: 7, Name: 'Xuất kho' }
+    { ID: 7, Name: 'Xuất kho' },
   ];
 
   @ViewChild('table_BillExportDetails') tableBillExportDetails!: ElementRef;
@@ -200,7 +201,6 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
   private initialBillTypeNew: number | null = null; // Thêm biến này
   private isInitialLoad: boolean = true; // Cờ để biết có đang load lần đầu không
   dateFormat = 'dd/MM/yyyy';
-
 
   validateForm!: FormGroup;
   private destroy$ = new Subject<void>();
@@ -212,7 +212,11 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
   popupPosition: { top: string; left: string } = { top: '0px', left: '0px' };
 
   // Các field để search trong popup
-  productSearchFields: string[] = ['ProductCode', 'ProductCodeRTC', 'ProductName'];
+  productSearchFields: string[] = [
+    'ProductCode',
+    'ProductCodeRTC',
+    'ProductName',
+  ];
 
   // Product popup columns
   productPopupColumns: ColumnDefinition[] = [
@@ -266,9 +270,8 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     private appRef: ApplicationRef,
     public activeModal: NgbActiveModal,
     private appUserService: AppUserService,
-    private ProductProtectiveGearService: ProductProtectiveGearService,) {
-
-  }
+    private ProductProtectiveGearService: ProductProtectiveGearService,
+  ) {}
 
   ngOnInit(): void {
     this.getSupplier();
@@ -304,11 +307,16 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe((deliverID: number) => {
         if (deliverID) {
-          const deliverer = this.receiverAndDeliverList.find(p => p.ID === deliverID);
+          const deliverer = this.receiverAndDeliverList.find(
+            (p) => p.ID === deliverID,
+          );
           if (deliverer) {
-            this.validateForm.patchValue({
-              Deliver: deliverer.FullName
-            }, { emitEvent: false });
+            this.validateForm.patchValue(
+              {
+                Deliver: deliverer.FullName,
+              },
+              { emitEvent: false },
+            );
           }
         }
       });
@@ -319,11 +327,16 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe((receiverID: number) => {
         if (receiverID) {
-          const receiver = this.receiverAndDeliverList.find(p => p.ID === receiverID);
+          const receiver = this.receiverAndDeliverList.find(
+            (p) => p.ID === receiverID,
+          );
           if (receiver) {
-            this.validateForm.patchValue({
-              Receiver: receiver.FullName
-            }, { emitEvent: false });
+            this.validateForm.patchValue(
+              {
+                Receiver: receiver.FullName,
+              },
+              { emitEvent: false },
+            );
           }
         }
       });
@@ -353,7 +366,9 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     this.validateForm = this.fb.group({
       ID: this.fb.control(this.newBillExport.ID),
       Code: this.fb.control(this.newBillExport.Code, [Validators.required]),
-      BillType: this.fb.control(this.newBillExport.BillType, [Validators.required]),
+      BillType: this.fb.control(this.newBillExport.BillType, [
+        Validators.required,
+      ]),
       CustomerID: this.fb.control(this.newBillExport.CustomerID),
       Receiver: this.fb.control(this.newBillExport.Receiver),
       Deliver: this.fb.control(this.newBillExport.Deliver),
@@ -367,7 +382,9 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       SupplierID: this.fb.control(this.newBillExport.SupplierID),
       CustomerName: this.fb.control(this.newBillExport.CustomerName),
       SupplierName: this.fb.control(this.newBillExport.SupplierName),
-      CheckAddHistoryProductRTC: this.fb.control(this.newBillExport.CheckAddHistoryProductRTC),
+      CheckAddHistoryProductRTC: this.fb.control(
+        this.newBillExport.CheckAddHistoryProductRTC,
+      ),
       ExpectedDate: this.fb.control(this.newBillExport.ExpectedDate),
       ProjectName: this.fb.control(this.newBillExport.ProjectName),
       WarehouseID: this.fb.control(this.newBillExport.WarehouseID),
@@ -376,7 +393,9 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       UpdatedBy: this.fb.control(this.newBillExport.UpdatedBy),
       UpdatedDate: this.fb.control(this.newBillExport.UpdatedDate),
       SupplierSaleID: this.fb.control(this.newBillExport.SupplierSaleID),
-      BillDocumentExportType: this.fb.control(this.newBillExport.BillDocumentExportType),
+      BillDocumentExportType: this.fb.control(
+        this.newBillExport.BillDocumentExportType,
+      ),
       ApproverID: this.fb.control(this.newBillExport.ApproverID),
     });
   }
@@ -396,7 +415,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       error: (err) => {
         console.log(err);
       },
-    })
+    });
   }
   private getCustomer() {
     this.ProductProtectiveGearService.getCustomer().subscribe({
@@ -407,7 +426,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       error: (err) => {
         console.log(err);
       },
-    })
+    });
   }
   private getReceiverAndDeliver() {
     this.ProductProtectiveGearService.getReceiverAndDeliver().subscribe({
@@ -418,7 +437,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       error: (err) => {
         console.log(err);
       },
-    })
+    });
   }
 
   private getWarehouse() {
@@ -430,7 +449,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       error: (err) => {
         console.log(err);
       },
-    })
+    });
   }
 
   private getRulePay() {
@@ -442,7 +461,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       error: (err) => {
         console.log(err);
       },
-    })
+    });
   }
 
   private getProduct() {
@@ -454,7 +473,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       error: (err) => {
         console.log(err);
       },
-    })
+    });
   }
 
   // Reset form và data khi thêm mới
@@ -487,7 +506,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       UpdatedDate: null,
       SupplierSaleID: null,
       BillDocumentExportType: null,
-      ApproverID: null
+      ApproverID: null,
     };
 
     // Reset form
@@ -495,7 +514,11 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       this.validateForm.reset();
       this.validateForm.patchValue({
         ID: 0,
-        CreatDate: new Date(),
+        CreatedDate: new Date(), // Ngày xuất mặc định là ngày hiện tại
+        WarehouseType: 'Đồ phòng sạch',
+        BillType: 0,
+        Deliver: this.appUserService.fullName || '', // Tên đầy đủ của người đăng nhập
+        DeliverID: this.appUserService.id || null, // ID của người đăng nhập
       });
     }
 
@@ -528,15 +551,13 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
         // KhoTypeID: this.newBillImport.KhoTypeID,
         // BillTypeNew: GIỮ NGUYÊN giá trị đã set = 1, không patch lại
       },
-      { emitEvent: false }
+      { emitEvent: false },
     );
     this.isInitialLoad = false;
     // if (this.newBillImport.KhoTypeID) {
     //   this.changeProductGroup(this.newBillImport.KhoTypeID);
     // }
   }
-
-
 
   changeStatus() {
     this.getNewCode();
@@ -549,8 +570,6 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       RulePayID: specialSuppliers.includes(supplierId) ? 34 : 0,
     });
   }
-
-
 
   private clearRestrictedFieldsIfNeeded(deliverID: number): void {
     // Kiểm tra xem user có quyền chỉnh sửa hay không
@@ -586,7 +605,6 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     }
   }
 
-
   getBillExportByID() {
     if (this.id <= 0) return;
 
@@ -598,35 +616,40 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
           this.newBillExport = data;
 
           // Patch data vào form
-          this.validateForm.patchValue({
-            ID: data.ID || 0,
-            Code: data.Code || null,
-            BillType: data.BillType || null,
-            CustomerID: data.CustomerID || null,
-            Receiver: data.Receiver || null,
-            Deliver: data.Deliver || null,
-            Addres: data.Addres || null,
-            Status: data.Status || null,
-            WarehouseType: data.WarehouseType || null,
-            Note: data.Note || null,
-            Image: data.Image || null,
-            ReceiverID: data.ReceiverID || null,
-            DeliverID: data.DeliverID || null,
-            SupplierID: data.SupplierID || null,
-            CustomerName: data.CustomerName || null,
-            SupplierName: data.SupplierName || null,
-            CheckAddHistoryProductRTC: data.CheckAddHistoryProductRTC || null,
-            ExpectedDate: data.ExpectedDate ? new Date(data.ExpectedDate) : null,
-            ProjectName: data.ProjectName || null,
-            WarehouseID: data.WarehouseID || null,
-            CreatedBy: data.CreatedBy || null,
-            CreatedDate: data.CreatedDate ? new Date(data.CreatedDate) : null,
-            UpdatedBy: data.UpdatedBy || null,
-            UpdatedDate: data.UpdatedDate ? new Date(data.UpdatedDate) : null,
-            SupplierSaleID: data.SupplierSaleID || null,
-            BillDocumentExportType: data.BillDocumentExportType || null,
-            ApproverID: data.ApproverID || null,
-          }, { emitEvent: false });
+          this.validateForm.patchValue(
+            {
+              ID: data.ID || 0,
+              Code: data.Code || null,
+              BillType: data.BillType || null,
+              CustomerID: data.CustomerID || null,
+              Receiver: data.Receiver || null,
+              Deliver: data.Deliver || null,
+              Addres: data.Addres || null,
+              Status: data.Status || null,
+              WarehouseType: data.WarehouseType || null,
+              Note: data.Note || null,
+              Image: data.Image || null,
+              ReceiverID: data.ReceiverID || null,
+              DeliverID: data.DeliverID || null,
+              SupplierID: data.SupplierID || null,
+              CustomerName: data.CustomerName || null,
+              SupplierName: data.SupplierName || null,
+              CheckAddHistoryProductRTC: data.CheckAddHistoryProductRTC || null,
+              ExpectedDate: data.ExpectedDate
+                ? new Date(data.ExpectedDate)
+                : null,
+              ProjectName: data.ProjectName || null,
+              WarehouseID: data.WarehouseID || null,
+              CreatedBy: data.CreatedBy || null,
+              CreatedDate: data.CreatedDate ? new Date(data.CreatedDate) : null,
+              UpdatedBy: data.UpdatedBy || null,
+              UpdatedDate: data.UpdatedDate ? new Date(data.UpdatedDate) : null,
+              SupplierSaleID: data.SupplierSaleID || null,
+              BillDocumentExportType: data.BillDocumentExportType || null,
+              ApproverID: data.ApproverID || null,
+            },
+            { emitEvent: false },
+          );
 
           console.log('Loaded bill export:', data);
 
@@ -637,7 +660,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
         } else {
           this.notification.warning(
             'Thông báo',
-            res?.message || 'Không thể lấy thông tin phiếu xuất!'
+            res?.message || 'Không thể lấy thông tin phiếu xuất!',
           );
         }
         this.isLoading = false;
@@ -645,7 +668,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       error: (err) => {
         this.notification.error(
           'Thông báo',
-          'Có lỗi xảy ra khi lấy thông tin!'
+          'Có lỗi xảy ra khi lấy thông tin!',
         );
         console.error(err);
         this.isLoading = false;
@@ -661,11 +684,16 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       next: (res) => {
         if (res?.data) {
           this.dataTableBillExportDetail = res.data;
-          console.log('Loaded bill export details:', this.dataTableBillExportDetail);
+          console.log(
+            'Loaded bill export details:',
+            this.dataTableBillExportDetail,
+          );
 
           // Refresh table với data mới
           if (this.table_billExportDetail) {
-            this.table_billExportDetail.replaceData(this.dataTableBillExportDetail);
+            this.table_billExportDetail.replaceData(
+              this.dataTableBillExportDetail,
+            );
             setTimeout(() => {
               this.table_billExportDetail.redraw(true);
             }, 100);
@@ -718,11 +746,10 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     this.activeModal.close();
   }
 
-
   mapTableDataToBillExportDetails(tableData: any[]) {
     return tableData.map((row, index) => ({
       ID: row.ID || 0,
-      STT: row.STT || (index + 1),
+      STT: row.STT || index + 1,
       BillExportTechID: this.newBillExport.ID || 0,
       ProductID: row.ProductID ?? 0,
 
@@ -732,32 +759,32 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       TotalPrice: row.TotalPrice ?? 0,
 
       UnitID: row.UnitID ?? 0,
-      UnitName: row.UnitName ?? "",
+      UnitName: row.UnitName ?? '',
 
       ProjectID: row.ProjectID ?? 0,
-      ProjectCode: row.ProjectCode ?? "",
-      ProjectName: row.ProjectName ?? "",
+      ProjectCode: row.ProjectCode ?? '',
+      ProjectName: row.ProjectName ?? '',
 
-      SomeBill: row.SomeBill ?? "",
+      SomeBill: row.SomeBill ?? '',
 
-      CreatedBy: row.CreatedBy ?? "",
+      CreatedBy: row.CreatedBy ?? '',
       CreatedDate: row.CreatedDate ?? null,
-      UpdatedBy: row.UpdatedBy ?? "",
+      UpdatedBy: row.UpdatedBy ?? '',
       UpdatedDate: row.UpdatedDate ?? null,
 
-      Note: row.Note ?? "",
-      InternalCode: row.InternalCode ?? "",
+      Note: row.Note ?? '',
+      InternalCode: row.InternalCode ?? '',
 
       HistoryProductRTCID: row.HistoryProductRTCID ?? 0,
       ProductRTCQRCodeID: row.ProductRTCQRCodeID ?? 0,
       WarehouseID: row.WarehouseID ?? 5,
 
-      ProductName: row.ProductName ?? "",
-      ProductCode: row.ProductCode ?? "",
+      ProductName: row.ProductName ?? '',
+      ProductCode: row.ProductCode ?? '',
       UnitCountName: row.UnitCountName ?? null,
-      WarehouseType: row.WarehouseType ?? "",
-      ProductCodeRTC: row.ProductCodeRTC ?? "",
-      Maker: row.Maker ?? "",
+      WarehouseType: row.WarehouseType ?? '',
+      ProductCodeRTC: row.ProductCodeRTC ?? '',
+      Maker: row.Maker ?? '',
       ProductQRCode: row.ProductQRCode ?? null,
 
       IsDeleted: row.IsDeleted ?? null,
@@ -768,7 +795,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     if (!this.validateForm.valid) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Vui lòng điền đầy đủ thông tin bắt buộc và kiểm tra lỗi!'
+        'Vui lòng điền đầy đủ thông tin bắt buộc và kiểm tra lỗi!',
       );
       this.validateForm.markAllAsTouched();
       Object.values(this.validateForm.controls).forEach((control) => {
@@ -786,7 +813,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     if (!formValues.Code || formValues.Code.trim() === '') {
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Xin hãy điền số phiếu.'
+        'Xin hãy điền số phiếu.',
       );
       return;
     }
@@ -794,11 +821,10 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     if (formValues.BillType === null || formValues.BillType === undefined) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Xin hãy chọn loại phiếu.'
+        'Xin hãy chọn loại phiếu.',
       );
       return;
     }
-
 
     const billExportDetailsFromTable = this.table_billExportDetail?.getData();
     console.log('billExportDetailFromTable:', billExportDetailsFromTable);
@@ -809,7 +835,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     ) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Vui lòng thêm ít nhất một sản phẩm vào bảng!'
+        'Vui lòng thêm ít nhất một sản phẩm vào bảng!',
       );
       return;
     }
@@ -822,7 +848,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       if (!quantity || quantity <= 0) {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          `Dòng ${i + 1}: Số lượng phải lớn hơn 0!`
+          `Dòng ${i + 1}: Số lượng phải lớn hơn 0!`,
         );
         return;
       }
@@ -830,7 +856,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       if (!row.ProductID || row.ProductID <= 0) {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          `Dòng ${i + 1}: Vui lòng chọn sản phẩm!`
+          `Dòng ${i + 1}: Vui lòng chọn sản phẩm!`,
         );
         return;
       }
@@ -844,12 +870,18 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
           Code: formValues.Code,
           BillType: formValues.BillType,
           CustomerID: formValues.CustomerID || null,
-          Receiver: formValues.Receiver ||
-            this.receiverAndDeliverList.find((item) => item.ID === formValues.ReceiverID)
-              ?.FullName || null,
-          Deliver: formValues.Deliver ||
-            this.receiverAndDeliverList.find((item) => item.ID === formValues.DeliverID)
-              ?.FullName || null,
+          Receiver:
+            formValues.Receiver ||
+            this.receiverAndDeliverList.find(
+              (item) => item.ID === formValues.ReceiverID,
+            )?.FullName ||
+            null,
+          Deliver:
+            formValues.Deliver ||
+            this.receiverAndDeliverList.find(
+              (item) => item.ID === formValues.DeliverID,
+            )?.FullName ||
+            null,
           Addres: formValues.Addres || null,
           Status: formValues.Status || null,
           WarehouseType: formValues.WarehouseType || null,
@@ -860,10 +892,12 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
           SupplierID: formValues.SupplierID || null,
           CustomerName: formValues.CustomerName || null,
           SupplierName: formValues.SupplierName || null,
-          CheckAddHistoryProductRTC: formValues.CheckAddHistoryProductRTC || null,
+          CheckAddHistoryProductRTC:
+            formValues.CheckAddHistoryProductRTC || null,
           ExpectedDate: formValues.ExpectedDate || null,
           ProjectName: formValues.ProjectName || null,
-          WarehouseID: formValues.WarehouseID || this.newBillExport.WarehouseID || 5,
+          WarehouseID:
+            formValues.WarehouseID || this.newBillExport.WarehouseID || 5,
           CreatedBy: formValues.CreatedBy || this.newBillExport.CreatedBy,
           CreatedDate: formValues.CreatedDate || new Date(),
           UpdatedBy: this.newBillExport.UpdatedBy,
@@ -873,7 +907,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
           ApproverID: formValues.ApproverID || null,
         },
         BillExportDetailTechnical: this.mapTableDataToBillExportDetails(
-          billExportDetailsFromTable
+          billExportDetailsFromTable,
         ),
         DeletedDetailIds: this.deletedDetailIds || [],
       },
@@ -889,14 +923,14 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
         if (res.status === 1) {
           this.notification.success(
             NOTIFICATION_TITLE.success,
-            this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
+            this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!',
           );
           this.activeModal.close('saved');
         } else {
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
             res.message ||
-            (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
+              (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!'),
           );
         }
       },
@@ -927,7 +961,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     if (this.isCheckmode == true && this.id == 0) {
       this.notification.info(
         NOTIFICATION_TITLE.success,
-        'Vui lòng chọn 1 phiếu xuất để sửa'
+        'Vui lòng chọn 1 phiếu xuất để sửa',
       );
       this.id = 0;
       return;
@@ -959,31 +993,31 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
         STT: 0,
         BillExportTechID: this.newBillExport.ID || 0,
         ProductID: 0,
-        ProductCode: "",
-        ProductName: "",
-        ProductCodeRTC: "",
+        ProductCode: '',
+        ProductName: '',
+        ProductCodeRTC: '',
         Quantity: 0,
         TotalQuantity: 0,
         Price: 0,
         TotalPrice: 0,
         UnitID: 0,
-        UnitName: "",
+        UnitName: '',
         ProjectID: 0,
-        ProjectCode: "",
-        ProjectName: "",
-        SomeBill: "",
-        CreatedBy: "",
+        ProjectCode: '',
+        ProjectName: '',
+        SomeBill: '',
+        CreatedBy: '',
         CreatedDate: null,
-        UpdatedBy: "",
+        UpdatedBy: '',
         UpdatedDate: null,
-        Note: "",
-        InternalCode: "",
+        Note: '',
+        InternalCode: '',
         HistoryProductRTCID: 0,
         ProductRTCQRCodeID: 0,
         WarehouseID: 5,
         UnitCountName: null,
-        WarehouseType: "",
-        Maker: "",
+        WarehouseType: '',
+        Maker: '',
         ProductQRCode: null,
         IsDeleted: false,
       });
@@ -998,7 +1032,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       valueField: string;
       labelField: string;
       placeholder?: string;
-    }
+    },
   ) {
     return (cell: any, onRendered: any, success: any, cancel: any) => {
       const container = document.createElement('div');
@@ -1009,8 +1043,9 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       let data = getData();
       data = data.map((p: any) => ({
         ...p,
-        productLabel: `${p.ProductNewCode || ''} | ${p.ProductCode || ''} | ${p.ProductName || ''
-          }`,
+        productLabel: `${p.ProductNewCode || ''} | ${p.ProductCode || ''} | ${
+          p.ProductName || ''
+        }`,
       }));
       componentRef.instance.id = cell.getValue();
       componentRef.instance.data = data;
@@ -1028,7 +1063,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
 
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => { });
+      onRendered(() => {});
 
       return container;
     };
@@ -1064,7 +1099,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       ProductName: p.ProductName,
       UnitCountName: p.UnitCountName,
       UnitCountID: p.UnitCountID,
-      Maker: p.Maker
+      Maker: p.Maker,
     }));
 
     console.log('Product popup opened, options:', this.productOptions.length);
@@ -1095,9 +1130,6 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
 
     this.showProjectPopup = true;
   }
-
-
-
 
   onTabChange(index: number): void {
     this.isLoading = true;
@@ -1187,8 +1219,6 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     //   },
     // });
   }
-
-
 
   //vẽ bảng
   drawTable() {
@@ -1281,7 +1311,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
 
                 if (!productcode) {
                   const product = this.productList.find(
-                    (p: any) => p.value === val
+                    (p: any) => p.value === val,
                   );
                   productcode = product ? product.ProductCode : '';
                 }
@@ -1335,9 +1365,10 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
               hozAlign: 'left',
               headerHozAlign: 'center',
               editor: 'input',
-            }
+              width: 200,
+            },
           ],
-        }
+        },
       );
       this.isLoading = false; // Kết thúc loading
     }
@@ -1400,5 +1431,4 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
     this.currentEditingCell = null;
   }
   // Handle Product Selection
-
 }

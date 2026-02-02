@@ -24,14 +24,17 @@
                 </div>
               </div> -->
 
+              <div class="card-header bg-white border-bottom py-2">
+                <h6 class="mb-0 text-uppercase fw-bold text-primary">DANH MỤC</h6>
+              </div>
               <p-menubar [model]="categoryMenuBars">
                 <ng-template pTemplate="item" let-item>
-                    <a class="p-menuitem-link" [ngClass]="item.styleClass">
-                        <i [class]="item.icon"></i>
-                        <span class="p-menuitem-text">{{ item.label }}</span>
-                    </a>
+                  <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                    <i [class]="item.icon"></i>
+                    <span class="p-menuitem-text">{{ item.label }}</span>
+                  </a>
                 </ng-template>
-            </p-menubar>
+              </p-menubar>
               <div class="card-body p-0">
                 <div #CategoryTable style="width: 100%; height: 100%"></div>
               </div>
@@ -47,6 +50,7 @@
       <ng-container class="w-100">
         <nz-splitter>
           <nz-splitter-panel nzDefaultSize="100%">
+         
             <div class="card h-100 border-0 rounded-0">
               <!-- <div class="card-header bg-white p-1">
                 <div class="d-flex gap-1">
@@ -65,25 +69,19 @@
                 </div>
               </div> -->
 
+              <div class="card-header bg-white border-bottom py-2">
+                <h6 class="mb-0 text-uppercase fw-bold text-primary">KHÓA HỌC</h6>
+              </div>
               <p-menubar [model]="courseMenuBars">
                 <ng-template pTemplate="item" let-item>
-                    <a class="p-menuitem-link" [ngClass]="item.styleClass">
-                        <i [class]="item.icon"></i>
-                        <span class="p-menuitem-text">{{ item.label }}</span>
-                    </a>
+                  <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                    <i [class]="item.icon"></i>
+                    <span class="p-menuitem-text">{{ item.label }}</span>
+                  </a>
                 </ng-template>
-            </p-menubar>
+              </p-menubar>
               <div class="card-body p-0">
-                <!-- <div class="p-2">
-                  <nz-input-group [nzSuffix]="suffixIconSearch">
-                    <input type="text" nz-input placeholder="Nhập từ khóa để tìm kiếm" [(ngModel)]="keyword"
-                      (ngModelChange)="onSearchChange()" name="keyword" />
-                  </nz-input-group>
-                  <ng-template #suffixIconSearch>
-                    <nz-icon nzType="search" />
-                  </ng-template>
-                </div> -->
-                <div #CourseTable style="width: 100%; height: calc(100% - 60px)"></div>
+                <div #CourseTable style="width: 100%; height: 100%"></div>
               </div>
             </div>
           </nz-splitter-panel>
@@ -116,14 +114,17 @@
                   </button>
                 </div>
               </div> -->
+              <div class="card-header bg-white border-bottom py-2">
+                <h6 class="mb-0 text-uppercase fw-bold text-primary">BÀI HỌC</h6>
+              </div>
               <p-menubar [model]="lessonMenuBars">
                 <ng-template pTemplate="item" let-item>
-                    <a class="p-menuitem-link" [ngClass]="item.styleClass">
-                        <i [class]="item.icon"></i>
-                        <span class="p-menuitem-text">{{ item.label }}</span>
-                    </a>
+                  <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                    <i [class]="item.icon"></i>
+                    <span class="p-menuitem-text">{{ item.label }}</span>
+                  </a>
                 </ng-template>
-            </p-menubar>
+              </p-menubar>
 
               <div class="card-body p-0">
                 <div #LessonTable style="width: 100%; height: 100%"></div>

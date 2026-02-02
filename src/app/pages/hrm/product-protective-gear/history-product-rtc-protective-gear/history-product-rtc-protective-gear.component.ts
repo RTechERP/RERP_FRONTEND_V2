@@ -7,7 +7,7 @@ import {
   Output,
   EventEmitter,
   inject,
-  ChangeDetectorRef
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,7 +25,7 @@ import {
   Formatters,
   GridOption,
   MultipleSelectOption,
-  OnSelectedRowsChangedEventArgs
+  OnSelectedRowsChangedEventArgs,
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 
@@ -43,7 +43,11 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 
 // ng-bootstrap
-import { NgbModal, NgbActiveModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import {
+  NgbModal,
+  NgbActiveModal,
+  NgbModalModule,
+} from '@ng-bootstrap/ng-bootstrap';
 
 // Services
 // import { ProductProtectiveGearService } from '../../borrow-service/borrow.service';
@@ -67,10 +71,9 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 // import { HistoryProductRtcDetailComponent } from '../history-product-rtc-detail/history-product-rtc-detail.component';
 import { ProductProtectiveGearService } from '../product-protective-gear-service/product-protective-gear.service';
 import { HistoryProductRtcProtectiveGearDetailComponent } from '../history-product-rtc-protective-gear-detail/history-product-rtc-protective-gear-detail.component';
-import { Menubar } from "primeng/menubar";
-import { NzCardComponent } from "ng-zorro-antd/card";
+import { Menubar } from 'primeng/menubar';
+import { NzCardComponent } from 'ng-zorro-antd/card';
 import { BorrowProductHistoryEditPersonComponent } from '../../../old/inventory-demo/borrow/borrow-product-history/borrow-product-history-edit-person/borrow-product-history-edit-person.component';
-
 
 @Component({
   imports: [
@@ -90,13 +93,15 @@ import { BorrowProductHistoryEditPersonComponent } from '../../../old/inventory-
     NgbModalModule,
     HasPermissionDirective,
     Menubar,
-    NzCardComponent
+    NzCardComponent,
   ],
   selector: 'app-history-product-rtc-protective-gear',
   templateUrl: './history-product-rtc-protective-gear.component.html',
-  styleUrls: ['./history-product-rtc-protective-gear.component.css']
+  styleUrls: ['./history-product-rtc-protective-gear.component.css'],
 })
-export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterViewInit, OnDestroy {
+export class HistoryProductRtcProtectiveGearComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   // INTEGRATION: Input/Output để hoạt động như modal
   menuBars: MenuItem[] = [];
   @Input() isModalMode: boolean = false;
@@ -149,11 +154,11 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
     private appUserService: AppUserService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
-    private ProductProtectiveGearService: ProductProtectiveGearService
-  ) { }
+    private ProductProtectiveGearService: ProductProtectiveGearService,
+  ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       this.warehouseID = params['warehouseID'] || 5;
     });
     this.initMenuBar();
@@ -170,7 +175,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
   initMenuBar() {
     this.menuBars = [
@@ -238,8 +243,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
           this.exportExcel();
         },
       },
-
-    ]
+    ];
   }
   private initGridColumns(): void {
     this.columnDefinitions = [
@@ -371,7 +375,13 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
           } as MultipleSelectOption,
         },
         // Custom formatter for cell coloring
-        formatter: (row: number, cell: number, value: any, columnDef: Column, dataContext: any) => {
+        formatter: (
+          row: number,
+          cell: number,
+          value: any,
+          columnDef: Column,
+          dataContext: any,
+        ) => {
           const statusNew = dataContext['StatusNew'];
           const status = dataContext['Status'];
           const billExportID = dataContext['BillExportTechnicalID'] || 0;
@@ -407,14 +417,17 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: (row: number, cell: number, value: any) => {
-          if (!value) return '';
-          try {
-            return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
-          } catch {
-            return value;
-          }
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: {
+          model: Filters['compoundDate'],
+          collectionOptions: {
+            addBlankEntry: true,
+          },
         },
+        cssClass: 'text-center',
       },
       {
         id: 'DateReturnExpected',
@@ -423,14 +436,17 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         width: 130,
         sortable: true,
         filterable: true,
-        formatter: (row: number, cell: number, value: any) => {
-          if (!value) return '';
-          try {
-            return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
-          } catch {
-            return value;
-          }
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: {
+          model: Filters['compoundDate'],
+          collectionOptions: {
+            addBlankEntry: true,
+          },
         },
+        cssClass: 'text-center',
       },
       {
         id: 'DateReturn',
@@ -439,14 +455,17 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: (row: number, cell: number, value: any) => {
-          if (!value) return '';
-          try {
-            return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
-          } catch {
-            return value;
-          }
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: {
+          model: Filters['compoundDate'],
+          collectionOptions: {
+            addBlankEntry: true,
+          },
         },
+        cssClass: 'text-center',
       },
       {
         id: 'Project',
@@ -470,7 +489,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         width: 200,
         sortable: true,
         filterable: true,
-      }
+      },
     ];
   }
 
@@ -514,7 +533,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
               if (id > 0) {
                 this.historyProductRTCLog(id);
               }
-            }
+            },
           },
           {
             command: 'view-detail',
@@ -523,7 +542,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
             action: (e: any, args: any) => {
               const rowData = args.dataContext;
               this.openDetailTab(rowData);
-            }
+            },
           },
           {
             command: 'view-detail',
@@ -532,7 +551,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
             action: (e: any, args: any) => {
               const rowData = args.dataContext;
               this.addErrorPersonal(rowData.ID);
-            }
+            },
           },
           {
             command: 'view-bill-export',
@@ -541,9 +560,9 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
             action: (e: any, args: any) => {
               const rowData = args.dataContext;
               this.showBillExport(rowData);
-            }
-          }
-        ]
+            },
+          },
+        ],
       },
       // Config xuất excel
       externalResources: [this.excelExportService],
@@ -557,7 +576,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         displayNegativeNumberWithParentheses: true,
         minDecimal: 0,
         maxDecimal: 2,
-        thousandSeparator: ','
+        thousandSeparator: ',',
       },
     };
   }
@@ -570,7 +589,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         centered: true,
         scrollable: true,
         size: 'xl',
-      }
+      },
     );
     modalRef.componentInstance.HistoryProductID = ID;
   }
@@ -579,13 +598,13 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
 
     // Đầu tháng -1s
     const from = new Date(
-      Date.UTC(now.getFullYear(), now.getMonth(), 1, 0, 0, 0)
+      Date.UTC(now.getFullYear(), now.getMonth(), 1, 0, 0, 0),
     );
     from.setUTCSeconds(from.getUTCSeconds() - 1);
 
     // Cuối tháng +1s
     const to = new Date(
-      Date.UTC(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+      Date.UTC(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59),
     );
     to.setUTCSeconds(to.getUTCSeconds());
 
@@ -600,13 +619,13 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
           let datas = data.data;
           this.employees = this.ProductProtectiveGearService.createdDataGroup(
             datas,
-            'DepartmentName'
+            'DepartmentName',
           );
         } else {
           this.notification.create(
             'warning',
             'Thông báo',
-            'Không có dữ liệu nào được tìm thấy.'
+            'Không có dữ liệu nào được tìm thấy.',
           );
         }
       },
@@ -614,7 +633,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         this.notification.create(
           'error',
           'Lỗi',
-          'Không thể tải dữ liệu. Vui lòng thử lại sau.'
+          'Không thể tải dữ liệu. Vui lòng thử lại sau.',
         );
       },
     });
@@ -626,7 +645,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
       this.notification.create(
         'warning',
         'Thông báo',
-        'Vui lòng chọn ngày bắt đầu và ngày kết thúc!'
+        'Vui lòng chọn ngày bắt đầu và ngày kết thúc!',
       );
       this.isLoading = false;
       return;
@@ -638,10 +657,14 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
     const params = {
       keyWords: this.keyWords?.trim() || '',
       dateStart: this.dateStart
-        ? this.ProductProtectiveGearService.formatDateVN(new Date(this.dateStart as any))
+        ? this.ProductProtectiveGearService.formatDateVN(
+            new Date(this.dateStart as any),
+          )
         : '',
       dateEnd: this.dateEnd
-        ? this.ProductProtectiveGearService.formatDateVN(new Date(this.dateEnd as any))
+        ? this.ProductProtectiveGearService.formatDateVN(
+            new Date(this.dateEnd as any),
+          )
         : '',
       warehouseID: this.warehouseID ?? 5,
       userID: this.userID ?? 0,
@@ -655,7 +678,9 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
       size: 9999999, // Load all data in one call
     };
 
-    const sub = this.ProductProtectiveGearService.getProductHistory(params).subscribe({
+    const sub = this.ProductProtectiveGearService.getProductHistory(
+      params,
+    ).subscribe({
       next: (response: any) => {
         const data = response.data || [];
 
@@ -666,10 +691,14 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
           // Always create unique ID by combining original ID with index
           // This ensures uniqueness even if original IDs are duplicated
           const uniqueId = originalId * 1000000 + index;
-
+          let rowClass = '';
+          if (item.IsDelete == true) {
+            rowClass = 'row-red';
+          }
           return {
             ...item,
             id: uniqueId,
+            _rowClass: rowClass,
           };
         });
 
@@ -691,9 +720,9 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         this.isLoading = false;
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu: ' + (error.message || error)
+          'Lỗi khi tải dữ liệu: ' + (error.message || error),
         );
-      }
+      },
     });
     this.subscriptions.push(sub);
   }
@@ -705,7 +734,9 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
     const allData = this.dataset;
 
     // Helper function to get unique values for a field
-    const getUniqueValues = (field: string): Array<{ value: string; label: string }> => {
+    const getUniqueValues = (
+      field: string,
+    ): Array<{ value: string; label: string }> => {
       const map = new Map<string, string>();
       allData.forEach((row: any) => {
         const value = String(row?.[field] ?? '');
@@ -743,6 +774,17 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
     setTimeout(() => {
       angularGrid.resizerService.resizeGrid();
     }, 100);
+
+    // Apply row CSS classes based on data
+    this.angularGrid.dataView.getItemMetadata = (row: number) => {
+      const item = this.angularGrid.dataView.getItem(row);
+      if (item && item._rowClass) {
+        return {
+          cssClasses: item._rowClass,
+        };
+      }
+      return {};
+    };
   }
 
   onRowSelectionChanged(eventData: any, args: OnSelectedRowsChangedEventArgs) {
@@ -770,9 +812,9 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
     if (!this.angularGrid) return [];
     const selectedIndexes = this.angularGrid.slickGrid.getSelectedRows();
     if (!selectedIndexes || selectedIndexes.length === 0) return [];
-    return selectedIndexes.map((index: number) =>
-      this.angularGrid.dataView.getItem(index)
-    ).filter((item: any) => item);
+    return selectedIndexes
+      .map((index: number) => this.angularGrid.dataView.getItem(index))
+      .filter((item: any) => item);
   }
 
   // UI Methods
@@ -837,7 +879,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
       this.notification.create(
         'warning',
         'Thông báo',
-        'Vui lòng chọn sản phẩm cần trả!.'
+        'Vui lòng chọn sản phẩm cần trả!.',
       );
       return;
     } else {
@@ -848,15 +890,14 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         nzCancelText: 'Hủy',
 
         nzOnOk: () => {
-          const IDAdminDemo = ID_ADMIN_DEMO_LIST || [];
-          const userId = this.appUserService?.id || 0;
-          const isAdmin = IDAdminDemo.includes(userId);
-          const isGlobalAdmin = this.appUserService?.isAdmin || false;
           const employeeID = this.appUserService?.employeeID || 0;
           const arrIds = Array.from(this.selectedArrHistoryProductID);
 
           const validateAndProcess = async () => {
-            const validItems: Array<{ id: number; modulaLocationDetailID: number }> = [];
+            const validItems: Array<{
+              id: number;
+              modulaLocationDetailID: number;
+            }> = [];
 
             for (const id of arrIds) {
               try {
@@ -866,7 +907,9 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
                 }
 
                 const historyRes = await firstValueFrom(
-                  this.ProductProtectiveGearService.getHistoryProductRTCByID(id)
+                  this.ProductProtectiveGearService.getHistoryProductRTCByID(
+                    id,
+                  ),
                 );
 
                 if (historyRes?.status !== 1 || !historyRes?.data) {
@@ -875,26 +918,27 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
 
                 const model = historyRes.data;
                 const status = model.Status || 0;
-                const modulaLocationDetailID = model.ModulaLocationDetailID || 0;
+                const modulaLocationDetailID =
+                  model.ModulaLocationDetailID || 0;
                 const statusPerson = model.StatusPerson || 0;
 
                 if (status !== 1 && status !== 4 && status !== 7) {
                   continue;
                 }
 
-                if (isGlobalAdmin || isAdmin) {
-                  if (
-                    modulaLocationDetailID > 0 &&
-                    statusPerson <= 0 &&
-                    !(isGlobalAdmin && employeeID <= 0)
-                  ) {
-                    this.notification.error(
-                      'Thông báo',
-                      'Nhân viên chưa hoàn thành thao tác trả hàng.\nBạn không thể duyệt trả!'
-                    );
-                    return;
-                  }
-                }
+                // if (isGlobalAdmin || isAdmin) {
+                //   if (
+                //     modulaLocationDetailID > 0 &&
+                //     statusPerson <= 0 &&
+                //     !(isGlobalAdmin && employeeID <= 0)
+                //   ) {
+                //     this.notification.error(
+                //       'Thông báo',
+                //       'Nhân viên chưa hoàn thành thao tác trả hàng.\nBạn không thể duyệt trả!',
+                //     );
+                //     return;
+                //   }
+                // }
 
                 validItems.push({ id, modulaLocationDetailID });
               } catch (error) {
@@ -903,7 +947,10 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
             }
 
             if (validItems.length === 0) {
-              this.notification.warning('Thông báo', 'Không có sản phẩm nào hợp lệ để trả!');
+              this.notification.warning(
+                'Thông báo',
+                'Không có sản phẩm nào hợp lệ để trả!',
+              );
               return;
             }
 
@@ -911,15 +958,16 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
               firstValueFrom(
                 this.ProductProtectiveGearService.postReturnProductRTC(
                   item.id,
-                  isGlobalAdmin || isAdmin,
-                  item.modulaLocationDetailID
-                )
+                  false,
+                  item.modulaLocationDetailID,
+                ),
               )
                 .then(() => ({ id: item.id, success: true, message: null }))
                 .catch((error) => {
-                  const message = error?.error?.message || 'Lỗi không xác định!';
+                  const message =
+                    error?.error?.message || 'Lỗi không xác định!';
                   return { id: item.id, success: false, message };
-                })
+                }),
             );
 
             return Promise.all(tasks).then((results) => {
@@ -929,7 +977,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
               if (ok > 0)
                 this.notification.success(
                   'Thông báo',
-                  `Trả thành công ${ok} sản phẩm.`
+                  `Trả thành công ${ok} sản phẩm.`,
                 );
               if (failed.length > 0)
                 failed.forEach((item) => {
@@ -956,7 +1004,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
       this.notification.create(
         'warning',
         'Thông báo',
-        'Vui lòng chọn sản phẩm gia hạn!.'
+        'Vui lòng chọn sản phẩm gia hạn!.',
       );
       return;
     } else {
@@ -977,7 +1025,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
           const tasks = ids.map(async (id) => {
             try {
               const res = await firstValueFrom(
-                this.ProductProtectiveGearService.getHistoryProductRTCByID(id)
+                this.ProductProtectiveGearService.getHistoryProductRTCByID(id),
               );
               if (res?.status !== 1) throw new Error('Truy vấn thất bại');
 
@@ -987,7 +1035,9 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
                 UpdatedDate: new Date().toISOString(),
               };
               const up = await firstValueFrom(
-                this.ProductProtectiveGearService.postSaveExtendProduct(history)
+                this.ProductProtectiveGearService.postSaveExtendProduct(
+                  history,
+                ),
               );
               if (up?.status !== 1) throw new Error('Cập nhật thất bại');
               return { id, success: true };
@@ -998,7 +1048,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
 
           const results = await Promise.allSettled(tasks);
           const flat = results.map((r) =>
-            r.status === 'fulfilled' ? r.value : r.reason
+            r.status === 'fulfilled' ? r.value : r.reason,
           );
           const ok = flat.filter((x: any) => x?.success).length;
           const fail = flat.length - ok;
@@ -1006,12 +1056,12 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
           if (ok)
             this.notification.success(
               'Thông báo',
-              `Gia hạn thành công ${ok} sản phẩm.`
+              `Gia hạn thành công ${ok} sản phẩm.`,
             );
           if (fail)
             this.notification.error(
               'Thông báo',
-              `Gia hạn thất bại ${fail} sản phẩm.`
+              `Gia hạn thất bại ${fail} sản phẩm.`,
             );
 
           this.loadData();
@@ -1030,7 +1080,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
       this.notification.create(
         'warning',
         'Thông báo',
-        'Vui lòng chọn sản phẩm cần duyệt!.'
+        'Vui lòng chọn sản phẩm cần duyệt!.',
       );
       return;
     } else {
@@ -1048,7 +1098,10 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
               rowData?.ProductCodeRTC || rowData?.ProductCode || 'N/A';
 
             return firstValueFrom(
-              this.ProductProtectiveGearService.postApproveBorrowingRTC(id, false)
+              this.ProductProtectiveGearService.postApproveBorrowingRTC(
+                id,
+                false,
+              ),
             )
               .then(() => ({
                 id,
@@ -1074,14 +1127,14 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
             if (ok > 0)
               this.notification.success(
                 'Thông báo',
-                `Duyệt thành công ${ok} sản phẩm.`
+                `Duyệt thành công ${ok} sản phẩm.`,
               );
 
             if (failed.length > 0) {
               failed.forEach((item) => {
                 this.notification.error(
                   'Duyệt thất bại',
-                  `Thiết bị ${item.ProductNewCode}: ${item.message}`
+                  `Thiết bị ${item.ProductNewCode}: ${item.message}`,
                 );
               });
             }
@@ -1104,7 +1157,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
       this.notification.create(
         'warning',
         'Thông báo',
-        'Vui lòng chọn sản phẩm cần chuyển người mượn!.'
+        'Vui lòng chọn sản phẩm cần chuyển người mượn!.',
       );
       return;
     } else {
@@ -1116,10 +1169,10 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
           centered: true,
           scrollable: true,
           size: 'xl',
-        }
+        },
       );
       modalRef.componentInstance.arrHistoryProductID = Array.from(
-        this.selectedArrHistoryProductID
+        this.selectedArrHistoryProductID,
       );
       modalRef.componentInstance.ProductName = this.selectedProductName;
       modalRef.componentInstance.ProductCode = this.selectedProductCode;
@@ -1136,7 +1189,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
       this.notification.create(
         'warning',
         'Thông báo',
-        'Vui lòng chọn sản phẩm cần xóa!'
+        'Vui lòng chọn sản phẩm cần xóa!',
       );
       return;
     }
@@ -1150,13 +1203,15 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
       nzOnOk: async () => {
         try {
           const response = await firstValueFrom(
-            this.ProductProtectiveGearService.postDeleteHistoryProduct(idsToDelete)
+            this.ProductProtectiveGearService.postDeleteHistoryProduct(
+              idsToDelete,
+            ),
           );
 
           if (response?.status === 1) {
             this.notification.success(
               'Thông báo',
-              `Xóa thành công ${idsToDelete.length} thiết bị khỏi lịch sử mượn.`
+              `Xóa thành công ${idsToDelete.length} thiết bị khỏi lịch sử mượn.`,
             );
             this.loadData();
             this.selectedArrHistoryProductID.clear();
@@ -1164,7 +1219,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
           } else {
             this.notification.error(
               'Thông báo',
-              response?.message || 'Xóa thất bại!'
+              response?.message || 'Xóa thất bại!',
             );
           }
         } catch (error: any) {
@@ -1185,7 +1240,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
       this.notification.create(
         'warning',
         'Thông báo',
-        'Vui lòng chọn sản phẩm cần xóa!'
+        'Vui lòng chọn sản phẩm cần xóa!',
       );
       return;
     }
@@ -1202,7 +1257,11 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
             // Lấy thông tin sản phẩm từ selectedProductsMap
             const productData = this.selectedProductsMap.get(id);
             if (!productData) {
-              return { id, success: false, message: 'Không tìm thấy thông tin sản phẩm!' };
+              return {
+                id,
+                success: false,
+                message: 'Không tìm thấy thông tin sản phẩm!',
+              };
             }
 
             // Gọi API save với IsDelete = true
@@ -1218,11 +1277,11 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
               NumberBorrow: productData.NumberBorrow || 0,
               SerialNumber: productData.SerialNumber || '',
               WarehouseID: productData.WarehouseID || this.warehouseID,
-              IsDelete: true // Flag để xóa
+              IsDelete: true, // Flag để xóa
             };
 
             await firstValueFrom(
-              this.ProductProtectiveGearService.postSaveHistoryProductRTC(data)
+              this.ProductProtectiveGearService.postSaveHistoryProductRTC(data),
             );
             return { id, success: true, message: null };
           } catch (error: any) {
@@ -1232,19 +1291,22 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         });
 
         const results = await Promise.all(deleteRequests);
-        const successCount = results.filter(r => r.success).length;
-        const failed = results.filter(r => !r.success);
+        const successCount = results.filter((r) => r.success).length;
+        const failed = results.filter((r) => !r.success);
 
         if (successCount > 0) {
           this.notification.success(
             'Thông báo',
-            `Xóa thành công ${successCount} thiết bị khỏi lịch sử mượn.`
+            `Xóa thành công ${successCount} thiết bị khỏi lịch sử mượn.`,
           );
         }
 
         if (failed.length > 0) {
-          failed.forEach(f => {
-            this.notification.error('Xóa thất bại', f.message || 'Lỗi không xác định');
+          failed.forEach((f) => {
+            this.notification.error(
+              'Xóa thất bại',
+              f.message || 'Lỗi không xác định',
+            );
           });
         }
 
@@ -1263,7 +1325,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
     if (this.selectedArrHistoryProductID.size === 0) {
       this.notification.warning(
         'Thông báo',
-        'Vui lòng chọn sản phẩm cần xuất!'
+        'Vui lòng chọn sản phẩm cần xuất!',
       );
       return;
     }
@@ -1277,7 +1339,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
     if (selectedProducts.length === 0) {
       this.notification.warning(
         'Thông báo',
-        'Không có sản phẩm hợp lệ để xuất!'
+        'Không có sản phẩm hợp lệ để xuất!',
       );
       return;
     }
@@ -1305,7 +1367,6 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
     // );
     // modalRef.componentInstance.HistoryProductID =
     //   id ?? Array.from(this.selectedArrHistoryProductID).at(-1) ?? 0;
-
     // modalRef.result.then(
     //   (result) => {
     //     if (result === true) {
@@ -1325,7 +1386,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
         keyboard: false,
         scrollable: true,
         modalDialogClass: 'modal-fullscreen modal-dialog-scrollable',
-      }
+      },
     );
     modalRef.componentInstance.warehouseType = 0;
 
@@ -1353,19 +1414,18 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
     }
 
     const now = DateTime.fromJSDate(new Date()).toFormat('ddMMyyyyHHmmss');
-    const dateStart = this.dateStart ? DateTime.fromISO(this.dateStart).toFormat('ddMMyyyy') : '';
-    const dateEnd = this.dateEnd ? DateTime.fromISO(this.dateEnd).toFormat('ddMMyyyy') : '';
+    const dateStart = this.dateStart
+      ? DateTime.fromISO(this.dateStart).toFormat('ddMMyyyy')
+      : '';
+    const dateEnd = this.dateEnd
+      ? DateTime.fromISO(this.dateEnd).toFormat('ddMMyyyy')
+      : '';
 
-    let filename = 'LichSuMuon';
-    if (dateStart && dateEnd) {
-      filename = `LichSuMuon_${dateStart}_${dateEnd}_${now}`;
-    } else {
-      filename = `LichSuMuon_${now}`;
-    }
+    const filename = `LichSuMuon_${now}`;
 
     this.excelExportService.exportToExcel({
       filename: filename,
-      format: 'xlsx'
+      format: 'xlsx',
     });
   }
 
@@ -1418,7 +1478,7 @@ export class HistoryProductRtcProtectiveGearComponent implements OnInit, AfterVi
     window.open(
       `/material-detail-of-product-rtc?${params.toString()}`,
       '_blank',
-      'width=1200,height=800,scrollbars=yes,resizable=yes'
+      'width=1200,height=800,scrollbars=yes,resizable=yes',
     );
   }
 }

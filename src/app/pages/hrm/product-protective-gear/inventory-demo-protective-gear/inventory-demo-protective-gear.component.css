@@ -1,8 +1,8 @@
-::ng-deep #gridProductRTC {
+::ng-deep #grid-container-product-group-demo {
     height: 89vh !important;
 }
 
-::ng-deep #gridProductGroup {
+::ng-deep #grid-container-product-rtc-demo {
     height: 89vh !important;
 }
 
@@ -20,7 +20,7 @@
     overflow: hidden;
 }
 
-.grid-container-product-group {
+.grid-container-product-rtc-demo {
     overflow: auto;
-    height: calc(100vh - 110px) !important;
+    /* height: calc(100vh - 110px) !important; */
 }

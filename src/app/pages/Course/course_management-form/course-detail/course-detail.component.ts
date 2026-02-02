@@ -2,7 +2,8 @@ import {
   Component,
   OnInit,
   Input,
-  AfterViewInit
+  AfterViewInit,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +19,12 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
@@ -29,7 +35,7 @@ import { CourseTypeService } from '../../course-type/course-type-sevice/course-t
 
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 
-import {CourseTypeDetailComponent} from '../../course-type/course-type-detail/course-type-detail.component';
+import { CourseTypeDetailComponent } from '../../course-type/course-type-detail/course-type-detail.component';
 
 interface Course {
   ID?: number;
@@ -70,7 +76,7 @@ interface Course {
     NgbModalModule,
   ],
   templateUrl: './course-detail.component.html',
-  styleUrl: './course-detail.component.css'
+  styleUrl: './course-detail.component.css',
 })
 export class CourseDetailComponent implements OnInit, AfterViewInit {
   @Input() newCourse: Course = {
@@ -85,7 +91,7 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     TotalQuestions: 0,
     RandomQuizQuestions: 0,
     QuestionDuration: 0,
-    IdeaID: []
+    IdeaID: [],
   };
 
   @Input() courseID: number = 0;
@@ -109,7 +115,8 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     private courseService: CourseManagementService,
     private courseTypeService: CourseTypeService,
     private activeModal: NgbActiveModal,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private cdr: ChangeDetectorRef,
   ) {
     this.formGroup = this.fb.group({
       // Fieldset 1: Copy
@@ -120,7 +127,7 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       CategoryID: [null, [Validators.required]],
       Code: ['', [Validators.required, Validators.maxLength(100)]],
       Name: ['', [Validators.required, Validators.maxLength(200)]],
-      STT: [0],
+      STT: [1],
       IsActive: [true],
       StudyDays: [0, [Validators.min(0)]],
       TypeID: [null, [Validators.required]],
@@ -145,14 +152,18 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       IdeaID: [],
       TotalQuestions: 0,
       RandomQuizQuestions: 0,
-      QuestionDuration: 0
+      QuestionDuration: 0,
     };
 
     // Load dữ liệu dropdown
     this.loadTypeData();
-    this.formGroup.patchValue({
-      STT: this.maxSTT || 0
-    });
+
+    // Set STT ban đầu = 1 cho add mode
+    if (this.mode === 'add') {
+      this.formGroup.patchValue({
+        STT: 1,
+      });
+    }
 
     // Load dữ liệu nếu là chế độ edit
     if (this.mode === 'edit' && this.dataInput) {
@@ -163,7 +174,10 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
         Code: this.dataInput.Code || '',
         Name: this.dataInput.NameCourse || '',
         STT: this.dataInput.STT || 0,
-        IsActive: this.dataInput.DeleteFlag !== undefined ? this.dataInput.DeleteFlag : true,
+        IsActive:
+          this.dataInput.DeleteFlag !== undefined
+            ? this.dataInput.DeleteFlag
+            : true,
         StudyDays: this.dataInput.LeadTime || 0,
         TypeID: this.dataInput.CourseTypeID || null,
         IdeaID: this.dataInput.IdeaID || [],
@@ -173,14 +187,24 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       });
       this.getIdeaByCourseID();
     }
+
+    // Listen to TypeID and CategoryID changes to fetch max STT
+    this.formGroup.get('TypeID')?.valueChanges.subscribe(() => {
+      this.updateSTTFromAPI();
+    });
+
+    this.formGroup.get('CategoryID')?.valueChanges.subscribe(() => {
+      this.updateSTTFromAPI();
+    });
+
+    // Nếu là add mode và đã có CategoryID sẵn, gọi API ngay để hiển thị STT
+    // (TypeID sẽ được chọn sau nên sẽ trigger qua valueChanges)
   }
 
-  ngAfterViewInit(): void {
-
-  }
+  ngAfterViewInit(): void {}
 
   private trimAllStringControls() {
-    Object.keys(this.formGroup.controls).forEach(k => {
+    Object.keys(this.formGroup.controls).forEach((k) => {
       const c = this.formGroup.get(k);
       const v = c?.value;
       if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
@@ -196,7 +220,6 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     });
     this.getCourse();
     this.getDataIdea();
-
   }
 
   saveCourse() {
@@ -225,26 +248,33 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       CourseTypeID: formValue.TypeID,
       IdeaIDs: formValue.IdeaID || [],
       QuestionDuration: formValue.QuestionDuration || 0,
-
     };
 
-      this.courseService.saveCourse(payload).subscribe({
+    this.courseService.saveCourse(payload).subscribe({
       next: (res) => {
         this.saving = false;
         if (res && res.status === 1) {
-          const message = this.mode === 'edit' ? 'Cập nhật khóa học thành công!' : 'Thê mới khóa học thành công!';
+          const message =
+            this.mode === 'edit'
+              ? 'Cập nhật khóa học thành công!'
+              : 'Thê mới khóa học thành công!';
           this.notification.success('Thông báo', message);
           this.close();
         } else {
-          this.notification.warning('Thông báo', res?.message || 'Không thể lưu khóa học!');
+          this.notification.warning(
+            'Thông báo',
+            res?.message || 'Không thể lưu khóa học!',
+          );
         }
       },
       error: (err) => {
         this.saving = false;
-        this.notification.error('Thông báo', err?.error?.message || 'Không thể lưu khóa học!');
+        this.notification.error(
+          'Thông báo',
+          err?.error?.message || 'Không thể lưu khóa học!',
+        );
         console.error('Error saving course catalog:', err);
-        
-      }
+      },
     });
 
     // TODO: Implement API call
@@ -264,41 +294,55 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.courseService.getCourse(this.categoryID).subscribe((response: any) => {
-      if (response && response.status === 1) {
-        this.dataCourse = response.data || [];
-        console.log('Data Course:', this.dataCourse);
-      } else {
-        this.notification.warning('Thông báo', response?.message || 'Không thể tải danh sách khóa học!');
+    this.courseService.getCourse(this.categoryID).subscribe(
+      (response: any) => {
+        if (response && response.status === 1) {
+          this.dataCourse = response.data || [];
+          console.log('Data Course:', this.dataCourse);
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            response?.message || 'Không thể tải danh sách khóa học!',
+          );
+          this.dataCourse = [];
+        }
+      },
+      (error) => {
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi tải danh sách khóa học!',
+        );
+        console.error('Error loading courses:', error);
         this.dataCourse = [];
-      }
-    }, (error) => {
-      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải danh sách khóa học!');
-      console.error('Error loading courses:', error);
-      this.dataCourse = [];
-    });
+      },
+    );
   }
-
 
   getDataIdea() {
-
-    this.courseService.getDataIdea(this.categoryID).subscribe((response: any) => {
-      if (response && response.status === 1) {
-        this.tipTrickData = response.data || [];
-        console.log('Data Tip Trick:', this.tipTrickData);
-        console.log('categoryID:', this.categoryID);
-      } else {
-        this.notification.warning('Thông báo', response?.message || 'Không thể tải danh sách tip trick!');
+    this.courseService.getDataIdea(this.categoryID).subscribe(
+      (response: any) => {
+        if (response && response.status === 1) {
+          this.tipTrickData = response.data || [];
+          console.log('Data Tip Trick:', this.tipTrickData);
+          console.log('categoryID:', this.categoryID);
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            response?.message || 'Không thể tải danh sách tip trick!',
+          );
+          this.tipTrickData = [];
+        }
+      },
+      (error) => {
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi tải danh sách tip trick!',
+        );
+        console.error('Error loading tip tricks:', error);
         this.tipTrickData = [];
-      }
-    }, (error) => {
-      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải danh sách tip trick!');
-      console.error('Error loading tip tricks:', error);
-      this.tipTrickData = [];
-    });
+      },
+    );
   }
-
-
 
   getIdeaByCourseID() {
     if (this.courseID === 0) {
@@ -306,35 +350,53 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.courseService.getIdeaByCourseID(this.courseID).subscribe((response: any) => {
-      if (response && response.status === 1) {
-        this.formGroup.patchValue({ IdeaID: response.data?.ID || 0 });
-        console.log('Data IdeaID:', this.formGroup.get('IdeaID')?.value);
-      } else {
-        this.notification.warning('Thông báo', response?.message || 'Không thể tải danh sách tip trick!');
+    this.courseService.getIdeaByCourseID(this.courseID).subscribe(
+      (response: any) => {
+        if (response && response.status === 1) {
+          this.formGroup.patchValue({ IdeaID: response.data?.ID || 0 });
+          console.log('Data IdeaID:', this.formGroup.get('IdeaID')?.value);
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            response?.message || 'Không thể tải danh sách tip trick!',
+          );
+          this.tipTrickData = [];
+        }
+      },
+      (error) => {
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi tải danh sách tip trick!',
+        );
+        console.error('Error loading tip tricks:', error);
         this.tipTrickData = [];
-      }
-    }, (error) => {
-      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải danh sách tip trick!');
-      console.error('Error loading tip tricks:', error);
-      this.tipTrickData = [];
-    });
+      },
+    );
   }
 
-  getCourseType(){
-    this.courseTypeService.getAllCourseType().subscribe((response: any) => {
-      if (response && response.status === 1) {
-        this.typeData = response.data || [];
-        console.log('Data Course Type:', this.typeData);
-      } else {
-        this.notification.warning('Thông báo', response?.message || 'Không thể tải danh sách loại khóa học!');
+  getCourseType() {
+    this.courseTypeService.getAllCourseType().subscribe(
+      (response: any) => {
+        if (response && response.status === 1) {
+          this.typeData = response.data || [];
+          console.log('Data Course Type:', this.typeData);
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            response?.message || 'Không thể tải danh sách loại khóa học!',
+          );
+          this.typeData = [];
+        }
+      },
+      (error) => {
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi tải danh sách loại khóa học!',
+        );
+        console.error('Error loading course types:', error);
         this.typeData = [];
-      }
-    }, (error) => {
-      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải danh sách loại khóa học!');
-      console.error('Error loading course types:', error);
-      this.typeData = [];
-    });
+      },
+    );
   }
 
   onCategoryChange(): void {
@@ -351,7 +413,9 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     //   CategoryID: this.categoryID || null,
     // });
 
-    const courseInfor = this.dataCourse.find(x => x.ID === this.formGroup.get('CopyCourseID')?.value);
+    const courseInfor = this.dataCourse.find(
+      (x) => x.ID === this.formGroup.get('CopyCourseID')?.value,
+    );
     console.log('courseInforData:', this.dataCourse);
     console.log('courseID:', this.formGroup.get('CopyCourseID')?.value);
     console.log('courseInfor:', courseInfor);
@@ -373,17 +437,20 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     this.formGroup.get('TypeID')?.setValue(courseInfor?.CourseTypeID);
   }
 
-  onAddType(){
+  onAddType() {
     const modalRef = this.modalService.open(CourseTypeDetailComponent, {
-          centered: true,
-          size: 'lg',
-          backdrop: 'static',
-          keyboard: false,
-        });
-    const maxSTT = this.typeData.length > 0 ? Math.max(...this.typeData.map(t => t.STT || 0)) : 0;
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    const maxSTT =
+      this.typeData.length > 0
+        ? Math.max(...this.typeData.map((t) => t.STT || 0))
+        : 0;
     modalRef.componentInstance.maxSTT = maxSTT + 1;
 
-        modalRef.result.then(
+    modalRef.result.then(
       (result) => {
         if (result == true) {
           this.loadTypeData();
@@ -391,7 +458,34 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       },
       (reason) => {
         // Modal dismissed - không làm gì
-      }
+      },
     );
+  }
+
+  // Cập nhật STT từ API khi có đủ TypeID và CategoryID (áp dụng cho cả add và edit)
+  private updateSTTFromAPI(): void {
+    const typeID = this.formGroup.get('TypeID')?.value;
+    const categoryID = this.formGroup.get('CategoryID')?.value;
+    console.log('TypeID or CategoryID changed:', typeID, categoryID);
+
+    // Chỉ gọi API khi cả 2 giá trị đều có
+    if (typeID && categoryID) {
+      this.courseService.getSTTCourse(typeID, categoryID).subscribe({
+        next: (response: any) => {
+          const maxSTT = response?.data ?? response?.STT ?? response ?? 0;
+          console.log('Received max STT from API:', maxSTT);
+          this.formGroup.patchValue(
+            {
+              STT: maxSTT,
+            },
+            { emitEvent: false },
+          );
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error fetching max STT:', err);
+        },
+      });
+    }
   }
 }

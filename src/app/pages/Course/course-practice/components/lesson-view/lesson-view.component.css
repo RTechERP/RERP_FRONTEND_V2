@@ -1,4 +1,4 @@
-/* ========== LESSON LIST STYLES ========== */
+﻿/* ========== LESSON LIST STYLES ========== */
 .lesson-list {
     display: flex;
     flex-direction: column;
@@ -360,7 +360,7 @@
 }
 
 .file-link::before {
-    content: '📎';
+    content: 'ðŸ“Ž';
     font-size: 16px;
 }
 
@@ -372,7 +372,6 @@
 .card {
     display: flex;
     flex-direction: column;
-    height: 100%;
 }
 
 .card-header {

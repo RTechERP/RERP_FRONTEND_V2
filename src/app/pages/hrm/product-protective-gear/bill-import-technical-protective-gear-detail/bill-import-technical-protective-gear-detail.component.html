@@ -115,7 +115,7 @@
           <nz-form-label class="fs-12">Kho</nz-form-label>
           <nz-form-control>
             <nz-select [formControlName]="billImportTechnicalProtectiveGearField.WarehouseID.field" nzShowSearch
-              nzAllowClear nzPlaceHolder="Chọn kho">
+              nzAllowClear nzPlaceHolder="Chọn kho" [nzDisabled]="true">
               <nz-option *ngFor="let id of warehouseList" [nzValue]="id.ID" [nzLabel]="id.WarehouseName"
                 nzCustomContent>{{ id.WarehouseName }}
               </nz-option>

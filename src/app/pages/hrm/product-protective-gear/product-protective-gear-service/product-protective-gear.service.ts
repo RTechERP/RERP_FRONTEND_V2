@@ -218,6 +218,10 @@ export class ProductProtectiveGearService {
   getBillCode(billtype: number): Observable<any> {
     return this.http.get<any>(this.urlBillImportTechnicalProtectiveGear + `get-bill-code?billtype=${billtype}`);
   }
+  // validate billCode
+  validateBillCode(billCode: string, id: number): Observable<any> {
+    return this.http.get<any>(this.urlBillImportTechnicalProtectiveGear + `validate-bill-code?billCode=${billCode}&id=${id}`);
+  }
   //=========================================================================================
   // get history product rtc protective gear
   private pad(n: number): string {

@@ -10,7 +10,7 @@
       </ng-template>
     </p-menubar>
     <div class="card-header bg-white p-2">
-      <form nz-form nzLayout="inline" (keyup.enter)="onSearch()">
+      <form nz-form nzLayout="inline" (keyup.enter)="searchData()">
         <nz-form-item>
           <nz-form-label class="fs-12">Từ ngày</nz-form-label>
           <nz-form-control>
@@ -47,13 +47,13 @@
           <nz-form-label class="fs-12">Từ khóa</nz-form-label>
           <nz-form-control>
             <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="FilterText" name="FilterText" nzSize="small"
-              (keyup.enter)="onSearch()" style="width: 200px" />
+              (keyup.enter)="searchData()" style="width: 200px" />
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-control>
-            <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+            <button nz-button nzType="primary" nzSize="small" (click)="searchData()">
               Tìm kiếm
             </button>
           </nz-form-control>
@@ -64,8 +64,8 @@
     <!-- Grid Content -->
     <div class="card-body p-0">
       <!-- Master Grid -->
-      <div class="grid-container-master">
-        <angular-slickgrid [gridId]="'gridMaster-' + wareHouseID" [columns]="columnDefinitionsMaster"
+      <div class="grid-container-master-import">
+        <angular-slickgrid [gridId]="'grid-container-master-import'" [columns]="columnDefinitionsMaster"
           [options]="gridOptionsMaster" [dataset]="datasetMaster"
           (onAngularGridCreated)="angularGridMasterReady($event.detail)"
           (onSelectedRowsChanged)="onMasterRowSelectionChanged($event.detail.eventData, $event.detail.args)"
@@ -80,8 +80,8 @@
           </legend>
 
           <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
-            <div class="grid-container-detail">
-              <angular-slickgrid [gridId]="'gridDetail-' + wareHouseID" [columns]="columnDefinitionsDetail"
+            <div class="grid-container-detail-import">
+              <angular-slickgrid [gridId]="'grid-container-detail-import'" [columns]="columnDefinitionsDetail"
                 [options]="gridOptionsDetail" [dataset]="datasetDetail"
                 (onAngularGridCreated)="angularGridDetailReady($event.detail)">
               </angular-slickgrid>

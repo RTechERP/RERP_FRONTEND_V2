@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -37,7 +37,7 @@ import {
   OnSelectedRowsChangedEventArgs,
 } from 'angular-slickgrid';
 import { PermissionService } from '../../../../services/permission.service';
-import { NzModalModule, NzModalService } from "ng-zorro-antd/modal";
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductProtectiveGearDetailComponent } from '../product-protective-gear-detail/product-protective-gear-detail.component';
@@ -69,11 +69,11 @@ import { ProductProtectiveGear } from '../model/product-protective-gear';
     Menubar,
     NzModalModule,
     NzFormModule,
-    SharedModule
+    SharedModule,
   ],
   selector: 'app-product-protective-gear',
   templateUrl: './product-protective-gear.component.html',
-  styleUrls: ['./product-protective-gear.component.css']
+  styleUrls: ['./product-protective-gear.component.css'],
 })
 export class ProductProtectiveGearComponent implements OnInit {
   constructor(
@@ -83,8 +83,8 @@ export class ProductProtectiveGearComponent implements OnInit {
     private appUserService: AppUserService,
     private route: ActivatedRoute,
     private modalService: NgbModal,
-    private nzModalService: NzModalService
-  ) { }
+    private nzModalService: NzModalService,
+  ) {}
   menuBars: MenuItem[] = [];
   selectedRow: any = null;
   selectedGroupRows: any[] = []; // selected rows for product group (mirrors product-location-tech pattern)
@@ -120,7 +120,7 @@ export class ProductProtectiveGearComponent implements OnInit {
   isMobile = window.innerWidth <= 768;
   isShowModal = false;
   param: any = {
-    keyword: ''
+    keyword: '',
   };
   ngOnInit() {
     this.initMenuBar();
@@ -128,12 +128,26 @@ export class ProductProtectiveGearComponent implements OnInit {
     this.initProductRTCGrid();
     this.getProductGroup();
   }
+
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(event: Event): void {
+    // Resize both grids when window size changes (e.g., when DevTools is opened/closed)
+    setTimeout(() => {
+      if (this.angularGridProductGroup?.resizerService) {
+        this.angularGridProductGroup.resizerService.resizeGrid();
+      }
+      if (this.angularGridProductRTC?.resizerService) {
+        this.angularGridProductRTC.resizerService.resizeGrid();
+      }
+    }, 100);
+  }
+
   initMenuBar() {
     this.menuBars = [
       {
         label: 'Thêm',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.onCreate();
         },
@@ -141,43 +155,51 @@ export class ProductProtectiveGearComponent implements OnInit {
       {
         label: 'Sửa',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.onEdit();
-        }
+        },
       },
 
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.onDelete();
-        }
+        },
       },
       {
         label: 'Refresh',
         icon: 'fa-solid fa-arrows-rotate fa-lg text-info',
         // visible: this.permissionService.hasPermission(""),
         command: () => {
-          this.getProductGroup();
+          this.onRefresh();
         },
       },
-    ]
+    ];
   }
   onSearch(): void {
     if (this.selectedRow && this.selectedRow.ID) {
-      this.getProductRTC(this.selectedRow.ID, this.filterText, this.warehouseID);
+      this.getProductRTC(
+        this.selectedRow.ID,
+        this.filterText,
+        this.warehouseID,
+      );
     }
   }
   onCreate() {
-    const modalRef = this.modalService.open(ProductProtectiveGearDetailComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      centered: true
-    });
+    const modalRef = this.modalService.open(
+      ProductProtectiveGearDetailComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        centered: true,
+      },
+    );
 
-    modalRef.componentInstance.productProtectiveGear = new ProductProtectiveGear();
+    modalRef.componentInstance.productProtectiveGear =
+      new ProductProtectiveGear();
     modalRef.componentInstance.wareHouseType = this.selectedRow?.WarehouseType;
 
     modalRef.result.then(
@@ -186,36 +208,54 @@ export class ProductProtectiveGearComponent implements OnInit {
           // Reset product selection after adding
           this.selectedProductRTCRows = [];
           this.selectedProductRTCRow = null;
-          if (this.angularGridProductRTC && this.angularGridProductRTC.slickGrid) {
+          if (
+            this.angularGridProductRTC &&
+            this.angularGridProductRTC.slickGrid
+          ) {
             this.angularGridProductRTC.slickGrid.setSelectedRows([]);
           }
 
           // Refresh grid after save
           if (this.selectedRow && this.selectedRow.ID) {
-            this.getProductRTC(this.selectedRow.ID, this.filterText, this.warehouseID);
+            this.getProductRTC(
+              this.selectedRow.ID,
+              this.filterText,
+              this.warehouseID,
+            );
           }
-          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Thêm mới thành công',
+          );
         }
       },
       (reason) => {
         // Modal dismissed
-      }
+      },
     );
   }
 
   onEdit() {
     if (!this.selectedProductRTCRow) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm cần sửa');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn sản phẩm cần sửa',
+      );
       return;
     }
 
-    const modalRef = this.modalService.open(ProductProtectiveGearDetailComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      centered: true
-    });
+    const modalRef = this.modalService.open(
+      ProductProtectiveGearDetailComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        centered: true,
+      },
+    );
 
-    modalRef.componentInstance.productProtectiveGear = { ...this.selectedProductRTCRow };
+    modalRef.componentInstance.productProtectiveGear = {
+      ...this.selectedProductRTCRow,
+    };
     modalRef.componentInstance.wareHouseType = this.selectedRow.WarehouseType;
     modalRef.result.then(
       (result) => {
@@ -223,30 +263,46 @@ export class ProductProtectiveGearComponent implements OnInit {
           // Reset product selection after update
           this.selectedProductRTCRows = [];
           this.selectedProductRTCRow = null;
-          if (this.angularGridProductRTC && this.angularGridProductRTC.slickGrid) {
+          if (
+            this.angularGridProductRTC &&
+            this.angularGridProductRTC.slickGrid
+          ) {
             this.angularGridProductRTC.slickGrid.setSelectedRows([]);
           }
 
-          this.getProductRTC(this.selectedRow.ID, this.filterText, this.warehouseID);
-          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công');
+          this.getProductRTC(
+            this.selectedRow.ID,
+            this.filterText,
+            this.warehouseID,
+          );
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Cập nhật thành công',
+          );
         }
       },
 
       (reason) => {
         // Modal dismissed
-      }
+      },
     );
   }
 
   onDelete() {
-    if (!this.selectedProductRTCRows || this.selectedProductRTCRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một sản phẩm cần xóa');
+    if (
+      !this.selectedProductRTCRows ||
+      this.selectedProductRTCRows.length === 0
+    ) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ít nhất một sản phẩm cần xóa',
+      );
       return;
     }
 
     const count = this.selectedProductRTCRows.length;
     const productNames = this.selectedProductRTCRows
-      .map(row => row.ProductName || row.ProductCode || `ID: ${row.ID}`)
+      .map((row) => row.ProductName || row.ProductCode || `ID: ${row.ID}`)
       .slice(0, 3)
       .join(', ');
     const moreText = count > 3 ? ` và ${count - 3} sản phẩm khác` : '';
@@ -259,12 +315,15 @@ export class ProductProtectiveGearComponent implements OnInit {
       nzCancelText: 'Hủy',
       nzOnOk: () => {
         this.deleteSelectedProducts();
-      }
+      },
     });
   }
 
   deleteSelectedProducts() {
-    if (!this.selectedProductRTCRows || this.selectedProductRTCRows.length === 0) {
+    if (
+      !this.selectedProductRTCRows ||
+      this.selectedProductRTCRows.length === 0
+    ) {
       return;
     }
 
@@ -278,10 +337,13 @@ export class ProductProtectiveGearComponent implements OnInit {
       const deleteData = {
         ...item,
         IsDeleted: true,
-        IsDelete: true
+        IsDelete: true,
       };
 
-      this.ProductProtectiveGearService.postSaveData(deleteData, wareHouseType).subscribe({
+      this.ProductProtectiveGearService.postSaveData(
+        deleteData,
+        wareHouseType,
+      ).subscribe({
         next: (response: any) => {
           if (response?.status === 1) {
             deleteCount++;
@@ -296,14 +358,24 @@ export class ProductProtectiveGearComponent implements OnInit {
 
             // Refresh grid
             if (this.selectedRow && this.selectedRow.ID) {
-              this.getProductRTC(this.selectedRow.ID, this.filterText, this.warehouseID);
+              this.getProductRTC(
+                this.selectedRow.ID,
+                this.filterText,
+                this.warehouseID,
+              );
             }
 
             if (deleteCount > 0) {
-              this.notification.success(NOTIFICATION_TITLE.success, `Đã xóa thành công ${deleteCount} sản phẩm!`);
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã xóa thành công ${deleteCount} sản phẩm!`,
+              );
             }
             if (errorCount > 0) {
-              this.notification.warning(NOTIFICATION_TITLE.warning, `Có ${errorCount} sản phẩm xóa không thành công`);
+              this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Có ${errorCount} sản phẩm xóa không thành công`,
+              );
             }
           }
         },
@@ -317,17 +389,27 @@ export class ProductProtectiveGearComponent implements OnInit {
 
             // Refresh grid
             if (this.selectedRow && this.selectedRow.ID) {
-              this.getProductRTC(this.selectedRow.ID, this.filterText, this.warehouseID);
+              this.getProductRTC(
+                this.selectedRow.ID,
+                this.filterText,
+                this.warehouseID,
+              );
             }
 
             if (deleteCount > 0) {
-              this.notification.success(NOTIFICATION_TITLE.success, `Đã xóa thành công ${deleteCount} sản phẩm!`);
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã xóa thành công ${deleteCount} sản phẩm!`,
+              );
             }
             if (errorCount > 0) {
-              this.notification.error(NOTIFICATION_TITLE.error, `Có ${errorCount} sản phẩm xóa không thành công`);
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                `Có ${errorCount} sản phẩm xóa không thành công`,
+              );
             }
           }
-        }
+        },
       });
     });
   }
@@ -336,15 +418,50 @@ export class ProductProtectiveGearComponent implements OnInit {
     this.isSearchVisible = !this.isSearchVisible;
   }
 
+  onRefresh(): void {
+    // Clear search text
+    this.filterText = '';
+
+    // Clear filters in ProductGroup grid (left table)
+    if (this.angularGridProductGroup?.filterService) {
+      this.angularGridProductGroup.filterService.clearFilters();
+    }
+
+    // Clear filters in ProductRTC grid (right table)
+    if (this.angularGridProductRTC?.filterService) {
+      this.angularGridProductRTC.filterService.clearFilters();
+    }
+
+    // Reset selections
+    this.selectedRow = null;
+    this.selectedGroupRows = [];
+    this.selectedProductRTCRow = null;
+    this.selectedProductRTCRows = [];
+
+    // Clear grid selections if available
+    if (this.angularGridProductGroup?.slickGrid) {
+      this.angularGridProductGroup.slickGrid.setSelectedRows([]);
+    }
+    if (this.angularGridProductRTC?.slickGrid) {
+      this.angularGridProductRTC.slickGrid.setSelectedRows([]);
+    }
+
+    // Clear both datasets
+    this.datasetProductGroup = [];
+    this.datasetProductRTC = [];
+
+    // Reload ProductGroup data
+    this.getProductGroup();
+  }
+
   getProductGroup() {
-    this.ProductProtectiveGearService
-      .getProductGroup()
-      .subscribe((response: any) => {
+    this.ProductProtectiveGearService.getProductGroup().subscribe(
+      (response: any) => {
         const data = response.data || [];
         console.log('data', data);
         this.productGroupData = data.map((item: any, index: number) => ({
           ...item,
-          id: item.ID
+          id: item.ID,
         }));
         this.datasetProductGroup = this.productGroupData;
         if (this.datasetProductGroup.length > 0) {
@@ -352,38 +469,48 @@ export class ProductProtectiveGearComponent implements OnInit {
           console.log(firstRow);
           // Use the grid selection to trigger the same selection logic as when user clicks a row
           setTimeout(() => {
-            if (this.angularGridProductGroup && this.angularGridProductGroup.slickGrid) {
+            if (
+              this.angularGridProductGroup &&
+              this.angularGridProductGroup.slickGrid
+            ) {
               this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
             } else {
               // Fallback behavior
               this.selectedRow = firstRow;
-              this.getProductRTC(firstRow.ID, this.filterText, this.warehouseID);
+              this.getProductRTC(
+                firstRow.ID,
+                this.filterText,
+                this.warehouseID,
+              );
             }
           }, 50);
         }
-      });
+      },
+    );
   }
 
   getProductRTC(ProductGroupID: number, Keyword: string, WarehouseID: number) {
     this.isDetailLoad = true;
-    this.ProductProtectiveGearService
-      .getProductRTC(ProductGroupID, Keyword, WarehouseID)
-      .subscribe({
-        next: (response: any) => {
-          if (response.status == 1) {
-            const data = response.data || [];
-            this.productRTCData = data.map((item: any, index: number) => ({
-              ...item,
-              id: item.ID
-            }));
-            this.datasetProductRTC = this.productRTCData;
-          }
-          this.isDetailLoad = false;
-        },
-        error: () => {
-          this.isDetailLoad = false;
+    this.ProductProtectiveGearService.getProductRTC(
+      ProductGroupID,
+      Keyword,
+      WarehouseID,
+    ).subscribe({
+      next: (response: any) => {
+        if (response.status == 1) {
+          const data = response.data || [];
+          this.productRTCData = data.map((item: any, index: number) => ({
+            ...item,
+            id: item.ID,
+          }));
+          this.datasetProductRTC = this.productRTCData;
         }
-      });
+        this.isDetailLoad = false;
+      },
+      error: () => {
+        this.isDetailLoad = false;
+      },
+    });
   }
 
   initProductGroupGrid(): void {
@@ -470,6 +597,11 @@ export class ProductProtectiveGearComponent implements OnInit {
     ];
 
     this.gridOptionsProductGroup = {
+      autoResize: {
+        container: '.grid-container-product-group',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
       enableSorting: true,
       enableFiltering: true,
       enableCellNavigation: true,
@@ -483,11 +615,6 @@ export class ProductProtectiveGearComponent implements OnInit {
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
       forceFitColumns: true,
-      autoResize: {
-        container: '.grid-container-detail-special',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
     };
   }
 
@@ -511,7 +638,7 @@ export class ProductProtectiveGearComponent implements OnInit {
         field: 'ProductCode',
         sortable: true,
         filterable: true,
-        width: 80,
+        width: 120,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -520,7 +647,7 @@ export class ProductProtectiveGearComponent implements OnInit {
         field: 'ProductName',
         sortable: true,
         filterable: true,
-        width: 150,
+        width: 200,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -538,7 +665,7 @@ export class ProductProtectiveGearComponent implements OnInit {
         field: 'LocationName',
         sortable: true,
         filterable: true,
-        width: 150,
+        width: 80,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -547,7 +674,7 @@ export class ProductProtectiveGearComponent implements OnInit {
         field: 'Maker',
         sortable: true,
         filterable: true,
-        width: 80,
+        width: 100,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -599,8 +726,16 @@ export class ProductProtectiveGearComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 120,
-        formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
-        filter: { model: Filters['compoundDate'] },
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: {
+          model: Filters['compoundDate'],
+          collectionOptions: {
+            addBlankEntry: true,
+          },
+        },
         cssClass: 'text-center',
       },
       {
@@ -615,6 +750,11 @@ export class ProductProtectiveGearComponent implements OnInit {
     ];
 
     this.gridOptionsProductRTC = {
+      autoResize: {
+        container: '.grid-container-product-rtc',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
       enableAutoResize: true,
       enableSorting: true,
       enableFiltering: true,
@@ -648,14 +788,17 @@ export class ProductProtectiveGearComponent implements OnInit {
         this.datasetProductGroup = response.data;
         this.datasetProductGroup = this.datasetProductGroup.map((x, i) => ({
           ...x,
-          id: x.ID
+          id: x.ID,
         }));
 
-        this.updateFilterCollections(this.angularGridProductGroup, this.datasetProductGroup);
+        this.updateFilterCollections(
+          this.angularGridProductGroup,
+          this.datasetProductGroup,
+        );
         this.rowStyle(this.angularGridProductGroup);
 
-
-        const columnElement = this.angularGridProductGroup.slickGrid?.getFooterRowColumn('Code');
+        const columnElement =
+          this.angularGridProductGroup.slickGrid?.getFooterRowColumn('Code');
         if (columnElement) {
           columnElement.textContent = `${this.formatNumber(this.datasetProductGroup.length, 0)}`;
         }
@@ -665,8 +808,8 @@ export class ProductProtectiveGearComponent implements OnInit {
       error: (err) => {
         this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
         this.isLoading = false;
-      }
-    })
+      },
+    });
   }
   angularGridProductGroupReady(angularGrid: any): void {
     this.angularGridProductGroup = angularGrid.detail;
@@ -680,21 +823,34 @@ export class ProductProtectiveGearComponent implements OnInit {
     const rows = args.rows;
     if (rows && rows.length > 0) {
       // Map selected indexes to actual items using the grid DataView (works with filtering/sorting)
-      this.selectedGroupRows = rows.map((rowIndex: number) => {
-        if (this.angularGridProductGroup?.dataView && typeof this.angularGridProductGroup.dataView.getItem === 'function') {
-          return this.angularGridProductGroup.dataView.getItem(rowIndex);
-        }
-        return this.datasetProductGroup[rowIndex];
-      }).filter((item: any) => item != null);
+      this.selectedGroupRows = rows
+        .map((rowIndex: number) => {
+          if (
+            this.angularGridProductGroup?.dataView &&
+            typeof this.angularGridProductGroup.dataView.getItem === 'function'
+          ) {
+            return this.angularGridProductGroup.dataView.getItem(rowIndex);
+          }
+          return this.datasetProductGroup[rowIndex];
+        })
+        .filter((item: any) => item != null);
 
       // Use first selected item as active selection
-      this.selectedRow = this.selectedGroupRows.length > 0 ? this.selectedGroupRows[0] : null;
+      this.selectedRow =
+        this.selectedGroupRows.length > 0 ? this.selectedGroupRows[0] : null;
 
       if (this.selectedRow && this.selectedRow.ID) {
-        this.getProductRTC(this.selectedRow.ID, this.filterText, this.warehouseID);
+        this.getProductRTC(
+          this.selectedRow.ID,
+          this.filterText,
+          this.warehouseID,
+        );
       }
 
-      console.log(`Selected ${this.selectedGroupRows.length} group row(s):`, this.selectedGroupRows);
+      console.log(
+        `Selected ${this.selectedGroupRows.length} group row(s):`,
+        this.selectedGroupRows,
+      );
     } else {
       // No selection
       this.selectedGroupRows = [];
@@ -705,14 +861,15 @@ export class ProductProtectiveGearComponent implements OnInit {
     }
   }
 
-
   handleProductRTCRowSelection(event: any, args: any): void {
     const rows = args.rows;
     if (rows && rows.length > 0) {
       // Lấy tất cả các row đã chọn
-      this.selectedProductRTCRows = rows.map((rowIndex: number) => {
-        return this.angularGridProductRTC.dataView.getItem(rowIndex);
-      }).filter((item: any) => item != null);
+      this.selectedProductRTCRows = rows
+        .map((rowIndex: number) => {
+          return this.angularGridProductRTC.dataView.getItem(rowIndex);
+        })
+        .filter((item: any) => item != null);
 
       // Lấy row đầu tiên để hiển thị/edit (nếu cần)
       if (this.selectedProductRTCRows.length > 0) {
@@ -721,21 +878,29 @@ export class ProductProtectiveGearComponent implements OnInit {
         this.selectedProductRTCRow = null;
       }
 
-      console.log(`Selected ${this.selectedProductRTCRows.length} row(s):`, this.selectedProductRTCRows);
+      console.log(
+        `Selected ${this.selectedProductRTCRows.length} row(s):`,
+        this.selectedProductRTCRows,
+      );
     } else {
       // Không có row nào được chọn
       this.selectedProductRTCRows = [];
       this.selectedProductRTCRow = null;
     }
   }
-  private updateFilterCollections(angularGrid: AngularGridInstance, data: any[]): void {
+  private updateFilterCollections(
+    angularGrid: AngularGridInstance,
+    data: any[],
+  ): void {
     if (!angularGrid || !angularGrid.slickGrid) return;
     const columns = angularGrid.slickGrid.getColumns();
     // const allData = angularGrid.dataView?.getItems();
     const allData = data;
 
     // Helper function to get unique values for a field
-    const getUniqueValues = (field: string): Array<{ value: string; label: string }> => {
+    const getUniqueValues = (
+      field: string,
+    ): Array<{ value: string; label: string }> => {
       const map = new Map<string, string>();
       allData.forEach((row: any) => {
         const value = String(row?.[field] ?? '');
@@ -761,15 +926,16 @@ export class ProductProtectiveGearComponent implements OnInit {
       }
     });
 
-
     // Update grid columns
     angularGrid.slickGrid.setColumns(columns);
     angularGrid.slickGrid.render();
   }
 
-
   rowStyle(angularGrid: AngularGridInstance) {
-    angularGrid.dataView.getItemMetadata = this.rowStyleIsUrgent(angularGrid.dataView.getItemMetadata, angularGrid);
+    angularGrid.dataView.getItemMetadata = this.rowStyleIsUrgent(
+      angularGrid.dataView.getItemMetadata,
+      angularGrid,
+    );
 
     // this.gridData.invalidate();
     // this.gridData.render();
@@ -777,7 +943,10 @@ export class ProductProtectiveGearComponent implements OnInit {
     // this.gridDataSpecial.invalidate();
     // this.gridDataSpecial.render();
   }
-  rowStyleIsUrgent(previousItemMetadata: any, angularGrid: AngularGridInstance) {
+  rowStyleIsUrgent(
+    previousItemMetadata: any,
+    angularGrid: AngularGridInstance,
+  ) {
     const newCssClass = 'bg-isurgent';
 
     return (rowNumber: number) => {

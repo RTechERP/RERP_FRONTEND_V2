@@ -37,7 +37,7 @@ import {
   OnSelectedRowsChangedEventArgs,
 } from 'angular-slickgrid';
 import { PermissionService } from '../../../../services/permission.service';
-import { NzModalModule, NzModalService } from "ng-zorro-antd/modal";
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductProtectiveGearDetailComponent } from '../product-protective-gear-detail/product-protective-gear-detail.component';
@@ -69,14 +69,13 @@ import { ProductProtectiveGear } from '../model/product-protective-gear';
     Menubar,
     NzModalModule,
     NzFormModule,
-    SharedModule
+    SharedModule,
   ],
   selector: 'app-product-location-tech',
   templateUrl: './product-location-tech.component.html',
-  styleUrls: ['./product-location-tech.component.css']
+  styleUrls: ['./product-location-tech.component.css'],
 })
 export class ProductLocationTechComponent implements OnInit {
-
   constructor(
     private notification: NzNotificationService,
     private ProductProtectiveGearService: ProductProtectiveGearService,
@@ -84,7 +83,8 @@ export class ProductLocationTechComponent implements OnInit {
     private appUserService: AppUserService,
     private route: ActivatedRoute,
     private modalService: NgbModal,
-    private nzModalService: NzModalService) { }
+    private nzModalService: NzModalService,
+  ) {}
   menuBars: MenuItem[] = [];
   selectedRow: any = null;
   selectedRows: any[] = [];
@@ -113,7 +113,7 @@ export class ProductLocationTechComponent implements OnInit {
   isMobile = window.innerWidth <= 768;
   isShowModal = false;
   param: any = {
-    keyword: ''
+    keyword: '',
   };
   ngOnInit() {
     this.initMenuBar();
@@ -125,7 +125,7 @@ export class ProductLocationTechComponent implements OnInit {
       {
         label: 'Thêm',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.onCreate();
         },
@@ -133,88 +133,132 @@ export class ProductLocationTechComponent implements OnInit {
       {
         label: 'Sửa',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.onEdit();
-        }
+        },
       },
 
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.permissionService.hasPermission(""),
+        visible: this.permissionService.hasPermission(''),
         command: () => {
           this.onDelete();
-        }
+        },
       },
-
-    ]
+      {
+        label: 'Refresh',
+        icon: 'fa-solid fa-arrows-rotate fa-lg text-info',
+        // visible: this.permissionService.hasPermission(""),
+        command: () => {
+          this.refreshData();
+        },
+      },
+    ];
   }
   onSearch(): void {
     this.getProductLocation();
   }
-  onCreate() {
-    const modalRef = this.modalService.open(ProductLocationTechDetailComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      centered: true
-    });
 
-    modalRef.componentInstance.warehouseID = this.warehouseID,
+  refreshData(): void {
+    // Clear all filters in the grid
+    if (
+      this.angularGridProductLocationTech &&
+      this.angularGridProductLocationTech.filterService
+    ) {
+      this.angularGridProductLocationTech.filterService.clearFilters();
+    }
+
+    // Clear selection
+    this.selectedRows = [];
+    this.selectedRow = null;
+
+    // Reload data
+    this.getProductLocation();
+
+    // Show notification
+  }
+  onCreate() {
+    const modalRef = this.modalService.open(
+      ProductLocationTechDetailComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        centered: true,
+      },
+    );
+
+    ((modalRef.componentInstance.warehouseID = this.warehouseID),
       // modalRef.componentInstance.warehouseType = this.warehouseType,
-      modalRef.componentInstance.isEdit = false
+      (modalRef.componentInstance.isEdit = false));
 
     modalRef.result.then(
       (result) => {
         if (result) {
           // Refresh grid after save
           this.getProductLocation();
-          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Thêm mới thành công',
+          );
         }
       },
       (reason) => {
         // Modal dismissed
-      }
+      },
     );
   }
 
   onEdit() {
     if (!this.selectedRow) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn vị trí cần sửa');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn vị trí cần sửa',
+      );
       return;
     }
 
-    const modalRef = this.modalService.open(ProductLocationTechDetailComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      centered: true
-    });
+    const modalRef = this.modalService.open(
+      ProductLocationTechDetailComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        centered: true,
+      },
+    );
     modalRef.componentInstance.productLocationTech = { ...this.selectedRow };
-    modalRef.componentInstance.warehouseID = this.warehouseID,
+    ((modalRef.componentInstance.warehouseID = this.warehouseID),
       // modalRef.componentInstance.warehouseType = this.warehouseType,
-      modalRef.componentInstance.isEdit = true
+      (modalRef.componentInstance.isEdit = true));
     modalRef.result.then(
       (result) => {
         if (result) {
           this.getProductLocation();
-          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Cập nhật thành công',
+          );
         }
       },
       (reason) => {
         // Modal dismissed
-      }
+      },
     );
   }
 
   onDelete() {
     if (!this.selectedRows || this.selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một vị trí cần xóa');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ít nhất một vị trí cần xóa',
+      );
       return;
     }
 
     const count = this.selectedRows.length;
     const productNames = this.selectedRows
-      .map(row => `Mã vị trí : ${row.LocationCode}`)
+      .map((row) => `Mã vị trí : ${row.LocationCode}`)
       .slice(0, 3)
       .join(', ');
     const moreText = count > 3 ? ` và ${count - 3} vị trí khác khác` : '';
@@ -227,7 +271,7 @@ export class ProductLocationTechComponent implements OnInit {
       nzCancelText: 'Hủy',
       nzOnOk: () => {
         this.deleteSelectedProducts();
-      }
+      },
     });
   }
 
@@ -243,10 +287,12 @@ export class ProductLocationTechComponent implements OnInit {
     itemsToDelete.forEach((item: any) => {
       const deleteData = {
         ...item,
-        IsDeleted: true
+        IsDeleted: true,
       };
 
-      this.ProductProtectiveGearService.saveProductLocation(deleteData).subscribe({
+      this.ProductProtectiveGearService.saveProductLocation(
+        deleteData,
+      ).subscribe({
         next: (response: any) => {
           if (response?.status === 1) {
             this.getProductLocation();
@@ -260,10 +306,16 @@ export class ProductLocationTechComponent implements OnInit {
             this.selectedRows = [];
             this.selectedRow = null;
             if (deleteCount > 0) {
-              this.notification.success(NOTIFICATION_TITLE.success, `Đã xóa thành công ${deleteCount} vị trí!`);
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã xóa thành công ${deleteCount} vị trí!`,
+              );
             }
             if (errorCount > 0) {
-              this.notification.warning(NOTIFICATION_TITLE.warning, `Có ${errorCount} vị trí xóa không thành công`);
+              this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Có ${errorCount} vị trí xóa không thành công`,
+              );
             }
           }
         },
@@ -279,13 +331,19 @@ export class ProductLocationTechComponent implements OnInit {
             this.getProductLocation();
 
             if (deleteCount > 0) {
-              this.notification.success(NOTIFICATION_TITLE.success, `Đã xóa thành công ${deleteCount} vị trí!`);
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã xóa thành công ${deleteCount} vị trí!`,
+              );
             }
             if (errorCount > 0) {
-              this.notification.error(NOTIFICATION_TITLE.error, `Có ${errorCount} vị trí xóa không thành công`);
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                `Có ${errorCount} vị trí xóa không thành công`,
+              );
             }
           }
-        }
+        },
       });
     });
   }
@@ -345,7 +403,6 @@ export class ProductLocationTechComponent implements OnInit {
         width: 100,
         filter: { model: Filters['compoundInputText'] },
       },
-     
     ];
 
     this.gridOptionsProductLocation = {
@@ -364,12 +421,17 @@ export class ProductLocationTechComponent implements OnInit {
       enableAutoSizeColumns: false,
       forceFitColumns: true,
       rowSelectionOptions: {
-        selectActiveRow: true
+        selectActiveRow: true,
       },
       enableGridMenu: true,
       gridMenu: {
         hideExportCsvCommand: true,
         hideExportTextDelimitedCommand: true,
+      },
+      autoResize: {
+        container: '.grid-container-product-location-tech',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
       },
     };
   }
@@ -379,18 +441,23 @@ export class ProductLocationTechComponent implements OnInit {
     this.ProductProtectiveGearService.getProductLocationTech().subscribe({
       next: (response) => {
         this.datasetProductLocation = response.data[0];
-        this.datasetProductLocation = this.datasetProductLocation.map((x, i) => ({
-          ...x,
-          id: x.ID
-        }));
-        this.updateFilterCollections(this.angularGridProductLocationTech, this.datasetProductLocation);
+        this.datasetProductLocation = this.datasetProductLocation.map(
+          (x, i) => ({
+            ...x,
+            id: x.ID,
+          }),
+        );
+        this.updateFilterCollections(
+          this.angularGridProductLocationTech,
+          this.datasetProductLocation,
+        );
         this.isLoading = false;
       },
       error: (err) => {
         this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
         this.isLoading = false;
-      }
-    })
+      },
+    });
   }
   angularGridProductGLocationReady(angularGrid: AngularGridInstance): void {
     this.angularGridProductLocationTech = angularGrid;
@@ -402,8 +469,8 @@ export class ProductLocationTechComponent implements OnInit {
             const locationTypeText = g.value;
             return `<span class="group-color-0" data-level="0">Loại: <strong>${locationTypeText}</strong>
                                 </span></span>`;
-          }
-        }
+          },
+        },
       ]);
       //   angularGrid.dataView.setGrouping([
       //     {
@@ -422,15 +489,24 @@ export class ProductLocationTechComponent implements OnInit {
     const rows = args.rows;
     if (rows && rows.length > 0) {
       // Map selected row indexes to actual items using DataView when available
-      this.selectedRows = rows.map((rowIndex: number) => {
-        if (this.angularGridProductLocationTech?.dataView && typeof this.angularGridProductLocationTech.dataView.getItem === 'function') {
-          return this.angularGridProductLocationTech.dataView.getItem(rowIndex);
-        }
-        return this.datasetProductLocation[rowIndex];
-      }).filter((item: any) => item != null);
+      this.selectedRows = rows
+        .map((rowIndex: number) => {
+          if (
+            this.angularGridProductLocationTech?.dataView &&
+            typeof this.angularGridProductLocationTech.dataView.getItem ===
+              'function'
+          ) {
+            return this.angularGridProductLocationTech.dataView.getItem(
+              rowIndex,
+            );
+          }
+          return this.datasetProductLocation[rowIndex];
+        })
+        .filter((item: any) => item != null);
 
       // Pick the first selected item as the active selectedRow
-      this.selectedRow = this.selectedRows.length > 0 ? this.selectedRows[0] : null;
+      this.selectedRow =
+        this.selectedRows.length > 0 ? this.selectedRows[0] : null;
     } else {
       // No selection
       this.selectedRows = [];
@@ -438,14 +514,19 @@ export class ProductLocationTechComponent implements OnInit {
     }
   }
 
-  private updateFilterCollections(angularGrid: AngularGridInstance, data: any[]): void {
+  private updateFilterCollections(
+    angularGrid: AngularGridInstance,
+    data: any[],
+  ): void {
     if (!angularGrid || !angularGrid.slickGrid) return;
     const columns = angularGrid.slickGrid.getColumns();
     // const allData = angularGrid.dataView?.getItems();
     const allData = data;
 
     // Helper function to get unique values for a field
-    const getUniqueValues = (field: string): Array<{ value: string; label: string }> => {
+    const getUniqueValues = (
+      field: string,
+    ): Array<{ value: string; label: string }> => {
       const map = new Map<string, string>();
       allData.forEach((row: any) => {
         const value = String(row?.[field] ?? '');
@@ -471,17 +552,21 @@ export class ProductLocationTechComponent implements OnInit {
       }
     });
 
-
     // Update grid columns
     angularGrid.slickGrid.setColumns(columns);
     angularGrid.slickGrid.render();
   }
 
-
   rowStyle(angularGrid: AngularGridInstance) {
-    angularGrid.dataView.getItemMetadata = this.rowStyleIsUrgent(angularGrid.dataView.getItemMetadata, angularGrid);
+    angularGrid.dataView.getItemMetadata = this.rowStyleIsUrgent(
+      angularGrid.dataView.getItemMetadata,
+      angularGrid,
+    );
   }
-  rowStyleIsUrgent(previousItemMetadata: any, angularGrid: AngularGridInstance) {
+  rowStyleIsUrgent(
+    previousItemMetadata: any,
+    angularGrid: AngularGridInstance,
+  ) {
     const newCssClass = 'bg-isurgent';
 
     return (rowNumber: number) => {

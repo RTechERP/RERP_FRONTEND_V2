@@ -12,7 +12,7 @@ import {
   ViewEncapsulation,
   ViewChild,
   ElementRef,
-  HostListener
+  HostListener,
 } from '@angular/core';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -26,6 +26,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import {
   TabulatorFull as Tabulator,
   RowComponent,
+  CellComponent,
 } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -39,6 +40,8 @@ import { CourseDetailComponent } from '../course_management-form/course-detail/c
 import { LessonDetailComponent } from '../course_management-form/lesson-detail/lesson-detail.component';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { DateTime } from 'luxon';
+import { VideoUploadStateService } from '../course_management-form/video-upload-state.service';
 interface Category {
   ID: number;
   Code: string;
@@ -149,6 +152,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         this.onDeleteCourse();
       },
     },
+
     { separator: true },
   ];
 
@@ -210,12 +214,24 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private breakpointObserver: BreakpointObserver,
     private message: NzMessageService,
-    private permissionService: PermissionService
-  ) { }
+    private permissionService: PermissionService,
+    private videoUploadService: VideoUploadStateService,
+  ) {}
+
+  // Cảnh báo khi user đóng tab trong lúc có video đang upload
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: any): void {
+    // Check nếu có bất kỳ upload nào đang chạy
+    const hasActiveUpload = this.videoUploadService.hasAnyActiveUpload();
+    if (hasActiveUpload) {
+      $event.returnValue = 'Đang có video upload, bạn có chắc muốn đóng?';
+    }
+  }
 
   ngOnInit(): void {
-    this.breakpointObserver.observe([Breakpoints.Handset])
-      .subscribe(result => {
+    this.breakpointObserver
+      .observe([Breakpoints.Handset])
+      .subscribe((result) => {
         this.splitterLayout = result.matches ? 'vertical' : 'horizontal';
       });
   }
@@ -230,34 +246,43 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   }
 
   getDataCategory() {
-    this.courseService.getDataCategory().subscribe((response: any) => {
-      if (response && response.status === 1) {
-        this.categoryData = response.data || [];
-        if (this.categoryTable) {
-          this.categoryTable.replaceData(this.categoryData);
-          setTimeout(() => {
-            this.categoryTable?.redraw(true);
-          }, 100);
-          if (this.categoryData.length > 0) {
-            this.searchParams.categoryID = this.categoryData[0].ID;
-            this.getCourse();
+    this.courseService.getDataCategory().subscribe(
+      (response: any) => {
+        if (response && response.status === 1) {
+          this.categoryData = response.data || [];
+          if (this.categoryTable) {
+            this.categoryTable.replaceData(this.categoryData);
+            setTimeout(() => {
+              this.categoryTable?.redraw(true);
+            }, 100);
+            if (this.categoryData.length > 0) {
+              this.searchParams.categoryID = this.categoryData[0].ID;
+              this.getCourse();
+            }
+          }
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            response?.message || 'Không thể tải danh sách danh mục!',
+          );
+          this.categoryData = [];
+          if (this.categoryTable) {
+            this.categoryTable.replaceData(this.categoryData);
           }
         }
-      } else {
-        this.notification.warning('Thông báo', response?.message || 'Không thể tải danh sách danh mục!');
+      },
+      (error) => {
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi tải danh sách danh mục!',
+        );
+        console.error('Error loading categories:', error);
         this.categoryData = [];
         if (this.categoryTable) {
           this.categoryTable.replaceData(this.categoryData);
         }
-      }
-    }, (error) => {
-      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải danh sách danh mục!');
-      console.error('Error loading categories:', error);
-      this.categoryData = [];
-      if (this.categoryTable) {
-        this.categoryTable.replaceData(this.categoryData);
-      }
-    });
+      },
+    );
   }
 
   getDataDepartment() {
@@ -281,27 +306,36 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.courseService.getCourse(this.searchParams.categoryID).subscribe((response: any) => {
-      if (response && response.status === 1) {
-        this.courseData = response.data || [];
-        if (this.courseTable) {
-          this.courseTable.setData(this.courseData);
+    this.courseService.getCourse(this.searchParams.categoryID).subscribe(
+      (response: any) => {
+        if (response && response.status === 1) {
+          this.courseData = response.data || [];
+          if (this.courseTable) {
+            this.courseTable.setData(this.courseData);
+          }
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            response?.message || 'Không thể tải danh sách khóa học!',
+          );
+          this.courseData = [];
+          if (this.courseTable) {
+            this.courseTable.setData(this.courseData);
+          }
         }
-      } else {
-        this.notification.warning('Thông báo', response?.message || 'Không thể tải danh sách khóa học!');
+      },
+      (error) => {
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi tải danh sách khóa học!',
+        );
+        console.error('Error loading courses:', error);
         this.courseData = [];
         if (this.courseTable) {
           this.courseTable.setData(this.courseData);
         }
-      }
-    }, (error) => {
-      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải danh sách khóa học!');
-      console.error('Error loading courses:', error);
-      this.courseData = [];
-      if (this.courseTable) {
-        this.courseTable.setData(this.courseData);
-      }
-    });
+      },
+    );
   }
 
   getLessonByCourseID(id: number) {
@@ -313,27 +347,36 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.courseService.getLessonByCourseID(id).subscribe((response: any) => {
-      if (response && response.status === 1) {
-        this.lessonData = response.data || [];
-        if (this.lessonTable) {
-          this.lessonTable.setData(this.lessonData);
+    this.courseService.getLessonByCourseID(id).subscribe(
+      (response: any) => {
+        if (response && response.status === 1) {
+          this.lessonData = response.data || [];
+          if (this.lessonTable) {
+            this.lessonTable.setData(this.lessonData);
+          }
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            response?.message || 'Không thể tải danh sách bài học!',
+          );
+          this.lessonData = [];
+          if (this.lessonTable) {
+            this.lessonTable.setData(this.lessonData);
+          }
         }
-      } else {
-        this.notification.warning('Thông báo', response?.message || 'Không thể tải danh sách bài học!');
+      },
+      (error) => {
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi tải danh sách bài học!',
+        );
+        console.error('Error loading lessons:', error);
         this.lessonData = [];
         if (this.lessonTable) {
           this.lessonTable.setData(this.lessonData);
         }
-      }
-    }, (error) => {
-      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải danh sách bài học!');
-      console.error('Error loading lessons:', error);
-      this.lessonData = [];
-      if (this.lessonTable) {
-        this.lessonTable.setData(this.lessonData);
-      }
-    });
+      },
+    );
   }
 
   onSearchChange() {
@@ -356,9 +399,10 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
 
   onAddCategory() {
     // Lấy STT lớn nhất từ bảng danh mục
-    const maxSTT = this.categoryData.length > 0
-      ? Math.max(...this.categoryData.map(c => c.STT || 0))
-      : 0;
+    const maxSTT =
+      this.categoryData.length > 0
+        ? Math.max(...this.categoryData.map((c) => c.STT || 0))
+        : 0;
 
     const modalRef = this.modalService.open(CourseCatalogDetailComponent, {
       centered: true,
@@ -372,7 +416,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       Code: '',
       STT: 0,
       Name: '',
-      TeamIDs: []
+      TeamIDs: [],
     };
     modalRef.componentInstance.catalogID = this.categoryID;
     modalRef.componentInstance.dataInput = null;
@@ -389,14 +433,18 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       },
       (reason) => {
         // Modal dismissed - không làm gì
-      }
+      },
     );
   }
 
   onEditCategory(categoryData?: any) {
-    const dataToEdit = categoryData || this.categoryTable?.getSelectedData()?.[0];
+    const dataToEdit =
+      categoryData || this.categoryTable?.getSelectedData()?.[0];
     if (!dataToEdit) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một danh mục để sửa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một danh mục để sửa!',
+      );
       return;
     }
 
@@ -412,7 +460,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       Code: '',
       STT: 0,
       Name: '',
-      TeamIDs: []
+      TeamIDs: [],
     };
     modalRef.componentInstance.catalogID = this.categoryID;
     modalRef.componentInstance.dataInput = { ...dataToEdit };
@@ -428,21 +476,28 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       },
       (reason) => {
         // Modal dismissed - không làm gì
-      }
+      },
     );
   }
 
   onDeleteCategory() {
     const dataSelect: any[] = this.categoryTable!.getSelectedData();
     if (dataSelect.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một danh mục để xóa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn ít nhất một danh mục để xóa!',
+      );
       return;
     }
 
-    const categoryNames = dataSelect.map(c => c.Name).join(', ');
-    const displayNames = dataSelect.length > 3
-      ? `${dataSelect.slice(0, 3).map(c => c.Name).join(', ')} và ${dataSelect.length - 3} danh mục khác`
-      : categoryNames;
+    const categoryNames = dataSelect.map((c) => c.Name).join(', ');
+    const displayNames =
+      dataSelect.length > 3
+        ? `${dataSelect
+            .slice(0, 3)
+            .map((c) => c.Name)
+            .join(', ')} và ${dataSelect.length - 3} danh mục khác`
+        : categoryNames;
 
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
@@ -451,7 +506,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       nzCancelText: 'Hủy',
       nzOkDanger: true,
       nzOnOk: () => {
-        const deleteRequests = dataSelect.map(category => {
+        const deleteRequests = dataSelect.map((category) => {
           const payload = {
             ID: category.ID,
             Code: category.Code,
@@ -461,40 +516,52 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             CatalogType: category.CatalogType,
             ProjectTypeIDs: category.ProjectTypeIDs || [],
             DeleteFlag: false,
-            IsDeleted: true
+            IsDeleted: true,
           };
           return this.courseService.saveCourseCatalog(payload);
         });
 
         forkJoin(deleteRequests).subscribe({
           next: (results: any[]) => {
-            const successCount = results.filter(res => res && res.status === 1).length;
+            const successCount = results.filter(
+              (res) => res && res.status === 1,
+            ).length;
             const failCount = results.length - successCount;
 
             if (successCount > 0) {
-              this.notification.success('Thông báo', `Đã xóa thành công ${successCount} danh mục!`);
+              this.notification.success(
+                'Thông báo',
+                `Đã xóa thành công ${successCount} danh mục!`,
+              );
             }
 
             if (failCount > 0) {
-              this.notification.warning('Thông báo', `Có ${failCount} danh mục không thể xóa!`);
+              this.notification.warning(
+                'Thông báo',
+                `Có ${failCount} danh mục không thể xóa!`,
+              );
             }
 
             this.getDataCategory();
           },
           error: (err) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi thực hiện xóa danh sách danh mục!');
+            this.notification.error(
+              'Thông báo',
+              'Có lỗi xảy ra khi thực hiện xóa danh sách danh mục!',
+            );
             console.error('Error deleting categories:', err);
             this.getDataCategory();
-          }
+          },
         });
       },
     });
   }
 
   onAddCourse() {
-    const maxSTT = this.courseData.length > 0
-      ? Math.max(...this.courseData.map(c => c.STT || 0))
-      : 0;
+    const maxSTT =
+      this.courseData.length > 0
+        ? Math.max(...this.courseData.map((c) => c.STT || 0))
+        : 0;
 
     const modalRef = this.modalService.open(CourseDetailComponent, {
       centered: true,
@@ -523,16 +590,18 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       },
       (reason) => {
         // Modal dismissed - không làm gì
-      }
+      },
     );
-
   }
 
   onEditCourse(courseData?: any) {
     // TODO: Implement edit course modal
     const dataToEdit = courseData || this.courseTable?.getSelectedData()?.[0];
     if (!dataToEdit) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một khóa học để sửa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một khóa học để sửa!',
+      );
       return;
     }
 
@@ -540,7 +609,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       centered: true,
       size: 'lg',
       backdrop: 'static',
-      keyboard: false
+      keyboard: false,
     });
 
     modalRef.componentInstance.dataInput = dataToEdit;
@@ -558,7 +627,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       },
       (reason) => {
         // Modal dismissed - không làm gì
-      }
+      },
     );
     //this.notification.info('Thông báo', 'Chức năng sửa khóa học đang được phát triển');
   }
@@ -566,7 +635,10 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   onDeleteCourse() {
     const dataSelect: any[] = this.courseTable!.getSelectedData();
     if (dataSelect.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khóa học để xóa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn ít nhất một khóa học để xóa!',
+      );
       return;
     }
     this.modal.confirm({
@@ -585,7 +657,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             next: (response: any) => {
               this.notification.success(
                 'Thông báo',
-                'Đã xóa thành công khóa học!'
+                'Đã xóa thành công khóa học!',
               );
               this.getCourse();
             },
@@ -596,18 +668,21 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         }
       },
     });
-
   }
 
   onAddLesson() {
     // TODO: Implement add lesson modal
-    const maxSTT = this.lessonData.length > 0
-      ? Math.max(...this.lessonData.map(c => c.STT || 0))
-      : 0;
+    const maxSTT =
+      this.lessonData.length > 0
+        ? Math.max(...this.lessonData.map((c) => c.STT || 0))
+        : 0;
 
     const dataToEdit = this.courseTable?.getSelectedData()?.[0];
     if (!dataToEdit) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một khóa học để thêm bài học!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một khóa học để thêm bài học!',
+      );
       return;
     }
     const modalRef = this.modalService.open(LessonDetailComponent, {
@@ -623,16 +698,15 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.courseID = dataToEdit.ID;
     modalRef.componentInstance.maxSTT = maxSTT;
     modalRef.componentInstance.mode = 'add';
-    console.log("modalRef.componentInstance.courseID", dataToEdit.ID)
     modalRef.result.then(
       (result) => {
         if (result == true) {
-          this.getLessonByCourseID(dataToEdit.ID);
+          this.getLessonByCourseID(this.courseID);
         }
       },
       (reason) => {
         // Modal dismissed - không làm gì
-      }
+      },
     );
     //this.notification.info('Thông báo', 'Chức năng thêm bài học đang được phát triển');
   }
@@ -640,9 +714,15 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   onEditLesson(lessonData?: any) {
     const dataToEdit = lessonData || this.lessonTable?.getSelectedData()?.[0];
     if (!dataToEdit) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một bài học để sửa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một bài học để sửa!',
+      );
       return;
     }
+
+    // Lưu courseID ngay lập tức (primitive value, không bị ảnh hưởng bởi closure)
+    const courseIdToRefresh = dataToEdit.CourseID;
 
     const modalRef = this.modalService.open(LessonDetailComponent, {
       centered: true,
@@ -654,20 +734,18 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.dataInput = dataToEdit;
     modalRef.componentInstance.dataCategory = this.categoryData;
     modalRef.componentInstance.categoryID = this.categoryID;
-    modalRef.componentInstance.courseID = dataToEdit.CourseID;
+    modalRef.componentInstance.courseID = courseIdToRefresh;
     modalRef.componentInstance.mode = 'edit';
-
-    console.log('Dữ liệu truyền vào modal sửa bài học:', dataToEdit);
 
     modalRef.result.then(
       (result) => {
         if (result == true) {
-          this.getLessonByCourseID(dataToEdit.CourseID);
+          this.getLessonByCourseID(this.courseID);
         }
       },
       (reason) => {
         // Modal dismissed - không làm gì
-      }
+      },
     );
   }
 
@@ -675,14 +753,21 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     const dataSelect: Lesson[] = this.lessonTable!.getSelectedData();
     const dataToEdit = this.lessonTable?.getSelectedData()?.[0];
     if (dataSelect.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một bài học để xóa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn ít nhất một bài học để xóa!',
+      );
       return;
     }
 
-    const lessonNames = dataSelect.map(l => l.LessonTitle).join(', ');
-    const displayNames = dataSelect.length > 3
-      ? `${dataSelect.slice(0, 3).map(l => l.LessonTitle).join(', ')} và ${dataSelect.length - 3} bài học khác`
-      : lessonNames;
+    const lessonNames = dataSelect.map((l) => l.LessonTitle).join(', ');
+    const displayNames =
+      dataSelect.length > 3
+        ? `${dataSelect
+            .slice(0, 3)
+            .map((l) => l.LessonTitle)
+            .join(', ')} và ${dataSelect.length - 3} bài học khác`
+        : lessonNames;
 
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
@@ -691,7 +776,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       nzCancelText: 'Hủy',
       nzOkDanger: true,
       nzOnOk: () => {
-        const deleteRequests = dataSelect.map(lesson => {
+        const deleteRequests = dataSelect.map((lesson) => {
           const payload = {
             CourseLesson: {
               ID: lesson.ID,
@@ -706,34 +791,46 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
               UrlPDF: lesson.UrlPDF,
               LessonCopyID: lesson.LessonCopyID,
               EmployeeID: lesson.EmployeeID,
-              IsDeleted: true
+              IsDeleted: true,
             },
             CoursePdf: null,
-            CourseFiles: null
+            CourseFiles: null,
           };
           return this.courseService.saveLesson(payload);
         });
 
         forkJoin(deleteRequests).subscribe({
           next: (results: any[]) => {
-            const successCount = results.filter(res => res && res.status === 1).length;
+            const successCount = results.filter(
+              (res) => res && res.status === 1,
+            ).length;
             const failCount = results.length - successCount;
 
             if (successCount > 0) {
-              this.notification.success('Thông báo', `Đã xóa thành công ${successCount} bài học!`);
+              this.notification.success(
+                'Thông báo',
+                `Đã xóa thành công ${successCount} bài học!`,
+              );
             }
 
             if (failCount > 0) {
-              this.notification.warning('Thông báo', `Có ${failCount} bài học không thể xóa!`);
+              this.notification.warning(
+                'Thông báo',
+                `Có ${failCount} bài học không thể xóa!`,
+              );
             }
-
-            this.getLessonByCourseID(dataSelect[0].CourseID || dataToEdit.CourseID);
+            this.getLessonByCourseID(dataToEdit.ID);
           },
           error: (err) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi thực hiện xóa danh sách bài học!');
+            this.notification.error(
+              'Thông báo',
+              'Có lỗi xảy ra khi thực hiện xóa danh sách bài học!',
+            );
             console.error('Error deleting lessons:', err);
-            this.getLessonByCourseID(dataSelect[0].CourseID || dataToEdit.CourseID);
-          }
+            this.getLessonByCourseID(
+              dataSelect[0].CourseID || dataToEdit.CourseID,
+            );
+          },
         });
       },
     });
@@ -753,7 +850,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         paginationMode: 'local',
         groupBy: [
           (data: any) => data.CatalogTypeText || 'Chưa phân loại',
-          (data: any) => data.NameDepartment || 'Chưa có phòng ban'
+          (data: any) => data.NameDepartment || 'Chưa có phòng ban',
         ],
         groupStartOpen: [true, true],
         groupHeader: [
@@ -762,7 +859,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
           },
           (value: any, count: number, data: any) => {
             return `<strong>Phòng ban: ${value}</strong>`;
-          }
+          },
         ],
         columns: [
           {
@@ -839,9 +936,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         paginationMode: 'local',
         groupBy: 'CourseTypeName',
         groupHeader: function (value, count, data, group) {
-          return (
-            `Loại: ${value || ""}`
-          );
+          return `Loại: ${value || ''}`;
         },
         columns: [
           {
@@ -875,9 +970,10 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             formatter: (cell: any) => {
               const value = cell.getValue();
               if (value != null && value > 0) {
-                return `${parseFloat(value).toFixed(2)}`;
+                const num = parseFloat(value);
+                return num % 1 === 0 ? num.toString() : num.toFixed(2);
               }
-              return '0.00';
+              return '0';
             },
             headerSort: false,
           },
@@ -907,7 +1003,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 width: 50,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
-                  return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
+                  return `<input type="checkbox" ${value === true ? 'checked' : ''} onclick="return false;">`;
                 },
                 headerSort: false,
               },
@@ -917,6 +1013,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 hozAlign: 'center',
                 headerHozAlign: 'center',
                 width: 100,
+                bottomCalc: 'sum',
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   if (value != null && value > 0) {
@@ -926,7 +1023,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 },
                 headerSort: false,
               },
-            ]
+            ],
           },
           {
             title: 'Bài tập',
@@ -939,7 +1036,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 width: 50,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
-                  return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
+                  return `<input type="checkbox" ${value === true ? 'checked' : ''} onclick="return false;">`;
                 },
                 headerSort: false,
               },
@@ -949,6 +1046,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 hozAlign: 'center',
                 headerHozAlign: 'center',
                 width: 100,
+                bottomCalc: 'sum',
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   if (value != null && value > 0) {
@@ -958,7 +1056,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 },
                 headerSort: false,
               },
-            ]
+            ],
           },
           {
             title: 'Trắc nghiệm',
@@ -971,16 +1069,17 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 width: 50,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
-                  return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
+                  return `<input type="checkbox" ${value === true ? 'checked' : ''} onclick="return false;">`;
                 },
                 headerSort: false,
               },
               {
-                title: 'Tổng số câu ',
+                title: 'Tổng số câu',
                 field: 'MultiChoiceQuestions',
                 hozAlign: 'center',
                 headerHozAlign: 'center',
                 width: 100,
+                bottomCalc: 'sum',
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   if (value != null && value > 0) {
@@ -1011,16 +1110,28 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 hozAlign: 'center',
                 headerHozAlign: 'center',
                 width: 100,
+                bottomCalc: 'sum',
+                bottomCalcFormatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (value != null) {
+                    const num = parseFloat(value);
+                    const formatted =
+                      num % 1 === 0 ? num.toString() : num.toFixed(2);
+                    return `${formatted} (Phút)`;
+                  }
+                  return '0 (Phút)';
+                },
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   if (value != null && value > 0) {
-                    return `${parseFloat(value).toFixed(2)}`;
+                    const num = parseFloat(value);
+                    return num % 1 === 0 ? num.toString() : num.toFixed(2);
                   }
-                  return '0.00';
+                  return '0';
                 },
                 headerSort: false,
               },
-            ]
+            ],
           },
         ],
       });
@@ -1049,7 +1160,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         if (this.lessonTable) {
           this.lessonTable.setData(this.lessonData);
         }
-
       });
     }
   }
@@ -1073,7 +1183,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             field: 'STT',
             width: 50,
-            formatter: 'rownum',
           },
           {
             title: 'Mã bài học',
@@ -1087,6 +1196,24 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             resizable: false,
+          },
+          {
+            title: 'Người phụ trách training',
+            field: 'EmployeeID',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            resizable: false,
+          },
+          {
+            title: 'Ngày tạo',
+            field: 'CreatedDate',
+            width: 120,
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            formatter: (cell: CellComponent) => {
+              const date = cell.getValue();
+              return date ? DateTime.fromISO(date).toFormat('dd/MM/yyyy') : '';
+            },
           },
         ],
       });

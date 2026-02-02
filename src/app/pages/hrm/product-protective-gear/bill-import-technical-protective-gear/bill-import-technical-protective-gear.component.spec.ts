@@ -11,13 +11,14 @@ describe('BillImportTechnicalProtectiveGearComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      declarations: [BillImportTechnicalProtectiveGearComponent]
-    })
-      .compileComponents();
+      declarations: [BillImportTechnicalProtectiveGearComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(BillImportTechnicalProtectiveGearComponent);
+    fixture = TestBed.createComponent(
+      BillImportTechnicalProtectiveGearComponent,
+    );
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

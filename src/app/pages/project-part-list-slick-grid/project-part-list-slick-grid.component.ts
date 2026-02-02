@@ -653,6 +653,34 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       enableAutoSizeColumns: false,
       rowHeight: 40,
       headerRowHeight: 40,
+      // Context Menu - Menu khi click chuột phải
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'markActive',
+            title: 'Đánh dấu sử dụng',
+            iconCssClass: 'mdi mdi-check-circle text-success',
+            // Chỉ hiển thị khi IsActive = false
+            itemVisibilityOverride: (args: any) => {
+              const dataContext = args?.dataContext;
+              return dataContext && !dataContext.IsActive;
+            },
+            action: () => this.toggleVersionIsActive(),
+          },
+          {
+            command: 'unmarkActive',
+            title: 'Bỏ đánh dấu sử dụng',
+            iconCssClass: 'mdi mdi-close-circle text-danger',
+            // Chỉ hiển thị khi IsActive = true
+            itemVisibilityOverride: (args: any) => {
+              const dataContext = args?.dataContext;
+              return dataContext && dataContext.IsActive;
+            },
+            action: () => this.toggleVersionIsActive(),
+          },
+        ],
+      },
     };
   }
 
@@ -4998,6 +5026,62 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           }
         });
         return true;
+      }
+    });
+  }
+
+  // Toggle IsActive cho phiên bản (click chuột phải)
+  toggleVersionIsActive(): void {
+    let selectedVersion: any = null;
+
+    // Lấy dữ liệu từ merged Version grid
+    const activeCell = this.angularGridVersion?.slickGrid?.getActiveCell();
+    if (activeCell && activeCell.row >= 0) {
+      selectedVersion = this.angularGridVersion?.dataView?.getItem(activeCell.row);
+    } else {
+      const selectedRows = this.angularGridVersion?.slickGrid?.getSelectedRows() || [];
+      if (selectedRows.length > 0) {
+        selectedVersion = this.angularGridVersion?.dataView?.getItem(selectedRows[0]);
+      }
+    }
+
+    if (!selectedVersion || selectedVersion.__group || selectedVersion.__groupTotals) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để đánh dấu sử dụng!');
+      return;
+    }
+
+    // Toggle giá trị IsActive Hải
+    const newIsActive = !selectedVersion.IsActive;
+    const actionText = newIsActive ? 'đánh dấu sử dụng' : 'bỏ đánh dấu sử dụng';
+
+    const payload: any = {
+      ID: selectedVersion.originalId || selectedVersion.ID || 0,
+      ProjectID: selectedVersion.ProjectID || this.projectId || null,
+      STT: selectedVersion.STT || null,
+      Code: selectedVersion.Code || '',
+      DescriptionVersion: selectedVersion.DescriptionVersion || '',
+      IsActive: newIsActive, // Toggle giá trị
+      ProjectSolutionID: selectedVersion.ProjectSolutionID || this.projectSolutionId || null,
+      ProjectTypeID: selectedVersion.ProjectTypeID || null,
+      StatusVersion: selectedVersion.StatusVersion || selectedVersion.VersionType || null,
+    };
+
+    this.projectPartListService.saveProjectPartListVersion(payload).subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.notification.success('Thành công', `Đã ${actionText} phiên bản "${selectedVersion.Code}"!`);
+          // Refresh merged version data
+          if (this.projectSolutionId) {
+            this.loadDataVersion();
+          }
+        } else {
+          this.notification.error('Lỗi', response.message || `Không thể ${actionText} phiên bản!`);
+        }
+      },
+      error: (error: any) => {
+        console.error('Error toggling version IsActive:', error);
+        const errorMessage = error?.error?.message || error?.message || `Không thể ${actionText} phiên bản!`;
+        this.notification.error('Lỗi', errorMessage);
       }
     });
   }

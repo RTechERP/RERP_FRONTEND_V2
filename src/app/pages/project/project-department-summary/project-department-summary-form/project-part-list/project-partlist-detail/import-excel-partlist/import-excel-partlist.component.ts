@@ -680,7 +680,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   // Tiếp tục với import-check
   proceedWithImportCheck(validDataToSave: any[]): void {
     // Reset tiến trình
-    debugger;
+    
     this.processedRowsForSave = 0;
     const totalRowsToSave = validDataToSave.length;
     this.displayText = `Đang kiểm tra: 0/${totalRowsToSave} bản ghi`;
@@ -793,7 +793,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
     this.partlistService.applyDiff(payload).subscribe({
       next: (res: any) => {
         console.log('Response từ apply-diff API:', res);
-        debugger;
+        
 
         if (res.status === 1 || res.success) {
           this.displayProgress = 100;
@@ -828,7 +828,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   }
   // checkExistData() {
   //   const hasDiff = this.diffs && this.diffs.length > 0;
-  //   debugger;
+  //   
   // if( this.isProblemRow == true || this.isUpdate == true) {
   //   if(hasDiff){
   //     this.onConfirmDiff();
@@ -941,12 +941,6 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   checkExistData() {
     const hasDiff = this.diffs && this.diffs.length > 0;
 
-    // Xử lý riêng cho Update Stock - gọi API update-stock
-    if (this.isStock) {
-      this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
-      return;
-    }
-
     if (this.isProblemRow == true || this.isUpdate == true) {
       if (hasDiff) {
         this.onConfirmDiff();
@@ -963,7 +957,6 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
 
         // Lấy message cảnh báo
         if (importRes.status === 1 && (importRes.data.firmIssues?.length > 0 || importRes.data.unitIssues?.length > 0)) {
-          debugger;
           warningMessage = importRes.message;
         }
 
@@ -992,21 +985,9 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
                 nzOnOk: () => {
                   this.partlistService.overwriteData(this.checkPayload).subscribe({
                     next: () => {
-                      //TNBinh update 13/01/2026
-                      // if (this.isStock) {
-                      //   this.partlistService.updateStock(this.checkPayload).subscribe({
-                      //     next: () => {
-                      //       this.closeExcelModal();
-                      //     },
-                      //     error: (err: any) => {
-                      //       const msg = err.error?.message || err.message || 'Lỗi khi ghi đè dữ liệu!';
-                      //       this.notification.error('Thông báo', msg);
-                      //       this.isSaving = false;
-                      //     }
-                      //   });
-                      // }
-                      //end update stock
-                      if (hasDiff) {
+                      if (this.isStock) {
+                        this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
+                      } else if (hasDiff) {
                         this.onConfirmDiff();
                       } else {
                         this.applyDiff(this.validDataToSaveForDiff, []);
@@ -1047,7 +1028,11 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
                   nzCancelText: 'Hủy',
                   nzOkDanger: true,
                   nzOnOk: () => {
-                    this.applyDiff(this.validDataToSaveForDiff, []);
+                    if (this.isStock) {
+                      this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
+                    } else {
+                      this.applyDiff(this.validDataToSaveForDiff, []);
+                    }
                   },
                   nzOnCancel: () => {
                     this.displayText = 'Đã hủy';
@@ -1057,7 +1042,11 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
                 });
               } else {
                 // Không có warning -> lưu trực tiếp
-                this.applyDiff(this.validDataToSaveForDiff, []);
+                if (this.isStock) {
+                  this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
+                } else {
+                  this.applyDiff(this.validDataToSaveForDiff, []);
+                }
               }
             }
           },

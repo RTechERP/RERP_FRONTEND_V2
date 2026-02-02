@@ -1060,7 +1060,88 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 filename: 'Danh_sach_du_an',
                 sanitizeDataExport: true,
                 sheetName: 'Danh sách dự án'
-            }
+            },
+            // Context Menu - Menu khi click chuột phải trên grid
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: [
+                    {
+                        command: 'priority',
+                        title: 'Mức độ ưu tiên cá nhân',
+                        iconCssClass: 'ctx-icon ctx-icon-priority',
+                        commandItems: [
+                            { command: 'priority1', title: '1', action: () => this.setPersionalPriority(1) },
+                            { command: 'priority2', title: '2', action: () => this.setPersionalPriority(2) },
+                            { command: 'priority3', title: '3', action: () => this.setPersionalPriority(3) },
+                            { command: 'priority4', title: '4', action: () => this.setPersionalPriority(4) },
+                            { command: 'priority5', title: '5', action: () => this.setPersionalPriority(5) },
+                        ],
+                    },
+                    {
+                        command: 'openProjectEmployee',
+                        title: 'Người tham gia',
+                        iconCssClass: 'ctx-icon ctx-icon-participants',
+                        action: () => this.openProjectEmployee(),
+                    },
+                    {
+                        command: 'changeProject',
+                        title: 'Chuyển báo cáo công việc',
+                        iconCssClass: 'ctx-icon ctx-icon-compare',
+                        action: () => this.changeProject(),
+                    },
+                    {
+                        command: 'openProjectPartListProblemModal',
+                        title: 'Hàng phát sinh',
+                        iconCssClass: 'ctx-icon ctx-icon-additional',
+                        action: () => this.openProjectPartListProblemModal(),
+                    },
+                    {
+                        command: 'openProjectRequest',
+                        title: 'Yêu cầu - Giải pháp',
+                        iconCssClass: 'ctx-icon ctx-icon-solution',
+                        action: () => this.openProjectRequest(),
+                    },
+                    {
+                        command: 'openProjectTypeLinkDetail',
+                        title: 'Cập nhật Leader',
+                        iconCssClass: 'ctx-icon ctx-icon-leader',
+                        action: () => this.openProjectTypeLinkDetail(),
+                    },
+                    {
+                        command: 'openProjectHistoryProblemModal',
+                        title: 'Lịch sử phát sinh',
+                        iconCssClass: 'ctx-icon ctx-icon-history',
+                        action: () => this.openProjectHistoryProblemModal(),
+                    },
+                    {
+                        command: 'openProjectStatus',
+                        title: 'Trạng thái dự án',
+                        iconCssClass: 'ctx-icon ctx-icon-status',
+                        itemVisibilityOverride: () => this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
+                        action: () => this.openProjectStatus(),
+                    },
+                    {
+                        command: 'openUpdateCurrentSituation',
+                        title: 'Cập nhật hiện trạng',
+                        iconCssClass: 'ctx-icon ctx-icon-update',
+                        itemVisibilityOverride: () => this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
+                        action: () => this.openUpdateCurrentSituation(),
+                    },
+                    {
+                        command: 'updateStatus',
+                        title: 'Cập nhật trạng thái',
+                        iconCssClass: 'ctx-icon ctx-icon-sync',
+                        // Ẩn menu nếu không có quyền hoặc chưa load xong projectStatuses
+                        itemVisibilityOverride: () => this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']) && this.projectStatuses.length > 0,
+                        // Sử dụng getter function để lấy danh sách trạng thái động
+                        commandItems: this.projectStatuses.map(status => ({
+                            command: `status_${status.ID}`,
+                            title: status.StatusName,
+                            action: () => this.selectProjectStatus(status.ID),
+                        })),
+                    },
+                ],
+            },
         };
     }
 
@@ -2109,11 +2190,38 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             next: (response: any) => {
                 this.projecStatuses = response.data;
                 this.projectStatuses = response.data || [];
+                // Cập nhật context menu sau khi load xong projectStatuses
+                this.updateContextMenuStatusItems();
             },
             error: (error) => {
                 console.error('Lỗi:', error);
             },
         });
+    }
+
+    // Cập nhật submenu "Cập nhật trạng thái" trong context menu
+    private updateContextMenuStatusItems() {
+        if (!this.gridOptions?.contextMenu?.commandItems) return;
+
+        const commandItems = this.gridOptions.contextMenu.commandItems as any[];
+        const updateStatusItem = commandItems.find(
+            (item: any) => item.command === 'updateStatus'
+        );
+
+        if (updateStatusItem && this.projectStatuses.length > 0) {
+            updateStatusItem.commandItems = this.projectStatuses.map(status => ({
+                command: `status_${status.ID}`,
+                title: status.StatusName,
+                action: () => this.selectProjectStatus(status.ID),
+            }));
+
+            // Cập nhật lại options cho SlickGrid để áp dụng thay đổi
+            if (this.angularGrid?.slickGrid) {
+                this.angularGrid.slickGrid.setOptions({
+                    contextMenu: this.gridOptions.contextMenu
+                }, false, true);
+            }
+        }
     }
 
     getDay() {

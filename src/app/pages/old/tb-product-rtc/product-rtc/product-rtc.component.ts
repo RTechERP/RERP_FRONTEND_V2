@@ -1139,13 +1139,10 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         modalRef.componentInstance.showCloseButton = true;
         modalRef.componentInstance.employeeID = this.appUserService.employeeID || 0;
 
-        modalRef.result.then(
-            (result) => {
-                console.log('Modal closed with result:', result);
+        modalRef.result.finally(
+            () => {
+                console.log('Modal closed');
             },
-            (dismissed) => {
-                console.log('Modal dismissed');
-            }
         );
     }
 
@@ -1165,11 +1162,8 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         modalRef.componentInstance.isPriceRequestDemo = true;
         modalRef.componentInstance.projectPartlistPriceRequestTypeID = 6;
 
-        modalRef.result.then(
-            (result) => {
-                console.log('Modal closed with result:', result);
-            },
-            (dismissed) => {
+        modalRef.result.finally(
+            () => {
                 console.log('Modal dismissed');
             }
         );
@@ -1184,13 +1178,10 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         modalRef.componentInstance.warehouseType = this.warehouseType;
         modalRef.componentInstance.warehouseID = this.warehouseID;
-        modalRef.result.then(
-            (result) => {
+        modalRef.result.finally(
+            () => {
                 this.getProduct();
             },
-            () => {
-                console.log('Modal dismissed');
-            }
         );
     }
 

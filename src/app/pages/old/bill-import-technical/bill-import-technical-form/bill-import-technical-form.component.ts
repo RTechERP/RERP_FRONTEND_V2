@@ -739,8 +739,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       PartNumber: product.PartNumber || '',
       Serial: product.Serial || '',
       Note: product.Note || '',
-      EmployeeIDBorrow: product.EmployeeID || 0,
+      EmployeeIDBorrow: product.PeopleID || 0,
       DeadlineReturnNCC: product.DateReturnExpected || null,
+      HistoryProductRTCID: product.ID || 0,
+      ProductRTCQRCodeID: product.ProductRTCQRCodeID || 0,
     }));
 
     // Thêm vào selectedDevices

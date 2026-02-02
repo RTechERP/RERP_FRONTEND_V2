@@ -60,7 +60,7 @@
                     <div class="table-container mt-1 grid-container h-100" [class]="'grid-container-' + tab.id"
                         *ngIf="shouldRenderGrid(tab.id) && columnDefinitionsMap.has(tab.id)"
                         style="height: 100%; width: 100%;">
-                        <angular-slickgrid [gridId]="'gridPurchase-' + tab.id"
+                        <angular-slickgrid [gridId]="'gridPurchaseRequest' + tab.id"
                             [columns]="columnDefinitionsMap.get(tab.id) || []"
                             [options]="gridOptionsMap.get(tab.id) || {}" [dataset]="datasetsMap.get(tab.id) || []"
                             (onAngularGridCreated)="angularGridReady(tab.id, $event.detail)"

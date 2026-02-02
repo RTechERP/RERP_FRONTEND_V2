@@ -229,7 +229,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       // Build form value
       const formValue: any = {
         CustomerID: data.CustomerID ?? 0,
-        Maker: data.Manufacturer ?? '',
+        Maker: data.Manufacturer || data.Maker || '',
         StatusRequest: data.StatusRequest ?? 0,
         ProductName: data.ProductName ?? '',
         EmployeeRequestID: data.EmployeeID ?? 0,
@@ -325,7 +325,6 @@ export class ProjectPartlistPurchaseRequestDetailComponent
           'UnitFactoryExportPrice',
           'UnitImportPrice',
           'TotalImportPrice',
-          'Note',
           'LeadTime',
           'IsImport',
         ];
@@ -720,13 +719,23 @@ export class ProjectPartlistPurchaseRequestDetailComponent
   }
 
   buildSaveModel(data: any): any {
+    // Chuyển đổi DateReturnExpected sang local date để tránh lệch timezone
+    let dateReturnExpected = data.DateReturnExpected;
+    if (dateReturnExpected instanceof Date) {
+      // Format: YYYY-MM-DDTHH:mm:ss.sss (local time, không có Z)
+      const year = dateReturnExpected.getFullYear();
+      const month = String(dateReturnExpected.getMonth() + 1).padStart(2, '0');
+      const day = String(dateReturnExpected.getDate()).padStart(2, '0');
+      dateReturnExpected = `${year}-${month}-${day}T00:00:00`;
+    }
+
     const baseModel = {
       ID: this.projectPartlistDetail?.ID ?? 0,
       ProductName: data.ProductName,
       EmployeeID: data.EmployeeRequestID,
       EmployeeIDRequestApproved: data.EmployeeBuyID,
       DateRequest: data.DateRequest,
-      DateReturnExpected: data.DateReturnExpected,
+      DateReturnExpected: dateReturnExpected,
       Quantity: data.Quantity,
       CurrencyID: data.CurrencyID || null,
       CurrencyRate: data.CurrencyRate,

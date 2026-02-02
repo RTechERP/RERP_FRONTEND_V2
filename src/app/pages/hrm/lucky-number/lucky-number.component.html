@@ -16,3 +16,12 @@
         (onAngularGridCreated)="angularGridReady($event.detail)">
     </angular-slickgrid>
 </div>
+
+
+<nz-modal [(nzVisible)]="isVisible" nzTitle="The first Modal" (nzOnOk)="handleOk()">
+    <ng-container *nzModalContent>
+        <div class="d-flex justify-content-center justify-items-center">
+            <p class="m-0" style="font-size:200px; font-weight:bold;">{{luckyNumber}}</p>
+        </div>
+    </ng-container>
+</nz-modal>

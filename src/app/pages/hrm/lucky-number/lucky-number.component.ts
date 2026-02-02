@@ -9,13 +9,15 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { AppUserService } from '../../../services/app-user.service';
 import { LuckyNumberDetailComponent } from './lucky-number-detail/lucky-number-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 
 @Component({
     selector: 'app-lucky-number',
     imports: [
         CommonModule,
         Menubar,
-        AngularSlickgridModule
+        AngularSlickgridModule,
+        NzModalModule
     ],
     templateUrl: './lucky-number.component.html',
     styleUrl: './lucky-number.component.css'
@@ -48,7 +50,6 @@ export class LuckyNumberComponent implements OnInit {
                 // this.onDelete();
             },
         },
-        { separator: true },
 
         {
             label: 'Refresh',
@@ -56,6 +57,14 @@ export class LuckyNumberComponent implements OnInit {
             // visible: this.permissionService.hasPermission(""),
             command: () => {
                 // this.loadData();
+            },
+        },
+        {
+            label: 'Nhận số may mắn',
+            icon: 'fa-solid fa-arrows-rotate fa-lg text-info',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.getRandomNumber();
             },
         },
     ];
@@ -72,6 +81,10 @@ export class LuckyNumberComponent implements OnInit {
     columnDefinitions: Column[] = [];
     gridOptions: GridOption = {};
     dataset: any[] = [];
+
+    isVisible = false;
+    luckyNumber = 0;
+    year = 2026;
 
     constructor(
         private luckynumberService: LuckyNumberService,
@@ -259,6 +272,59 @@ export class LuckyNumberComponent implements OnInit {
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            },
+        })
+    }
+
+
+    getRandomNumber() {
+        this.isVisible = true;
+
+        const interval = setInterval(() => {
+            this.luckyNumber = Math.floor(Math.random() * 100) + 1;
+        }, 100); // số nhảy liên tục
+
+        setTimeout(() => {
+            clearInterval(interval); // dừng quay
+            this.luckyNumber = Math.floor(Math.random() * 100) + 1; // số cuối
+
+            this.luckynumberService.getRandomNumber(this.year).subscribe({
+                next: (response) => {
+                    this.luckyNumber = response.data.randomNumber;
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
+                },
+            })
+        }, 5000); // quay 5 giây
+    }
+
+
+    handleOk(): void {
+        this.isVisible = false;
+
+
+        const obj = {
+            EmployeeID: this.appUserService?.currentUser?.EmployeeID || 0,
+            EmployeeCode: this.appUserService?.currentUser?.Code || '',
+            EmployeeName: this.appUserService?.currentUser?.FullName || '',
+            PhoneNumber: '',
+            YearValue: this.year,
+            LuckyNumber: this.luckyNumber,
+            ImageName: ''
+        }
+        this.luckynumberService.savedata(obj).subscribe({
+            next: (response) => {
+                console.log('response:', response);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
             },
         })
     }

@@ -27,4 +27,9 @@ export class LuckyNumberService {
 
         return this.http.get<any>(this.url + '/get-random-number', { params });
     }
+
+
+    savedata(data: any): Observable<any> {
+        return this.http.post<any>(this.url + '/save-data', data);
+    }
 }

@@ -262,8 +262,8 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
   //#region Grid Initialization
   initGridSession(): void {
     this.columnDefinitionsSession = [
-      { id: 'Code', name: 'Mã kỳ', field: 'Code', width: 120, sortable: true, filterable: true },
-      { id: 'Name', name: 'Tên kỳ', field: 'Name', width: 200, sortable: true, filterable: true },
+      { id: 'Code', name: 'Mã kỳ', field: 'Code', width: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+      { id: 'Name', name: 'Tên kỳ', field: 'Name', width: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
       { id: 'YearEvaluation', name: 'Năm', field: 'YearEvaluation', width: 80, sortable: true, cssClass: 'text-end' },
       { id: 'QuarterEvaluation', name: 'Quý', field: 'QuarterEvaluation', width: 80, sortable: true, cssClass: 'text-end' },
     ];
@@ -287,9 +287,9 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
 
   initGridRule(): void {
     this.columnDefinitionsRule = [
-      { id: 'RuleCode', name: 'Mã đánh giá', field: 'RuleCode', width: 120, sortable: true, filterable: true },
-      { id: 'RuleName', name: 'Tên đánh giá', field: 'RuleName', width: 200, sortable: true, filterable: true },
-      { id: 'TypePositionName', name: 'Chức vụ', field: 'TypePositionName', width: 150, sortable: true, filterable: true },
+      { id: 'RuleCode', name: 'Mã đánh giá', field: 'RuleCode', width: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+      { id: 'RuleName', name: 'Tên đánh giá', field: 'RuleName', width: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+      { id: 'TypePositionName', name: 'Chức vụ', field: 'TypePositionName', width: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
     ];
 
     this.gridOptionsRule = {
@@ -318,13 +318,13 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
   initGridRuleDetail(): void {
     this.columnDefinitionsRuleDetail = [
       { id: 'STT', name: 'STT', field: 'STT', width: 150, sortable: true, formatter: Formatters.tree },
-      { id: 'EvaluationCode', name: 'Mã Rule', field: 'EvaluationCode', width: 120, sortable: true, filterable: true },
-      { id: 'RuleContent', name: 'Nội dung đánh giá', field: 'RuleContent', width: 300, sortable: true, filterable: true },
+      { id: 'EvaluationCode', name: 'Mã Rule', field: 'EvaluationCode', width: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+      { id: 'RuleContent', name: 'Nội dung đánh giá', field: 'RuleContent', width: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
       { id: 'MaxPercent', name: 'Tổng % thưởng tối đa', field: 'MaxPercent', width: 150, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
       { id: 'PercentageAdjustment', name: 'Số % trừ (cộng) 1 lần', field: 'PercentageAdjustment', width: 150, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
       { id: 'MaxPercentageAdjustment', name: 'Số % trừ (cộng) lớn nhất', field: 'MaxPercentageAdjustment', width: 170, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
-      { id: 'RuleNote', name: 'Rule', field: 'RuleNote', width: 250, sortable: true, filterable: true },
-      { id: 'Note', name: 'Ghi chú', field: 'Note', width: 250, sortable: true, filterable: true },
+      { id: 'RuleNote', name: 'Rule', field: 'RuleNote', width: 250, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+      { id: 'Note', name: 'Ghi chú', field: 'Note', width: 250, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
     ];
 
     this.gridOptionsRuleDetail = {
@@ -714,4 +714,37 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
     });
   }
   //#endregion
+
+  // Helper function to escape HTML special characters for title attributes
+  private escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+    if (!value) return '';
+    const escaped = this.escapeHtml(value);
+    return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
+  };
 }

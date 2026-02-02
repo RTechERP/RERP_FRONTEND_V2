@@ -417,7 +417,7 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
       this.searchParams.MeetingTypeID
     ).subscribe({
       next: (response: any) => {
-        const data = response.data?.asset || [];
+        const data = response.data;
         this.datasetMeetingMinutes = data.map((item: any, index: number) => ({
           ...item,
           id: item.ID || `meeting_${index + 1}`,

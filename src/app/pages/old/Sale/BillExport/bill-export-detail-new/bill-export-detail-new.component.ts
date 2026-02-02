@@ -774,6 +774,7 @@ export class BillExportDetailNewComponent
       rowSelectionOptions: {
         selectActiveRow: false,
       },
+      rowHeight: 60,
       enableCellMenu: true,
       cellMenu: {
         commandItems: [
@@ -832,7 +833,7 @@ export class BillExportDetailNewComponent
         id: 'ProductID',
         name: 'Mã sản phẩm',
         field: 'ProductID',
-        width: 500,
+        width: 300,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
@@ -921,25 +922,32 @@ export class BillExportDetailNewComponent
           return `<span style="display:block; text-align:right;">${formatted}</span>`;
         },
       },
-            {
+      {
         id: 'ProductFullName',
         name: 'Mã sp theo dự án',
         field: 'ProductFullName',
-        width: 250,
+        width: 400,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        editor: { model: Editors['text'] }, // nvarchar(max) - không giới hạn
-
+        editor: { model: Editors['text'] },
+        formatter: (_row, _cell, value) => {
+          if (!value) return '';
+          return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+        },
       },
       {
         id: 'ProductName',
         name: 'Tên sản phẩm',
         field: 'ProductName',
-        width: 250,
+        width: 400,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        formatter: (_row, _cell, value) => {
+          if (!value) return '';
+          return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+        },
       },
       {
         id: 'Unit',
@@ -999,7 +1007,9 @@ export class BillExportDetailNewComponent
           const found = this.projectGridCollection.find(
             (x: any) => x.value === Number(value)
           );
-          return found?.ProjectName ?? '';
+          const projectName = found?.ProjectName ?? '';
+          if (!projectName) return '';
+          return `<div title="${String(projectName).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${projectName}</div>`;
         },
         editor: {
           model: Editors['singleSelect'],

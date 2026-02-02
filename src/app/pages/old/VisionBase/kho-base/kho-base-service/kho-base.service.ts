@@ -36,7 +36,15 @@ export class KhoBaseService {
   getGroupSaleUser(params: any): Observable<any> {
     return this.http.get<any>(
       this._url + `followprojectbase/getgroupsalesuser`,
-      params
+      { params }
+    );
+  }
+
+  // Lấy thông tin GroupSalesUser của user đang đăng nhập
+  getGroupSalesUserByUserId(userId: number): Observable<any> {
+    return this.http.get<any>(
+      this._url + `followprojectbase/get-group-sales-user-info`,
+      { params: { userId: userId.toString() } }
     );
   }
   getProjects(): Observable<any> {

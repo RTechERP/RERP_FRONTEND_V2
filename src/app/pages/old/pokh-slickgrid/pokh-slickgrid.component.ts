@@ -1772,7 +1772,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     initGridPOKH(): void {
         this.columnDefinitionsPOKH = [
             { id: 'IsApproved', name: 'Duyệt', field: 'IsApproved', width: 80, minWidth: 50, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Đã duyệt' }, { value: false, label: 'Chưa duyệt' }] } },
-            { id: 'StatusTextNew', name: 'Trạng thái', field: 'StatusTextNew', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'StatusTextNew', name: 'Trạng thái', field: 'StatusTextNew', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             {
                 id: 'MainIndex',
                 name: 'Loại',
@@ -1781,6 +1781,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 minWidth: 200,
                 sortable: true,
                 filterable: true,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -1795,13 +1796,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             },
             { id: 'NewAccount', name: 'New Account', field: 'NewAccount', width: 100, minWidth: 70, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] } },
 
-            { id: 'AccountTypeText', name: 'Loại Account', field: 'AccountTypeText', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+            { id: 'AccountTypeText', name: 'Loại Account', field: 'AccountTypeText', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
 
-            { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'POCode', name: 'Mã PO', field: 'POCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 300, minWidth: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'FullName', name: 'Người phụ trách', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'POCode', name: 'Mã PO', field: 'POCode', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 300, minWidth: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'FullName', name: 'Người phụ trách', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'ReceivedDatePO', name: 'Ngày nhận PO', field: 'ReceivedDatePO', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
             { id: 'RecivedMoneyDate', name: 'Ngày tiền về', field: 'RecivedMoneyDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
             {
@@ -1829,13 +1830,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             { id: 'Discount', name: '% Chiết khấu', field: 'Discount', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'TotalMoneyDiscount', name: 'Tổng tiền sau chiết khấu', field: 'TotalMoneyDiscount', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'ReceiveMoney', name: 'Tiền về', field: 'ReceiveMoney', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
-            { id: 'DeliveryStatusText', name: 'Tình trạng tiến độ giao hàng', field: 'DeliveryStatusText', width: 150, minWidth: 150, sortable: true, filterable: true },
-            { id: 'ExportStatusText', name: 'Tình trạng xuất kho', field: 'ExportStatusText', width: 150, minWidth: 150, sortable: true, filterable: true },
-            { id: 'EndUser', name: 'End User', field: 'EndUser', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'Note', name: 'Ghi chú', field: 'Note', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'Debt', name: 'Công nợ', field: 'Debt', width: 120, minWidth: 120, sortable: true, filterable: true },
-            { id: 'ImportStatus', name: 'Hóa đơn', field: 'ImportStatus', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'IsOder', name: 'Đặt hàng', field: 'IsOder', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'DeliveryStatusText', name: 'Tình trạng tiến độ giao hàng', field: 'DeliveryStatusText', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+            { id: 'ExportStatusText', name: 'Tình trạng xuất kho', field: 'ExportStatusText', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+            { id: 'EndUser', name: 'End User', field: 'EndUser', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', width: 120, minWidth: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Debt', name: 'Công nợ', field: 'Debt', width: 120, minWidth: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+            { id: 'ImportStatus', name: 'Hóa đơn', field: 'ImportStatus', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'IsOder', name: 'Đặt hàng', field: 'IsOder', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
         ];
 
         this.gridOptionsPOKH = {
@@ -1934,29 +1935,29 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     initGridPOKHProduct(): void {
         this.columnDefinitionsPOKHProduct = [
             { id: 'STT', name: 'STT', field: 'STT', width: 70, minWidth: 70, sortable: true, filterable: true, formatter: Formatters.tree, filter: { model: Filters['compoundInputNumber'] } },
-            { id: 'ProductNewCode', name: 'Mã Nội Bộ', field: 'ProductNewCode', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'ProductCode', name: 'Mã Sản Phẩm (Cũ)', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'ProductNewCode', name: 'Mã Nội Bộ', field: 'ProductNewCode', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ProductCode', name: 'Mã Sản Phẩm (Cũ)', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
             { id: 'Qty', name: 'Số lượng', field: 'Qty', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'QuantityReturn', name: 'SL đã về', field: 'QuantityReturn', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'QuantityExport', name: 'SL đã xuất', field: 'QuantityExport', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'QuantityRemain', name: 'SL còn lại', field: 'QuantityRemain', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
-            { id: 'FilmSize', name: 'Kích thước phim cắt/Model', field: 'FilmSize', width: 150, minWidth: 150, sortable: true, filterable: true },
-            { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'FilmSize', name: 'Kích thước phim cắt/Model', field: 'FilmSize', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+            { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
             { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'VAT', name: 'VAT (%)', field: 'VAT', width: 150, minWidth: 150, sortable: true, filterable: true, cssClass: 'text-end' },
             { id: 'TotalPriceIncludeVAT', name: 'Tổng tiền sau VAT', field: 'TotalPriceIncludeVAT', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
-            { id: 'UserReceiver', name: 'Người nhận', field: 'UserReceiver', width: 200, minWidth: 200, sortable: true, filterable: true },
+            { id: 'UserReceiver', name: 'Người nhận', field: 'UserReceiver', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
             { id: 'DeliveryRequestedDate', name: 'Ngày yêu cầu giao hàng', field: 'DeliveryRequestedDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
-            { id: 'EstimatedPay', name: 'Thanh toán dự kiến', field: 'EstimatedPay', width: 200, minWidth: 200, sortable: true, filterable: true },
+            { id: 'EstimatedPay', name: 'Thanh toán dự kiến', field: 'EstimatedPay', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
             { id: 'BillDate', name: 'Ngày hóa đơn', field: 'BillDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
-            { id: 'BillNumber', name: 'Số hóa đơn', field: 'BillNumber', width: 200, minWidth: 200, sortable: true, filterable: true },
+            { id: 'BillNumber', name: 'Số hóa đơn', field: 'BillNumber', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
             { id: 'Debt', name: 'Công nợ', field: 'Debt', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
             { id: 'PayDate', name: 'Ngày yêu cầu thanh toán', field: 'PayDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
-            { id: 'GroupPO', name: 'Nhóm', field: 'GroupPO', width: 100, minWidth: 100, sortable: true, filterable: true },
+            { id: 'GroupPO', name: 'Nhóm', field: 'GroupPO', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
             { id: 'ActualDeliveryDate', name: 'Ngày giao hàng thực tế', field: 'ActualDeliveryDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
             { id: 'RecivedMoneyDate', name: 'Ngày tiền về', field: 'RecivedMoneyDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
         ];
@@ -2031,7 +2032,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     initGridPOKHFile(): void {
         this.columnDefinitionsPOKHFile = [
             { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true },
-            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 250, sortable: true, filterable: true },
+            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 250, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
         ];
 
         this.gridOptionsPOKHFile = {
@@ -2165,4 +2166,37 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         angularGrid.slickGrid.invalidate();
         angularGrid.slickGrid.render();
     }
+
+    // Helper function to escape HTML special characters for title attributes
+    private escapeHtml(text: string | null | undefined): string {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+        if (!value) return '';
+        const escaped = this.escapeHtml(value);
+        return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
+    };
 }

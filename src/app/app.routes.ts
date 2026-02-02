@@ -254,6 +254,7 @@ import { KpiPositionEmployeeComponent } from './pages/old/Technical/kpi-position
 import { KpiEvaluationComponent } from './pages/old/Technical/kpi-evaluation/kpi-evaluation.component';
 import { KpiEmployeeTeamComponent } from './pages/old/Technical/kpi-employee-team/kpi-employee-team.component';
 import { KpiEvaluationRuleComponent } from './pages/old/Technical/kpi-evaluation-rule/kpi-evaluation-rule.component';
+import { KpiEvaluationFactorsComponent } from './pages/old/Technical/kpi-evaluation-factors/kpi-evaluation-factors.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -1025,6 +1026,7 @@ export const routes: Routes = [
 
             { path: 'kpi-employee-team', component: KpiEmployeeTeamComponent, canActivate: [authGuard] },
             { path: 'kpi-evaluation-rule', component: KpiEvaluationRuleComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation-factors', component: KpiEvaluationFactorsComponent, canActivate: [authGuard] },
 
             { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
         ],

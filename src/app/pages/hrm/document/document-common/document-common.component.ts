@@ -152,10 +152,11 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
         this.tabulator = new Tabulator(this.tbDocumentCommonRef.nativeElement, {
             ...DEFAULT_TABLE_CONFIG,
             layout: 'fitDataStretch',
-            height: '89vh',
+            height: '87vh',
             paginationMode: 'local',
             rowHeader: false,
             paginationSize: 100,
+            pagination: false,
             groupBy: ["DepartmentName", "NameDocumentType"],
             columns: [
                 { title: 'STT', field: 'STT', width: 60, hozAlign: 'center', headerHozAlign: 'center', headerSort: false, visible: false },
@@ -164,18 +165,12 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
                     title: 'Mã văn bản', field: 'Code', width: 250, headerSort: true,
                     formatter: (cell: any) => {
                         const rowData = cell.getRow().getData();
-                        const value = cell.getValue();
                         if (!rowData.FileName) {
-                            return value || '';
+                            return cell.getValue() || '';
                         }
-                        return `<a href="javascript:void(0)" class="download-link" style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value || rowData.FileName}</a>`;
+                        const linkBase = 'http://14.232.152.154:8083/api/Upload/RTCDocument/';
+                        return `<p class="m-0 p-0 text-left"><a href="/Document/GetBlobDownload?path=${linkBase}${rowData.FileName}&file_name=${rowData.FileName}">${rowData.Code}</a></p>`;
                     },
-                    cellClick: (e: any, cell: any) => {
-                        const rowData = cell.getRow().getData();
-                        if (rowData.FileName || rowData.Code) {
-                            self.downloadFile(rowData);
-                        }
-                    }
                 },
                 { title: 'Tên văn bản', field: 'NameDocument', width: 350, headerSort: true, formatter: 'textarea' },
                 {

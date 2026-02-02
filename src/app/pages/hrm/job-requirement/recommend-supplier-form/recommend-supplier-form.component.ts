@@ -27,7 +27,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 
 
 import { JobRequirementService } from '../job-requirement-service/job-requirement.service';
-import { Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { forkJoin } from 'rxjs';
@@ -41,6 +41,7 @@ interface SupplierProposalRow {
   Supplier: string;
   Contact: string;
   UnitPrice: string | number;
+  Quantity: string | number;
   TotalAmount: string | number;
   Note: string;
 }
@@ -83,7 +84,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   @Input() JobrequirementID: number = 0;
   @Input() dataInput: any;
   @Input() isCheckmode: boolean = false;
-   DeletedCommend: any[] = [];
+  DeletedCommend: any[] = [];
 
   DepartmentRequiredData: any[] = [];
   DepartmentRequiredTable: Tabulator | null = null;
@@ -106,10 +107,10 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   DateEnd: Date = new Date();
   DepartmentRequiredID: number = 0;
 
-   ngOnInit(): void {
+  ngOnInit(): void {
     if (this.JobrequirementID) {
       if (this.isCheckmode) {
-        this.loadDepartmentRequiredData(this.JobrequirementID); 
+        this.loadDepartmentRequiredData(this.JobrequirementID);
       } else {
         this.loadJobRequirementDetail(this.JobrequirementID);
       }
@@ -132,11 +133,11 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   }
 
   private hydrateSupplierRow(supplier?: SupplierProposalRow): SupplierProposalRow {
-    const departmentRequiredID = supplier?.DepartmentRequiredID 
-      || (this.DepartmentRequiredData && this.DepartmentRequiredData.length > 0 
-          ? (this.DepartmentRequiredData[0].ID || this.DepartmentRequiredData[0].DepartmentRequiredID || 0)
-          : 0);
-    
+    const departmentRequiredID = supplier?.DepartmentRequiredID
+      || (this.DepartmentRequiredData && this.DepartmentRequiredData.length > 0
+        ? (this.DepartmentRequiredData[0].ID || this.DepartmentRequiredData[0].DepartmentRequiredID || 0)
+        : 0);
+
     return {
       ID: supplier?.ID,
       STT: supplier?.STT,
@@ -145,6 +146,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       Supplier: supplier?.Supplier || '',
       Contact: supplier?.Contact || '',
       UnitPrice: supplier && supplier.UnitPrice !== undefined ? supplier.UnitPrice : '',
+      Quantity: supplier && supplier.Quantity !== undefined ? supplier.Quantity : '',
       TotalAmount: supplier && supplier.TotalAmount !== undefined ? supplier.TotalAmount : '',
       Note: supplier?.Note || '',
     };
@@ -152,16 +154,16 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
 
   private hydrateProductRow(product?: ProductProposalRow): ProductProposalRow {
     const rowId = product && typeof product.rowID === 'number'
-        ? product.rowID
-        : ++this.productRowIdCounter;
+      ? product.rowID
+      : ++this.productRowIdCounter;
 
     if (rowId > this.productRowIdCounter) {
       this.productRowIdCounter = rowId;
     }
 
     const suppliers = product?.Suppliers && product.Suppliers.length
-        ? product.Suppliers.map((supplier) => this.hydrateSupplierRow(supplier))
-        : [this.hydrateSupplierRow()];
+      ? product.Suppliers.map((supplier) => this.hydrateSupplierRow(supplier))
+      : [this.hydrateSupplierRow()];
 
     return {
       rowID: rowId,
@@ -174,8 +176,8 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
     if (this.hasHydratedHCNSData) return;
 
     this.HCNSApprovalData = this.HCNSApprovalData && this.HCNSApprovalData.length
-        ? this.HCNSApprovalData.map((product) => this.hydrateProductRow(product))
-        : [];
+      ? this.HCNSApprovalData.map((product) => this.hydrateProductRow(product))
+      : [];
 
     // Thêm 1 dòng mặc định nếu không có dữ liệu
     if (!this.HCNSApprovalData || this.HCNSApprovalData.length === 0) {
@@ -221,7 +223,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
 
         const combinedRecord = {
           ...master,
-          JobRequirementID: pivotRow.JobRequirementID || master.ID  || 0,
+          JobRequirementID: pivotRow.JobRequirementID || master.ID || 0,
           RequestContent: pivotRow.RequestContent || '',
           RequestedBy: pivotRow.RequestedBy || '',
           Reason: pivotRow.Reason || '',
@@ -247,16 +249,16 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       this.EmployeeID,
       this.DepartmentID,
       this.Keyword, // Keyword
-        (this.DateStart = new Date(
+      (this.DateStart = new Date(
         new Date().setFullYear(new Date().getFullYear() - 5)
       )),
       this.DateEnd
     ).subscribe({
       next: (response: any) => {
-        const departmentRequiredData =  response.data?.departmentRequiredData || [];
-        
-        this.DepartmentRequiredData = Array.isArray(departmentRequiredData) 
-          ? departmentRequiredData 
+        const departmentRequiredData = response.data?.departmentRequiredData || [];
+
+        this.DepartmentRequiredData = Array.isArray(departmentRequiredData)
+          ? departmentRequiredData
           : [departmentRequiredData];
 
         if (this.DepartmentRequiredTable) {
@@ -312,9 +314,9 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
 
     hcnsProposals.forEach((row: any) => {
       const productName = row.ProductName || '';
-      
-      if (!productName) return; 
-      
+
+      if (!productName) return;
+
       if (!productMap.has(productName)) {
         productMap.set(productName, []);
       }
@@ -327,6 +329,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
         Supplier: row.Supplier || '',
         Contact: row.Contact || '',
         UnitPrice: row.UnitPrice || '',
+        Quantity: row.Quantity || '',
         TotalAmount: row.TotalAmount || '',
         Note: row.Note || '',
       };
@@ -346,104 +349,104 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
     this.hasHydratedHCNSData = true;
   }
 
-   saveData(): void {
-        if (!this.validateHCNSData()) {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Vui lòng kiểm tra lại các trường bắt buộc trong bảng đề xuất'
-        );
-        return;
-      }
-  
-      const hcnsPayload = this.buildHCNSPayload();
-  
-      if (this.isCheckmode == true) {
-        // Update mode
-        const payload = {
-          JobRequirementID: this.JobrequirementID,
-          DepartmentRequired: [
-            ...(this.DepartmentRequiredTable?.getData().map((item: any) => ({
-              ID: item.ID || 0,
-              STT: item.STT || 0,
-              JobRequirementID: item.JobRequirementID || 0,
-              RequesterID: item.RequesterID || 0,
-              PositionID: item.PositionID || 0,
-              DepartmentID: item.DepartmentID || 0,
-              RequestDate: item.DateRequest || '',
-              CompletionDate: item.DeadlineRequest || '',
-              RequestContent: item.RequestContent || '',
-              Unit: item.Unit || '',
-              Reason: item.Reason || '',
-              Description: item.Unit || '',
-              Quantity: item.Quantity || '',
-              Note: item.Note || '',
-            })) || []),
-          ],
-          HCNSProposal: hcnsPayload,
-          DeletedCommend: this.DeletedCommend,
-        };
-        this.jobRequirementService.saveData(payload).subscribe({
-          next: (res) => {
-            if (res.status === 1) {
-              this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
-              this.closeModal();
-            } else {
-              this.notification.warning(
-                'Thông báo',
-                res.message || 'Không thể cập nhật !'
-              );
-            }
-          },
-          error: (err) => {
-            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật!');
-          },
-        });
-      } else {
-        // Insert mode
-        const payload = {
-           JobRequirementID: this.JobrequirementID,
-           DepartmentRequired: [
-            ...(this.DepartmentRequiredTable?.getData().map((item: any) => ({
-              ID:  0,
-              STT: item.STT || 0,
-              JobRequirementID: item.JobRequirementID || 0,
-              RequesterID: item.EmployeeID || 0,
-              PositionID: item.ChucVuHDID || 0,
-              DepartmentID: item.DepartmentID || 0,
-              RequestDate: item.DateRequest || '',
-              CompletionDate: item.DeadlineRequest || '',
-              RequestContent: item.RequestContent || '',
-              Unit: item.Unit || '',
-              Reason: item.Reason || '',
-              Description: item.Unit || '',
-              Quantity: item.Quantity || '',
-              Note: item.Note || '',
-            })) || []),
-          ],
-          
-          HCNSProposal: hcnsPayload,
-          DeletedCommend: this.DeletedCommend,
-          
-        };
-  
-        this.jobRequirementService.saveData(payload).subscribe({
-          next: (res) => {
-            if (res.status === 1) {
-              this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
-              this.closeModal();
-            } else {
-              this.notification.warning(
-                'Thông báo',
-                res.message || 'Không thể thêm mới biên bản họp!'
-              );
-            }
-          },
-          error: (err) => {
-            this.notification.error(NOTIFICATION_TITLE.error, err.message || 'Có lỗi xảy ra khi thêm mới!');
-          },
-        });
-      }
+  saveData(): void {
+    if (!this.validateHCNSData()) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng kiểm tra lại các trường bắt buộc trong bảng đề xuất'
+      );
+      return;
     }
+
+    const hcnsPayload = this.buildHCNSPayload();
+
+    if (this.isCheckmode == true) {
+      // Update mode
+      const payload = {
+        JobRequirementID: this.JobrequirementID,
+        DepartmentRequired: [
+          ...(this.DepartmentRequiredTable?.getData().map((item: any) => ({
+            ID: item.ID || 0,
+            STT: item.STT || 0,
+            JobRequirementID: item.JobRequirementID || 0,
+            RequesterID: item.RequesterID || 0,
+            PositionID: item.PositionID || 0,
+            DepartmentID: item.DepartmentID || 0,
+            RequestDate: item.DateRequest || '',
+            CompletionDate: item.DeadlineRequest || '',
+            RequestContent: item.RequestContent || '',
+            Unit: item.Unit || '',
+            Reason: item.Reason || '',
+            Description: item.Unit || '',
+            Quantity: item.Quantity || '',
+            Note: item.Note || '',
+          })) || []),
+        ],
+        HCNSProposal: hcnsPayload,
+        DeletedCommend: this.DeletedCommend,
+      };
+      this.jobRequirementService.saveData(payload).subscribe({
+        next: (res) => {
+          if (res.status === 1) {
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
+            this.closeModal();
+          } else {
+            this.notification.warning(
+              'Thông báo',
+              res.message || 'Không thể cập nhật !'
+            );
+          }
+        },
+        error: (err) => {
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật!');
+        },
+      });
+    } else {
+      // Insert mode
+      const payload = {
+        JobRequirementID: this.JobrequirementID,
+        DepartmentRequired: [
+          ...(this.DepartmentRequiredTable?.getData().map((item: any) => ({
+            ID: 0,
+            STT: item.STT || 0,
+            JobRequirementID: item.JobRequirementID || 0,
+            RequesterID: item.EmployeeID || 0,
+            PositionID: item.ChucVuHDID || 0,
+            DepartmentID: item.DepartmentID || 0,
+            RequestDate: item.DateRequest || '',
+            CompletionDate: item.DeadlineRequest || '',
+            RequestContent: item.RequestContent || '',
+            Unit: item.Unit || '',
+            Reason: item.Reason || '',
+            Description: item.Unit || '',
+            Quantity: item.Quantity || '',
+            Note: item.Note || '',
+          })) || []),
+        ],
+
+        HCNSProposal: hcnsPayload,
+        DeletedCommend: this.DeletedCommend,
+
+      };
+
+      this.jobRequirementService.saveData(payload).subscribe({
+        next: (res) => {
+          if (res.status === 1) {
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
+            this.closeModal();
+          } else {
+            this.notification.warning(
+              'Thông báo',
+              res.message || 'Không thể thêm mới biên bản họp!'
+            );
+          }
+        },
+        error: (err) => {
+          this.notification.error(NOTIFICATION_TITLE.error, err.message || 'Có lỗi xảy ra khi thêm mới!');
+        },
+      });
+    }
+  }
 
   draw_DepartmentRequiredTable() {
     if (this.DepartmentRequiredTable) {
@@ -472,12 +475,12 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
               headerHozAlign: 'center',
               editor: 'input',
             },
-            {
-              title: 'Vị trí',
-              field: 'ChucVu',
-              headerHozAlign: 'center',
-              editor: 'input',
-            },
+            // {
+            //   title: 'Vị trí',
+            //   field: 'ChucVu',
+            //   headerHozAlign: 'center',
+            //   editor: 'input',
+            // },
             {
               title: 'Bộ phận',
               field: 'EmployeeDepartment',
@@ -487,9 +490,9 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày yêu cầu',
               field: 'DateRequest',
-              hozAlign: 'left',
+              hozAlign: 'center',
               headerHozAlign: 'center',
-              width: 200,
+              width: 120,
               formatter: (cell: any) => {
                 const value = cell.getValue();
                 return value
@@ -545,7 +548,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       );
     }
   }
- 
+
 
   private getProductById(productId: number): ProductProposalRow | undefined {
     return this.HCNSApprovalData.find(p => p.rowID === productId);
@@ -594,9 +597,9 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   removeSupplierRow(productId: number, supplierIndex: number): void {
     const product = this.getProductById(productId);
     if (!product?.Suppliers[supplierIndex]) return;
-    
+
     const supplier = product.Suppliers[supplierIndex];
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa nhà cung cấp này không?',
@@ -608,11 +611,11 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
         }
 
         if (product.Suppliers.length === 1) {
-          Object.assign(product.Suppliers[0], { 
-            Supplier: '', 
-            Contact: '', 
-            UnitPrice: '', 
-            TotalAmount: '', 
+          Object.assign(product.Suppliers[0], {
+            Supplier: '',
+            Contact: '',
+            UnitPrice: '',
+            TotalAmount: '',
             Note: ''
           });
         } else {
@@ -640,11 +643,14 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   }
 
   private buildSupplierPayload(product: ProductProposalRow, supplier: SupplierProposalRow) {
-    const departmentRequiredID = supplier.DepartmentRequiredID 
-      || (this.DepartmentRequiredData && this.DepartmentRequiredData.length > 0 
-          ? (this.DepartmentRequiredData[0].ID || this.DepartmentRequiredData[0].DepartmentRequiredID || 0)
-          : 0);
-    
+    const topData = this.DepartmentRequiredTable?.getData() || this.DepartmentRequiredData;
+    const requirementQuantity = this.parseCurrency(topData[0]?.Quantity);
+
+    const departmentRequiredID = supplier.DepartmentRequiredID
+      || (this.DepartmentRequiredData && this.DepartmentRequiredData.length > 0
+        ? (this.DepartmentRequiredData[0].ID || this.DepartmentRequiredData[0].DepartmentRequiredID || 0)
+        : 0);
+
     return {
       ID: supplier.ID && supplier.ID > 0 ? supplier.ID : 0,
       STT: supplier.STT || 0,
@@ -653,6 +659,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       ProductName: product.ProductName || '',
       Supplier: supplier.Supplier || '',
       Contact: supplier.Contact || '',
+      Quantity: requirementQuantity,
       UnitPrice: this.parseCurrency(supplier.UnitPrice),
       TotalAmount: this.parseCurrency(supplier.TotalAmount),
       Note: supplier.Note || '',
@@ -803,5 +810,121 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       (supplier as any)[field] = value;
     }
     this.validateSupplier(product, supplier, supplierIndex);
+  }
+
+  /**
+   * Format số thành định dạng tiền VNĐ (có dấu phẩy ngăn cách hàng nghìn)
+   */
+  formatCurrency(value: string | number | undefined): string {
+    if (value == null || value === '') return '';
+
+    // Chuyển về số
+    let numericValue: number;
+    if (typeof value === 'number') {
+      numericValue = value;
+    } else {
+      // Loại bỏ tất cả ký tự không phải số (trừ dấu chấm cho số thập phân)
+      const cleanValue = String(value).replace(/[^\d]/g, '');
+      numericValue = parseInt(cleanValue, 10);
+    }
+
+    if (isNaN(numericValue)) return '';
+
+    // Format với dấu phẩy ngăn cách hàng nghìn
+    return numericValue.toLocaleString('vi-VN');
+  }
+
+  /**
+   * Xử lý sự kiện input để format tiền real-time
+   */
+  onCurrencyInput(event: Event, supplier: SupplierProposalRow, field: 'UnitPrice' | 'TotalAmount'): void {
+    const input = event.target as HTMLInputElement;
+    const cursorPosition = input.selectionStart || 0;
+    const oldValue = input.value;
+
+    // Lấy giá trị số thuần (loại bỏ tất cả ký tự không phải số)
+    const numericValue = input.value.replace(/[^\d]/g, '');
+
+    // Chuyển thành số
+    const number = parseInt(numericValue, 10);
+
+    if (isNaN(number)) {
+      supplier[field] = '';
+      return;
+    }
+
+    // Lưu giá trị số vào model
+    supplier[field] = number;
+
+    // Tự động tính Thành tiền nếu nhập Đơn giá (Số lượng lấy từ bảng trên)
+    if (field === 'UnitPrice') {
+      const topData = this.DepartmentRequiredTable?.getData() || this.DepartmentRequiredData;
+      const quantity = this.parseCurrency(topData[0]?.Quantity);
+      const unitPrice = this.parseCurrency(supplier.UnitPrice);
+
+      supplier.TotalAmount = quantity * unitPrice;
+    }
+
+    // Format hiển thị
+    const formattedValue = number.toLocaleString('vi-VN');
+
+    // Cập nhật input value
+    input.value = formattedValue;
+
+    // Tính toán vị trí cursor mới
+    const oldLength = oldValue.replace(/[^\d]/g, '').length;
+    const newLength = numericValue.length;
+    const diffCommas = formattedValue.length - numericValue.length;
+
+    // Đặt lại cursor position
+    setTimeout(() => {
+      const newCursorPos = cursorPosition + (formattedValue.length - oldValue.length);
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  }
+
+  /**
+   * Get formatted value for display in input
+   */
+  getFormattedCurrencyValue(value: string | number | undefined): string {
+    if (value == null || value === '') return '';
+
+    let numericValue: number;
+    if (typeof value === 'number') {
+      numericValue = value;
+    } else {
+      const cleanValue = String(value).replace(/[^\d]/g, '');
+      numericValue = parseInt(cleanValue, 10);
+    }
+
+    if (isNaN(numericValue)) return '';
+
+    return numericValue.toLocaleString('vi-VN');
+  }
+
+  /**
+   * Chỉ cho phép nhập số (chặn các ký tự không phải số)
+   */
+  onCurrencyKeyDown(event: KeyboardEvent): boolean {
+    // Cho phép các phím điều khiển: Backspace, Delete, Tab, Escape, Enter, Arrow keys
+    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
+
+    if (allowedKeys.includes(event.key)) {
+      return true;
+    }
+
+    // Cho phép Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+    if (event.ctrlKey && ['a', 'c', 'v', 'x'].includes(event.key.toLowerCase())) {
+      return true;
+    }
+
+    // Chỉ cho phép nhập số 0-9
+    if (event.key >= '0' && event.key <= '9') {
+      return true;
+    }
+
+    // Chặn tất cả các ký tự khác
+    event.preventDefault();
+    return false;
   }
 }

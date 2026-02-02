@@ -599,19 +599,28 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
   }
 
   private configureUserFilterByRole(): void {
-    this.isCurrentUserAdmin = this.appUserService.isAdmin;
-    if (this.isCurrentUserAdmin) {
-      this.isUserFilterDisabled = false;
-      return;
+    const currentUserId = this.appUserService.id || 0;
+    const currentUser = this.appUserService.currentUser;
+    const isAdmin = this.appUserService.isAdmin;
+    const isAdminSale = currentUser?.IsAdminSale === 1;
+
+    // Set departmentId từ user đang đăng nhập
+    const currentDepartmentId = this.appUserService.departmentID;
+    if (currentDepartmentId) {
+      this.filters.departmentId = currentDepartmentId;
     }
 
-    this.isUserFilterDisabled = true;
-    const currentUserId = this.appUserService.id;
-    if (currentUserId) {
+    const specialUserIds = [1177, 1313, 23, 1380];
+    const isSpecialUser = specialUserIds.includes(currentUserId);
+
+    const shouldLockUserFilter = !isAdmin && !isAdminSale && !isSpecialUser;
+
+    if (shouldLockUserFilter) {
+      this.isUserFilterDisabled = true;
       this.filters.userId = currentUserId;
       this.selectedId = currentUserId;
     } else {
-      this.filters.userId = 0;
+      this.isUserFilterDisabled = false;
     }
   }
 }

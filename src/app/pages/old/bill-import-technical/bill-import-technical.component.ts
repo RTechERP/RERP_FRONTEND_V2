@@ -1,3 +1,4 @@
+
 import { inject, Inject, Optional, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -43,11 +44,11 @@ import { BillImportTechnicalService } from './bill-import-technical-service/bill
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BillImportTechnicalFormComponent } from './bill-import-technical-form/bill-import-technical-form.component';
-import { CheckHistoryTechComponent } from './check-history-tech/check-history-tech.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { ActivatedRoute } from '@angular/router';
+import { CheckHistoryTechSlickGridComponent } from './check-history-tech-slick-grid/check-history-tech-slick-grid.component';
 function formatDateCell(cell: CellComponent): string {
     const val = cell.getValue();
     return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -819,7 +820,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     }
 
     openCheckHistoryTech() {
-        const modalRef = this.modalService.open(CheckHistoryTechComponent, {
+        const modalRef = this.modalService.open(CheckHistoryTechSlickGridComponent, {
             centered: false,
             fullscreen: true,
             backdrop: 'static',

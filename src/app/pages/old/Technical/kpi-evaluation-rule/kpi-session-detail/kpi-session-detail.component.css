@@ -1,0 +1,33 @@
+.fs-xs {
+    font-size: 0.75rem;
+}
+
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+:host ::ng-deep .ant-card-head {
+    min-height: 36px;
+    padding: 0 12px;
+    background-color: #f5f5f5;
+}
+
+:host ::ng-deep .ant-card-head-title {
+    padding: 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+:host ::ng-deep .ant-input-number {
+    width: 100%;
+}
+
+:host ::ng-deep .ant-select {
+    width: 100%;
+}
+
+label {
+    font-size: 13px;
+    margin-bottom: 0;
+}

@@ -8,6 +8,7 @@
                 NV Đánh giá
                 <i nz-icon nzType="down"></i>
             </button>
+            <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
             <nz-dropdown-menu #menuNVDanhGia="nzDropdownMenu">
                 <ul nz-menu>
                     <li nz-menu-item (click)="btnEmployeeApproved_Click()">
@@ -31,6 +32,7 @@
                 <img src="assets/icon/action_confirm_tbp_16.png" /> TBP Xác nhận
                 <i nz-icon nzType="down"></i>
             </button>
+            <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
             <nz-dropdown-menu #menuTBPXacNhan="nzDropdownMenu">
                 <ul nz-menu>
                     <li nz-menu-item (click)="btnTBPAccess_Click()">
@@ -54,6 +56,7 @@
                 <img src="assets/icon/action_confirm_bgd_16.png" /> BGĐ Xác nhận
                 <i nz-icon nzType="down"></i>
             </button>
+            <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
             <nz-dropdown-menu #menuBGDXacNhan="nzDropdownMenu">
                 <ul nz-menu>
                     <li nz-menu-item (click)="btnBGDAccess_Click()">
@@ -81,6 +84,7 @@
             (click)="btnAdminConfirm_Click()">
             <img src="assets/icon/action_confirm_hr_16.png" /> Admin Xác nhận
         </button>
+        <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
 
         <!-- toolStripDropDownButton1 - Xuất Excel -->
         <button *ngIf="showExportExcel" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
@@ -100,15 +104,15 @@
         </nz-dropdown-menu>
 
 
-        <!-- Button to toggle left panel -->
-        <button nz-button nzType="text" nzSize="small" *ngIf="sizeLeftPanel === '0'" (click)="openLeftPanel()"
-            nz-tooltip nzTooltipTitle="Mở panel bên trái" class="fs-12">
-            <i nz-icon nzType="menu-unfold"></i>
-        </button>
+
     </div>
 
     <!-- Filter Row -->
     <div class="card-header bg-white p-1 d-flex gap-1 flex-wrap align-items-center" style="flex-shrink: 0;">
+        <button nz-button nzType="text" nzSize="small" *ngIf="sizeLeftPanel === '0'" (click)="openLeftPanel()"
+            nz-tooltip nzTooltipTitle="Mở panel bên trái" class="fs-12">
+            <i nz-icon nzType="menu-unfold"></i>
+        </button>
         <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Phòng ban:</label>
         <nz-select [(ngModel)]="selectedDepartmentID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban"
             (ngModelChange)="onDepartmentChange()" style="width: 200px; font-size: 0.75rem !important;" nzSize="small"
@@ -120,8 +124,8 @@
 
         <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Kỳ đánh giá:</label>
         <nz-select [(ngModel)]="selectedKPISessionID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn kỳ đánh giá"
-            (ngModelChange)="onKPISessionChange()" style="width: 200px; font-size: 0.75rem !important;" nzSize="small"
-            class="fs-12">
+            (ngModelChange)="onKPISessionChange()" nzDropdownClassName="type-select-dropdown"
+            style="width: 200px; font-size: 0.75rem !important;" nzSize="small" class="fs-12">
             @for (session of kpiSessionData; track session.ID) {
             <nz-option [nzValue]="session.ID" [nzLabel]="session.Code"></nz-option>
             }
@@ -130,19 +134,20 @@
         <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Team:</label>
         <nz-tree-select [(ngModel)]="selectedUserTeamID" [nzNodes]="userTeamTreeNodes" nzShowSearch
             nzPlaceHolder="Chọn team" [nzDefaultExpandAll]="true" nzSize="small" (ngModelChange)="onFilterChange()"
-            style="width: 200px; font-size: 0.75rem !important;" class="fs-12">
+            nzDropdownClassName="type-select-dropdown" style="width: 200px; font-size: 0.75rem !important;"
+            class="fs-12">
         </nz-tree-select>
 
         <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái:</label>
         <nz-select [(ngModel)]="selectedStatus" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái"
-            (ngModelChange)="onFilterChange()" style="width: 120px; font-size: 0.75rem !important;" nzSize="small"
-            class="fs-12">
+            (ngModelChange)="onFilterChange()" nzDropdownClassName="type-select-dropdown"
+            style="width: 100px; font-size: 0.75rem !important;" nzSize="small" class="fs-12">
             @for (status of statusData; track status.ID) {
             <nz-option [nzValue]="status.ID" [nzLabel]="status.Status"></nz-option>
             }
         </nz-select>
 
-        <input nz-input nzSize="small" placeholder="Nhập từ khóa" style="width: 150px; font-size: 0.75rem !important;"
+        <input nz-input nzSize="small" placeholder="Nhập từ khóa" style="width: 230px; font-size: 0.75rem !important;"
             [(ngModel)]="txtKeywords" (keyup.enter)="btnSearch_Click()" class="fs-12" />
 
         <button style="font-size: 0.75rem !important;" type="button" nz-button nzType="primary" nzSize="small"
@@ -182,7 +187,7 @@
                     </nz-splitter-panel>
 
                     <!-- Employee Panel -->
-                    <nz-splitter-panel nzDefaultSize="60%" nzMin="10%" nzMax="90%">
+                    <nz-splitter-panel nzDefaultSize="50%" nzMin="10%" nzMax="90%">
                         <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                             <div class="card-header bg-white p-1"
                                 style="font-weight: bold !important; background-color: #efebebe7 !important;">
@@ -205,9 +210,8 @@
             <nz-splitter-panel [nzSize]="sizeRightPanel" nzDefaultSize="75%" nzMin="50%" nzMax="90%" nzResizable="true">
                 <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                     <div class="card-body p-2 flex-grow-1" style="min-height: 0; overflow: hidden;">
-                        <nz-tabset class="approval-tabs" [(nzSelectedIndex)]="selectedTabIndex"
-                            (nzSelectedIndexChange)="onTabChange($event)" nzType="card"
-                            style="height: 85vh !important;">
+                        <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectedIndexChange)="onTabChange($event)"
+                            style="height: 87vh !important;">
                             <!-- Tab 1: Kỹ năng (treeData) -->
                             <nz-tab nzTitle="ĐÁNH GIÁ KỸ NĂNG">
                                 <div class="grid-evaluation-container" style="height: 100%; position: relative;">
@@ -262,7 +266,9 @@
                                 <div class="grid-rule-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 4"
                                         gridId="grid-rule" [columns]="ruleColumns" [options]="ruleGridOptions"
-                                        [dataset]="dataRule" (onAngularGridCreated)="onRuleGridReady($event)">
+                                        [dataset]="dataRule" (onAngularGridCreated)="onRuleGridReady($event)"
+                                        (onBeforeEditCell)="onRuleBeforeEditCell($event)"
+                                        (onCellChange)="onRuleCellChange($event)">
                                     </angular-slickgrid>
                                 </div>
                             </nz-tab>

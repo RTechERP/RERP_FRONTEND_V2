@@ -61,6 +61,15 @@ export class TsAssetRecoveryByEmployeeComponent implements OnInit {
   totalAssets = 0;
   // Lưu các ID đã chọn để duy trì selection khi filter
   selectedIds: Set<number> = new Set();
+  gridId = this.generateUUIDv4();
+
+  generateUUIDv4(): string {
+    return 'g-' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
 
   constructor(private notification: NzNotificationService) { }
 
@@ -236,7 +245,7 @@ export class TsAssetRecoveryByEmployeeComponent implements OnInit {
 
     this.gridOptions = {
       autoResize: {
-        container: '#grid-container-recovery-by-employee',
+        container: '#' + this.gridId + '_container',
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container',
       },

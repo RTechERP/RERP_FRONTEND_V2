@@ -1,46 +1,63 @@
 <ng-container class="w-100">
-    <nz-splitter>
-        <nz-splitter-panel nzDefaultSize="100%">
-            <div class="card-header bg-white p-1" style="overflow-x: auto;">
-                <div class="d-flex gap-1 align-items-center">
-                    <input type="text" nzSize="small" [(ngModel)]="keyword" name="keyword" nz-input class="fs-12"
-                        style="font-style: italic; flex: 1 1 auto; max-width: 300px;" placeholder="Tìm kiếm"
-                        (keyup.enter)="loadData()" />
-                    <button class="fs-12" nz-button nzType="primary" nzSize="small" (click)="loadData()">
-                        Tìm kiếm
-                    </button>
-                </div>
-                <div class="card-body p-0">
-                    <nz-splitter>
-                        <!-- Panel Phiếu nhập -->
-                        <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-                            <div class="p-2">
-                                <h6 class="fw-bold mb-2 fs-12">Phiếu nhập</h6>
-                                <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..."
-                                    style="height: 100%; flex-grow: 1;">
-                                    <div id="table_import"></div>
-                                </nz-spin>
-                            </div>
-                        </nz-splitter-panel>
-
-                        <!-- Panel Phiếu xuất -->
-                        <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-                            <div class="p-2">
-                                <h6 class="fw-bold mb-2 fs-12">Phiếu xuất</h6>
-                                <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..."
-                                    style="height: 100%; flex-grow: 1;">
-                                    <div id="table_export"></div>
-                                </nz-spin>
-                            </div>
-                        </nz-splitter-panel>
-                    </nz-splitter>
-                </div>
-
-            </div>
+  <div class="card h-100 border-0 rounded-0">
+    <div class="card-header bg-white p-1">
+      <div class="d-flex gap-1 align-items-center">
+        <input
+          type="text"
+          [(ngModel)]="keyword"
+          name="keyword"
+          nz-input
+          class="fs-12"
+          style="font-style: italic; flex: 1 1 auto; max-width: 350px"
+          placeholder="Tìm kiếm"
+          (keyup.enter)="loadData()"
+        />
+        <button
+          class="fs-12"
+          nz-button
+          nzType="primary"
+          nzSize="small"
+          (click)="loadData()"
+        >
+          Tìm kiếm
+        </button>
+      </div>
+    </div>
+    <div class="card-body p-0 w-100">
+      <nz-splitter>
+        <nz-splitter-panel nzDefaultSize="50%">
+          <nz-spin [nzSpinning]="isLoadingTableImport">
+            <nz-card nzTitle="Danh sách phiếu nhập" class="full-card">
+              <div class="grid-container-import-{{idTable}}">
+                <angular-slickgrid
+                  gridId="gridImport_{{idTable}}"
+                  [columns]="columnDefinitionsImport"
+                  [options]="gridOptionsImport"
+                  [dataset]="datasetImport"
+                  (onAngularGridCreated)="angularGridReadyImport($event.detail)"
+                >
+                </angular-slickgrid>
+              </div>
+            </nz-card>
+          </nz-spin>
         </nz-splitter-panel>
-    </nz-splitter>
+        <nz-splitter-panel>
+          <nz-spin [nzSpinning]="isLoadingTableExport">
+            <nz-card nzTitle="Danh sách phiếu xuất" class="full-card">
+              <div class="grid-container-export-{{idTable}}">
+                <angular-slickgrid
+                  gridId="gridExport_{{idTable}}"
+                  [columns]="columnDefinitionsExport"
+                  [options]="gridOptionsExport"
+                  [dataset]="datasetExport"
+                  (onAngularGridCreated)="angularGridReadyExport($event.detail)"
+                >
+                </angular-slickgrid>
+              </div>
+            </nz-card>
+          </nz-spin>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </div>
+  </div>
 </ng-container>
-
-
-
-<!-- modal thêm productsale -->

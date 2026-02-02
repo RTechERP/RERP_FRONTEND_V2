@@ -1,3 +1,4 @@
+import { AppUserService } from './../../../services/app-user.service';
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -53,6 +54,7 @@ import { SafeUrlPipe } from '../../../../safeUrl.pipe';
 import { PaymentOrderDetailComponent } from '../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
+import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
   Times: {
@@ -181,8 +183,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private supplierSaleService: SupplierSaleService,
     private modalService: NgbModal,
-    private cdr: ChangeDetectorRef
-  ) { }
+    private cdr: ChangeDetectorRef,
+    public appUserService: AppUserService
+  ) {
+    this.employeeId = this.appUserService.employeeID || 0;
+  }
 
   ngOnInit(): void {
     this.loadLookups();
@@ -1361,6 +1366,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     });
   }
 
+  // Handle date input change
+  onDateChange(field: 'dateStart' | 'dateEnd', value: string): void {
+    if (value) {
+      (this as any)[field] = new Date(value);
+    }
+  }
+
   onSearch(): void {
     this.isLoading = true;
     const filter = {
@@ -2062,6 +2074,15 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         }, 50);
       });
     }
+
+    // if (angularGrid.slickGrid) {
+    //   angularGrid.slickGrid.onActiveCellChanged.subscribe((e, args) => {
+    //     setTimeout(() => {
+    //       console.log(args.row);
+    //       this.onActiveRowChanged(args.row);
+    //     }, 50);
+    //   });
+    // }
   }
 
 
@@ -2092,6 +2113,16 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         }, 50);
       });
     }
+
+    // if (angularGrid.slickGrid) {
+    //   angularGrid.slickGrid.onActiveCellChanged.subscribe((e, args) => {
+    //     setTimeout(() => {
+    //       this.onActiveRowChanged(args.row);
+    //     }, 50);
+    //   });
+    // }
+
+
   }
 
 
@@ -2765,6 +2796,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     if (index >= listData.length) {
       //   console.log('Đã hoàn thành việc mở danh sách modal.');
+      this.onSearch();
       return;
     }
 
@@ -2778,7 +2810,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     // console.log('PO NCC ID:', ponccId);
 
     if (type === 0) {
-      const modalRef = this.modalService.open(BillImportDetailComponent, {
+      const modalRef = this.modalService.open(BillImportDetailNewComponent, {
         backdrop: 'static',
         keyboard: false,
         centered: true,
@@ -2863,6 +2895,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     }
   }
   onMasterDblClick(event: any): void {
+    clearTimeout(this.clickTimer);
     const args = event?.args;
     const row = args?.row;
 
@@ -3815,6 +3848,21 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     this.preparedMarginLeft = 0;
     this.directorMarginLeft = 20;
     this.titleMarginTop = 0;
+  }
+  private clickTimer: any;
+  onActiveRowChanged(row: number | undefined) {
+    clearTimeout(this.clickTimer);
+    if (row == null) return;
+    this.clickTimer = setTimeout(() => {
+      let rowData;
+      if (this.activeTabIndex === 0) {
+        rowData = this.angularGridPoThuongMai?.dataView.getItem(row);
+      } else if (this.activeTabIndex === 1) {
+        rowData = this.angularGridPoMuon?.dataView.getItem(row);
+      }
+
+      this.handleMasterSelectionChange([rowData]);
+    }, 300);
   }
   //#endregion
 

@@ -75,6 +75,7 @@ import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../../../../services/permission.service';
 import { HistoryProductRtcBorrowQrComponent } from '../history-product-rtc-borrow-qr/history-product-rtc-borrow-qr.component';
 import { HistoryProductRtcReturnQrComponent } from '../history-product-rtc-return-qr/history-product-rtc-return-qr.component';
+import { environment } from '../../../../../../../environments/environment';
 
 @Component({
   selector: 'app-history-product-rtc',
@@ -108,6 +109,7 @@ export class HistoryProductRtcComponent
   @Input() isModalMode: boolean = false;
   @Output() productsExported = new EventEmitter<any[]>();
   public activeModal = inject(NgbActiveModal, { optional: true });
+  // Menu
   historyProductMenu: MenuItem[] = [];
   // Parameters
   warehouseType: number = 0;
@@ -128,7 +130,7 @@ export class HistoryProductRtcComponent
   selectedProductName: any = '';
   selectedProductCode: any = '';
   selectedProductsMap: Map<number, any> = new Map();
-
+  gridId: string = `historyProductRtcGrid-`;
   // AngularSlickGrid
   angularGrid!: AngularGridInstance;
   columnDefinitions: Column[] = [];
@@ -165,6 +167,7 @@ export class HistoryProductRtcComponent
       this.warehouseID = params['warehouseID'] || 1;
       this.warehouseType = params['warehouseType'] || 1;
     });
+    this.gridId += `${this.warehouseID}-${this.warehouseType}-${crypto.randomUUID()}`;
 
     this.loadDate();
     this.loadEmployee();
@@ -174,6 +177,7 @@ export class HistoryProductRtcComponent
 
   ngAfterViewInit(): void {
     setTimeout(() => {
+      this.loadMenu();
       this.loadData();
     }, 100);
   }
@@ -627,6 +631,10 @@ export class HistoryProductRtcComponent
             command: 'delete',
             title: 'Xóa',
             iconCssClass: 'fa fa-trash',
+            // Chỉ Admin Demo mới có quyền xóa
+            itemVisibilityOverride: () => {
+              return (ID_ADMIN_DEMO_LIST.includes(this.appUserService.id ?? 0) || this.appUserService.isAdmin);
+            },
             action: (e: any, args: any) => {
               const rowData = args.dataContext;
               const id = rowData?.ID || 0;
@@ -817,8 +825,8 @@ export class HistoryProductRtcComponent
   }
 
   onRowSelectionChanged(eventData: any, args: OnSelectedRowsChangedEventArgs) {
-    // Handle row selection
-    const selectedIndexes = this.angularGrid.slickGrid.getSelectedRows();
+    // Handle row selection - sử dụng args.rows chứa tất cả các dòng đã chọn
+    const selectedIndexes = args.rows || this.angularGrid.slickGrid.getSelectedRows();
 
     // Clear previous selection
     this.selectedArrHistoryProductID.clear();
@@ -835,6 +843,9 @@ export class HistoryProductRtcComponent
         this.selectedProductsMap.set(id, rowData);
       }
     });
+
+    // Cập nhật label menu "Xuất" hiển thị số dòng đã chọn
+    this.updateExportMenuLabel();
   }
 
   getSelectedRows(): any[] {
@@ -1283,9 +1294,23 @@ export class HistoryProductRtcComponent
       );
       return;
     }
+    console.log('selectedProducts:', selectedProducts);
 
     this.productsExported.emit(selectedProducts);
     this.activeModal?.close(selectedProducts);
+  }
+
+  private updateExportMenuLabel(): void {
+    if (!this.isModalMode) return;
+    const exportItem = this.historyProductMenu.find(
+      (item) => item.icon?.includes('arrow-up-from-bracket')
+    );
+    if (exportItem) {
+      const count = this.selectedArrHistoryProductID.size;
+      exportItem.label = count > 0 ? `Xuất (${count})` : 'Xuất';
+      exportItem.visible = true;
+      this.historyProductMenu = [...this.historyProductMenu];
+    }
   }
 
   closeModal() {
@@ -1422,7 +1447,7 @@ export class HistoryProductRtcComponent
     });
 
     window.open(
-      `/material-detail-of-product-rtc?${params.toString()}`,
+      `${environment.baseHref}/material-detail-of-product-rtc?${params.toString()}`,
       '_blank',
       'width=1200,height=800,scrollbars=yes,resizable=yes'
     );
@@ -1483,8 +1508,8 @@ export class HistoryProductRtcComponent
         },
       },
       {
-        label: 'Xuất Excel',
-        icon: 'fa-solid fa-file-excel text-success',
+        label: 'Xuất',
+        icon: 'fa-solid fa-arrow-up-from-bracket text-success',
         visible: this.isModalMode,
         command: () => {
           this.exportSelectedProducts();

@@ -1,6 +1,11 @@
 <div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
   <h6 class="modal-title text-white">Tổng hợp phiếu nhập</h6>
-  <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  <button
+    type="button"
+    class="btn-close"
+    (click)="closeModal()"
+    aria-label="Close"
+  ></button>
 </div>
 
 <div class="modal-body p-1 flex-grow-1 overflow-hidden">
@@ -19,6 +24,7 @@
                 name="dateStart"
                 [nzDisabled]="checked"
                 class="w-100"
+                [nzAllowClear]="false"
               ></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
@@ -36,6 +42,7 @@
                 name="dateEnd"
                 [nzDisabled]="checked"
                 class="w-100"
+                [nzAllowClear]="false"
               ></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
@@ -46,7 +53,12 @@
           <nz-form-item class="mb-0">
             <nz-form-label class="fs-12">&nbsp;</nz-form-label>
             <nz-form-control>
-              <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">
+              <label
+                nz-checkbox
+                [(ngModel)]="checked"
+                name="checked"
+                (ngModelChange)="onCheckboxChange()"
+              >
                 Tất cả
               </label>
             </nz-form-control>
@@ -91,7 +103,11 @@
                 name="status"
                 class="w-100"
               >
-                <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
+                <nz-option
+                  *ngFor="let item of cbbStatus"
+                  [nzValue]="item.ID"
+                  [nzLabel]="item.Name"
+                >
                   <div class="d-flex align-items-center">
                     <span class="me-2">{{ item.ID }}</span>
                     <span>{{ item.Name }}</span>
@@ -124,7 +140,13 @@
           <nz-form-item class="mb-0">
             <nz-form-label class="fs-12">&nbsp;</nz-form-label>
             <nz-form-control>
-              <button class="fs-12 btn w-100" nz-button nzType="default" nzSize="small" (click)="loadDataBillImportSynthetic()">
+              <button
+                class="fs-12 btn w-100"
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                (click)="loadDataBillImportSynthetic()"
+              >
                 Tìm kiếm
               </button>
             </nz-form-control>
@@ -136,7 +158,14 @@
           <nz-form-item class="mb-0">
             <nz-form-label class="fs-12">&nbsp;</nz-form-label>
             <nz-form-control>
-              <button class="fs-12 btn w-100" nz-button nzType="default" nzSize="small" title="Xuất Excel" (click)="exportExcel()">
+              <button
+                class="fs-12 btn w-100"
+                nz-button
+                nzType="default"
+                nzSize="small"
+                title="Xuất Excel"
+                (click)="exportExcel()"
+              >
                 <nz-icon nzType="file-excel"></nz-icon> Excel
               </button>
             </nz-form-control>
@@ -148,7 +177,14 @@
           <nz-form-item class="mb-0">
             <nz-form-label class="fs-12">&nbsp;</nz-form-label>
             <nz-form-control>
-              <button class="fs-12 btn w-100" nz-button nzType="primary" *hasPermission="'N35'" nzSize="small" (click)="saveData()">
+              <button
+                class="fs-12 btn w-100"
+                nz-button
+                nzType="primary"
+                *hasPermission="'N35'"
+                nzSize="small"
+                (click)="saveData()"
+              >
                 Lưu
               </button>
             </nz-form-control>
@@ -169,9 +205,11 @@
     ></angular-slickgrid>
 
     <!-- Loading Spinner -->
-    <div *ngIf="isLoading"
+    <div
+      *ngIf="isLoading"
       class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-      style="background: rgba(255, 255, 255, 0.8); z-index: 1000;">
+      style="background: rgba(255, 255, 255, 0.8); z-index: 1000"
+    >
       <nz-spin [nzSpinning]="true" nzTip="Đang tải dữ liệu..."></nz-spin>
     </div>
   </div>

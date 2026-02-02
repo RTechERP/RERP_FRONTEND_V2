@@ -215,6 +215,15 @@ export class KPIService {
   }
 
   /**
+   * Save KPI evaluation data (WinForm SaveDataKPI)
+   * API: POST api/KPIEvaluationFactorScoring/save-data-kpi
+   * @param data - SaveDataKPIRequestParam payload
+   */
+  saveDataKPI(data: any): Observable<any> {
+    return this.http.post<any>(this.apiUrlFactorScoring + 'save-data-kpi', data);
+  }
+
+  /**
    * Admin confirm KPI
    * API: POST api/KPIEvaluationFactorScoring/admin-confirm-kpi
    * @param kpiExamID - KPI Exam ID
@@ -276,14 +285,16 @@ export class KPIService {
   }
 
   /**
-   * Export Excel by Team
+   * Xuất Excel theo Team - gọi API backend để tạo file ZIP chứa Excel
    * API: GET api/KPIEvaluationFactorScoring/export-excel-by-team
+   * @param kpiSessionId - ID kỳ đánh giá
+   * @param departmentId - ID phòng ban
+   * @returns Blob file ZIP
    */
-  exportExcelByTeam(kpiSessionID: number, departmentID: number, userTeamID: number): Observable<any> {
+  exportExcelByTeam(kpiSessionId: number, departmentId: number): Observable<Blob> {
     const params = new HttpParams()
-      .set('kpiSessionID', kpiSessionID.toString())
-      .set('departmentID', departmentID.toString())
-      .set('userTeamID', userTeamID.toString());
+      .set('kpiSessionId', kpiSessionId.toString())
+      .set('departmentId', departmentId.toString());
     return this.http.get(this.apiUrlFactorScoring + 'export-excel-by-team', {
       params,
       responseType: 'blob'
@@ -439,5 +450,66 @@ export class KPIService {
       .set('kpiSessionID', kpiSessionID.toString());
     return this.http.get<any>(this.apiUrl + 'get-position-employee', { params });
   }
+
+  /**
+   * Choice position for KPI evaluation
+   * API: POST api/KPIEvaluationEmployee/choice-position
+   * @param positionID - Position ID to choose
+   */
+  choicePosition(positionID: number): Observable<any> {
+    const body = { positionID };
+    return this.http.post<any>(this.apiUrl + 'choice-position', body);
+  }
+
+  // ==================== Load Data Team APIs ====================
+
+  /**
+   * Lấy danh sách tất cả team của nhân viên
+   * API: GET api/KPIEvaluationFactorScoring/get-all-team-by-empID
+   * @param employeeID - ID của nhân viên
+   * @param kpiSessionID - ID của kỳ đánh giá KPI
+   */
+  getAllTeamByEmployeeID(employeeID: number, kpiSessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('kpiSessionID', kpiSessionID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'get-all-team-by-empID', { params });
+  }
+
+  /**
+   * Load dữ liệu team và xử lý điểm KPI cho team
+   * API: POST api/KPIEvaluationFactorScoring/load-data-team
+   * @param request - Request object chứa employeeID, kpiSessionID, và danh sách nhân viên được chọn
+   */
+  loadDataTeam(request: {
+    employeeID: number;
+    kpiSessionID: number;
+    lstEmpChose: Array<{ ID: number }>;
+  }): Observable<any> {
+    return this.http.post<any>(this.apiUrlFactorScoring + 'load-data-team', request);
+  }
+
+  /**
+   * Load dữ liệu KPI Rule mới
+   * API: GET api/KPIEvaluationFactorScoring/load-point-rule-new
+   * @param empPointMaster - ID của KPI Employee Point chính
+   */
+  loadPointRuleNew(empPointMaster: number): Observable<any> {
+    const params = new HttpParams()
+      .set('empPointMaster', empPointMaster.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'load-point-rule-new', { params });
+  }
+
+  /**
+   * Lấy điểm cuối cùng của nhân viên
+   * API: GET api/KPIEvaluationFactorScoring/get-final-point?employeeID={employeeID}&sessionID={sessionID}
+   */
+  getFinalPoint(employeeID: number, sessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-final-point', { params });
+  }
 }
+
 

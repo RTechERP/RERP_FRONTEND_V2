@@ -1,6 +1,11 @@
 <div style="display: flex; flex-direction: column; height: 95vh;">
     <!-- Toolbar -->
     <div class="card-header bg-white p-1 d-flex gap-1 flex-wrap align-items-center" style="flex-shrink: 0;">
+        <!-- Button to toggle left panel -->
+        <button nz-button nzType="text" nzSize="small" *ngIf="sizeLeftPanel === '0' && !isTBPView"
+            (click)="openLeftPanel()" nz-tooltip nzTooltipTitle="Mở panel bên trái" class="fs-12">
+            <i nz-icon nzType="menu-unfold"></i>
+        </button>
         <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Năm:</label>
         <nz-input-number [(ngModel)]="txtYear" [nzMin]="2020" [nzMax]="9999" [nzStep]="1"
             (ngModelChange)="txtYear_ValueChanged()" style="width: 80px;" nzSize="small" class="fs-12">
@@ -32,12 +37,6 @@
             [disabled]="isTBPView">
             <i nz-icon nzType="check-circle"></i>
             Hoàn thành đánh giá
-        </button>
-
-        <!-- Button to toggle left panel -->
-        <button nz-button nzType="text" nzSize="small" *ngIf="sizeLeftPanel === '0' && !isTBPView"
-            (click)="openLeftPanel()" nz-tooltip nzTooltipTitle="Mở panel bên trái" class="fs-12">
-            <i nz-icon nzType="menu-unfold"></i>
         </button>
     </div>
 
@@ -87,7 +86,7 @@
                     </nz-splitter-panel>
 
                     <!-- Exam Panel -->
-                    <nz-splitter-panel nzDefaultSize="45%" nzMin="10%" nzMax="90%">
+                    <nz-splitter-panel nzDefaultSize="40%" nzMin="10%" nzMax="90%">
                         <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                             <div class="card-header bg-white p-1"
                                 style="font-weight: bold !important; background-color: #efebebe7 !important;">
@@ -111,7 +110,7 @@
                 <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                     <div class="card-body p-2 flex-grow-1" style="min-height: 0; overflow: hidden;">
                         <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectedIndexChange)="onTabChange($event)"
-                            nzType="card" style="height: 88vh !important;">
+                            style="height: 89vh !important;">
                             <!-- Tab 1: Kỹ năng (treeData) -->
                             <nz-tab nzTitle="ĐÁNH GIÁ KỸ NĂNG">
                                 <div class="grid-evaluation-container" style="height: 100%; position: relative;">
@@ -181,10 +180,10 @@
         </nz-splitter>
     </div>
     <!-- Lì xì rơi Easter Egg -->
-    <div *ngIf="showLixiRain" class="lixi-container">
-        <div *ngFor="let lixi of lixis" class="lixi" [style.left.%]="lixi.left"
-            [style.animation-duration.s]="lixi.animationDuration" [style.animation-delay.s]="lixi.delay"
-            [style.--rotation.deg]="lixi.rotation">
-            {{ lixi.icon }}
-        </div>
-    </div>
+    <!-- <div *ngIf="showLixiRain" class="lixi-container">
+        *ngFor="let lixi of lixis" class="lixi" [style.left.%]="lixi.left"
+        [style.animation-duration.s]="lixi.animationDuration" [style.animation-delay.s]="lixi.delay"
+        le.--rotation.deg]="lixi.rotation">
+        {{ lixi.icon }}
+        v>
+    </div> -->

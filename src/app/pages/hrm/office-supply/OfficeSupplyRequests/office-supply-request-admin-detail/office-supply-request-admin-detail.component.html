@@ -18,7 +18,8 @@
               <nz-form-control [nzErrorTip]="!dateRequest ? 'Vui lòng chọn ngày đăng ký' : undefined"
                 [nzValidateStatus]="!dateRequest ? 'error' : ''">
                 <nz-date-picker [(ngModel)]="dateRequest" name="dateRequest" nzFormat="dd/MM/yyyy"
-                  nzPlaceHolder="Chọn ngày đăng ký" class="w-100" nzSize="default" [nzDisabledDate]="disabledDate"></nz-date-picker>
+                  nzPlaceHolder="Chọn ngày đăng ký" class="w-100" nzSize="default"
+                  [nzDisabledDate]="disabledDate"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
           </nz-col>
@@ -79,7 +80,7 @@
         <nz-splitter nzLayout="vertical">
           <!-- Panel trên: Bảng nhân viên -->
           <nz-splitter-panel>
-            <div #tbEmployee class="border" style="height: 100%;"></div>
+            <div #tbEmployee class="border" style="height: 35vh;"></div>
           </nz-splitter-panel>
 
           <!-- Panel dưới: Bảng VPP -->

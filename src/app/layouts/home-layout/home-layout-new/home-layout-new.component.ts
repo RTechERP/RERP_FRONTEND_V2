@@ -401,6 +401,7 @@ export class HomeLayoutNewComponent implements OnInit {
 
             this.menuService.setMenuKey(key);
             this.router.navigate(['/app']); // hoặc route tới MainLayout
+            localStorage.removeItem('tabOpeneds');
         }
     }
 
@@ -506,6 +507,8 @@ export class HomeLayoutNewComponent implements OnInit {
         if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
             event.preventDefault(); // chặn reload
             this.newTab(route, title, queryParam);
+
+            localStorage.removeItem('tabOpeneds');
         }
     }
 

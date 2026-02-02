@@ -83,6 +83,7 @@ import { environment } from '../../../../environments/environment';
 import { ActivatedRoute } from '@angular/router';
 import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../services/permission.service';
+import { TabServiceService } from '../../../layouts/tab-service.service';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -442,6 +443,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         private authService: AuthService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
+        private tabService: TabServiceService,
         @Optional() @Inject('tabData') private tabData: any
     ) {
     }
@@ -489,6 +491,10 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
     getJobrequirement(): void {
         this.isLoading = true;
+
+        // Lưu lại ID đang chọn trước khi refresh
+        const currentSelectedID = this.JobrequirementID;
+
         this.JobRequirementService.getJobrequirement(
             this.searchParams.DepartmentID,
             this.searchParams.EmployeeID,
@@ -512,10 +518,23 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 setTimeout(() => {
                     this.applyDistinctFilters();
 
-                    // Select first row if data exists
                     if (this.dataset.length > 0 && this.angularGrid?.slickGrid) {
-                        this.JobrequirementID = this.dataset[0].ID;
-                        this.angularGrid.slickGrid.setSelectedRows([0]);
+                        let rowIndexToSelect = 0;
+
+                        // Nếu có ID đang chọn từ trước, tìm index của nó trong data mới
+                        if (currentSelectedID > 0) {
+                            const foundIndex = this.dataset.findIndex(x => x.ID === currentSelectedID);
+                            if (foundIndex !== -1) {
+                                rowIndexToSelect = foundIndex;
+                            }
+                        }
+
+                        this.JobrequirementID = this.dataset[rowIndexToSelect].ID;
+                        this.angularGrid.slickGrid.setSelectedRows([rowIndexToSelect]);
+
+                        // Scroll tới dòng được chọn nếu cần
+                        this.angularGrid.slickGrid.scrollRowIntoView(rowIndexToSelect);
+
                         this.getJobrequirementDetails(this.JobrequirementID);
                         this.getHCNSData(this.JobrequirementID);
                     } else {
@@ -532,6 +551,25 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 );
             }
         });
+    }
+
+    // Handle row selection changed - đồng bộ JobrequirementID và load detail
+    onSelectedRowsChanged(e: Event, args: OnSelectedRowsChangedEventArgs): void {
+        if (!args.rows || args.rows.length === 0) return;
+
+        // Lấy dòng cuối cùng vừa được chọn (thường là dòng người dùng click)
+        const lastSelectedIndex = args.rows[args.rows.length - 1];
+        const item = this.angularGrid.dataView.getItem(lastSelectedIndex);
+
+        if (item && item.ID !== this.JobrequirementID) {
+            this.JobrequirementID = item.ID;
+            this.data = [item];
+
+            if (this.JobrequirementID) {
+                this.getJobrequirementDetails(this.JobrequirementID);
+                this.getHCNSData(this.JobrequirementID);
+            }
+        }
     }
 
 
@@ -861,23 +899,24 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
     onOpenDepartmentRequired() {
         const selected = this.getSelectedData() || [];
+        if (selected.length !== 1) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 bản ghi!');
+            return;
+        }
+
         const rowData = { ...selected[0] };
-
-        // Lấy JobrequirementID từ row đã chọn hoặc từ biến
         const jobRequirementID = rowData?.ID || this.JobrequirementID || 0;
+        const numberRequest = rowData?.NumberRequest || '';
 
-        const title = 'Đề xuất mua hàng';
-        const data = {
-            JobrequirementID: jobRequirementID,
-            isCheckmode: this.isCheckmode,
-            dataInput: rowData
-        };
-
-        this.menuEventService.openNewTab(
-            HrPurchaseProposalComponent,
-            title,
-            data
-        );
+        this.tabService.openTabComp({
+            comp: HrPurchaseProposalComponent,
+            title: `Đề xuất mua hàng - ${numberRequest}`,
+            key: `hr-purchase-proposal-${jobRequirementID}`,
+            data: {
+                JobrequirementID: jobRequirementID,
+                isCheckmode: true
+            }
+        });
     }
 
     /**
@@ -2546,19 +2585,16 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             if (item) {
                 this.JobrequirementID = item.ID || 0;
                 this.data = [item];
+
+                // Đồng bộ selection với dòng được click
+                args.grid.setSelectedRows([args.row]);
+
                 if (this.JobrequirementID) {
                     this.getJobrequirementDetails(this.JobrequirementID);
                     this.getHCNSData(this.JobrequirementID);
                 }
             }
         }
-    }
-
-    // Handle row selection changed - chỉ đồng bộ trạng thái selected, không load detail
-    // Việc load detail sẽ do onCellClicked xử lý khi click vào dòng
-    onSelectedRowsChanged(e: Event, args: OnSelectedRowsChangedEventArgs): void {
-        // Không cần làm gì ở đây vì onCellClicked đã xử lý việc load detail
-        // Method này chỉ được giữ lại để đồng bộ với HTML template
     }
 
     // Get selected data from grid

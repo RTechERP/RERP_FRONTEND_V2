@@ -60,11 +60,13 @@
         <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
           <div class="card h-100 border-0 rounded-0 d-flex flex-column">
             <div class="card-body p-0 flex-grow-1 grid-container-main" style="overflow: hidden;">
-              <angular-slickgrid gridId="gridMain" [columns]="columnDefinitionsMain" [options]="gridOptionsMain"
-                [dataset]="datasetMain" (onAngularGridCreated)="angularGridReadyMain($event.detail)"
-                (onClick)="onMainRowClick($event.detail.eventData, $event.detail.args)"
-                (onDblClick)="onMainRowDblClick($event.detail.eventData, $event.detail.args)">
-              </angular-slickgrid>
+              <nz-spin [nzSpinning]="isLoadingMain" nzTip="Đang tải dữ liệu..." class="h-100 w-100">
+                <angular-slickgrid gridId="gridMain" [columns]="columnDefinitionsMain" [options]="gridOptionsMain"
+                  [dataset]="datasetMain" (onAngularGridCreated)="angularGridReadyMain($event.detail)"
+                  (onClick)="onMainRowClick($event.detail.eventData, $event.detail.args)"
+                  (onDblClick)="onMainRowDblClick($event.detail.eventData, $event.detail.args)">
+                </angular-slickgrid>
+              </nz-spin>
             </div>
           </div>
         </nz-splitter-panel>
@@ -75,36 +77,43 @@
               <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-body p-0 flex-grow-1 grid-container-detail"
                   style="overflow: hidden; position: relative; min-height: 0;">
-                  <angular-slickgrid gridId="gridDetail" [columns]="columnDefinitionsDetail"
-                    [options]="gridOptionsDetail" [dataset]="datasetDetail"
-                    (onAngularGridCreated)="angularGridReadyDetail($event.detail)"
-                    (onClick)="onDetailRowClick($event.detail.eventData, $event.detail.args)">
-                  </angular-slickgrid>
+                  <nz-spin [nzSpinning]="isLoadingDetail" nzTip="Đang tải..." class="h-100 w-100">
+                    <angular-slickgrid gridId="gridDetail" [columns]="columnDefinitionsDetail"
+                      [options]="gridOptionsDetail" [dataset]="datasetDetail"
+                      (onAngularGridCreated)="angularGridReadyDetail($event.detail)"
+                      (onClick)="onDetailRowClick($event.detail.eventData, $event.detail.args)">
+                    </angular-slickgrid>
+                  </nz-spin>
                 </div>
               </div>
             </nz-splitter-panel>
             <nz-splitter-panel nzDefaultSize="23%" [nzCollapsible]="true" nzResizable="true">
-                <nz-tabset [nzTabPosition]="'top'" class="flex-grow-1 d-flex flex-column" (nzSelectedIndexChange)="onFilesTabChange($event)">
-                  <nz-tab nzTitle="Danh sách file">
-                    <div class="card-body p-0 flex-grow-1 grid-container-file" style="min-height: 200px;">
+              <nz-tabset [nzTabPosition]="'top'" class="flex-grow-1 d-flex flex-column"
+                (nzSelectedIndexChange)="onFilesTabChange($event)">
+                <nz-tab nzTitle="Danh sách file">
+                  <div class="card-body p-0 flex-grow-1 grid-container-file" style="min-height: 200px;">
+                    <nz-spin [nzSpinning]="isLoadingFile" nzTip="Đang tải..." class="h-100 w-100">
                       <angular-slickgrid gridId="gridFile" [columns]="columnDefinitionsFile" [options]="gridOptionsFile"
                         [dataset]="datasetFile" (onAngularGridCreated)="angularGridReadyFile($event.detail)"
                         (onClick)="onFileRowClick($event.detail.eventData, $event.detail.args)"
                         (onDblClick)="onFileRowDblClick($event.detail.eventData, $event.detail.args)">
                       </angular-slickgrid>
-                    </div>
-                  </nz-tab>
-                  <nz-tab nzTitle="File PO">
-                    <div class="card-body p-0 flex-grow-1 grid-container-pofile" style="min-height: 200px;">
-                      <angular-slickgrid *ngIf="isPOFileGridRendered" gridId="gridPOFile" [columns]="columnDefinitionsPOFile"
-                        [options]="gridOptionsPOFile" [dataset]="datasetPOFile"
+                    </nz-spin>
+                  </div>
+                </nz-tab>
+                <nz-tab nzTitle="File PO">
+                  <div class="card-body p-0 flex-grow-1 grid-container-pofile" style="min-height: 200px;">
+                    <nz-spin [nzSpinning]="isLoadingPOFile" nzTip="Đang tải..." class="h-100 w-100">
+                      <angular-slickgrid *ngIf="isPOFileGridRendered" gridId="gridPOFile"
+                        [columns]="columnDefinitionsPOFile" [options]="gridOptionsPOFile" [dataset]="datasetPOFile"
                         (onAngularGridCreated)="angularGridReadyPOFile($event.detail)"
                         (onClick)="onPOFileRowClick($event.detail.eventData, $event.detail.args)"
                         (onDblClick)="onPOFileRowDblClick($event.detail.eventData, $event.detail.args)">
                       </angular-slickgrid>
-                    </div>
-                  </nz-tab>
-                </nz-tabset>
+                    </nz-spin>
+                  </div>
+                </nz-tab>
+              </nz-tabset>
             </nz-splitter-panel>
           </nz-splitter>
         </nz-splitter-panel>

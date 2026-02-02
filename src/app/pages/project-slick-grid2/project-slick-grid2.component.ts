@@ -205,12 +205,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     currentUser: any = null;
     savedPage: number = 1;
     selectedStatusDate: Date | null = null;
-   dateStart: string = DateTime.local()
-    .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
-    .toFormat('yyyy-MM-dd');
-  dateEnd: string = DateTime.local()
-    .set({ hour: 0, minute: 0, second: 0 })
-    .toFormat('yyyy-MM-dd');
+    dateStart: string = DateTime.local()
+        .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
+        .toFormat('yyyy-MM-dd');
+    dateEnd: string = DateTime.local()
+        .set({ hour: 0, minute: 0, second: 0 })
+        .toFormat('yyyy-MM-dd');
     //#endregion
 
     // Helper function to escape HTML special characters for title attributes
@@ -568,7 +568,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     initGridProjects() {
         // Đảm bảo column definitions không có null values
         this.columnDefinitions = [
-            { id: 'ID', name: 'ID', field: 'ID', hidden: true },
             {
                 id: 'ProjectStatusName',
                 name: 'Trạng thái',
@@ -587,10 +586,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.ProjectStatusName);
                     return `
             <span
-              title="${dataContext.ProjectStatusName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -598,7 +607,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 customTooltip: {
                     useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
                 },
             },
             {
@@ -637,10 +645,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 cssClass: 'cell-wrap',
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.ProjectName);
                     return `
             <span
-              title="${dataContext.ProjectName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -648,7 +666,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 customTooltip: {
                     useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
                 },
             },
             {
@@ -670,10 +687,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 cssClass: 'cell-wrap',
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.EndUserName);
                     return `
             <span
-              title="${dataContext.EndUserName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -681,7 +708,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 customTooltip: {
                     useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
                 },
             },
             {
@@ -854,10 +880,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 // filter: { model: Filters['compoundInputText'] },
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.CustomerName);
                     return `
             <span
-              title="${dataContext.CustomerName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -1010,11 +1046,13 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 selectActiveRow: true
             },
             enableCellNavigation: true,
+            enableSorting: true,
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
-            frozenColumn: 3,
-            rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
+            frozenColumn: 2,
+            syncColumnCellResize: true, // Sửa lỗi sort nhầm cột khi có frozen columns
+            rowHeight: 43, // Base height - sẽ tự động tăng theo nội dung qua CSS
             // Thêm Excel Export Service
             externalResources: [this.excelExportService],
             enableExcelExport: true,
@@ -2078,35 +2116,35 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         });
     }
 
-  getDay() {
-    console.log(
-      DateTime.fromJSDate(new Date(this.dateStart))
-        .set({ hour: 23, minute: 59, second: 59 })
-        .toFormat('yyyy-MM-dd HH:mm:ss'),
-      DateTime.fromJSDate(new Date(this.dateStart))
-        .set({ hour: 23, minute: 59, second: 59 })
-        .toFormat('yyyy-MM-dd HH:mm:ss')
-    );
-  }
+    getDay() {
+        console.log(
+            DateTime.fromJSDate(new Date(this.dateStart))
+                .set({ hour: 23, minute: 59, second: 59 })
+                .toFormat('yyyy-MM-dd HH:mm:ss'),
+            DateTime.fromJSDate(new Date(this.dateStart))
+                .set({ hour: 23, minute: 59, second: 59 })
+                .toFormat('yyyy-MM-dd HH:mm:ss')
+        );
+    }
 
-  setDefautSearch() {
-    this.dateStart = DateTime.local()
-      .minus({ years: 1 })
-      .set({ hour: 0, minute: 0, second: 0 })
-      .toFormat('yyyy-MM-dd');
-    this.dateEnd = DateTime.local()
-      .set({ hour: 0, minute: 0, second: 0 })
-      .toFormat('yyyy-MM-dd');
-    this.projectTypeIds = [];
-    this.projecStatusIds = [];
-    this.userId = 0;
-    this.pmId = 0;
-    this.businessFieldId = 0;
-    this.technicalId = 0;
-    this.customerId = 0;
-    this.keyword = '';
-    this.savedPage = 0;
-  }
+    setDefautSearch() {
+        this.dateStart = DateTime.local()
+            .minus({ years: 1 })
+            .set({ hour: 0, minute: 0, second: 0 })
+            .toFormat('yyyy-MM-dd');
+        this.dateEnd = DateTime.local()
+            .set({ hour: 0, minute: 0, second: 0 })
+            .toFormat('yyyy-MM-dd');
+        this.projectTypeIds = [];
+        this.projecStatusIds = [];
+        this.userId = 0;
+        this.pmId = 0;
+        this.businessFieldId = 0;
+        this.technicalId = 0;
+        this.customerId = 0;
+        this.keyword = '';
+        this.savedPage = 0;
+    }
 
     onSearchChange(value: string) {
         this.searchSubject.next(value);

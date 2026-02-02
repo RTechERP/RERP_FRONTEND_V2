@@ -46,8 +46,9 @@ import { InventoryService } from '../inventory-service/inventory.service';
 import { ProductGroupDetailComponent } from '../../ProductSale/product-group-detail/product-group-detail.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-import { environment } from '../../../../../../environments/environment';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { ChiTietSanPhamSaleComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 
 interface ProductGroup {
     ID?: number;
@@ -136,6 +137,10 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private subscriptions: Subscription[] = [];
 
+    // ResizeObserver để detect khi tab được hiển thị lại
+    private resizeObserver: ResizeObserver | null = null;
+    private lastVisibleWidth: number = 0;
+
     constructor(
         private productsaleSV: ProductsaleServiceService,
         private inventoryService: InventoryService,
@@ -145,7 +150,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         private zone: NgZone,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        @Optional() @Inject('tabData') private tabData: any
+        @Optional() @Inject('tabData') private tabData: any,
+        private elementRef: ElementRef,
+        private tabService: TabServiceService,
     ) { }
 
     ngOnInit(): void {
@@ -230,10 +237,47 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit(): void {
         // Data đã được load trong ngOnInit qua queryParams subscribe
+        // Sử dụng ResizeObserver để detect khi component được hiển thị lại (tab switch)
+        this.setupResizeObserver();
     }
 
     ngOnDestroy(): void {
         this.subscriptions.forEach((sub) => sub.unsubscribe());
+
+        // Cleanup ResizeObserver khi component bị destroy
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+    }
+
+    /**
+     * Setup ResizeObserver để detect khi tab được hiển thị lại
+     * Khi tab bị ẩn (hidden), width = 0. Khi hiện lại, width > 0
+     * Lúc đó cần trigger resize grid để SlickGrid tính toán lại kích thước
+     */
+    private setupResizeObserver(): void {
+        const element = this.elementRef.nativeElement;
+
+        this.resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const currentWidth = entry.contentRect.width;
+
+                // Detect khi chuyển từ hidden (width = 0) sang visible (width > 0)
+                if (this.lastVisibleWidth === 0 && currentWidth > 0) {
+                    // Tab vừa được hiển thị lại, cần resize grids
+                    this.zone.run(() => {
+                        setTimeout(() => {
+                            this.resizeGrids();
+                        }, 50);
+                    });
+                }
+
+                this.lastVisibleWidth = currentWidth;
+            }
+        });
+
+        this.resizeObserver.observe(element);
     }
 
     //#region Grid Initialization
@@ -412,14 +456,26 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     //#region Grid Ready Events
 
     resizeGrids(): void {
-        if (this.angularGridProductGroup?.resizerService) {
-            this.angularGridProductGroup.resizerService.resizeGrid();
+        try {
+            if (this.angularGridProductGroup?.resizerService) {
+                this.angularGridProductGroup.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
-        if (this.angularGridPGWarehouse?.resizerService) {
-            this.angularGridPGWarehouse.resizerService.resizeGrid();
+        try {
+            if (this.angularGridPGWarehouse?.resizerService) {
+                this.angularGridPGWarehouse.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
-        if (this.angularGridInventory?.resizerService) {
-            this.angularGridInventory.resizerService.resizeGrid();
+        try {
+            if (this.angularGridInventory?.resizerService) {
+                this.angularGridInventory.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
     }
 
@@ -1084,23 +1140,24 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     //#region Context Menu
 
     openChiTietSanPhamSale(productData: any) {
-        const params = new URLSearchParams({
-            code: productData.ProductCode || '',
-            suplier: productData.Supplier || '',
-            productName: productData.ProductName || '',
-            numberDauKy: productData.NumberInStoreDauky?.toString() || '0',
-            numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
-            import: productData.Import?.toString() || '0',
-            export: productData.Export?.toString() || '0',
-            productSaleID: (productData.ProductSaleID || 0).toString(),
-            wareHouseCode: this.warehouseCode || 'HN',
-        });
+        const productCode = productData.ProductCode || '';
 
-        window.open(
-            `${environment.baseHref}/chi-tiet-san-pham-sale?${params.toString()}`,
-            '_blank',
-            'width=1400,height=900,scrollbars=yes,resizable=yes'
-        );
+        this.tabService.openTabComp({
+            comp: ChiTietSanPhamSaleComponent,
+            title: `Chi tiết SP - ${productCode}`,
+            key: `chi-tiet-san-pham-sale-${productData.ProductSaleID || 0}`,
+            data: {
+                code: productCode,
+                suplier: productData.Supplier || '',
+                productName: productData.ProductName || '',
+                numberDauKy: productData.NumberInStoreDauky?.toString() || '0',
+                numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
+                import: productData.Import?.toString() || '0',
+                export: productData.Export?.toString() || '0',
+                productSaleID: productData.ProductSaleID || 0,
+                wareHouseCode: this.warehouseCode || 'HN',
+            }
+        });
     }
 
     //#endregion

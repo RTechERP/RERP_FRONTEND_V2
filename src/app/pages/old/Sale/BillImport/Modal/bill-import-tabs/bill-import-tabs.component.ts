@@ -1,3 +1,4 @@
+import { BillImportDetailNewComponent } from './../../bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 import { Component, OnInit, Input, ViewChildren, QueryList } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgbActiveModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -5,7 +6,6 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BillImportDetailComponent } from '../bill-import-detail/bill-import-detail.component';
 
 interface TabData {
   groupID: number;
@@ -22,7 +22,7 @@ interface TabData {
     NzTabsModule,
     NzIconModule,
     NzButtonModule,
-    BillImportDetailComponent
+    BillImportDetailNewComponent
   ],
   templateUrl: './bill-import-tabs.component.html',
   styleUrl: './bill-import-tabs.component.css',
@@ -32,7 +32,7 @@ export class BillImportTabsComponent implements OnInit {
   @Input() createImport: boolean = true;
   @Input() billType: number = 1;
 
-  @ViewChildren(BillImportDetailComponent) billImportDetails!: QueryList<BillImportDetailComponent>;
+  @ViewChildren(BillImportDetailNewComponent) billImportDetails!: QueryList<BillImportDetailNewComponent>;
 
   selectedIndex: number = 0;
 

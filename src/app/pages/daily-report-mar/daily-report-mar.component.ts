@@ -12,6 +12,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -47,6 +48,7 @@ import { Menubar } from 'primeng/menubar';
     NzNotificationModule,
     NzModalModule,
     NzDropDownModule,
+    NzSpinModule,
     Menubar,
   ],
   templateUrl: './daily-report-mar.component.html',
@@ -63,7 +65,8 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
   showSearchBar: boolean = true; // Mặc định ẩn, sẽ được set trong ngOnInit
   isMobile: boolean = false;
   menuBars: MenuItem[] = [];
-  
+  isLoading: boolean = false;
+
   // Search filters
   dateStart: string = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
   dateEnd: string = DateTime.local().toFormat('yyyy-MM-dd');
@@ -106,7 +109,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.updateResponsiveState();
     this.initMenuBar();
-    
+
     // Load theo thứ tự: getCurrentUser -> loadDepartments -> set departmentId -> loadTeams -> loadUsers -> getDailyReportHrData
     this.getCurrentUser();
   }
@@ -121,29 +124,29 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
       if (res && res.status === 1 && res.data) {
         const data = Array.isArray(res.data) ? res.data[0] : res.data;
         this.currentUser = data;
-        
+
         // Load departments trước, sau đó set departmentId và load các bộ lọc khác
         this.loadDepartments(() => {
           // Set departmentId từ currentUser.DepartmentID sau khi departments đã load xong
-          if(this.currentUser.IsAdmin == true){
+          if (this.currentUser.IsAdmin == true) {
             this.departmentId = 8;
           }
-          else if(this.currentUser.DepartmentID && this.currentUser.IsAdmin != true){
+          else if (this.currentUser.DepartmentID && this.currentUser.IsAdmin != true) {
             this.departmentId = this.currentUser.DepartmentID;
           }
           if (this.currentUser && this.currentUser.DepartmentID && this.currentUser.IsAdmin != true) {
             this.departmentId = this.currentUser.DepartmentID;
           }
-          
+
           // Load teams và users sau khi đã set departmentId
           this.loadTeams();
           this.loadUsers(() => {
             // Set userId sau khi users đã load xong
             if (this.currentUser) {
-              if(this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true){
+              if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true) {
                 this.userId = 0
               }
-              else if (this.currentUser.ID  && this.currentUser.IsAdmin != true) {
+              else if (this.currentUser.ID && this.currentUser.IsAdmin != true) {
                 this.setUserIdFromEmployeeID(this.currentUser.ID);
               } else if (this.currentUser.EmployeeID && this.currentUser.IsAdmin != true) {
                 this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
@@ -151,7 +154,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
             } else {
               this.userId = 0;
             }
-            
+
             // Load data bảng sau khi tất cả các bộ lọc đã sẵn sàng
             if (this.tb_daily_report_mar) {
               this.getDailyReportMarData();
@@ -214,12 +217,12 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
   loadUsers(callback?: () => void): void {
     const userTeamID = this.teamId > 0 ? this.teamId : undefined;
     const departmentid = this.departmentId > 0 ? this.departmentId : undefined;
-    
+
     this.dailyReportTechService.getEmployees(userTeamID, departmentid).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
           const employees = Array.isArray(response.data) ? response.data : [];
-          
+
           if (employees.length > 0 && employees[0].DepartmentName) {
             this.users = this.groupEmployeesByDepartment(employees);
           } else {
@@ -233,7 +236,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
         } else {
           this.users = [];
         }
-        
+
         if (callback) {
           callback();
         }
@@ -250,7 +253,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
 
   groupEmployeesByDepartment(employees: any[]): any[] {
     const grouped: { [key: string]: any[] } = {};
-    
+
     employees.forEach(emp => {
       const deptName = emp.DepartmentName || 'Khác';
       if (!grouped[deptName]) {
@@ -341,7 +344,8 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
 
   getDailyReportMarData(): void {
     const searchParams = this.getSearchParams();
-    
+    this.isLoading = true;
+
     this.dailyReportTechService.getDailyReportTech(searchParams).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
@@ -349,7 +353,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
         } else {
           this.dailyReportHrData = [];
         }
-        
+
         if (this.tb_daily_report_mar) {
           this.tb_daily_report_mar.replaceData(this.dailyReportHrData);
         }
@@ -364,6 +368,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
             this.showSearchBar = false;
           }, 100);
         }
+        this.isLoading = false;
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
@@ -373,6 +378,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
         if (this.tb_daily_report_mar) {
           this.tb_daily_report_mar.replaceData(this.dailyReportHrData);
         }
+        this.isLoading = false;
       }
     });
   }
@@ -462,7 +468,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
             width: 300,
             formatter: 'textarea',
           },
-          
+
           {
             title: 'Đề xuất cải tiến phòng Marketing',
             field: 'Note',
@@ -536,7 +542,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
           next: (response: any) => {
             if (response && response.status === 1) {
               this.notification.success('Thông báo', response.message || 'Đã xóa báo cáo thành công!');
-                this.getDailyReportMarData();
+              this.getDailyReportMarData();
             } else {
               this.notification.error('Thông báo', response?.message || 'Không thể xóa báo cáo!');
             }
@@ -659,7 +665,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
 
   copyDailyReport(): void {
     const searchParams = this.getSearchParams();
-    
+
     let employeeID = 0;
     if (searchParams.userID && searchParams.userID > 0) {
       for (const group of this.users) {
@@ -672,7 +678,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
         }
       }
     }
-    
+
     const copyParams = {
       dateStart: searchParams.dateStart,
       dateEnd: searchParams.dateEnd,
@@ -681,7 +687,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
       userid: employeeID || 0,
       departmentid: searchParams.departmentID || 0
     };
-    
+
     this.dailyReportTechService.getForCopy(copyParams).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
@@ -705,7 +711,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
     }
 
     const uniqueDates = [...new Set(result.map(item => item.DateReport))];
-    
+
     if (uniqueDates.length === 1) {
       const contentSummary = this.formatSingleDayReport(result, uniqueDates[0]);
       this.copyToClipboard(contentSummary);
@@ -762,7 +768,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
     const useExecCommand = (): boolean => {
       const textArea = document.createElement('textarea');
       textArea.value = text;
-      
+
       // Style để textarea không hiển thị nhưng vẫn có thể focus
       textArea.style.position = 'fixed';
       textArea.style.top = '0';
@@ -775,21 +781,21 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
       textArea.style.boxShadow = 'none';
       textArea.style.background = 'transparent';
       textArea.style.opacity = '0';
-      
+
       document.body.appendChild(textArea);
-      
+
       // Đảm bảo focus window trước
       window.focus();
       textArea.focus();
       textArea.select();
-      
+
       // Thử select bằng cách khác nếu cần
       textArea.setSelectionRange(0, text.length);
-      
+
       try {
         const successful = document.execCommand('copy');
         document.body.removeChild(textArea);
-        
+
         if (successful) {
           this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
           return true;
@@ -801,11 +807,11 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
         throw err;
       }
     };
-    
+
     try {
       // Đảm bảo window được focus
       window.focus();
-      
+
       // Thử sử dụng Clipboard API nếu có
       if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
@@ -826,7 +832,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
     } catch (err: any) {
       console.error('Copy to clipboard final error:', err);
       this.notification.error(
-        'Thông báo', 
+        'Thông báo',
         'Không thể copy vào clipboard. Vui lòng click vào trang trước khi copy!'
       );
     }
@@ -847,15 +853,15 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
     }
 
     const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Báo cáo MAR');
+    const worksheet = workbook.addWorksheet('Báo cáo MAR');
 
     // Lấy columns từ bảng
     const columns = table.getColumns();
     const columnDefinitions = columns.map((col: any) => col.getDefinition());
-    
+
     // Lọc bỏ các columns không có field (như action buttons)
     const visibleColumns = columnDefinitions.filter((col: any) => col.field && col.visible !== false);
-    
+
     // Tạo header
     const headers = visibleColumns.map((col: any) => col.title || col.field);
     worksheet.addRow(headers);
@@ -922,7 +928,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
 
         return value || '';
       });
-      
+
       const excelRow = worksheet.addRow(rowData);
       excelRow.alignment = { vertical: 'top', wrapText: true };
     });
@@ -937,10 +943,10 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
         const cellValue = cell.value ? cell.value.toString() : '';
         maxLength = Math.max(maxLength, cellValue.length + 2);
       });
-      
+
       // Set width với giới hạn
       column.width = Math.min(Math.max(maxLength, 10), 50);
-      
+
       // Alignment
       if (colDef.hozAlign === 'right') {
         column.alignment = { horizontal: 'right' };

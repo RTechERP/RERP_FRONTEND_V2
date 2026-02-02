@@ -1,0 +1,153 @@
+<ng-container class="w-100">
+    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+
+        <!-- Filter Bar -->
+        <div class="filter-bar bg-light border-bottom p-2">
+            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">Phòng
+                        ban</nz-form-label>
+                    <nz-form-control>
+                        <nz-select name="departmentId" nzShowSearch nzSize="small" nzPlaceHolder="Chọn phòng ban"
+                            style="width: 200px;" [(ngModel)]="filters.departmentId" [nzDisabled]="true">
+                            <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
+                                [nzLabel]="item.Name"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12"
+                        style="font-size: 12px; display: flex; align-items: center;">Năm</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-number nzSize="small" style="width: 80px;" [nzMin]="2000" [nzMax]="2100"
+                            [(ngModel)]="filters.year" name="year"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-control>
+                        <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                            <span nz-icon nzType="search"></span> Tìm kiếm
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </div>
+
+        <!-- Main Content -->
+        <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
+            <nz-splitter class="h-100">
+                <!-- Left Panel -->
+                <nz-splitter-panel nzDefaultSize="35%" [nzCollapsible]="true" nzResizable="true">
+                    <nz-splitter nzLayout="vertical" class="h-100">
+                        <!-- Sessions Grid -->
+                        <nz-splitter-panel nzDefaultSize="45%" [nzCollapsible]="true" nzResizable="true">
+                            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                                <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h6 class="m-0 ms-2 fw-bold">KỲ ĐÁNH GIÁ</h6>
+                                        <div class="btn-toolbar">
+                                            <button nz-button nzType="primary" nzSize="small" class="me-1"
+                                                (click)="onAddSession()">
+                                                <span nz-icon nzType="plus"></span> Thêm
+                                            </button>
+                                            <button nz-button nzType="default" nzSize="small" class="me-1"
+                                                (click)="onEditSession()">
+                                                <span nz-icon nzType="edit"></span> Sửa
+                                            </button>
+                                            <button nz-button nzType="default" nzSize="small" nzDanger
+                                                (click)="onDeleteSession()">
+                                                <span nz-icon nzType="delete"></span> Xóa
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0 flex-grow-1 grid-container-session" style="overflow: hidden;">
+                                    <nz-spin [nzSpinning]="isLoadingSession" nzTip="Đang tải..." class="h-100 w-100">
+                                        <angular-slickgrid [gridId]="gridSessionId" [columns]="columnDefinitionsSession"
+                                            [options]="gridOptionsSession" [dataset]="datasetSession"
+                                            (onAngularGridCreated)="angularGridReadySession($event.detail)"
+                                            (onClick)="onSessionRowClick($event.detail.eventData, $event.detail.args)"
+                                            (onDblClick)="onSessionRowDblClick($event.detail.eventData, $event.detail.args)">
+                                        </angular-slickgrid>
+                                    </nz-spin>
+                                </div>
+                            </div>
+                        </nz-splitter-panel>
+
+                        <!-- Rules Grid -->
+                        <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                                <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h6 class="m-0 ms-2 fw-bold">RULE ĐÁNH GIÁ</h6>
+                                        <div class="btn-toolbar">
+                                            <button nz-button nzType="primary" nzSize="small" class="me-1"
+                                                (click)="onAddRule()">
+                                                <span nz-icon nzType="plus"></span> Thêm
+                                            </button>
+                                            <button nz-button nzType="default" nzSize="small" class="me-1"
+                                                (click)="onEditRule()">
+                                                <span nz-icon nzType="edit"></span> Sửa
+                                            </button>
+                                            <button nz-button nzType="default" nzSize="small" nzDanger class="me-1"
+                                                (click)="onDeleteRule()">
+                                                <span nz-icon nzType="delete"></span> Xóa
+                                            </button>
+                                            <button nz-button nzType="default" nzSize="small" (click)="onCopyRule()">
+                                                <span nz-icon nzType="copy"></span> Sao chép
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0 flex-grow-1 grid-container-rule" style="overflow: hidden;">
+                                    <nz-spin [nzSpinning]="isLoadingRule" nzTip="Đang tải..." class="h-100 w-100">
+                                        <angular-slickgrid [gridId]="gridRuleId" [columns]="columnDefinitionsRule"
+                                            [options]="gridOptionsRule" [dataset]="datasetRule"
+                                            (onAngularGridCreated)="angularGridReadyRule($event.detail)"
+                                            (onClick)="onRuleRowClick($event.detail.eventData, $event.detail.args)"
+                                            (onDblClick)="onRuleRowDblClick($event.detail.eventData, $event.detail.args)">
+                                        </angular-slickgrid>
+                                    </nz-spin>
+                                </div>
+                            </div>
+                        </nz-splitter-panel>
+                    </nz-splitter>
+                </nz-splitter-panel>
+
+                <!-- Right Panel: Rule Details Tree -->
+                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                        <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+                            <div class="btn-toolbar">
+                                <button nz-button nzType="primary" nzSize="small" class="me-1"
+                                    (click)="onAddRuleDetail()">
+                                    <span nz-icon nzType="plus"></span> Thêm
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="me-1"
+                                    (click)="onEditRuleDetail()">
+                                    <span nz-icon nzType="edit"></span> Sửa
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" nzDanger
+                                    (click)="onDeleteRuleDetail()">
+                                    <span nz-icon nzType="delete"></span> Xóa
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0 flex-grow-1 grid-container-rule-detail" style="overflow: hidden;">
+                            <nz-spin [nzSpinning]="isLoadingRuleDetail" nzTip="Đang tải..." class="h-100 w-100">
+                                <angular-slickgrid [gridId]="gridRuleDetailId" [columns]="columnDefinitionsRuleDetail"
+                                    [options]="gridOptionsRuleDetail" [dataset]="datasetRuleDetail"
+                                    (onAngularGridCreated)="angularGridReadyRuleDetail($event.detail)"
+                                    (onClick)="onRuleDetailRowClick($event.detail.eventData, $event.detail.args)"
+                                    (onDblClick)="onRuleDetailRowDblClick($event.detail.eventData, $event.detail.args)">
+                                </angular-slickgrid>
+                            </nz-spin>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+            </nz-splitter>
+        </div>
+    </div>
+</ng-container>

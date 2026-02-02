@@ -427,13 +427,13 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
-            gridWidth: '100%',
             datasetIdPropertyName: 'id',
             enableRowSelection: false,
             enableCellNavigation: false,
             enableFiltering: false,
             autoFitColumnsOnFirstLoad: true,
             enableAutoSizeColumns: true,
+            forceFitColumns:true
         };
     }
 
@@ -529,12 +529,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
@@ -547,12 +547,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
@@ -565,12 +565,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: this.wrapTextFormatter,
                 customTooltip: {
@@ -586,12 +586,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
@@ -604,12 +604,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
@@ -622,12 +622,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)

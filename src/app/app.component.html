@@ -183,9 +183,16 @@
 
                     <nz-tabset nzType="editable-card" nzHideAdd [(nzSelectedIndex)]="selectedCompIndex"
                         (nzClose)="closeTabComp($event)">
-                        <nz-tab *ngFor="let tab of dynamicTabComps" [nzTitle]="tab.title" [nzClosable]="true"
+                        <nz-tab *ngFor="let tab of dynamicTabComps" [nzTitle]="titleTemplate" [nzClosable]="true"
                             class="text-uppercase">
 
+                            <ng-template #titleTemplate>
+                                <a [routerLink]="tab.key" [queryParams]="tab.data"
+                                    style="margin-left: auto; color:#fff">
+                                    {{ tab.title }}
+                                </a>
+
+                            </ng-template>
                         </nz-tab>
                     </nz-tabset>
                 </div>

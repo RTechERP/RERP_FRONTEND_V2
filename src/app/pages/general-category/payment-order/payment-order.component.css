@@ -56,3 +56,25 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+
+:host ::ng-deep #grvData{
+    height: 42vh !important;
+}
+
+:host ::ng-deep #grvDataSpecial{
+    height: 42vh !important;
+}
+:host ::ng-deep #grvDetail{
+    height: 31vh !important;
+}
+:host ::ng-deep #grvDetailSpecial{
+    height: 31vh !important;
+}
+
+/* :host ::ng-deep .slick-row:has(.slick-tree-level-0) .slick-cell {
+    background-color: lightgrey !important;
+    font-weight: bold !important;
+} */
+
+

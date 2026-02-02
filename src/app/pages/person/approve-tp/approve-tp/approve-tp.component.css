@@ -27,7 +27,7 @@
   flex-direction: column;
 }
 
-.card-body > div {
+.card-body>div {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
@@ -92,13 +92,13 @@
     z-index: 1050;
     background: white;
     border-bottom: 1px solid #dee2e6;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     max-height: 70vh;
     overflow-y: auto;
     margin: 16px;
     border-radius: 8px;
   }
-  
+
   .filter-backdrop {
     display: block;
     position: fixed;
@@ -106,7 +106,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0, 0, 0, 0.3);
     z-index: 1040;
   }
 }
@@ -116,10 +116,29 @@
   .filter-backdrop {
     display: none !important;
   }
-  
+
   .filter-bar {
     position: static !important;
     z-index: 1 !important;
   }
 }
 
+/* Custom width for team select dropdown */
+::ng-deep .team-select-dropdown {
+  min-width: 35vh !important;
+}
+
+/* Custom width for status select dropdowns */
+::ng-deep .status-select-dropdown {
+  min-width: 35vh !important;
+}
+
+/* Custom width for employee select dropdown */
+::ng-deep .employee-select-dropdown {
+  min-width: 35vh !important;
+}
+
+/* Custom width for type select dropdown */
+::ng-deep .type-select-dropdown {
+  min-width: 35vh !important;
+}

@@ -1,5 +1,5 @@
 <ng-container class="w-100">
-    <nz-splitter>
+    <nz-splitter style="height: 94vh !important;">
         <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
             <div class="card h-100 border-0 rounded-0">
                 <div class="card-header bg-white p-1">
@@ -160,6 +160,13 @@
                                         </li>
                                     </ul>
                                 </nz-dropdown-menu>
+
+                                <!-- Xác nhận ký nhận bàn giao (dành cho người được chọn làm người nhận) -->
+                                <button class="fs-12 btn" nz-button nzType="default" nzSize="small"
+                                    (click)="confirmHandoverSign()">
+                                    <nz-icon nzType="edit" nzTheme="outline"></nz-icon>
+                                    Xác nhận bàn giao
+                                </button>
                             </div>
                         </div>
                         <nz-splitter>
@@ -177,7 +184,7 @@
                     </div>
                 </nz-splitter-panel>
                 <nz-splitter-panel>
-                    <nz-splitter>
+                    <nz-splitter style="height: 100% !important">
                         <nz-splitter-panel [nzCollapsible]="true">
                             <div class="box">
                                 <nz-tabset nzType="card" (nzSelectedIndexChange)="onTabChange($event)"

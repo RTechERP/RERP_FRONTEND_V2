@@ -786,6 +786,10 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 ],
             },
             dataItemColumnValueExtractor: (item: any, column: any) => item[column.field!],
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
     }
 
@@ -836,10 +840,11 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                     // Nếu grid chưa ready, sẽ được xử lý trong angularGridReady()
                 }
 
-                // Resize grid after data is loaded
+                // Resize grid after data is loaded và update footer
                 setTimeout(() => {
                     if (this.angularGrid) {
                         this.angularGrid.resizerService.resizeGrid();
+                        this.updateFooterRow();
                     }
                 }, 100);
             },
@@ -1123,6 +1128,11 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
 
                 return null;
             };
+
+            // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi
+            this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
+                this.updateFooterRow();
+            });
         }
 
         // Xử lý spec columns khi grid ready
@@ -1131,6 +1141,8 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             // showSpec() sẽ tự động ẩn nếu không có config hoặc hiển thị nếu có config
             this.showSpec();
             angularGrid.resizerService.resizeGrid();
+            // Update footer row
+            this.updateFooterRow();
         }, 100);
 
         // Handle double click event on main grid
@@ -1444,6 +1456,66 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                     }
                 });
             },
+        });
+    }
+
+    /**
+     * Update footer row - count cho ProductName, sum cho các cột số lượng
+     * Sử dụng textContent để tránh re-render gây mất focus
+     */
+    updateFooterRow(): void {
+        if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+
+        try {
+            // Kiểm tra grid vẫn tồn tại
+            const testColumns = this.angularGrid.slickGrid.getColumns();
+            if (!testColumns || testColumns.length === 0) return;
+
+            const items = this.angularGrid.dataView?.getFilteredItems() as any[] || [];
+            const productCount = items.length;
+
+            // Các cột cần tính tổng
+            const sumFields = [
+                'NumberBorrowing',      // Đang mượn
+                'QuantityExportMuon',   // SL xuất mượn
+                'QuantityManager',      // SL quản lý
+                'NumberExport',         // SL xuất
+                'NumberImport',         // SL nhập
+                'TotalQuantityInArea',  // Tổng SL trong khu vực
+            ];
+
+            // Tính tổng cho từng cột
+            const sums: { [key: string]: number } = {};
+            sumFields.forEach(field => {
+                sums[field] = items.reduce(
+                    (sum, item) => sum + (Number(item?.[field]) || 0),
+                    0
+                );
+            });
+
+            // Update footer cho cột ProductName (count)
+            const productNameFooter = this.angularGrid.slickGrid.getFooterRowColumn('ProductName');
+            if (productNameFooter) {
+                productNameFooter.textContent = `${this.formatNumber(productCount, 0)}`;
+            }
+
+            // Update footer cho các cột số (sum)
+            sumFields.forEach(field => {
+                const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(field);
+                if (footerCell) {
+                    footerCell.textContent = `${this.formatNumber(sums[field], 0)}`;
+                }
+            });
+        } catch (e) {
+            // Ignore errors khi grid chưa sẵn sàng hoặc đã bị destroy
+        }
+    }
+
+    formatNumber(num: number, digits: number = 0): string {
+        num = num || 0;
+        return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
         });
     }
 }

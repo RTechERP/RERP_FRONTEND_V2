@@ -400,7 +400,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (selectedRows.length === 0) {
       this.notification.info(
         'Thông báo',
-        'Vui lòng chọn ít nhất một dòng để chỉnh sửa.'
+        'Vui lòng chọn ít nhất 1 yêu cầu báo giá!'
       );
       return;
     }
@@ -438,6 +438,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           row.ProjectPartlistPriceRequestTypeID ?? null,
       };
     });
+
+    console.log("Processed Rows:", processedRows);
 
     const modalRef = this.ngbModal.open(
       ProjectPartlistPriceRequestFormComponent,
@@ -485,7 +487,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (selectedRows.length === 0) {
       this.notification.info(
         'Thông báo',
-        'Vui lòng chọn ít nhất một dòng để xóa.'
+        'Vui lòng chọn sản phẩm muốn xoá!'
       );
       // Swal.fire({
       //   title: 'Thông báo',
@@ -497,7 +499,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     }
     this.modal.confirm({
       nzTitle: 'Thông báo',
-      nzContent: 'Bạn có chắc muốn xóa các dòng đã chọn không?',
+      nzContent: 'Bạn có chắc muốn xoá danh sách đã chọn không?',
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -3173,7 +3175,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     // Đảm bảo data là array
     if (!Array.isArray(data)) {
       console.error('SaveDataCommon: data không phải là array', data);
-      this.notification.error('Thông báo', 'Data is not an Array');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Data is not an Array', {
+        nzStyle: { whiteSpace: 'pre-line' }
+      });
       return;
     }
 
@@ -3211,7 +3215,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       },
       error: (error) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
+          nzStyle: { whiteSpace: 'pre-line' }
+        });
         // Swal.fire('Thông báo', 'Không thể lưu dữ liệu.', 'error');
       },
     });
@@ -3321,7 +3327,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     // Đảm bảo changedData là array
     if (!Array.isArray(changedData)) {
       console.error('processSaveData: changedData không phải là array', changedData);
-      this.notification.error('Thông báo', 'Dữ liệu không hợp lệ.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Dữ liệu không hợp lệ.', {
+        nzStyle: { whiteSpace: 'pre-line' }
+      });
       return;
     }
 
@@ -4112,7 +4120,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           },
           error: (error) => {
             console.error('Error quoting price:', error);
-            this.notification.error('Lỗi', error?.error?.message || error?.message);
+            this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
+              nzStyle: { whiteSpace: 'pre-line' }
+            });
           },
         });
       },
@@ -4203,10 +4213,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           },
           error: (error) => {
             console.error('Error checking price:', error);
-            this.notification.error(
-              'Lỗi',
-              error?.error?.message || error?.message
-            );
+            this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
+              nzStyle: { whiteSpace: 'pre-line' }
+            });
           },
         });
       },
@@ -4347,7 +4356,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
               const invalidList = invalidProducts.join('\n');
               fullMessage += `\n\nCác sản phẩm không hợp lệ:\n${invalidList}`;
             }
-            this.notification.error(NOTIFICATION_TITLE.error, fullMessage);
+            this.notification.error(NOTIFICATION_TITLE.error, fullMessage, {
+              nzStyle: { whiteSpace: 'pre-line' }
+            });
           }
         });
       },
@@ -4429,7 +4440,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           const invalidList = invalidProducts.join('\n');
           fullMessage += `\n\nCác sản phẩm không hợp lệ:\n${invalidList}`;
         }
-        this.notification.error(NOTIFICATION_TITLE.error, fullMessage);
+        this.notification.error(NOTIFICATION_TITLE.error, fullMessage, {
+          nzStyle: { whiteSpace: 'pre-line' }
+        });
       }
     });
   }
@@ -4439,7 +4452,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (selectedRows.length === 0) {
       this.notification.info(
         'Thông báo',
-        'Vui lòng chọn ít nhất một dòng để yêu cầu mua.'
+        'Vui lòng chọn sản phẩm muốn yêu cầu mua!'
       );
       return;
     }
@@ -4721,7 +4734,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         if (res?.status === 1) {
           this.notification.success(
             'Thông báo',
-            res?.message || 'Yêu cầu mua đã xử lý xong.'
+            res?.message || 'Yêu cầu mua thành công!'
           );
           this.LoadPriceRequests();
         } else {
@@ -4732,10 +4745,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         }
       },
       error: (err: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          err?.error?.message || err?.message
-        );
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`, {
+          nzStyle: { whiteSpace: 'pre-line' }
+        });
       },
     });
 
@@ -4760,7 +4772,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     const selectedData = this.getSelectedGridData(this.activeTabId);
 
     if (selectedData.length === 0) {
-      this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+      this.notification.info('Thông báo', 'Vui lòng chọn sản phẩm cần xuất excel!');
       return;
     }
 
@@ -5340,10 +5352,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       window.URL.revokeObjectURL(link.href);
     } catch (error: any) {
       console.error(error);
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        error?.error?.message || error?.message
-      );
+      this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
+        nzStyle: { whiteSpace: 'pre-line' }
+      });
     }
   }
   async ExportAllTabsToExcel() {
@@ -5779,7 +5790,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (selectedRows.length <= 0) {
       this.notification.warning(
         'Thông báo',
-        'Vui lòng chọn 1 sản phẩm muốn tải!'
+        'Vui lòng chọn sản phẩm muốn tải file!'
       );
       return;
     }

@@ -31,7 +31,7 @@
   font-size: 12px;
   font-size: 0.75rem;
 }
-::ng-deep div[id^="gridPurchase-"] {
+::ng-deep div[id^="gridPurchaseRequest"] {
   height: 73vh!important;
 }
 

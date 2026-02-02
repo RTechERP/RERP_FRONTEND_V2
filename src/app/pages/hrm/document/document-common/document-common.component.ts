@@ -172,8 +172,8 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
                     },
                     cellClick: (e: any, cell: any) => {
                         const rowData = cell.getRow().getData();
-                        if (rowData.FileName) {
-                            self.downloadFile(rowData.FileName);
+                        if (rowData.FileName || rowData.Code) {
+                            self.downloadFile(rowData);
                         }
                     }
                 },
@@ -208,13 +208,29 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
         });
     }
 
-    downloadFile(fileName: string): void {
+    downloadFile(file: any): void {
+        const fileName = (file.FileName || file.Code || '').toString();
         if (!fileName) {
             this.notification.warning('Thông báo', 'Không có file để tải xuống!');
             return;
         }
 
-        const filePath = `${this.downloadBasePath}${fileName}`;
+        // Nếu không có FilePath thì dùng URL trực tiếp để tải (giống DocumentComponent)
+        if (!file.FilePath) {
+            const directUrl = `http://14.232.152.154:8083/api/Upload/RTCDocument/${encodeURIComponent(fileName)}`;
+
+            const link = document.createElement('a');
+            link.href = directUrl;
+            link.download = fileName;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            this.notification.success('Thông báo', 'Đang tải xuống file...');
+            return;
+        }
+
+        const filePath = file.FilePath.startsWith('\\\\') ? file.FilePath : `${this.downloadBasePath}${fileName}`;
 
         const loadingMsg = this.message.loading('Đang tải xuống file...', {
             nzDuration: 0,
@@ -235,29 +251,27 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
                     window.URL.revokeObjectURL(url);
                     this.notification.success('Thông báo', 'Tải xuống thành công!');
                 } else {
-                    this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+                    // Nếu tải qua API thất bại (blob rỗng), thử tải trực tiếp
+                    this.downloadDirectly(fileName);
                 }
             },
             error: (res: any) => {
                 this.message.remove(loadingMsg);
-                console.error('Lỗi khi tải file:', res);
-
-                if (res.error instanceof Blob) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        try {
-                            const errorText = JSON.parse(reader.result as string);
-                            this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
-                        } catch {
-                            this.notification.error('Thông báo', 'Tải xuống thất bại!');
-                        }
-                    };
-                    reader.readAsText(res.error);
-                } else {
-                    const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
-                    this.notification.error('Thông báo', errorMsg);
-                }
+                // Nếu có lỗi khi tải qua API, thử tải trực tiếp
+                this.downloadDirectly(fileName);
             },
         });
+    }
+
+    private downloadDirectly(fileName: string): void {
+        const directUrl = `http://14.232.152.154:8083/api/Upload/RTCDocument/${encodeURIComponent(fileName)}`;
+        const link = document.createElement('a');
+        link.href = directUrl;
+        link.download = fileName;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.notification.success('Thông báo', 'Đang thử tải xuống trực tiếp...');
     }
 }

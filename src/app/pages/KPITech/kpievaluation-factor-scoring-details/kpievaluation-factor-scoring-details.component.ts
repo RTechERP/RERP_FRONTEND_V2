@@ -28,8 +28,46 @@ import { KPIEvaluationFactorScoringDetailsService } from './kpievaluation-factor
 import { ReadOnlyLongTextEditor } from '../kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
 import { KPICriteriaViewComponent } from '../kpicriteria-view/kpicriteria-view.component';
 import { KpiRuleSumarizeTeamChooseEmployeeComponent } from '../kpi-rule-sumarize-team-choose-employee/kpi-rule-sumarize-team-choose-employee.component';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, of } from 'rxjs';
+import { catchError, map, switchMap, takeUntil } from 'rxjs/operators';
+
+//#region Model SaveDataKPI
+interface KPIEvaluationPointParam {
+  ID: number; // KPIEvaluationPointID
+  KPIEvaluationFactorsID: number;
+  EmployeePoint?: number | null;
+  TBPPoint?: number | null;
+  BGDPoint?: number | null;
+  EmployeeEvaluation?: number | null;
+  TBPEvaluation?: number | null;
+  BGDEvaluation?: number | null;
+  EmployeeCoefficient?: number | null;
+  TBPCoefficient?: number | null;
+  BGDCoefficient?: number | null;
+  TBPPointInput?: number | null;
+  BGDPointInput?: number | null;
+  Note?: string | null;
+}
+
+interface KPISumaryEvaluationParam {
+  SpecializationType: number;
+  EmployeePoint: number | null;
+  TBPPoint: number | null;
+  BGDPoint: number | null;
+}
+
+interface SaveDataKPIRequestParam {
+  KPISessionID: number;
+  KPIExamID: number;
+  employeeID: number;
+  typePoint: number;
+  departmentID: number;
+  kpiKyNang: KPIEvaluationPointParam[];
+  kpiChung: KPIEvaluationPointParam[];
+  kpiChuyenMon: KPIEvaluationPointParam[];
+  kpiSumaryEvaluation: KPISumaryEvaluationParam[];
+}
+//#endregion
 
 @Component({
   selector: 'app-kpievaluation-factor-scoring-details',
@@ -58,6 +96,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   // Constants
   private readonly DEPARTMENT_CO_KHI = 10;
+  private readonly SPECIALIZATION_SKILL = 1;
+  private readonly SPECIALIZATION_GENERAL = 6;
+  private readonly SPECIALIZATION_SPECIALIZATION = 28;
 
   // DI
   private notification = inject(NzNotificationService);
@@ -146,14 +187,292 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   // Subject for cleanup
   private destroy$ = new Subject<void>();
 
-  private customEditableInputFormatter: Formatter = (_row, _cell, value, columnDef, dataContext, grid) => {
+  //#region Tooltip Formatters cho các cột tính toán
+  /**
+   * Formatter cho cột EmployeePoint (Mức tự đánh giá)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: EmployeeCoefficient = EmployeePoint * Coefficient
+   */
+  private employeePointFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+    
+    // Tạo tooltip công thức
+    const employeePoint = Number(dataContext.EmployeePoint) || 0;
+    const coefficient = Number(dataContext.Coefficient) || 0;
+    const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
+    
+    const tooltipText = `Điểm hệ số = Điểm nhân viên × Hệ số\n= ${employeePoint.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
+    
+    return `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>`;
+  };
+
+  /**
+   * Formatter cho cột EmployeeEvaluation (Điểm đánh giá)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức:
+   * - Node lá: Điểm đánh giá = Điểm nhân viên
+   * - Node cha trung bình: Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)
+   * - Dòng tổng (ParentID = 0): Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)
+   */
+  private employeeEvaluationFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const employeeEvaluation = Number(dataContext.EmployeeEvaluation) || 0;
+
+      tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)\n= ${employeeEvaluation.toFixed(2)}`;
+    } else if (dataContext.__hasChildren) {
+      // Node cha trung bình
+      const childNodes = this.dataSkill.filter((r: any) =>
+        r.ParentID === dataContext.ID || r.parentId === dataContext.id
+      );
+
+      if (childNodes.length > 0) {
+        let totalChildCoef = 0;
+        let totalChildEmpPoint = 0;
+        let totalChildTbpPoint = 0;
+        let totalChildBgdPoint = 0;
+
+        childNodes.forEach((child: any) => {
+          totalChildCoef += Number(child.Coefficient) || 0;
+          totalChildEmpPoint += Number(child.EmployeeCoefficient) || 0;
+          totalChildTbpPoint += Number(child.TBPCoefficient) || 0;
+          totalChildBgdPoint += Number(child.BGDCoefficient) || 0;
+        });
+
+        const empEval = totalChildCoef > 0 ? totalChildEmpPoint / totalChildCoef : 0;
+
+        tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)\n= ${totalChildEmpPoint.toFixed(2)} / ${totalChildCoef.toFixed(2)}\n= ${empEval.toFixed(2)}`;
+      }
+    } else {
+      // Node lá
+      const employeePoint = Number(dataContext.EmployeePoint) || 0;
+
+      tooltipText = `Điểm đánh giá = Điểm nhân viên\n= ${employeePoint.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột EmployeeCoefficient (Điểm theo hệ số)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: Điểm theo hệ số = Điểm đánh giá × Hệ số
+   */
+  private employeeCoefficientFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Tổng điểm theo hệ số (node con gần nhất)\n= ${employeeCoefficient.toFixed(2)}`;
+    } else {
+      // Node lá và node cha trung bình
+      const employeeEvaluation = Number(dataContext.EmployeeEvaluation) || 0;
+      const coefficient = Number(dataContext.Coefficient) || 0;
+      const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Điểm đánh giá × Hệ số\n= ${employeeEvaluation.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột TBPEvaluation (Điểm đánh giá TBP)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức:
+   * - Node lá: Điểm đánh giá = Điểm TBP
+   * - Node cha trung bình: Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)
+   * - Dòng tổng (ParentID = 0): Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)
+   */
+  private tbpEvaluationFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const tbpEvaluation = Number(dataContext.TBPEvaluation) || 0;
+
+      tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)\n= ${tbpEvaluation.toFixed(2)}`;
+    } else if (dataContext.__hasChildren) {
+      // Node cha trung bình
+      const childNodes = this.dataSkill.filter((r: any) =>
+        r.ParentID === dataContext.ID || r.parentId === dataContext.id
+      );
+
+      if (childNodes.length > 0) {
+        let totalChildCoef = 0;
+        let totalChildEmpPoint = 0;
+        let totalChildTbpPoint = 0;
+        let totalChildBgdPoint = 0;
+
+        childNodes.forEach((child: any) => {
+          totalChildCoef += Number(child.Coefficient) || 0;
+          totalChildEmpPoint += Number(child.EmployeeCoefficient) || 0;
+          totalChildTbpPoint += Number(child.TBPCoefficient) || 0;
+          totalChildBgdPoint += Number(child.BGDCoefficient) || 0;
+        });
+
+        const tbpEval = totalChildCoef > 0 ? totalChildTbpPoint / totalChildCoef : 0;
+
+        tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)\n= ${totalChildTbpPoint.toFixed(2)} / ${totalChildCoef.toFixed(2)}\n= ${tbpEval.toFixed(2)}`;
+      }
+    } else {
+      // Node lá
+      const tbpPoint = Number(dataContext.TBPPoint) || 0;
+
+      tooltipText = `Điểm đánh giá = Điểm TBP\n= ${tbpPoint.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột TBPCoefficient (Điểm theo hệ số TBP)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: Điểm theo hệ số = Điểm đánh giá × Hệ số
+   */
+  private tbpCoefficientFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const tbpCoefficient = Number(dataContext.TBPCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Tổng điểm theo hệ số (node con gần nhất)\n= ${tbpCoefficient.toFixed(2)}`;
+    } else {
+      // Node lá và node cha trung bình
+      const tbpEvaluation = Number(dataContext.TBPEvaluation) || 0;
+      const coefficient = Number(dataContext.Coefficient) || 0;
+      const tbpCoefficient = Number(dataContext.TBPCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Điểm đánh giá × Hệ số\n= ${tbpEvaluation.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${tbpCoefficient.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột BGDEvaluation (Điểm đánh giá BGĐ)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức:
+   * - Node lá: Điểm đánh giá = Điểm BGĐ
+   * - Node cha trung bình: Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)
+   * - Dòng tổng (ParentID = 0): Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)
+   */
+  private bgdEvaluationFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const bgdEvaluation = Number(dataContext.BGDEvaluation) || 0;
+
+      tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)\n= ${bgdEvaluation.toFixed(2)}`;
+    } else if (dataContext.__hasChildren) {
+      // Node cha trung bình
+      const childNodes = this.dataSkill.filter((r: any) =>
+        r.ParentID === dataContext.ID || r.parentId === dataContext.id
+      );
+
+      if (childNodes.length > 0) {
+        let totalChildCoef = 0;
+        let totalChildEmpPoint = 0;
+        let totalChildTbpPoint = 0;
+        let totalChildBgdPoint = 0;
+
+        childNodes.forEach((child: any) => {
+          totalChildCoef += Number(child.Coefficient) || 0;
+          totalChildEmpPoint += Number(child.EmployeeCoefficient) || 0;
+          totalChildTbpPoint += Number(child.TBPCoefficient) || 0;
+          totalChildBgdPoint += Number(child.BGDCoefficient) || 0;
+        });
+
+        const bgdEval = totalChildCoef > 0 ? totalChildBgdPoint / totalChildCoef : 0;
+
+        tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)\n= ${totalChildBgdPoint.toFixed(2)} / ${totalChildCoef.toFixed(2)}\n= ${bgdEval.toFixed(2)}`;
+      }
+    } else {
+      // Node lá
+      const bgdPoint = Number(dataContext.BGDPoint) || 0;
+
+      tooltipText = `Điểm đánh giá = Điểm BGĐ\n= ${bgdPoint.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột BGDCoefficient (Điểm theo hệ số BGĐ)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: Điểm theo hệ số = Điểm đánh giá × Hệ số
+   */
+  private bgdCoefficientFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const bgdCoefficient = Number(dataContext.BGDCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Tổng điểm theo hệ số (node con gần nhất)\n= ${bgdCoefficient.toFixed(2)}`;
+    } else {
+      // Node lá và node cha trung bình
+      const bgdEvaluation = Number(dataContext.BGDEvaluation) || 0;
+      const coefficient = Number(dataContext.Coefficient) || 0;
+      const bgdCoefficient = Number(dataContext.BGDCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Điểm đánh giá × Hệ số\n= ${bgdEvaluation.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${bgdCoefficient.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+  //#endregion
+
+  private customEditableInputFormatter: Formatter = (_row, _cell, value, _columnDef, dataContext, grid) => {
     const gridOptions = grid.getOptions();
     // Loại trừ các cột dùng để xem nội dung dài và các dòng là node cha
     const excludedColumns = ['EvaluationContent', 'RuleContent', 'VerificationToolsContent'];
-    const isExcludedColumn = excludedColumns.includes(columnDef.id as string);
+    const isExcludedColumn = excludedColumns.includes(_columnDef.id as string);
     const isParent = dataContext && dataContext.__hasChildren;
 
-    const isEditableLine = gridOptions.editable && columnDef.editor && !isExcludedColumn && !isParent;
+    const isEditableLine = gridOptions.editable && _columnDef.editor && !isExcludedColumn && !isParent;
     value = value === null || value === undefined ? '' : value;
     return isEditableLine ? { text: value, addClasses: 'editable-field' } : value;
   };
@@ -471,8 +790,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
-        params: { decimalPlaces: 2 },
+        formatter: this.employeeEvaluationFormatter,
         columnGroup: 'Đánh giá của Nhân viên',
       },
       {
@@ -482,8 +800,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
-        params: { decimalPlaces: 2 },
+        formatter: this.employeeCoefficientFormatter,
         columnGroup: 'Đánh giá của Nhân viên',
       },
       {
@@ -493,8 +810,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
-        params: { decimalPlaces: 2 },
+        formatter: this.tbpEvaluationFormatter,
         columnGroup: 'Đánh giá của TBP/PBP',
       },
       {
@@ -504,8 +820,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
-        params: { decimalPlaces: 2 },
+        formatter: this.tbpCoefficientFormatter,
         columnGroup: 'Đánh giá của TBP/PBP',
       },
       {
@@ -515,8 +830,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
-        params: { decimalPlaces: 2 },
+        formatter: this.bgdEvaluationFormatter,
         columnGroup: 'Đánh giá của BGĐ',
       },
       {
@@ -526,8 +840,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
-        params: { decimalPlaces: 2 },
+        formatter: this.bgdCoefficientFormatter,
         columnGroup: 'Đánh giá của BGĐ',
       },
     ];
@@ -1344,9 +1657,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     });
   }
 
-  private calculatorAvgPoint(dataTable: any[]): any[] {
+   private calculatorAvgPoint(dataTable: any[]): any[] {
     if (!dataTable || dataTable.length === 0) return dataTable;
 
+    // Find list of parent STT values
     const listFatherID: string[] = [];
     for (const row of dataTable) {
       const stt = row.STT?.toString() || '';
@@ -1358,9 +1672,12 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       }
     }
 
+    // Process from bottom to top (reverse order)
     for (let i = listFatherID.length - 1; i >= 0; i--) {
       const fatherId = listFatherID[i];
       let fatherRowIndex = -1;
+      let coefficient = 0;
+
       let count = 0;
       let totalEmpPoint = 0;
       let totalTbpPoint = 0;
@@ -1377,6 +1694,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
         if (stt === fatherId) {
           fatherRowIndex = j;
+          coefficient = this.formatDecimalNumber(parseFloat(row.Coefficient) || 0, 2);
         } else if (stt.startsWith(startStt)) {
           if (isCheck) continue;
           count++;
@@ -1389,23 +1707,32 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
       if (fatherRowIndex === -1 || count === 0) continue;
 
+      // Update evaluation points
       if (totalCoefficient === 0) {
-        dataTable[fatherRowIndex].EmployeeEvaluation = totalEmpPoint / count;
-        dataTable[fatherRowIndex].TBPEvaluation = totalTbpPoint / count;
-        dataTable[fatherRowIndex].BGDEvaluation = totalBgdPoint / count;
+        dataTable[fatherRowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpPoint / count, 2);
+        dataTable[fatherRowIndex].BGDEvaluation = this.formatDecimalNumber(totalBgdPoint / count, 2);
+        dataTable[fatherRowIndex].TBPEvaluation = this.formatDecimalNumber(totalTbpPoint / count, 2);
       } else {
-        dataTable[fatherRowIndex].EmployeeEvaluation = totalEmpPoint / totalCoefficient;
-        dataTable[fatherRowIndex].TBPEvaluation = totalTbpPoint / totalCoefficient;
-        dataTable[fatherRowIndex].BGDEvaluation = totalBgdPoint / totalCoefficient;
+        dataTable[fatherRowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpPoint / totalCoefficient, 2);
+        dataTable[fatherRowIndex].BGDEvaluation = this.formatDecimalNumber(totalBgdPoint / totalCoefficient, 2);
+        dataTable[fatherRowIndex].TBPEvaluation = this.formatDecimalNumber(totalTbpPoint / totalCoefficient, 2);
       }
 
+      // Update coefficient points
+      const empEval = totalEmpPoint / totalCoefficient;
+      const tbpEval = totalTbpPoint / totalCoefficient;
+      const bgdEval = totalBgdPoint / totalCoefficient;
       const coef = dataTable[fatherRowIndex].Coefficient || 0;
-      dataTable[fatherRowIndex].EmployeeCoefficient = (dataTable[fatherRowIndex].EmployeeEvaluation || 0) * coef;
-      dataTable[fatherRowIndex].TBPCoefficient = (dataTable[fatherRowIndex].TBPEvaluation || 0) * coef;
-      dataTable[fatherRowIndex].BGDCoefficient = (dataTable[fatherRowIndex].BGDEvaluation || 0) * coef;
+
+      dataTable[fatherRowIndex].EmployeeCoefficient = this.formatDecimalNumber(empEval * coef, 2);
+      dataTable[fatherRowIndex].TBPCoefficient = this.formatDecimalNumber(tbpEval * coef, 2);
+      dataTable[fatherRowIndex].BGDCoefficient = this.formatDecimalNumber(bgdEval * coef, 2);
     }
 
-    return this.calculatorTotalPoint(dataTable);
+    // Calculate total points for parent rows (ID = -1 or ParentID = 0)
+    dataTable = this.calculatorTotalPoint(dataTable);
+
+    return dataTable;
   }
 
   private calculatorTotalPoint(dataTable: any[]): any[] {
@@ -1416,27 +1743,34 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       const childrenRows = dataTable.filter(row => row.ParentID === parentRow.ID);
 
       let totalCoefficient = 0;
-      let totalEmpPoint = 0;
-      let totalTbpPoint = 0;
-      let totalBgdPoint = 0;
+      let totalEmpAVGPoint = 0;
+      let totalTBPAVGPoint = 0;
+      let totalBGDAVGPoint = 0;
 
       for (const child of childrenRows) {
-        totalCoefficient += this.formatDecimalNumber(parseFloat(child.Coefficient) || 0, 1);
-        totalEmpPoint += this.formatDecimalNumber(parseFloat(child.EmployeeCoefficient) || 0, 1);
-        totalTbpPoint += this.formatDecimalNumber(parseFloat(child.TBPCoefficient) || 0, 1);
-        totalBgdPoint += this.formatDecimalNumber(parseFloat(child.BGDCoefficient) || 0, 1);
+        totalCoefficient += this.formatDecimalNumber(parseFloat(child.Coefficient) || 0, 2);
+        totalEmpAVGPoint += this.formatDecimalNumber(parseFloat(child.EmployeeCoefficient) || 0, 2);
+        totalTBPAVGPoint += this.formatDecimalNumber(parseFloat(child.TBPCoefficient) || 0, 2);
+        totalBGDAVGPoint += this.formatDecimalNumber(parseFloat(child.BGDCoefficient) || 0, 2);
       }
 
-      dataTable[rowIndex].Coefficient = totalCoefficient;
+      dataTable[rowIndex].Coefficient = this.formatDecimalNumber(totalCoefficient, 2);
+      dataTable[rowIndex].VerificationToolsContent = 'TỔNG ĐIỂM TRUNG BÌNH';
+
       const divCoef = totalCoefficient > 0 ? totalCoefficient : 1;
 
-      dataTable[rowIndex].EmployeeCoefficient = totalEmpPoint;
-      dataTable[rowIndex].TBPCoefficient = totalTbpPoint;
-      dataTable[rowIndex].BGDCoefficient = totalBgdPoint;
+      // Điểm theo hệ số = tổng điểm theo hệ số của các node con
+      dataTable[rowIndex].EmployeeCoefficient = this.formatDecimalNumber(totalEmpAVGPoint, 2);
+      dataTable[rowIndex].TBPCoefficient = this.formatDecimalNumber(totalTBPAVGPoint, 2);
+      dataTable[rowIndex].BGDCoefficient = this.formatDecimalNumber(totalBGDAVGPoint, 2);
 
-      dataTable[rowIndex].EmployeeEvaluation = totalEmpPoint / divCoef;
-      dataTable[rowIndex].TBPEvaluation = totalTbpPoint / divCoef;
-      dataTable[rowIndex].BGDEvaluation = totalBgdPoint / divCoef;
+      // Điểm đánh giá = tổng điểm theo hệ số của các node con / tổng hệ số
+      dataTable[rowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpAVGPoint / divCoef, 2);
+      dataTable[rowIndex].BGDEvaluation = this.formatDecimalNumber(totalBGDAVGPoint / divCoef, 2);
+      dataTable[rowIndex].TBPEvaluation = this.formatDecimalNumber(totalTBPAVGPoint / divCoef, 2);
+      console.log('employeeEvaluation', dataTable[rowIndex].EmployeeEvaluation);
+      console.log('totalEmpAVGPoint', totalEmpAVGPoint);
+      console.log('divCoef', divCoef);
     }
 
     return dataTable;
@@ -2160,7 +2494,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   //#region Save Data
   saveData(): void {
-    // 1. Validate mandatory selections
+    //#region Validate dữ liệu bắt buộc
     if (!this.selectedKPISessionId) {
       this.notification.warning('Cảnh báo', 'Hãy chọn Kỳ đánh giá KPI');
       return;
@@ -2173,77 +2507,223 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       this.notification.warning('Cảnh báo', 'Hãy chọn Nhân viên');
       return;
     }
+    //#endregion
 
-    // 2. Thu thập dữ liệu từ các grid đánh giá
-    // WinForm: Duyệt qua các list treeData để lấy KPIEvaluationPointModel
-    const itemsToSave: any[] = [];
+    //#region Chuẩn bị payload SaveDataKPI
+    // Luôn tính lại bảng tổng hợp để đảm bảo số liệu mới nhất
+    this.calculateTotalAVG();
 
-    const collectItems = (dataSet: any[]) => {
-      dataSet.forEach(item => {
-        // Chỉ lưu các item có ID > 0 (không phải hàng tổng hợp ID=-1 hoặc hàng ảo)
-        if (item.ID > 0) {
-          // Map sang model backend mong đợi (KPIEvaluationPointModel)
-          itemsToSave.push({
-            ID: item.ID,
-            MasterKPIEvaluationID: item.MasterKPIEvaluationID,
-            KPIFactorID: item.KPIFactorID,
-            EmployeePoint: item.EmployeePoint,
-            TBPPoint: item.TBPPoint,
-            BGDPoint: item.BGDPoint,
-            // Thêm các trường Input nếu backend yêu cầu
-            TBPPointInput: item.TBPPointInput,
-            BGDPointInput: item.BGDPointInput,
-            Note: item.Note
-          });
-        }
-      });
-    };
+    const kpiKyNang = this.buildEvaluationPointParams(this.dataSkill);
+    const kpiChung = this.buildEvaluationPointParams(this.dataGeneral);
+    const kpiChuyenMon = this.buildEvaluationPointParams(this.dataSpecialization);
 
-    collectItems(this.dataSkill);
-    collectItems(this.dataGeneral);
-    collectItems(this.dataSpecialization);
-
-    if (itemsToSave.length === 0) {
+    if (kpiKyNang.length === 0 && kpiChung.length === 0 && kpiChuyenMon.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu thay đổi để lưu');
       return;
     }
 
-    console.log('🚀 [saveData] Items to save:', itemsToSave.length, itemsToSave);
+    const request: SaveDataKPIRequestParam = {
+      KPISessionID: this.selectedKPISessionId,
+      KPIExamID: this.selectedKPIExamId,
+      employeeID: this.selectedEmployeeId,
+      typePoint: this.typePoint,
+      departmentID: this.departmentID,
+      kpiKyNang,
+      kpiChung,
+      kpiChuyenMon,
+      kpiSumaryEvaluation: this.buildSummaryParams()
+    };
+    //#endregion
 
-    // 3. Gọi API save-evaluation (từ kpiSharedService.saveEvaluation)
-    // NOTE: Cần đảm bảo backend có endpoint này. Nếu chưa có, có thể dùng saveDataRule hoặc endpoint Generic.
-    this.kpiSharedService.saveEvaluation(itemsToSave).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.notification.success('Thành công', 'Lưu dữ liệu đánh giá thành công');
+    //#region Luồng lưu theo WinForm
+    const isAdmin = this.typePoint === 4;
+    const shouldSaveRule = isAdmin || this.departmentID !== this.DEPARTMENT_CO_KHI;
 
-          // Lưu dữ liệu Rule nếu có thay đổi
-          this.saveRuleData();
-
-          // Refresh UI
-          this.removeAllUnsavedStylingFromCell();
-          this.editCommandQueue = [];
-          this.loadData();
-        } else {
-          this.notification.error('Thất bại', res.message || 'Lỗi khi lưu dữ liệu');
+    // Admin chỉ lưu Rule
+    if (isAdmin) {
+      this.saveRuleData().subscribe((isRuleSaved) => {
+        if (isRuleSaved) {
+          this.handleSaveSuccess('Lưu dữ liệu Rule thành công');
         }
-      },
-      error: (err) => {
-        console.error('❌ [saveData] Error:', err);
-        this.notification.error('Lỗi', 'Không thể kết nối đến máy chủ để lưu dữ liệu');
-      }
-    });
+      });
+      return;
+    }
+
+    // Normal flow: Save Rule -> Save KPI
+    (shouldSaveRule ? this.saveRuleData() : of(true))
+      .pipe(
+        switchMap((isRuleSaved) => {
+          if (!isRuleSaved) return of(null);
+          return this.kpiSharedService.saveDataKPI(request).pipe(
+            catchError((err) => {
+              console.error('❌ [saveData] Error:', err);
+              this.notification.error('Lỗi', 'Không thể kết nối đến máy chủ để lưu dữ liệu');
+              return of(null);
+            })
+          );
+        })
+      )
+      .subscribe((res) => {
+        if (!res) return;
+        if (res.status ===1) {
+          this.handleSaveSuccess(res?.message || 'Lưu dữ liệu đánh giá thành công');
+        } else {
+          this.notification.error('Thất bại', res?.error.message || 'Lỗi khi lưu dữ liệu');
+        }
+      });
+    //#endregion
   }
 
   /**
    * Lưu dữ liệu Rule (Tab 5)
    */
-  private saveRuleData(): void {
-    if (!this.dataRule || this.dataRule.length === 0) return;
+  private saveRuleData() {
+    if (!this.dataRule || this.dataRule.length === 0) {
+      return of(true);
+    }
 
-    // TODO: Implement save logic for Rule data if editable
-    // map sang SaveKPIEmployeePointDetailRequest và gọi saveDataRule
+    const kpiSessionId = this.normalizeId(this.selectedKPISessionId);
+    const employeeId = this.normalizeId(this.selectedEmployeeId);
+    // if (!kpiSessionId || !employeeId) {
+    //   this.notification.warning('Cảnh báo', 'Thiếu Kỳ đánh giá hoặc Nhân viên để lưu Rule');
+    //   return of(false);
+    // }
+
+    //#region Build request save-data-rule
+    const ruleData = this.angularGridRule?.dataView?.getItems?.() || this.dataRule;
+    if (!ruleData || ruleData.length === 0) {
+      return of(true);
+    }
+
+    const items = this.angularGridRule?.dataView?.getFilteredItems?.() || ruleData;
+    const parentNodes = items.filter((item: any) => !item.parentId && (item.ParentID === 0 || item.ParentID === null || item.ParentID === undefined));
+    let totalPercentRemaining = 0;
+    parentNodes.forEach((node: any) => {
+      totalPercentRemaining += this.normalizeNumber(node.PercentRemaining) ?? 0;
+    });
+
+    const lstKPIEmployeePointDetail = ruleData.map((node: any) => ({
+      EmpPointDetailID: node.EmpPointDetailID || null,
+      ID: this.normalizeId(node.ID),
+      FirstMonth: this.normalizeNumber(node.FirstMonth),
+      SecondMonth: this.normalizeNumber(node.SecondMonth),
+      ThirdMonth: this.normalizeNumber(node.ThirdMonth),
+      PercentBonus: this.normalizeNumber(node.PercentBonus),
+      PercentRemaining: this.normalizeNumber(node.PercentRemaining)
+    }));
+
+    const request = {
+      KPISessionID: kpiSessionId,
+      EmployeeID: employeeId,
+      PercentRemaining: totalPercentRemaining,
+      KPIEmployeePointID: 0,
+      KPIEvaluationRuleID: 0,
+      lstKPIEmployeePointDetail
+    };
+    //#endregion
+
+    return this.kpiSharedService.saveDataRule(request).pipe(
+      map((response: any) => {
+        const isSuccess = response?.status === 1 || response?.success === true || response?.data === true;
+        if (!isSuccess) {
+          this.notification.warning('Cảnh báo', response?.message || 'Lưu dữ liệu Rule thất bại!');
+        }
+        return isSuccess;
+      }),
+      catchError((error: any) => {
+        console.error('Save data rule error:', error);
+        this.notification.error('Lỗi', error?.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu Rule!');
+        return of(false);
+      })
+    );
   }
+
+  //#region Helper build payload SaveDataKPI
+  private buildEvaluationPointParams(dataSet: any[]): KPIEvaluationPointParam[] {
+    if (!dataSet || dataSet.length === 0) return [];
+
+    return dataSet
+      .filter(item => this.normalizeId(item.ID) > 0)
+      .map((item) => ({
+        ID: this.normalizeId(item.KPIEvaluationPointID),
+        KPIEvaluationFactorsID: this.normalizeId(item.ID),
+        EmployeePoint: this.normalizeNumber(item.EmployeePoint),
+        TBPPoint: this.normalizeNumber(item.TBPPoint),
+        BGDPoint: this.normalizeNumber(item.BGDPoint),
+        EmployeeEvaluation: this.normalizeNumber(item.EmployeeEvaluation),
+        TBPEvaluation: this.normalizeNumber(item.TBPEvaluation),
+        BGDEvaluation: this.normalizeNumber(item.BGDEvaluation),
+        EmployeeCoefficient: this.normalizeNumber(item.EmployeeCoefficient),
+        TBPCoefficient: this.normalizeNumber(item.TBPCoefficient),
+        BGDCoefficient: this.normalizeNumber(item.BGDCoefficient),
+        TBPPointInput: this.normalizeNumber(item.TBPPointInput),
+        BGDPointInput: this.normalizeNumber(item.BGDPointInput),
+        Note: item.Note ?? null
+      }));
+  }
+
+  private buildSummaryParams(): KPISumaryEvaluationParam[] {
+    const masterSkill = this.getMasterPoint(1, 'SkillPoint') ?? this.normalizeNumber(this.getSummaryRow(this.dataSkill)?.EmployeeEvaluation) ?? 0;
+    const masterSkillTbp = this.getMasterPoint(2, 'SkillPoint') ?? this.normalizeNumber(this.getSummaryRow(this.dataSkill)?.TBPEvaluation) ?? 0;
+    const masterSkillBgd = this.getMasterPoint(3, 'SkillPoint') ?? this.normalizeNumber(this.getSummaryRow(this.dataSkill)?.BGDEvaluation) ?? 0;
+
+    const masterGeneral = this.getMasterPoint(1, 'GeneralPoint') ?? this.normalizeNumber(this.getSummaryRow(this.dataGeneral)?.EmployeeEvaluation) ?? 0;
+    const masterGeneralTbp = this.getMasterPoint(2, 'GeneralPoint') ?? this.normalizeNumber(this.getSummaryRow(this.dataGeneral)?.TBPEvaluation) ?? 0;
+    const masterGeneralBgd = this.getMasterPoint(3, 'GeneralPoint') ?? this.normalizeNumber(this.getSummaryRow(this.dataGeneral)?.BGDEvaluation) ?? 0;
+
+    const masterSpecial = this.getMasterPoint(1, 'SpecializationPoint') ?? this.normalizeNumber(this.getSummaryRow(this.dataSpecialization)?.EmployeeEvaluation) ?? 0;
+    const masterSpecialTbp = this.getMasterPoint(2, 'SpecializationPoint') ?? this.normalizeNumber(this.getSummaryRow(this.dataSpecialization)?.TBPEvaluation) ?? 0;
+    const masterSpecialBgd = this.getMasterPoint(3, 'SpecializationPoint') ?? this.normalizeNumber(this.getSummaryRow(this.dataSpecialization)?.BGDEvaluation) ?? 0;
+
+    return [
+      {
+        SpecializationType: this.SPECIALIZATION_SKILL,
+        EmployeePoint: masterSkill,
+        TBPPoint: masterSkillTbp,
+        BGDPoint: masterSkillBgd
+      },
+      {
+        SpecializationType: this.SPECIALIZATION_GENERAL,
+        EmployeePoint: masterGeneral,
+        TBPPoint: masterGeneralTbp,
+        BGDPoint: masterGeneralBgd
+      },
+      {
+        SpecializationType: this.SPECIALIZATION_SPECIALIZATION,
+        EmployeePoint: masterSpecial,
+        TBPPoint: masterSpecialTbp,
+        BGDPoint: masterSpecialBgd
+      }
+    ];
+  }
+
+  private getSummaryRow(dataSet: any[]): any {
+    return (dataSet || []).find((row: any) => row.ID === -1) || null;
+  }
+
+  private getMasterPoint(rowId: number, field: 'SkillPoint' | 'GeneralPoint' | 'SpecializationPoint'): number | null {
+    const row = (this.dataMaster || []).find((item: any) => Number(item.id) === rowId) || null;
+    return this.normalizeNumber(row?.[field]);
+  }
+
+  private normalizeNumber(value: any): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private normalizeId(value: any): number {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  private handleSaveSuccess(message: string): void {
+    this.notification.success('Thành công', message);
+    this.removeAllUnsavedStylingFromCell();
+    this.editCommandQueue = [];
+    this.loadData();
+  }
+  //#endregion
 
   saveAndClose(): void {
     this.saveData();

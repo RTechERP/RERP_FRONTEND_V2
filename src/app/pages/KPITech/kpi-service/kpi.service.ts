@@ -215,6 +215,15 @@ export class KPIService {
   }
 
   /**
+   * Save KPI evaluation data (WinForm SaveDataKPI)
+   * API: POST api/KPIEvaluationFactorScoring/save-data-kpi
+   * @param data - SaveDataKPIRequestParam payload
+   */
+  saveDataKPI(data: any): Observable<any> {
+    return this.http.post<any>(this.apiUrlFactorScoring + 'save-data-kpi', data);
+  }
+
+  /**
    * Admin confirm KPI
    * API: POST api/KPIEvaluationFactorScoring/admin-confirm-kpi
    * @param kpiExamID - KPI Exam ID

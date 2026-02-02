@@ -3,7 +3,7 @@
     <!-- Modal Header -->
     <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0">
         <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
-            Đánh giá KPI
+            Đánh giá KPI - {{typePoint === 1 ? "Cá nhân" : typePoint === 2 ? "TBP đánh giá" : typePoint === 3 ? "Giám đốc đánh giá" : typePoint === 4 ? "Admin đánh giá" : ""}}
         </h6>
         <button type="button" class="btn-close" (click)="dismissModal()" aria-label="Close"
             style="background-color:lightcyan !important; font-weight: bold;"></button>

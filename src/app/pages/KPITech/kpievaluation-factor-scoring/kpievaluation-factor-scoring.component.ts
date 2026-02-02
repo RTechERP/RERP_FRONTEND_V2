@@ -155,6 +155,284 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
   // Subject for cleanup
   private destroy$ = new Subject<void>();
 
+  //#region Tooltip Formatters cho các cột tính toán
+  /**
+   * Formatter cho cột EmployeePoint (Mức tự đánh giá)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: EmployeeCoefficient = EmployeePoint * Coefficient
+   */
+  private employeePointFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+    
+    // Tạo tooltip công thức
+    const employeePoint = Number(dataContext.EmployeePoint) || 0;
+    const coefficient = Number(dataContext.Coefficient) || 0;
+    const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
+    
+    const tooltipText = `Điểm hệ số = Điểm nhân viên × Hệ số\n= ${employeePoint.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
+    
+    return `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>`;
+  };
+
+  /**
+   * Formatter cho cột EmployeeEvaluation (Điểm đánh giá)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức:
+   * - Node lá: Điểm đánh giá = Điểm nhân viên
+   * - Node cha trung bình: Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)
+   * - Dòng tổng (ParentID = 0): Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)
+   */
+  private employeeEvaluationFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const employeeEvaluation = Number(dataContext.EmployeeEvaluation) || 0;
+
+      tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)\n= ${employeeEvaluation.toFixed(2)}`;
+    } else if (dataContext.__hasChildren) {
+      // Node cha trung bình
+      const childNodes = this.dataEvaluation.filter((r: any) =>
+        r.ParentID === dataContext.ID || r.parentId === dataContext.id
+      );
+
+      if (childNodes.length > 0) {
+        let totalChildCoef = 0;
+        let totalChildEmpPoint = 0;
+        let totalChildTbpPoint = 0;
+        let totalChildBgdPoint = 0;
+
+        childNodes.forEach((child: any) => {
+          totalChildCoef += Number(child.Coefficient) || 0;
+          totalChildEmpPoint += Number(child.EmployeeCoefficient) || 0;
+          totalChildTbpPoint += Number(child.TBPCoefficient) || 0;
+          totalChildBgdPoint += Number(child.BGDCoefficient) || 0;
+        });
+
+        const empEval = totalChildCoef > 0 ? totalChildEmpPoint / totalChildCoef : 0;
+
+        tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)\n= ${totalChildEmpPoint.toFixed(2)} / ${totalChildCoef.toFixed(2)}\n= ${empEval.toFixed(2)}`;
+      }
+    } else {
+      // Node lá
+      const employeePoint = Number(dataContext.EmployeePoint) || 0;
+
+      tooltipText = `Điểm đánh giá = Điểm nhân viên\n= ${employeePoint.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột EmployeeCoefficient (Điểm theo hệ số)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: Điểm theo hệ số = Điểm đánh giá × Hệ số
+   */
+  private employeeCoefficientFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Tổng điểm theo hệ số (node con gần nhất)\n= ${employeeCoefficient.toFixed(2)}`;
+    } else {
+      // Node lá và node cha trung bình
+      const employeeEvaluation = Number(dataContext.EmployeeEvaluation) || 0;
+      const coefficient = Number(dataContext.Coefficient) || 0;
+      const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Điểm đánh giá × Hệ số\n= ${employeeEvaluation.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột TBPEvaluation (Điểm đánh giá TBP)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức:
+   * - Node lá: Điểm đánh giá = Điểm TBP
+   * - Node cha trung bình: Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)
+   * - Dòng tổng (ParentID = 0): Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)
+   */
+  private tbpEvaluationFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const tbpEvaluation = Number(dataContext.TBPEvaluation) || 0;
+
+      tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)\n= ${tbpEvaluation.toFixed(2)}`;
+    } else if (dataContext.__hasChildren) {
+      // Node cha trung bình
+      const childNodes = this.dataEvaluation.filter((r: any) =>
+        r.ParentID === dataContext.ID || r.parentId === dataContext.id
+      );
+
+      if (childNodes.length > 0) {
+        let totalChildCoef = 0;
+        let totalChildEmpPoint = 0;
+        let totalChildTbpPoint = 0;
+        let totalChildBgdPoint = 0;
+
+        childNodes.forEach((child: any) => {
+          totalChildCoef += Number(child.Coefficient) || 0;
+          totalChildEmpPoint += Number(child.EmployeeCoefficient) || 0;
+          totalChildTbpPoint += Number(child.TBPCoefficient) || 0;
+          totalChildBgdPoint += Number(child.BGDCoefficient) || 0;
+        });
+
+        const tbpEval = totalChildCoef > 0 ? totalChildTbpPoint / totalChildCoef : 0;
+
+        tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)\n= ${totalChildTbpPoint.toFixed(2)} / ${totalChildCoef.toFixed(2)}\n= ${tbpEval.toFixed(2)}`;
+      }
+    } else {
+      // Node lá
+      const tbpPoint = Number(dataContext.TBPPoint) || 0;
+
+      tooltipText = `Điểm đánh giá = Điểm TBP\n= ${tbpPoint.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột TBPCoefficient (Điểm theo hệ số TBP)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: Điểm theo hệ số = Điểm đánh giá × Hệ số
+   */
+  private tbpCoefficientFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const tbpCoefficient = Number(dataContext.TBPCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Tổng điểm theo hệ số (node con gần nhất)\n= ${tbpCoefficient.toFixed(2)}`;
+    } else {
+      // Node lá và node cha trung bình
+      const tbpEvaluation = Number(dataContext.TBPEvaluation) || 0;
+      const coefficient = Number(dataContext.Coefficient) || 0;
+      const tbpCoefficient = Number(dataContext.TBPCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Điểm đánh giá × Hệ số\n= ${tbpEvaluation.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${tbpCoefficient.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột BGDEvaluation (Điểm đánh giá BGĐ)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức:
+   * - Node lá: Điểm đánh giá = Điểm BGĐ
+   * - Node cha trung bình: Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)
+   * - Dòng tổng (ParentID = 0): Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)
+   */
+  private bgdEvaluationFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const bgdEvaluation = Number(dataContext.BGDEvaluation) || 0;
+
+      tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)\n= ${bgdEvaluation.toFixed(2)}`;
+    } else if (dataContext.__hasChildren) {
+      // Node cha trung bình
+      const childNodes = this.dataEvaluation.filter((r: any) =>
+        r.ParentID === dataContext.ID || r.parentId === dataContext.id
+      );
+
+      if (childNodes.length > 0) {
+        let totalChildCoef = 0;
+        let totalChildEmpPoint = 0;
+        let totalChildTbpPoint = 0;
+        let totalChildBgdPoint = 0;
+
+        childNodes.forEach((child: any) => {
+          totalChildCoef += Number(child.Coefficient) || 0;
+          totalChildEmpPoint += Number(child.EmployeeCoefficient) || 0;
+          totalChildTbpPoint += Number(child.TBPCoefficient) || 0;
+          totalChildBgdPoint += Number(child.BGDCoefficient) || 0;
+        });
+
+        const bgdEval = totalChildCoef > 0 ? totalChildBgdPoint / totalChildCoef : 0;
+
+        tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)\n= ${totalChildBgdPoint.toFixed(2)} / ${totalChildCoef.toFixed(2)}\n= ${bgdEval.toFixed(2)}`;
+      }
+    } else {
+      // Node lá
+      const bgdPoint = Number(dataContext.BGDPoint) || 0;
+
+      tooltipText = `Điểm đánh giá = Điểm BGĐ\n= ${bgdPoint.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột BGDCoefficient (Điểm theo hệ số BGĐ)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: Điểm theo hệ số = Điểm đánh giá × Hệ số
+   */
+  private bgdCoefficientFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const bgdCoefficient = Number(dataContext.BGDCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Tổng điểm theo hệ số (node con gần nhất)\n= ${bgdCoefficient.toFixed(2)}`;
+    } else {
+      // Node lá và node cha trung bình
+      const bgdEvaluation = Number(dataContext.BGDEvaluation) || 0;
+      const coefficient = Number(dataContext.Coefficient) || 0;
+      const bgdCoefficient = Number(dataContext.BGDCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Điểm đánh giá × Hệ số\n= ${bgdEvaluation.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${bgdCoefficient.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+  //#endregion
+
   // #region Tính toán điểm KPI Rule - Calculator Point Constants
   /**
    * Danh sách mã Team cho TBP (Trưởng Bộ Phận)
@@ -639,7 +917,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.employeeEvaluationFormatter,
         columnGroup: 'Đánh giá của Nhân viên',
         params: { decimalPlaces: 2 }
       },
@@ -650,7 +928,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.employeeCoefficientFormatter,
         columnGroup: 'Đánh giá của Nhân viên',
         params: { decimalPlaces: 2 }
       },
@@ -661,7 +939,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.tbpEvaluationFormatter,
         columnGroup: 'Đánh giá của TBP/PBP',
         params: { decimalPlaces: 2 }
       },
@@ -672,7 +950,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.tbpCoefficientFormatter,
         columnGroup: 'Đánh giá của TBP/PBP',
         params: { decimalPlaces: 2 }
       },
@@ -683,7 +961,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.bgdEvaluationFormatter,
         columnGroup: 'Đánh giá của BGĐ',
         params: { decimalPlaces: 2 }
       },
@@ -694,10 +972,10 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.bgdCoefficientFormatter,
         columnGroup: 'Đánh giá của BGĐ',
         params: { decimalPlaces: 2 }
-      }
+      },
     ];
 
     this.evaluationGridOptions = {
@@ -2903,8 +3181,8 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       let totalPercentRemaining = 0;
       let totalPercentBonusRoot = 0;
       parentNodes.forEach((node: any) => {
-        totalPercentRemaining += this.formatDecimalNumber(node.PercentRemaining || 0, 1);
-        totalPercentBonusRoot += this.formatDecimalNumber(node.PercentBonus || 0, 1);
+        totalPercentRemaining += this.formatDecimalNumber(node.PercentRemaining || 0, 2);
+        totalPercentBonusRoot += this.formatDecimalNumber(node.PercentBonus || 0, 2);
       });
 
       // Build lstKPIEmployeePointDetail from all grid nodes
@@ -3317,7 +3595,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
         if (stt === fatherId) {
           fatherRowIndex = j;
-          coefficient = parseFloat(row.Coefficient) || 0;
+          coefficient = this.formatDecimalNumber(parseFloat(row.Coefficient) || 0, 2);
         } else if (stt.startsWith(startStt)) {
           if (isCheck) continue;
           count++;
@@ -3332,24 +3610,24 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
       // Update evaluation points
       if (totalCoefficient === 0) {
-        dataTable[fatherRowIndex].EmployeeEvaluation = totalEmpPoint / count;
-        dataTable[fatherRowIndex].BGDEvaluation = totalBgdPoint / count;
-        dataTable[fatherRowIndex].TBPEvaluation = totalTbpPoint / count;
+        dataTable[fatherRowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpPoint / count, 2);
+        dataTable[fatherRowIndex].BGDEvaluation = this.formatDecimalNumber(totalBgdPoint / count, 2);
+        dataTable[fatherRowIndex].TBPEvaluation = this.formatDecimalNumber(totalTbpPoint / count, 2);
       } else {
-        dataTable[fatherRowIndex].EmployeeEvaluation = totalEmpPoint / totalCoefficient;
-        dataTable[fatherRowIndex].BGDEvaluation = totalBgdPoint / totalCoefficient;
-        dataTable[fatherRowIndex].TBPEvaluation = totalTbpPoint / totalCoefficient;
+        dataTable[fatherRowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpPoint / totalCoefficient, 2);
+        dataTable[fatherRowIndex].BGDEvaluation = this.formatDecimalNumber(totalBgdPoint / totalCoefficient, 2);
+        dataTable[fatherRowIndex].TBPEvaluation = this.formatDecimalNumber(totalTbpPoint / totalCoefficient, 2);
       }
 
       // Update coefficient points
-      const empEval = dataTable[fatherRowIndex].EmployeeEvaluation || 0;
-      const tbpEval = dataTable[fatherRowIndex].TBPEvaluation || 0;
-      const bgdEval = dataTable[fatherRowIndex].BGDEvaluation || 0;
+      const empEval = totalEmpPoint / totalCoefficient;
+      const tbpEval = totalTbpPoint / totalCoefficient;
+      const bgdEval = totalBgdPoint / totalCoefficient;
       const coef = dataTable[fatherRowIndex].Coefficient || 0;
 
-      dataTable[fatherRowIndex].EmployeeCoefficient = empEval * coef;
-      dataTable[fatherRowIndex].TBPCoefficient = tbpEval * coef;
-      dataTable[fatherRowIndex].BGDCoefficient = bgdEval * coef;
+      dataTable[fatherRowIndex].EmployeeCoefficient = this.formatDecimalNumber(empEval * coef, 2);
+      dataTable[fatherRowIndex].TBPCoefficient = this.formatDecimalNumber(tbpEval * coef, 2);
+      dataTable[fatherRowIndex].BGDCoefficient = this.formatDecimalNumber(bgdEval * coef, 2);
     }
 
     // Calculate total points for parent rows (ID = -1 or ParentID = 0)
@@ -3375,24 +3653,29 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       let totalBGDAVGPoint = 0;
 
       for (const child of childrenRows) {
-        totalCoefficient += this.formatDecimalNumber(parseFloat(child.Coefficient) || 0, 1);
-        totalEmpAVGPoint += this.formatDecimalNumber(parseFloat(child.EmployeeCoefficient) || 0, 1);
-        totalTBPAVGPoint += this.formatDecimalNumber(parseFloat(child.TBPCoefficient) || 0, 1);
-        totalBGDAVGPoint += this.formatDecimalNumber(parseFloat(child.BGDCoefficient) || 0, 1);
+        totalCoefficient += this.formatDecimalNumber(parseFloat(child.Coefficient) || 0, 2);
+        totalEmpAVGPoint += this.formatDecimalNumber(parseFloat(child.EmployeeCoefficient) || 0, 2);
+        totalTBPAVGPoint += this.formatDecimalNumber(parseFloat(child.TBPCoefficient) || 0, 2);
+        totalBGDAVGPoint += this.formatDecimalNumber(parseFloat(child.BGDCoefficient) || 0, 2);
       }
 
-      dataTable[rowIndex].Coefficient = totalCoefficient;
+      dataTable[rowIndex].Coefficient = this.formatDecimalNumber(totalCoefficient, 2);
       dataTable[rowIndex].VerificationToolsContent = 'TỔNG ĐIỂM TRUNG BÌNH';
 
       const divCoef = totalCoefficient > 0 ? totalCoefficient : 1;
 
-      dataTable[rowIndex].EmployeeCoefficient = totalEmpAVGPoint;
-      dataTable[rowIndex].TBPCoefficient = totalTBPAVGPoint;
-      dataTable[rowIndex].BGDCoefficient = totalBGDAVGPoint;
+      // Điểm theo hệ số = tổng điểm theo hệ số của các node con
+      dataTable[rowIndex].EmployeeCoefficient = this.formatDecimalNumber(totalEmpAVGPoint, 2);
+      dataTable[rowIndex].TBPCoefficient = this.formatDecimalNumber(totalTBPAVGPoint, 2);
+      dataTable[rowIndex].BGDCoefficient = this.formatDecimalNumber(totalBGDAVGPoint, 2);
 
-      dataTable[rowIndex].EmployeeEvaluation = totalEmpAVGPoint / divCoef;
-      dataTable[rowIndex].BGDEvaluation = totalBGDAVGPoint / divCoef;
-      dataTable[rowIndex].TBPEvaluation = totalTBPAVGPoint / divCoef;
+      // Điểm đánh giá = tổng điểm theo hệ số của các node con / tổng hệ số
+      dataTable[rowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpAVGPoint / divCoef, 2);
+      dataTable[rowIndex].BGDEvaluation = this.formatDecimalNumber(totalBGDAVGPoint / divCoef, 2);
+      dataTable[rowIndex].TBPEvaluation = this.formatDecimalNumber(totalTBPAVGPoint / divCoef, 2);
+      console.log('employeeEvaluation', dataTable[rowIndex].EmployeeEvaluation);
+      console.log('totalEmpAVGPoint', totalEmpAVGPoint);
+      console.log('divCoef', divCoef);
     }
 
     return dataTable;

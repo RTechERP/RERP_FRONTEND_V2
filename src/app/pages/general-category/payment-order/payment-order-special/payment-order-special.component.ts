@@ -592,6 +592,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 ...this.validateForm.getRawValue(),
                 PaymentOrderDetails: paymentOrderDetails,
                 TotalMoney: parseFloat((columnElement.textContent ?? '').replace(/,/g, '')),
+                TotalMoneyText: this.paymentService.readMoney(parseFloat((columnElement.textContent ?? '').replace(/,/g, '')), this.validateForm.value.Unit),
                 PaymentOrderPOs: paymentOrderPOs,
             };
             // console.log('submit data', this.paymentOrder);
@@ -747,7 +748,12 @@ export class PaymentOrderSpecialComponent implements OnInit {
         }
         const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
         if (columnElement) {
-            columnElement.textContent = `${total}`;
+            // columnElement.textContent = `${total}`;
+            columnElement.textContent = `${new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(total)}`;
+
 
             this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);
             this.cdr.detectChanges();

@@ -254,7 +254,9 @@ export class PaymentOrderComponent implements OnInit {
             this.appUserService.currentUser?.IsAdmin) || false;
 
         // console.log('this.isPermisstion:', this.isPermisstion);
-        if (!this.isPermisstion) {
+
+        // this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
+        if (!this.isPermisstion && !this.isPermisstionDB) {
             this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
             // console.log('this.param:', this.param);

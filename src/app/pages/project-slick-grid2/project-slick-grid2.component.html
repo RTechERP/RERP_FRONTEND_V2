@@ -17,13 +17,14 @@
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày này</nz-form-label>
                             <nz-form-control [nzSpan]="24">
                                 <input nz-input type="date" name="dateStart" class="w-100" [(ngModel)]="dateStart"
-                                    (change)="getDay()" />
+                                    (change)="getDay()" size="small" />
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <input nz-input type="date" name="dateEnd" class="w-100" [(ngModel)]="dateEnd" />
+                                <input size="small" nz-input type="date" name="dateEnd" class="w-100"
+                                    [(ngModel)]="dateEnd" />
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
@@ -265,10 +266,10 @@
                     <div class="d-flex gap-1 align-items-center flex-wrap">
                         <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
                         <input nz-input type="date" [(ngModel)]="dateStart" [ngModelOptions]="{standalone: true}"
-                            (change)="getDay()" style="width: 140px;" />
+                            (change)="getDay()" style="width: 140px;" nzSize="small" />
                         <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
                         <input nz-input type="date" [(ngModel)]="dateEnd" [ngModelOptions]="{standalone: true}"
-                            style="width: 140px;" />
+                            style="width: 140px;" nzSize="small" />
 
                         <nz-form-label class="fs-12" style="font-size: 12px;">Khách hàng</nz-form-label>
                         <nz-select [(ngModel)]="customerId" [ngModelOptions]="{standalone: true}" nzShowSearch

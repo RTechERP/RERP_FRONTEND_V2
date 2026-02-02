@@ -24,23 +24,21 @@
   <nz-splitter style="height: 100% !important;">
     <nz-splitter-panel nzDefaultSize="50%" nzResizable="true">
       <div class="card h-100 border-0 rounded-0 mt-1">
-        <div class="card-body p-0 position-relative">
-          <div *ngIf="isLoadingProjectType" class="loading-overlay">
-            <nz-spin nzSimple></nz-spin>
-          </div>
-          <div class="border" #tb_projectType>
-          </div>
+        <div class="card-body p-0">
+          <nz-spin [nzSpinning]="isLoadingProjectType">
+            <div class="border" #tb_projectType >
+            </div>
+          </nz-spin>
         </div>
       </div>
     </nz-splitter-panel>
     <nz-splitter-panel>
       <div class="card h-100 border-0 rounded-0 mt-1">
-        <div class="card-body p-0 position-relative">
-          <div *ngIf="isLoadingFolderTree" class="loading-overlay">
-            <nz-spin nzSimple></nz-spin>
-          </div>
-          <div class="border" #tb_folderTree>
-          </div>
+        <div class="card-body p-0">
+          <nz-spin [nzSpinning]="isLoadingFolderTree">
+            <div class="border" #tb_folderTree >
+            </div>
+          </nz-spin>
         </div>
       </div>
     </nz-splitter-panel>

@@ -2,8 +2,8 @@ import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, TemplateRef, in
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, forkJoin } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators';
+import { Subject, forkJoin, of } from 'rxjs';
+import { takeUntil, finalize, catchError } from 'rxjs/operators';
 import {
   AngularGridInstance,
   Column,
@@ -116,6 +116,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   dataMaster: any[] = [];
   dataRule: any[] = [];
   dataTeam: any[] = [];
+  totalPercentActual: number = 0;
 
   // State variables
   txtYear: number = new Date().getFullYear();
@@ -164,6 +165,312 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
   // Subject for cleanup on destroy
   private destroy$ = new Subject<void>();
+
+  //#region Tooltip Formatters cho các cột tính toán
+  /**
+   * Formatter cho cột EmployeePoint (Mức tự đánh giá)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: EmployeeCoefficient = EmployeePoint * Coefficient
+   */
+  private employeePointFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+    
+    // Tạo tooltip công thức
+    const employeePoint = Number(dataContext.EmployeePoint) || 0;
+    const coefficient = Number(dataContext.Coefficient) || 0;
+    const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
+    
+    const tooltipText = `Điểm hệ số = Điểm nhân viên × Hệ số\n= ${employeePoint.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
+    
+    return `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>`;
+  };
+
+  /**
+   * Formatter cho cột EmployeeEvaluation (Điểm đánh giá)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức:
+   * - Node lá: Điểm đánh giá = Điểm nhân viên
+   * - Node cha trung bình: Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)
+   * - Dòng tổng (ParentID = 0): Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)
+   */
+  private employeeEvaluationFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const employeeEvaluation = Number(dataContext.EmployeeEvaluation) || 0;
+
+      tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)\n= ${employeeEvaluation.toFixed(2)}`;
+    } else if (dataContext.__hasChildren) {
+      // Node cha trung bình
+      const childNodes = this.dataEvaluation.filter((r: any) =>
+        r.ParentID === dataContext.ID || r.parentId === dataContext.id
+      );
+
+      if (childNodes.length > 0) {
+        let totalChildCoef = 0;
+        let totalChildEmpPoint = 0;
+        let totalChildTbpPoint = 0;
+        let totalChildBgdPoint = 0;
+
+        childNodes.forEach((child: any) => {
+          totalChildCoef += Number(child.Coefficient) || 0;
+          totalChildEmpPoint += Number(child.EmployeeCoefficient) || 0;
+          totalChildTbpPoint += Number(child.TBPCoefficient) || 0;
+          totalChildBgdPoint += Number(child.BGDCoefficient) || 0;
+        });
+
+        const empEval = totalChildCoef > 0 ? totalChildEmpPoint / totalChildCoef : 0;
+
+        tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)\n= ${totalChildEmpPoint.toFixed(2)} / ${totalChildCoef.toFixed(2)}\n= ${empEval.toFixed(2)}`;
+      }
+    } else {
+      // Node lá
+      const employeePoint = Number(dataContext.EmployeePoint) || 0;
+
+      tooltipText = `Điểm đánh giá = Điểm nhân viên\n= ${employeePoint.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột EmployeeCoefficient (Điểm theo hệ số)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức:
+   * - Node lá: Điểm theo hệ số = Điểm đánh giá × Hệ số
+   * - Node cha trung bình: Điểm theo hệ số = Điểm đánh giá × Hệ số, Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)
+   * - Dòng tổng (ParentID = 0): Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất), Điểm theo hệ số = Tổng điểm theo hệ số (node con gần nhất)
+   */
+  private employeeCoefficientFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Tổng điểm theo hệ số (node con gần nhất)\n= ${employeeCoefficient.toFixed(2)}`;
+    } else if (dataContext.__hasChildren) {
+      // Node cha trung bình
+      const childNodes = this.dataEvaluation.filter((r: any) =>
+        r.ParentID === dataContext.ID || r.parentId === dataContext.id
+      );
+
+      if (childNodes.length > 0) {
+        let totalChildCoef = 0;
+        let totalChildEmpPoint = 0;
+        let totalChildTbpPoint = 0;
+        let totalChildBgdPoint = 0;
+
+        childNodes.forEach((child: any) => {
+          totalChildCoef += Number(child.Coefficient) || 0;
+          totalChildEmpPoint += Number(child.EmployeeCoefficient) || 0;
+          totalChildTbpPoint += Number(child.TBPCoefficient) || 0;
+          totalChildBgdPoint += Number(child.BGDCoefficient) || 0;
+        });
+
+        const empEval = totalChildCoef > 0 ? totalChildEmpPoint / totalChildCoef : 0;
+        const coefficient = Number(dataContext.Coefficient) || 0;
+        const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
+
+        tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)\n= ${totalChildEmpPoint.toFixed(2)} / ${totalChildCoef.toFixed(2)}\n= ${empEval.toFixed(2)}\n\nĐiểm theo hệ số = Điểm đánh giá × Hệ số\n= ${empEval.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
+      }
+    } else {
+      // Node lá
+      const employeePoint = Number(dataContext.EmployeePoint) || 0;
+      const coefficient = Number(dataContext.Coefficient) || 0;
+      const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Điểm đánh giá × Hệ số\n= ${employeePoint.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột TBPEvaluation (Điểm đánh giá TBP)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức:
+   * - Node lá: Điểm đánh giá = Điểm TBP
+   * - Node cha trung bình: Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)
+   * - Dòng tổng (ParentID = 0): Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)
+   */
+  private tbpEvaluationFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const tbpEvaluation = Number(dataContext.TBPEvaluation) || 0;
+
+      tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)\n= ${tbpEvaluation.toFixed(2)}`;
+    } else if (dataContext.__hasChildren) {
+      // Node cha trung bình
+      const childNodes = this.dataEvaluation.filter((r: any) =>
+        r.ParentID === dataContext.ID || r.parentId === dataContext.id
+      );
+
+      if (childNodes.length > 0) {
+        let totalChildCoef = 0;
+        let totalChildEmpPoint = 0;
+        let totalChildTbpPoint = 0;
+        let totalChildBgdPoint = 0;
+
+        childNodes.forEach((child: any) => {
+          totalChildCoef += Number(child.Coefficient) || 0;
+          totalChildEmpPoint += Number(child.EmployeeCoefficient) || 0;
+          totalChildTbpPoint += Number(child.TBPCoefficient) || 0;
+          totalChildBgdPoint += Number(child.BGDCoefficient) || 0;
+        });
+
+        const tbpEval = totalChildCoef > 0 ? totalChildTbpPoint / totalChildCoef : 0;
+
+        tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)\n= ${totalChildTbpPoint.toFixed(2)} / ${totalChildCoef.toFixed(2)}\n= ${tbpEval.toFixed(2)}`;
+      }
+    } else {
+      // Node lá
+      const tbpPoint = Number(dataContext.TBPPoint) || 0;
+
+      tooltipText = `Điểm đánh giá = Điểm TBP\n= ${tbpPoint.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột TBPCoefficient (Điểm theo hệ số TBP)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: Điểm theo hệ số = Điểm đánh giá × Hệ số
+   */
+  private tbpCoefficientFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const tbpCoefficient = Number(dataContext.TBPCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Tổng điểm theo hệ số (node con gần nhất)\n= ${tbpCoefficient.toFixed(2)}`;
+    } else {
+      // Node lá và node cha trung bình
+      const tbpEvaluation = Number(dataContext.TBPEvaluation) || 0;
+      const coefficient = Number(dataContext.Coefficient) || 0;
+      const tbpCoefficient = Number(dataContext.TBPCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Điểm đánh giá × Hệ số\n= ${tbpEvaluation.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${tbpCoefficient.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột BGDEvaluation (Điểm đánh giá BGĐ)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức:
+   * - Node lá: Điểm đánh giá = Điểm BGĐ
+   * - Node cha trung bình: Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)
+   * - Dòng tổng (ParentID = 0): Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)
+   */
+  private bgdEvaluationFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const bgdEvaluation = Number(dataContext.BGDEvaluation) || 0;
+
+      tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con gần nhất) / Tổng hệ số (node con gần nhất)\n= ${bgdEvaluation.toFixed(2)}`;
+    } else if (dataContext.__hasChildren) {
+      // Node cha trung bình
+      const childNodes = this.dataEvaluation.filter((r: any) =>
+        r.ParentID === dataContext.ID || r.parentId === dataContext.id
+      );
+
+      if (childNodes.length > 0) {
+        let totalChildCoef = 0;
+        let totalChildEmpPoint = 0;
+        let totalChildTbpPoint = 0;
+        let totalChildBgdPoint = 0;
+
+        childNodes.forEach((child: any) => {
+          totalChildCoef += Number(child.Coefficient) || 0;
+          totalChildEmpPoint += Number(child.EmployeeCoefficient) || 0;
+          totalChildTbpPoint += Number(child.TBPCoefficient) || 0;
+          totalChildBgdPoint += Number(child.BGDCoefficient) || 0;
+        });
+
+        const bgdEval = totalChildCoef > 0 ? totalChildBgdPoint / totalChildCoef : 0;
+
+        tooltipText = `Điểm đánh giá = Tổng điểm theo hệ số (node con) / Tổng hệ số (node con)\n= ${totalChildBgdPoint.toFixed(2)} / ${totalChildCoef.toFixed(2)}\n= ${bgdEval.toFixed(2)}`;
+      }
+    } else {
+      // Node lá
+      const bgdPoint = Number(dataContext.BGDPoint) || 0;
+
+      tooltipText = `Điểm đánh giá = Điểm BGĐ\n= ${bgdPoint.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+
+  /**
+   * Formatter cho cột BGDCoefficient (Điểm theo hệ số BGĐ)
+   * Hiển thị tooltip công thức tính khi hover vào cell
+   * Công thức: Điểm theo hệ số = Điểm đánh giá × Hệ số
+   */
+  private bgdCoefficientFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
+    const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
+
+    // Tạo tooltip công thức
+    let tooltipText = '';
+
+    // Kiểm tra nếu là dòng tổng (ParentID = 0)
+    const isTotalRow = dataContext.ParentID === 0 || (dataContext.parentId !== undefined && dataContext.parentId === null);
+
+    if (isTotalRow) {
+      // Dòng tổng (ParentID = 0)
+      const bgdCoefficient = Number(dataContext.BGDCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Tổng điểm theo hệ số (node con gần nhất)\n= ${bgdCoefficient.toFixed(2)}`;
+    } else {
+      // Node lá và node cha trung bình
+      const bgdEvaluation = Number(dataContext.BGDEvaluation) || 0;
+      const coefficient = Number(dataContext.Coefficient) || 0;
+      const bgdCoefficient = Number(dataContext.BGDCoefficient) || 0;
+
+      tooltipText = `Điểm theo hệ số = Điểm đánh giá × Hệ số\n= ${bgdEvaluation.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${bgdCoefficient.toFixed(2)}`;
+    }
+
+    return tooltipText ? `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>` : displayValue;
+  };
+  //#endregion
 
   // Inject services
   private kpiService = inject(KPIService);
@@ -353,6 +660,31 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       .replace(/'/g, '&#39;');
   }
 
+  // Helper: natural sorting for hierarchy strings (1.1.1, 1.1.10, etc.)
+  private naturalSortHierarchy(value1: any, value2: any, sortDirection?: SortDirectionNumber) {
+    const a = String(value1 || '');
+    const b = String(value2 || '');
+
+    if (a === b) return 0;
+
+    const aParts = a.split('.');
+    const bParts = b.split('.');
+    const maxLength = Math.max(aParts.length, bParts.length);
+
+    // Xác định hướng sort: 1 = tăng dần, -1 = giảm dần
+    const direction = sortDirection || 1;
+
+    for (let i = 0; i < maxLength; i++) {
+      const aPart = parseInt(aParts[i] || '0', 10);
+      const bPart = parseInt(bParts[i] || '0', 10);
+
+      if (aPart < bPart) return -1 * direction;
+      if (aPart > bPart) return 1 * direction;
+    }
+
+    return 0;
+  }
+
   initializeGrids(): void {
     this.initSessionGrid();
     this.initExamGrid();
@@ -371,7 +703,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'SessionCode',
         field: 'Code',
         name: 'Mã kỳ đánh giá',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         cssClass: 'cell-multiline',
@@ -388,7 +720,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'Name',
         field: 'Name',
         name: 'Tên kỳ đánh giá',
-        width: 280,
+        minWidth: 280,
         sortable: true,
         filterable: true,
         cssClass: 'cell-multiline',
@@ -405,7 +737,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'YearEvaluation',
         field: 'YearEvaluation',
         name: 'Năm',
-        width: 50,
+        minWidth: 50,
         sortable: true,
         cssClass: 'text-center'
       },
@@ -413,6 +745,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'QuarterEvaluation',
         field: 'QuarterEvaluation',
         name: 'Quý',
+        minWidth: 50,
         sortable: true,
         cssClass: 'text-center'
       }
@@ -435,7 +768,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableSorting: true,
       enableFiltering: false,
       enablePagination: false,
-      forceFitColumns: false
+      forceFitColumns: true
     };
   }
 
@@ -526,31 +859,6 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none;" />`;
     };
 
-    // Helper: natural sorting for hierarchy strings (1.1.1, 1.1.10, etc.)
-    const naturalSortHierarchy = (value1: any, value2: any, sortDirection?: SortDirectionNumber) => {
-      const a = String(value1 || '');
-      const b = String(value2 || '');
-
-      if (a === b) return 0;
-
-      const aParts = a.split('.');
-      const bParts = b.split('.');
-      const maxLength = Math.max(aParts.length, bParts.length);
-
-      // Xác định hướng sort: 1 = tăng dần, -1 = giảm dần
-      const direction = sortDirection || 1;
-
-      for (let i = 0; i < maxLength; i++) {
-        const aPart = parseInt(aParts[i] || '0', 10);
-        const bPart = parseInt(bParts[i] || '0', 10);
-
-        if (aPart < bPart) return -1 * direction;
-        if (aPart > bPart) return 1 * direction;
-      }
-
-      return 0;
-    };
-
     // Columns matching WinForm treeData - visible column order from designer
     // Hidden: ID, ParentID, KPIEvaluationPointID
     this.evaluationColumns = [
@@ -558,18 +866,17 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'STT',
         field: 'STT',
         name: 'STT',
-        width: 100,
         minWidth: 100,
         cssClass: 'text-left',
         sortable: true,
-        sortComparer: naturalSortHierarchy,
+        sortComparer: this.naturalSortHierarchy,
         formatter: Formatters.tree,
       },
       {
         id: 'EvaluationContent',
         field: 'EvaluationContent',
         name: 'Yếu tố đánh giá',
-        width: 467,
+        minWidth: 467,
         sortable: true,
         cssClass: 'cell-multiline',
         editor: {
@@ -593,7 +900,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'StandardPoint',
         field: 'StandardPoint',
         name: 'Điểm chuẩn',
-        width: 67,
+        minWidth: 67,
         cssClass: 'text-right',
         sortable: true,
 
@@ -602,7 +909,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'Coefficient',
         field: 'Coefficient',
         name: 'Hệ số điểm',
-        width: 67,
+        minWidth: 67,
         cssClass: 'text-right',
         sortable: true,
 
@@ -611,7 +918,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'EmployeePoint',
         field: 'EmployeePoint',
         name: 'Mức tự đánh giá',
-        width: 93,
+        minWidth: 93,
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
 
@@ -620,7 +927,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'TBPPoint',
         field: 'TBPPoint',
         name: 'TBP/PBP đánh giá',
-        width: 93,
+        minWidth: 93,
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
 
@@ -629,7 +936,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'BGDPoint',
         field: 'BGDPoint',
         name: 'Đánh giá của BGĐ',
-        width: 93,
+        minWidth: 93,
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
 
@@ -638,7 +945,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'VerificationToolsContent',
         field: 'VerificationToolsContent',
         name: 'Phương tiện xác minh tiêu chí',
-        width: 533,
+        minWidth: 533,
         sortable: true,
         cssClass: 'cell-multiline',
         editor: {
@@ -664,7 +971,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'Unit',
         field: 'Unit',
         name: 'ĐVT',
-        width: 53,
+        minWidth: 53,
         cssClass: 'text-center',
         sortable: true,
 
@@ -673,10 +980,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'EmployeeEvaluation',
         field: 'EmployeeEvaluation',
         name: 'Điểm đánh giá',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.employeeEvaluationFormatter,
         columnGroup: 'Đánh giá của Nhân viên',
         params: { decimalPlaces: 2 }
       },
@@ -684,10 +991,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'EmployeeCoefficient',
         field: 'EmployeeCoefficient',
         name: 'Điểm theo hệ số',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.employeeCoefficientFormatter,
         columnGroup: 'Đánh giá của Nhân viên',
         params: { decimalPlaces: 2 }
       },
@@ -695,10 +1002,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'TBPEvaluation',
         field: 'TBPEvaluation',
         name: 'Điểm đánh giá',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.tbpEvaluationFormatter,
         columnGroup: 'Đánh giá của TBP/PBP',
         params: { decimalPlaces: 2 }
       },
@@ -706,10 +1013,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'TBPCoefficient',
         field: 'TBPCoefficient',
         name: 'Điểm theo hệ số',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.tbpCoefficientFormatter,
         columnGroup: 'Đánh giá của TBP/PBP',
         params: { decimalPlaces: 2 }
       },
@@ -717,10 +1024,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'BGDEvaluation',
         field: 'BGDEvaluation',
         name: 'Điểm đánh giá',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.bgdEvaluationFormatter,
         columnGroup: 'Đánh giá của BGĐ',
         params: { decimalPlaces: 2 }
       },
@@ -728,10 +1035,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'BGDCoefficient',
         field: 'BGDCoefficient',
         name: 'Điểm theo hệ số',
-        width: 85,
+        minWidth: 85,
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
+        formatter: this.bgdCoefficientFormatter,
         columnGroup: 'Đánh giá của BGĐ',
         params: { decimalPlaces: 2 }
       }
@@ -759,7 +1066,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableCellNavigation: true,
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: false,
+      forceFitColumns: true,
       editable: true,
       autoEdit: true,
       autoCommitEdit: true,
@@ -838,14 +1145,14 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'EvaluatedType',
         field: 'EvaluatedType',
         name: 'Người đánh giá',
-        width: 429,
+        minWidth: 429,
         sortable: true
       },
       {
         id: 'SkillPoint',
         field: 'SkillPoint',
         name: 'Kỹ năng',
-        width: 160,
+        minWidth: 160,
         cssClass: 'text-right',
         sortable: true
       },
@@ -853,7 +1160,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'GeneralPoint',
         field: 'GeneralPoint',
         name: 'Chung',
-        width: 160,
+        minWidth: 100,
         cssClass: 'text-right',
         sortable: true
       },
@@ -861,7 +1168,6 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'SpecializationPoint',
         field: 'SpecializationPoint',
         name: 'Chuyên môn',
-        width: 144,
         minWidth: 100,
         cssClass: 'text-right',
         sortable: true,
@@ -873,7 +1179,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'StandartPoint',
         field: 'StandartPoint',
         name: 'Tổng điểm chuẩn',
-        width: 150,
+        minWidth: 150,
         cssClass: 'text-right',
         sortable: true,
         hidden: true
@@ -882,7 +1188,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'PercentageAchieved',
         field: 'PercentageAchieved',
         name: 'Phần trăm đạt được',
-        width: 150,
+        minWidth: 150,
         cssClass: 'text-right',
         sortable: true,
         hidden: true
@@ -891,7 +1197,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'EvaluationRank',
         field: 'EvaluationRank',
         name: 'Xếp loại',
-        width: 120,
+        minWidth: 120,
         cssClass: 'text-center',
         sortable: true,
         hidden: true
@@ -900,7 +1206,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'PLCPoint',
         field: 'PLCPoint',
         name: 'PLC, ROBOT',
-        width: 120,
+        minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
         hidden: true
@@ -909,7 +1215,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'VisionPoint',
         field: 'VisionPoint',
         name: 'VISION',
-        width: 120,
+        minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
         hidden: true
@@ -918,7 +1224,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'SoftWarePoint',
         field: 'SoftWarePoint',
         name: 'SOFTWARE',
-        width: 120,
+        minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
         hidden: true
@@ -927,7 +1233,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'AVGPoint',
         field: 'AVGPoint',
         name: 'Điểm trung bình',
-        width: 120,
+        minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
         hidden: true,
@@ -946,7 +1252,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableCellNavigation: true,
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: false,
+      forceFitColumns: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
       headerRowHeight: 60
@@ -1237,7 +1543,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'STT',
         field: 'STT',
         name: 'STT',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         formatter: Formatters.tree,
       },
@@ -1245,7 +1551,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'RuleContent',
         field: 'RuleContent',
         name: 'Nội dung đánh giá',
-        width: 600,
+        minWidth: 600,
         sortable: true,
         cssClass: 'cell-multiline',
         editor: {
@@ -1269,7 +1575,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'FirstMonth',
         field: 'FirstMonth',
         name: 'Tháng 1',
-        width: 70,
+        minWidth: 70,
         cssClass: 'text-right month-column',
         sortable: true,
         formatter: monthColumnFormatter
@@ -1278,7 +1584,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'SecondMonth',
         field: 'SecondMonth',
         name: 'Tháng 2',
-        width: 70,
+        minWidth: 70,
         cssClass: 'text-right month-column',
         sortable: true,
         formatter: monthColumnFormatter
@@ -1287,7 +1593,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'ThirdMonth',
         field: 'ThirdMonth',
         name: 'Tháng 3',
-        width: 70,
+        minWidth: 70,
         cssClass: 'text-right month-column',
         sortable: true,
         formatter: monthColumnFormatter
@@ -1296,7 +1602,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'TotalError',
         field: 'TotalError',
         name: 'Tổng',
-        width: 67,
+        minWidth: 67,
         cssClass: 'text-right month-column',
         sortable: true,
         formatter: totalErrorFormatter
@@ -1305,7 +1611,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'MaxPercent',
         field: 'MaxPercent',
         name: 'Tổng % thưởng tối đa',
-        width: 100,
+        minWidth: 100,
         cssClass: 'text-right',
         sortable: true,
         formatter: decimalFormatter
@@ -1314,7 +1620,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'PercentageAdjustment',
         field: 'PercentageAdjustment',
         name: 'Số % trừ (cộng) 1 lần',
-        width: 100,
+        minWidth: 100,
         cssClass: 'text-right',
         sortable: true,
         formatter: decimalFormatter
@@ -1323,7 +1629,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'MaxPercentageAdjustment',
         field: 'MaxPercentageAdjustment',
         name: 'Số % trừ (cộng) lớn nhất',
-        width: 100,
+        minWidth: 100,
         cssClass: 'text-right',
         sortable: true,
         formatter: decimalFormatter
@@ -1332,7 +1638,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'PercentBonus',
         field: 'PercentBonus',
         name: 'Tổng số % trừ(cộng)',
-        width: 100,
+        minWidth: 100,
         cssClass: 'text-right',
         sortable: true,
         formatter: percentBonusFormatter
@@ -1341,7 +1647,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'PercentRemaining',
         field: 'PercentRemaining',
         name: '% thưởng còn lại',
-        width: 100,
+        minWidth: 185,
         cssClass: 'text-right',
         sortable: true,
         formatter: percentRemainingFormatter
@@ -1350,7 +1656,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'Rule',
         field: 'Rule',
         name: 'Rule',
-        width: 100,
+        minWidth: 100,
         sortable: true
       },
       {
@@ -1385,7 +1691,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableCellNavigation: true,
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: false,
+      forceFitColumns: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
       headerRowHeight: 60,
@@ -1396,13 +1702,16 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       // Footer Row for summary and evaluation rank
       createFooterRow: true,
       showFooterRow: true,
-      footerRowHeight: 30,
+      footerRowHeight: 50,
+
       autoCommitEdit: true,
       editCommandHandler: (_item: any, _column: Column, editCommand: EditCommand) => {
         this.editCommandQueue.push(editCommand);
         editCommand.execute();
       },
     };
+    (this.ruleGridOptions as any).enableAutoRowHeight = true;
+    (this.ruleGridOptions as any).rowHeight = 45;
   }
 
   // Team Grid (Tab 6 - grdTeam)
@@ -1652,36 +1961,36 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.angularGridEvaluation = angularGrid.detail ?? angularGrid;
     this.autoFillLastColumn(this.angularGridEvaluation);
     this.applyEvaluationRowStyling(this.angularGridEvaluation);
-    if (this.isTab1Loaded && this.dataEvaluation.length > 0) {
-      setTimeout(() => {
-        this.refreshGrid(this.angularGridEvaluation, this.dataEvaluation);
-        this.updateEvaluationFooter(this.angularGridEvaluation, this.dataEvaluation);
-      }, 100);
-    }
+
+    setTimeout(() => {
+      if (this.angularGridEvaluation?.resizerService) {
+        this.angularGridEvaluation.resizerService.resizeGrid();
+      }
+    }, 100);
   }
 
   onEvaluation2GridReady(angularGrid: any): void {
     this.angularGridEvaluation2 = angularGrid.detail ?? angularGrid;
     this.autoFillLastColumn(this.angularGridEvaluation2);
     this.applyEvaluationRowStyling(this.angularGridEvaluation2);
-    if (this.isTab3Loaded && this.dataEvaluation2.length > 0) {
-      setTimeout(() => {
-        this.refreshGrid(this.angularGridEvaluation2, this.dataEvaluation2);
-        this.updateEvaluationFooter(this.angularGridEvaluation2, this.dataEvaluation2);
-      }, 100);
-    }
+
+    setTimeout(() => {
+      if (this.angularGridEvaluation2?.resizerService) {
+        this.angularGridEvaluation2.resizerService.resizeGrid();
+      }
+    }, 100);
   }
 
   onEvaluation4GridReady(angularGrid: any): void {
     this.angularGridEvaluation4 = angularGrid.detail ?? angularGrid;
     this.autoFillLastColumn(this.angularGridEvaluation4);
     this.applyEvaluationRowStyling(this.angularGridEvaluation4);
-    if (this.isTab2Loaded && this.dataEvaluation4.length > 0) {
-      setTimeout(() => {
-        this.refreshGrid(this.angularGridEvaluation4, this.dataEvaluation4);
-        this.updateEvaluationFooter(this.angularGridEvaluation4, this.dataEvaluation4);
-      }, 100);
-    }
+
+    setTimeout(() => {
+      if (this.angularGridEvaluation4?.resizerService) {
+        this.angularGridEvaluation4.resizerService.resizeGrid();
+      }
+    }, 100);
   }
 
   // Apply row styling for evaluation grids - parent rows get LightGray background
@@ -1706,30 +2015,24 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
   onMasterGridReady(angularGrid: any): void {
     this.angularGridMaster = angularGrid.detail ?? angularGrid;
-    // Khi forceFitColumns: true, SlickGrid tự động fill width
-    // Gọi autosizeColumns để tính toán lại kích thước
+
     setTimeout(() => {
-      if (this.angularGridMaster?.slickGrid) {
-        this.angularGridMaster.slickGrid.autosizeColumns();
-        this.angularGridMaster.resizerService?.resizeGrid();
+      if (this.angularGridMaster?.resizerService) {
+        this.angularGridMaster.resizerService.resizeGrid();
       }
     }, 100);
-    if (this.isTab4Loaded && this.dataMaster.length > 0) {
-      this.refreshGrid(this.angularGridMaster, this.dataMaster);
-    }
   }
 
   onRuleGridReady(angularGrid: any): void {
     this.angularGridRule = angularGrid.detail ?? angularGrid;
     this.autoFillLastColumn(this.angularGridRule);
-    // Áp dụng styling theo logic WinForm treeList3_CustomDrawNodeCell
     this.applyRuleGridRowStyling(this.angularGridRule);
-    if (this.isTab5Loaded && this.dataRule.length > 0) {
-      setTimeout(() => {
-        this.refreshGrid(this.angularGridRule, this.dataRule);
-        this.updateRuleFooter();
-      }, 100);
-    }
+
+    setTimeout(() => {
+      if (this.angularGridRule?.resizerService) {
+        this.angularGridRule.resizerService.resizeGrid();
+      }
+    }, 100);
   }
 
   /**
@@ -1788,9 +2091,12 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   onTeamGridReady(angularGrid: any): void {
     this.angularGridTeam = angularGrid.detail ?? angularGrid;
     this.autoFillLastColumn(this.angularGridTeam);
-    if (this.isTab5Loaded && this.dataTeam.length > 0) {
-      this.refreshGrid(this.angularGridTeam, this.dataTeam);
-    }
+
+    setTimeout(() => {
+      if (this.angularGridTeam?.resizerService) {
+        this.angularGridTeam.resizerService.resizeGrid();
+      }
+    }, 100);
   }
 
   // Selection handlers
@@ -1799,13 +2105,81 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     if (args?.grid?.getSelectedRows().length > 0) {
       const selectedRow = args.grid.getDataItem(args.grid.getSelectedRows()[0]);
       if (selectedRow) {
-        this.selectedSessionID = selectedRow.ID;
-        this.sessionName = selectedRow.Name;
+        if (this.selectedSessionID !== selectedRow.ID) {
+          this.selectedSessionID = selectedRow.ID;
+          this.sessionName = selectedRow.Name;
 
-        // Match WinForm grvSession_FocusedRowChanged logic
-        this.loadComboboxTeam(this.selectedSessionID);
-        this.loadPositionEmployee(this.selectedSessionID); // TN.Binh update - load employee position
-        this.loadKPIExam(this.selectedSessionID);
+          // Clear everything dependent on the session before loading new data
+          this.clearSessionDependentData();
+
+          // Match WinForm grvSession_FocusedRowChanged logic
+          this.loadPositionAndTeam(this.selectedSessionID); // TN.Binh update - consolidated loading
+          this.loadKPIExam(this.selectedSessionID);
+        }
+      }
+    } else {
+      this.selectedSessionID = 0;
+      this.sessionName = '';
+      this.clearSessionDependentData();
+    }
+  }
+
+  private clearSessionDependentData(): void {
+    // Clear exam related data
+    this.selectedExamID = 0;
+    this.dataExam = [];
+    if (this.angularGridExam) {
+      this.angularGridExam.dataView.setItems([]);
+    }
+
+    // Clear position selection
+    this.cboChoicePosition = null;
+    this.isChoicePositionReadonly = false;
+    this.positionData = [];
+
+    // Clear detail grids
+    this.clearExamDependentData();
+
+    this.cdr.detectChanges();
+  }
+
+  private clearExamDependentData(): void {
+    // Reset all data arrays
+    this.dataEvaluation = [];
+    this.dataEvaluation2 = [];
+    this.dataEvaluation4 = [];
+    this.dataMaster = [];
+    this.dataRule = [];
+    this.dataTeam = [];
+    this.totalPercentActual = 0;
+
+    // Reset loading flags
+    this.isTab1Loaded = false;
+    this.isTab2Loaded = false;
+    this.isTab3Loaded = false;
+    this.isTab4Loaded = false;
+    this.isTab5Loaded = false;
+
+    // Clear Grids if ready - must call invalidate() and render() to force UI update
+    if (this.gridsInitialized) {
+      this.clearGrid(this.angularGridEvaluation);
+      this.clearGrid(this.angularGridEvaluation2);
+      this.clearGrid(this.angularGridEvaluation4);
+      this.clearGrid(this.angularGridMaster);
+      this.clearGrid(this.angularGridRule);
+      this.clearGrid(this.angularGridTeam);
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  // Helper method to clear a grid properly
+  private clearGrid(angularGrid: any): void {
+    if (angularGrid?.dataView) {
+      angularGrid.dataView.setItems([]);
+      if (angularGrid.slickGrid) {
+        angularGrid.slickGrid.invalidate();
+        angularGrid.slickGrid.render();
       }
     }
   }
@@ -1836,6 +2210,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
               const rowIndex = targetRow !== -1 ? targetRow : 0;
               this.angularGridSession?.gridService?.setSelectedRows([rowIndex]);
             });
+          } else {
+            this.selectedSessionID = 0;
+            this.sessionName = '';
+            this.clearSessionDependentData();
           }
         } else {
           this.notification.error('Lỗi', res.message || 'Không thể tải dữ liệu kỳ đánh giá');
@@ -1859,6 +2237,11 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
           if (this.angularGridExam) {
             this.angularGridExam.dataView.setItems(this.dataExam);
           }
+
+          if (this.dataExam.length === 0) {
+            this.selectedExamID = 0;
+            this.clearExamDependentData();
+          }
           this.cdr.detectChanges();
         } else {
           this.notification.error('Lỗi', res.message || 'Không thể tải danh sách bài đánh giá');
@@ -1870,56 +2253,54 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     });
   }
 
-  loadComboboxTeam(kpiSessionID: number): void {
-    this.kpiService.getComboboxTeam(kpiSessionID).subscribe({
-      next: (res) => {
-        if (res.data) {
-          this.positionData = res.data;
-          // WinForm logic: if only one team, select it automatically
+  /**
+   * Consolidated loading of Team options and Employee position
+   * Ensures deterministic state by waiting for both API calls
+   */
+  loadPositionAndTeam(kpiSessionID: number): void {
+    forkJoin({
+      teamRes: this.kpiService.getComboboxTeam(kpiSessionID).pipe(catchError(() => of({ data: [] }))),
+      positionRes: this.kpiService.getPositionEmployee(kpiSessionID).pipe(catchError(() => of({ data: [] })))
+    }).subscribe({
+      next: (results) => {
+        // 1. Local data population
+        if (results.teamRes && results.teamRes.data) {
+          this.positionData = results.teamRes.data;
+        }
+
+        // 2. State determination logic
+        if (results.positionRes && results.positionRes.data && results.positionRes.data.length > 0) {
+          // Employee already has position in this session
+          const employee = results.positionRes.data[0];
+          this.cboChoicePosition = employee.KPIPosiotionID;
+          this.isChoicePositionReadonly = true;
+          console.log('[KPI] Employee position found and locked:', employee.KPIPosiotionID);
+        } else {
+          // No position assigned - allow selection
+          this.isChoicePositionReadonly = false;
+
+          // Only auto-select first team if no saved position exists
           if (this.positionData.length > 0) {
             this.cboChoicePosition = this.positionData[0].KPIPosiotionID;
+          } else {
+            this.cboChoicePosition = null;
           }
-          this.cdr.detectChanges();
+          console.log('[KPI] No employee position found, allowing selection');
         }
+
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error loading teams:', err);
+        console.error('Error in loadPositionAndTeam:', err);
+        this.isChoicePositionReadonly = false;
+        this.cboChoicePosition = null;
+        this.cdr.detectChanges();
       }
     });
   }
 
-  /**
-   * Load employee position for selected KPI Session
-   * Follows WinForm logic: grvSession_FocusedRowChanged → spGetEmployeeInKPISession
-   * If employee already has position → set cboChoicePosition and make it readonly
-   * If no position → enable cboChoicePosition to allow selection
-   */
-  loadPositionEmployee(kpiSessionID: number): void {
-    this.kpiService.getPositionEmployee(kpiSessionID).subscribe({
-      next: (res) => {
-        if (res.data && res.data.length > 0) {
-          // Employee already has position in this session
-          const employee = res.data[0];
-          this.cboChoicePosition = employee.KPIPosiotionID;
-          this.isChoicePositionReadonly = true;
-          console.log('[KPI] Employee position found:', employee.KPIPosiotionID);
-        } else {
-          // No position assigned - allow selection
-          this.cboChoicePosition = null;
-          this.isChoicePositionReadonly = false;
-          console.log('[KPI] No employee position found, allowing selection');
-        }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading employee position:', err);
-        // On error, enable selection
-        this.cboChoicePosition = null;
-        this.isChoicePositionReadonly = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
+  // Keep these methods but mark as deprecated or remove if not used elsewhere
+  // Removing them to keep the file clean as they are only used in one place
 
 
   onExamRowSelectionChanged(event: any): void {
@@ -1927,15 +2308,25 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     if (args?.grid?.getSelectedRows().length > 0) {
       const selectedRow = args.grid.getDataItem(args.grid.getSelectedRows()[0]);
       if (selectedRow) {
-        this.selectedExamID = selectedRow.ID;
-        // Load data details for all tabs - matches WinForm grvExam_FocusedRowChanged
-        this.loadDataDetails();
+        if (this.selectedExamID !== selectedRow.ID) {
+          this.selectedExamID = selectedRow.ID;
+          // Load data details for all tabs - matches WinForm grvExam_FocusedRowChanged
+          this.clearExamDependentData();
+          this.loadDataDetails();
+        }
       }
+    } else {
+      this.selectedExamID = 0;
+      this.clearExamDependentData();
     }
   }
 
   // Button handlers
   btnSearch_Click(): void {
+    // Reset selectedSessionID to ensure onSessionRowSelectionChanged triggers properly
+    // The clearSessionDependentData is already called in onSessionRowSelectionChanged
+    this.selectedSessionID = 0;
+    this.sessionName = '';
     this.loadKPISession();
   }
 
@@ -2079,6 +2470,13 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   }
 
   txtYear_ValueChanged(): void {
+    this.selectedSessionID = 0;
+    this.sessionName = '';
+    this.dataSession = [];
+    if (this.angularGridSession) {
+      this.angularGridSession.dataView.setItems([]);
+    }
+    this.clearSessionDependentData();
     this.loadKPISession();
   }
 
@@ -2111,14 +2509,39 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
   // Helper method to resize all grids
   resizeAllGrids(): void {
-    this.angularGridSession?.resizerService?.resizeGrid();
-    this.angularGridExam?.resizerService?.resizeGrid();
-    this.angularGridEvaluation?.resizerService?.resizeGrid();
-    this.angularGridEvaluation2?.resizerService?.resizeGrid();
-    this.angularGridEvaluation4?.resizerService?.resizeGrid();
-    this.angularGridMaster?.resizerService?.resizeGrid();
-    this.angularGridRule?.resizerService?.resizeGrid();
-    this.angularGridTeam?.resizerService?.resizeGrid();
+    if (this.angularGridSession?.resizerService) this.angularGridSession.resizerService.resizeGrid();
+    if (this.angularGridExam?.resizerService) this.angularGridExam.resizerService.resizeGrid();
+    if (this.angularGridEvaluation?.resizerService) this.angularGridEvaluation.resizerService.resizeGrid();
+    if (this.angularGridEvaluation2?.resizerService) this.angularGridEvaluation2.resizerService.resizeGrid();
+    if (this.angularGridEvaluation4?.resizerService) this.angularGridEvaluation4.resizerService.resizeGrid();
+    if (this.angularGridMaster?.resizerService) this.angularGridMaster.resizerService.resizeGrid();
+    if (this.angularGridRule?.resizerService) this.angularGridRule.resizerService.resizeGrid();
+    if (this.angularGridTeam?.resizerService) this.angularGridTeam.resizerService.resizeGrid();
+  }
+
+  // Helper to resize grid for specific tab (uses logicalIndex)
+  private resizeGridForTab(logicalIndex: number): void {
+    // Safety check for cached grid instances
+    switch (logicalIndex) {
+      case 0:
+        if (this.angularGridEvaluation?.resizerService) this.angularGridEvaluation.resizerService.resizeGrid();
+        break;
+      case 1:
+        if (this.angularGridEvaluation4?.resizerService) this.angularGridEvaluation4.resizerService.resizeGrid();
+        break;
+      case 2:
+        if (this.angularGridEvaluation2?.resizerService) this.angularGridEvaluation2.resizerService.resizeGrid();
+        break;
+      case 3:
+        if (this.angularGridMaster?.resizerService) this.angularGridMaster.resizerService.resizeGrid();
+        break;
+      case 4:
+        if (this.angularGridRule?.resizerService) this.angularGridRule.resizerService.resizeGrid();
+        break;
+      case 5:
+        if (this.angularGridTeam?.resizerService) this.angularGridTeam.resizerService.resizeGrid();
+        break;
+    }
   }
 
   // Helper to auto-fill last column for all grids
@@ -2137,53 +2560,56 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     const logicalIndex = this.getLogicalTabIndex(index);
     this.selectedTabIndex = index;
     this.logicalTabIndex = logicalIndex;
+    this.cdr.detectChanges(); // Force change detection
 
-    // Resize and refresh grid when tab changes
-    // Data is already loaded in background, just need to update grid display
+    // First resize after short delay to let Angular render the component
+    // Also refresh grid data and footers
     setTimeout(() => {
+      this.resizeGridForTab(logicalIndex);
+
+      // Refresh grid and update footer based on active tab
       switch (logicalIndex) {
-        case 0:
-          if (this.isTab1Loaded) {
+        case 0: // Tab 1: Kỹ năng
+          if (this.isTab1Loaded && this.dataEvaluation.length > 0) {
             this.refreshGrid(this.angularGridEvaluation, this.dataEvaluation);
-            // Update footer after tab switch
             setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation, this.dataEvaluation), 100);
           }
           break;
-        case 1:
-          // Tab 1 = ĐÁNH GIÁ CHUNG - uses dataEvaluation4 / angularGridEvaluation4
-          if (this.isTab2Loaded) {
+        case 1: // Tab 2: Chung
+          if (this.isTab2Loaded && this.dataEvaluation4.length > 0) {
             this.refreshGrid(this.angularGridEvaluation4, this.dataEvaluation4);
-            // Update footer after tab switch
             setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation4, this.dataEvaluation4), 100);
           }
           break;
-        case 2:
-          // Tab 2 = ĐÁNH GIÁ CHUYÊN MÔN - uses dataEvaluation2 / angularGridEvaluation2
-          if (this.isTab3Loaded) {
+        case 2: // Tab 3: Chuyên môn
+          if (this.isTab3Loaded && this.dataEvaluation2.length > 0) {
             this.refreshGrid(this.angularGridEvaluation2, this.dataEvaluation2);
-            // Update footer after tab switch
             setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation2, this.dataEvaluation2), 100);
           }
           break;
-        case 3:
-          if (this.isTab4Loaded) {
+        case 3: // Tab 4: Tổng hợp
+          if (this.isTab4Loaded && this.dataMaster.length > 0) {
             this.refreshGrid(this.angularGridMaster, this.dataMaster);
           }
           break;
-        case 4:
-          if (this.isTab5Loaded) {
+        case 4: // Tab 5: Rule
+          if (this.isTab5Loaded && this.dataRule.length > 0) {
             this.refreshGrid(this.angularGridRule, this.dataRule);
-            // Update Rule footer with evaluation rank after tab switch
             setTimeout(() => this.updateRuleFooter(), 100);
           }
           break;
-        case 5:
-          if (this.isTab5Loaded) {
+        case 5: // Tab 6: Team
+          if (this.isTab5Loaded && this.dataTeam.length > 0) {
             this.refreshGrid(this.angularGridTeam, this.dataTeam);
           }
           break;
       }
-    }, 100);
+    }, 200);
+
+    // Second resize after animation complete for reliability
+    setTimeout(() => {
+      this.resizeGridForTab(logicalIndex);
+    }, 400);
   }
 
   /**
@@ -2339,18 +2765,26 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
             }
           }
           this.isTab5Loaded = true;
+
+          // Lấy điểm cuối cùng từ API mới
+          this.kpiService.getFinalPoint(this.employeeID, this.selectedSessionID).subscribe({
+            next: (finalRes: any) => {
+              if (finalRes.data) {
+                this.totalPercentActual = Number(finalRes.data.TotalPercentActual) || 0;
+                this.updateRuleFooter();
+              }
+            },
+            error: (err: any) => console.error('Lỗi load điểm cuối cùng:', err)
+          });
         }
 
         // Cập nhật footer cho Rule - hiển thị xếp loại
-        // Theo luồng WinForm: LoadSummaryRuleNew → CalculatorPoint → update footer
+        // Theo luồng WinForm: LoadSummaryRuleNew → KHÔNG gọi CalculatorPoint (dòng 3290 bị comment)
         if (this.dataRule.length > 0 && this.departmentID !== this.departmentCK) {
           setTimeout(() => {
-            console.log('[DEBUG] Calculating Rule points');
-            // Xác định isTBP dựa vào vị trí đang chọn (position = 5 là TBP)
-            const isTBP = this.cboChoicePosition?.KPIPositionID === 5;
-            this.calculatorPoint(isTBP, this.isPublic);
-
-            console.log('[DEBUG] Updating Rule footer');
+            // Gọi hàm lấy summary từ grid team và thêm các dòng TEAM
+            this.loadTeamSummaryAndAddTeamNodes();
+            this.refreshGrid(this.angularGridRule, this.dataRule);
             this.updateRuleFooter();
           }, 200);
         }
@@ -2541,7 +2975,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
    * Matches WinForm CalculatorAvgPointNew logic
    */
   private calculatorAvgPoint(dataTable: any[]): any[] {
-    if (!dataTable || dataTable.length === 0) return dataTable;
+        if (!dataTable || dataTable.length === 0) return dataTable;
 
     // Find list of parent STT values
     const listFatherID: string[] = [];
@@ -2577,7 +3011,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
         if (stt === fatherId) {
           fatherRowIndex = j;
-          coefficient = parseFloat(row.Coefficient) || 0;
+          coefficient = this.formatDecimalNumber(parseFloat(row.Coefficient) || 0, 2);
         } else if (stt.startsWith(startStt)) {
           if (isCheck) continue;
           count++;
@@ -2592,24 +3026,24 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
       // Update evaluation points
       if (totalCoefficient === 0) {
-        dataTable[fatherRowIndex].EmployeeEvaluation = totalEmpPoint / count;
-        dataTable[fatherRowIndex].BGDEvaluation = totalBgdPoint / count;
-        dataTable[fatherRowIndex].TBPEvaluation = totalTbpPoint / count;
+        dataTable[fatherRowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpPoint / count, 2);
+        dataTable[fatherRowIndex].BGDEvaluation = this.formatDecimalNumber(totalBgdPoint / count, 2);
+        dataTable[fatherRowIndex].TBPEvaluation = this.formatDecimalNumber(totalTbpPoint / count, 2);
       } else {
-        dataTable[fatherRowIndex].EmployeeEvaluation = totalEmpPoint / totalCoefficient;
-        dataTable[fatherRowIndex].BGDEvaluation = totalBgdPoint / totalCoefficient;
-        dataTable[fatherRowIndex].TBPEvaluation = totalTbpPoint / totalCoefficient;
+        dataTable[fatherRowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpPoint / totalCoefficient, 2);
+        dataTable[fatherRowIndex].BGDEvaluation = this.formatDecimalNumber(totalBgdPoint / totalCoefficient, 2);
+        dataTable[fatherRowIndex].TBPEvaluation = this.formatDecimalNumber(totalTbpPoint / totalCoefficient, 2);
       }
 
       // Update coefficient points
-      const empEval = dataTable[fatherRowIndex].EmployeeEvaluation || 0;
-      const tbpEval = dataTable[fatherRowIndex].TBPEvaluation || 0;
-      const bgdEval = dataTable[fatherRowIndex].BGDEvaluation || 0;
+      const empEval = totalEmpPoint / totalCoefficient;
+      const tbpEval = totalTbpPoint / totalCoefficient;
+      const bgdEval = totalBgdPoint / totalCoefficient;
       const coef = dataTable[fatherRowIndex].Coefficient || 0;
 
-      dataTable[fatherRowIndex].EmployeeCoefficient = empEval * coef;
-      dataTable[fatherRowIndex].TBPCoefficient = tbpEval * coef;
-      dataTable[fatherRowIndex].BGDCoefficient = bgdEval * coef;
+      dataTable[fatherRowIndex].EmployeeCoefficient = this.formatDecimalNumber(empEval * coef, 2);
+      dataTable[fatherRowIndex].TBPCoefficient = this.formatDecimalNumber(tbpEval * coef, 2);
+      dataTable[fatherRowIndex].BGDCoefficient = this.formatDecimalNumber(bgdEval * coef, 2);
     }
 
     // Calculate total points for parent rows (ID = -1 or ParentID = 0)
@@ -2641,18 +3075,23 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         totalBGDAVGPoint += this.formatDecimalNumber(parseFloat(child.BGDCoefficient) || 0, 2);
       }
 
-      dataTable[rowIndex].Coefficient = totalCoefficient;
+      dataTable[rowIndex].Coefficient = this.formatDecimalNumber(totalCoefficient, 2);
       dataTable[rowIndex].VerificationToolsContent = 'TỔNG ĐIỂM TRUNG BÌNH';
 
       const divCoef = totalCoefficient > 0 ? totalCoefficient : 1;
 
-      dataTable[rowIndex].EmployeeCoefficient = totalEmpAVGPoint;
-      dataTable[rowIndex].TBPCoefficient = totalTBPAVGPoint;
-      dataTable[rowIndex].BGDCoefficient = totalBGDAVGPoint;
+      // Điểm theo hệ số = tổng điểm theo hệ số của các node con
+      dataTable[rowIndex].EmployeeCoefficient = this.formatDecimalNumber(totalEmpAVGPoint, 2);
+      dataTable[rowIndex].TBPCoefficient = this.formatDecimalNumber(totalTBPAVGPoint, 2);
+      dataTable[rowIndex].BGDCoefficient = this.formatDecimalNumber(totalBGDAVGPoint, 2);
 
-      dataTable[rowIndex].EmployeeEvaluation = totalEmpAVGPoint / divCoef;
-      dataTable[rowIndex].BGDEvaluation = totalBGDAVGPoint / divCoef;
-      dataTable[rowIndex].TBPEvaluation = totalTBPAVGPoint / divCoef;
+      // Điểm đánh giá = tổng điểm theo hệ số của các node con / tổng hệ số
+      dataTable[rowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpAVGPoint / divCoef, 2);
+      dataTable[rowIndex].BGDEvaluation = this.formatDecimalNumber(totalBGDAVGPoint / divCoef, 2);
+      dataTable[rowIndex].TBPEvaluation = this.formatDecimalNumber(totalTBPAVGPoint / divCoef, 2);
+      console.log('employeeEvaluation', dataTable[rowIndex].EmployeeEvaluation);
+      console.log('totalEmpAVGPoint', totalEmpAVGPoint);
+      console.log('divCoef', divCoef);
     }
 
     return dataTable;
@@ -2744,6 +3183,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     if (totalPercent < 100) return 'A';
     return 'A+';
   }
+  private formatDecimalNumber(value: number, precision: number): number {
+    return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
+  }
 
   /**
    * Calculate Total AVG for Master grid (Tab 4)
@@ -2824,13 +3266,13 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
             footerCol.innerHTML = `<b>${value}</b>`;
             footerCol.style.textAlign = 'right';
             footerCol.style.paddingRight = '8px';
-            footerCol.style.backgroundColor = '#f0f0f0';
+
             footerCol.style.lineHeight = '30px';
           } else if (column.field === 'EvaluationContent') {
             footerCol.innerHTML = '<b>TỔNG</b>';
             footerCol.style.textAlign = 'right';
             footerCol.style.paddingRight = '8px';
-            footerCol.style.backgroundColor = '#f0f0f0';
+
             footerCol.style.lineHeight = '30px';
           }
         } catch (e) {
@@ -2868,8 +3310,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     );
 
     let totalPercentRemaining = 0;
+    let totalPercentBonusRoot = 0;
     rootNodes.forEach((node: any) => {
       totalPercentRemaining += this.formatDecimalNumber(Number(node.PercentRemaining) || 0, 2);
+      totalPercentBonusRoot += this.formatDecimalNumber(Number(node.PercentBonus) || 0, 2);
     });
 
     // Lấy xếp loại dựa vào tổng % thưởng còn lại
@@ -2890,7 +3334,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
           if (!footerCol) return;
 
           // Áp dụng style chung cho tất cả footer ô có dữ liệu
-          footerCol.style.backgroundColor = '#f0f0f0';
+
           footerCol.style.lineHeight = '30px';
           footerCol.style.fontWeight = 'bold';
           footerCol.innerHTML = ''; // Xóa nội dung mặc định
@@ -2909,18 +3353,21 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
               footerCol.style.paddingRight = '8px';
               break;
             case 'PercentRemaining':
-              // SummaryFooter = Sum (tính từ node gốc)
-              footerCol.innerHTML = `<b>${totalPercentRemaining.toFixed(2)}</b>`;
+              // Hiển thị 2 dòng như WinForm: Điểm xếp loại + Điểm cuối cùng
+              const rankFinal = this.getEvaluationRank(this.totalPercentActual);
+              footerCol.innerHTML = `<div style="display: flex; flex-direction: column; line-height: 1.4; padding: 4px 8px;">
+                <span style="font-weight: bold; color: #333;">Điểm xếp loại: ${totalPercentRemaining.toFixed(2)} - ${rank}</span>
+                <span style="font-weight: bold; color: blue;">Điểm cuối cùng: ${this.totalPercentActual.toFixed(2)} - ${rankFinal}</span>
+              </div>`;
+              footerCol.style.textAlign = 'left';
+              footerCol.style.padding = '0';
+              break;
+            case 'PercentBonus':
+              // Hiển thị tổng % trừ/cộng của các node cha theo yêu cầu người dùng
+              footerCol.innerHTML = `<b>${totalPercentBonusRoot.toFixed(2)}</b>`;
               footerCol.style.textAlign = 'right';
               footerCol.style.paddingRight = '8px';
               break;
-            case 'PercentBonus':
-              // SummaryFooter = Custom - Hiển thị xếp loại (A+/A/.../D)
-              footerCol.innerHTML = `<b>Xếp loại: ${rank}</b>`;
-              footerCol.style.textAlign = 'left';
-              footerCol.style.paddingLeft = '8px';
-              break;
-            // Các cột khác không có footer summary trong WinForm
           }
         } catch (e) {
           // Bỏ qua lỗi cho từng cột
@@ -2931,8 +3378,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   }
 
   /**
-   * Get Evaluation Rank based on total percent
-   * Matches WinForm tlKPIRule_GetCustomSummaryValue logic (lines 1335-1344)
+   * xếp loại
    */
   private getEvaluationRank(totalPercent: number): string {
     if (totalPercent < 60) return 'D';
@@ -3157,16 +3603,90 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   }
   //#endregion
 
+  //#region Load Team Summary and Add Team Nodes
   /**
-   * Format decimal number with specified precision
-   * Matches WinForm TextUtils.FormatDecimalNumber
+   * Lấy summary từ grid Team và thêm các dòng TEAM vào dataRule
+   * Mapping từ WinForm: frmKPIEvaluationFactorScoring.LoadPointRuleNew (dòng 3235-3286)
+   *
+   * Chức năng:
+   * - Lấy summary từ grid Team (TimeWork, FiveS, ReportWork, CustomerComplaint, DeadlineDelay, teamKPIKyNang, teanKPIChung, teamKPIPLC, teamKPIVISION, teamKPISOFTWARE, missingTool, teamKPIChuyenMon)
+   * - Tính toán totalErrorTBP từ các mã MA03, MA04, NotWorking, WorkLate
+   * - Thêm các dòng TEAM01, TEAM02, TEAM03, TEAM04, TEAM05, TEAM06, TEAMKPIKYNANG, TEAMKPIChung, TEAMKPIPLC, TEAMKPIVISION, TEAMKPISOFTWARE, TEAMKPICHUYENMON, MA11 vào dataRule
+   * - Update các giá trị vào tree node dựa trên EvaluationCode
    */
-  private formatDecimalNumber(value: number, precision: number): number {
-    return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
+  private loadTeamSummaryAndAddTeamNodes(): void {
+    // 1. Lấy summary từ grid Team
+    const timeWork = this.getGridSummary(this.angularGridTeam, 'TimeWork') || 0;
+    const fiveS = this.getGridSummary(this.angularGridTeam, 'FiveS') || 0;
+    const reportWork = this.getGridSummary(this.angularGridTeam, 'ReportWork') || 0;
+    const customerComplaint = this.getGridSummary(this.angularGridTeam, 'ComplaneAndMissing') || 0;
+    const deadlineDelay = this.getGridSummary(this.angularGridTeam, 'DeadlineDelay') || 0;
+    const teamKPIKyNang = this.getGridSummary(this.angularGridTeam, 'KPIKyNang') || 0;
+    const teanKPIChung = this.getGridSummary(this.angularGridTeam, 'KPIChung') || 0;
+    const teamKPIPLC = this.getGridSummary(this.angularGridTeam, 'KPIPLC') || 0;
+    const teamKPIVISION = this.getGridSummary(this.angularGridTeam, 'KPIVision') || 0;
+    const teamKPISOFTWARE = this.getGridSummary(this.angularGridTeam, 'KPISoftware') || 0;
+    const missingTool = this.getGridSummary(this.angularGridTeam, 'MissingTool') || 0;
+    const teamKPIChuyenMon = this.getGridSummary(this.angularGridTeam, 'KPIChuyenMon') || 0;
+
+    // 2. Tính toán totalErrorTBP từ các mã MA03, MA04, NotWorking, WorkLate
+    const lstCodeTBP = ['MA03', 'MA04', 'NotWorking', 'WorkLate'];
+    const ltsMA11 = this.dataRule.filter((row: any) =>
+      lstCodeTBP.includes(row.EvaluationCode?.trim() || '')
+    );
+    const totalErrorTBP = ltsMA11.reduce((sum: number, row: any) =>
+      sum + (row.FirstMonth || 0) + (row.SecondMonth || 0) + (row.ThirdMonth || 0), 0
+    );
+
+    // 3. Thêm các dòng TEAM vào dataRule
+    const teamNodes = [
+      { EvaluationCode: 'TEAM01', ThirdMonth: timeWork },
+      { EvaluationCode: 'TEAM02', ThirdMonth: fiveS },
+      { EvaluationCode: 'TEAM03', ThirdMonth: reportWork },
+      { EvaluationCode: 'TEAM04', ThirdMonth: customerComplaint + missingTool + deadlineDelay },
+      { EvaluationCode: 'TEAM05', ThirdMonth: customerComplaint },
+      { EvaluationCode: 'TEAM06', ThirdMonth: deadlineDelay },
+      { EvaluationCode: 'TEAMKPIKYNANG', ThirdMonth: teamKPIKyNang },
+      { EvaluationCode: 'TEAMKPIChung', ThirdMonth: teanKPIChung },
+      { EvaluationCode: 'TEAMKPIPLC', ThirdMonth: teamKPIPLC },
+      { EvaluationCode: 'TEAMKPIVISION', ThirdMonth: teamKPIVISION },
+      { EvaluationCode: 'TEAMKPISOFTWARE', ThirdMonth: teamKPISOFTWARE },
+      { EvaluationCode: 'TEAMKPICHUYENMON', ThirdMonth: teamKPIChuyenMon },
+      { EvaluationCode: 'MA11', ThirdMonth: totalErrorTBP }
+    ];
+
+    // 4. Update các giá trị vào tree node dựa trên EvaluationCode
+    for (const item of teamNodes) {
+      const node = this.dataRule.find((row: any) => row.EvaluationCode === item.EvaluationCode);
+      if (node) {
+        node.ThirdMonth = item.ThirdMonth || 0;
+      }
+    }
   }
 
   /**
-   * Cleanup on component destroy
+   * Lấy summary từ grid
+   * @param gridInstance - Instance của AngularGrid
+   * @param fieldName - Tên trường cần lấy summary
+   * @returns - Giá trị summary
+   */
+  private getGridSummary(gridInstance: AngularGridInstance | undefined, fieldName: string): number {
+    if (!gridInstance?.slickGrid) return 0;
+
+    const data = gridInstance.dataView.getItems();
+    if (!data || data.length === 0) return 0;
+
+    // Tính tổng của tất cả các hàng
+    return data.reduce((sum: number, row: any) => {
+      const value = Number(row[fieldName]) || 0;
+      return sum + value;
+    }, 0);
+  }
+  //#endregion
+
+  /**
+   * Format decimal number with specified precision
+   * Matches WinForm TextUtils.FormatDecimalNumber
    */
   ngOnDestroy(): void {
     this.destroy$.next();

@@ -1,3 +1,4 @@
+import * as ExcelJS from 'exceljs';
 import { ClipboardService } from './../../../../services/clipboard.service';
 import { CommonModule } from '@angular/common';
 import {
@@ -44,7 +45,9 @@ import { ProductLocationTechnicalService } from '../../Technical/product-locatio
 import { UpdateQrcodeFormComponent } from '../update-qrcode-form/update-qrcode-form.component';
 import { InventoryBorrowSupplierDemoComponent } from '../inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
-import { environment } from '../../../../../environments/environment';
+import { TbProductRtcFormComponent } from '../../tb-product-rtc/tb-product-rtc-form/tb-product-rtc-form.component';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { MaterialDetailOfProductRtcComponent } from '../material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 
 @Component({
     selector: 'app-inventory-demo-new',
@@ -70,6 +73,7 @@ import { environment } from '../../../../../environments/environment';
         HasPermissionDirective,
         NgbModalModule,
         NgbDropdownModule,
+        TbProductRtcFormComponent,
     ],
     templateUrl: './inventory-demo-new.component.html',
     styleUrls: ['./inventory-demo-new.component.css'],
@@ -174,6 +178,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
         private ClipboardService: ClipboardService,
+        private tabService: TabServiceService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -762,9 +767,20 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                         command: 'view-detail',
                         title: 'Xem chi tiết',
                         iconCssClass: 'fa fa-eye',
+                        positionOrder: 1,
                         action: (_e: any, args: any) => {
                             const row = args.dataContext;
                             this.openDetailTab(row);
+                        },
+                    },
+                    {
+                        command: 'edit-product',
+                        title: 'Sửa sản phẩm',
+                        iconCssClass: 'fa fa-pencil',
+                        positionOrder: 2,
+                        action: (_e: any, args: any) => {
+                            const row = args.dataContext;
+                            this.onEditProduct(row);
                         },
                     },
                 ],
@@ -1116,6 +1132,15 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             this.showSpec();
             angularGrid.resizerService.resizeGrid();
         }, 100);
+
+        // Handle double click event on main grid
+        this.angularGrid.slickGrid.onDblClick.subscribe((_e: any, args: any) => {
+            const row = args.row;
+            const item = this.angularGrid.dataView.getItem(row);
+            if (item) {
+                this.onEditProduct(item);
+            }
+        });
     }
 
     onRowSelectionChanged(_eventData: any, _args: OnSelectedRowsChangedEventArgs): void {
@@ -1152,6 +1177,51 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         return selectedIndexes
             .map((index: number) => this.angularGrid.dataView.getItem(index))
             .filter((item: any) => item);
+    }
+
+    onEditProduct(item?: any) {
+        let selectedProduct = item;
+        if (!selectedProduct) {
+            const selected = this.getSelectedRows();
+            if (!selected || selected.length === 0) {
+                this.notification.warning(
+                    'Thông báo',
+                    'Vui lòng chọn một sản phẩm để sửa!'
+                );
+                return;
+            }
+            selectedProduct = { ...selected[0] };
+        } else {
+            selectedProduct = { ...item };
+        }
+
+        // Map ProductRTCID to ID for form compatibility
+        if (selectedProduct.ProductRTCID && !selectedProduct.ID) {
+            selectedProduct.ID = selectedProduct.ProductRTCID;
+        }
+        // Map WarehouseID if not present
+        if (!selectedProduct.WarehouseID) {
+            selectedProduct.WarehouseID = this.warehouseID;
+        }
+
+        const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.dataInput = selectedProduct;
+        modalRef.componentInstance.warehouseType = this.warehouseType;
+        modalRef.result.then(
+            (result) => {
+                if (result?.refresh) {
+                    this.loadTableData();
+                }
+            },
+            () => {
+                // Modal dismissed
+            }
+        );
     }
 
     onUpdateQrCode(): void {
@@ -1210,7 +1280,6 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             return;
         }
 
-        const ExcelJS = await import('exceljs');
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Danh sách thiết bị');
 
@@ -1273,24 +1342,26 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     openDetailTab(rowData: any): void {
-        const params = new URLSearchParams({
-            productRTCID1: String(rowData.ProductRTCID || 0),
-            warehouseID1: String(this.warehouseID || 1),
-            ProductCode: rowData.ProductCode || '',
-            ProductName: rowData.ProductName || '',
-            NumberBegin: String(rowData.Number || 0),
-            InventoryLatest: String(rowData.InventoryLatest || 0),
-            NumberImport: String(rowData.NumberImport || 0),
-            NumberExport: String(rowData.NumberExport || 0),
-            NumberBorrowing: String(rowData.NumberBorrowing || 0),
-            InventoryReal: String(rowData.InventoryReal || 0),
-        });
+        const productCode = rowData.ProductCode || '';
+        const productRTCID = rowData.ProductRTCID || 0;
 
-        window.open(
-            `${environment.baseHref}/material-detail-of-product-rtc?${params.toString()}`,
-            '_blank',
-            'width=1200,height=800,scrollbars=yes,resizable=yes'
-        );
+        this.tabService.openTabComp({
+            comp: MaterialDetailOfProductRtcComponent,
+            title: `Chi tiết SP - ${productCode}`,
+            key: `material-detail-product-rtc-${productRTCID}`,
+            data: {
+                productRTCID1: productRTCID,
+                warehouseID1: this.warehouseID || 1,
+                ProductCode: productCode,
+                ProductName: rowData.ProductName || '',
+                NumberBegin: rowData.Number || 0,
+                InventoryLatest: rowData.InventoryLatest || 0,
+                NumberImport: rowData.NumberImport || 0,
+                NumberExport: rowData.NumberExport || 0,
+                NumberBorrowing: rowData.NumberBorrowing || 0,
+                InventoryReal: rowData.InventoryReal || 0,
+            },
+        });
     }
 
     onSetLocation(): void {

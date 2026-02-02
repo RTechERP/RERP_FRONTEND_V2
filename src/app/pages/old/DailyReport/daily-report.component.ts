@@ -21,6 +21,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSpinComponent, NzSpinModule } from 'ng-zorro-antd/spin';
 import { DateTime } from 'luxon';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-dailyreport',
@@ -329,7 +330,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
     } else {
       console.warn('Bảng chưa được khởi tạo');
       this.notification.info('Oops',"Bảng chưa được khởi tạo!");
-      return;
+      return;  
     }
 
     if (!table) return;

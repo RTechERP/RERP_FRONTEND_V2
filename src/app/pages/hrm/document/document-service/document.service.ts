@@ -80,19 +80,21 @@ export class DocumentService {
 
   uploadMultipleFiles(
     files: File[],
-    typeID?: number,
-    subPath?: string
+    typeCode?: string,
+    subPath?: string,
+    defaultKey: string = 'TrainingRegistration'
   ): Observable<any> {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('files', file);
     });
 
-    // Set key based on typeID: 57=Certificate, 58=Critical, default=TrainingRegistration
-    let key = 'TrainingRegistration';
-    if (typeID === 57) {
+    // Set key based on typeCode: CER=Certificate, COP=Critical, default=defaultKey
+    let key = defaultKey;
+    const normalizedCode = (typeCode || '').trim().toUpperCase();
+    if (normalizedCode === 'CER') {
       key = 'Certificate';
-    } else if (typeID === 58) {
+    } else if (normalizedCode === 'COP') {
       key = 'Critical';
     }
     formData.append('key', key);
@@ -103,12 +105,13 @@ export class DocumentService {
     return this.http.post<any>(`${this.apiUrl}/home/upload-multiple`, formData);
   }
 
-  downloadFile(filePath: string, typeID?: number): Observable<Blob> {
-    // Set key based on typeID: 57=Certificate, 58=Critical, default=TrainingRegistration
+  downloadFile(filePath: string, typeCode?: string): Observable<Blob> {
+    // Set key based on typeCode: CER=Certificate, COP=Critical, default=TrainingRegistration
     let key = 'TrainingRegistration';
-    if (typeID === 57) {
+    const normalizedCode = (typeCode || '').trim().toUpperCase();
+    if (normalizedCode === 'CER') {
       key = 'Certificate';
-    } else if (typeID === 58) {
+    } else if (normalizedCode === 'COP') {
       key = 'Critical';
     }
 
@@ -124,13 +127,14 @@ export class DocumentService {
   downloadFileSale(
     fileName: string,
     documentName?: string,
-    typeID?: number
+    typeCode?: string
   ): Observable<Blob> {
-    // Set key based on typeID: 57=Certificate, 58=Critical, default=EconomicContract
-    let key = 'TrainingRegistration';
-    if (typeID === 57) {
+    // Set key based on typeCode: CER=Certificate, COP=Critical, default=EconomicContract
+    let key = 'EconomicContract';
+    const normalizedCode = (typeCode || '').trim().toUpperCase();
+    if (normalizedCode === 'CER') {
       key = 'Certificate';
-    } else if (typeID === 58) {
+    } else if (normalizedCode === 'COP') {
       key = 'Critical';
     }
 

@@ -1,6 +1,7 @@
 :host {
-    display: block;
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
     width: 100%;
 }
 
@@ -74,4 +75,13 @@
 /* Font size */
 .fs-12 {
     font-size: 0.75rem;
+}
+
+/* Cell wrap */
+::ng-deep .cell-wrap {
+    white-space: normal !important;
+    word-wrap: break-word;
+    line-height: 1.4 !important;
+    display: flex !important;
+    align-items: center;
 }

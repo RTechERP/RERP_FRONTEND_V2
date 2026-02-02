@@ -54,7 +54,7 @@
           </nz-col>
 
           <!-- Nhân viên -->
-          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="5">
             <nz-form-item class="mb-0">
               <nz-form-label class="fs-12" style="font-size: 12px;">Chọn nhân viên</nz-form-label>
               <nz-form-control>
@@ -111,8 +111,8 @@
         <nz-splitter nzLayout="vertical" style="height: 100%; flex: 1;">
           <!-- Bảng Master - Cấp phát (ở trên) - 60% -->
           <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="60%">
-            <div class="grid-container" id="grid-container-allocation" style="height: 100%;">
-              <angular-slickgrid gridId="grvAssetAllocation" [columns]="columnDefinitions" [options]="gridOptions"
+            <div class="grid-container" [id]="gridId + '_container'" style="height: 100%;">
+              <angular-slickgrid [gridId]="gridId" [columns]="columnDefinitions" [options]="gridOptions"
                 [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
                 (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
                 (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
@@ -126,8 +126,8 @@
               <nz-tabset
                 style="padding-left: 10px; flex: 1; display: flex; flex-direction: column; min-height: 0; width: 100%;">
                 <nz-tab [nzTitle]="detailTabTitle" style="height: 100%; width: 100%;">
-                  <div class="grid-container" id="grid-container-allocation-detail" style="height: 100%; width: 100%;">
-                    <angular-slickgrid gridId="grvAllocationDetail" [columns]="columnDefinitionsDetail"
+                  <div class="grid-container" [id]="gridIdDetail + '_container'" style="height: 100%; width: 100%;">
+                    <angular-slickgrid [gridId]="gridIdDetail" [columns]="columnDefinitionsDetail"
                       [options]="gridOptionsDetail" [dataset]="datasetDetail"
                       (onAngularGridCreated)="angularGridDetailReady($event.detail)">
                     </angular-slickgrid>

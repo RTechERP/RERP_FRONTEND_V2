@@ -153,6 +153,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   showDepartureReturn: boolean = false;
   isProblem: boolean = false;
   isSaving: boolean = false;
+  currentUserPhoneNumber: string = ''; // SDT của người đang đăng nhập
 
   // Flatpickr instances
   private flatpickrInstances: Map<string, flatpickr.Instance> = new Map();
@@ -383,6 +384,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
               this.employeeId = currentEmployee.ID || 0;
               this.fullName = currentEmployee.FullName || '';
               this.bookerVehicles = this.fullName;
+              this.currentUserPhoneNumber = currentEmployee.SDTCaNhan || currentEmployee.SdtcaNhan || currentEmployee.PhoneNumber || '';
               // Set first passenger to current user
               if (this.passengers.length > 0) {
                 this.passengers[0].employeeId = this.employeeId;
@@ -393,6 +395,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
               this.employeeId = currentEmployeeId;
               this.fullName = this.appUserService.fullName || '';
               this.bookerVehicles = this.fullName;
+              this.currentUserPhoneNumber = ''; // Không có thông tin phone
               // Set first passenger to current user
               if (this.passengers.length > 0) {
                 this.passengers[0].employeeId = this.employeeId;
@@ -998,7 +1001,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
           ReceiverName: '',
           PackageName: '',
           DeliverName: '',
-          DeliverPhoneNumber: '',
+          DeliverPhoneNumber: this.currentUserPhoneNumber,
           ReceiverPhoneNumber: '',
           ProblemArises: this.isProblem ? this.problemArises : '',
           ApprovedTBP: this.isProblem ? this.approvedTbp : 0,
@@ -1042,7 +1045,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
           ReceiverName: goods.name,
           PackageName: goods.packageName,
           DeliverName: this.bookerVehicles,
-          DeliverPhoneNumber: '',
+          DeliverPhoneNumber: this.currentUserPhoneNumber,
           ReceiverPhoneNumber: goods.phoneNumber,
           ProblemArises: this.isProblem ? this.problemArises : '',
           ApprovedTBP: this.isProblem ? this.approvedTbp : 0,

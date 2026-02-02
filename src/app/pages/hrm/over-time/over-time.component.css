@@ -150,22 +150,10 @@
   overflow: visible !important;
 }
 
-/* Enable proper horizontal scrolling for slickgrid */
-::ng-deep #grvOverTimeContainer .slick-viewport {
-  overflow-x: auto !important;
-  overflow-y: auto !important;
-  width: 100% !important;
-}
 
-/* Allow grid canvas to expand horizontally */
-::ng-deep #grvOverTimeContainer .slick-grid {
-  width: auto !important;
-  min-width: 100% !important;
-}
 
-::ng-deep #grvOverTimeContainer .grid-canvas {
-  min-height: 300px !important;
-}
+
+
 
 ::ng-deep .slick-header-column {
   font-size: 12px !important;
@@ -183,7 +171,7 @@
   border-top: 2px solid #1677ff !important;
 }
 
-::ng-deep .slick-footerrow {
+::ng-deep .sli ck-footerrow {
   background-color: #f0f0f0 !important;
 }
 
@@ -191,29 +179,4 @@
 :host ::ng-deep .slick-footerrow-column[data-column-id="TimeReality"] {
   text-align: right !important;
   padding-right: 8px !important;
-}
-
-/* Ẩn scrollbar dọc ở frozen pane (left pane) */
-::ng-deep .slick-pane-left .slick-viewport {
-  overflow-y: hidden !important;
-}
-
-/* Hide horizontal scrollbar in frozen columns section */
-::ng-deep .slick-frozen-left .slick-viewport {
-  overflow-x: hidden !important;
-}
-
-/* Hide scrollbar in frozen columns header */
-::ng-deep .slick-frozen-left .slick-header-columns {
-  overflow-x: hidden !important;
-}
-
-/* Hide scrollbar in frozen columns headerrow (filter row) */
-::ng-deep .slick-frozen-left .slick-headerrow-columns {
-  overflow-x: hidden !important;
-}
-
-/* Hide scrollbar in frozen pane footer */
-::ng-deep .slick-pane-left .slick-footerrow-columns {
-  overflow-x: hidden !important;
 }

@@ -114,7 +114,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
     private modal: NzModalService,
     private message: NzMessageService,
     private modalService: NgbModal
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadData();
@@ -148,7 +148,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       next: (response) => {
         if (response.status === 1 && response.data) {
           const data = response.data;
-          
+
           // Map dữ liệu từ API vào form
           this.dateInput = data.DateInput ? new Date(data.DateInput) : new Date();
           this.dateReceived = data.DateReceived ? new Date(data.DateReceived) : null;
@@ -282,7 +282,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
 
   private groupEmployeesByDepartment(employees: any[]): any[] {
     const grouped: { [key: string]: any[] } = {};
-    
+
     employees.forEach((emp) => {
       const deptName = emp.DepartmentName || emp.departmentName || 'Khác';
       if (!grouped[deptName]) {
@@ -685,8 +685,8 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       });
 
       // key: để backend nhận biết loại tài liệu
-      // formData.append('key', 'PathAccounting');
-      formData.append('key', 'TuanBeoTest');
+      formData.append('key', 'PathAccounting');
+      // formData.append('key', 'TuanBeoTest');
 
       // Lấy thông tin hợp đồng để tạo subPath
       this.accountingContractService.getAccountingContractDetail(accountingContractId).subscribe({
@@ -948,7 +948,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       };
 
       const resultCompare = this.deepEquals(this.originalContract, currentContract);
-      
+
       if (!resultCompare.equal) {
         // Có thay đổi thông tin
         const changedFields = resultCompare.property.map(field => this.getFieldLabel(field));
@@ -1003,7 +1003,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
         if (response.status === 1) {
           // Lấy ID từ response hoặc từ editId
           const savedId = response.data?.ID || response.data?.id || this.editId || accountingContract.ID || 0;
-          
+
           // Upload files sau khi save thành công (chỉ khi có ID hợp lệ)
           if (savedId > 0 && (this.files.length > 0 || this.deletedFileIds.length > 0)) {
             this.uploadFiles(savedId);

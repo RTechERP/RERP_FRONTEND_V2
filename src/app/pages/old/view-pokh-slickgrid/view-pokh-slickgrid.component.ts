@@ -18,6 +18,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
   AngularGridInstance,
   AngularSlickgridModule,
@@ -72,6 +73,7 @@ interface GroupedData {
     NzDatePickerModule,
     NzInputModule,
     NzInputNumberModule,
+    NzSpinModule,
     AngularSlickgridModule,
     Menubar,
   ],
@@ -169,6 +171,9 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     endDate: new Date(),
     keyword: '',
   };
+
+  // Loading state
+  isLoadingData: boolean = false;
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -280,6 +285,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       { id: 'ID', name: 'ID', field: 'ID', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, excludeFromExport: true, hidden: true },
       { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'MainIndex', name: 'Loại', field: 'MainIndex', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'StatusText', name: 'Trạng thái', field: 'StatusText', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.statusFormatter, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReceivedDatePO', name: 'Ngày PO', field: 'ReceivedDatePO', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.dateFormatter, cssClass: 'text-center' },
       { id: 'FullName', name: 'Sale phụ trách', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -287,6 +293,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       { id: 'CustomerName', name: 'Tên khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ProductNewCode', name: 'Mã nội bộ', field: 'ProductNewCode', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'ProductCode', name: 'Mã sản phẩm', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Qty', name: 'SL PO', field: 'Qty', width: 80, minWidth: 80, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.moneyFormatter, cssClass: 'text-end' },
       { id: 'QuantityDelived', name: 'SL đã giao', field: 'QuantityDelived', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.moneyFormatter, cssClass: 'text-end' },
@@ -958,6 +965,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       warehouseId: this.warehouseId || 0,
     };
 
+    this.isLoadingData = true;
     this.viewPokhSlickgridService.loadViewPOKH(
       startDate, endDate,
       params.employeeTeamSaleId, params.userId, params.poType,
@@ -973,14 +981,19 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         id: item.ID || idx,
       }));
 
-      // Khôi phục selections - checkbox formatter sẽ tự kiểm tra selectedRowsAll
       setTimeout(() => {
         if (this.angularGrid?.slickGrid) {
           this.angularGrid.slickGrid.invalidate();
           this.angularGrid.slickGrid.render();
         }
       }, 100);
-    });
+      this.isLoadingData = false;
+    },
+      (error) => {
+        this.isLoadingData = false;
+        this.notification.error('Lỗi', 'Không thể tải dữ liệu');
+      }
+    );
   }
 
   loadEmployeeTeamSale(): void {
@@ -1133,11 +1146,15 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     }
 
     const workbook = new ExcelJS.Workbook();
+
+    // Sheet 1: View POKH (dữ liệu chính)
     const worksheet = workbook.addWorksheet('View POKH');
 
     const columnDefs = [
       { field: 'PONumber', title: 'Số POKH', width: 20 },
       { field: 'ProjectCode', title: 'Mã dự án', width: 15 },
+      { field: 'MainIndex', title: 'Loại', width: 15 },
+      { field: 'ProductCode', title: 'Mã sản phẩm', width: 18 },
       { field: 'CustomerName', title: 'Khách hàng', width: 25 },
       { field: 'StatusText', title: 'Trạng thái', width: 25 },
       { field: 'ReceivedDatePO', title: 'Ngày PO', width: 12, isDate: true },
@@ -1183,6 +1200,90 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
           excelRow.getCell(colIndex + 1).numFmt = '#,##0';
         }
       });
+    });
+
+    // Sheet 2: Chi tiết Xuất hàng (Export Details)
+    const exportSheet = workbook.addWorksheet('Chi tiết xuất hàng');
+    const exportColumnDefs = [
+      { field: 'PONumber', title: 'Số POKH', width: 20 },
+      { field: 'ProductCode', title: 'Mã sản phẩm', width: 18 },
+      { field: 'CustomerName', title: 'Khách hàng', width: 25 },
+      { field: 'Code', title: 'Mã phiếu xuất', width: 25 },
+      { field: 'TotalQty', title: 'Tổng SL PO', width: 15 },
+      { field: 'Qty', title: 'SL xuất', width: 15 },
+    ];
+
+    exportSheet.columns = exportColumnDefs.map(col => ({
+      header: col.title,
+      key: col.field,
+      width: col.width,
+    }));
+
+    const exportHeaderRow = exportSheet.getRow(1);
+    exportHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    exportHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF70AD47' } };
+    exportHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    exportHeaderRow.height = 25;
+
+    let exportRowIndex = 2;
+    this.dataset.forEach((parentRow: any) => {
+      if (parentRow.exportDetails && parentRow.exportDetails.length > 0) {
+        parentRow.exportDetails.forEach((exportItem: any) => {
+          const excelRow = exportSheet.getRow(exportRowIndex);
+          excelRow.getCell(1).value = parentRow.PONumber ?? '';
+          excelRow.getCell(2).value = parentRow.ProductCode ?? '';
+          excelRow.getCell(3).value = parentRow.CustomerName ?? '';
+          excelRow.getCell(4).value = exportItem.Code ?? '';
+          excelRow.getCell(5).value = exportItem.TotalQty ?? 0;
+          excelRow.getCell(6).value = exportItem.Qty ?? 0;
+          exportRowIndex++;
+        });
+      }
+    });
+
+    // Sheet 3: Chi tiết Hóa đơn (Invoice Details)
+    const invoiceSheet = workbook.addWorksheet('Chi tiết hóa đơn');
+    const invoiceColumnDefs = [
+      { field: 'PONumber', title: 'Số POKH', width: 20 },
+      { field: 'ProductCode', title: 'Mã sản phẩm', width: 18 },
+      { field: 'CustomerName', title: 'Khách hàng', width: 25 },
+      { field: 'RequestInvoiceCode', title: 'Mã lệnh xuất HĐ', width: 25 },
+      { field: 'TaxCompanyName', title: 'Công ty xuất HĐ', width: 25 },
+      { field: 'InvoiceNumber', title: 'Số hóa đơn', width: 18 },
+      { field: 'InvoiceDate', title: 'Ngày hóa đơn', width: 15, isDate: true },
+    ];
+
+    invoiceSheet.columns = invoiceColumnDefs.map(col => ({
+      header: col.title,
+      key: col.field,
+      width: col.width,
+    }));
+
+    const invoiceHeaderRow = invoiceSheet.getRow(1);
+    invoiceHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    invoiceHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFED7D31' } };
+    invoiceHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    invoiceHeaderRow.height = 25;
+
+    let invoiceRowIndex = 2;
+    this.dataset.forEach((parentRow: any) => {
+      if (parentRow.invoiceDetails && parentRow.invoiceDetails.length > 0) {
+        parentRow.invoiceDetails.forEach((invoiceItem: any) => {
+          const excelRow = invoiceSheet.getRow(invoiceRowIndex);
+          excelRow.getCell(1).value = parentRow.PONumber ?? '';
+          excelRow.getCell(2).value = parentRow.ProductCode ?? '';
+          excelRow.getCell(3).value = parentRow.CustomerName ?? '';
+          excelRow.getCell(4).value = invoiceItem.RequestInvoiceCode ?? '';
+          excelRow.getCell(5).value = invoiceItem.TaxCompanyName ?? '';
+          excelRow.getCell(6).value = invoiceItem.InvoiceNumber ?? '';
+          if (invoiceItem.InvoiceDate) {
+            excelRow.getCell(7).value = new Date(invoiceItem.InvoiceDate).toLocaleDateString('vi-VN');
+          } else {
+            excelRow.getCell(7).value = '';
+          }
+          invoiceRowIndex++;
+        });
+      }
     });
 
     const buffer = await workbook.xlsx.writeBuffer();

@@ -186,6 +186,9 @@ export class TabulatorPopupComponent implements OnInit, OnChanges, AfterViewInit
   private tabulatorInstance: Tabulator | null = null;
   private scrollListener: ((event: Event) => void) | null = null;
   private clickListener: ((event: Event) => void) | null = null;
+  private scrollListenerTimeoutId: any = null;
+  private clickListenerTimeoutId: any = null;
+  private isDestroyed = false;
 
   ngOnInit(): void {
     // Component initialization
@@ -220,7 +223,10 @@ export class TabulatorPopupComponent implements OnInit, OnChanges, AfterViewInit
 
     // Add scroll listener with delay to prevent immediate close
     // Only close if scroll happens OUTSIDE the popup container
-    setTimeout(() => {
+    this.scrollListenerTimeoutId = setTimeout(() => {
+      if (this.isDestroyed) {
+        return;
+      }
       this.scrollListener = (event: Event) => {
         const target = event.target as HTMLElement;
         const popupContainer = this.tabulatorDiv?.nativeElement?.closest('.tabulator-popup-container');
@@ -241,10 +247,18 @@ export class TabulatorPopupComponent implements OnInit, OnChanges, AfterViewInit
     }, 300); // Increased delay to 300ms to allow for rendering stabilization
 
     // Add click-outside listener to close popup
-    setTimeout(() => {
+    this.clickListenerTimeoutId = setTimeout(() => {
+      if (this.isDestroyed) {
+        return;
+      }
       this.clickListener = (event: Event) => {
         const target = event.target as HTMLElement;
         const popupContainer = this.tabulatorDiv?.nativeElement?.closest('.tabulator-popup-container');
+
+        // Don't close if clicking on the trigger element (it is marked with 'popup-open' by the service)
+        if (target?.closest?.('.popup-open')) {
+          return;
+        }
         
         // Close if clicking outside the popup
         if (popupContainer && !popupContainer.contains(target)) {
@@ -256,6 +270,17 @@ export class TabulatorPopupComponent implements OnInit, OnChanges, AfterViewInit
   }
 
   ngOnDestroy(): void {
+    this.isDestroyed = true;
+
+    if (this.scrollListenerTimeoutId) {
+      clearTimeout(this.scrollListenerTimeoutId);
+      this.scrollListenerTimeoutId = null;
+    }
+    if (this.clickListenerTimeoutId) {
+      clearTimeout(this.clickListenerTimeoutId);
+      this.clickListenerTimeoutId = null;
+    }
+
     // Remove scroll listener
     if (this.scrollListener) {
       window.removeEventListener('scroll', this.scrollListener as EventListener, true);

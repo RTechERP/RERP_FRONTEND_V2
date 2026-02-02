@@ -749,6 +749,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -762,6 +763,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -789,6 +791,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -802,6 +805,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -815,6 +819,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -828,6 +833,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }
             },
             {
@@ -841,6 +847,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -854,6 +861,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -867,6 +875,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -880,6 +889,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -893,6 +903,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -906,6 +917,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -919,6 +931,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }
             },
             {
@@ -933,6 +946,9 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 type: FieldType.number,
                 cssClass: 'text-end',
             },
+            { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             {
                 id: 'ProjectCode',
                 name: 'Mã dự án',
@@ -944,6 +960,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -957,6 +974,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -970,6 +988,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -983,6 +1002,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -996,6 +1016,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -1046,7 +1067,6 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 width: 120,
                 minWidth: 150,
                 sortable: true,
-                formatter: dateFormatter,
                 cssClass: 'text-center',
             },
             {
@@ -1058,7 +1078,6 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 width: 120,
                 minWidth: 150,
                 sortable: true,
-                formatter: dateFormatter,
                 cssClass: 'text-center',
             },
             {
@@ -1072,6 +1091,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -1085,6 +1105,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -1096,7 +1117,6 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 width: 150,
                 minWidth: 150,
                 sortable: true,
-                formatter: dateFormatter,
                 cssClass: 'text-center',
             },
             {
@@ -1110,6 +1130,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -1123,6 +1144,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
                 filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }
             },
         ];
@@ -1230,7 +1252,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
     //#region SlickGrid File Table
     initGridFile(): void {
         this.columnDefinitionsFile = [
-            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 150, minWidth: 100, sortable: true },
+            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 150, minWidth: 100, sortable: true, formatter: this.commonTooltipFormatter },
         ];
 
         this.gridOptionsFile = {
@@ -1302,7 +1324,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
     //#region SlickGrid POFile Table
     initGridPOFile(): void {
         this.columnDefinitionsPOFile = [
-            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 350, minWidth: 200, sortable: true },
+            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 350, minWidth: 200, sortable: true, formatter: this.commonTooltipFormatter },
         ];
 
         this.gridOptionsPOFile = {
@@ -1346,6 +1368,11 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 positionOrder: 60,
             }
         ];
+    }
+
+    moneyFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+        if (value === null || value === undefined) return '';
+        return new Intl.NumberFormat('vi-VN').format(value);
     }
 
     handlePOFileContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
@@ -1447,4 +1474,37 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         angularGrid.slickGrid.invalidate();
         angularGrid.slickGrid.render();
     }
+
+    // Helper function to escape HTML special characters for title attributes
+    private escapeHtml(text: string | null | undefined): string {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+        if (!value) return '';
+        const escaped = this.escapeHtml(value);
+        return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
+    };
 }

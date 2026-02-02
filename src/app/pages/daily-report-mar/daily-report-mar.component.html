@@ -5,23 +5,18 @@
 
             <div class="d-flex gap-1" *ngIf="!isMobile">
                 <button nz-button nzType="default" nzSize="small"
-                        (click)="ToggleSearchPanelNew($event); $event.stopPropagation()"
-                        (mousedown)="$event.stopPropagation()"
-                        (touchstart)="$event.stopPropagation()"
-                        (touchend)="$event.stopPropagation()"
-                        class="sticky-toggle-btn"
-                        [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
-                        [attr.aria-expanded]="showSearchBar"
-                        type="button">
+                    (click)="ToggleSearchPanelNew($event); $event.stopPropagation()"
+                    (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
+                    (touchend)="$event.stopPropagation()" class="sticky-toggle-btn"
+                    [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+                    [attr.aria-expanded]="showSearchBar" type="button">
                     <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
                 </button>
 
-                <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
-                    (click)="addDailyReport()">
+                <button nz-button nzSize="small" class="fs-12 button button-succes btn-add" (click)="addDailyReport()">
                     <img src="assets/icon/action_add_item_16.png" alt="Thêm mới" /> Thêm
                 </button>
-                <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small"
-                    (click)="editDailyReport()">
+                <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="editDailyReport()">
                     <img src="assets/icon/action_edit_item_16.png" alt="Sửa"> Sửa
                 </button>
                 <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger
@@ -32,16 +27,12 @@
         </div>
 
         <!-- Backdrop overlay cho mobile -->
-        <div class="filter-backdrop" 
-             *ngIf="shouldShowSearchBar" 
-             (click)="ToggleSearchPanelNew()"
-             [class.mobile-only]="true">
+        <div class="filter-backdrop" *ngIf="shouldShowSearchBar" (click)="ToggleSearchPanelNew()"
+            [class.mobile-only]="true">
         </div>
 
         <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, modal trên mobile -->
-        <div class="filter-bar bg-light border-bottom p-2" 
-             *ngIf="shouldShowSearchBar"
-             [class.mobile-modal]="true">
+        <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
             <form nz-form class="mobile-filter-form">
                 <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
                     <!-- Từ ngày -->
@@ -49,8 +40,8 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ</nz-form-label>
                             <nz-form-control>
-                                <nz-date-picker [(ngModel)]="dateStart" name="dateStart" nzFormat="dd/MM/yyyy"
-                                    class="w-100" nzSize="small" nzAllowClear="false"></nz-date-picker>
+                                <input nz-input type="date" [(ngModel)]="dateStart" name="dateStart"
+                                    nzFormat="dd/MM/yyyy" class="w-100" nzSize="small" nzAllowClear="false" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -60,8 +51,8 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Đến</nz-form-label>
                             <nz-form-control>
-                                <nz-date-picker [(ngModel)]="dateEnd" name="dateEnd" nzFormat="dd/MM/yyyy"
-                                    class="w-100" nzSize="small" nzAllowClear="false"></nz-date-picker>
+                                <input nz-input type="date" [(ngModel)]="dateEnd" name="dateEnd" nzFormat="dd/MM/yyyy"
+                                    class="w-100" nzSize="small" nzAllowClear="false" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -71,11 +62,11 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
                             <nz-form-control>
-                                <nz-select [(ngModel)]="departmentId" name="departmentId" 
-                                    nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn phòng ban"
-                                    class="w-100"
+                                <nz-select [(ngModel)]="departmentId" name="departmentId" nzShowSearch nzAllowClear
+                                    nzSize="small" nzPlaceHolder="Chọn phòng ban" class="w-100"
                                     (ngModelChange)="onDepartmentChange()">
-                                    <nz-option *ngFor="let item of departments" [nzValue]="item.ID" [nzLabel]="item.Name">
+                                    <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
+                                        [nzLabel]="item.Name">
                                         {{ item.Name }}
                                     </nz-option>
                                 </nz-select>
@@ -105,9 +96,8 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
                             <nz-form-control>
-                                <nz-select [(ngModel)]="userId" name="userId" 
-                                    nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn nhân viên"
-                                    class="w-100">
+                                <nz-select [(ngModel)]="userId" name="userId" nzShowSearch nzAllowClear nzSize="small"
+                                    nzPlaceHolder="Chọn nhân viên" class="w-100">
                                     <nz-option nzValue="0" nzLabel="Tất cả">Tất cả</nz-option>
                                     <nz-option-group *ngFor="let parent of users" [nzLabel]="parent.label">
                                         <nz-option *ngFor="let child of parent.options" nzCustomContent="true"
@@ -128,10 +118,10 @@
                             <nz-form-control>
                                 <div class="d-flex gap-1">
                                     <input nz-input placeholder="Nhập từ khóa..." nzSize="small" [(ngModel)]="keyword"
-                                        name="keyword" class="flex-grow-1" 
-                                        (keyup.enter)="searchDailyReports()" 
+                                        name="keyword" class="flex-grow-1" (keyup.enter)="searchDailyReports()"
                                         (ngModelChange)="onSearchChange($event)" />
-                                    <button nz-button nzType="primary" style="width: 40px;" nzSize="small" (click)="searchDailyReports()">
+                                    <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
+                                        (click)="searchDailyReports()">
                                         <nz-icon nzType="search" />
                                     </button>
                                 </div>
@@ -143,8 +133,11 @@
         </div>
 
         <!-- Content với bảng -->
-        <div class="card-body p-0" [class.with-search-bar]="shouldShowSearchBar" [class.without-search-bar]="!shouldShowSearchBar">
-            <div #tb_daily_report_mar style="padding: 10px;"></div>
+        <div class="card-body p-0" [class.with-search-bar]="shouldShowSearchBar"
+            [class.without-search-bar]="!shouldShowSearchBar">
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+                <div #tb_daily_report_mar style="padding: 10px;"></div>
+            </nz-spin>
         </div>
     </div>
 </ng-container>

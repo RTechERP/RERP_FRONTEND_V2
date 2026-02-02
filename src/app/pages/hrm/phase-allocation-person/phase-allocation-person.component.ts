@@ -435,6 +435,36 @@ export class PhaseAllocationPersonComponent
           headerHozAlign: 'center',
           hozAlign: 'center',
           width: 130,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm ngày...',
+          headerFilterFunc: (headerValue: string, rowValue: any) => {
+            if (!headerValue || headerValue.trim() === '') return true;
+            if (!rowValue) return false;
+
+            try {
+              let dt;
+              try {
+                dt = DateTime.fromISO(rowValue);
+              } catch {
+                const d = new Date(rowValue);
+                if (isNaN(d.getTime())) return false;
+                dt = DateTime.fromJSDate(d);
+              }
+
+              const keyword = headerValue.toLowerCase().trim();
+              const formattedDate = dt.toFormat('dd/MM/yyyy HH:mm:ss').toLowerCase();
+              const formattedDateOnly = dt.toFormat('dd/MM/yyyy').toLowerCase();
+              const formattedMonth = dt.toFormat('MM/yyyy').toLowerCase();
+              const formattedYear = dt.toFormat('yyyy').toLowerCase();
+
+              return formattedDate.includes(keyword) ||
+                formattedDateOnly.includes(keyword) ||
+                formattedMonth.includes(keyword) ||
+                formattedYear.includes(keyword);
+            } catch {
+              return false;
+            }
+          },
           formatter: (cell) => {
             const value = cell.getValue();
             if (!value) return '';
@@ -749,6 +779,7 @@ export class PhaseAllocationPersonComponent
         return this.detailFilterStatus === 1 ? status : !status;
       });
     }
+
 
     this.detailData = filteredData;
     this.detailTable.setData(this.detailData);

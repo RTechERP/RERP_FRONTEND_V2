@@ -12,6 +12,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -51,6 +52,7 @@ import { Menubar } from 'primeng/menubar';
     NzNotificationModule,
     NzModalModule,
     NzDropDownModule,
+    NzSpinModule,
     Menubar,
   ],
   templateUrl: './daily-report-tech.component.html',
@@ -68,10 +70,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   showSearchBar: boolean = true; // Mặc định ẩn, sẽ được set trong ngOnInit
   isMobile: boolean = false;
   menuBars: MenuItem[] = [];
+  isLoading: boolean = false;
 
   // Search filters
-  dateStart: any = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
-  dateEnd: any = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
+  dateStart: string = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local().toFormat('yyyy-MM-dd');
   departmentId: number = 2;
   teamId: number = 0;
   userId: number = 0;
@@ -382,6 +385,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
   getDailyReportTechData(): void {
     const searchParams = this.getSearchParams();
+    this.isLoading = true;
 
     this.dailyReportTechService.getDailyReportTech(searchParams).subscribe({
       next: (response: any) => {
@@ -405,6 +409,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             this.showSearchBar = false;
           }, 100);
         }
+        this.isLoading = false;
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
@@ -414,13 +419,14 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         if (this.tb_daily_report_tech) {
           this.tb_daily_report_tech.replaceData(this.dailyReportTechData);
         }
+        this.isLoading = false;
       }
     });
   }
 
   setDefaultSearch(): void {
-    this.dateStart = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
-    this.dateEnd = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
+    this.dateStart = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local().toFormat('yyyy-MM-dd');
     this.departmentId = 2;
     this.teamId = 0;
     this.userId = 0;
@@ -430,26 +436,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   getSearchParams(): any {
-    // Xử lý dateStart - có thể là Date object hoặc ISO string
-    let dateStart: DateTime;
-    if (this.dateStart instanceof Date) {
-      dateStart = DateTime.fromJSDate(this.dateStart);
-    } else if (typeof this.dateStart === 'string') {
-      dateStart = DateTime.fromISO(this.dateStart);
-    } else {
-      dateStart = DateTime.local().minus({ days: 1 });
-    }
-
-    // Xử lý dateEnd - có thể là Date object hoặc ISO string
-    let dateEnd: DateTime;
-    if (this.dateEnd instanceof Date) {
-      dateEnd = DateTime.fromJSDate(this.dateEnd);
-    } else if (typeof this.dateEnd === 'string') {
-      dateEnd = DateTime.fromISO(this.dateEnd);
-    } else {
-      dateEnd = DateTime.local();
-    }
-
+    // dateStart và dateEnd giờ là string format yyyy-MM-dd từ native date input
     // Xử lý userID an toàn khi currentUser có thể là null
     let userID = 0;
     if (this.currentUser) {
@@ -461,8 +448,8 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     }
 
     return {
-      dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
-      dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
+      dateStart: this.dateStart || DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd'),
+      dateEnd: this.dateEnd || DateTime.local().toFormat('yyyy-MM-dd'),
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
       userID: userID,

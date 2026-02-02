@@ -20,6 +20,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { DateTime } from 'luxon';
 import { BookingRoom, BookingRoomService } from '../booking-room.service';
@@ -38,6 +39,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzInputModule,
     NzSelectModule,
     NzDatePickerModule,
+    NzTimePickerModule,
     NzButtonModule,
     NzGridModule,
     NzIconModule,
@@ -84,7 +86,7 @@ export class BookingRoomFormComponent implements OnInit {
   ngOnInit(): void {
     this.loadEmployees();
     this.loadDepartments();
-    
+
     if (this.id > 0) {
       this.isEditMode = true;
       this.loadBookingRoom(this.id);
@@ -97,8 +99,10 @@ export class BookingRoomFormComponent implements OnInit {
 
   private initializeForm(): void {
     const today = new Date();
-    const defaultStartTime = '08:00';
-    const defaultEndTime = this.calculateEndTime(defaultStartTime);
+    const defaultStartTime = new Date();
+    defaultStartTime.setHours(8, 0, 0, 0);
+    const defaultEndTime = new Date();
+    defaultEndTime.setHours(10, 0, 0, 0);
 
     this.bookingForm = this.fb.group({
       ID: [0],
@@ -111,11 +115,11 @@ export class BookingRoomFormComponent implements OnInit {
       DepartmentId: [this.currentDepartmentId, [Validators.required, Validators.min(1)]],
     });
 
-    // Auto-set end time when start time changes
     this.bookingForm.get('StartTime')?.valueChanges.subscribe((value) => {
-      if (value) {
-        const endTimeStr = this.calculateEndTime(value);
-        this.bookingForm.patchValue({ EndTime: endTimeStr }, { emitEvent: false });
+      if (value instanceof Date) {
+        const endTime = new Date(value);
+        endTime.setHours(value.getHours() + 2, value.getMinutes(), 0, 0);
+        this.bookingForm.patchValue({ EndTime: endTime }, { emitEvent: false });
       }
     });
   }
@@ -152,12 +156,22 @@ export class BookingRoomFormComponent implements OnInit {
     const dateStr = data.DateRegister
       ? DateTime.fromISO(data.DateRegister).toFormat('yyyy-MM-dd')
       : DateTime.now().toFormat('yyyy-MM-dd');
-    const startTime = data.StartTime
-      ? DateTime.fromISO(data.StartTime).toFormat('HH:mm')
-      : '08:00';
-    const endTime = data.EndTime
-      ? DateTime.fromISO(data.EndTime).toFormat('HH:mm')
-      : '17:30';
+
+    const startTime = new Date();
+    if (data.StartTime) {
+      const startDT = DateTime.fromISO(data.StartTime);
+      startTime.setHours(startDT.hour, startDT.minute, 0, 0);
+    } else {
+      startTime.setHours(8, 0, 0, 0);
+    }
+
+    const endTime = new Date();
+    if (data.EndTime) {
+      const endDT = DateTime.fromISO(data.EndTime);
+      endTime.setHours(endDT.hour, endDT.minute, 0, 0);
+    } else {
+      endTime.setHours(17, 30, 0, 0);
+    }
 
     this.bookingForm.patchValue({
       ID: data.ID || 0,
@@ -173,8 +187,11 @@ export class BookingRoomFormComponent implements OnInit {
 
   private resetForm(): void {
     const today = new Date();
-    const defaultStartTime = '08:00';
-    const defaultEndTime = this.calculateEndTime(defaultStartTime);
+    const defaultStartTime = new Date();
+    defaultStartTime.setHours(8, 0, 0, 0);
+    const defaultEndTime = new Date();
+    defaultEndTime.setHours(10, 0, 0, 0);
+
     this.bookingForm.patchValue({
       ID: 0,
       MeetingRoomId: null,
@@ -231,13 +248,18 @@ export class BookingRoomFormComponent implements OnInit {
 
     this.isLoading = true;
     const formValue = this.bookingForm.value;
-    const dateStr = DateTime.fromJSDate(formValue.DateRegister).toFormat(
-      'yyyy-MM-dd'
-    );
+    const dateStr = DateTime.fromJSDate(formValue.DateRegister).toFormat('yyyy-MM-dd');
 
-    // IsApproved: 0 khi thêm mới, giữ nguyên giá trị khi sửa
-    const isApprovedValue = (formValue.ID && formValue.ID > 0 && this.data?.IsApproved !== undefined) 
-      ? this.data.IsApproved 
+    const startTime = formValue.StartTime instanceof Date
+      ? `${String(formValue.StartTime.getHours()).padStart(2, '0')}:${String(formValue.StartTime.getMinutes()).padStart(2, '0')}`
+      : formValue.StartTime;
+
+    const endTime = formValue.EndTime instanceof Date
+      ? `${String(formValue.EndTime.getHours()).padStart(2, '0')}:${String(formValue.EndTime.getMinutes()).padStart(2, '0')}`
+      : formValue.EndTime;
+
+    const isApprovedValue = (formValue.ID && formValue.ID > 0 && this.data?.IsApproved !== undefined)
+      ? this.data.IsApproved
       : 0;
 
     const bookingRoom: BookingRoom = {
@@ -245,8 +267,8 @@ export class BookingRoomFormComponent implements OnInit {
       MeetingRoomId: formValue.MeetingRoomId,
       DateRegister: dateStr,
       Content: formValue.Content.trim(),
-      StartTime: `${dateStr}T${formValue.StartTime}:00`,
-      EndTime: `${dateStr}T${formValue.EndTime}:00`,
+      StartTime: `${dateStr}T${startTime}:00`,
+      EndTime: `${dateStr}T${endTime}:00`,
       DepartmentId: formValue.DepartmentId || this.currentDepartmentId,
       EmployeeId: formValue.EmployeeId || this.currentEmployeeId,
       IsApproved: isApprovedValue,

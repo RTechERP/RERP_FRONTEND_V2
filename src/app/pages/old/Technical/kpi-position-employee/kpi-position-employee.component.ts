@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA, Optional, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA, Optional, Inject, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -41,6 +41,9 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
+  // ViewChild for copy modal template
+  @ViewChild('copyModalContent') copyModalContent!: TemplateRef<any>;
+
   // Master grid (Positions)
   angularGridMaster!: AngularGridInstance;
   columnDefinitionsMaster: Column[] = [];
@@ -67,6 +70,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
   selectedPositionId: number = 0;
   selectedPositionRow: any = null;
   selectedEmployeeRows: any[] = [];
+
+  // Copy modal
+  copyFromSessionId: number = 0;
+  copyToSessionId: number = 0;
 
   // Route params
   private queryParamsSubscription?: Subscription;
@@ -157,6 +164,7 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
         minWidth: 120,
         sortable: true,
         filterable: true,
+        formatter: this.commonTooltipFormatter,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -167,6 +175,7 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
         minWidth: 200,
         sortable: true,
         filterable: true,
+        formatter: this.commonTooltipFormatter,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -177,6 +186,7 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
         minWidth: 100,
         sortable: true,
         filterable: true,
+        formatter: this.commonTooltipFormatter,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -187,6 +197,7 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
         minWidth: 150,
         sortable: true,
         filterable: true,
+        formatter: this.commonTooltipFormatter,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -252,6 +263,7 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
         minWidth: 100,
         sortable: true,
         filterable: true,
+        formatter: this.commonTooltipFormatter,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -262,6 +274,7 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
         minWidth: 150,
         sortable: true,
         filterable: true,
+        formatter: this.commonTooltipFormatter,
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -272,6 +285,7 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
         minWidth: 150,
         sortable: true,
         filterable: true,
+        formatter: this.commonTooltipFormatter,
         filter: { model: Filters['compoundInputText'] },
       },
     ];
@@ -603,15 +617,66 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
   }
 
   onCopyPosition(): void {
-    if (!this.selectedPositionId) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn vị trí cần copy'
-      );
-      return;
-    }
-    // TODO: Implement copy functionality
-    this.notification.info('Thông báo', 'Chức năng copy vị trí đang được phát triển');
+    // Reset copy session IDs
+    this.copyFromSessionId = 0;
+    this.copyToSessionId = 0;
+
+    this.modal.create({
+      nzTitle: 'Copy vị trí nhân viên',
+      nzContent: this.copyModalContent,
+      nzOkText: 'Copy',
+      nzCancelText: 'Hủy',
+      nzWidth: 450,
+      nzOnOk: () => {
+        // Validate
+        if (!this.copyFromSessionId) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Vui lòng chọn kỳ đánh giá nguồn'
+          );
+          return false;
+        }
+        if (!this.copyToSessionId) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Vui lòng chọn kỳ đánh giá đích'
+          );
+          return false;
+        }
+        if (this.copyFromSessionId === this.copyToSessionId) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Kỳ đánh giá nguồn và đích không được trùng nhau'
+          );
+          return false;
+        }
+
+        // Call API
+        this.service.copyPositionEmployee(this.copyFromSessionId, this.copyToSessionId).subscribe({
+          next: (response) => {
+            if (response.status === 1) {
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                'Copy thành công'
+              );
+              this.onSearch();
+            } else {
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                response.message || 'Lỗi khi copy'
+              );
+            }
+          },
+          error: (error) => {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Lỗi kết nối khi copy: ' + error
+            );
+          },
+        });
+        return true;
+      },
+    });
   }
 
   onAddEmployee(): void {
@@ -692,4 +757,37 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
     });
   }
   //#endregion
+
+  // Helper function to escape HTML special characters for title attributes
+  private escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+    if (!value) return '';
+    const escaped = this.escapeHtml(value);
+    return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
+  };
 }

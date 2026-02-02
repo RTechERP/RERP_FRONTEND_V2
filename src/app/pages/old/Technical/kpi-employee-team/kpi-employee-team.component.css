@@ -1,0 +1,88 @@
+/* Filter bar styles */
+.filter-bar {
+    position: relative;
+    z-index: 1;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+/* Splitter styles */
+.ant-splitter {
+    height: 81vh !important;
+}
+
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-splitter-panel .card {
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel .card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Grid container styles */
+.grid-container-team {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-team nz-spin,
+:host ::ng-deep .grid-container-team .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-team .ant-spin-container,
+:host ::ng-deep .grid-container-team angular-slickgrid,
+:host ::ng-deep .grid-container-team .slickgrid-container,
+:host ::ng-deep .grid-container-team .gridPane {
+    height: 100% !important;
+}
+
+.grid-container-employee {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-employee nz-spin,
+:host ::ng-deep .grid-container-employee .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-employee .ant-spin-container,
+:host ::ng-deep .grid-container-employee angular-slickgrid,
+:host ::ng-deep .grid-container-employee .slickgrid-container,
+:host ::ng-deep .grid-container-employee .gridPane {
+    height: 100% !important;
+}
+
+/* Card header styles */
+.card-header h6 {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* SlickGrid header styling */
+:host ::ng-deep .slick-header-column {
+    font-size: 0.75rem !important;
+}
+
+:host ::ng-deep .slick-cell {
+    font-size: 0.75rem !important;
+    padding: 2px 4px !important;
+}
+
+:host ::ng-deep .slick-row {
+    font-size: 0.75rem !important;
+}
+
+/* Text alignment */
+.text-center {
+    text-align: center !important;
+}
+
+.text-end {
+    text-align: right !important;
+}

@@ -12,6 +12,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { AngularSlickgridModule, Column, GridOption, AngularGridInstance, Formatters } from 'angular-slickgrid';
 import { ChartModule } from 'primeng/chart';
 import * as ExcelJS from 'exceljs';
@@ -32,6 +33,7 @@ import { SummaryKpiErrorEmployeeService } from '../summary-kpi-error-employee-se
         NzFormModule,
         NzDropDownModule,
         NzSplitterModule,
+        NzToolTipModule,
         AngularSlickgridModule,
         ChartModule,
         RouterModule
@@ -78,11 +80,15 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         enableSorting: true,
         enableGrouping: true,
         enableRowSelection: true,
+        forceFitColumns: true,
         rowSelectionOptions: {
             selectActiveRow: true,
         },
         rowHeight: 35,
         headerRowHeight: 40,
+        createFooterRow: true,
+        showFooterRow: true,
+        footerRowHeight: 30,
     };
 
     imageUrl: string = '';
@@ -145,59 +151,59 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     initColumns() {
         // TH1: Lỗi họp phòng KT & KPI
         this.colDefTH1 = [
-            { id: 'Code', name: 'Mã lỗi vi phạm', field: 'Code', sortable: true, filterable: true, minWidth: 70 },
-            { id: 'Content', name: 'Nội dung lỗi vi phạm', field: 'Content', sortable: true, filterable: true, minWidth: 250 },
-            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 120 },
+            { id: 'Code', name: 'Mã lỗi vi phạm', field: 'Code', sortable: true, filterable: true, minWidth: 70, formatter: this.commonTooltipFormatter },
+            { id: 'Content', name: 'Nội dung lỗi vi phạm', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter },
+            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 120, formatter: this.commonTooltipFormatter },
             { id: 'TotalError', name: 'Số lần vi phạm', field: 'TotalError', sortable: true, minWidth: 80, formatter: this.totalErrorFormatter },
             { id: 'Quantity', name: 'Tỉ lệ', field: 'Quantity', sortable: true, minWidth: 80 },
             { id: 'TotalErrorReal', name: 'Số lần vi phạm/Tỉ lệ', field: 'TotalErrorReal', sortable: true, minWidth: 80 },
             { id: 'Coefficient', name: 'Hệ số', field: 'Coefficient', sortable: true, minWidth: 70, formatter: this.coefficientFormatter },
-            { id: 'TotalMoney', name: 'Tiền phạt', field: 'TotalMoney', sortable: true, minWidth: 100, formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 0 } },
-            { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, filterable: true, minWidth: 150 },
-            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 120 },
+            { id: 'TotalMoney', name: 'Tiền phạt', field: 'TotalMoney', sortable: true, minWidth: 100, formatter: this.moneyFormatter.bind(this) },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter },
+            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 120, formatter: this.commonTooltipFormatter },
             { id: 'ErrorDateText', name: 'Ngày vi phạm', field: 'ErrorDateText', sortable: true, minWidth: 100 },
         ];
 
         // TH2: Lỗi đánh giá riêng KPI
         this.colDefTH2 = [
-            { id: 'Code', name: 'Mã lỗi vi phạm', field: 'Code', sortable: true, filterable: true, minWidth: 70 },
-            { id: 'Content', name: 'Nội dung lỗi vi phạm', field: 'Content', sortable: true, filterable: true, minWidth: 250 },
-            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 250 },
+            { id: 'Code', name: 'Mã lỗi vi phạm', field: 'Code', sortable: true, filterable: true, minWidth: 70, formatter: this.commonTooltipFormatter },
+            { id: 'Content', name: 'Nội dung lỗi vi phạm', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter },
+            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter },
             { id: 'TotalError', name: 'Số lần vi phạm', field: 'TotalError', sortable: true, minWidth: 80 },
             { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', sortable: true, minWidth: 80 },
-            { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, minWidth: 80 },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, minWidth: 80, formatter: this.commonTooltipFormatter },
             { id: 'ErrorDateText', name: 'Ngày vi phạm', field: 'ErrorDateText', sortable: true, minWidth: 80 },
-            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 120 },
+            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 120, formatter: this.commonTooltipFormatter },
         ];
 
         // TH3: Điểm cộng
         this.colDefTH3 = [
-            { id: 'Code', name: 'Mã điểm cộng', field: 'Code', sortable: true, filterable: true, minWidth: 70 },
-            { id: 'Content', name: 'Nội dung điểm cộng', field: 'Content', sortable: true, filterable: true, minWidth: 250 },
-            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 250 },
+            { id: 'Code', name: 'Mã điểm cộng', field: 'Code', sortable: true, filterable: true, minWidth: 70, formatter: this.commonTooltipFormatter },
+            { id: 'Content', name: 'Nội dung điểm cộng', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter },
+            { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter },
             { id: 'TotalErrorReal', name: 'Số lần', field: 'TotalErrorReal', sortable: true, minWidth: 80 },
             { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', sortable: true, minWidth: 80 },
-            { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, minWidth: 80 },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, minWidth: 80, formatter: this.commonTooltipFormatter },
             { id: 'ErrorDateText', name: 'Ngày', field: 'ErrorDateText', sortable: true, minWidth: 80 },
-            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, minWidth: 80 },
+            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, minWidth: 80, formatter: this.commonTooltipFormatter },
         ];
 
         // File Grid 
         this.colDefFile = [
-            { id: 'FileName', name: 'Tên file', field: 'FileName', sortable: true, minWidth: 150 },
+            { id: 'FileName', name: 'Tên file', field: 'FileName', sortable: true, minWidth: 150, formatter: this.commonTooltipFormatter },
             { id: 'ErrorDateText', name: 'Ngày vi phạm', field: 'ErrorDate', sortable: true, minWidth: 100, formatter: this.dateFormatter.bind(this) },
-            { id: 'ErrorName', name: 'Tên lỗi', field: 'ErrorName', sortable: true, minWidth: 0, width: 10 },
-            { id: 'EmployeeName', name: 'Nhân viên', field: 'Employee', sortable: true, minWidth: 0, width: 10 },
+            { id: 'ErrorName', name: 'Tên lỗi', field: 'ErrorName', sortable: true, minWidth: 0, width: 10, formatter: this.commonTooltipFormatter },
+            { id: 'EmployeeName', name: 'Nhân viên', field: 'Employee', sortable: true, minWidth: 0, width: 10, formatter: this.commonTooltipFormatter },
         ];
 
         // TK Grid
         this.colDefTK = [
-            { id: 'Code', name: 'Mã', field: 'Code', sortable: true, filterable: true, minWidth: 80 },
+            { id: 'Code', name: 'Mã', field: 'Code', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter },
             { id: 'TypeName', name: 'Loại lỗi', field: 'TypeName', sortable: true, filterable: true, minWidth: 130, hidden: true },
-            { id: 'Content', name: 'Nội dung', field: 'Content', sortable: true, filterable: true, minWidth: 250 },
+            { id: 'Content', name: 'Nội dung', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter },
             { id: 'Quantity', name: 'Số vi phạm', field: 'Quantity', sortable: true, minWidth: 80 },
             { id: 'Unit', name: 'Đơn vị', field: 'Unit', sortable: true, minWidth: 70 },
-            { id: 'Monney', name: 'Tiền phạt', field: 'Monney', sortable: true, minWidth: 90, formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 0 } },
+            { id: 'Monney', name: 'Tiền phạt', field: 'Monney', sortable: true, minWidth: 90, formatter: this.moneyFormatter.bind(this) },
             { id: 'Week1', name: 'Tuần 1', field: 'Week1', sortable: true, minWidth: 70, formatter: this.weekHighlightFormatter.bind(this) },
             { id: 'Week2', name: 'Tuần 2', field: 'Week2', sortable: true, minWidth: 70, formatter: this.weekHighlightFormatter.bind(this) },
             { id: 'Week3', name: 'Tuần 3', field: 'Week3', sortable: true, minWidth: 70, formatter: this.weekHighlightFormatter.bind(this) },
@@ -211,8 +217,8 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         this.colDefEmployee = [
             { id: 'ErrorNumber', name: 'Số lần vi phạm', field: 'ErrorNumber', sortable: true, minWidth: 80 },
             { id: 'DayError', name: 'Ngày vi phạm', field: 'DayError', sortable: true, minWidth: 100 },
-            { id: 'FileName', name: 'File ảnh đính kèm', field: 'FileName', sortable: true, minWidth: 100 },
-            { id: 'EmployeeName', name: 'Nhân viên', field: 'EmployeeNameBD', sortable: true, minWidth: 10, width: 10 },
+            { id: 'FileName', name: 'File ảnh đính kèm', field: 'FileName', sortable: true, minWidth: 100, formatter: this.commonTooltipFormatter },
+            { id: 'EmployeeName', name: 'Nhân viên', field: 'EmployeeNameBD', sortable: true, minWidth: 10, width: 10, formatter: this.commonTooltipFormatter },
 
         ];
     }
@@ -229,6 +235,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
                 this.applyGrouping(this.gridTH1, 'FullName', 'Nhân viên');
                 this.applyGrouping(this.gridTH2, 'FullName', 'Nhân viên');
                 this.applyGrouping(this.gridTH3, 'FullName', 'Nhân viên');
+                setTimeout(() => this.updateFooterRowTH1(), 100);
             }
         });
 
@@ -270,6 +277,36 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         const mm = (d.getMonth() + 1).toString().padStart(2, '0');
         const yyyy = d.getFullYear();
         return `${dd}/${mm}/${yyyy}`;
+    }
+
+    moneyFormatter(row: number, cell: number, value: any, columnDef: Column, dataContext: any) {
+        if (value === null || value === undefined || value === '') return '';
+        const num = Number(value);
+        if (isNaN(num)) return value;
+        return num.toLocaleString('vi-VN');
+    }
+
+    updateFooterRowTH1(): void {
+        if (!this.gridTH1 || !this.gridTH1.slickGrid) return;
+
+        const items = this.gridTH1.dataView.getItems();
+        const totalMoney = items.reduce((sum: number, item: any) => {
+            return sum + (Number(item.TotalMoney) || 0);
+        }, 0);
+
+        this.gridTH1.slickGrid.setFooterRowVisibility(true);
+
+        const columns = this.gridTH1.slickGrid.getColumns();
+        columns.forEach((col: any) => {
+            const footerCell = this.gridTH1.slickGrid.getFooterRowColumn(col.id);
+            if (!footerCell) return;
+
+            if (col.id === 'TotalMoney') {
+                footerCell.innerHTML = `<div style="text-align: right; padding-right: 4px;"><b>${totalMoney.toLocaleString('vi-VN')}</b></div>`;
+            } else {
+                footerCell.innerHTML = '';
+            }
+        });
     }
 
     applyGrouping(grid: AngularGridInstance, field: string, label: string) {
@@ -532,4 +569,37 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
             this.gridFile?.resizerService?.resizeGrid();
         }, 200);
     }
+
+    // Helper function to escape HTML special characters for title attributes
+    private escapeHtml(text: string | null | undefined): string {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+        if (!value) return '';
+        const escaped = this.escapeHtml(value);
+        return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
+    };
 }

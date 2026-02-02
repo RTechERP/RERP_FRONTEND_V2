@@ -70,6 +70,7 @@ import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/project-report-slick-grid.component';
 import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-grid/project-part-list-slick-grid.component';
+import { TabServiceService } from '../../layouts/tab-service.service';
 
 @Component({
   selector: 'app-project-department-summary-slick-grid',
@@ -160,8 +161,8 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   savedPage: number = 1;
 
   searchParams: any = {
-    dateTimeS: new Date('2024-02-02'),
-    dateTimeE: new Date(),
+    dateTimeS: '2024-02-02',
+    dateTimeE: DateTime.local().toFormat('yyyy-MM-dd'),
     keyword: '',
     userID: 0,
     projectTypeID: '',
@@ -179,6 +180,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
     private route: ActivatedRoute,
     private authService: AuthService,
     private permissionService: PermissionService,
+    private tabService: TabServiceService,
   ) {
     this.searchSubject
       .pipe(debounceTime(1200))
@@ -276,7 +278,6 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   //#region SlickGrid initialization
   initGridProjects() {
     this.columnDefinitions = [
-      { id: 'ID', name: 'ID', field: 'ID', hidden: true },
       {
         id: 'ProjectStatusName',
         name: 'Trạng thái',
@@ -295,10 +296,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProjectStatusName);
           return `
             <span
-              title="${dataContext.ProjectStatusName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -364,10 +375,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProjectName);
           return `
             <span
-              title="${dataContext.ProjectName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -396,10 +417,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.CurrentSituation);
           return `
             <span
-              title="${dataContext.CurrentSituation}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -427,10 +458,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNameSale);
           return `
             <span
-              title="${dataContext.FullNameSale}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -458,10 +499,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNameTech);
           return `
             <span
-              title="${dataContext.FullNameTech}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -489,10 +540,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNamePM);
           return `
             <span
-              title="${dataContext.FullNamePM}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -520,10 +581,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.CustomerName);
           return `
             <span
-              title="${dataContext.CustomerName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -600,10 +671,20 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.EndUserName);
           return `
             <span
-              title="${dataContext.EndUserName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -700,10 +781,12 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         selectActiveRow: true
       },
       enableCellNavigation: true,
+      enableSorting: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      frozenColumn: 3,
-      rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
+      frozenColumn: 2,
+      syncColumnCellResize: true, // Sửa lỗi sort nhầm cột khi có frozen columns
+      rowHeight: 43, // Base height - sẽ tự động tăng theo nội dung qua CSS
       enableAutoTooltip: true,
     };
   }
@@ -744,7 +827,6 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         width: 150,
         sortable: true,
         filterable: true,
-        cssClass: 'cell-wrap',
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
@@ -752,6 +834,30 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
             filter: true,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
+        },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.StatusText);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
         },
       },
       {
@@ -948,6 +1054,17 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       enableAutoTooltip: true,
     };
   }
+  // Helper function to escape HTML special characters for title attributes
+  private escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
 
   initGridTypeLinks() {
     this.columnDefinitionsTypeLink = [
@@ -1599,6 +1716,31 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
     const url = `/rerpweb/project-part-list?projectId=${projectId}&projectName=${encodeURIComponent(projectName)}&projectCode=${encodeURIComponent(projectCode)}&tbp=false`;
     window.open(url, '_blank', 'width=1280,height=960,resizable=yes');
   }
+  openProjectPartListTab() {
+    const selectedIDs = this.getSelectedIds();
+    const selectedRows = this.getSelectedRows();
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+      return;
+    }
+
+    const projectName = selectedRows[0]?.ProjectName;
+    const projectCode = selectedRows[0]?.ProjectCode;
+
+    // Mở như tab thực sự thông qua TabService
+    this.tabService.openTabComp({
+      comp: ProjectPartListSlickGridComponent,
+      title: `Danh mục vật tư - ${projectCode}`,
+      key: `project-part-list-${this.projectId}`,
+      data: {
+        projectId: this.projectId,
+        projectNameX: projectName,
+        projectCodex: projectCode,
+        tbp: false
+      }
+    });
+  }
 
   openProjectEmployee() {
     if (!this.projectId || this.projectId === 0) {
@@ -1914,7 +2056,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   // Helper methods cho export Excel
   private getCurrentFilterInfo(): string {
     const filters: string[] = [];
-    
+
     // Lấy filter từ các cột
     const columns = this.angularGrid?.slickGrid?.getColumns() || [];
     columns.forEach(col => {
@@ -1950,7 +2092,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   private getStatsInfo(): string {
     const totalItems = this.angularGrid?.dataView?.getItems()?.length || 0;
     const filteredItems = this.angularGrid?.dataView?.getFilteredItems()?.length || 0;
-    
+
     return `Tổng số dự án: ${filteredItems} ${filteredItems < totalItems ? `(trên ${totalItems})` : ''}`;
   }
 
@@ -1985,93 +2127,93 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
     });
   }
   //#endregion
-   // Apply distinct filters for multiple columns after data is loaded
-    private applyDistinctFilters(): void {
-      const fieldsToFilter = [
-        'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
-        'FullNameSale', 'FullNameTech', 'FullNamePM', 'BussinessField',
-        'CurrentSituation', 'CustomerName', 'CreatedBy', 'UpdatedBy'
-      ];
-      this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
-    }
-  
-    private applyDistinctFiltersWorkReport(): void {
-      const fieldsToFilter = [
-        'Code', 'StatusText', 'ProjectTypeName', 'FullName',
-        'Mission', 'EmployeeRequest', 'Note', 'ProjectEmployeeName'
-      ];
-      this.applyDistinctFiltersToGrid(this.angularGridWorkReport, this.columnDefinitionsWorkReport, fieldsToFilter);
-    }
-  
-    private applyDistinctFiltersTypeLink(): void {
-      const fieldsToFilter = ['ProjectTypeName', 'FullName'];
-      this.applyDistinctFiltersToGrid(this.angularGridTypeLink, this.columnDefinitionsTypeLink, fieldsToFilter);
-    }
-  
-    private applyDistinctFiltersToGrid(
-      angularGrid: AngularGridInstance | undefined,
-      columnDefs: Column[],
-      fieldsToFilter: string[]
-    ): void {
-      if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
-  
-      const data = angularGrid.dataView.getItems();
-      if (!data || data.length === 0) return;
-  
-      const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
-        const map = new Map<string, string>();
-        dataArray.forEach((row: any) => {
-          const value = String(row?.[field] ?? '');
-          if (value && !map.has(value)) {
-            map.set(value, value);
-          }
-        });
-        return Array.from(map.entries())
-          .map(([value, label]) => ({ value, label }))
-          .sort((a, b) => a.label.localeCompare(b.label));
-      };
-  
-      const columns = angularGrid.slickGrid.getColumns();
-      if (!columns) return;
-  
-      // Update runtime columns
-      columns.forEach((column: any) => {
-        if (column?.filter && column.filter.model === Filters['multipleSelect']) {
-          const field = column.field;
-          if (!field || !fieldsToFilter.includes(field)) return;
-          column.filter.collection = getUniqueValues(data, field);
+  // Apply distinct filters for multiple columns after data is loaded
+  private applyDistinctFilters(): void {
+    const fieldsToFilter = [
+      'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
+      'FullNameSale', 'FullNameTech', 'FullNamePM', 'BussinessField',
+      'CurrentSituation', 'CustomerName', 'CreatedBy', 'UpdatedBy'
+    ];
+    this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersWorkReport(): void {
+    const fieldsToFilter = [
+      'Code', 'StatusText', 'ProjectTypeName', 'FullName',
+      'Mission', 'EmployeeRequest', 'Note', 'ProjectEmployeeName'
+    ];
+    this.applyDistinctFiltersToGrid(this.angularGridWorkReport, this.columnDefinitionsWorkReport, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersTypeLink(): void {
+    const fieldsToFilter = ['ProjectTypeName', 'FullName'];
+    this.applyDistinctFiltersToGrid(this.angularGridTypeLink, this.columnDefinitionsTypeLink, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersToGrid(
+    angularGrid: AngularGridInstance | undefined,
+    columnDefs: Column[],
+    fieldsToFilter: string[]
+  ): void {
+    if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+    const data = angularGrid.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
         }
       });
-  
-      // Update column definitions (so when grid re-renders, it keeps the collections)
-      columnDefs.forEach((colDef: any) => {
-        if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
-          const field = colDef.field;
-          if (!field || !fieldsToFilter.includes(field)) return;
-          colDef.filter.collection = getUniqueValues(data, field);
-        }
-      });
-  
-      angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
-      angularGrid.slickGrid.invalidate();
-      angularGrid.slickGrid.render();
-  
-      // Thêm tooltip cho dropdown options sau khi render
-      setTimeout(() => {
-        this.addTooltipsToDropdownOptions();
-      }, 100);
-    }
-  
-    private addTooltipsToDropdownOptions(): void {
-      // Tìm tất cả dropdown options và thêm title attribute
-      const dropdownOptions = document.querySelectorAll('.ms-drop.bottom .ms-list li label span');
-      dropdownOptions.forEach((span: Element) => {
-        const text = span.textContent || '';
-        if (text && text.length > 30) { // Chỉ thêm tooltip cho text dài
-          (span as HTMLElement).setAttribute('title', text);
-        }
-      });
-    }
-    //#endregion
-    
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions (so when grid re-renders, it keeps the collections)
+    columnDefs.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
+
+    // Thêm tooltip cho dropdown options sau khi render
+    setTimeout(() => {
+      this.addTooltipsToDropdownOptions();
+    }, 100);
+  }
+
+  private addTooltipsToDropdownOptions(): void {
+    // Tìm tất cả dropdown options và thêm title attribute
+    const dropdownOptions = document.querySelectorAll('.ms-drop.bottom .ms-list li label span');
+    dropdownOptions.forEach((span: Element) => {
+      const text = span.textContent || '';
+      if (text && text.length > 30) { // Chỉ thêm tooltip cho text dài
+        (span as HTMLElement).setAttribute('title', text);
+      }
+    });
+  }
+  //#endregion
+
 }

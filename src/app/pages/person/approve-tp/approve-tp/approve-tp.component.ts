@@ -89,6 +89,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         return typeof window !== 'undefined' && window.innerWidth <= 768;
     }
 
+    private isInitializing = true;
+
     ToggleSearchPanelNew(event?: Event): void {
         if (event) {
             event.stopPropagation();
@@ -171,26 +173,44 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                 ]
             },
 
+            // {
+            //     label: 'TBP xác nhận',
+            //     icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+            //     visible: this.permissionService.hasPermission("N32"),
+            //     items: [
+            //         {
+            //             label: 'Duyệt',
+            //             icon: 'fa-solid fa-circle-check fa-lg text-success',
+            //             visible: this.permissionService.hasPermission("N32"),
+            //             command: () => {
+            //                 this.approvedTBP();
+            //             }
+            //         },
+            //         {
+            //             label: 'Hủy duyệt',
+            //             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            //             visible: this.permissionService.hasPermission("N32"),
+            //             command: () => {
+            //                 this.cancelApprovedTBP();
+            //             }
+            //         }
+            //     ]
+            // },
             {
-                label: 'TBP xác nhận',
-                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+                label: ' TBP Duyệt',
+                icon: 'fa-solid fa-circle-check fa-lg text-success',
                 visible: this.permissionService.hasPermission("N32"),
-                items: [
-                    {
-                        label: 'Duyệt',
-                        icon: 'fa-solid fa-circle-check fa-lg text-success',
-                        command: () => {
-                            this.approvedTBP();
-                        }
-                    },
-                    {
-                        label: 'Hủy duyệt',
-                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-                        command: () => {
-                            this.cancelApprovedTBP();
-                        }
-                    }
-                ]
+                command: () => {
+                    this.approvedTBP();
+                }
+            },
+            {
+                label: ' TBP Hủy duyệt',
+                icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                visible: this.permissionService.hasPermission("N32"),
+                command: () => {
+                    this.cancelApprovedTBP();
+                }
             },
 
             {
@@ -251,12 +271,18 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                     this.searchForm.patchValue({
                         IDApprovedTP: idApprovedTP,
                         type: isRealBGD ? 5 : null
-                    });
+                    }, { emitEvent: false });
                 }
                 // Auto bind team nếu teamList đã được load
                 this.bindDefaultTeam();
+
+
                 if (this.tabulator) {
+
+                    this.isInitializing = false; // Kết thúc khởi tạo
                     this.loadData();
+                } else {
+                    this.isInitializing = false;
                 }
             }
         });
@@ -291,7 +317,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         if (myTeam && this.searchForm) {
             this.searchForm.patchValue({
                 teamId: myTeam.ID
-            });
+            }, { emitEvent: false });
         }
     }
 
@@ -432,12 +458,20 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
+        // Convert Date to yyyy-MM-dd string format for input type="date"
+        const formatDateForInput = (date: Date): string => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
 
         const idApprovedTP = this.isSeniorMode ? 0 : (this.currentUser?.EmployeeID || 0);
+        const startDate = DateTime.now().minus({ days: 7 }).toJSDate();
 
         this.searchForm.reset({
-            startDate: DateTime.now().minus({ days: 7 }).toJSDate(),
-            endDate: lastDay,
+            startDate: formatDateForInput(startDate),
+            endDate: formatDateForInput(lastDay),
             employeeId: null,
             teamId: 0,
             status: -1, // null = tất cả
@@ -461,11 +495,19 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
+        // Convert Date to yyyy-MM-dd string format for input type="date"
+        const formatDateForInput = (date: Date): string => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
         const defaultType = 0;
 
         this.searchForm = this.fb.group({
-            startDate: [firstDay],
-            endDate: [lastDay],
+            startDate: [formatDateForInput(firstDay)],
+            endDate: [formatDateForInput(lastDay)],
             employeeId: [null],
             teamId: [null],
             status: [this.isSeniorMode ? -1 : 0],
@@ -480,7 +522,15 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     }
 
     loadData() {
+
+        // Skip nếu đang trong quá trình khởi tạo
+        if (this.isInitializing) {
+            console.log('loadData: Skipping because component is initializing');
+            return;
+        }
+
         if (!this.tabulator) {
+            console.log('loadData: tabulator not ready, skipping');
             return;
         }
 
@@ -772,9 +822,9 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         });
 
         // Chỉ load data nếu đã có currentUser, nếu không sẽ được gọi trong getCurrentUser()
-        if (this.currentUser) {
-            this.loadData();
-        }
+        // if (this.currentUser) {
+        //     this.loadData();
+        // }
     }
 
     getSelectedRows(): any[] {

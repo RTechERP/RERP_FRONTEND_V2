@@ -22,7 +22,7 @@
                                 style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                                 <p class="m-0">Giải pháp</p>
                                 <button nz-button nzType="text" class="btn-close-panel" style="color: red;"
-                                    (click)="closeLeftPanel()" *ngIf="sizeLeftPanel !== '0'">
+                                    (click)="closeLeftPanel()" *ngIf="sizeLeftPanel !== '0'" nzSize="small">
                                     <i nz-icon nzType="close"></i>
                                 </button>
                             </div>
@@ -257,11 +257,11 @@
                         </ng-container>
                         <nz-dropdown-menu #menuTBPduyetmoi="nzDropdownMenu">
                             <ul nz-menu>
-                                <li nz-menu-item (click)="approveNewCode(true)" *ngIf="!tbp">
+                                <li nz-menu-item (click)="approveNewCode(true)">
                                     <img src="assets/icon/action_approved_16.png" />
                                     <span class="ms-1">TBP duyệt mới</span>
                                 </li>
-                                <li nz-menu-item (click)="approveNewCode(false)" *ngIf="!tbp">
+                                <li nz-menu-item (click)="approveNewCode(false)">
                                     <img src="assets/icon/action_unapproved_16.png" />
                                     <span class="ms-1">TBP hủy duyệt mới</span>
                                 </li>
@@ -305,23 +305,23 @@
                             <ul nz-menu>
                                 <li nz-menu-item (click)="requestExportByWarehouse('HN')">
                                     <img src="assets/icon/warehouse_16.png" />
-                                    <span class="ms-1">Kho HN</span>
+                                    <span class="ms-1">Từ kho HN</span>
                                 </li>
                                 <li nz-menu-item (click)="requestExportByWarehouse('HCM')">
                                     <img src="assets/icon/warehouse_16.png" />
-                                    <span class="ms-1">Kho HCM</span>
+                                    <span class="ms-1">Từ kho HCM</span>
                                 </li>
                                 <li nz-menu-item (click)="requestExportByWarehouse('BN')">
                                     <img src="assets/icon/warehouse_16.png" />
-                                    <span class="ms-1">Kho Bắc Ninh</span>
+                                    <span class="ms-1">Từ kho Bắc Ninh</span>
                                 </li>
                                 <li nz-menu-item (click)="requestExportByWarehouse('HP')">
                                     <img src="assets/icon/warehouse_16.png" />
-                                    <span class="ms-1">Kho Hải Phòng</span>
+                                    <span class="ms-1">Từ kho Hải Phòng</span>
                                 </li>
                                 <li nz-menu-item (click)="requestExportByWarehouse('DP')">
                                     <img src="assets/icon/warehouse_16.png" />
-                                    <span class="ms-1">Kho Đan Phượng</span>
+                                    <span class="ms-1">Từ kho Đan Phượng</span>
                                 </li>
                             </ul>
                         </nz-dropdown-menu>
@@ -337,23 +337,23 @@
                             <ul nz-menu>
                                 <li nz-menu-item (click)="requestTransfer('HN')">
                                     <img src="assets/icon/warehouse_16.png" />
-                                    <span class="ms-1">Kho HN</span>
+                                    <span class="ms-1">Từ kho HN</span>
                                 </li>
                                 <li nz-menu-item (click)="requestTransfer('HCM')">
                                     <img src="assets/icon/warehouse_16.png" />
-                                    <span class="ms-1">Kho HCM</span>
+                                    <span class="ms-1">Từ kho HCM</span>
                                 </li>
                                 <li nz-menu-item (click)="requestTransfer('BN')">
                                     <img src="assets/icon/warehouse_16.png" />
-                                    <span class="ms-1">Kho Bắc Ninh</span>
+                                    <span class="ms-1">Từ kho Bắc Ninh</span>
                                 </li>
                                 <li nz-menu-item (click)="requestTransfer('HP')">
                                     <img src="assets/icon/warehouse_16.png" />
-                                    <span class="ms-1">Kho Hải Phòng</span>
+                                    <span class="ms-1">Từ kho Hải Phòng</span>
                                 </li>
                                 <li nz-menu-item (click)="requestTransfer('DP')">
                                     <img src="assets/icon/warehouse_16.png" />
-                                    <span class="ms-1">Kho Đan Phượng</span>
+                                    <span class="ms-1">Từ kho Đan Phượng</span>
                                 </li>
                             </ul>
                         </nz-dropdown-menu>

@@ -6,7 +6,7 @@ import {
   ElementRef,
 } from '@angular/core';
 import { ProjectService } from '../project-service/project.service';
-import { Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -62,7 +62,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 @Component({
   selector: 'project-type',
   templateUrl: './project-type.component.html',
-  standalone:true,
+  standalone: true,
   imports: [
     NzCardModule,
     FormsModule,
@@ -109,6 +109,8 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
   selectedParentProjectTypeId: any = '0';
   projectTypeName: any = '';
   isDeleteProject: boolean = false;
+  isLoadingProjectType: boolean = false;
+  isLoadingFolderTree: boolean = false;
   private searchSubject: Subject<string> = new Subject<string>();
   private searchSubscription!: Subscription;
 
@@ -118,7 +120,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private zone: NgZone
-  ) {}
+  ) { }
   @ViewChild('tb_projectType', { static: false })
   tb_projectTypeContainer!: ElementRef;
   @ViewChild('tb_folderTree', { static: false })
@@ -204,7 +206,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
     });
 
     this.tb_projectType.on('rowClick', (e: any, row: any) => {
-      
+
       this.tb_projectType.deselectRow();
       row.select();
       //this.sizeTbDetail = null;
@@ -219,25 +221,34 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
   }
 
   getFolderByProjectType() {
+    this.isLoadingFolderTree = true;
     this.projectService.getFolderByProjectType(this.projectId).subscribe({
       next: (response: any) => {
-        this.tb_folderTree.setData(
-          this.projectService.setDataTree(response.data, 'ID')
-        );
+        let data = this.projectService.setDataTree(response.data, 'ID');
+        this.tb_folderTree.setData(data);
+        this.isLoadingFolderTree = false;
       },
-      error: (error:any) => {
+      error: (error: any) => {
         console.error('Lỗi:', error);
+        this.isLoadingFolderTree = false;
       },
     });
   }
 
   getProjectTypes() {
+    this.isLoadingProjectType = true;
     this.projectService.getProjectType().subscribe({
       next: (response: any) => {
         let data = this.projectService.setDataTree(response.data, 'ID');
-        this.tb_projectType.setData(data);
+        if (this.tb_projectType) {
+          this.tb_projectType.setData(data);
+        }
+        this.isLoadingProjectType = false;
       },
-      error: (err) => console.error('Lỗi:', err),
+      error: (err) => {
+        console.error('Lỗi:', err);
+        this.isLoadingProjectType = false;
+      },
     });
   }
 
@@ -246,7 +257,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
     this.tb_folderTree = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       height: '89vh',
-      layout: 'fitColumns',
+      layout: 'fitDataStretch',
       dataTree: true,
       dataTreeStartExpanded: true,
       dataTreeChildField: '_children',
@@ -288,12 +299,19 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
   }
 
   searchProjects() {
+    this.isLoadingProjectType = true;
     this.projectService.getProjectType().subscribe({
       next: (response: any) => {
         const data = this.projectService.setDataTree(response.data, 'ID');
-        this.tb_projectType.setData(data);
+        if (this.tb_projectType) {
+          this.tb_projectType.setData(data);
+        }
+        this.isLoadingProjectType = false;
       },
-      error: (err) => console.error('Lỗi tải dữ liệu:', err),
+      error: (err) => {
+        console.error('Lỗi tải dữ liệu:', err);
+        this.isLoadingProjectType = false;
+      },
     });
   }
 
@@ -377,7 +395,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
             });
             this.searchProjects();
           },
-          error: (error:any) => {
+          error: (error: any) => {
             this.notification.error('Thông báo', error.error.message, {
               nzStyle: { fontSize: '0.75rem' },
             });
@@ -449,7 +467,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
     if (selectedIDs.length <= 0) {
       this.notification.warning(
-        'Thông báo','Vui lòng chọn ít nhất 1 folder để xóa!'
+        'Thông báo', 'Vui lòng chọn ít nhất 1 folder để xóa!'
       );
       return;
     }
@@ -474,7 +492,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
             this.searchProjects();
             this.getFolderByProjectType();
           },
-          error: (error:any) => {
+          error: (error: any) => {
             this.notification.error('Thông báo', error.error.message, {
               nzStyle: { fontSize: '0.75rem' },
             });

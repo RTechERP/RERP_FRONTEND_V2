@@ -163,6 +163,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
 
   selectedDocumentId: number = 0;
   selectedDocumentName: string = '';
+  selectedDocumentTypeCode: string = '';
 
   selectedFileId: number | null = null;
   selectedFileName: string = '';
@@ -207,6 +208,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
         }, 100);
         if (this.documentTypeData.length > 0) {
           this.searchParams.idDocumentType = this.documentTypeData[0].ID;
+          this.selectedDocumentTypeCode = this.documentTypeData[0].Code || '';
           this.getDocument();
         }
       } else {
@@ -547,7 +549,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       nzDuration: 0,
     }).messageId;
 
-    this.documentService.uploadMultipleFiles([file], this.searchParams.idDocumentType, subPath).subscribe({
+    this.documentService.uploadMultipleFiles([file], this.selectedDocumentTypeCode, subPath).subscribe({
       next: (res) => {
         this.message.remove(loadingMsg);
 
@@ -638,7 +640,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
 
     // Nếu FilePath rỗng thì dùng URL trực tiếp để tải
     if (!file.FilePath && file.FileName) {
-      const directUrl = `http://192.168.1.2:8083/api/Upload/RTCDocument/${encodeURIComponent(file.FileName)}`;
+      const directUrl = `http://14.232.152.154:8083/api/Upload/RTCDocument/${encodeURIComponent(file.FileName)}`;
 
       // Mở URL trong tab mới để tải file
       const link = document.createElement('a');
@@ -662,7 +664,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       nzDuration: 0,
     }).messageId;
 
-    this.documentService.downloadFile(file.FilePath, this.searchParams.idDocumentType).subscribe({
+    this.documentService.downloadFile(file.FilePath, this.selectedDocumentTypeCode).subscribe({
       next: (blob: Blob) => {
         this.message.remove(loadingMsg);
 
@@ -798,9 +800,8 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       });
       this.documentTypeTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
         const rowData = row.getData();
-        // Nếu cần dùng property riêng của chuột thì ép kiểu:
         this.searchParams.idDocumentType = rowData['ID'];
-        const mouseEvent = e as MouseEvent;
+        this.selectedDocumentTypeCode = rowData['Code'] || '';
         this.getDocument();
       });
 
@@ -814,6 +815,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
         const rowData = row.getData();
         this.data = [rowData]; // Giả sử bạn luôn muốn this.data chứa mảng 1 phần tử
         this.documentTypeID = this.data[0].ID;
+        this.selectedDocumentTypeCode = this.data[0].Code || '';
       });
       this.documentTypeTable.on('rowDeselected', (row: RowComponent) => {
         const selectedRows = this.documentTypeTable!.getSelectedRows();

@@ -48,7 +48,7 @@ angular-slickgrid,
 }
 
 /* ==================== HEADER STYLES ==================== */
-:host ::ng-deep .slick-header-column {
+/* :host ::ng-deep .slick-header-column {
     background-color: #fafafa;
     border-right: 1px solid #ddd !important;
     font-weight: 600;
@@ -58,7 +58,7 @@ angular-slickgrid,
 
 :host ::ng-deep .slick-header-columns {
     height: 90px !important;
-}
+} */
 
 :host ::ng-deep .slick-row.active {
     background-color: #e6f7ff;
@@ -414,15 +414,12 @@ textarea {
 
 :host ::ng-deep .cell-multiline>span,
 :host ::ng-deep .cell-wrap-text>span {
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
+    display: block !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
-    white-space: normal !important;
+    white-space: pre-wrap !important;
     line-height: 1.4 !important;
 }
 

@@ -503,7 +503,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
             item.ProjectItemName = selectedItem.Mission || selectedItem.ProjectItemName || '';
             // Tự động điền nội dung công việc từ Mission
             if (selectedItem.Mission && !item.Content) {
-              item.Content = selectedItem.Mission;
+              //item.Content = selectedItem.Mission;
             }
             // Tự động điền % hoàn thành
             if (selectedItem.PercentageActual !== undefined && selectedItem.PercentageActual !== null) {
@@ -1394,18 +1394,22 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
       // Set properties cho component instance
       if (modalRef.componentInstance) {
         modalRef.componentInstance.dataInput = null;
+
+        if (activeProject && activeProject.ProjectID > 0) {
+          modalRef.componentInstance.defaultProjectID = activeProject.ProjectID;
+        }
       }
 
       // Xử lý khi modal đóng
       modalRef.result.then(
         (result) => {
-          if (result && result.success) {
-            // Reload project items sau khi thêm thành công
-            this.loadProjectItems(activeProject.ProjectID, this.activeProjectTab + 1);
+          if (result) {
+            if (activeProject && activeProject.ProjectID > 0) {
+              this.loadProjectItems(activeProject.ProjectID, this.activeProjectTab + 1);
+            }
           }
         },
         (reason) => {
-          // Modal bị đóng mà không có kết quả - không cần xử lý gì
         }
       ).catch((error) => {
         console.error('Error in modal result:', error);

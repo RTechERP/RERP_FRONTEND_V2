@@ -126,8 +126,9 @@ export class PaymentOrderService {
             if (donvi === 1) result += ' một';
             else if (donvi === 5) result += ' lăm';
             else if (donvi > 0) result += ' ' + this.ChuSo[donvi];
-        } else if (chuc === 0 && donvi > 0 && tram === 0) {
-            result += this.ChuSo[donvi];
+        } else if (chuc === 0 && donvi > 0) {
+            // result += this.ChuSo[donvi];
+            result += ' ' + this.ChuSo[donvi];
         }
 
         return result.trim();
@@ -166,6 +167,9 @@ export class PaymentOrderService {
                 temp = Math.floor(temp / 1000);
                 i++;
             }
+
+
+
 
             result =
                 text.charAt(0).toUpperCase() +

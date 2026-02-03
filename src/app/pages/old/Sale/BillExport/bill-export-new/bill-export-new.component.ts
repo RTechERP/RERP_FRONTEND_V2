@@ -441,6 +441,10 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                     },
                 ],
             },
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
 
     }
@@ -649,6 +653,18 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             );
             // Double click đã được xử lý qua (onDblClick) trong HTML template
         }
+
+        // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi
+        if (angularGrid.dataView) {
+            angularGrid.dataView.onRowCountChanged.subscribe(() => {
+                this.updateMasterFooterRow();
+            });
+        }
+
+        // Update footer row sau khi grid ready
+        setTimeout(() => {
+            this.updateMasterFooterRow();
+        }, 100);
     }
 
     angularGridDetailReady(angularGrid: AngularGridInstance) {
@@ -2265,6 +2281,34 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             this.isLoadTable = false;
         }
     }
+    //#endregion
+
+    //#region Footer Row
+
+    /**
+     * Update footer row - hiển thị count số dòng
+     * Sử dụng textContent để tránh re-render gây mất focus
+     */
+    updateMasterFooterRow(): void {
+        if (!this.angularGridMaster || !this.angularGridMaster.slickGrid) return;
+
+        const count = this.angularGridMaster.dataView?.getFilteredItems()?.length || 0;
+
+        // Update footer cho cột Code
+        const footerCell = this.angularGridMaster.slickGrid.getFooterRowColumn('Code');
+        if (footerCell) {
+            footerCell.textContent = `${this.formatNumber(count, 0)}`;
+        }
+    }
+
+    formatNumber(num: number, digits: number = 0): string {
+        num = num || 0;
+        return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        });
+    }
+
     //#endregion
 
 }

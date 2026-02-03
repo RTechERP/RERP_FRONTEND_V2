@@ -10,6 +10,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { DateTime } from 'luxon';
+import { HttpClient } from '@angular/common/http';
 import { DocumentService } from '../document-service/document.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { ActivatedRoute } from '@angular/router';
@@ -48,6 +49,7 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     private downloadBasePath = '\\\\113.190.234.64\\ftp\\Upload\\RTCDocument\\';
 
     constructor(
+        private http: HttpClient,
         private documentService: DocumentService,
         private notification: NzNotificationService,
         private message: NzMessageService,
@@ -168,9 +170,14 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
                         if (!rowData.FileName) {
                             return cell.getValue() || '';
                         }
-                        const linkBase = 'http://14.232.152.154:8083/api/Upload/RTCDocument/';
-                        return `<p class="m-0 p-0 text-left"><a href="/Document/GetBlobDownload?path=${linkBase}${rowData.FileName}&file_name=${rowData.FileName}">${rowData.Code}</a></p>`;
+                        return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${cell.getValue()}</span>`;
                     },
+                    cellClick: (e: any, cell: any) => {
+                        const rowData = cell.getRow().getData();
+                        if (rowData.FileName) {
+                            this.downloadFile(rowData);
+                        }
+                    }
                 },
                 { title: 'Tên văn bản', field: 'NameDocument', width: 350, headerSort: true, formatter: 'textarea' },
                 {
@@ -204,69 +211,37 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     }
 
     downloadFile(file: any): void {
-        const fileName = (file.FileName || file.Code || '').toString();
-        if (!fileName) {
+        if (!file) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+            return;
+        }
+
+        if (!file.FileName) {
             this.notification.warning('Thông báo', 'Không có file để tải xuống!');
             return;
         }
 
-        // Nếu không có FilePath thì dùng URL trực tiếp để tải (giống DocumentComponent)
-        if (!file.FilePath) {
-            const directUrl = `http://14.232.152.154:8083/api/Upload/RTCDocument/${encodeURIComponent(fileName)}`;
+        // Sử dụng GetBlobDownload endpoint với HTTP GET blob approach
+        const linkBase = 'http://113.190.234.64:8083/api/Upload/RTCDocument/';
+        const downloadUrl = `http://113.190.234.64:8081/Document/GetBlobDownload?path=${linkBase}${encodeURIComponent(file.FileName)}&file_name=${encodeURIComponent(file.FileName)}`;
 
-            const link = document.createElement('a');
-            link.href = directUrl;
-            link.download = fileName;
-            link.target = '_blank';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            this.notification.success('Thông báo', 'Đang tải xuống file...');
-            return;
-        }
+        this.http.get(downloadUrl, { responseType: 'blob' }).subscribe(blob => {
+            if (blob && blob.size > 0) {
+                const a = document.createElement('a');
+                const objectUrl = URL.createObjectURL(blob);
 
-        const filePath = file.FilePath.startsWith('\\\\') ? file.FilePath : `${this.downloadBasePath}${fileName}`;
+                a.href = objectUrl;
+                a.download = file.FileName;
+                a.click();
 
-        const loadingMsg = this.message.loading('Đang tải xuống file...', {
-            nzDuration: 0,
-        }).messageId;
-
-        this.documentService.downloadFile(filePath).subscribe({
-            next: (blob: Blob) => {
-                this.message.remove(loadingMsg);
-
-                if (blob && blob.size > 0) {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = fileName;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                    this.notification.success('Thông báo', 'Tải xuống thành công!');
-                } else {
-                    // Nếu tải qua API thất bại (blob rỗng), thử tải trực tiếp
-                    this.downloadDirectly(fileName);
-                }
-            },
-            error: (res: any) => {
-                this.message.remove(loadingMsg);
-                // Nếu có lỗi khi tải qua API, thử tải trực tiếp
-                this.downloadDirectly(fileName);
-            },
+                URL.revokeObjectURL(objectUrl);
+                this.notification.success('Thông báo', 'Tải xuống thành công!');
+            } else {
+                this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+            }
+        }, error => {
+            console.error('Lỗi khi tải file:', error.error.message|| error.message);
+            this.notification.error('Thông báo', error.error.message|| error.message||'Tải xuống thất bại! Vui lòng thử lại.');
         });
-    }
-
-    private downloadDirectly(fileName: string): void {
-        const directUrl = `http://14.232.152.154:8083/api/Upload/RTCDocument/${encodeURIComponent(fileName)}`;
-        const link = document.createElement('a');
-        link.href = directUrl;
-        link.download = fileName;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        this.notification.success('Thông báo', 'Đang thử tải xuống trực tiếp...');
     }
 }

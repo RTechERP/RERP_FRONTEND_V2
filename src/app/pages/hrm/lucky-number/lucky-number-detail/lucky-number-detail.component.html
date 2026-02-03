@@ -1,1 +1,58 @@
-<p>lucky-number-detail works!</p>
+<div class="modal-content">
+    <div class="modal-header bg-primary py-2">
+        <h5 class="modal-title text-uppercase text-light" id="staticBackdropLabel">Chi tiết nhân viên quay số
+        </h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.close()"></button>
+    </div>
+    <div class="modal-body">
+        <form nz-form nzLayout="vertical" [formGroup]="validateForm">
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="24" nzMd="8" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Năm <span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn năm">
+                            <nz-input-number [formControlName]="'YearValue'"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col nzXs="24" nzSm="24" nzMd="8" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Nhân viên <span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn nhân viên">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên"
+                                [formControlName]="'EmployeeID'">
+                                @for (item of employees; track item) {
+                                <nz-option nzLabel="{{item.Code}} - {{item.FullName}}" [nzValue]="item.ID"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="24" nzMd="8" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Số điện thoại</nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập số điện thoại">
+                            <input nz-input [formControlName]="'PhoneNumber'">
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+        </form>
+
+        <div class="grid-container-detail border" style="height:30vh;">
+            <angular-slickgrid gridId="grdDetail" [columns]="columnDefinitions" [options]="gridOptions"
+                [dataset]="employees" (onAngularGridCreated)="angularGridReady($event.detail)">
+            </angular-slickgrid>
+        </div>
+    </div>
+    <div class="modal-footer py-2">
+        <button nz-button nzType="default" nzDanger="" (click)="activeModal.close()">
+            <nz-icon nzType="close" nzTheme="outline" /> Đóng
+        </button>
+        <button nz-button nzType="primary" (click)="submitForm()">
+            <nz-icon nzType="save" nzTheme="outline" /> Lưu
+        </button>
+    </div>
+</div>

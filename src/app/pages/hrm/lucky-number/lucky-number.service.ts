@@ -21,15 +21,17 @@ export class LuckyNumberService {
         return this.http.get<any>(this.url, { params });
     }
 
-    getRandomNumber(year: number): Observable<any> {
-        const params = new HttpParams()
-            .set('year', year)
-
-        return this.http.get<any>(this.url + '/get-random-number', { params });
+    getRandomNumber(data: any): Observable<any> {
+        return this.http.post<any>(this.url + '/get-random-number', data);
     }
 
 
-    savedata(data: any): Observable<any> {
+    getEmployees(): Observable<any> {
+        return this.http.get<any>(environment.host + 'api/employee/employees');
+    }
+
+
+    savedata(data: any[]): Observable<any> {
         return this.http.post<any>(this.url + '/save-data', data);
     }
 }

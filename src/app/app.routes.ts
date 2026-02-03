@@ -1025,6 +1025,7 @@ export const routes: Routes = [
             { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },
 
             { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
+            { path: 'lucky-number-person', component: LuckyNumberComponent, canActivate: [authGuard] },
             { path: 'lucky-number', component: LuckyNumberComponent, canActivate: [authGuard] },
         ],
     },

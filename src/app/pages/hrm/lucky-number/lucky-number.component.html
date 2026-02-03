@@ -11,14 +11,17 @@
     </ng-template>
 </p-menubar>
 
-<div class="grid-container border" style="height:89vh;">
-    <angular-slickgrid gridId="grdData" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
-        (onAngularGridCreated)="angularGridReady($event.detail)">
+<div class=" border" [ngClass]="'grid-container-luckynumber' + isPerson" style="height:89vh;">
+    <!-- <angular-slickgrid [gridId]="'grdDataluckynumber' + isPerson" [columns]="columnDefinitions" [options]="gridOptions"
+        [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+    </angular-slickgrid> -->
+    <angular-slickgrid [gridId]="'grdDataluckynumber' + isPerson" [columns]="columnDefinitions" [options]="gridOptions"
+        [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
     </angular-slickgrid>
 </div>
 
 
-<nz-modal [(nzVisible)]="isVisible" nzTitle="The first Modal" (nzOnOk)="handleOk()">
+<nz-modal [(nzVisible)]="isVisible" nzTitle="NHẬN SỐ MAY MẮN" (nzOnOk)="handleOk()">
     <ng-container *nzModalContent>
         <div class="d-flex justify-content-center justify-items-center">
             <p class="m-0" style="font-size:200px; font-weight:bold;">{{luckyNumber}}</p>

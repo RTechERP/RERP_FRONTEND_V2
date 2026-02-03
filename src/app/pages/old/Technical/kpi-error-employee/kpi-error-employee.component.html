@@ -36,7 +36,7 @@
                     <nz-form-label class="fs-12" style="font-size: 12px;">Loại lỗi</nz-form-label>
                     <nz-form-control>
                         <nz-select [(ngModel)]="kpiErrorTypeId" name="kpiErrorTypeId" nzSize="small"
-                            nzPlaceHolder="Chọn loại lỗi" nzAllowClear style="width: 150px;"
+                            nzPlaceHolder="Chọn loại lỗi" nzAllowClear style="width: 250px;"
                             (ngModelChange)="onTypeChange()">
                             <nz-option *ngFor="let item of kpiErrorTypes" [nzValue]="item.ID"
                                 [nzLabel]="item.Name"></nz-option>
@@ -75,7 +75,7 @@
                                                 <nz-select [(ngModel)]="kpiErrorId" name="kpiErrorId" nzSize="small"
                                                     nzPlaceHolder="Chọn lỗi" nzAllowClear class="w-100">
                                                     <nz-option *ngFor="let item of kpiErrors" [nzValue]="item.ID"
-                                                        [nzLabel]="item.Code"></nz-option>
+                                                        [nzLabel]="item.Code + ' - ' + (item.Content || '')"></nz-option>
                                                 </nz-select>
                                             </nz-form-control>
                                         </nz-form-item>

@@ -1152,6 +1152,11 @@ export class BillImportComponent implements OnInit, AfterViewInit {
                         field: 'Suplier',
                         hozAlign: 'left',
                         headerHozAlign: 'center',
+                        variableHeight: true,
+                        formatter: (cell: any) => {
+                            const value = cell.getValue() || '';
+                            return `<div style="white-space: pre-wrap; word-wrap: break-word; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; line-height: 1.4;">${value}</div>`;
+                        },
                     },
                     {
                         title: 'Phòng ban',

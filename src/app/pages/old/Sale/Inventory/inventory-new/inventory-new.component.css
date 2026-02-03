@@ -4,3 +4,6 @@
   padding: 4px 6px;
   font-size: 0.75rem;
 }
+::ng-deep div[id^="grid-inventory-"] {
+  min-height: 94vh !important;
+}

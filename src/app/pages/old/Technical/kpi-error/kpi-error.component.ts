@@ -390,6 +390,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 120,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -404,6 +405,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 120,
+                formatter: this.commonTooltipFormatter,
             },
             {
                 id: 'TypeName',
@@ -413,6 +415,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 minWidth: 150,
                 hidden: true,
+                formatter: this.commonTooltipFormatter,
             },
             {
                 id: 'Content',
@@ -421,6 +424,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 300,
+                formatter: this.commonTooltipFormatter,
             },
             {
                 id: 'Quantity',
@@ -440,6 +444,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 80,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -464,6 +469,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 150,
+                formatter: this.commonTooltipFormatter,
             },
             // Column group: Đánh giá
             {
@@ -659,4 +665,37 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
         this.angularGrid.slickGrid.invalidate();
         this.angularGrid.slickGrid.render();
     }
+
+    // Helper function to escape HTML special characters for title attributes
+    private escapeHtml(text: string | null | undefined): string {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+        if (!value) return '';
+        const escaped = this.escapeHtml(value);
+        return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
+    };
 }

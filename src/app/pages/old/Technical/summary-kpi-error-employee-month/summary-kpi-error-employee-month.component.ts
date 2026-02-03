@@ -135,9 +135,9 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
     // --- Chart Tab Logic (Tab 2) ---
     initGrid_BD(): void {
         this.columnDefinitions_BD = [
-            { id: 'Code', name: 'Mã lỗi', field: 'Code', sortable: true, filterable: true, minWidth: 30 },
+            { id: 'Code', name: 'Mã lỗi', field: 'Code', sortable: true, filterable: true, minWidth: 30, formatter: this.commonTooltipFormatter },
             { id: 'TypeName', name: 'Loại lỗi', field: 'TypeName', sortable: true, filterable: true, minWidth: 150, hidden: true },
-            { id: 'Content', name: 'Nội dung', field: 'Content', sortable: true, filterable: true, minWidth: 200 },
+            { id: 'Content', name: 'Nội dung', field: 'Content', sortable: true, filterable: true, minWidth: 200, formatter: this.commonTooltipFormatter },
         ];
 
         this.gridOptions_BD = {
@@ -296,7 +296,7 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
     initGrid_TK(): void {
         this.columnDefinitions_TK = [
             {
-                id: 'Code', name: 'Mã', field: 'Code', sortable: true, filterable: true, minWidth: 80, grouping: {
+                id: 'Code', name: 'Mã', field: 'Code', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, grouping: {
                     getter: 'Code',
                     formatter: (g) => `Mã: ${g.value}  <span style="color:green">(${g.count} items)</span>`,
                     aggregators: [],
@@ -314,8 +314,8 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
                     collapsed: false
                 }
             },
-            { id: 'Content', name: 'Nội dung', field: 'Content', sortable: true, filterable: true, minWidth: 250 },
-            { id: 'Unit', name: 'Đơn vị', field: 'Unit', sortable: true, filterable: true, minWidth: 80 },
+            { id: 'Content', name: 'Nội dung', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter },
+            { id: 'Unit', name: 'Đơn vị', field: 'Unit', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter },
             // Dynamic Month columns will be added here
         ];
 
@@ -524,4 +524,37 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
             }, 200);
         }
     }
+
+    // Helper function to escape HTML special characters for title attributes
+    private escapeHtml(text: string | null | undefined): string {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+        if (!value) return '';
+        const escaped = this.escapeHtml(value);
+        return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
+    };
 }

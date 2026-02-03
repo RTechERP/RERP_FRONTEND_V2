@@ -52,10 +52,10 @@
                 nzPlaceHolder="--Chọn công ty--"
               >
                 @for (item of companies; track $index) {
-                <nz-option
-                  [nzLabel]="item.title"
-                  [nzValue]="item.value"
-                ></nz-option>
+                  <nz-option
+                    [nzLabel]="item.title"
+                    [nzValue]="item.value"
+                  ></nz-option>
                 }
               </nz-select>
             </nz-form-control>
@@ -196,27 +196,47 @@
                     [nzSpan]="24"
                     nzErrorTip="Vui lòng nhập ngân hàng!"
                   >
-                    <input
+                    <!-- <input
                       nz-input
                       name="NganHang"
                       formControlName="NganHang"
                       placeholder="Nhập tên ngân hàng"
-                    />
+                    /> -->
+
+                    <textarea
+                      nz-input
+                      name="NganHang"
+                      formControlName="NganHang"
+                      placeholder="Nhập tên ngân hàng"
+                      [nzAutosize]="{ minRows: 1, maxRows: 5 }"
+                    ></textarea>
                   </nz-form-control>
                 </nz-form-item>
               </div>
               <div nz-col [nzSpan]="8">
                 <nz-form-item>
                   <nz-form-label [nzSpan]="24" class="fw-semibold"
-                    >Số tài khoản <span class="text-danger ms-1">(*)</span></nz-form-label
+                    >Số tài khoản
+                    <span class="text-danger ms-1">(*)</span></nz-form-label
                   >
-                  <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập số tài khoản!">
-                    <input
+                  <nz-form-control
+                    [nzSpan]="24"
+                    nzErrorTip="Vui lòng nhập số tài khoản!"
+                  >
+                    <!-- <input
                       nz-input
                       name="SoTK"
                       formControlName="SoTK"
                       placeholder="Nhập số tài khoản"
-                    />
+                    /> -->
+
+                    <textarea
+                      nz-input
+                      name="SoTK"
+                      formControlName="SoTK"
+                      placeholder="Nhập số tài khoản"
+                      [nzAutosize]="{ minRows: 1, maxRows: 5 }"
+                    ></textarea>
                   </nz-form-control>
                 </nz-form-item>
               </div>
@@ -395,10 +415,10 @@
                           formControlName="RulePayID"
                         >
                           @for (item of rulepays; track $index) {
-                          <nz-option
-                            [nzLabel]="item.title"
-                            [nzValue]="item.value"
-                          ></nz-option>
+                            <nz-option
+                              [nzLabel]="item.title"
+                              [nzValue]="item.value"
+                            ></nz-option>
                           }
                         </nz-select>
                       </div>
@@ -517,12 +537,22 @@
       Đóng
     </button>
     <div *ngIf="isUpdate">
-      <button nz-button nzType="primary" (click)="onSubmit()" *hasPermission="'N27,N33,N35,N1'">
+      <button
+        nz-button
+        nzType="primary"
+        (click)="onSubmit()"
+        *hasPermission="'N27,N33,N35,N1'"
+      >
         <i class="fas fa-save me-1"></i> Cập nhật
       </button>
     </div>
     <div *ngIf="isAddNew">
-      <button nz-button nzType="primary" (click)="onSubmit()" *hasPermission="'N27,N33,N52,N53,N35,N1'">
+      <button
+        nz-button
+        nzType="primary"
+        (click)="onSubmit()"
+        *hasPermission="'N27,N33,N52,N53,N35,N1'"
+      >
         <i class="fas fa-save me-1"></i> Lưu
       </button>
     </div>

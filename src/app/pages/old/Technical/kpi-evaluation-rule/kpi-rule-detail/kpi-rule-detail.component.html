@@ -1,0 +1,108 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT RULE ĐÁNH GIÁ</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-3">
+    <nz-spin [nzSpinning]="isLoading" nzTip="Đang xử lý...">
+        <!-- Row 1: STT & Parent Group -->
+        <div class="row mb-2 align-items-center">
+            <div class="col-md-1">
+                <label class="m-0 text-nowrap font-weight-bold">
+                    STT
+                    <span class="text-danger">(*)</span>
+                </label>
+            </div>
+            <div class="col-md-1">
+                <input nz-input nzSize="small" [(ngModel)]="stt" (blur)="errors.stt = ''" />
+                <span class="text-danger fs-xs" *ngIf="errors.stt">{{ errors.stt }}</span>
+            </div>
+            <div class="col-md-1">
+                <label class="m-0 text-nowrap">Nhóm cha</label>
+            </div>
+            <div class="col-md-8">
+                <nz-tree-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhóm cha" [(ngModel)]="selectedParentId"
+                    [nzNodes]="parentGroupNodes" nzSize="small" [nzDefaultExpandAll]="true" nzVirtualHeight="250px"
+                    (ngModelChange)="onParentChange()" style="width: 100%;">
+                </nz-tree-select>
+            </div>
+            <div class="col-md-1">
+                <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="Làm mới"
+                    (click)="onRefreshParentGroups()">
+                    <span nz-icon nzType="reload"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Row 2: Rule Code -->
+        <div class="row mb-2 align-items-center">
+            <div class="col-md-1">
+                <label class="m-0 text-nowrap">Mã Rule</label>
+            </div>
+            <div class="col-md-11">
+                <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn mã Rule" [(ngModel)]="selectedKPIEvaluationId"
+                    style="width: 100%;" nzSize="small">
+                    <nz-option *ngFor="let item of kpiEvaluations" [nzValue]="item.ID"
+                        [nzLabel]="item.EvaluationCode + ' - ' + (item.ErrorCode || '') + ' - ' + (item.Note || '')">
+                    </nz-option>
+                </nz-select>
+            </div>
+        </div>
+
+        <!-- Row 3: Max Percent, Percentage Adjustment, Max Percentage Adjustment -->
+        <div class="row mb-2 align-items-center">
+            <div class="col-md-2">
+                <label class="m-0 text-nowrap">Tổng % thưởng tối đa</label>
+            </div>
+            <div class="col-md-2">
+                <nz-input-number [(ngModel)]="maxPercent" [nzStep]="0.1" nzSize="small"
+                    style="width: 100%;"></nz-input-number>
+            </div>
+            <div class="col-md-2 text-end">
+                <label class="m-0 text-nowrap">Số % trừ (cộng) 1 lần</label>
+            </div>
+            <div class="col-md-2">
+                <nz-input-number [(ngModel)]="percentageAdjustment" [nzStep]="0.1" nzSize="small"
+                    style="width: 100%;"></nz-input-number>
+            </div>
+            <div class="col-md-2 text-end">
+                <label class="m-0 text-nowrap">Tổng % trừ (cộng) lớn nhất</label>
+            </div>
+            <div class="col-md-2">
+                <nz-input-number [(ngModel)]="maxPercentageAdjustment" [nzStep]="0.1" nzSize="small"
+                    style="width: 100%;"></nz-input-number>
+            </div>
+        </div>
+
+        <!-- Row 4: Nội dung đánh giá -->
+        <div class="row mb-2">
+            <div class="col-md-8">
+                <label class="m-0 text-nowrap font-weight-bold mb-1">
+                    Nội dung đánh giá
+                    <span class="text-danger">(*)</span>
+                </label>
+                <textarea nz-input [(ngModel)]="ruleContent" rows="14" (blur)="errors.ruleContent = ''"></textarea>
+                <span class="text-danger fs-xs" *ngIf="errors.ruleContent">{{ errors.ruleContent }}</span>
+            </div>
+            <div class="col-md-4">
+                <label class="m-0 text-nowrap mb-1">Rule</label>
+                <textarea nz-input [(ngModel)]="ruleNote" rows="4" class="mb-1"></textarea>
+
+                <label class="m-0 text-nowrap mb-1">Ghi chú</label>
+                <textarea nz-input [(ngModel)]="note" rows="8"></textarea>
+            </div>
+        </div>
+    </nz-spin>
+</div>
+
+<div class="modal-footer p-2">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <!-- <button nz-button nzType="default" nzSize="default" (click)="saveAndNew()" [nzLoading]="isSaving">
+        <i class="fas fa-save"></i> Cất & Thêm mới
+    </button> -->
+    <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()" [nzLoading]="isSaving">
+        <i class="fas fa-save"></i> Lưu
+    </button>
+</div>

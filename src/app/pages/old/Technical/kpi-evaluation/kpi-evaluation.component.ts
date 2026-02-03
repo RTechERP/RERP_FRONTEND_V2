@@ -126,6 +126,7 @@ export class KpiEvaluationComponent implements OnInit {
         sortable: true,
         filterable: true,
         minWidth: 220,
+        formatter: this.commonTooltipFormatter,
       },
       {
         id: 'ErrorCode',
@@ -134,6 +135,7 @@ export class KpiEvaluationComponent implements OnInit {
         sortable: true,
         filterable: true,
         minWidth: 220,
+        formatter: this.commonTooltipFormatter,
       },
       {
         id: 'Note',
@@ -142,10 +144,7 @@ export class KpiEvaluationComponent implements OnInit {
         sortable: true,
         filterable: true,
         minWidth: 260,
-        formatter: (_row, _cell, value) => {
-          if (value === null || value === undefined) return '';
-          return String(value);
-        },
+        formatter: this.commonTooltipFormatter,
       },
     ];
 
@@ -156,6 +155,7 @@ export class KpiEvaluationComponent implements OnInit {
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container',
       },
+      forceFitColumns: true,
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: true,
@@ -305,5 +305,38 @@ export class KpiEvaluationComponent implements OnInit {
       },
     });
   }
+
+  // Helper function to escape HTML special characters for title attributes
+  private escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+    if (!value) return '';
+    const escaped = this.escapeHtml(value);
+    return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
+  };
 }
 

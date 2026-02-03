@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, Optional } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, AfterViewInit, Optional, ElementRef, NgZone } from '@angular/core';
 import * as ExcelJS from 'exceljs';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -21,17 +21,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import {
-    AngularGridInstance,
-    AngularSlickgridModule,
-    Column,
-    Filters,
-    Formatters,
-    GridOption,
-    MultipleSelectOption,
-    OnClickEventArgs,
-    OnSelectedRowsChangedEventArgs,
-} from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnClickEventArgs, OnSelectedRowsChangedEventArgs, } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { BillImportServiceService } from '../bill-import-service/bill-import-service.service';
 import { AppUserService } from '../../../../../services/app-user.service';
@@ -46,6 +36,7 @@ import { environment } from '../../../../../../environments/environment';
 // import { ClipboardService } from '../../../../../services/clipboard.service';
 // import { BillImportDetailNewComponent } from './bill-import-detail-new/bill-import-detail-new.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { BillImportDetailNewComponent } from './bill-import-detail-new/bill-import-detail-new.component';
 
 interface BillImport {
     Id?: number;
@@ -95,7 +86,7 @@ interface BillImport {
     templateUrl: './bill-import-new.component.html',
     styleUrls: ['./bill-import-new.component.css']
 })
-export class BillImportNewComponent implements OnInit {
+export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit {
     // Angular SlickGrid instances
     angularGridMaster!: AngularGridInstance;
     angularGridDetail!: AngularGridInstance;
@@ -103,6 +94,10 @@ export class BillImportNewComponent implements OnInit {
     // Export progress tracking
     exportProgress = { current: 0, total: 0, fileName: '' };
     private exportModalRef: any = null;
+
+    // ResizeObserver để detect khi tab được hiển thị lại
+    private resizeObserver: ResizeObserver | null = null;
+    private lastVisibleWidth: number = 0;
 
     // Column definitions
     columnDefinitionsMaster: Column[] = [];
@@ -196,7 +191,9 @@ export class BillImportNewComponent implements OnInit {
         private route: ActivatedRoute,
         // private clipboardService: ClipboardService,
         private message: NzMessageService,
-        @Optional() @Inject('tabData') private tabData: any
+        @Optional() @Inject('tabData') private tabData: any,
+        private elementRef: ElementRef,
+        private ngZone: NgZone
     ) { }
 
     ngOnInit(): void {
@@ -227,6 +224,48 @@ export class BillImportNewComponent implements OnInit {
             this.getProductGroup();
             this.loadDataBillImport();
         });
+    }
+
+    ngAfterViewInit(): void {
+        // Sử dụng ResizeObserver để detect khi component được hiển thị lại (tab switch)
+        this.setupResizeObserver();
+    }
+
+    ngOnDestroy(): void {
+        // Cleanup ResizeObserver khi component bị destroy
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+    }
+
+    /**
+     * Setup ResizeObserver để detect khi tab được hiển thị lại
+     * Khi tab bị ẩn (hidden), width = 0. Khi hiện lại, width > 0
+     * Lúc đó cần trigger resize grid để SlickGrid tính toán lại kích thước
+     */
+    private setupResizeObserver(): void {
+        const element = this.elementRef.nativeElement;
+
+        this.resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const currentWidth = entry.contentRect.width;
+
+                // Detect khi chuyển từ hidden (width = 0) sang visible (width > 0)
+                if (this.lastVisibleWidth === 0 && currentWidth > 0) {
+                    // Tab vừa được hiển thị lại, cần resize grids
+                    this.ngZone.run(() => {
+                        setTimeout(() => {
+                            this.resizeGrids();
+                        }, 50);
+                    });
+                }
+
+                this.lastVisibleWidth = currentWidth;
+            }
+        });
+
+        this.resizeObserver.observe(element);
     }
 
     // =================================================================
@@ -683,6 +722,10 @@ export class BillImportNewComponent implements OnInit {
                 sanitizeDataExport: true,
                 exportWithFormatter: true,
             },
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
     }
 
@@ -811,7 +854,7 @@ export class BillImportNewComponent implements OnInit {
                 field: 'CustomerFullName',
                 sortable: true,
                 filterable: true,
-                width: 200,
+                width: 400,
                 filter: { model: Filters['compoundInputText'] }
             },
             {
@@ -875,11 +918,19 @@ export class BillImportNewComponent implements OnInit {
     // =================================================================
 
     resizeGrids(): void {
-        if (this.angularGridMaster?.resizerService) {
-            this.angularGridMaster.resizerService.resizeGrid();
+        try {
+            if (this.angularGridMaster?.resizerService) {
+                this.angularGridMaster.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
-        if (this.angularGridDetail?.resizerService) {
-            this.angularGridDetail.resizerService.resizeGrid();
+        try {
+            if (this.angularGridDetail?.resizerService) {
+                this.angularGridDetail.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
     }
 
@@ -890,7 +941,13 @@ export class BillImportNewComponent implements OnInit {
         // Use dataView's onRowCountChanged which fires after filtering
         this.angularGridMaster.dataView.onRowCountChanged.subscribe(() => {
             // this.applyDistinctFiltersToMaster(true); // true = use filtered data
+            this.updateMasterFooterRow();
         });
+
+        // Update footer row sau khi grid ready
+        setTimeout(() => {
+            this.updateMasterFooterRow();
+        }, 100);
 
         // Subscribe to onClick event để handle cell click
         this.angularGridMaster.slickGrid.onClick.subscribe((e, args) => {
@@ -1195,8 +1252,8 @@ export class BillImportNewComponent implements OnInit {
             this.id = 0;
             return;
         }
-        const modalRef = this.modalService.open(BillImportDetailComponent, {
-            // const modalRef = this.modalService.open(BillImportDetailNewComponent, {
+        // const modalRef = this.modalService.open(BillImportDetailComponent, {
+        const modalRef = this.modalService.open(BillImportDetailNewComponent, {
             centered: true,
             backdrop: 'static',
             keyboard: false,
@@ -1682,6 +1739,11 @@ export class BillImportNewComponent implements OnInit {
     }
 
     resetform(): void {
+        // Clear all SlickGrid filters
+        if (this.angularGridMaster?.filterService) {
+            this.angularGridMaster.filterService.clearFilters();
+        }
+
         this.selectedKhoTypes = [];
         const dateStart = new Date();
         dateStart.setMonth(dateStart.getMonth() - 1);
@@ -1788,25 +1850,8 @@ export class BillImportNewComponent implements OnInit {
 
     openModalBillImportSynthetic() {
         // OLD CODE - using BillImportSyntheticComponent
-        import('../Modal/bill-import-synthetic/bill-import-synthetic.component').then(m => {
-            const modalRef = this.modalService.open(m.BillImportSyntheticComponent, {
-                centered: true,
-                backdrop: 'static',
-                keyboard: false,
-                fullscreen: true,
-            });
-            modalRef.componentInstance.warehouseCode = this.wareHouseCode;
-            modalRef.result.catch((result) => {
-                if (result == true) {
-                    // this.id=0;
-                    // this.loadDataBillImport();
-                }
-            });
-        });
-
-        // NEW CODE - using BillImportSyntheticNewComponent
-        // import('../Modal/bill-import-synthetic-new/bill-import-synthetic-new.component').then(m => {
-        //     const modalRef = this.modalService.open(m.BillImportSyntheticNewComponent, {
+        // import('../Modal/bill-import-synthetic/bill-import-synthetic.component').then(m => {
+        //     const modalRef = this.modalService.open(m.BillImportSyntheticComponent, {
         //         centered: true,
         //         backdrop: 'static',
         //         keyboard: false,
@@ -1815,10 +1860,27 @@ export class BillImportNewComponent implements OnInit {
         //     modalRef.componentInstance.warehouseCode = this.wareHouseCode;
         //     modalRef.result.catch((result) => {
         //         if (result == true) {
-        //             this.loadDataBillImport();
+        //             // this.id=0;
+        //             // this.loadDataBillImport();
         //         }
         //     });
         // });
+
+        // NEW CODE - using BillImportSyntheticNewComponent
+        import('../Modal/bill-import-synthetic-new/bill-import-synthetic-new.component').then(m => {
+            const modalRef = this.modalService.open(m.BillImportSyntheticNewComponent, {
+                centered: true,
+                backdrop: 'static',
+                keyboard: false,
+                fullscreen: true,
+            });
+            modalRef.componentInstance.warehouseCode = this.wareHouseCode;
+            modalRef.result.catch((result) => {
+                if (result == true) {
+                    this.loadDataBillImport();
+                }
+            });
+        });
     }
 
     deleteBillImport() {
@@ -2264,4 +2326,32 @@ export class BillImportNewComponent implements OnInit {
         this.angularGridMaster.slickGrid.invalidate();
         this.angularGridMaster.slickGrid.render();
     }
+
+    //#region Footer Row
+
+    /**
+     * Update footer row - hiển thị count số phiếu
+     * Sử dụng textContent để tránh re-render gây mất focus
+     */
+    updateMasterFooterRow(): void {
+        if (!this.angularGridMaster || !this.angularGridMaster.slickGrid) return;
+
+        const count = this.angularGridMaster.dataView?.getFilteredItems()?.length || 0;
+
+        // Update footer cho cột Số phiếu (BillImportCode)
+        const footerCell = this.angularGridMaster.slickGrid.getFooterRowColumn('BillImportCode' + this.wareHouseCode);
+        if (footerCell) {
+            footerCell.textContent = `${this.formatNumber(count, 0)}`;
+        }
+    }
+
+    formatNumber(num: number, digits: number = 0): string {
+        num = num || 0;
+        return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        });
+    }
+
+    //#endregion
 }

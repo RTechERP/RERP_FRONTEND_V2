@@ -85,6 +85,13 @@ export class BillImportServiceService {
             environment.host + `api/billImport/get-bill-code?billType=${billType}`
         );
     }
+    checkBillCode(billCode: string): Observable<any> {
+        return this.http.post<any>(
+            environment.host + `api/billImport/check-bill-code`,
+            JSON.stringify(billCode),
+            { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
+        );
+    }
     getDocumentImport(PONCCID: number, BillImportID: number) {
         return this.http.get<any>(
             environment.host +

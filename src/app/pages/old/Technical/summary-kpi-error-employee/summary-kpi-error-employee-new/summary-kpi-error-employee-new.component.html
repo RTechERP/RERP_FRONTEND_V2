@@ -96,6 +96,25 @@
 
                     <!-- Right Legends -->
                     <div class="d-flex gap-3 align-items-center">
+                        <!-- Info icon with tooltip -->
+                        <span nz-icon nzType="info-circle" nzTheme="fill" class="info-icon-red" nz-tooltip
+                            [nzTooltipTitle]="tooltipTemplate" nzTooltipPlacement="bottomLeft"
+                            nzTooltipOverlayClassName="custom-tooltip-large"></span>
+                        <ng-template #tooltipTemplate>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Chú ý</div>
+                                <div class="tooltip-body">
+                                    <p>- Hệ số tiền phạt sẽ X2 lần nếu nhân viên vi phạm lại lỗi của 2 tuần đầu tiên
+                                        trong tháng.</p>
+                                    <p>- 3 lần "báo cáo công việc muộn" sẽ tính là 1 lần bị phạt và hệ số tiền phạt mặc
+                                        định X1.</p>
+                                    <p>- Lỗi mã L4, L5: Nếu không vi phạm trong 30 ngày tiếp theo kể từ lần gần nhất, số
+                                        lần vi phạm sẽ
+                                        được đặt lại về 1.</p>
+                                    <p>- Tiền phạt = 50,000 × 2<sup>(số lần - 1)</sup>.</p>
+                                </div>
+                            </div>
+                        </ng-template>
                         <div class="d-flex align-items-center gap-1">
                             <div style="width: 20px; height: 15px; background-color: #FFFF4A; border: 1px solid #ccc;">
                             </div>

@@ -243,6 +243,9 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             }
         }
     }
+
+
+
     loadDataFromPONCC() {
         this.paymentService.getDataFromPONCC(this.ponccID).subscribe({
             next: (response) => {
@@ -307,7 +310,13 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         return gridInstance?.slickGrid?.getColumns().findIndex(x => x.id == fieldName) ?? -1;
     }
     ngAfterViewInit(): void {
+        // this.angularGrid?.slickGrid.onRendered.subscribe(() => {
+        //     this.updateTotal(8);
+        // })
 
+        // this.angularGrid2?.slickGrid.onRendered.subscribe(() => {
+        //     this.updateTotal(8);
+        // })
     }
 
     initDataCombo() {
@@ -342,7 +351,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
     initFormGroup() {
 
-        // console.log('this.paymentOrder edit:', this.paymentOrder);
+        console.log('this.paymentOrder edit:', this.paymentOrder);
 
         // flatpickr('#dt', {
         //     enableTime: true,
@@ -377,7 +386,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             AccountNumber: this.fb.control(this.paymentOrder.AccountNumber),
             Bank: this.fb.control(this.paymentOrder.Bank),
             ContentBankTransfer: this.fb.control(this.paymentOrder.ContentBankTransfer),
-            Unit: this.fb.control(this.paymentOrder.Unit, [Validators.required]),
+            Unit: this.fb.control(this.paymentOrder.Unit?.toLowerCase(), [Validators.required]),
 
         });
 
@@ -485,7 +494,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
                 const columnId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field);
                 const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
-                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(parseFloat(columnElement.textContent || ''), value);
+                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(parseFloat((columnElement.textContent || '').replace(/,/g, '')), value);
             });
     }
 
@@ -796,16 +805,19 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         if (this.paymentOrder.ID > 0) {
             this.paymentService.getDetail(this.paymentOrder.ID).subscribe({
                 next: (response) => {
-                    console.log(response);
+                    // console.log(response);
 
                     if (this.paymentOrder.TypeOrder != 2) {
                         this.dataset = response.data.details;
                         this.dataset = this.dataset.map((x, i) => ({
                             ...x,
                             _id: i + 1,
-                            ParentID: x.ParentId == 0 ? null : x.ParentId
-
+                            ParentID: x.ParentId == 0 ? null : x.ParentId,
+                            PaymentPercentage: x.PaymentPercentage <= 0 ? 100 : x.PaymentPercentage,
+                            TotalPaymentAmount: x.TotalMoney * (x.PaymentPercentage <= 0 ? 100 : x.PaymentPercentage) / 100
                         }));
+
+                        this.updateTotalByData(8, this.dataset);
                     } else {
                         this.dataset2 = response.data.details;
                         this.dataset2 = this.dataset2.map((x, i) => ({
@@ -813,8 +825,11 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                             _id: x.Id,   // dành riêng cho SlickGrid
                             ParentID: x.ParentId == 0 ? null : x.ParentId,
                             treeLevel: x.ParentId > 0 ? 1 : 0,
-                            // PaymentPercentage: x.PaymentPercentage <= 0 :
+                            PaymentPercentage: x.PaymentPercentage <= 0 ? 100 : x.PaymentPercentage,
+                            TotalPaymentAmount: x.TotalMoney * (x.PaymentPercentage <= 0 ? 100 : x.PaymentPercentage) / 100
                         }));
+
+                        this.updateTotalByData(8, this.dataset2);
                     }
 
                     if (!this.isCopy) {
@@ -824,13 +839,12 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                             id: i + 1
                         }));
                     }
-
-
-                    // console.log('this.dataset2:', this.dataset2);
-
-
                 }
             })
+
+            // setTimeout(() => {
+            //     this.updateTotal(8);
+            // }, 0);
         }
     }
 
@@ -838,13 +852,15 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
 
+
+
         this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
-            console.log('angularGrid onRowCountChanged');
+            // console.log('angularGrid onRowCountChanged');
             this.dataset = [...this.angularGrid.dataView.getItems()];
         })
 
         this.angularGrid.dataView.onRowsChanged.subscribe(() => {
-            console.log('angularGrid onRowsChanged');
+            // console.log('angularGrid onRowsChanged');
             this.dataset = [...this.angularGrid.dataView.getItems()];
         })
 
@@ -878,15 +894,6 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
 
     submitForm() {
-        // console.log('this.validateForm.valid', this.validateForm.valid);
-        // console.log('this.fileUploads:', this.fileUploads);
-        // this.uploadFile(14176);
-
-        // console.log('this.validateForm:', this.validateForm.value);
-        // console.log('this.validateForm invalid:', this.validateForm.invalid);
-        // console.log('this.validateForm valid:', this.validateForm.valid);
-
-
 
         if (!this.validateForm.valid) {
             Object.values(this.validateForm.controls).forEach(control => {
@@ -906,7 +913,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
 
 
-            console.log('columnElement', columnElement);
+            // console.log('columnElement', columnElement);
             const details = gridInstance.dataView.getItems().map(x => ({
                 ...x,
                 ID: this.isCopy ? 0 : x.ID,
@@ -916,6 +923,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 ...this.validateForm.getRawValue(),
                 PaymentOrderDetails: details,
                 TotalMoney: parseFloat((columnElement.textContent ?? '').replace(/,/g, '')),
+                TotalMoneyText: this.paymentService.readMoney(parseFloat((columnElement.textContent ?? '').replace(/,/g, '')), this.validateForm.value.Unit),
                 ID: this.isCopy ? 0 : this.paymentOrder.ID,
                 id: this.isCopy ? 0 : this.paymentOrder.ID,
             };
@@ -1088,9 +1096,14 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         const columnId = gridInstance.slickGrid?.getColumns()[cell].id;
 
+        console.log('columnId:', columnId);
+
         let total = 0;
         // let i = this.dataset.length;
+        // let data = gridInstance.dataView.getItems();
+
         let data = gridInstance.dataView.getItems();
+
         if (this.paymentOrder.TypeOrder != 2) {
             let i = data.length;
             while (i--) {
@@ -1163,11 +1176,143 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
             const columnTotalMoneyId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
             const columnTotalMoneyElement = gridInstance.slickGrid?.getFooterRowColumn(columnTotalMoneyId);
-            if (columnTotalMoneyElement) columnTotalMoneyElement.textContent = `${totalMoneyDiff}`;
+            // if (columnTotalMoneyElement) columnTotalMoneyElement.textContent = `${totalMoneyDiff}`;
+            if (columnTotalMoneyElement) {
+                columnTotalMoneyElement.textContent = `${new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(totalMoneyDiff)}`;
+            }
 
             const columnTotalPaymentAmountId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field)
             const columnTotalPaymentAmountElement = gridInstance.slickGrid?.getFooterRowColumn(columnTotalPaymentAmountId);
-            if (columnTotalPaymentAmountElement) columnTotalPaymentAmountElement.textContent = `${totalPaymentAmountDiff}`;
+            // if (columnTotalPaymentAmountElement) columnTotalPaymentAmountElement.textContent = `${totalPaymentAmountDiff}`;
+            if (columnTotalPaymentAmountElement) {
+                columnTotalPaymentAmountElement.textContent = `${new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(totalPaymentAmountDiff)}`;
+            }
+
+            if (totalPaymentAmountDiff != 0) {
+
+                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(totalPaymentAmountDiff, this.validateForm.value.Unit);
+            } else {
+                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(totalMoneyDiff, this.validateForm.value.Unit);
+            }
+
+            // console.log('this.paymentOrder.TotalMoneyText:', this.paymentOrder.TotalMoneyText);
+            // console.log('totalPaymentAmountDiff:', totalPaymentAmountDiff, totalMoneyDiff);
+        }
+    }
+
+    updateTotalByData(cell: number, data: any[]) {
+
+        if (data.length <= 0) return;
+        if (cell <= 0) return;
+
+        let gridInstance = this.angularGrid;
+        if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
+
+        const columnId = gridInstance.slickGrid?.getColumns()[cell].id;
+
+        // console.log('columnId:', columnId);
+
+        let total = 0;
+        // let i = this.dataset.length;
+        // let data = gridInstance.dataView.getItems();
+
+        // if (data.length <= 0) data = gridInstance.dataView.getItems();
+
+        if (this.paymentOrder.TypeOrder != 2) {
+            let i = data.length;
+            while (i--) {
+                total += parseFloat(data[i][columnId]) || 0;
+            }
+            const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
+            if (columnElement) {
+                columnElement.textContent = `${new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(total)}`;
+
+                if (columnId == PaymentOrderField.TotalMoney.field) {
+                    this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);
+                }
+            }
+        } else {
+
+
+            // console.log('data:', data);
+
+            const parent1 = data.find(x => x.Stt == 'I');
+            const parent2 = data.find(x => x.Stt == 'II');
+            //Tính Thành tiền
+            const totalMoney1 = data.filter(x => x._id == parent1._id).reduce((total, item) => total + (item.TotalMoney || 0), 0);
+            const totalMoney2 = data.filter(x => x.ParentID == parent2._id).reduce((total, item) => total + (item.TotalMoney || 0), 0);
+            const totalMoneyDiff = Math.abs(totalMoney1 - totalMoney2);
+
+
+            // console.log('parent2:', parent2);
+            // console.log('data.filter(x => x.ParentId == parent2._id):', data.filter(x => x.ParentId == parent2._id));
+
+            const totalMoneyDiff1 = totalMoney1 - totalMoney2;
+            const totalMoneyDiff2 = totalMoney2 - totalMoney1;
+
+
+            // console.log('totalMoneyDiff:', totalMoneyDiff);
+            // console.log('totalMoneyDiff1:', totalMoneyDiff1);
+            // console.log('totalMoneyDiff2:', totalMoneyDiff2);
+
+            //Tính tổng tiền thanh toán
+            const totalPaymentAmount1 = data.filter(x => x._id == parent1._id).reduce((total, item) => total + (item.TotalPaymentAmount || 0), 0);
+            const totalPaymentAmount2 = data.filter(x => x.ParentID == parent2._id).reduce((total, item) => total + (item.TotalPaymentAmount || 0), 0);
+            const totalPaymentAmountDiff = Math.abs(totalPaymentAmount1 - totalPaymentAmount2);
+
+            const totalPaymentAmountDiff1 = totalPaymentAmount1 - totalPaymentAmount2;
+            const totalPaymentAmountDiff2 = totalPaymentAmount2 - totalPaymentAmount1;
+
+            //Gán giá trị lên view
+            const rowParent2 = data.findIndex(x => x.Stt === 'II');
+            const rowParent3 = data.findIndex(x => x.Stt === 'III');
+            // const rowParent4 = data.findIndex(x => x._id === 4);
+            const rowParent4 = data.length - 2;
+            // const rowParent5 = data.findIndex(x => x._id === 5);
+            const rowParent5 = data.length - 1;
+            // console.log('rowParent4:', rowParent4);
+            // console.log('rowParent5:', rowParent5);
+
+            data[rowParent2][PaymentOrderDetailField.TotalMoney.field] = totalMoney2;
+            data[rowParent3][PaymentOrderDetailField.TotalMoney.field] = totalMoneyDiff;
+            data[rowParent4][PaymentOrderDetailField.TotalMoney.field] = Math.max(totalMoneyDiff1, 0);
+            data[rowParent5][PaymentOrderDetailField.TotalMoney.field] = Math.max(totalMoneyDiff2, 0);
+
+            data[rowParent2][PaymentOrderDetailField.TotalPaymentAmount.field] = totalPaymentAmount2;
+            data[rowParent3][PaymentOrderDetailField.TotalPaymentAmount.field] = totalPaymentAmountDiff;
+            data[rowParent4][PaymentOrderDetailField.TotalPaymentAmount.field] = Math.max(totalPaymentAmountDiff1, 0);
+            data[rowParent5][PaymentOrderDetailField.TotalPaymentAmount.field] = Math.max(totalPaymentAmountDiff2, 0);
+
+            // gridInstance.gridService.updateItems(data);
+
+            const columnTotalMoneyId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
+            const columnTotalMoneyElement = gridInstance.slickGrid?.getFooterRowColumn(columnTotalMoneyId);
+            // if (columnTotalMoneyElement) columnTotalMoneyElement.textContent = `${totalMoneyDiff}`;
+            if (columnTotalMoneyElement) {
+                columnTotalMoneyElement.textContent = `${new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(totalMoneyDiff)}`;
+            }
+
+            const columnTotalPaymentAmountId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field)
+            const columnTotalPaymentAmountElement = gridInstance.slickGrid?.getFooterRowColumn(columnTotalPaymentAmountId);
+            // if (columnTotalPaymentAmountElement) columnTotalPaymentAmountElement.textContent = `${totalPaymentAmountDiff}`;
+            if (columnTotalPaymentAmountElement) {
+                columnTotalPaymentAmountElement.textContent = `${new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(totalPaymentAmountDiff)}`;
+            }
 
             if (totalPaymentAmountDiff != 0) {
 

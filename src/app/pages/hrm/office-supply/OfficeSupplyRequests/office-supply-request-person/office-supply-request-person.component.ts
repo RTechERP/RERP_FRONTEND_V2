@@ -15,6 +15,11 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+
+// PrimeNG
+import { Menubar } from 'primeng/menubar';
 
 // Services & Components
 import { DangkyvppServiceService } from '../officesupplyrequests-service/office-supply-requests-service.service';
@@ -35,7 +40,10 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
         NzFormModule,
         NzInputModule,
         NzDatePickerModule,
-        NzModalModule
+        NzModalModule,
+        NzSpinModule,
+        NzGridModule,
+        Menubar
     ],
     templateUrl: './office-supply-request-person.component.html',
     styleUrls: ['./office-supply-request-person.component.css']
@@ -48,12 +56,24 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
     isLoading = false;
     currentUser: any;
     monthFormat = 'MM/yyyy';
-    sizeSearch = '0';
+
+    // Search panel toggle
+    showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+    get shouldShowSearchBar(): boolean {
+        return this.showSearchBar;
+    }
+
+    isMobile(): boolean {
+        return typeof window !== 'undefined' && window.innerWidth <= 768;
+    }
 
     searchParams = {
         month: new Date(),
         keyword: ''
     };
+
+    menuBars: any[] = [];
 
     constructor(
         private officeSupplyRequestService: DangkyvppServiceService,
@@ -64,6 +84,7 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
     ) { }
 
     ngOnInit(): void {
+        this.initMenuBar();
         this.authService.getCurrentUser().subscribe(res => {
             this.currentUser = res.data;
             this.getRequests();
@@ -75,8 +96,37 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
         this.initTableDetail();
     }
 
-    toggleSearchPanel() {
-        this.sizeSearch = this.sizeSearch === '0' ? '22%' : '0';
+    initMenuBar() {
+        this.menuBars = [
+            {
+                label: 'Đăng ký VPP',
+                icon: 'fa-solid fa-plus fa-lg text-success',
+                command: () => {
+                    this.openAddModal();
+                }
+            },
+            {
+                label: 'Sửa',
+                icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+                command: () => {
+                    this.editRequest();
+                }
+            },
+            {
+                label: 'Xóa',
+                icon: 'fa-solid fa-trash fa-lg text-danger',
+                command: () => {
+                    this.deleteRequest();
+                }
+            }
+        ];
+    }
+
+    toggleSearchPanelNew(event?: Event): void {
+        if (event) {
+            event.stopPropagation();
+        }
+        this.showSearchBar = !this.showSearchBar;
     }
 
     getRequests(): void {
@@ -117,7 +167,7 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
             ...DEFAULT_TABLE_CONFIG,
             data: this.dataTable,
             paginationMode: 'local',
-            layout: 'fitDataStretch',
+            layout: 'fitColumns',
             height: '100%',
             selectableRows: 1,
             pagination: true,
@@ -150,33 +200,27 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
                         return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
                     },
                 },
-                {
-                    title: 'Họ tên TBP duyệt',
-                    field: 'FullNameApproved',
-                    hozAlign: 'left',
-                    headerHozAlign: 'center',
-                    width: 200,
-                },
+
                 {
                     title: 'Người đăng ký',
                     field: 'UserName',
                     hozAlign: 'left',
                     headerHozAlign: 'center',
-                    width: 150,
+
                 },
                 {
                     title: 'Phòng ban',
                     field: 'DepartmentName',
                     hozAlign: 'left',
                     headerHozAlign: 'center',
-                    width: 160,
+
                 },
                 {
                     title: 'Ngày đăng ký',
                     field: 'DateRequest',
-                    hozAlign: 'left',
+                    hozAlign: 'center',
                     headerHozAlign: 'center',
-                    width: 200,
+
                     formatter: (cell: any) => {
                         const value = cell.getValue();
                         return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
@@ -249,6 +293,9 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
                     field: 'Reason',
                     hozAlign: 'left',
                     headerHozAlign: 'center',
+                    width: 250,
+                    formatter: 'textarea',
+
                 },
                 {
                     title: 'Ghi chú',
@@ -299,7 +346,10 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
         }
 
         const rowData = selectedRows[0].getData();
-        if (rowData.IsApproved || rowData.IsAdminApproved) {
+        const isAdminApproved = ['true', true, 1, '1'].includes(rowData.IsAdminApproved);
+        const isApproved = ['true', true, 1, '1'].includes(rowData.IsApproved);
+
+        if (isAdminApproved || isApproved) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể sửa yêu cầu đã được duyệt');
             return;
         }
@@ -341,7 +391,10 @@ export class OfficeSupplyRequestPersonComponent implements OnInit, AfterViewInit
         }
 
         const rowData = selectedRows[0].getData();
-        if (rowData.IsApproved || rowData.IsAdminApproved) {
+        const isAdminApproved = ['true', true, 1, '1'].includes(rowData.IsAdminApproved);
+        const isApproved = ['true', true, 1, '1'].includes(rowData.IsApproved);
+
+        if (isAdminApproved || isApproved) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể xóa yêu cầu đã được duyệt');
             return;
         }

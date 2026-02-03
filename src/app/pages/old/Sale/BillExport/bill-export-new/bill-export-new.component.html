@@ -1,33 +1,50 @@
 <ng-container class="w-100">
-    <div class="card h-100 border-0 rounded-0">
-        <!-- Header với PrimeNG MenuBar -->
-        <div class="card-header bg-white p-1">
-            <p-menubar [model]="menuItems" styleClass="p-0 border-0"></p-menubar>
-        </div>
+  <div class="card h-100 border-0 rounded-0">
+    <!-- Header với PrimeNG MenuBar -->
+    <div class="card-header bg-white p-1">
+      <p-menubar [model]="menuItems" styleClass="p-0 border-0"></p-menubar>
+    </div>
 
-        <!-- Filter bar -->
-        <div class="filter-bar bg-light border-bottom p-2">
-            <form [id]="'form-bill-export-search-' + warehouseCode" nz-form nzLayout="inline" (keyup.enter)="onSearch()"
-                class="d-flex flex-wrap gap-2 align-items-end">
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Từ ngày</nz-form-label>
-                    <nz-form-control>
-                        <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateStart"
-                            name="dateStart" [nzDisabled]="checked" (ngModelChange)="onDateStartChange($event)"
-                            style="width: 130px">
-                        </nz-date-picker>
-                    </nz-form-control>
-                </nz-form-item>
+    <!-- Filter bar -->
+    <div class="filter-bar bg-light border-bottom p-2">
+      <form
+        [id]="'form-bill-export-search-' + warehouseCode"
+        nz-form
+        nzLayout="inline"
+        (keyup.enter)="onSearch()"
+        class="d-flex flex-wrap gap-2 align-items-end"
+      >
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              [nzFormat]="dateFormat"
+              nzSize="small"
+              [(ngModel)]="searchParams.dateStart"
+              name="dateStart"
+              [nzDisabled]="checked"
+              (ngModelChange)="onDateStartChange($event)"
+              style="width: 130px"
+            >
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
 
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Đến ngày</nz-form-label>
-                    <nz-form-control>
-                        <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateEnd"
-                            name="dateEnd" [nzDisabled]="checked" (ngModelChange)="onDateEndChange($event)"
-                            style="width: 130px">
-                        </nz-date-picker>
-                    </nz-form-control>
-                </nz-form-item>
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              [nzFormat]="dateFormat"
+              nzSize="small"
+              [(ngModel)]="searchParams.dateEnd"
+              name="dateEnd"
+              [nzDisabled]="checked"
+              (ngModelChange)="onDateEndChange($event)"
+              style="width: 130px"
+            >
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
 
         <nz-form-item class="mb-0">
           <nz-form-label class="fs-12">Lọc kho</nz-form-label>
@@ -52,73 +69,115 @@
           </nz-form-control>
         </nz-form-item>
 
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Lọc phiếu</nz-form-label>
-                    <nz-form-control>
-                        <nz-select nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status"
-                            name="status" style="width: 150px">
-                            <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">{{ item.ID }}</span>
-                                    <span>{{ item.Name }}</span>
-                                </div>
-                            </nz-option>
-                        </nz-select>
-                    </nz-form-control>
-                </nz-form-item>
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12">Lọc phiếu</nz-form-label>
+          <nz-form-control>
+            <nz-select
+              nzShowSearch
+              nzAllowClear
+              nzSize="small"
+              [(ngModel)]="searchParams.status"
+              name="status"
+              style="width: 150px"
+            >
+              <nz-option
+                *ngFor="let item of cbbStatus"
+                [nzValue]="item.ID"
+                [nzLabel]="item.Name"
+              >
+                <div class="d-flex align-items-center">
+                  <span class="me-2">{{ item.ID }}</span>
+                  <span>{{ item.Name }}</span>
+                </div>
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
 
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Từ khóa</nz-form-label>
-                    <nz-form-control>
-                        <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword"
-                            nzSize="small" (keyup.enter)="onSearch()" style="width: 200px" />
-                    </nz-form-control>
-                </nz-form-item>
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+          <nz-form-control>
+            <input
+              nz-input
+              placeholder="Nhập từ khóa"
+              [(ngModel)]="searchParams.keyword"
+              name="keyword"
+              nzSize="small"
+              (keyup.enter)="onSearch()"
+              style="width: 200px"
+            />
+          </nz-form-control>
+        </nz-form-item>
 
-                <nz-form-item class="mb-0">
-                    <nz-form-control>
-                        <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">Tìm
-                            kiếm tất cả</label>
-                    </nz-form-control>
-                </nz-form-item>
+        <nz-form-item class="mb-0">
+          <nz-form-control>
+            <label
+              nz-checkbox
+              [(ngModel)]="checked"
+              name="checked"
+              (ngModelChange)="onCheckboxChange()"
+              >Tìm kiếm tất cả</label
+            >
+          </nz-form-control>
+        </nz-form-item>
 
-                <nz-form-item class="mb-0">
-                    <nz-form-control>
-                        <button nz-button nzType="primary" nzSize="small" type="button" (click)="onSearch()">
-                            Tìm kiếm
-                        </button>
-                    </nz-form-control>
-                </nz-form-item>
-            </form>
-        </div>
-
-        <!-- Grid Content -->
-        <div class="card-body p-0">
-            <!-- Master Grid -->
-            <div [id]="'grid-container-master-' + componentId" [ngClass]="'grid-container-master-' + componentId">
-                <angular-slickgrid [gridId]="'gridMaster-' + componentId" [columns]="columnDefinitionsMaster"
-                    [options]="gridOptionsMaster" [dataset]="datasetMaster"
-                    (onAngularGridCreated)="angularGridMasterReady($event.detail)"
-                    (onDblClick)="onMasterDoubleClick($event)">
-                </angular-slickgrid>
-            </div>
-
-            <!-- Detail Grid -->
-            <div class="mt-2">
-                <nz-tabset class="main-tab" style="padding-left: 10px !important">
-                    <nz-tab [nzTitle]="tabDetailTitle">
-                        <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
-                            <div [ngClass]="'grid-container-detail-' + componentId">
-                                <angular-slickgrid [gridId]="'gridDetail-' + componentId"
-                                    [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
-                                    [dataset]="datasetDetail"
-                                    (onAngularGridCreated)="angularGridDetailReady($event.detail)">
-                                </angular-slickgrid>
-                            </div>
-                        </nz-spin>
-                    </nz-tab>
-                </nz-tabset>
-            </div>
-        </div>
+        <nz-form-item class="mb-0">
+          <nz-form-control>
+            <button
+              nz-button
+              nzType="primary"
+              nzSize="small"
+              type="button"
+              (click)="onSearch()"
+            >
+              Tìm kiếm
+            </button>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
     </div>
+
+    <!-- Grid Content -->
+    <div class="card-body p-0">
+      <!-- Master Grid -->
+      <nz-spin [nzSpinning]="isLoadTable" nzTip="Đang tải dữ liệu...">
+        <div
+          [id]="'grid-container-master-' + componentId"
+          [ngClass]="'grid-container-master-' + componentId"
+        >
+          <angular-slickgrid
+            [gridId]="'gridMaster-' + componentId"
+            [columns]="columnDefinitionsMaster"
+            [options]="gridOptionsMaster"
+            [dataset]="datasetMaster"
+            (onAngularGridCreated)="angularGridMasterReady($event.detail)"
+            (onDblClick)="onMasterDoubleClick($event)"
+          >
+          </angular-slickgrid>
+        </div>
+
+        <!-- Detail Grid -->
+        <div class="mt-2">
+          <nz-tabset class="main-tab" style="padding-left: 10px !important">
+            <nz-tab [nzTitle]="tabDetailTitle">
+              <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
+                <div [ngClass]="'grid-container-detail-' + componentId">
+                  <angular-slickgrid
+                    [gridId]="'gridDetail-' + componentId"
+                    [columns]="columnDefinitionsDetail"
+                    [options]="gridOptionsDetail"
+                    [dataset]="datasetDetail"
+                    (onAngularGridCreated)="
+                      angularGridDetailReady($event.detail)
+                    "
+                  >
+                  </angular-slickgrid>
+                </div>
+              </nz-spin>
+            </nz-tab>
+          </nz-tabset>
+        </div>
+      </nz-spin>
+    </div>
+  </div>
 </ng-container>

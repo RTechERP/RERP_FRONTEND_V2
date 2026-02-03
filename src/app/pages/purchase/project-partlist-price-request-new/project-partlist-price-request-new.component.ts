@@ -306,6 +306,25 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     this.LoadPriceRequests();
     this.showDetailModal = false;
   }
+
+  // Handle date input change for filters
+  onDateChange(field: 'dateStart' | 'dateEnd', value: string): void {
+    if (value) {
+      this.filters[field] = new Date(value);
+    } else {
+      this.filters[field] = null;
+    }
+  }
+
+  // Handle requestBuyDeadline change
+  onRequestBuyDeadlineChange(value: string): void {
+    if (value) {
+      this.requestBuyDeadline = new Date(value);
+    } else {
+      this.requestBuyDeadline = null;
+    }
+  }
+
   OnAddClick() {
     this.modalData = [];
 
@@ -361,7 +380,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
 
   OnEditClick() {
-    const lstTypeAccept = [-1, -2,-3,-4];
+    const lstTypeAccept = [-1, -2, -3, -4];
     const angularGrid = this.angularGrids.get(this.activeTabId);
 
     if (!lstTypeAccept.includes(this.activeTabId)) {
@@ -381,7 +400,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (selectedRows.length === 0) {
       this.notification.info(
         'Thông báo',
-        'Vui lòng chọn ít nhất một dòng để chỉnh sửa.'
+        'Vui lòng chọn ít nhất 1 yêu cầu báo giá!'
       );
       return;
     }
@@ -419,6 +438,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           row.ProjectPartlistPriceRequestTypeID ?? null,
       };
     });
+
+    console.log("Processed Rows:", processedRows);
 
     const modalRef = this.ngbModal.open(
       ProjectPartlistPriceRequestFormComponent,
@@ -466,7 +487,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (selectedRows.length === 0) {
       this.notification.info(
         'Thông báo',
-        'Vui lòng chọn ít nhất một dòng để xóa.'
+        'Vui lòng chọn sản phẩm muốn xoá!'
       );
       // Swal.fire({
       //   title: 'Thông báo',
@@ -478,7 +499,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     }
     this.modal.confirm({
       nzTitle: 'Thông báo',
-      nzContent: 'Bạn có chắc muốn xóa các dòng đã chọn không?',
+      nzContent: 'Bạn có chắc muốn xoá danh sách đã chọn không?',
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -670,7 +691,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         projectPartlistPriceRequestTypeID = 4;
         isCommercialProduct = 0;
         poKHID = 0; // poKHID = 0 cho các type khác
-      }else if (projectTypeID === -4) {
+      } else if (projectTypeID === -4) {
         // ✅ Demo
         projectPartlistPriceRequestTypeID = 6;
         isCommercialProduct = 0;
@@ -1782,7 +1803,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         width: 100,
         sortable: true,
         filterable: true,
-formatter: Formatters.date,
+        formatter: Formatters.date,
         exportCustomFormatter: Formatters.date,
         type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
@@ -1893,7 +1914,7 @@ formatter: Formatters.date,
         width: 120,
         sortable: true,
         filterable: true,
-formatter: Formatters.date,
+        formatter: Formatters.date,
         exportCustomFormatter: Formatters.date,
         type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
@@ -1988,18 +2009,26 @@ formatter: Formatters.date,
             filter: true,
           } as MultipleSelectOption,
         },
-        formatter: (_row: number, _cell: number, value: any, _columnDef: any, dataContext: any) => {
+        formatter: (_row, _cell, value) => {
           if (!value) return '';
-          const supplierId = Array.isArray(value) ? (value[0] || value) : value;
+
+          const supplierId = Array.isArray(value) ? value[0] : value;
           const supplier = this.dtSupplierSale.find((s: any) => s.ID === supplierId);
-          if (supplier) {
-            const codeNCC = supplier.CodeNCC || '';
-            const nameNCC = supplier.NameNCC || '';
-            const tooltipText = `Mã: ${codeNCC}\nTên: ${nameNCC}`;
-            return `<span title="${tooltipText.replace(/"/g, '&quot;')}">${codeNCC}</span>`;
-          }
-          return '';
+
+          if (!supplier) return '';
+
+          const codeNCC = supplier.CodeNCC || '';
+          const nameNCC = supplier.NameNCC || '';
+
+          const tooltipText = `Mã: ${codeNCC}\nTên: ${nameNCC}`;
+
+          return `
+            <span title="${tooltipText.replace(/"/g, '&quot;')}">
+              ${nameNCC}
+            </span>
+          `;
         },
+
         editor: {
           model: Editors['autocompleter'],
           alwaysSaveOnEnterKey: true,
@@ -2033,7 +2062,10 @@ formatter: Formatters.date,
                     <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${codeNCC}</div>
                     <div style="font-size: 12px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; max-height: 2.8em;">${nameNCC}</div>
                   </div>
-                  <div style="text-align: right; min-width: 80px; flex-shrink: 0; font-size: 11px; color: #999; padding-top: 2px;">${ngayUpdate}</div>
+                  <div style="text-align: right; min-width: 100px; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end;">
+                    <div style="font-size: 11px; color: #999;">${ngayUpdate ? 'Ngày cập nhật' : ''}</div>
+                    <div style="font-size: 11px; color: #666; font-weight: 500;">${ngayUpdate}</div>
+                  </div>
                 </div>`;
               },
             },
@@ -2066,7 +2098,7 @@ formatter: Formatters.date,
         width: 150,
         sortable: true,
         filterable: true,
-formatter: Formatters.date,
+        formatter: Formatters.date,
         exportCustomFormatter: Formatters.date,
         type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
@@ -2253,7 +2285,7 @@ formatter: Formatters.date,
         width: 100,
         sortable: true,
         filterable: true,
-formatter: Formatters.date,
+        formatter: Formatters.date,
         exportCustomFormatter: Formatters.date,
         type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
@@ -3143,7 +3175,9 @@ formatter: Formatters.date,
     // Đảm bảo data là array
     if (!Array.isArray(data)) {
       console.error('SaveDataCommon: data không phải là array', data);
-      this.notification.error('Thông báo', 'Data is not an Array');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Data is not an Array', {
+        nzStyle: { whiteSpace: 'pre-line' }
+      });
       return;
     }
 
@@ -3181,7 +3215,9 @@ formatter: Formatters.date,
       },
       error: (error) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
+          nzStyle: { whiteSpace: 'pre-line' }
+        });
         // Swal.fire('Thông báo', 'Không thể lưu dữ liệu.', 'error');
       },
     });
@@ -3291,7 +3327,9 @@ formatter: Formatters.date,
     // Đảm bảo changedData là array
     if (!Array.isArray(changedData)) {
       console.error('processSaveData: changedData không phải là array', changedData);
-      this.notification.error('Thông báo', 'Dữ liệu không hợp lệ.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Dữ liệu không hợp lệ.', {
+        nzStyle: { whiteSpace: 'pre-line' }
+      });
       return;
     }
 
@@ -4082,7 +4120,9 @@ formatter: Formatters.date,
           },
           error: (error) => {
             console.error('Error quoting price:', error);
-            this.notification.error('Lỗi', error?.error?.message || error?.message);
+            this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
+              nzStyle: { whiteSpace: 'pre-line' }
+            });
           },
         });
       },
@@ -4173,10 +4213,9 @@ formatter: Formatters.date,
           },
           error: (error) => {
             console.error('Error checking price:', error);
-            this.notification.error(
-              'Lỗi',
-              error?.error?.message || error?.message
-            );
+            this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
+              nzStyle: { whiteSpace: 'pre-line' }
+            });
           },
         });
       },
@@ -4317,7 +4356,9 @@ formatter: Formatters.date,
               const invalidList = invalidProducts.join('\n');
               fullMessage += `\n\nCác sản phẩm không hợp lệ:\n${invalidList}`;
             }
-            this.notification.error(NOTIFICATION_TITLE.error, fullMessage);
+            this.notification.error(NOTIFICATION_TITLE.error, fullMessage, {
+              nzStyle: { whiteSpace: 'pre-line' }
+            });
           }
         });
       },
@@ -4399,7 +4440,9 @@ formatter: Formatters.date,
           const invalidList = invalidProducts.join('\n');
           fullMessage += `\n\nCác sản phẩm không hợp lệ:\n${invalidList}`;
         }
-        this.notification.error(NOTIFICATION_TITLE.error, fullMessage);
+        this.notification.error(NOTIFICATION_TITLE.error, fullMessage, {
+          nzStyle: { whiteSpace: 'pre-line' }
+        });
       }
     });
   }
@@ -4409,7 +4452,7 @@ formatter: Formatters.date,
     if (selectedRows.length === 0) {
       this.notification.info(
         'Thông báo',
-        'Vui lòng chọn ít nhất một dòng để yêu cầu mua.'
+        'Vui lòng chọn sản phẩm muốn yêu cầu mua!'
       );
       return;
     }
@@ -4637,6 +4680,7 @@ formatter: Formatters.date,
       NoteHR: String(
         data['NoteHR'] || data['HRNote'] || data['Note'] || ''
       ).trim(),
+      Maker: String(data['Maker'] || data['Manufacturer'] || '').trim(),
     }));
 
     for (let i = 0; i < products.length; i++) {
@@ -4679,11 +4723,9 @@ formatter: Formatters.date,
       IsVPP: this.isVPP,
       Deadline: deadline,
       EmployeeID: this.appUserService.employeeID,
-      ProjectPartlistPriceRequestTypeID:
-        this.projectPartlistPriceRequestTypeID > 0
-          ? this.projectPartlistPriceRequestTypeID
-          : 7,
-
+      ProjectPartlistPriceRequestTypeID: this.projectPartlistPriceRequestTypeID > 0
+        ? this.projectPartlistPriceRequestTypeID
+        : this.getProjectPartlistPriceRequestTypeID(this.activeTabId),
       Products: products,
     };
 
@@ -4692,7 +4734,7 @@ formatter: Formatters.date,
         if (res?.status === 1) {
           this.notification.success(
             'Thông báo',
-            res?.message || 'Yêu cầu mua đã xử lý xong.'
+            res?.message || 'Yêu cầu mua thành công!'
           );
           this.LoadPriceRequests();
         } else {
@@ -4703,10 +4745,9 @@ formatter: Formatters.date,
         }
       },
       error: (err: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          err?.error?.message || err?.message
-        );
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`, {
+          nzStyle: { whiteSpace: 'pre-line' }
+        });
       },
     });
 
@@ -4731,7 +4772,7 @@ formatter: Formatters.date,
     const selectedData = this.getSelectedGridData(this.activeTabId);
 
     if (selectedData.length === 0) {
-      this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+      this.notification.info('Thông báo', 'Vui lòng chọn sản phẩm cần xuất excel!');
       return;
     }
 
@@ -5309,12 +5350,11 @@ formatter: Formatters.date,
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(link.href);
-    } catch (error:any) {
+    } catch (error: any) {
       console.error(error);
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        error?.error?.message || error?.message
-      );
+      this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
+        nzStyle: { whiteSpace: 'pre-line' }
+      });
     }
   }
   async ExportAllTabsToExcel() {
@@ -5750,7 +5790,7 @@ formatter: Formatters.date,
     if (selectedRows.length <= 0) {
       this.notification.warning(
         'Thông báo',
-        'Vui lòng chọn 1 sản phẩm muốn tải!'
+        'Vui lòng chọn sản phẩm muốn tải file!'
       );
       return;
     }

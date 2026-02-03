@@ -16,6 +16,7 @@
               pInputText
               placeholder="Tìm kiếm"
               pSize="small"
+              [(ngModel)]="keyword"
               style="width: 350px; padding: 3px"
               (keyup.enter)="onSearch()"
             />

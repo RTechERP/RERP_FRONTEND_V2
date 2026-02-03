@@ -252,7 +252,9 @@ import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-rep
 import { VehicleBookingManagementSlickgridComponent } from './pages/hrm/vehicle/vehicle-booking-management/vehicle-booking-management-slickgrid/vehicle-booking-management-slickgrid.component';
 import { KpiPositionEmployeeComponent } from './pages/old/Technical/kpi-position-employee/kpi-position-employee.component';
 import { KpiEvaluationComponent } from './pages/old/Technical/kpi-evaluation/kpi-evaluation.component';
-// import { KpiEmployeeTeamComponent } from './pages/old/Technical/kpi-employee-team/kpi-employee-team.component';
+import { KpiEmployeeTeamComponent } from './pages/old/Technical/kpi-employee-team/kpi-employee-team.component';
+import { KpiEvaluationRuleComponent } from './pages/old/Technical/kpi-evaluation-rule/kpi-evaluation-rule.component';
+import { KpiEvaluationFactorsComponent } from './pages/old/Technical/kpi-evaluation-factors/kpi-evaluation-factors.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -290,6 +292,7 @@ export const routes: Routes = [
 
             //#region kế toán
             { path: 'paymentorder', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'kt-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
 
             //#endregion
 
@@ -875,7 +878,7 @@ export const routes: Routes = [
             { path: 'product-report-hcm', component: ProductReportNewComponent, canActivate: [authGuard] },
             { path: 'product-export-borrow-hcm', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report-hcm', component: BorrowReportComponent, canActivate: [authGuard] },
-            //{ path: 'borrow-product-history-hcm', component: HistoryProductRtcComponent, canActivate: [authGuard] },
+            { path: 'borrow-product-history-hcm', component: HistoryProductRtcComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-tech-hcm', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
             { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
             { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
@@ -1020,7 +1023,10 @@ export const routes: Routes = [
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
             { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-evaluation', component: KpiEvaluationComponent, canActivate: [authGuard] },
-            // { path: 'kpi-employee-team', component: KpiEmployeeTeamComponent, canActivate: [authGuard] },
+
+            { path: 'kpi-employee-team', component: KpiEmployeeTeamComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation-rule', component: KpiEvaluationRuleComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation-factors', component: KpiEvaluationFactorsComponent, canActivate: [authGuard] },
 
             { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
         ],

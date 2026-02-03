@@ -640,7 +640,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
 
     // Nếu FilePath rỗng thì dùng URL trực tiếp để tải
     if (!file.FilePath && file.FileName) {
-      const directUrl = `http://[IP_ADDRESS]/api/Upload/RTCDocument/${encodeURIComponent(file.FileName)}`;
+      const directUrl = `http://14.232.152.154:8083/api/Upload/RTCDocument/${encodeURIComponent(file.FileName)}`;
 
       // Mở URL trong tab mới để tải file
       const link = document.createElement('a');

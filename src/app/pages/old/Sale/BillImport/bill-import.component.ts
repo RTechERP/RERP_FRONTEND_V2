@@ -751,18 +751,34 @@ export class BillImportComponent implements OnInit, AfterViewInit {
 
     //#region tong hop phieu nhập
     openModalBillImportSynthetic() {
-        const modalRef = this.modalService.open(BillImportSyntheticComponent, {
-            centered: true,
-            backdrop: 'static',
-            keyboard: false,
-            fullscreen: true,
-        });
+        // OLD CODE - using BillImportSyntheticComponent
+        // const modalRef = this.modalService.open(BillImportSyntheticComponent, {
+        //     centered: true,
+        //     backdrop: 'static',
+        //     keyboard: false,
+        //     fullscreen: true,
+        // });
+        // modalRef.result.catch((result) => {
+        //     if (result == true) {
+        //         // this.id=0;
+        //         // this.loadDataBillExport();
+        //     }
+        // });
 
-        modalRef.result.catch((result) => {
-            if (result == true) {
-                // this.id=0;
-                // this.loadDataBillExport();
-            }
+        // NEW CODE - using BillImportSyntheticNewComponent
+        import('./Modal/bill-import-synthetic-new/bill-import-synthetic-new.component').then(m => {
+            const modalRef = this.modalService.open(m.BillImportSyntheticNewComponent, {
+                centered: true,
+                backdrop: 'static',
+                keyboard: false,
+                fullscreen: true,
+            });
+            modalRef.componentInstance.warehouseCode = this.wareHouseCode;
+            modalRef.result.catch((result) => {
+                if (result == true) {
+                    this.loadDataBillImport();
+                }
+            });
         });
     }
     //#endregion
@@ -1136,6 +1152,11 @@ export class BillImportComponent implements OnInit, AfterViewInit {
                         field: 'Suplier',
                         hozAlign: 'left',
                         headerHozAlign: 'center',
+                        variableHeight: true,
+                        formatter: (cell: any) => {
+                            const value = cell.getValue() || '';
+                            return `<div style="white-space: pre-wrap; word-wrap: break-word; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; line-height: 1.4;">${value}</div>`;
+                        },
                     },
                     {
                         title: 'Phòng ban',

@@ -828,6 +828,7 @@ export class RegisterContractComponent implements OnInit, AfterViewInit {
             nzContent: 'Bạn có chắc muốn xác nhận Đăng ký hợp đồng không?',
             nzOkText: 'Xác nhận',
             nzCancelText: 'Hủy',
+            nzAutofocus: 'ok', // Auto focus vào nút OK để có thể nhấn Enter xác nhận
             nzOnOk: () => {
                 const approveData = {
                     ID: data.ID,

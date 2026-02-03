@@ -261,7 +261,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   updatePageTitle(): void {
     const typeText = this.type === 1 ? '-Giải pháp-' : this.type === 2 ? '-PO-' : '';
     const title = `Danh mục vật tư dự án ${this.projectCodex} ${typeText} ${this.projectTypeName} -${this.CodeName}`;
-    document.title = title.trim();
+    // document.title = title.trim();
   }
 
   ngOnInit(): void {

@@ -348,25 +348,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
         this.angularGridProductGroup = angularGrid;
         this.gridDataProductGroup = angularGrid?.slickGrid || {};
 
-        // Auto-select first visible row on data load
-        angularGrid.dataView.onRowCountChanged.subscribe(() => {
-            if (angularGrid.dataView.getLength() > 0) {
-                const firstVisibleRow = this.findFirstVisibleRow(angularGrid);
-                if (firstVisibleRow !== null) {
-                    angularGrid.slickGrid.setActiveCell(firstVisibleRow, 0);
-                    angularGrid.slickGrid.setSelectedRows([firstVisibleRow]);
-
-                    // Trigger data load for first row
-                    const item = angularGrid.dataView.getItem(firstVisibleRow);
-                    if (item) {
-                        this.dataDelete = item;
-                        this.id = item.ID;
-                        this.getDataProductSaleByIDgroup(this.id);
-                        this.getDataProductGroupWareHouse(this.id);
-                    }
-                }
-            }
-        });
+        // Không subscribe onRowCountChanged để tránh mất focus khi filter
+        // Auto-select first row sẽ được xử lý trong getProductGroup() sau khi load data
     }
 
     findFirstVisibleRow(angularGrid: AngularGridInstance): number | null {
@@ -427,13 +410,13 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
-            gridWidth: '100%',
             datasetIdPropertyName: 'id',
             enableRowSelection: false,
             enableCellNavigation: false,
             enableFiltering: false,
             autoFitColumnsOnFirstLoad: true,
             enableAutoSizeColumns: true,
+            forceFitColumns:true
         };
     }
 
@@ -529,12 +512,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
@@ -547,12 +530,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
@@ -565,12 +548,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: this.wrapTextFormatter,
                 customTooltip: {
@@ -586,12 +569,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
@@ -604,12 +587,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
@@ -622,12 +605,12 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
+                    // collection: [],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
@@ -698,6 +681,10 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 exportWithFormatter: true,
                 // autoFitColumns: true
             },
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
     }
 
@@ -705,10 +692,17 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
         this.angularGridProductSale = angularGrid;
         this.gridDataProductSale = angularGrid?.slickGrid || {};
 
-        // Update filter collections when data loads
-        angularGrid.dataView.onRowCountChanged.subscribe(() => {
-            this.updateFilterCollectionsProductSale();
-        });
+        // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi
+        if (angularGrid.dataView) {
+            angularGrid.dataView.onRowCountChanged.subscribe(() => {
+                this.updateProductSaleFooterRow();
+            });
+        }
+
+        // Update footer row sau khi grid ready
+        setTimeout(() => {
+            this.updateProductSaleFooterRow();
+        }, 100);
     }
 
     onProductSaleCellClicked(e: Event, args: OnClickEventArgs) {
@@ -855,6 +849,25 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         if (!this.id && res.data[0]) {
                             this.id = res.data[0].ID;
                         }
+
+                        // Auto-select first visible row sau khi load data
+                        setTimeout(() => {
+                            if (this.angularGridProductGroup && this.angularGridProductGroup.dataView.getLength() > 0) {
+                                const firstVisibleRow = this.findFirstVisibleRow(this.angularGridProductGroup);
+                                if (firstVisibleRow !== null) {
+                                    this.angularGridProductGroup.slickGrid.setActiveCell(firstVisibleRow, 0);
+                                    this.angularGridProductGroup.slickGrid.setSelectedRows([firstVisibleRow]);
+
+                                    const item = this.angularGridProductGroup.dataView.getItem(firstVisibleRow);
+                                    if (item) {
+                                        this.dataDelete = item;
+                                        this.id = item.ID;
+                                        this.getDataProductSaleByIDgroup(this.id);
+                                        this.getDataProductGroupWareHouse(this.id);
+                                    }
+                                }
+                            }
+                        }, 100);
                     }
                 },
                 error: (err) => {
@@ -1380,6 +1393,34 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
         if (this.activeModal) {
             this.activeModal.close();
         }
+    }
+
+    //#endregion
+
+    //#region Footer Row
+
+    /**
+     * Update footer row - count cho ProductName
+     * Sử dụng textContent để tránh re-render gây mất focus
+     */
+    updateProductSaleFooterRow(): void {
+        if (!this.angularGridProductSale || !this.angularGridProductSale.slickGrid) return;
+
+        const count = this.angularGridProductSale.dataView?.getFilteredItems()?.length || 0;
+
+        // Update footer cho cột ProductName (count số sản phẩm)
+        const productNameFooter = this.angularGridProductSale.slickGrid.getFooterRowColumn('ProductName');
+        if (productNameFooter) {
+            productNameFooter.textContent = `${this.formatNumber(count, 0)}`;
+        }
+    }
+
+    formatNumber(num: number, digits: number = 0): string {
+        num = num || 0;
+        return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        });
     }
 
     //#endregion

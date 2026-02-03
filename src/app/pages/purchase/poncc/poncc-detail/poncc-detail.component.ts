@@ -42,6 +42,8 @@ import { SafeUrlPipe } from '../../../../../safeUrl.pipe';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { FormsModule } from '@angular/forms';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { BillImportDetailNewComponent } from '../../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
+
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
   Times: {
@@ -1905,7 +1907,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           });
 
           // Mở modal với dữ liệu từ PONCC
-          const modalRef = this.modalService.open(BillImportDetailComponent, {
+          const modalRef = this.modalService.open(BillImportDetailNewComponent, {
             backdrop: 'static',
             keyboard: false,
             centered: true,

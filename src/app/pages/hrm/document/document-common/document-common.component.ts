@@ -10,6 +10,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { DateTime } from 'luxon';
+import { HttpClient } from '@angular/common/http';
 import { DocumentService } from '../document-service/document.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { ActivatedRoute } from '@angular/router';
@@ -48,6 +49,7 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     private downloadBasePath = '\\\\113.190.234.64\\ftp\\Upload\\RTCDocument\\';
 
     constructor(
+        private http: HttpClient,
         private documentService: DocumentService,
         private notification: NzNotificationService,
         private message: NzMessageService,
@@ -152,10 +154,11 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
         this.tabulator = new Tabulator(this.tbDocumentCommonRef.nativeElement, {
             ...DEFAULT_TABLE_CONFIG,
             layout: 'fitDataStretch',
-            height: '89vh',
+            height: '87vh',
             paginationMode: 'local',
             rowHeader: false,
             paginationSize: 100,
+            pagination: false,
             groupBy: ["DepartmentName", "NameDocumentType"],
             columns: [
                 { title: 'STT', field: 'STT', width: 60, hozAlign: 'center', headerHozAlign: 'center', headerSort: false, visible: false },
@@ -164,16 +167,15 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
                     title: 'Mã văn bản', field: 'Code', width: 250, headerSort: true,
                     formatter: (cell: any) => {
                         const rowData = cell.getRow().getData();
-                        const value = cell.getValue();
                         if (!rowData.FileName) {
-                            return value || '';
+                            return cell.getValue() || '';
                         }
-                        return `<a href="javascript:void(0)" class="download-link" style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value || rowData.FileName}</a>`;
+                        return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${cell.getValue()}</span>`;
                     },
                     cellClick: (e: any, cell: any) => {
                         const rowData = cell.getRow().getData();
                         if (rowData.FileName) {
-                            self.downloadFile(rowData.FileName);
+                            this.downloadFile(rowData);
                         }
                     }
                 },
@@ -208,56 +210,38 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
         });
     }
 
-    downloadFile(fileName: string): void {
-        if (!fileName) {
+    downloadFile(file: any): void {
+        if (!file) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+            return;
+        }
+
+        if (!file.FileName) {
             this.notification.warning('Thông báo', 'Không có file để tải xuống!');
             return;
         }
 
-        const filePath = `${this.downloadBasePath}${fileName}`;
+        // Sử dụng GetBlobDownload endpoint với HTTP GET blob approach
+        const linkBase = 'http://113.190.234.64:8083/api/Upload/RTCDocument/';
+        const downloadUrl = `http://113.190.234.64:8081/Document/GetBlobDownload?path=${linkBase}${encodeURIComponent(file.FileName)}&file_name=${encodeURIComponent(file.FileName)}`;
 
-        const loadingMsg = this.message.loading('Đang tải xuống file...', {
-            nzDuration: 0,
-        }).messageId;
+        this.http.get(downloadUrl, { responseType: 'blob' }).subscribe(blob => {
+            if (blob && blob.size > 0) {
+                const a = document.createElement('a');
+                const objectUrl = URL.createObjectURL(blob);
 
-        this.documentService.downloadFile(filePath).subscribe({
-            next: (blob: Blob) => {
-                this.message.remove(loadingMsg);
+                a.href = objectUrl;
+                a.download = file.FileName;
+                a.click();
 
-                if (blob && blob.size > 0) {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = fileName;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                    this.notification.success('Thông báo', 'Tải xuống thành công!');
-                } else {
-                    this.notification.error('Thông báo', 'File tải về không hợp lệ!');
-                }
-            },
-            error: (res: any) => {
-                this.message.remove(loadingMsg);
-                console.error('Lỗi khi tải file:', res);
-
-                if (res.error instanceof Blob) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        try {
-                            const errorText = JSON.parse(reader.result as string);
-                            this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
-                        } catch {
-                            this.notification.error('Thông báo', 'Tải xuống thất bại!');
-                        }
-                    };
-                    reader.readAsText(res.error);
-                } else {
-                    const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
-                    this.notification.error('Thông báo', errorMsg);
-                }
-            },
+                URL.revokeObjectURL(objectUrl);
+                this.notification.success('Thông báo', 'Tải xuống thành công!');
+            } else {
+                this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+            }
+        }, error => {
+            console.error('Lỗi khi tải file:', error.error.message|| error.message);
+            this.notification.error('Thông báo', error.error.message|| error.message||'Tải xuống thất bại! Vui lòng thử lại.');
         });
     }
 }

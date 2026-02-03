@@ -155,6 +155,8 @@ export class VehicleRepairHistoryFormComponent
       RepairGarageName: [''],
       ContactPhone: [''],
       TimePrevious: [''],
+      KmPreviousPeriod: [0],
+      KmCurrentPeriod: [0],
     });
   }
   private syncEmployeeFields(id?: number) {
@@ -314,6 +316,8 @@ export class VehicleRepairHistoryFormComponent
           TimeStartRepair: TimeStartRepair?.slice(0, 10) || '',
           TimeEndRepair: TimeEndRepair?.slice(0, 10) || '',
           TimePrevious: this.dataInput.TimePrevious?.slice(0, 10) || '',
+          KmPreviousPeriod: this.dataInput.KmPreviousPeriod || 0,
+          KmCurrentPeriod: this.dataInput.KmCurrentPeriod || 0,
         },
         { emitEvent: false }
       );
@@ -731,6 +735,8 @@ export class VehicleRepairHistoryFormComponent
         RepairGarageName: fv.RepairGarageName || '',
         ContactPhone: fv.ContactPhone || '',
         TimePrevious: fv.TimePrevious || null,
+        KmPreviousPeriod: toNumber(fv.KmPreviousPeriod),
+        KmCurrentPeriod: toNumber(fv.KmCurrentPeriod),
       },
       vehicleRepairHistoryFiles: [], // để trống ở lượt 1
     };

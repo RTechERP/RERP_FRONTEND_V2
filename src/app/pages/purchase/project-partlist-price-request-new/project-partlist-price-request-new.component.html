@@ -91,16 +91,22 @@
             <nz-form-item class="mb-0" nzFlex="1 1 auto">
                 <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
                 <nz-form-control>
-                    <nz-date-picker [(ngModel)]="filters.dateStart" name="dateStart" nzFormat="dd/MM/yyyy"
-                        style="width: 150px; font-size: 12px;" nzSize="small"></nz-date-picker>
+                    <input type="date" class="form-control form-control-sm date-input-sm"
+                        [ngModel]="filters.dateStart | date:'yyyy-MM-dd'"
+                        (ngModelChange)="onDateChange('dateStart', $event)"
+                        name="dateStart"
+                        title="Từ ngày" />
                 </nz-form-control>
             </nz-form-item>
 
             <nz-form-item class="mb-0" nzFlex="1 1 auto">
                 <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
                 <nz-form-control>
-                    <nz-date-picker [(ngModel)]="filters.dateEnd" name="dateEnd" nzFormat="dd/MM/yyyy"
-                        style="width: 150px; font-size: 12px;" nzSize="small"></nz-date-picker>
+                    <input type="date" class="form-control form-control-sm date-input-sm"
+                        [ngModel]="filters.dateEnd | date:'yyyy-MM-dd'"
+                        (ngModelChange)="onDateChange('dateEnd', $event)"
+                        name="dateEnd"
+                        title="Đến ngày" />
                 </nz-form-control>
             </nz-form-item>
 
@@ -169,9 +175,11 @@
 
 <ng-template #requestBuyTpl>
     <div class="mb-2">
-        <label class="form-label">Deadline</label>
-        <nz-date-picker [(ngModel)]="requestBuyDeadline" nzFormat="dd/MM/yyyy" class="w-100"
-            nzSize="small"></nz-date-picker>
+        <label class="form-label" for="requestBuyDeadline">Deadline</label>
+        <input type="date" id="requestBuyDeadline" class="form-control form-control-sm date-input-sm w-100"
+            [ngModel]="requestBuyDeadline | date:'yyyy-MM-dd'"
+            (ngModelChange)="onRequestBuyDeadlineChange($event)"
+            title="Deadline" />
     </div>
 </ng-template>
 

@@ -73,7 +73,7 @@
                                     <nz-select [ngModel]="project.ProjectID"
                                         (ngModelChange)="onProjectChange($index + 1, $event)"
                                         [ngModelOptions]="{standalone: true}" class="w-100" nzPlaceHolder="Chọn dự án"
-                                        nzShowSearch nzAllowClear>
+                                        nzShowSearch nzAllowClear nzDropdownClassName="select-dropdown">
                                         @for (proj of projects; track proj.ID) {
                                         <nz-option
                                             [nzLabel]="proj.ProjectText || (proj.ProjectCode + ' - ' + proj.ProjectName)"
@@ -105,7 +105,7 @@
                                             <nz-form-label class="fs-12 p-0">Hạng mục công việc<span
                                                     class="text-danger ps-1">*
                                                 </span><button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text"
-                                                    nzSize="small" title="Thêm loại họp" (click)="onAddProjectItem()">
+                                                    nzSize="small" title="Thêm hạng mục công việc" (click)="onAddProjectItem()">
                                                     <i class="fas fa-plus"></i>
                                                 </button>
                                             </nz-form-label>
@@ -129,8 +129,9 @@
                                     </nz-col>
                                     <!-- Tổng số giờ: Mobile 12, Desktop 4 -->
                                     <nz-col [nzXs]="8" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="4">
-                                        <nz-form-item>
-                                            <nz-form-label class="fs-12 p-0">Tổng số giờ<span class="text-danger ps-1">*
+                                        <nz-form-item style="margin-right: -8px !important;">
+                                            <nz-form-label class="fs-12 p-0 text-nowrap">Tổng số giờ<span
+                                                    class="text-danger ps-1">*
                                                 </span></nz-form-label>
                                             <nz-form-control [nzSpan]="24">
                                                 <nz-input-number [(ngModel)]="item.TotalHours"
@@ -152,8 +153,8 @@
                                     </nz-col>
                                     <!-- % Hoàn thành: Mobile 12, Desktop 4 -->
                                     <nz-col [nzXs]="8" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="4">
-                                        <nz-form-item>
-                                            <nz-form-label class="fs-12 p-0">% Hoàn thành<span
+                                        <nz-form-item style="margin-left: -8px !important;">
+                                            <nz-form-label class="fs-12 p-0 text-nowrap">% Hoàn thành<span
                                                     class="text-danger ps-1">*
                                                 </span></nz-form-label>
                                             <nz-form-control [nzSpan]="24">

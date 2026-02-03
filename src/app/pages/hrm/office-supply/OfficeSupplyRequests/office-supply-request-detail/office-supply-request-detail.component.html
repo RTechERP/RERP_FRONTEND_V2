@@ -1,7 +1,7 @@
 <div class="modal-content border-0">
     <div class="modal-header bg-primary py-2 px-3">
-        <h5 class="modal-title text-uppercase text-white fs-14 m-0">đăng ký văn phòng phẩm</h5>
-        <button type="button" class="btn-close btn-close-white" (click)="cancel()" aria-label="Close"></button>
+        <h5 class="modal-title text-uppercase text-white fs-12 m-0">đăng ký văn phòng phẩm</h5>
+        <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
     </div>
 
     <div class="modal-body p-3" style="max-height: 80vh; overflow-y: auto;">
@@ -46,9 +46,10 @@
                     <div *ngFor="let item of items.controls; let i = index" [formGroupName]="i"
                         class="card mb-3 shadow-sm border-0">
                         <div class="card-body p-3 position-relative">
-                            <button type="button" class="position-absolute top-0 end-0 btn btn-link text-danger p-2"
-                                (click)="removeItem(i)" nz-tooltip nzTooltipTitle="Xóa mặt hàng">
-                                <i nz-icon nzType="close-circle" nzTheme="outline"></i>
+                            <button type="button" class="position-absolute btn btn-link text-danger"
+                                style="top: -5px; right: -5px; z-index: 10; padding: 4px 8px; cursor: pointer;"
+                                (click)="removeItem(i)" nz-tooltip nzTooltipTitle="Xóa">
+                                <i nz-icon nzType="close-circle" nzTheme="outline" style="font-size: 18px;"></i>
                             </button>
 
                             <div nz-row [nzGutter]="12">
@@ -72,10 +73,8 @@
                                     <nz-form-item class="mb-2">
                                         <nz-form-label>ĐVT</nz-form-label>
                                         <nz-form-control>
-                                            <nz-select formControlName="OfficeSupplyUnitID" nzDisabled nzPlaceHolder="">
-                                                <nz-option *ngFor="let u of unitList" [nzValue]="u.ID"
-                                                    [nzLabel]="u.Name"></nz-option>
-                                            </nz-select>
+                                            <input nz-input formControlName="UnitName" class="w-100" readonly
+                                                placeholder="ĐVT" />
                                         </nz-form-control>
                                     </nz-form-item>
                                 </div>
@@ -109,9 +108,10 @@
                                     <nz-form-item class="mb-0">
                                         <nz-form-label>Vượt định mức</nz-form-label>
                                         <nz-form-control [nzErrorTip]="'Vui lòng nhập lý do vượt định mức'">
-                                            <nz-input-group [nzPrefix]="prefixCheckbox">
+                                            <nz-input-group [nzPrefix]="prefixCheckbox"
+                                                style="padding: 0px !important;">
                                                 <textarea nz-input formControlName="Reason"
-                                                    placeholder="Lý do vượt định mức" rows="1"></textarea>
+                                                    placeholder="Lý do vượt định mức" rows="2"></textarea>
                                             </nz-input-group>
                                             <ng-template #prefixCheckbox>
                                                 <label nz-checkbox formControlName="ExceedsLimit"
@@ -127,7 +127,7 @@
                                         <nz-form-label>Ghi chú</nz-form-label>
                                         <nz-form-control>
                                             <textarea nz-input formControlName="Note" placeholder="Ghi chú thêm"
-                                                rows="1"></textarea>
+                                                rows="2"></textarea>
                                         </nz-form-control>
                                     </nz-form-item>
                                 </div>
@@ -140,7 +140,7 @@
     </div>
 
     <div class="modal-footer bg-light p-2 border-top">
-        <button nz-button nzType="default" (click)="cancel()">Đóng</button>
+        <button nz-button nzDanger nzType="default" (click)="cancel()">Đóng</button>
         <button nz-button nzType="primary" [nzLoading]="isSaving" (click)="onSubmit()">
             <i nz-icon nzType="save"></i> Đăng ký
         </button>

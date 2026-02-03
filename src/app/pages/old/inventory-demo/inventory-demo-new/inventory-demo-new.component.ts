@@ -46,7 +46,8 @@ import { UpdateQrcodeFormComponent } from '../update-qrcode-form/update-qrcode-f
 import { InventoryBorrowSupplierDemoComponent } from '../inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { TbProductRtcFormComponent } from '../../tb-product-rtc/tb-product-rtc-form/tb-product-rtc-form.component';
-import { environment } from '../../../../../environments/environment';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { MaterialDetailOfProductRtcComponent } from '../material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 
 @Component({
     selector: 'app-inventory-demo-new',
@@ -177,6 +178,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
         private ClipboardService: ClipboardService,
+        private tabService: TabServiceService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -784,6 +786,10 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 ],
             },
             dataItemColumnValueExtractor: (item: any, column: any) => item[column.field!],
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
     }
 
@@ -834,10 +840,11 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                     // Nếu grid chưa ready, sẽ được xử lý trong angularGridReady()
                 }
 
-                // Resize grid after data is loaded
+                // Resize grid after data is loaded và update footer
                 setTimeout(() => {
                     if (this.angularGrid) {
                         this.angularGrid.resizerService.resizeGrid();
+                        this.updateFooterRow();
                     }
                 }, 100);
             },
@@ -1121,6 +1128,11 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
 
                 return null;
             };
+
+            // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi
+            this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
+                this.updateFooterRow();
+            });
         }
 
         // Xử lý spec columns khi grid ready
@@ -1129,6 +1141,8 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             // showSpec() sẽ tự động ẩn nếu không có config hoặc hiển thị nếu có config
             this.showSpec();
             angularGrid.resizerService.resizeGrid();
+            // Update footer row
+            this.updateFooterRow();
         }, 100);
 
         // Handle double click event on main grid
@@ -1191,6 +1205,15 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             selectedProduct = { ...selected[0] };
         } else {
             selectedProduct = { ...item };
+        }
+
+        // Map ProductRTCID to ID for form compatibility
+        if (selectedProduct.ProductRTCID && !selectedProduct.ID) {
+            selectedProduct.ID = selectedProduct.ProductRTCID;
+        }
+        // Map WarehouseID if not present
+        if (!selectedProduct.WarehouseID) {
+            selectedProduct.WarehouseID = this.warehouseID;
         }
 
         const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
@@ -1331,24 +1354,26 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     openDetailTab(rowData: any): void {
-        const params = new URLSearchParams({
-            productRTCID1: String(rowData.ProductRTCID || 0),
-            warehouseID1: String(this.warehouseID || 1),
-            ProductCode: rowData.ProductCode || '',
-            ProductName: rowData.ProductName || '',
-            NumberBegin: String(rowData.Number || 0),
-            InventoryLatest: String(rowData.InventoryLatest || 0),
-            NumberImport: String(rowData.NumberImport || 0),
-            NumberExport: String(rowData.NumberExport || 0),
-            NumberBorrowing: String(rowData.NumberBorrowing || 0),
-            InventoryReal: String(rowData.InventoryReal || 0),
-        });
+        const productCode = rowData.ProductCode || '';
+        const productRTCID = rowData.ProductRTCID || 0;
 
-        window.open(
-            `${environment.baseHref}/material-detail-of-product-rtc?${params.toString()}`,
-            '_blank',
-            'width=1200,height=800,scrollbars=yes,resizable=yes'
-        );
+        this.tabService.openTabComp({
+            comp: MaterialDetailOfProductRtcComponent,
+            title: `Chi tiết SP - ${productCode}`,
+            key: `material-detail-product-rtc-${productRTCID}`,
+            data: {
+                productRTCID1: productRTCID,
+                warehouseID1: this.warehouseID || 1,
+                ProductCode: productCode,
+                ProductName: rowData.ProductName || '',
+                NumberBegin: rowData.Number || 0,
+                InventoryLatest: rowData.InventoryLatest || 0,
+                NumberImport: rowData.NumberImport || 0,
+                NumberExport: rowData.NumberExport || 0,
+                NumberBorrowing: rowData.NumberBorrowing || 0,
+                InventoryReal: rowData.InventoryReal || 0,
+            },
+        });
     }
 
     onSetLocation(): void {
@@ -1431,6 +1456,66 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                     }
                 });
             },
+        });
+    }
+
+    /**
+     * Update footer row - count cho ProductName, sum cho các cột số lượng
+     * Sử dụng textContent để tránh re-render gây mất focus
+     */
+    updateFooterRow(): void {
+        if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+
+        try {
+            // Kiểm tra grid vẫn tồn tại
+            const testColumns = this.angularGrid.slickGrid.getColumns();
+            if (!testColumns || testColumns.length === 0) return;
+
+            const items = this.angularGrid.dataView?.getFilteredItems() as any[] || [];
+            const productCount = items.length;
+
+            // Các cột cần tính tổng
+            const sumFields = [
+                'NumberBorrowing',      // Đang mượn
+                'QuantityExportMuon',   // SL xuất mượn
+                'QuantityManager',      // SL quản lý
+                'NumberExport',         // SL xuất
+                'NumberImport',         // SL nhập
+                'TotalQuantityInArea',  // Tổng SL trong khu vực
+            ];
+
+            // Tính tổng cho từng cột
+            const sums: { [key: string]: number } = {};
+            sumFields.forEach(field => {
+                sums[field] = items.reduce(
+                    (sum, item) => sum + (Number(item?.[field]) || 0),
+                    0
+                );
+            });
+
+            // Update footer cho cột ProductName (count)
+            const productNameFooter = this.angularGrid.slickGrid.getFooterRowColumn('ProductName');
+            if (productNameFooter) {
+                productNameFooter.textContent = `${this.formatNumber(productCount, 0)}`;
+            }
+
+            // Update footer cho các cột số (sum)
+            sumFields.forEach(field => {
+                const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(field);
+                if (footerCell) {
+                    footerCell.textContent = `${this.formatNumber(sums[field], 0)}`;
+                }
+            });
+        } catch (e) {
+            // Ignore errors khi grid chưa sẵn sàng hoặc đã bị destroy
+        }
+    }
+
+    formatNumber(num: number, digits: number = 0): string {
+        num = num || 0;
+        return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
         });
     }
 }

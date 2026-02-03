@@ -58,6 +58,7 @@ import { TabulatorPopupService } from '../../../../shared/components/tabulator-p
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
 import { BillImportChoseSerialService } from '../bill-import-chose-serial/bill-import-chose-serial.service';
+import { HistoryProductRtcComponent } from '../../inventory-demo/borrow/borrow-product-history/history-product-rtc/history-product-rtc.component';
 
 @Component({
   standalone: true,
@@ -686,12 +687,12 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
 
   // INTEGRATION: Mở modal lịch sử mượn
   async openBorrowHistory() {
-    // Dynamic import để tránh circular dependency
-    const { BorrowProductHistoryComponent } = await import(
-      '../../inventory-demo/borrow/borrow-product-history/borrow-product-history.component'
-    );
+    // // Dynamic import để tránh circular dependency
+    // const { BorrowProductHistoryComponent } = await import(
+    //   '../../inventory-demo/borrow/borrow-product-history/borrow-product-history.component'
+    // );
 
-    const modalRef = this.ngbModal.open(BorrowProductHistoryComponent, {
+    const modalRef = this.ngbModal.open(HistoryProductRtcComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
@@ -738,8 +739,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       PartNumber: product.PartNumber || '',
       Serial: product.Serial || '',
       Note: product.Note || '',
-      EmployeeIDBorrow: product.EmployeeID || 0,
+      EmployeeIDBorrow: product.PeopleID || 0,
       DeadlineReturnNCC: product.DateReturnExpected || null,
+      HistoryProductRTCID: product.ID || 0,
+      ProductRTCQRCodeID: product.ProductRTCQRCodeID || 0,
     }));
 
     // Thêm vào selectedDevices

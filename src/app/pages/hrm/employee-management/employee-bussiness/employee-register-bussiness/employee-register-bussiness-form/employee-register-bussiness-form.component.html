@@ -1,6 +1,6 @@
 <div class="modal-dialog-scrollable">
   <div class="modal-header bg-primary align-items-center p-2">
-    <h6 class="modal-title text-white"> 
+    <h6 class="modal-title text-white">
       {{ isEditMode ? 'SỬA ĐĂNG KÝ CÔNG TÁC' : 'THÊM ĐĂNG KÝ CÔNG TÁC' }}
     </h6>
     <button type="button" class="btn-close" (click)="onCancel()" aria-label="Close"></button>
@@ -12,26 +12,23 @@
         <div class="text-danger" style="font-size: 12px;">
           <i nz-icon nzType="info-circle" nzTheme="outline"></i>
           <span class="ms-1 text-danger">
-            <strong>Lưu ý:</strong><br/>
-            - Từ 01/07/2023, CBNV đi công tác có thời gian di chuyển từ địa điểm công tác về đến VP RTC ≥ 20H00 sẽ được tính Phụ cấp ăn tối (35.000đ)<br/>
-            (Không áp dụng với các cá nhân, bộ phận có thưởng doanh thu).<br/>
-            -CBNV lưu ý khai báo đúng quy định, TH quên khai báo công có thể khai báo bổ sung (quên khai báo công/ chấm công từ 3 lần/tháng trừ 100% PCCC).
+            <strong>Lưu ý:</strong><br />
+            - Từ 01/07/2023, CBNV đi công tác có thời gian di chuyển từ địa điểm công tác về đến VP RTC ≥ 20H00 sẽ được
+            tính Phụ cấp ăn tối (35.000đ)<br />
+            (Không áp dụng với các cá nhân, bộ phận có thưởng doanh thu).<br />
+            -CBNV lưu ý khai báo đúng quy định, TH quên khai báo công có thể khai báo bổ sung (quên khai báo công/ chấm
+            công từ 3 lần/tháng trừ 100% PCCC).
           </span>
         </div>
       </nz-row>
       <nz-row [nzGutter]="16">
         <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="4">
           <nz-form-item>
-            <nz-form-label >Ngày <span class="text-danger ps-1 me-1"> (*)
-            </span></nz-form-label>
+            <nz-form-label>Ngày <span class="text-danger ps-1 me-1"> (*)
+              </span></nz-form-label>
             <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày công tác'">
-              <nz-date-picker
-                formControlName="DayBussiness"
-                nzFormat="dd/MM/yyyy"
-                nzPlaceHolder="Chọn ngày công tác"
-                [nzDisabledDate]="disabledDate"
-                style="width: 100%" 
-              ></nz-date-picker>
+              <nz-date-picker formControlName="DayBussiness" nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày công tác"
+                [nzDisabledDate]="disabledDate" style="width: 100%"></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
         </nz-col>
@@ -39,15 +36,9 @@
           <nz-form-item>
             <nz-form-label>Họ và tên</nz-form-label>
             <nz-form-control>
-              <nz-select
-                formControlName="EmployeeID"
-                nzPlaceHolder="Chọn nhân viên"
-                nzAllowClear
-                nzShowSearch
-                style="width: 100%"
-                [nzDisabled]="true"
-              >
-                <nz-option *ngFor="let employee of employeeList" [nzValue]="employee.ID" 
+              <nz-select formControlName="EmployeeID" nzPlaceHolder="Chọn nhân viên" nzAllowClear nzShowSearch
+                style="width: 100%" [nzDisabled]="true">
+                <nz-option *ngFor="let employee of employeeList" [nzValue]="employee.ID"
                   [nzLabel]="employee.Code + ' - ' + employee.FullName"></nz-option>
               </nz-select>
             </nz-form-control>
@@ -56,16 +47,11 @@
         <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="5">
           <nz-form-item>
             <nz-form-label>Người duyệt<span class="text-danger ps-1 me-1"> (*)
-            </span></nz-form-label>
+              </span></nz-form-label>
             <nz-form-control [nzErrorTip]="'Vui lòng chọn người duyệt'">
-              <nz-select
-                formControlName="ApprovedId"
-                nzPlaceHolder="Chọn người duyệt"
-                nzAllowClear
-                nzShowSearch
-                style="width: 100%"
-              >
-                <nz-option *ngFor="let approver of approverList" [nzValue]="approver.EmployeeID" 
+              <nz-select formControlName="ApprovedId" nzPlaceHolder="Chọn người duyệt" nzAllowClear nzShowSearch
+                style="width: 100%">
+                <nz-option *ngFor="let approver of approverList" [nzValue]="approver.EmployeeID"
                   [nzLabel]="approver.Code + ' - ' + approver.FullName"></nz-option>
               </nz-select>
             </nz-form-control>
@@ -73,7 +59,7 @@
         </nz-col>
         <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
           <nz-form-item>
-            <nz-form-label [style.visibility] ="'hidden'">.</nz-form-label>
+            <nz-form-label [style.visibility]="'hidden'">.</nz-form-label>
             <nz-form-control>
               <label nz-checkbox formControlName="IsProblem">Bổ sung</label>
             </nz-form-control>
@@ -85,51 +71,32 @@
             <nz-form-control [nzErrorTip]="'Vui lòng chọn file đính kèm'">
               <div class="d-flex flex-column gap-2">
                 <div class="d-flex flex-column flex-sm-row gap-2">
-                  <nz-upload
-                    [(nzFileList)]="fileList"
-                    [nzBeforeUpload]="beforeUpload"
-                    [nzShowUploadList]="false"
-                    [nzMultiple]="false"
-                  >
+                  <nz-upload [(nzFileList)]="fileList" [nzBeforeUpload]="beforeUpload" [nzShowUploadList]="false"
+                    [nzMultiple]="false">
                     <button nz-button nzBlock class="w-100 w-sm-auto">
                       <span nz-icon nzType="upload"></span>
                       Chọn file
                     </button>
                   </nz-upload>
-                  <input
-                    nz-input
-                    [value]="attachFileName || ''"
-                    placeholder="Chưa chọn file"
-                    readonly
-                    style="flex: 1"
-                  />
+                  <input nz-input [value]="attachFileName || ''" placeholder="Chưa chọn file" readonly
+                    style="flex: 1" />
                 </div>
                 <!-- Danh sách file đính kèm hiện có (khi edit mode) -->
                 <div *ngIf="existingFiles.length > 0" class="mt-2">
-                  <div *ngFor="let file of existingFiles" class="d-flex align-items-center gap-2 mb-2 p-2 border rounded" 
-                       [style.background-color]="deletedFileIds.includes(file.ID) ? '#f5f5f5' : ''"
-                       [style.opacity]="deletedFileIds.includes(file.ID) ? '0.5' : '1'">
-                    <span class="flex-grow-1" [style.text-decoration]="deletedFileIds.includes(file.ID) ? 'line-through' : 'none'">
+                  <div *ngFor="let file of existingFiles"
+                    class="d-flex align-items-center gap-2 mb-2 p-2 border rounded"
+                    [style.background-color]="deletedFileIds.includes(file.ID) ? '#f5f5f5' : ''"
+                    [style.opacity]="deletedFileIds.includes(file.ID) ? '0.5' : '1'">
+                    <span class="flex-grow-1"
+                      [style.text-decoration]="deletedFileIds.includes(file.ID) ? 'line-through' : 'none'">
                       {{ file.FileName || file.OriginPath || 'File' }}
                     </span>
-                    <button 
-                      nz-button 
-                      nzType="link" 
-                      nzSize="small" 
-                      (click)="downloadFile(file)"
-                      [disabled]="deletedFileIds.includes(file.ID)"
-                      title="Tải xuống"
-                    >
+                    <button nz-button nzType="link" nzSize="small" (click)="downloadFile(file)"
+                      [disabled]="deletedFileIds.includes(file.ID)" title="Tải xuống">
                       <span nz-icon nzType="download" nzTheme="outline"></span>
                     </button>
-                    <button 
-                      nz-button 
-                      nzType="link" 
-                      nzSize="small" 
-                      nzDanger
-                      (click)="deleteExistingFile(file.ID)"
-                      title="Xóa"
-                    >
+                    <button nz-button nzType="link" nzSize="small" nzDanger (click)="deleteExistingFile(file.ID)"
+                      title="Xóa">
                       <span nz-icon nzType="delete" nzTheme="outline"></span>
                     </button>
                   </div>
@@ -140,28 +107,39 @@
         </nz-col>
       </nz-row>
 
-      <nz-form-item>
-        <nz-form-label >Địa điểm<span class="text-danger ps-1 me-1"> (*)
-        </span></nz-form-label>
-        <nz-form-control [nzErrorTip]="'Vui lòng nhập nơi công tác'">
-          <input nz-input formControlName="Location" placeholder="Nhập nơi công tác" />
-        </nz-form-control>
-      </nz-form-item>
+      <nz-row [nzGutter]="16">
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="8" [nzXl]="8">
+          <nz-form-item>
+            <nz-form-label>Dự án<span class="text-danger ps-1 me-1"> (*)
+              </span></nz-form-label>
+            <nz-form-control [nzErrorTip]="'Vui lòng chọn dự án'">
+              <nz-select formControlName="ProjectID" nzPlaceHolder="Chọn dự án" nzAllowClear nzShowSearch
+                style="width: 100%">
+                <nz-option *ngFor="let project of projectList" [nzValue]="project.id"
+                  [nzLabel]="project.text"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="16" [nzXl]="16">
+          <nz-form-item>
+            <nz-form-label>Địa điểm<span class="text-danger ps-1 me-1"> (*)
+              </span></nz-form-label>
+            <nz-form-control [nzErrorTip]="'Vui lòng nhập nơi công tác'">
+              <input nz-input formControlName="Location" placeholder="Nhập nơi công tác" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
 
-    
       <nz-row [nzGutter]="16">
         <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="6" [nzXl]="6">
           <nz-form-item>
-            <nz-form-label >Loại<span class="text-danger ps-1 me-1"> (*)
-            </span></nz-form-label>
+            <nz-form-label>Loại<span class="text-danger ps-1 me-1"> (*)
+              </span></nz-form-label>
             <nz-form-control [nzErrorTip]="'Vui lòng chọn loại công tác'">
-              <nz-select
-                formControlName="Type"
-                nzPlaceHolder="Chọn loại công tác"
-                nzAllowClear
-                nzShowSearch
-                style="width: 100%"
-              >
+              <nz-select formControlName="Type" nzPlaceHolder="Chọn loại công tác" nzAllowClear nzShowSearch
+                style="width: 100%">
                 <nz-option *ngFor="let type of typeList" [nzValue]="type.ID" [nzLabel]="type.TypeName"></nz-option>
               </nz-select>
             </nz-form-control>
@@ -171,14 +149,8 @@
           <nz-form-item>
             <nz-form-label>Phí công tác</nz-form-label>
             <nz-form-control>
-              <nz-input-number
-                formControlName="CostBussiness"
-                [nzMin]="0"
-                [nzFormatter]="formatter"
-                [nzParser]="parser"
-                style="width: 100%"
-                [nzDisabled]="true"
-              ></nz-input-number>
+              <nz-input-number formControlName="CostBussiness" [nzMin]="0" [nzFormatter]="formatter" [nzParser]="parser"
+                style="width: 100%" [nzDisabled]="true"></nz-input-number>
             </nz-form-control>
           </nz-form-item>
         </nz-col>
@@ -187,22 +159,11 @@
             <nz-form-label>Phương tiện</nz-form-label>
             <nz-form-control>
               <div class="input-group">
-                <input 
-                  type="text" 
-                  class="form-control form-control-sm text-left" 
-                  [value]="vehicleDisplayText"
-                  disabled 
-                  style="text-overflow:ellipsis;"
-                />
+                <input type="text" class="form-control form-control-sm text-left" [value]="vehicleDisplayText" disabled
+                  style="text-overflow:ellipsis;" />
                 <div class="input-group-append">
-                  <button 
-                    nz-button 
-                    nzType="primary" 
-                    nzSize="default"
-                    type="button" 
-                    title="Thêm phương tiện"
-                    (click)="openVehicleModal()"
-                  >
+                  <button nz-button nzType="primary" nzSize="default" type="button" title="Thêm phương tiện"
+                    (click)="openVehicleModal()">
                     <span nz-icon nzType="edit" nzTheme="outline"></span>
                   </button>
                 </div>
@@ -214,20 +175,14 @@
           <nz-form-item>
             <nz-form-label>Phí phương tiện</nz-form-label>
             <nz-form-control>
-              <nz-input-number
-                formControlName="CostVehicle"
-                [nzMin]="0"
-                [nzFormatter]="formatter"
-                [nzParser]="parser"
-                style="width: 100%"
-                [nzDisabled]="true"
-              ></nz-input-number>
+              <nz-input-number formControlName="CostVehicle" [nzMin]="0" [nzFormatter]="formatter" [nzParser]="parser"
+                style="width: 100%" [nzDisabled]="true"></nz-input-number>
             </nz-form-control>
           </nz-form-item>
         </nz-col>
       </nz-row>
 
-    
+
 
       <nz-row [nzGutter]="16">
         <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="6" [nzXl]="6">
@@ -236,20 +191,12 @@
             <div class="input-group">
               <div class="input-group-prepend">
                 <div class="input-group-text py-0 px-2 form-control form-control-sm" style="height:31px !important;">
-                  <input 
-                    type="checkbox" 
-                    [checked]="bussinessForm.get('NotCheckIn')?.value === 1"
-                    (change)="onNotCheckInChange($event)"
-                  />
+                  <input type="checkbox" [checked]="bussinessForm.get('NotCheckIn')?.value === 1"
+                    (change)="onNotCheckInChange($event)" />
                 </div>
               </div>
-              <input
-                type="text"
-                class="form-control form-control-sm"
-                [value]="'Không chấm công tại VP'"
-                placeholder=""
-                readonly
-              />
+              <input type="text" class="form-control form-control-sm" [value]="'Không chấm công tại VP'" placeholder=""
+                readonly />
             </div>
           </div>
         </nz-col>
@@ -262,12 +209,8 @@
                   <label nz-checkbox formControlName="WorkEarly"></label>
                 </div>
               </div>
-              <input 
-                type="text" 
-                class="form-control form-control-sm text-right" 
-                [value]="formatter(bussinessForm.get('CostWorkEarly')?.value || 0)"
-                disabled
-              />
+              <input type="text" class="form-control form-control-sm text-right"
+                [value]="formatter(bussinessForm.get('CostWorkEarly')?.value || 0)" disabled />
             </div>
           </div>
         </nz-col>
@@ -275,11 +218,7 @@
           <nz-form-item>
             <nz-form-label>Phụ cấp ăn tối</nz-form-label>
             <nz-form-control>
-              <nz-select
-                formControlName="Overnight"
-                nzPlaceHolder="Chọn phụ cấp ăn tối"
-                style="width: 100%"
-              >
+              <nz-select formControlName="Overnight" nzPlaceHolder="Chọn phụ cấp ăn tối" style="width: 100%">
                 <nz-option [nzValue]="0" nzLabel="Không có"></nz-option>
                 <nz-option [nzValue]="1" nzLabel="Về VP từ sau 20h"></nz-option>
                 <nz-option [nzValue]="2" nzLabel="Theo loại công tác"></nz-option>
@@ -291,14 +230,8 @@
           <nz-form-item>
             <nz-form-label>Tổng chi phí</nz-form-label>
             <nz-form-control>
-              <nz-input-number
-                formControlName="TotalMoney"
-                [nzMin]="0"
-                [nzFormatter]="formatter"
-                [nzParser]="parser"
-                [nzDisabled]="true"
-                style="width: 100%"
-              ></nz-input-number>
+              <nz-input-number formControlName="TotalMoney" [nzMin]="0" [nzFormatter]="formatter" [nzParser]="parser"
+                [nzDisabled]="true" style="width: 100%"></nz-input-number>
             </nz-form-control>
           </nz-form-item>
         </nz-col>
@@ -306,29 +239,31 @@
 
 
 
-    
-    <nz-row [nzGutter]="16"> 
-      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
-        <nz-form-item>
-          <nz-form-label>Lý do công tác<span class="text-danger ps-1 me-1"> (*)
-          </span></nz-form-label>
-          <nz-form-control [nzErrorTip]="'Vui lòng nhập lý do công tác'">
-            <textarea nz-input formControlName="Reason" placeholder="Nhập lý do" rows="3" style="width: 100%;"></textarea>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col> 
-      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
-        <nz-form-item>
-          <nz-form-label>Ghi chú</nz-form-label>
-          <nz-form-control>
-            <textarea nz-input formControlName="Note" placeholder="Nhập ghi chú" rows="3" style="width: 100%;"></textarea>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    
-    </nz-row>
-    
-    
+
+      <nz-row [nzGutter]="16">
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+          <nz-form-item>
+            <nz-form-label>Lý do công tác<span class="text-danger ps-1 me-1"> (*)
+              </span></nz-form-label>
+            <nz-form-control [nzErrorTip]="'Vui lòng nhập lý do công tác'">
+              <textarea nz-input formControlName="Reason" placeholder="Nhập lý do" rows="3"
+                style="width: 100%;"></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+          <nz-form-item>
+            <nz-form-label>Ghi chú</nz-form-label>
+            <nz-form-control>
+              <textarea nz-input formControlName="Note" placeholder="Nhập ghi chú" rows="3"
+                style="width: 100%;"></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+      </nz-row>
+
+
 
 
     </form>
@@ -336,7 +271,7 @@
 
   <div class="modal-footer bg-white p-2 d-flex justify-content-end gap-2">
     <button nz-button nzDanger nzType="default" (click)="onCancel()" [nzLoading]="isLoading">
-     Đóng
+      Đóng
     </button>
     <button nz-button nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading">
       Lưu

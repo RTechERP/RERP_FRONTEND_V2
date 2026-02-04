@@ -27,6 +27,7 @@ import { EmployeeService } from '../../../../employee/employee-service/employee.
 import { VehicleSelectModalComponent } from './vehicle-select-modal/vehicle-select-modal.component';
 import { HomeLayoutService } from '../../../../../../layouts/home-layout/home-layout-service/home-layout.service';
 import { PermissionService } from '../../../../../../services/permission.service';
+import { ProjectService } from '../../../../../project/project-service/project.service';
 
 @Component({
   selector: 'app-employee-register-bussiness-form',
@@ -64,6 +65,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   approverList: any[] = [];
   approverGroups: any[] = []; // Danh sách người duyệt đã group theo phòng ban
   employeeList: any[] = [];
+  projectList: any[] = [];
   minDate: Date | null = null;
   attachFileName: string = '';
   datePickerKey: number = 0;
@@ -93,7 +95,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     private message: NzMessageService,
     private modalService: NgbModal,
     private homeLayoutService: HomeLayoutService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private projectService: ProjectService
   ) {
     this.initializeForm();
   }
@@ -103,6 +106,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.loadVehicles();
     this.loadApprovers();
     this.loadEmployees();
+    this.loadProjects();
     this.getCurrentUser();
     this.loadConfigSystem();
 
@@ -150,7 +154,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
               Note: result.Note || '',
               Reason: result.Reason || '',
               IsProblem: result.IsProblem || false,
-              AttachFileName: result.AttachFileName || ''
+              AttachFileName: result.AttachFileName || '',
+              ProjectID: result.ProjectID || result.ProjectId || null,
             });
 
             this.onVehicleChange(result.VehicleID || result.VehicleId);
@@ -249,6 +254,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     const employeeID = (data.EmployeeID && data.EmployeeID > 0) ? data.EmployeeID : defaultEmployeeID;
     const typeValue = data.Type || data.TypeID || data.TypeBusiness || null;
     const approvedId = data.ApprovedID || data.ApprovedId || data.ApproverID || null;
+    const projectID = data.ProjectID || data.ProjectId || null;
     const workEarlyValue = this.convertToBoolean(data.WorkEarly);
 
     // Convert NotCheckIn from boolean to number (1 or 0)
@@ -273,6 +279,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       Type: typeValue,
       CostBussiness: data.CostBussiness || data.CostType || 0,
       VehicleID: data.VehicleID || data.VehicleId || null,
+      ProjectID: projectID,
       CostVehicle: data.CostVehicle || 0,
       NotCheckIn: notCheckInValue,
       WorkEarly: workEarlyValue,
@@ -306,6 +313,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       CostBussiness: 0,
       VehicleID: null,
       CostVehicle: 0,
+      ProjectID: null,
       NotCheckIn: 1,
       WorkEarly: false,
       CostWorkEarly: 0,
@@ -341,6 +349,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       Type: [null, Validators.required],
       CostBussiness: [0],
       VehicleID: [null],
+      ProjectID: [null, Validators.required],
       CostVehicle: [{ value: 0, disabled: true }],
       NotCheckIn: [1],
       WorkEarly: [false],
@@ -417,6 +426,42 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại công tác: ' + error.message);
+      }
+    });
+  }
+
+  loadProjects() {
+    this.projectService.getProjectModal().subscribe({
+      next: (data: any) => {
+        if (data && data.data) {
+          const dataArray = Array.isArray(data.data) ? data.data : [data.data];
+
+          this.projectList = dataArray.map((item: any) => {
+            if (item.id !== undefined && item.text !== undefined) {
+              return item;
+            }
+            if (item.ID !== undefined) {
+              const projectText = item.ProjectCode
+                ? `${item.ProjectCode} - ${item.ProjectName || ''}`
+                : (item.ProjectName || '');
+
+              return {
+                id: item.ID,
+                text: projectText
+              };
+            }
+            return item;
+          });
+        } else {
+          this.projectList = [];
+        }
+      },
+      error: (error: any) => {
+        if (error.status !== 200) {
+          const errorMessage = error?.error?.Message || error?.error?.message || error?.message || 'Không thể tải danh sách dự án. Vui lòng liên hệ quản trị viên.';
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        }
+        this.projectList = [];
       }
     });
   }
@@ -725,6 +770,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     const dayBussiness = formValue.DayBussiness ? new Date(formValue.DayBussiness).toISOString() : null;
     const vehicleID = formValue.VehicleID !== null && formValue.VehicleID !== undefined ? formValue.VehicleID : 0;
     const approvedId = formValue.ApprovedId !== null && formValue.ApprovedId !== undefined ? formValue.ApprovedId : 0;
+    const projectID = formValue.ProjectID !== null && formValue.ProjectID !== undefined ? formValue.ProjectID : 0;
 
     const data = [{
       ID: formValue.ID !== null && formValue.ID !== undefined ? formValue.ID : 0,
@@ -735,6 +781,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       TypeBusiness: formValue.Type,
       CostBussiness: Number(formValue.CostBussiness) || 0,
       VehicleID: Number(vehicleID),
+      ProjectID: Number(projectID),
       CostVehicle: Number(formValue.CostVehicle) || 0,
       NotChekIn: formValue.NotCheckIn === 1 ? true : false,
       WorkEarly: formValue.WorkEarly || false,

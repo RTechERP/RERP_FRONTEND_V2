@@ -25,7 +25,8 @@
                         <nz-form-label>Loại nội dung đề nghị<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Chọn loại nội dung đề nghị">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nội dung"
-                                [formControlName]="paymentOrderField.PaymentOrderTypeID.field" nzSize="small">
+                                [formControlName]="paymentOrderField.PaymentOrderTypeID.field" nzSize="small"
+                                nzDropdownClassName="select-dropdown">
                                 @for (item of paymentOrderTypes; track item) {
                                 <nz-option nzLabel="{{item.TypeName}}" [nzValue]="item.ID"></nz-option>
                                 }
@@ -89,7 +90,8 @@
                         <nz-form-label>Nhà cung cấp</nz-form-label>
                         <nz-form-control nzErrorTip="Chọn nhà cung cấp">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.SupplierSaleID.field" nzSize="small">
+                                [formControlName]="paymentOrderField.SupplierSaleID.field" nzSize="small"
+                                nzDropdownClassName="select-dropdown">
                                 @for (item of supplierSales; track item) {
                                 <nz-option nzLabel="{{item.NameNCC}}" nzValue="{{item.ID}}"></nz-option>
                                 }
@@ -103,7 +105,8 @@
                         <nz-form-label>PO NCC</nz-form-label>
                         <nz-form-control nzErrorTip="Chọn po">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn PO"
-                                [formControlName]="paymentOrderField.PONCCID.field" nzSize="small">
+                                [formControlName]="paymentOrderField.PONCCID.field" nzSize="small"
+                                nzDropdownClassName="select-dropdown">
                                 @for (item of poNCCs; track item) {
                                 <nz-option nzLabel="{{item.BillCode}}" nzValue="{{item.ID}}"></nz-option>
                                 }
@@ -117,7 +120,8 @@
                         <nz-form-label>Hợp đồng</nz-form-label>
                         <nz-form-control nzErrorTip="">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn hợp đồng"
-                                [formControlName]="paymentOrderField.RegisterContractID.field" nzSize="small">
+                                [formControlName]="paymentOrderField.RegisterContractID.field" nzSize="small"
+                                nzDropdownClassName="select-dropdown">
                                 @for (item of registerContracts; track item) {
                                 <nz-option nzLabel="{{item.DocumentName}}" nzValue="{{item.ID}}"></nz-option>
                                 }
@@ -130,7 +134,8 @@
                         <nz-form-label>Dự án</nz-form-label>
                         <nz-form-control nzErrorTip="">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
-                                [formControlName]="paymentOrderField.ProjectID.field" nzSize="small">
+                                [formControlName]="paymentOrderField.ProjectID.field" nzSize="small"
+                                nzDropdownClassName="select-dropdown">
                                 @for (item of projects; track item) {
                                 <nz-option nzLabel="{{item.ProjectCode}} - {{item.ProjectName}}"
                                     [nzValue]="item.ID"></nz-option>

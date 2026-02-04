@@ -146,17 +146,35 @@
                 </a>
             </div>
             <div class="card-body p-0">
-                <div *ngIf="quantityApprove?.Count > 0">
+                <div *ngIf="quantityApprove?.Count > 0 || quantityBorrow > 0 || quantityBorrowExpried > 0">
                     <div class="px-3 py-2 bg-light"
                         style="background-color: #fff3cd !important; border-left: 4px solid #ffc107;"
                         *hasPermission="'N1,N32,N85'">
                         <small class="text-muted fw-bold">
-                            Bạn đang có <span class="text-danger fw-bold">{{quantityApprove?.Count || 0}}</span> đơn
-                            đăng kí
-                            công chưa duyệt!
-                            <span class="text-primary cursor-pointer fw-bold"
-                                style="color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
-                                (click)="newTabApprove()">Bấm vào đây để duyệt</span>
+                            <ng-container *ngIf="quantityApprove?.Count > 0">
+                                Bạn đang có <span class="text-danger fw-bold">{{quantityApprove?.Count || 0}}</span> đơn
+                                đăng kí công chưa duyệt!
+                                <span class="text-primary cursor-pointer fw-bold"
+                                    style="color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
+                                    (click)="newTabApprove()">Bấm vào đây để duyệt</span>
+                            </ng-container>
+                            <ng-container
+                                *ngIf="quantityApprove?.Count > 0 && (quantityBorrow > 0 || quantityBorrowExpried > 0)">
+                                <br>
+                            </ng-container>
+                            <ng-container *ngIf="quantityBorrow > 0 || quantityBorrowExpried > 0">
+                                Bạn đang có
+                                <ng-container *ngIf="quantityBorrow > 0">
+                                    <span class="text-danger fw-bold">{{quantityBorrow}}</span> vật tư mượn sắp hết hạn
+                                </ng-container>
+                                <ng-container *ngIf="quantityBorrow > 0 && quantityBorrowExpried > 0">
+                                    và
+                                </ng-container>
+                                <ng-container *ngIf="quantityBorrowExpried > 0">
+                                    <span class="text-danger fw-bold">{{quantityBorrowExpried}}</span> vật tư mượn quá
+                                    hạn
+                                </ng-container>!
+                            </ng-container>
                         </small>
                     </div>
                 </div>

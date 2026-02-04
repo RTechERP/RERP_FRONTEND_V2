@@ -110,3 +110,9 @@ angular-slickgrid,
     display: flex !important;
     font-size: 0.75rem !important;
 }
+
+/* Ensure SlickGrid custom footer is visible */
+::ng-deep .slick-custom-footer {
+    display: flex !important;
+    font-size: 0.75rem !important;
+}

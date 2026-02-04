@@ -1159,9 +1159,14 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
         return { isValid: false, message: `${prefixText}Vui lòng nhập % Hoàn thành!` };
       }
 
+      if (report.PercentComplete === 0) {
+        return { isValid: false, message: `${prefixText}% Hoàn thành phải lớn hơn 0!` };
+      }
+      
       if (report.PercentComplete < 0 || report.PercentComplete > 100) {
         return { isValid: false, message: `${prefixText}% Hoàn thành phải từ 0 đến 100!` };
       }
+      
 
       // Validate Content
       if (!report.Content || report.Content.trim() === '') {
@@ -1341,6 +1346,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Không có dữ liệu để lưu! Vui lòng chọn ít nhất một dự án và hạng mục công việc.');
       return;
     }
+    
 
     // Bước 3: Validate dữ liệu flat (validateFlatData)
     const flatValidation = this.validateFlatData(reports);

@@ -5,3 +5,18 @@
 ::ng-deep #grdDataluckynumber1{
     height: 89vh !important;
 }
+
+::ng-deep .ant-modal-body{
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    height: 39vh !important;
+}
+
+::ng-deep .ant-upload.ant-upload-select-picture-card{
+    width: 100% !important;
+    height: 29vh !important;
+}
+::ng-deep .ant-upload-list-picture-card-container{
+    width: 100% !important;
+    height: 29vh !important;
+}

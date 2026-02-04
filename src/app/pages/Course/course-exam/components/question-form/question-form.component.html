@@ -1,0 +1,144 @@
+<nz-modal [(nzVisible)]="isVisible" [nzTitle]="isEdit ? 'Cập nhật câu hỏi' : 'Thêm câu hỏi'"
+    (nzOnCancel)="handleCancel()" [nzWidth]="1200" [nzFooter]="modalFooter" nzClassName="question-modal"
+    [nzStyle]="{ top: '20px' }">
+
+    <ng-container *nzModalContent>
+        <form nz-form [formGroup]="questionForm" class="question-form-container" nzLayout="vertical">
+            <div class="split-layout">
+                <!-- Left Panel: STT + Content -->
+                <div class="panel-left">
+                    <div>
+                        <nz-form-item class="stt-row">
+                            <nz-form-label nzFor="STT" nzRequired>STT</nz-form-label>
+                            <nz-form-control nzErrorTip="Vui lòng nhập STT!">
+                                <nz-input-number formControlName="STT" id="STT" [nzMin]="1" [nzStep]="1"
+                                    style="width: 100px;">
+                                </nz-input-number>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                    <div class="question-content-wrapper">
+                        <nz-form-item>
+                            <nz-form-label nzFor="QuestionText" nzRequired>Nội dung câu hỏi</nz-form-label>
+                            <nz-form-control nzErrorTip="Vui lòng nhập nội dung câu hỏi!" style="height: 100%;">
+                                <textarea nz-input formControlName="QuestionText" id="QuestionText"
+                                    placeholder="Nhập nội dung câu hỏi..." class="full-height-textarea" rows="13">
+                                </textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Image -->
+                <div class="panel-right text-start">
+                    <nz-form-label class="text-start">Ảnh minh họa</nz-form-label>
+                    <div class="image-upload-container">
+                        <div class="d-flex gap-2 mb-2 align-items-center">
+                            <nz-upload nzAccept="image/*" [nzFileList]="[]" [nzBeforeUpload]="beforeUploadImage"
+                                [nzShowUploadList]="false" [nzMultiple]="false">
+                                <button nz-button type="button">
+                                    <span nz-icon nzType="upload"></span>
+                                    CHỌN ẢNH
+                                </button>
+                            </nz-upload>
+                            <button *ngIf="attachImageName" nz-button nzType="default" nzDanger type="button"
+                                (click)="removeImage()" title="Xóa ảnh">
+                                <span nz-icon nzType="delete"></span>
+                            </button>
+                            <input nz-input [value]="attachImageName || ''" placeholder="Chưa chọn ảnh" readonly
+                                style="flex: 1" />
+                        </div>
+
+                        <!-- Preview Area -->
+                        <div class="preview-wrapper">
+                            <!-- Only wrap with nz-upload if NO image is selected -->
+                            <ng-container *ngIf="!attachImageName; else hasImageTemplate">
+                                <nz-upload nzAccept="image/*" [nzFileList]="[]" [nzBeforeUpload]="beforeUploadImage"
+                                    [nzShowUploadList]="false" [nzMultiple]="false" class="preview-upload w-100">
+                                    <div class="image-preview-area empty border rounded bg-light d-flex align-items-center justify-content-center"
+                                        style="min-height: 200px; overflow: hidden; cursor: pointer;">
+                                        <div class="text-muted text-center p-4">
+                                            <i nz-icon nzType="picture"
+                                                style="font-size: 32px; display: block; margin-bottom: 8px;"></i>
+                                            <small>Chưa có ảnh minh họa</small>
+                                            <div class="mt-2"><small>(Click để chọn ảnh)</small></div>
+                                        </div>
+                                    </div>
+                                </nz-upload>
+                            </ng-container>
+
+                            <!-- Display template when image IS selected (NOT clickable for upload) -->
+                            <ng-template #hasImageTemplate>
+                                <div class="image-preview-area has-image border rounded d-flex align-items-center justify-content-center"
+                                    style="min-height: 200px; overflow: hidden;">
+                                    <img [src]="newImagePreviewUrl || imagePreviewUrl" alt="Preview" />
+                                </div>
+                            </ng-template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section: Answer Grid (Only for ExamType = 1) -->
+            <div *ngIf="examType == 1" class="answer-section-bottom">
+                <nz-form-item>
+                    <nz-form-label>Nội dung đáp án</nz-form-label>
+                    <nz-form-control>
+                        <div class="answer-grid">
+                            <nz-table #answerTable [nzData]="answers" [nzShowPagination]="false" [nzSize]="'small'"
+                                nzBordered>
+                                <thead>
+                                    <tr>
+                                        <th nzWidth="80px" style="text-align: center;">
+                                            <button nz-button nzType="link" nzSize="small" (click)="addAnswer()"
+                                                [disabled]="answers.length >= 4" title="Thêm đáp án">
+                                                <i nz-icon nzType="plus-circle" nzTheme="outline"></i>
+                                            </button>
+                                        </th>
+                                        <th nzWidth="60px" style="text-align: center;">Mã</th>
+                                        <th style="text-align: center;">Nội dung đáp án</th>
+                                        <th nzWidth="120px" style="text-align: center;">Đáp án đúng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let answer of answers; let i = index">
+                                        <td style="text-align: center;">
+                                            <button nz-button nzType="link" nzDanger nzSize="small"
+                                                (click)="deleteAnswer(i)" title="Xóa đáp án">
+                                                <i nz-icon nzType="delete" nzTheme="outline"></i>
+                                            </button>
+                                        </td>
+                                        <td style="text-align: center; font-weight: bold;">{{ answer.Code }}</td>
+                                        <td>
+                                            <input nz-input [(ngModel)]="answer.AnswerText"
+                                                [ngModelOptions]="{standalone: true}"
+                                                placeholder="Nhập nội dung đáp án..." style="width: 100%;">
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <label nz-checkbox [(ngModel)]="answer.RightAnswer"
+                                                [ngModelOptions]="{standalone: true}">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                    <tr *ngIf="answers.length === 0">
+                                        <td colspan="4" style="text-align: center; color: #999;">
+                                            Chưa có đáp án. Nhấn nút <i nz-icon nzType="plus-circle"></i> để thêm.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </nz-table>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </form>
+    </ng-container>
+
+    <!-- Custom Footer -->
+    <ng-template #modalFooter>
+        <button nz-button nzType="default" (click)="handleCancel()">Hủy</button>
+        <button nz-button nzType="primary" (click)="handleOk()" [nzLoading]="isConfirmLoading">
+            Lưu
+        </button>
+    </ng-template>
+</nz-modal>

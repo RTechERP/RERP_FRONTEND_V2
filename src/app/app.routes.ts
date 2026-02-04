@@ -250,6 +250,7 @@ import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-rep
 import { VehicleBookingManagementSlickgridComponent } from './pages/hrm/vehicle/vehicle-booking-management/vehicle-booking-management-slickgrid/vehicle-booking-management-slickgrid.component';
 import { KpiPositionEmployeeComponent } from './pages/old/Technical/kpi-position-employee/kpi-position-employee.component';
 import { CoursePracticeComponent } from './pages/Course/course-practice/course-practice.component';
+import { CourseExamComponent } from './pages/Course/course-exam/course-exam.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -1001,9 +1002,10 @@ export const routes: Routes = [
             { path: 'inventory-borrow-ncc', component: InventoryBorrowNCCComponent, canActivate: [authGuard] },
 
 
-            // COURSE
+            // COURSE: Khóa học
             { path: 'course-management', component: CourseManagementComponent, canActivate: [authGuard] },
             { path: 'course-practice', component: CoursePracticeComponent, canActivate: [authGuard] },
+            { path: 'course-exam', component: CourseExamComponent, canActivate: [authGuard] },
 
             { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
 

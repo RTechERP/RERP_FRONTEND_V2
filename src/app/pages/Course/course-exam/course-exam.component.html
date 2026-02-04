@@ -1,0 +1,108 @@
+<!-- DESKTOP LAYOUT -->
+<ng-container *ngIf="!isSmallScreen">
+    <nz-splitter [nzLayout]="splitterLayout">
+        <nz-splitter-panel nzDefaultSize="35%" nzMin="20%" nzMax="100%">
+            <div class="box h-100">
+                <ng-container class="w-100">
+                    <nz-splitter [nzLayout]="'vertical'">
+                        <nz-splitter-panel nzDefaultSize="70%">
+                            <app-exam-list [data]="courseData" [autoSelectFirst]="true" [isLoading]="isLoadingCourse"
+                                (examSelected)="onExamSelected($event)" (menuAction)="onExamMenuAction($event)">
+                            </app-exam-list>
+                        </nz-splitter-panel>
+
+                        <nz-splitter-panel nzDefaultSize="30%">
+                            <app-exam-detail-tabs [lessonExamData]="lessonExamData" [courseExamData]="courseExamData"
+                                [isLoading]="isLoadingExams" [autoSelectFirst]="true" (action)="onTabAction($event)"
+                                (examSelected)="onDetailTabExamSelected($event)"
+                                (activeTabChange)="onDetailTabChange($event)">
+                            </app-exam-detail-tabs>
+                        </nz-splitter-panel>
+                    </nz-splitter>
+                </ng-container>
+            </div>
+        </nz-splitter-panel>
+
+        <nz-splitter-panel nzDefaultSize="65%" nzMin="20%" nzMax="100%">
+            <div class="box h-100">
+                <ng-container class="w-100">
+                    <nz-splitter [nzLayout]="'vertical'">
+                        <nz-splitter-panel [nzDefaultSize]="selectedExamType === 1 ? '65%' : '100%'">
+                            <app-question-list [data]="questionData" [examType]="selectedExamType"
+                                [isLoading]="isLoadingQuestions" [autoSelectFirst]="true"
+                                (questionSelected)="onQuestionSelected($event)"
+                                (questionFocused)="onQuestionFocused($event)"
+                                (menuAction)="onQuestionMenuAction($event)">
+                            </app-question-list>
+                        </nz-splitter-panel>
+
+                        <nz-splitter-panel nzDefaultSize="35%" *ngIf="selectedExamType === 1">
+                            <app-answer-list [data]="answerData" [examType]="selectedExamType"
+                                [isLoading]="isLoadingAnswers" [autoSelectFirst]="true"></app-answer-list>
+                        </nz-splitter-panel>
+                    </nz-splitter>
+                </ng-container>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>
+
+<!-- MOBILE LAYOUT -->
+<ng-container *ngIf="isSmallScreen">
+    <nz-tabset class="h-100 mobile-tabset" [nzTabBarGutter]="10">
+        <nz-tab nzTitle="Danh sách">
+            <div class="d-flex flex-column h-100">
+                <!-- Top Half: Exam List -->
+                <div class="flex-grow-1" style="flex-basis: 60%; min-height: 0;">
+                    <app-exam-list [data]="courseData" [autoSelectFirst]="true" [isLoading]="isLoadingCourse"
+                        (examSelected)="onExamSelected($event)" (menuAction)="onExamMenuAction($event)">
+                    </app-exam-list>
+                </div>
+                <!-- Divider -->
+                <div class="border-top border-primary my-1"></div>
+                <!-- Bottom Half: Detail Tabs -->
+                <div class="flex-grow-1" style="flex-basis: 40%; min-height: 0;">
+                    <app-exam-detail-tabs [lessonExamData]="lessonExamData" [courseExamData]="courseExamData"
+                        [isLoading]="isLoadingExams" [autoSelectFirst]="true" (action)="onTabAction($event)"
+                        (examSelected)="onDetailTabExamSelected($event)" (activeTabChange)="onDetailTabChange($event)">
+                    </app-exam-detail-tabs>
+                </div>
+            </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Câu hỏi & Đáp án">
+            <div class="d-flex flex-column h-100">
+                <!-- Top Half: Questions -->
+                <div class="flex-grow-1" [style.flex-basis]="selectedExamType === 1 ? '60%' : '100%'"
+                    style="min-height: 0;">
+                    <app-question-list [data]="questionData" [examType]="selectedExamType"
+                        [isLoading]="isLoadingQuestions" [autoSelectFirst]="true"
+                        (questionSelected)="onQuestionSelected($event)" (questionFocused)="onQuestionFocused($event)"
+                        (menuAction)="onQuestionMenuAction($event)">
+                    </app-question-list>
+                </div>
+                <!-- Bottom Half: Answers (Only for Multiple Choice) -->
+                <ng-container *ngIf="selectedExamType === 1">
+                    <div class="border-top border-primary my-1"></div>
+                    <div class="flex-grow-1" style="flex-basis: 40%; min-height: 0;">
+                        <app-answer-list [data]="answerData" [examType]="selectedExamType"
+                            [isLoading]="isLoadingAnswers" [autoSelectFirst]="true"></app-answer-list>
+                    </div>
+                </ng-container>
+            </div>
+        </nz-tab>
+    </nz-tabset>
+</ng-container>
+
+<app-exam-form-course [isVisible]="isCourseExamModalVisible" [isEdit]="isExamEditMode" [examData]="currentExamData"
+    [courseData]="currentCourse" [existingExams]="courseExamData" (onCancel)="handleCourseExamCancel()"
+    (onSave)="handleCourseExamSave($event)"></app-exam-form-course>
+
+<app-exam-form-lesson [isVisible]="isLessonExamModalVisible" [isEdit]="isExamEditMode" [examData]="currentExamData"
+    [lessons]="lessons" [existingExams]="lessonExamData" (onCancel)="handleLessonExamCancel()"
+    (onSave)="handleLessonExamSave($event)"></app-exam-form-lesson>
+
+<app-question-form [isVisible]="isQuestionModalVisible" [isEdit]="isQuestionEditMode"
+    [questionData]="currentQuestionData" [examType]="selectedExamType" [examID]="selectedCourseDataID"
+    (onCancel)="handleQuestionCancel()" (onSave)="handleQuestionSave($event)">
+</app-question-form>

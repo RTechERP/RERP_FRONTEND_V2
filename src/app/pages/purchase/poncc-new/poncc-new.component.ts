@@ -2059,11 +2059,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
     if (angularGrid.dataView) {
-      angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => {
-          this.applyDistinctFilters();
-        }, 100);
-      });
+      // angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      //   setTimeout(() => {
+      //     this.applyDistinctFilters();
+      //   }, 100);
+      // });
     }
 
     // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
@@ -2098,11 +2098,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
     if (angularGrid.dataView) {
-      angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => {
-          this.applyDistinctFilters();
-        }, 100);
-      });
+      // angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      //   setTimeout(() => {
+      //     this.applyDistinctFilters();
+      //   }, 100);
+      // });
     }
 
     // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
@@ -2113,16 +2113,6 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         }, 50);
       });
     }
-
-    // if (angularGrid.slickGrid) {
-    //   angularGrid.slickGrid.onActiveCellChanged.subscribe((e, args) => {
-    //     setTimeout(() => {
-    //       this.onActiveRowChanged(args.row);
-    //     }, 50);
-    //   });
-    // }
-
-
   }
 
 
@@ -2140,12 +2130,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
     if (angularGrid.dataView) {
-      angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => {
-          this.applyDistinctFilters();
-          this.updateDetailFooterRow();
-        }, 100);
-      });
+      // angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      //   setTimeout(() => {
+      //     this.applyDistinctFilters();
+      //     this.updateDetailFooterRow();
+      //   }, 100);
+      // });
     }
 
     // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
@@ -3058,7 +3048,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
               ],
               [
                 'Địa chỉ:',
-                { colSpan: 3, text: po.AddressNCC },
+                { colSpan: 3, text: this.multiLineCell(po.AddressNCC) },
                 '',
                 '',
                 'Số:',
@@ -3235,9 +3225,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 'Ngày giao hàng:',
                 DateTime.fromISO(po.DeliveryDate).toFormat('dd/MM/yyyy'),
               ],
-              ['Địa điểm giao hàng:', po.AddressDelivery],
-              ['Điều khoàn thanh toán:', po.RulePayName],
-              ['Số tài khoản:', po.AccountNumberSupplier],
+              ['Địa điểm giao hàng:', this.multiLineCell(po.AddressDelivery)],
+              ['Điều khoàn thanh toán:', this.multiLineCell(po.RulePayName)],
+              ['Số tài khoản:', this.multiLineCell(po.AccountNumberSupplier)],
             ],
           },
           layout: 'noBorders',
@@ -3286,8 +3276,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             {
               table: {
                 body: [
-                  ['Phone:', employeePurchase.Telephone],
-                  ['Email:', employeePurchase.Email],
+                  ['Phone:', this.multiLineCell(employeePurchase.Telephone)],
+                  ['Email:', this.multiLineCell(employeePurchase.Email)],
                 ],
               },
               layout: 'noBorders',
@@ -3306,6 +3296,25 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     };
 
     return docDefinition;
+  }
+
+  multiLineCell(str: string) {
+    if (!str) return '';
+
+    // Clean full-width colon
+    const cleaned = str.replace(/\uFF1A/g, ':');
+
+    // Split theo 2 space
+    const lines = cleaned.split('  ').filter(line => line.trim() !== '');
+
+    if (lines.length <= 1) return cleaned;
+
+    return {
+      stack: lines.map(line => ({
+        text: line.trim(),
+        margin: [0, 2, 0, 0]
+      }))
+    };
   }
   onCreatePDFLanguageEn(data: any, isShowSign: boolean, isShowSeal: boolean) {
     let po = data.po;
@@ -3458,9 +3467,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             widths: [90, '*'],
             body: [
               ['Buyer:', { text: taxCompany.BuyerEnglish, bold: true }],
-              ['Address:', taxCompany.AddressBuyerEnglish],
-              ['Legal Representative:', taxCompany.LegalRepresentativeEnglish],
-              ['Purchaser:', po.Purchaser],
+              ['Address:', this.multiLineCell(taxCompany.AddressBuyerEnglish)],
+              ['Legal Representative:', this.multiLineCell(taxCompany.LegalRepresentativeEnglish)],
+              ['Purchaser:', this.multiLineCell(po.Purchaser)],
             ],
           },
           layout: 'noBorders',
@@ -3599,11 +3608,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 'Delivery date:',
                 DateTime.fromISO(po.DeliveryDate).toFormat('dd/MM/yyyy'),
               ],
-              ['Delivery point:', po.AddressDelivery],
-              ['Term:', po.RulePayName],
-              ['Bank Charge:', po.BankCharge],
-              ['Fedex Account:', po.FedexAccount],
-              ['Bank Account:', po.AccountNumberSupplier],
+              ['Delivery point:', this.multiLineCell(po.AddressDelivery)],
+              ['Term:', this.multiLineCell(po.RulePayName)],
+              ['Bank Charge:', this.multiLineCell(po.BankCharge)],
+              ['Fedex Account:', this.multiLineCell(po.FedexAccount)],
+              ['Bank Account:', this.multiLineCell(po.AccountNumberSupplier)],
             ],
           },
           layout: 'noBorders',

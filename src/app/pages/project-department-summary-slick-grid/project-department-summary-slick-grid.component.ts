@@ -788,6 +788,68 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       syncColumnCellResize: true, // Sửa lỗi sort nhầm cột khi có frozen columns
       rowHeight: 43, // Base height - sẽ tự động tăng theo nội dung qua CSS
       enableAutoTooltip: true,
+      // Context Menu - Menu khi click chuột phải trên grid
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'priority',
+            title: 'Mức độ ưu tiên cá nhân',
+            iconCssClass: 'ctx-icon ctx-icon-priority',
+            commandItems: [
+              { command: 'priority1', title: '1', action: () => this.setPersionalPriority(1) },
+              { command: 'priority2', title: '2', action: () => this.setPersionalPriority(2) },
+              { command: 'priority3', title: '3', action: () => this.setPersionalPriority(3) },
+              { command: 'priority4', title: '4', action: () => this.setPersionalPriority(4) },
+              { command: 'priority5', title: '5', action: () => this.setPersionalPriority(5) },
+            ],
+          },
+          {
+            command: 'openProjectEmployee',
+            title: 'Người tham gia',
+            iconCssClass: 'ctx-icon ctx-icon-participants',
+            action: () => this.openProjectEmployee(),
+          },
+          {
+            command: 'changeProject',
+            title: 'Chuyển báo cáo công việc',
+            iconCssClass: 'ctx-icon ctx-icon-compare',
+            action: () => this.changeProject(),
+          },
+          {
+            command: 'openProjectPartListProblemModal',
+            title: 'Hàng phát sinh',
+            iconCssClass: 'ctx-icon ctx-icon-additional',
+            action: () => this.openProjectPartListProblemModal(),
+          },
+          {
+            command: 'openProjectRequest',
+            title: 'Yêu cầu - Giải pháp',
+            iconCssClass: 'ctx-icon ctx-icon-solution',
+            action: () => this.openProjectRequest(),
+          },
+          {
+            command: 'openProjectTypeLinkDetail',
+            title: 'Cập nhật Leader',
+            iconCssClass: 'ctx-icon ctx-icon-leader',
+            action: () => this.openProjectTypeLinkDetail(),
+          },
+          {
+            command: 'openProjectStatus',
+            title: 'Trạng thái dự án',
+            iconCssClass: 'ctx-icon ctx-icon-status',
+            itemVisibilityOverride: () => this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
+            action: () => this.openProjectStatus(),
+          },
+          {
+            command: 'openUpdateCurrentSituation',
+            title: 'Cập nhật hiện trạng',
+            iconCssClass: 'ctx-icon ctx-icon-update',
+            itemVisibilityOverride: () => this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
+            action: () => this.openUpdateCurrentSituation(),
+          },
+        ],
+      },
     };
   }
 

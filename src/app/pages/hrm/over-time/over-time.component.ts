@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -123,16 +123,15 @@ export class OverTimeComponent implements OnInit {
     return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
 
-  constructor(
-    private fb: FormBuilder,
-    private notification: NzNotificationService,
-    private modal: NzModalService,
-    private departmentService: DepartmentServiceService,
-    private overTimeService: OverTimeService,
-    private authService: AuthService,
-    private permissionService: PermissionService,
+  private fb = inject(FormBuilder);
+  private notification = inject(NzNotificationService);
+  private modal = inject(NzModalService);
+  private departmentService = inject(DepartmentServiceService);
+  private overTimeService = inject(OverTimeService);
+  private authService = inject(AuthService);
+  private permissionService = inject(PermissionService);
 
-  ) { }
+  constructor() { }
 
   ngOnInit() {
     this.initMenuBar();
@@ -523,6 +522,15 @@ export class OverTimeComponent implements OnInit {
         width: 100,
         filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-end'
+      },
+      {
+        id: 'ProjectName',
+        name: 'Dự án',
+        field: 'ProjectName',
+        sortable: true,
+        filterable: true,
+        width: 250,
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'LocationText',
@@ -1037,12 +1045,13 @@ export class OverTimeComponent implements OnInit {
               Location: item.Location,
               Overnight: item.Overnight,
               TypeID: item.TypeID,
+            
               Reason: item.Reason,
               ReasonHREdit: item.ReasonHREdit,
               // Giữ nguyên các giá trị hiện tại
               IsApproved: item.IsApproved,
               IsApprovedHR: item.IsApprovedHR,
-              IsDeleted: item.IsDeleted
+              IsDeleted: item.IsDeleted || false
             };
 
             // Cập nhật trạng thái duyệt theo role

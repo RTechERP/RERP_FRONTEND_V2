@@ -116,11 +116,11 @@
 }
 
 ::ng-deep #jobRequirementGrid {
-  min-height: 47vh !important;
+  min-height: 42.5vh !important;
 }
 
 ::ng-deep #jobRequirementFileGrid {
-  min-height: 47vh !important;
+  min-height: 42.5vh !important;
 }
 
 ::ng-deep #jobRequirementApprovedGrid .row-approved .slick-cell {
@@ -134,7 +134,7 @@
 }
 
 ::ng-deep #jobRequirementApprovedGrid {
-  min-height: 37vh !important;
+  min-height: 41vh !important;
 }
 
 /* Search form positioning and z-index fixes */

@@ -68,7 +68,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HrPurchaseProposalComponent } from '../hr-purchase-proposal/hr-purchase-proposal.component';
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
-import { RecommendSupplierFormComponent } from './recommend-supplier-form/recommend-supplier-form.component';
+import { RecommendSupplierFormComponent } from './recommend-supplier/recommend-supplier-form/recommend-supplier-form.component';
 import { JobRequirementFormComponent } from './job-requirement-form/job-requirement-form.component';
 import { CancelApproveReasonFormComponent } from './cancel-approve-reason-form/cancel-approve-reason-form.component';
 import { AuthService } from '../../../auth/auth.service';
@@ -542,7 +542,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                         this.angularGrid.slickGrid.scrollRowIntoView(rowIndexToSelect);
 
                         this.getJobrequirementDetails(this.JobrequirementID);
-                        this.getHCNSData(this.JobrequirementID);
+                        //   this.getHCNSData(this.JobrequirementID);
                     } else {
                         this.JobrequirementID = 0;
                     }
@@ -672,14 +672,6 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // Kiểm tra nếu đã duyệt thì không cho phép thêm mới hoặc sửa
-        if (this.isHCNSApproved) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                'Không thể thêm mới hoặc chỉnh sửa bản ghi đã được duyệt!'
-            );
-            return;
-        }
 
         const selected = this.getSelectedData() || [];
         const rowData = { ...selected[0] };

@@ -27,11 +27,11 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 
 
 import { RecommendSupplierService } from '../recommend-supplier-service/recommend-supplier.service';
-import { Tabulator } from 'tabulator-tables';
-import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { TabulatorFull } from 'tabulator-tables';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { forkJoin } from 'rxjs';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 interface SupplierProposalRow {
   ID?: number;
@@ -40,6 +40,7 @@ interface SupplierProposalRow {
   DepartmentRequiredID?: number;
   Supplier: string;
   Contact: string;
+  Unit: string;
   UnitPrice: string | number;
   TotalAmount: string | number;
   Note: string;
@@ -83,10 +84,10 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   @Input() JobrequirementID: number = 0;
   @Input() dataInput: any;
   @Input() isCheckmode: boolean = false;
-   DeletedCommend: any[] = [];
+  DeletedCommend: any[] = [];
 
   DepartmentRequiredData: any[] = [];
-  DepartmentRequiredTable: Tabulator | null = null;
+  DepartmentRequiredTable: TabulatorFull | null = null;
 
   HCNSApprovalData: ProductProposalRow[] = [];
   private productRowIdCounter = 0;
@@ -94,7 +95,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   validationErrors: Map<string, ValidationError> = new Map();
 
   DepartmentApprovedData: any[] = [];
-  DepartmentApprovedTable: Tabulator | null = null;
+  DepartmentApprovedTable: TabulatorFull | null = null;
 
   DepartmentID: number = 0;
   EmployeeID: number = 0;
@@ -106,10 +107,10 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   DateEnd: Date = new Date();
   DepartmentRequiredID: number = 0;
 
-   ngOnInit(): void {
+  ngOnInit(): void {
     if (this.JobrequirementID) {
       if (this.isCheckmode) {
-        this.loadDepartmentRequiredData(this.JobrequirementID); 
+        this.loadDepartmentRequiredData(this.JobrequirementID);
       } else {
         this.loadJobRequirementDetail(this.JobrequirementID);
       }
@@ -132,11 +133,11 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   }
 
   private hydrateSupplierRow(supplier?: SupplierProposalRow): SupplierProposalRow {
-    const departmentRequiredID = supplier?.DepartmentRequiredID 
-      || (this.DepartmentRequiredData && this.DepartmentRequiredData.length > 0 
-          ? (this.DepartmentRequiredData[0].ID || this.DepartmentRequiredData[0].DepartmentRequiredID || 0)
-          : 0);
-    
+    const departmentRequiredID = supplier?.DepartmentRequiredID
+      || (this.DepartmentRequiredData && this.DepartmentRequiredData.length > 0
+        ? (this.DepartmentRequiredData[0].ID || this.DepartmentRequiredData[0].DepartmentRequiredID || 0)
+        : 0);
+
     return {
       ID: supplier?.ID,
       STT: supplier?.STT,
@@ -144,6 +145,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       DepartmentRequiredID: departmentRequiredID,
       Supplier: supplier?.Supplier || '',
       Contact: supplier?.Contact || '',
+      Unit: supplier?.Unit || '',
       UnitPrice: supplier && supplier.UnitPrice !== undefined ? supplier.UnitPrice : '',
       TotalAmount: supplier && supplier.TotalAmount !== undefined ? supplier.TotalAmount : '',
       Note: supplier?.Note || '',
@@ -152,16 +154,16 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
 
   private hydrateProductRow(product?: ProductProposalRow): ProductProposalRow {
     const rowId = product && typeof product.rowID === 'number'
-        ? product.rowID
-        : ++this.productRowIdCounter;
+      ? product.rowID
+      : ++this.productRowIdCounter;
 
     if (rowId > this.productRowIdCounter) {
       this.productRowIdCounter = rowId;
     }
 
     const suppliers = product?.Suppliers && product.Suppliers.length
-        ? product.Suppliers.map((supplier) => this.hydrateSupplierRow(supplier))
-        : [this.hydrateSupplierRow()];
+      ? product.Suppliers.map((supplier) => this.hydrateSupplierRow(supplier))
+      : [this.hydrateSupplierRow()];
 
     return {
       rowID: rowId,
@@ -174,8 +176,8 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
     if (this.hasHydratedHCNSData) return;
 
     this.HCNSApprovalData = this.HCNSApprovalData && this.HCNSApprovalData.length
-        ? this.HCNSApprovalData.map((product) => this.hydrateProductRow(product))
-        : [];
+      ? this.HCNSApprovalData.map((product) => this.hydrateProductRow(product))
+      : [];
 
     this.hasHydratedHCNSData = true;
   }
@@ -207,20 +209,29 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
         const master =
           masterList.find((m: any) => m.ID === JobrequirementID) || {};
         const pivotRow = (detailRes.data?.detailsCategory || [])[0] || {};
-
+        console.log("master", master);
         const combinedRecord = {
           ...master,
-          JobRequirementID: pivotRow.JobRequirementID || master.ID  || 0,
+          JobRequirementID: pivotRow.JobRequirementID || master.ID || 0,
           RequestContent: pivotRow.RequestContent || '',
           RequestedBy: pivotRow.RequestedBy || '',
           Reason: pivotRow.Reason || '',
           Quantity: pivotRow.Quantity || '',
+          Unit: pivotRow.Unit || '',
           Quality: pivotRow.Quality || '',
           Location: pivotRow.Location || '',
           DeadlineDate: pivotRow.DeadlineDate || '',
+
         };
 
         this.DepartmentRequiredData = [combinedRecord];
+
+        console.log('=== DEBUG LOAD JOB REQUIREMENT DETAIL ===');
+        console.log('masterList:', masterList);
+        console.log('master found:', master);
+        console.log('pivotRow:', pivotRow);
+        console.log('combinedRecord:', combinedRecord);
+        console.log('hihi DepartmentRequiredData:', this.DepartmentRequiredData);
 
         if (this.DepartmentRequiredTable) {
           this.DepartmentRequiredTable.replaceData(this.DepartmentRequiredData);
@@ -236,16 +247,16 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       this.EmployeeID,
       this.DepartmentID,
       this.Keyword, // Keyword
-        (this.DateStart = new Date(
+      (this.DateStart = new Date(
         new Date().setFullYear(new Date().getFullYear() - 5)
       )),
       this.DateEnd
     ).subscribe({
       next: (response: any) => {
-        const departmentRequiredData =  response.data?.departmentRequiredData || [];
-        
-        this.DepartmentRequiredData = Array.isArray(departmentRequiredData) 
-          ? departmentRequiredData 
+        const departmentRequiredData = response.data?.departmentRequiredData || [];
+
+        this.DepartmentRequiredData = Array.isArray(departmentRequiredData)
+          ? departmentRequiredData
           : [departmentRequiredData];
 
         if (this.DepartmentRequiredTable) {
@@ -297,9 +308,9 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
 
     hcnsProposals.forEach((row: any) => {
       const productName = row.ProductName || '';
-      
-      if (!productName) return; 
-      
+
+      if (!productName) return;
+
       if (!productMap.has(productName)) {
         productMap.set(productName, []);
       }
@@ -311,6 +322,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
         DepartmentRequiredID: row.DepartmentRequiredID || 0,
         Supplier: row.Supplier || '',
         Contact: row.Contact || '',
+        Unit: row.Unit || '',
         UnitPrice: row.UnitPrice || '',
         TotalAmount: row.TotalAmount || '',
         Note: row.Note || '',
@@ -331,110 +343,110 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
     this.hasHydratedHCNSData = true;
   }
 
-   saveData(): void {
-        if (!this.validateHCNSData()) {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Vui lòng kiểm tra lại các trường bắt buộc trong bảng đề xuất'
-        );
-        return;
-      }
-  
-      const hcnsPayload = this.buildHCNSPayload();
-  
-      if (this.isCheckmode == true) {
-        // Update mode
-        const payload = {
-          JobRequirementID: this.JobrequirementID,
-          DepartmentRequired: [
-            ...(this.DepartmentRequiredTable?.getData().map((item: any) => ({
-              ID: item.ID || 0,
-              STT: item.STT || 0,
-              JobRequirementID: item.JobRequirementID || 0,
-              RequesterID: item.RequesterID || 0,
-              PositionID: item.PositionID || 0,
-              DepartmentID: item.DepartmentID || 0,
-              RequestDate: item.DateRequest || '',
-              CompletionDate: item.DeadlineRequest || '',
-              RequestContent: item.RequestContent || '',
-              Unit: item.Unit || '',
-              Reason: item.Reason || '',
-              Description: item.Unit || '',
-              Quantity: item.Quantity || '',
-              Note: item.Note || '',
-            })) || []),
-          ],
-          HCNSProposal: hcnsPayload,
-          DeletedCommend: this.DeletedCommend,
-        };
-        this.recommendSupplierService.saveData(payload).subscribe({
-          next: (res) => {
-            if (res.status === 1) {
-              this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
-              this.closeModal();
-            } else {
-              this.notification.warning(
-                'Thông báo',
-                res.message || 'Không thể cập nhật !'
-              );
-            }
-          },
-          error: (err) => {
-            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật!');
-          },
-        });
-      } else {
-        // Insert mode
-        const payload = {
-           JobRequirementID: this.JobrequirementID,
-           DepartmentRequired: [
-            ...(this.DepartmentRequiredTable?.getData().map((item: any) => ({
-              ID:  0,
-              STT: item.STT || 0,
-              JobRequirementID: item.JobRequirementID || 0,
-              RequesterID: item.EmployeeID || 0,
-              PositionID: item.ChucVuHDID || 0,
-              DepartmentID: item.DepartmentID || 0,
-              RequestDate: item.DateRequest || '',
-              CompletionDate: item.DeadlineRequest || '',
-              RequestContent: item.RequestContent || '',
-              Unit: item.Unit || '',
-              Reason: item.Reason || '',
-              Description: item.Unit || '',
-              Quantity: item.Quantity || '',
-              Note: item.Note || '',
-            })) || []),
-          ],
-          
-          HCNSProposal: hcnsPayload,
-          DeletedCommend: this.DeletedCommend,
-          
-        };
-  
-        this.recommendSupplierService.saveData(payload).subscribe({
-          next: (res) => {
-            if (res.status === 1) {
-              this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
-              this.closeModal();
-            } else {
-              this.notification.warning(
-                'Thông báo',
-                res.message || 'Không thể thêm mới biên bản họp!'
-              );
-            }
-          },
-          error: (err) => {
-            this.notification.error(NOTIFICATION_TITLE.error, err.message || 'Có lỗi xảy ra khi thêm mới!');
-          },
-        });
-      }
+  saveData(): void {
+    if (!this.validateHCNSData()) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng kiểm tra lại các trường bắt buộc trong bảng đề xuất'
+      );
+      return;
     }
+
+    const hcnsPayload = this.buildHCNSPayload();
+
+    if (this.isCheckmode == true) {
+      // Update mode
+      const payload = {
+        JobRequirementID: this.JobrequirementID,
+        DepartmentRequired: [
+          ...(this.DepartmentRequiredTable?.getData().map((item: any) => ({
+            ID: item.ID || 0,
+            STT: item.STT || 0,
+            JobRequirementID: item.JobRequirementID || 0,
+            RequesterID: item.RequesterID || 0,
+            PositionID: item.PositionID || 0,
+            DepartmentID: item.DepartmentID || 0,
+            RequestDate: item.DateRequest || '',
+            CompletionDate: item.DeadlineRequest || '',
+            RequestContent: item.RequestContent || '',
+            Unit: item.Unit || '',
+            Reason: item.Reason || '',
+            Description: item.Unit || '',
+            Quantity: item.Quantity || '',
+            Note: item.Note || '',
+          })) || []),
+        ],
+        HCNSProposal: hcnsPayload,
+        DeletedCommend: this.DeletedCommend,
+      };
+      this.recommendSupplierService.saveData(payload).subscribe({
+        next: (res) => {
+          if (res.status === 1) {
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
+            this.closeModal();
+          } else {
+            this.notification.warning(
+              'Thông báo',
+              res.message || 'Không thể cập nhật !'
+            );
+          }
+        },
+        error: (err) => {
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật!');
+        },
+      });
+    } else {
+      // Insert mode
+      const payload = {
+        JobRequirementID: this.JobrequirementID,
+        DepartmentRequired: [
+          ...(this.DepartmentRequiredTable?.getData().map((item: any) => ({
+            ID: 0,
+            STT: item.STT || 0,
+            JobRequirementID: item.JobRequirementID || 0,
+            RequesterID: item.EmployeeID || 0,
+            PositionID: item.ChucVuHDID || 0,
+            DepartmentID: item.DepartmentID || 0,
+            RequestDate: item.DateRequest || '',
+            CompletionDate: item.DeadlineRequest || '',
+            RequestContent: item.RequestContent || '',
+            Unit: item.Unit || '',
+            Reason: item.Reason || '',
+            Description: item.Unit || '',
+            Quantity: item.Quantity || '',
+            Note: item.Note || '',
+          })) || []),
+        ],
+
+        HCNSProposal: hcnsPayload,
+        DeletedCommend: this.DeletedCommend,
+
+      };
+
+      this.recommendSupplierService.saveData(payload).subscribe({
+        next: (res) => {
+          if (res.status === 1) {
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
+            this.closeModal();
+          } else {
+            this.notification.warning(
+              'Thông báo',
+              res.message || 'Không thể thêm mới biên bản họp!'
+            );
+          }
+        },
+        error: (err) => {
+          this.notification.error(NOTIFICATION_TITLE.error, err.message || 'Có lỗi xảy ra khi thêm mới!');
+        },
+      });
+    }
+  }
 
   draw_DepartmentRequiredTable() {
     if (this.DepartmentRequiredTable) {
       this.DepartmentRequiredTable.replaceData(this.DepartmentRequiredData);
     } else {
-      this.DepartmentRequiredTable = new Tabulator(
+      this.DepartmentRequiredTable = new TabulatorFull(
         this.tableRef1.nativeElement,
         {
           data: this.DepartmentRequiredData,
@@ -472,9 +484,9 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày yêu cầu',
               field: 'DateRequest',
-              hozAlign: 'left',
+              hozAlign: 'center',
               headerHozAlign: 'center',
-              width: 200,
+              width: 120,
               formatter: (cell: any) => {
                 const value = cell.getValue();
                 return value
@@ -505,18 +517,20 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
               field: 'Quantity',
               headerHozAlign: 'center',
               editor: 'input',
+              cellEdited: (cell: any) => {
+                this.recalculateAllTotalAmounts();
+              }
             },
             {
               title: 'Ngày yêu cầu hoàn thành',
-              field: 'DeadlineRequest',
+              field: 'DeadlineDate',  // Sửa từ DeadlineRequest -> DeadlineDate
               hozAlign: 'left',
               headerHozAlign: 'center',
               width: 200,
               formatter: (cell: any) => {
                 const value = cell.getValue();
-                return value
-                  ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
-                  : '';
+                // DeadlineDate đã là dd/MM/yyyy format rồi, không cần convert
+                return value || '';
               },
             },
             {
@@ -530,7 +544,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       );
     }
   }
- 
+
 
   private getProductById(productId: number): ProductProposalRow | undefined {
     return this.HCNSApprovalData.find(p => p.rowID === productId);
@@ -579,9 +593,9 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   removeSupplierRow(productId: number, supplierIndex: number): void {
     const product = this.getProductById(productId);
     if (!product?.Suppliers[supplierIndex]) return;
-    
+
     const supplier = product.Suppliers[supplierIndex];
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa nhà cung cấp này không?',
@@ -593,11 +607,12 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
         }
 
         if (product.Suppliers.length === 1) {
-          Object.assign(product.Suppliers[0], { 
-            Supplier: '', 
-            Contact: '', 
-            UnitPrice: '', 
-            TotalAmount: '', 
+          Object.assign(product.Suppliers[0], {
+            Supplier: '',
+            Contact: '',
+            Unit: '',
+            UnitPrice: '',
+            TotalAmount: '',
             Note: ''
           });
         } else {
@@ -625,11 +640,11 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   }
 
   private buildSupplierPayload(product: ProductProposalRow, supplier: SupplierProposalRow) {
-    const departmentRequiredID = supplier.DepartmentRequiredID 
-      || (this.DepartmentRequiredData && this.DepartmentRequiredData.length > 0 
-          ? (this.DepartmentRequiredData[0].ID || this.DepartmentRequiredData[0].DepartmentRequiredID || 0)
-          : 0);
-    
+    const departmentRequiredID = supplier.DepartmentRequiredID
+      || (this.DepartmentRequiredData && this.DepartmentRequiredData.length > 0
+        ? (this.DepartmentRequiredData[0].ID || this.DepartmentRequiredData[0].DepartmentRequiredID || 0)
+        : 0);
+
     return {
       ID: supplier.ID && supplier.ID > 0 ? supplier.ID : 0,
       STT: supplier.STT || 0,
@@ -638,6 +653,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       ProductName: product.ProductName || '',
       Supplier: supplier.Supplier || '',
       Contact: supplier.Contact || '',
+      Unit: supplier.Unit || '',
       UnitPrice: this.parseCurrency(supplier.UnitPrice),
       TotalAmount: this.parseCurrency(supplier.TotalAmount),
       Note: supplier.Note || '',
@@ -647,7 +663,8 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   private parseCurrency(value: string | number | undefined): number {
     if (value == null || value === '') return 0;
     if (typeof value === 'number') return value;
-    const numeric = Number(String(value).replace(/,/g, ''));
+    // Replace all non-digit characters (including dots and commas)
+    const numeric = Number(String(value).replace(/[^0-9]/g, ''));
     return Number.isNaN(numeric) ? 0 : numeric;
   }
 
@@ -788,5 +805,71 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       (supplier as any)[field] = value;
     }
     this.validateSupplier(product, supplier, supplierIndex);
+  }
+
+  getFormattedCurrencyValue(value: string | number | undefined): string {
+    if (value == null || value === '') return '';
+    const numericValue = typeof value === 'number' ? value : this.parseCurrency(value);
+    if (numericValue === 0) return '';
+    return numericValue.toLocaleString('vi-VN');
+  }
+
+  onCurrencyKeyDown(event: KeyboardEvent): void {
+    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    const key = event.key;
+
+    if (allowedKeys.indexOf(key) !== -1) {
+      return;
+    }
+
+    if (event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    if (key < '0' || key > '9') {
+      event.preventDefault();
+    }
+  }
+
+  onCurrencyInput(event: Event, product: ProductProposalRow, supplierIndex: number, field: 'UnitPrice' | 'TotalAmount'): void {
+    const supplier = product.Suppliers[supplierIndex];
+    const input = event.target as HTMLInputElement;
+    const rawValue = input.value.replace(/[^0-9]/g, '');
+    const numericValue = rawValue === '' ? 0 : Number(rawValue);
+
+    if (field === 'UnitPrice') {
+      supplier.UnitPrice = numericValue;
+      this.calculateTotalAmount(product, supplier, supplierIndex);
+    } else if (field === 'TotalAmount') {
+      supplier.TotalAmount = numericValue;
+    }
+
+    if (rawValue !== '') {
+      input.value = numericValue.toLocaleString('vi-VN');
+    }
+  }
+
+  calculateTotalAmount(product: ProductProposalRow, supplier: SupplierProposalRow, supplierIndex: number): void {
+    const tableData = this.DepartmentRequiredTable?.getData();
+    // Lấy số lượng từ bảng yêu cầu (thường là dòng đầu tiên nếu form này chỉ cho 1 yêu cầu)
+    const quantityStr = (tableData && tableData.length > 0) ? tableData[0].Quantity : '0';
+    const quantity = Number(String(quantityStr).replace(/[^0-9]/g, '')) || 0;
+
+    const unitPrice = typeof supplier.UnitPrice === 'number'
+      ? supplier.UnitPrice
+      : this.parseCurrency(supplier.UnitPrice);
+
+    supplier.TotalAmount = unitPrice * quantity;
+
+    // Cập nhật validation cho trường Thành tiền
+    this.validateField(product.rowID, supplierIndex, 'TotalAmount', supplier.TotalAmount);
+  }
+
+  recalculateAllTotalAmounts(): void {
+    this.HCNSApprovalData.forEach(product => {
+      product.Suppliers.forEach((supplier, index) => {
+        this.calculateTotalAmount(product, supplier, index);
+      });
+    });
   }
 }

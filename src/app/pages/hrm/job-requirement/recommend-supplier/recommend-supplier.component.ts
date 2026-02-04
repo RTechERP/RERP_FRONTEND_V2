@@ -53,15 +53,15 @@ import * as ExcelJS from 'exceljs';
 import { format, isValid, parseISO } from 'date-fns';
 import { ChangeDetectorRef } from '@angular/core';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 // @ts-ignore
 import { saveAs } from 'file-saver';
-import { HasPermissionDirective } from '../../../directives/has-permission.directive';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { RecommendSupplierFormComponent } from './recommend-supplier-form/recommend-supplier-form.component';
-import { HrPurchaseProposalComponent } from '../hr-purchase-proposal/hr-purchase-proposal.component';
-import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
+import { HrPurchaseProposalComponent } from '../../hr-purchase-proposal/hr-purchase-proposal.component';
+import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
 
 @Component({
   selector: 'app-recommend-supplier',

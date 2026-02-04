@@ -116,7 +116,7 @@ import { PONCCComponent } from '../../../purchase/poncc/poncc.component';
 import { EmployeeSaleManagerComponent } from '../../../old/KPISale/employee-sale-manager/employee-sale-manager.component';
 import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
-import { RecommendSupplierComponent } from '../../../hrm/recommend-supplier/recommend-supplier.component';
+// import { RecommendSupplierComponent } from '../../../hrm/recommend-supplier/recommend-supplier.component';
 import { HrPurchaseProposalComponent } from '../../../hrm/hr-purchase-proposal/hr-purchase-proposal.component';
 import { PersonComponent } from '../../../person/person.component';
 import { InventoryProjectComponent } from '../../../purchase/inventory-project/inventory-project/inventory-project.component';

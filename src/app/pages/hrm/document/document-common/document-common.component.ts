@@ -10,7 +10,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { DateTime } from 'luxon';
-import { HttpClient } from '@angular/common/http';
 import { DocumentService } from '../document-service/document.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { ActivatedRoute } from '@angular/router';
@@ -49,7 +48,6 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     private downloadBasePath = '\\\\113.190.234.64\\ftp\\Upload\\RTCDocument\\';
 
     constructor(
-        private http: HttpClient,
         private documentService: DocumentService,
         private notification: NzNotificationService,
         private message: NzMessageService,
@@ -60,9 +58,22 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     ngOnInit(): void {
         this.loadDepartments();
 
+        // Check route to set groupType
+        const currentPath = window.location.pathname;
+        console.log('Current path:', currentPath);
+        // Check if the path ends with 'document-common' (not 'document-common-kt', etc.)
+        // Use regex to ensure exact match at the end, with optional trailing slash
+        const isDocumentCommonRoute = /\/document-common\/?$/.test(currentPath);
+        console.log('Is document-common route:', isDocumentCommonRoute);
+        if (isDocumentCommonRoute) {
+            this.groupType = 1;
+        } else {
+            this.groupType = 2;
+        }
+        console.log('Group type set to:', this.groupType);
+
         // Subscribe to query params và set departmentId
         this.route.queryParams.subscribe(params => {
-            // const deptId = params['departmentID'];
             const deptId =
                 params['departmentID']
                 ?? this.tabData?.departmentID
@@ -211,37 +222,17 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     }
 
     downloadFile(file: any): void {
-        if (!file) {
-            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+        if (!file?.FileName) {
+            this.notification.warning('Thông báo', 'Không có file để tải!');
             return;
         }
 
-        if (!file.FileName) {
-            this.notification.warning('Thông báo', 'Không có file để tải xuống!');
-            return;
-        }
-
-        // Sử dụng GetBlobDownload endpoint với HTTP GET blob approach
         const linkBase = 'http://113.190.234.64:8083/api/Upload/RTCDocument/';
-        const downloadUrl = `http://113.190.234.64:8081/Document/GetBlobDownload?path=${linkBase}${encodeURIComponent(file.FileName)}&file_name=${encodeURIComponent(file.FileName)}`;
+        const downloadUrl =
+            `http://113.190.234.64:8081/Document/GetBlobDownload` +
+            `?path=${encodeURIComponent(linkBase + file.FileName)}` +
+            `&file_name=${encodeURIComponent(file.FileName)}`;
 
-        this.http.get(downloadUrl, { responseType: 'blob' }).subscribe(blob => {
-            if (blob && blob.size > 0) {
-                const a = document.createElement('a');
-                const objectUrl = URL.createObjectURL(blob);
-
-                a.href = objectUrl;
-                a.download = file.FileName;
-                a.click();
-
-                URL.revokeObjectURL(objectUrl);
-                this.notification.success('Thông báo', 'Tải xuống thành công!');
-            } else {
-                this.notification.error('Thông báo', 'File tải về không hợp lệ!');
-            }
-        }, error => {
-            console.error('Lỗi khi tải file:', error.error.message|| error.message);
-            this.notification.error('Thông báo', error.error.message|| error.message||'Tải xuống thất bại! Vui lòng thử lại.');
-        });
+        window.open(downloadUrl, '_blank');
     }
 }

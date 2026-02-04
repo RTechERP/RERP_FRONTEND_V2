@@ -22,7 +22,7 @@ export class ProjectPartListService {
     return this.http.get<any>(`${this.urlProjectPartListVersion}/get-cbb-version?projectSolutionId=${projectSolutionId}`);
   }
   saveProjectPartListVersion(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.urlProjectPartListVersion}/save-data`, payload);
+    return this.http.post<any>(`${this.urlProjectPartListVersion}/save-data`, payload);//hi
   }
   //17433,1,0,"",-1,-1,1384
   //get danh mục vật tư

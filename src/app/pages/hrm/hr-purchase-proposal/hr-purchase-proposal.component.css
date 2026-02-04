@@ -1,9 +1,8 @@
-
 /* HCNS Table Wrapper */
 .hcns-table-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 35vh !important;
   min-height: 0;
 }
 
@@ -132,11 +131,11 @@
   .hcns-table {
     font-size: 0.7rem;
   }
-  
+
   .hcns-table th {
     padding: 6px 8px;
   }
-  
+
   .hcns-table td {
     padding: 6px 8px;
   }
@@ -174,4 +173,3 @@
 .hcns-table tbody tr.selected-row td {
   background-color: transparent !important;
 }
-

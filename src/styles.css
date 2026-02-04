@@ -541,3 +541,11 @@ body>.p-component {
     justify-content: center;
     align-items: center;
 }
+
+/* dropdown combobox tự động xuống dòng */
+.select-dropdown .ant-select-item-option-content {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.5;
+}
+/* end dropdown combobox tự động xuống dòng */

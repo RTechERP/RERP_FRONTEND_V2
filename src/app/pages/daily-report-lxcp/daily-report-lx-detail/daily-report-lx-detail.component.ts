@@ -501,7 +501,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
       // Data cho Cắt phim - mỗi dòng thành 1 object trong list
       reportList = this.filmRows.controls.map((row: any) => {
         const filmManagementDetailId = row.get('FilmManagementDetailId')?.value;
-        const quantity = row.get('Quantity')?.value || 0;
+        const quantity = Math.round(Number(row.get('Quantity')?.value || 0));
         const timeActual = row.get('TimeActual')?.value || 0;
 
         return {

@@ -182,7 +182,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
   // PrimeNG MenuBar
   menuItems: MenuItem[] = [];
-  maxVisibleItems = 9;
+  maxVisibleItems = 14;
 
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
   private ngZone: NgZone = inject(NgZone);
@@ -395,7 +395,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
     const selectedRows = angularGrid.slickGrid.getSelectedRows().map((rowIndex: number) =>
       angularGrid.dataView.getItem(rowIndex)
-    ).filter((item: any) => item);
+    ).filter((item: any) => item && !item.__group && !item.__groupTotals);
 
     if (selectedRows.length === 0) {
       this.notification.info(
@@ -482,7 +482,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
     const selectedRows = selectedRowIndexes.map((rowIndex: number) =>
       angularGrid.dataView.getItem(rowIndex)
-    ).filter((item: any) => item);
+    ).filter((item: any) => item && !item.__group && !item.__groupTotals);
 
     if (selectedRows.length === 0) {
       this.notification.info(
@@ -2036,6 +2036,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             minLength: 0,
             forceUserInput: false,
             openSearchListOnFocus: true,
+            labelValue: 'NameNCC',  // Hiển thị NameNCC khi chọn xong
+            valueField: 'ID',       // Lưu giá trị ID vào field SupplierSaleID
             fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
               const suppliers = this.dtSupplierSale || [];
               if (!searchTerm || searchTerm.length === 0) {
@@ -2382,6 +2384,18 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
+
+      // Ngăn chỉnh sửa các hàng đã báo giá (StatusRequest = 2) hoặc đã hoàn thành (StatusRequest = 3)
+      editCommandHandler: (item: any, _column: any, editCommand: any) => {
+        const statusRequest = Number(item?.StatusRequest || item?.StatusRequestID || 0);
+        // Cho phép edit nếu status = 1 (Yêu cầu báo giá) hoặc status = 5 (Từ chối)
+        if (statusRequest === 2 || statusRequest === 3) {
+          // Không thực hiện edit command, revert lại giá trị cũ
+          return;
+        }
+        // Thực hiện edit bình thường
+        editCommand.execute();
+      },
     } as any; // Use 'as any' to bypass TypeScript error for custom properties
   }
 
@@ -3040,7 +3054,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
     return selectedRowIndexes.map((rowIndex: number) =>
       angularGrid.dataView.getItem(rowIndex)
-    ).filter((item: any) => item);
+    ).filter((item: any) => item && !item.__group && !item.__groupTotals);
   }
 
   private setGridData(typeId: number, data: any[]): void {
@@ -4236,7 +4250,15 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
     const selectedRows = selectedRowIndices.map((rowIndex: number) => {
       return angularGrid.dataView.getItem(rowIndex);
-    }).filter((item: any) => item != null);
+    }).filter((item: any) => item != null && !item.__group && !item.__groupTotals);
+
+    if (selectedRows.length === 0) {
+      this.notification.info(
+        'Thông báo',
+        'Vui lòng chọn sản phẩm muốn từ chối!'
+      );
+      return;
+    }
 
     const invalids: string[] = [];
     // selectedRows từ dataView.getItem() đã là dữ liệu items trực tiếp
@@ -4296,7 +4318,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     }
     const selectedRows = selectedRowIndices.map((rowIndex: number) => {
       return angularGrid.dataView.getItem(rowIndex);
-    }).filter((item: any) => item != null);
+    }).filter((item: any) => item != null && !item.__group && !item.__groupTotals);
+
+    if (selectedRows.length === 0) {
+      this.notification.info(
+        'Thông báo',
+        'Vui lòng chọn sản phẩm muốn hủy từ chối!'
+      );
+      return;
+    }
+
     const invalids: string[] = [];
     const listModel = selectedRows.map((row: any) => {
       const data = row;
@@ -4678,7 +4709,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         data['Unit'] || data['UnitName'] || data['UnitCount'] || ''
       ).trim(),
       NoteHR: String(
-        data['NoteHR'] || data['HRNote'] || data['Note'] || ''
+        data['NoteHR'] || data['HRNote'] || data['NotePartlist'] || ''
       ).trim(),
       Maker: String(data['Maker'] || data['Manufacturer'] || '').trim(),
     }));

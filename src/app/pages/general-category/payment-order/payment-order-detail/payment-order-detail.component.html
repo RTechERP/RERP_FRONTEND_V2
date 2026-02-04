@@ -93,7 +93,8 @@
                                 [formControlName]="paymentOrderField.SupplierSaleID.field" nzSize="small"
                                 nzDropdownClassName="select-dropdown">
                                 @for (item of supplierSales; track item) {
-                                <nz-option nzLabel="{{item.NameNCC}}" nzValue="{{item.ID}}"></nz-option>
+                                <nz-option nzLabel="{{item.MaSoThue}} - {{item.NameNCC}}"
+                                    nzValue="{{item.ID}}"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>

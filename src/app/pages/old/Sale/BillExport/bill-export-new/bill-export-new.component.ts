@@ -111,8 +111,17 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     searchParams = {
         listproductgroupID: '',
         status: -1,
-        dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-        dateEnd: new Date(),
+        dateStart: (() => {
+            const date = new Date();
+            date.setMonth(date.getMonth() - 1);
+            date.setHours(0, 0, 0, 0);
+            return date;
+        })(),
+        dateEnd: (() => {
+            const date = new Date();
+            date.setHours(23, 59, 59, 999);
+            return date;
+        })(),
         keyword: '',
         warehousecode: '',
         checkAll: false,
@@ -342,16 +351,29 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                     return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
                 },
             },
-            {
-                id: 'CreatDate',
-                name: 'Ngày xuất',
-                field: 'CreatDate',
+            // {
+            //     id: 'CreatDate',
+            //     name: 'Ngày xuất',
+            //     field: 'CreatDate',
+            //     sortable: true,
+            //     filterable: true,
+            //     formatter: Formatters.date,
+            //     exportCustomFormatter: Formatters.date,
+            //     type: 'date',
+            //     params: { dateFormat: 'DD/MM/YYYY' },
+            //     filter: { model: Filters['compoundDate'] },
+            //     minWidth: 150,
+            // },
+                        {
+                id: 'CreatedDate',
+                name: 'Ngày tạo',
+                field: 'CreatedDate',
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
-                params: { dateFormat: 'DD/MM/YYYY' },
+                params: { dateFormat: 'DD/MM/YYYY hh:mm:ss' },
                 filter: { model: Filters['compoundDate'] },
                 minWidth: 150,
             },
@@ -2114,7 +2136,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     }
 
 
-    //#region Xuất phiếu 
+    //#region Xuất phiếu
     exportProgress = { current: 0, total: 0, fileName: '' };
     exportModalRef: any = null;
     async onExportExcel() {

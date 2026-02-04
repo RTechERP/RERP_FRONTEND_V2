@@ -722,6 +722,10 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sanitizeDataExport: true,
                 exportWithFormatter: true,
             },
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
     }
 
@@ -937,7 +941,13 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         // Use dataView's onRowCountChanged which fires after filtering
         this.angularGridMaster.dataView.onRowCountChanged.subscribe(() => {
             // this.applyDistinctFiltersToMaster(true); // true = use filtered data
+            this.updateMasterFooterRow();
         });
+
+        // Update footer row sau khi grid ready
+        setTimeout(() => {
+            this.updateMasterFooterRow();
+        }, 100);
 
         // Subscribe to onClick event để handle cell click
         this.angularGridMaster.slickGrid.onClick.subscribe((e, args) => {
@@ -2316,4 +2326,32 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         this.angularGridMaster.slickGrid.invalidate();
         this.angularGridMaster.slickGrid.render();
     }
+
+    //#region Footer Row
+
+    /**
+     * Update footer row - hiển thị count số phiếu
+     * Sử dụng textContent để tránh re-render gây mất focus
+     */
+    updateMasterFooterRow(): void {
+        if (!this.angularGridMaster || !this.angularGridMaster.slickGrid) return;
+
+        const count = this.angularGridMaster.dataView?.getFilteredItems()?.length || 0;
+
+        // Update footer cho cột Số phiếu (BillImportCode)
+        const footerCell = this.angularGridMaster.slickGrid.getFooterRowColumn('BillImportCode' + this.wareHouseCode);
+        if (footerCell) {
+            footerCell.textContent = `${this.formatNumber(count, 0)}`;
+        }
+    }
+
+    formatNumber(num: number, digits: number = 0): string {
+        num = num || 0;
+        return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        });
+    }
+
+    //#endregion
 }

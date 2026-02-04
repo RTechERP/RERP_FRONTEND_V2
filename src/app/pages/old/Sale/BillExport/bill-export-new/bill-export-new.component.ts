@@ -111,8 +111,17 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     searchParams = {
         listproductgroupID: '',
         status: -1,
-        dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-        dateEnd: new Date(),
+        dateStart: (() => {
+            const date = new Date();
+            date.setMonth(date.getMonth() - 1);
+            date.setHours(0, 0, 0, 0);
+            return date;
+        })(),
+        dateEnd: (() => {
+            const date = new Date();
+            date.setHours(23, 59, 59, 999);
+            return date;
+        })(),
         keyword: '',
         warehousecode: '',
         checkAll: false,
@@ -342,16 +351,29 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                     return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
                 },
             },
-            {
-                id: 'CreatDate',
-                name: 'Ngày xuất',
-                field: 'CreatDate',
+            // {
+            //     id: 'CreatDate',
+            //     name: 'Ngày xuất',
+            //     field: 'CreatDate',
+            //     sortable: true,
+            //     filterable: true,
+            //     formatter: Formatters.date,
+            //     exportCustomFormatter: Formatters.date,
+            //     type: 'date',
+            //     params: { dateFormat: 'DD/MM/YYYY' },
+            //     filter: { model: Filters['compoundDate'] },
+            //     minWidth: 150,
+            // },
+                        {
+                id: 'CreatedDate',
+                name: 'Ngày tạo',
+                field: 'CreatedDate',
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
-                params: { dateFormat: 'DD/MM/YYYY' },
+                params: { dateFormat: 'DD/MM/YYYY hh:mm:ss' },
                 filter: { model: Filters['compoundDate'] },
                 minWidth: 150,
             },
@@ -441,6 +463,10 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                     },
                 ],
             },
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
 
     }
@@ -649,6 +675,18 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             );
             // Double click đã được xử lý qua (onDblClick) trong HTML template
         }
+
+        // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi
+        if (angularGrid.dataView) {
+            angularGrid.dataView.onRowCountChanged.subscribe(() => {
+                this.updateMasterFooterRow();
+            });
+        }
+
+        // Update footer row sau khi grid ready
+        setTimeout(() => {
+            this.updateMasterFooterRow();
+        }, 100);
     }
 
     angularGridDetailReady(angularGrid: AngularGridInstance) {
@@ -2098,7 +2136,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     }
 
 
-    //#region Xuất phiếu 
+    //#region Xuất phiếu
     exportProgress = { current: 0, total: 0, fileName: '' };
     exportModalRef: any = null;
     async onExportExcel() {
@@ -2265,6 +2303,34 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             this.isLoadTable = false;
         }
     }
+    //#endregion
+
+    //#region Footer Row
+
+    /**
+     * Update footer row - hiển thị count số dòng
+     * Sử dụng textContent để tránh re-render gây mất focus
+     */
+    updateMasterFooterRow(): void {
+        if (!this.angularGridMaster || !this.angularGridMaster.slickGrid) return;
+
+        const count = this.angularGridMaster.dataView?.getFilteredItems()?.length || 0;
+
+        // Update footer cho cột Code
+        const footerCell = this.angularGridMaster.slickGrid.getFooterRowColumn('Code');
+        if (footerCell) {
+            footerCell.textContent = `${this.formatNumber(count, 0)}`;
+        }
+    }
+
+    formatNumber(num: number, digits: number = 0): string {
+        num = num || 0;
+        return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        });
+    }
+
     //#endregion
 
 }

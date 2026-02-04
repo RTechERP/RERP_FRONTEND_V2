@@ -339,6 +339,9 @@ export class PaymentOrderSpecialComponent implements OnInit {
                         ...x,
                         id: i + 1
                     }));
+
+
+                    this.updateTotalByData(3, this.dataset);
                 }
             })
         }
@@ -522,8 +525,9 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
                 const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
 
-                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(parseFloat(columnElement.textContent || ''), value);
-                this.cdr.detectChanges();
+                // this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(parseFloat(columnElement.textContent || ''), value);
+                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(parseFloat((columnElement.textContent ?? '').replace(/,/g, '')), value),
+                    this.cdr.detectChanges();
             });
 
         // this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(this.paymentOrder.TotalMoney?.toString() || '', this.paymentOrder.Unit || '');
@@ -592,6 +596,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 ...this.validateForm.getRawValue(),
                 PaymentOrderDetails: paymentOrderDetails,
                 TotalMoney: parseFloat((columnElement.textContent ?? '').replace(/,/g, '')),
+                TotalMoneyText: this.paymentService.readMoney(parseFloat((columnElement.textContent ?? '').replace(/,/g, '')), this.validateForm.value.Unit),
                 PaymentOrderPOs: paymentOrderPOs,
             };
             // console.log('submit data', this.paymentOrder);
@@ -747,7 +752,41 @@ export class PaymentOrderSpecialComponent implements OnInit {
         }
         const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
         if (columnElement) {
-            columnElement.textContent = `${total}`;
+            // columnElement.textContent = `${total}`;
+            columnElement.textContent = `${new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(total)}`;
+
+
+            this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);
+            this.cdr.detectChanges();
+        }
+    }
+
+
+    updateTotalByData(cell: number, data: any) {
+
+        if (cell <= 0) return;
+        const columnId = this.angularGrid.slickGrid?.getColumns()[cell].id;
+
+        if (columnId != PaymentOrderField.TotalMoney.field) return;
+
+        let total = 0;
+        // let i = this.dataset.length;
+        // let data = this.angularGrid.dataView.getItems();
+        let i = data.length;
+        while (i--) {
+            total += parseFloat(data[i][columnId]) || 0;
+        }
+        const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
+        if (columnElement) {
+            // columnElement.textContent = `${total}`;
+            columnElement.textContent = `${new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(total)}`;
+
 
             this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);
             this.cdr.detectChanges();

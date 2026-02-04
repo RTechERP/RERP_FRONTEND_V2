@@ -39,6 +39,7 @@ import {
     MenuCommandItemCallbackArgs
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import * as ExcelJS from 'exceljs';
 import { Subscription } from 'rxjs';
 
 import { ProductsaleServiceService } from '../../ProductSale/product-sale-service/product-sale-service.service';
@@ -502,16 +503,10 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         }, 100);
 
         // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi (bao gồm filter)
+        // Không dùng setTimeout và onRendered để tránh re-render gây mất focus khỏi ô filter
         if (angularGrid.dataView) {
             angularGrid.dataView.onRowCountChanged.subscribe(() => {
-                setTimeout(() => this.updateInventoryFooterRow(), 100);
-            });
-        }
-
-        // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
-        if (angularGrid.slickGrid) {
-            angularGrid.slickGrid.onRendered.subscribe(() => {
-                setTimeout(() => this.updateInventoryFooterRow(), 50);
+                this.updateInventoryFooterRow();
             });
         }
     }
@@ -755,6 +750,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     /**
      * Update footer row cho inventory grid
      * Các cột: ProductName:count, và sum cho các cột số
+     * Sử dụng textContent thay vì innerHTML để tránh re-render gây mất focus
      */
     updateInventoryFooterRow(): void {
         // Kiểm tra tất cả các điều kiện cần thiết trước khi tiếp tục
@@ -807,30 +803,21 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         try {
-            this.angularGridInventory.slickGrid.setFooterRowVisibility(true);
+            // Update footer trực tiếp bằng textContent thay vì innerHTML để tránh re-render
+            const productNameFooter = this.angularGridInventory.slickGrid.getFooterRowColumn('ProductName' + this.warehouseCode);
+            if (productNameFooter) {
+                productNameFooter.textContent = `${productCount}`;
+            }
 
-            // Set footer values cho từng column
-            const columns = this.angularGridInventory.slickGrid.getColumns();
-
-            // console.log('columns:', columns);
-
-            columns.forEach((col: any) => {
-                const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn('ProductName' + this.warehouseCode);
-                if (!footerCell) return;
-
-                // Count cho cột ProductName (Tên sản phẩm)
-                if (col.id === 'ProductName') {
-                    footerCell.innerHTML = `<b style="display:block;text-align:right;">${productCount}</b>`;
-                }
-                // Sum cho các cột số
-                else if (sumFields.includes(col.id)) {
+            // Update sum cho các cột số
+            sumFields.forEach(field => {
+                const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn(field + this.warehouseCode);
+                if (footerCell) {
                     const formattedValue = new Intl.NumberFormat('en-US', {
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0,
-                    }).format(sums[col.id] || 0);
-                    footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
-                } else {
-                    footerCell.innerHTML = '';
+                    }).format(sums[field] || 0);
+                    footerCell.textContent = formattedValue;
                 }
             });
         } catch (e) {
@@ -1118,14 +1105,220 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         try {
-            this.excelExportService.exportToExcel({
-                filename: `DanhSachTonKhoHN_${formattedDatee}`,
-                format: 'xlsx',
+            // Get filtered data from grid
+            const items = this.angularGridInventory.dataView?.getFilteredItems?.() || this.datasetInventory;
+
+            // Create workbook
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Tồn Kho');
+
+            // Define columns with headers
+            const columns = [
+                { header: 'STT', key: 'stt', width: 8 },
+                { header: 'Tên nhóm', key: 'ProductGroupName', width: 20 },
+                { header: 'Tích xanh', key: 'IsFix', width: 10 },
+                { header: 'Mã sản phẩm', key: 'ProductCode', width: 15 },
+                { header: 'Tên sản phẩm', key: 'ProductName', width: 30 },
+                { header: 'Mã nội bộ', key: 'ProductNewCode', width: 15 },
+                { header: 'NCC', key: 'NameNCC', width: 20 },
+                { header: 'Người nhập', key: 'Deliver', width: 15 },
+                { header: 'Hãng', key: 'Maker', width: 15 },
+                { header: 'ĐVT', key: 'Unit', width: 10 },
+                { header: 'Tồn đầu kỳ', key: 'TotalQuantityFirst', width: 12 },
+                { header: 'Nhập', key: 'Import', width: 10 },
+                { header: 'Xuất', key: 'Export', width: 10 },
+                { header: 'SL tồn thực tế', key: 'TotalQuantityLastActual', width: 15 },
+                { header: 'SL yêu cầu xuất', key: 'QuantityRequestExport', width: 15 },
+                { header: 'SL giữ', key: 'TotalQuantityKeep', width: 10 },
+                { header: 'Tồn CK (được sử dụng)', key: 'TotalQuantityLast', width: 18 },
+                { header: 'Tồn sử dụng', key: 'QuantityUse', width: 12 },
+                { header: 'Tồn tối thiểu Y/c', key: 'MinQuantity', width: 15 },
+                { header: 'Tồn tối thiểu thực tế', key: 'MinQuantityActual', width: 18 },
+                { header: 'SL phải trả NCC', key: 'TotalQuantityReturnNCC', width: 15 },
+                { header: 'Tổng mượn', key: 'ImportPT', width: 12 },
+                { header: 'Tổng trả', key: 'ExportPM', width: 10 },
+                { header: 'Đang mượn', key: 'StillBorrowed', width: 12 },
+                { header: 'Vị trí', key: 'AddressBox', width: 20 },
+                { header: 'Chi tiết nhập', key: 'Detail', width: 25 },
+                { header: 'Ghi chú', key: 'Note', width: 25 },
+            ];
+
+            worksheet.columns = columns;
+
+            // Style header row
+            const headerRow = worksheet.getRow(1);
+            headerRow.font = { bold: true, size: 11 };
+            headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            headerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFD9E1F2' }
+            };
+            headerRow.height = 25;
+
+            // Add border to header
+            headerRow.eachCell((cell: any) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
             });
-            this.notification.success(
-                NOTIFICATION_TITLE.success,
-                'Xuất file Excel thành công!'
-            );
+
+            // Initialize sum variables for footer
+            const sums = {
+                TotalQuantityFirst: 0,
+                Import: 0,
+                Export: 0,
+                TotalQuantityLastActual: 0,
+                QuantityRequestExport: 0,
+                TotalQuantityKeep: 0,
+                TotalQuantityLast: 0,
+            };
+
+            // Add data rows
+            items.forEach((item: any, index: number) => {
+                const row = worksheet.addRow({
+                    stt: index + 1,
+                    ProductGroupName: item.ProductGroupName || '',
+                    IsFix: item.IsFix ? 'Có' : 'Không',
+                    ProductCode: item.ProductCode || '',
+                    ProductName: item.ProductName || '',
+                    ProductNewCode: item.ProductNewCode || '',
+                    NameNCC: item.NameNCC || '',
+                    Deliver: item.Deliver || '',
+                    Maker: item.Maker || '',
+                    Unit: item.Unit || '',
+                    TotalQuantityFirst: item.TotalQuantityFirst || 0,
+                    Import: item.Import || 0,
+                    Export: item.Export || 0,
+                    TotalQuantityLastActual: item.TotalQuantityLastActual || 0,
+                    QuantityRequestExport: item.QuantityRequestExport || 0,
+                    TotalQuantityKeep: item.TotalQuantityKeep || 0,
+                    TotalQuantityLast: item.TotalQuantityLast || 0,
+                    QuantityUse: item.QuantityUse || 0,
+                    MinQuantity: item.MinQuantity || 0,
+                    MinQuantityActual: item.MinQuantityActual || 0,
+                    TotalQuantityReturnNCC: item.TotalQuantityReturnNCC || 0,
+                    ImportPT: item.ImportPT || 0,
+                    ExportPM: item.ExportPM || 0,
+                    StillBorrowed: item.StillBorrowed || 0,
+                    AddressBox: item.AddressBox || '',
+                    Detail: item.Detail || '',
+                    Note: item.Note || '',
+                });
+
+                // Add borders to data cells
+                row.eachCell((cell: any) => {
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                });
+
+                // Center align specific columns
+                row.getCell('stt').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('IsFix').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('Unit').alignment = { horizontal: 'center', vertical: 'middle' };
+
+                // Number columns alignment
+                const numberCells = ['TotalQuantityFirst', 'Import', 'Export', 'TotalQuantityLastActual',
+                    'QuantityRequestExport', 'TotalQuantityKeep', 'TotalQuantityLast',
+                    'QuantityUse', 'MinQuantity', 'MinQuantityActual', 'TotalQuantityReturnNCC',
+                    'ImportPT', 'ExportPM', 'StillBorrowed'];
+                numberCells.forEach(key => {
+                    row.getCell(key).alignment = { horizontal: 'right', vertical: 'middle' };
+                    row.getCell(key).numFmt = '#,##0';
+                });
+
+                // Accumulate sums for footer
+                sums.TotalQuantityFirst += item.TotalQuantityFirst || 0;
+                sums.Import += item.Import || 0;
+                sums.Export += item.Export || 0;
+                sums.TotalQuantityLastActual += item.TotalQuantityLastActual || 0;
+                sums.QuantityRequestExport += item.QuantityRequestExport || 0;
+                sums.TotalQuantityKeep += item.TotalQuantityKeep || 0;
+                sums.TotalQuantityLast += item.TotalQuantityLast || 0;
+            });
+
+            // Add footer row with totals
+            const footerRow = worksheet.addRow({
+                stt: '',
+                ProductGroupName: '',
+                IsFix: '',
+                ProductCode: '',
+                ProductName: 'TỔNG',
+                ProductNewCode: '',
+                NameNCC: '',
+                Deliver: '',
+                Maker: '',
+                Unit: '',
+                TotalQuantityFirst: sums.TotalQuantityFirst,
+                Import: sums.Import,
+                Export: sums.Export,
+                TotalQuantityLastActual: sums.TotalQuantityLastActual,
+                QuantityRequestExport: sums.QuantityRequestExport,
+                TotalQuantityKeep: sums.TotalQuantityKeep,
+                TotalQuantityLast: sums.TotalQuantityLast,
+                QuantityUse: '',
+                MinQuantity: '',
+                MinQuantityActual: '',
+                TotalQuantityReturnNCC: '',
+                ImportPT: '',
+                ExportPM: '',
+                StillBorrowed: '',
+                AddressBox: '',
+                Detail: '',
+                Note: '',
+            });
+
+            // Style footer row
+            footerRow.font = { bold: true, size: 11 };
+            footerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFD966' }
+            };
+
+            // Add borders and alignment to footer
+            footerRow.eachCell((cell: any, colNumber: any) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+
+                // Format number cells in footer
+                if (colNumber >= 11 && colNumber <= 17) {
+                    cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                    cell.numFmt = '#,##0';
+                } else {
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                }
+            });
+
+            // Save workbook
+            workbook.xlsx.writeBuffer().then((buffer: any) => {
+                const blob = new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = `DanhSachTonKho_${this.warehouseCode}_${formattedDatee}.xlsx`;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+
+                this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    'Xuất file Excel thành công!',
+                    { nzDuration: 1000 }
+                );
+            });
         } catch (error) {
             console.error('Lỗi khi xuất Excel:', error);
             this.notification.error(

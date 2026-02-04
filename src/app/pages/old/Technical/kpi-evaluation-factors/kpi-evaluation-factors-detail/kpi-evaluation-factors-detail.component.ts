@@ -144,7 +144,7 @@ export class KpiEvaluationFactorsDetailComponent implements OnInit {
     }
 
     loadNextSTT(): void {
-        this.kpiService.getNextSTT(this.kpiExamId, this.selectedEvaluationType, this.parentId).subscribe({
+        this.kpiService.getNextSTT(this.kpiExamId, this.selectedEvaluationType, this.parentId || 0).subscribe({
             next: (response: any) => {
                 if (response?.status === 1) {
                     this.stt = response.data || '';
@@ -157,6 +157,11 @@ export class KpiEvaluationFactorsDetailComponent implements OnInit {
     }
 
     onParentGroupChange(): void {
+        // Fix: Khi clear (x), giá trị null. User muốn giống như chọn "Không có nhóm cha" (ID = 0)
+        if (this.parentId === null) {
+            this.parentId = 0;
+        }
+
         if (this.parentId > 0) {
             // Tìm parent trong danh sách
             const parent = this.parentGroups.find(p => p.ID === this.parentId);
@@ -246,7 +251,7 @@ export class KpiEvaluationFactorsDetailComponent implements OnInit {
         const request = {
             ID: this.id,
             KPIExamID: this.kpiExamId,
-            ParentID: this.parentId,
+            ParentID: this.parentId || 0,
             EvaluationType: this.selectedEvaluationType,
             SpecializationType: this.specializationType,
             STT: this.stt.trim(),

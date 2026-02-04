@@ -343,26 +343,306 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 },
             },
             // Spec columns - hidden by default
-            { id: 'Resolution', field: 'Resolution', name: 'Resolution', width: 150, sortable: true, filterable: true },
-            { id: 'MonoColor', field: 'MonoColor', name: 'Mono/Color', width: 120, sortable: true, filterable: true },
-            { id: 'SensorSize', field: 'SensorSize', name: 'Sensor Size (")', width: 150, sortable: true, filterable: true },
-            { id: 'SensorSizeMax', field: 'SensorSizeMax', name: 'Sensor Size Max (")', width: 180, sortable: true, filterable: true },
-            { id: 'DataInterface', field: 'DataInterface', name: 'Data Interface', width: 150, sortable: true, filterable: true },
-            { id: 'LensMount', field: 'LensMount', name: 'Lens Mount', width: 150, sortable: true, filterable: true },
-            { id: 'ShutterMode', field: 'ShutterMode', name: 'Shutter Mode', width: 150, sortable: true, filterable: true },
-            { id: 'PixelSize', field: 'PixelSize', name: 'Pixel Size', width: 120, sortable: true, filterable: true },
-            { id: 'LampType', field: 'LampType', name: 'Lamp Type', width: 120, sortable: true, filterable: true },
-            { id: 'LampPower', field: 'LampPower', name: 'Lamp Power', width: 120, sortable: true, filterable: true },
-            { id: 'LampWattage', field: 'LampWattage', name: 'Lamp Wattage', width: 120, sortable: true, filterable: true },
-            { id: 'LampColor', field: 'LampColor', name: 'Lamp Color', width: 120, sortable: true, filterable: true },
-            { id: 'MOD', field: 'MOD', name: 'MOD', width: 100, sortable: true, filterable: true },
-            { id: 'FNo', field: 'FNo', name: 'FNo', width: 100, sortable: true, filterable: true },
-            { id: 'WD', field: 'WD', name: 'WD', width: 100, sortable: true, filterable: true },
-            { id: 'Magnification', field: 'Magnification', name: 'Magnification', width: 150, sortable: true, filterable: true },
-            { id: 'FocalLength', field: 'FocalLength', name: 'Focal Length', width: 150, sortable: true, filterable: true },
-            { id: 'InputValue', field: 'InputValue', name: 'Input Value', width: 120, sortable: true, filterable: true },
-            { id: 'OutputValue', field: 'OutputValue', name: 'Output Value', width: 120, sortable: true, filterable: true },
-            { id: 'CurrentIntensityMax', field: 'CurrentIntensityMax', name: 'Rated Current (A)', width: 150, sortable: true, filterable: true },
+            {
+                id: 'Resolution',
+                field: 'Resolution',
+                name: 'Resolution',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'MonoColor',
+                field: 'MonoColor',
+                name: 'Mono/Color',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'SensorSize',
+                field: 'SensorSize',
+                name: 'Sensor Size (")',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'SensorSizeMax',
+                field: 'SensorSizeMax',
+                name: 'Sensor Size Max (")',
+                width: 180,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'DataInterface',
+                field: 'DataInterface',
+                name: 'Data Interface',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'LensMount',
+                field: 'LensMount',
+                name: 'Lens Mount',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'ShutterMode',
+                field: 'ShutterMode',
+                name: 'Shutter Mode',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'PixelSize',
+                field: 'PixelSize',
+                name: 'Pixel Size',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'LampType',
+                field: 'LampType',
+                name: 'Lamp Type',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'LampPower',
+                field: 'LampPower',
+                name: 'Lamp Power',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'LampWattage',
+                field: 'LampWattage',
+                name: 'Lamp Wattage',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'LampColor',
+                field: 'LampColor',
+                name: 'Lamp Color',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'MOD',
+                field: 'MOD',
+                name: 'MOD',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'FNo',
+                field: 'FNo',
+                name: 'FNo',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'WD',
+                field: 'WD',
+                name: 'WD',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'Magnification',
+                field: 'Magnification',
+                name: 'Magnification',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'FocalLength',
+                field: 'FocalLength',
+                name: 'Focal Length',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'InputValue',
+                field: 'InputValue',
+                name: 'Input Value',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'OutputValue',
+                field: 'OutputValue',
+                name: 'Output Value',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'CurrentIntensityMax',
+                field: 'CurrentIntensityMax',
+                name: 'Rated Current (A)',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
             // Other columns
             {
                 id: 'LocationName',
@@ -388,13 +668,13 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 sortable: true,
                 filterable: true,
                 formatter: this.multilineFormatter.bind(this),
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                // filter: {
+                // model: Filters['multipleSelect'],
+                // collection: [],
+                // filterOptions: {
+                //     filter: true,
+                // } as MultipleSelectOption,
+                // },
             },
             {
                 id: 'Maker',
@@ -737,6 +1017,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 hideInColumnTitleRow: true,
                 applySelectOnAllPages: true,
             },
+            rowHeight: 60,
             enableCheckboxSelector: true,
             enableCellNavigation: true,
             enableFiltering: true,
@@ -786,6 +1067,10 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 ],
             },
             dataItemColumnValueExtractor: (item: any, column: any) => item[column.field!],
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
     }
 
@@ -836,10 +1121,11 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                     // Nếu grid chưa ready, sẽ được xử lý trong angularGridReady()
                 }
 
-                // Resize grid after data is loaded
+                // Resize grid after data is loaded và update footer
                 setTimeout(() => {
                     if (this.angularGrid) {
                         this.angularGrid.resizerService.resizeGrid();
+                        this.updateFooterRow();
                     }
                 }, 100);
             },
@@ -1123,6 +1409,11 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
 
                 return null;
             };
+
+            // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi
+            this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
+                this.updateFooterRow();
+            });
         }
 
         // Xử lý spec columns khi grid ready
@@ -1131,6 +1422,8 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             // showSpec() sẽ tự động ẩn nếu không có config hoặc hiển thị nếu có config
             this.showSpec();
             angularGrid.resizerService.resizeGrid();
+            // Update footer row
+            this.updateFooterRow();
         }, 100);
 
         // Handle double click event on main grid
@@ -1444,6 +1737,66 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                     }
                 });
             },
+        });
+    }
+
+    /**
+     * Update footer row - count cho ProductName, sum cho các cột số lượng
+     * Sử dụng textContent để tránh re-render gây mất focus
+     */
+    updateFooterRow(): void {
+        if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+
+        try {
+            // Kiểm tra grid vẫn tồn tại
+            const testColumns = this.angularGrid.slickGrid.getColumns();
+            if (!testColumns || testColumns.length === 0) return;
+
+            const items = this.angularGrid.dataView?.getFilteredItems() as any[] || [];
+            const productCount = items.length;
+
+            // Các cột cần tính tổng
+            const sumFields = [
+                'NumberBorrowing',      // Đang mượn
+                'QuantityExportMuon',   // SL xuất mượn
+                'QuantityManager',      // SL quản lý
+                'NumberExport',         // SL xuất
+                'NumberImport',         // SL nhập
+                'TotalQuantityInArea',  // Tổng SL trong khu vực
+            ];
+
+            // Tính tổng cho từng cột
+            const sums: { [key: string]: number } = {};
+            sumFields.forEach(field => {
+                sums[field] = items.reduce(
+                    (sum, item) => sum + (Number(item?.[field]) || 0),
+                    0
+                );
+            });
+
+            // Update footer cho cột ProductName (count)
+            const productNameFooter = this.angularGrid.slickGrid.getFooterRowColumn('ProductName');
+            if (productNameFooter) {
+                productNameFooter.textContent = `${this.formatNumber(productCount, 0)}`;
+            }
+
+            // Update footer cho các cột số (sum)
+            sumFields.forEach(field => {
+                const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(field);
+                if (footerCell) {
+                    footerCell.textContent = `${this.formatNumber(sums[field], 0)}`;
+                }
+            });
+        } catch (e) {
+            // Ignore errors khi grid chưa sẵn sàng hoặc đã bị destroy
+        }
+    }
+
+    formatNumber(num: number, digits: number = 0): string {
+        num = num || 0;
+        return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
         });
     }
 }

@@ -254,7 +254,9 @@ export class PaymentOrderComponent implements OnInit {
             this.appUserService.currentUser?.IsAdmin) || false;
 
         // console.log('this.isPermisstion:', this.isPermisstion);
-        if (!this.isPermisstion) {
+
+        // this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
+        if (!this.isPermisstion && !this.isPermisstionDB) {
             this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
             // console.log('this.param:', this.param);
@@ -1593,9 +1595,27 @@ export class PaymentOrderComponent implements OnInit {
                 commandItems: [
 
                     {
-                        command: '', title: 'Bổ sung file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        command: '', title: 'Bổ sung file', iconCssClass: 'fa-solid fa-paperclip', positionOrder: 1,
                         action: (e, args) => {
                             this.onAttachFileExtend();
+                        }
+                    },
+                    {
+                        command: 'viewContract', title: 'Xem hợp đồng', iconCssClass: 'fa-solid fa-eye', positionOrder: 2,
+                        action: (e, args) => {
+                            // console.log('viewContract:', args);
+                            let pathFolder = args.dataContext?.FolderPath;
+                            const documentName = args.dataContext?.DocumentName || '';
+                            if (pathFolder == '') {
+                                this.notification.warning(NOTIFICATION_TITLE.warning, `Không tìm thấy đường dẫn cho hợp đồng số [${documentName}]`)
+                            } else {
+                                pathFolder = pathFolder.replace('\\\\192.168.1.190\\File Scan HĐ\\', 'api/share/FileScanHD/');
+                                // pathFolder = pathFolder.replace('\', '/');
+
+                                // console.log('pathFolder:', pathFolder);
+                                const url = environment.host + pathFolder;
+                                window.open(url, '_blank');
+                            }
                         }
                     },
                 ],

@@ -1,13 +1,16 @@
 .modal-body {
   overflow-y: unset;
-  height: 88vh !important;
+  height: 91vh !important;
 }
 
 .grid-container-detail {
   min-height: 300px;
-  height: 36vh;
+  height: 40vh;
 }
-
+::ng-deep .modal-footer{
+  border-top: none !important;
+  padding: 0 1rem 0 0 !important;
+}
 .fs-12 {
   font-size: 12px;
 }
@@ -66,10 +69,10 @@
 }
 
 ::ng-deep div[id^="billImportDetail_"] {
-  height: 50vh !important;
+  height: 53vh !important;
 }
 ::ng-deep div[id^="billImportDocDetail_"] {
-  height: 50vh !important;
+  height: 53vh !important;
 }
 /* Multiline cell with max 3 lines and ellipsis */
 ::ng-deep .cell-multiline {

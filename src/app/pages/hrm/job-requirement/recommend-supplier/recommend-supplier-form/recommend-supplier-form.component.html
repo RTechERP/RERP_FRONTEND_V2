@@ -15,7 +15,7 @@
           <table class="hcns-table">
             <thead>
               <tr>
-                <th colspan="7" style="text-align: center; border-bottom: 1px solid #d9d9d9">HCNS ĐỀ XUẤT</th>
+                <th colspan="8" style="text-align: center; border-bottom: 1px solid #d9d9d9">HCNS ĐỀ XUẤT</th>
               </tr>
               <tr>
                 <th style="width: 80px; text-align: center;">
@@ -25,6 +25,7 @@
                 <th>Tên sản phẩm/ Dịch vụ<span class="text-danger ps-1 me-1"> (*)</span></th>
                 <th>NCC/Phương án<span class="text-danger ps-1 me-1"> (*)</span></th>
                 <th>Thông tin liên hệ<span class="text-danger ps-1 me-1"> (*)</span></th>
+                <th>Đơn vị tính</th>
                 <th>Đơn giá(Gồm VAT)<span class="text-danger ps-1 me-1"> (*)</span></th>
                 <th>Thành tiền(VNĐ)<span class="text-danger ps-1 me-1"> (*)</span></th>
                 <th>Ghi chú/Lý do đề xuất</th>
@@ -80,10 +81,16 @@
                       </div>
                     </td>
 
+                    <!-- Unit -->
+                    <td>
+                      <input type="text" [(ngModel)]="supplier.Unit">
+                    </td>
+
                     <!-- Unit Price -->
                     <td [class.validation-error]="hasValidationError(product.rowID, supplierIndex, 'UnitPrice')">
                       <input type="text" class="text-end" [value]="getFormattedCurrencyValue(supplier.UnitPrice)"
-                        (keydown)="onCurrencyKeyDown($event)" (input)="onCurrencyInput($event, supplier, 'UnitPrice')"
+                        (keydown)="onCurrencyKeyDown($event)"
+                        (input)="onCurrencyInput($event, product, supplierIndex, 'UnitPrice')"
                         (blur)="validateField(product.rowID, supplierIndex, 'UnitPrice', supplier.UnitPrice)"
                         [class.error-input]="hasValidationError(product.rowID, supplierIndex, 'UnitPrice')"
                         placeholder="0">
@@ -95,7 +102,8 @@
                     <!-- Total Amount -->
                     <td [class.validation-error]="hasValidationError(product.rowID, supplierIndex, 'TotalAmount')">
                       <input type="text" class="text-end" [value]="getFormattedCurrencyValue(supplier.TotalAmount)"
-                        (keydown)="onCurrencyKeyDown($event)" (input)="onCurrencyInput($event, supplier, 'TotalAmount')"
+                        (keydown)="onCurrencyKeyDown($event)"
+                        (input)="onCurrencyInput($event, product, supplierIndex, 'TotalAmount')"
                         (blur)="validateField(product.rowID, supplierIndex, 'TotalAmount', supplier.TotalAmount)"
                         [class.error-input]="hasValidationError(product.rowID, supplierIndex, 'TotalAmount')"
                         placeholder="0">

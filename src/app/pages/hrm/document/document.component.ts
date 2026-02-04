@@ -638,73 +638,18 @@ export class DocumentComponent implements OnInit, AfterViewInit {
 
     const file = this.data[0];
 
-    // Nếu FilePath rỗng thì dùng URL trực tiếp để tải
-    if (!file.FilePath && file.FileName) {
-      const directUrl = `http://14.232.152.154:8083/api/Upload/RTCDocument/${encodeURIComponent(file.FileName)}`;
-
-      // Mở URL trong tab mới để tải file
-      const link = document.createElement('a');
-      link.href = directUrl;
-      link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      this.notification.success('Thông báo', 'Đang tải xuống file...');
+    if (!file.FileName) {
+      this.notification.warning('Thông báo', 'Không có file để tải!');
       return;
     }
 
-    if (!file.FilePath) {
-      this.notification.error('Thông báo', 'Không có đường dẫn file để tải xuống!');
-      return;
-    }
+    const linkBase = 'http://113.190.234.64:8083/api/Upload/RTCDocument/';
+    const downloadUrl =
+      `http://113.190.234.64:8081/Document/GetBlobDownload` +
+      `?path=${encodeURIComponent(linkBase + file.FileName)}` +
+      `&file_name=${encodeURIComponent(file.FileName)}`;
 
-    // Hiển thị loading message
-    const loadingMsg = this.message.loading('Đang tải xuống file...', {
-      nzDuration: 0,
-    }).messageId;
-
-    this.documentService.downloadFile(file.FilePath, this.selectedDocumentTypeCode).subscribe({
-      next: (blob: Blob) => {
-        this.message.remove(loadingMsg);
-
-        // Kiểm tra xem có phải là blob hợp lệ không
-        if (blob && blob.size > 0) {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-          this.notification.success('Thông báo', 'Tải xuống thành công!');
-        } else {
-          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
-        }
-      },
-      error: (res: any) => {
-        this.message.remove(loadingMsg);
-        console.error('Lỗi khi tải file:', res);
-
-        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
-        if (res.error instanceof Blob) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            try {
-              const errorText = JSON.parse(reader.result as string);
-              this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
-            } catch {
-              this.notification.error('Thông báo', 'Tải xuống thất bại!');
-            }
-          };
-          reader.readAsText(res.error);
-        } else {
-          const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
-          this.notification.error('Thông báo', errorMsg);
-        }
-      },
-    });
+    window.open(downloadUrl, '_blank');
   }
 
   onDeleteDocumentFile() {

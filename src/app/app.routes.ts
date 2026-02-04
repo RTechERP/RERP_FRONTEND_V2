@@ -286,6 +286,7 @@ import { AreasComponent } from './pages/ems/components/managers/areas/areas.comp
 import { DevicesComponent } from './pages/ems/components/managers/devices/devices.component';
 import { CommunicationComponent } from './pages/ems/components/managers/communication/communication.component';
 import { DailyReportAccountingSlickgridComponent } from './pages/accounting/daily-report-accounting/daily-report-accounting-slickgrid/daily-report-accounting-slickgrid.component';
+import { CourseExamComponent } from './pages/Course/course-exam/course-exam.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -1061,9 +1062,10 @@ export const routes: Routes = [
             { path: 'inventory-borrow-ncc', component: InventoryBorrowNCCComponent, canActivate: [authGuard] },
 
 
-            // COURSE
+            // COURSE: Khóa học
             { path: 'course-management', component: CourseManagementComponent, canActivate: [authGuard] },
             { path: 'course-practice', component: CoursePracticeComponent, canActivate: [authGuard] },
+            { path: 'course-exam', component: CourseExamComponent, canActivate: [authGuard] },
 
             { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
 

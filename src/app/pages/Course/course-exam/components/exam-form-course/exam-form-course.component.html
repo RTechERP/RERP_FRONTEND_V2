@@ -1,0 +1,55 @@
+<nz-modal [(nzVisible)]="isVisible" [nzTitle]="isEdit ? 'Cập nhật đề thi khóa học' : 'Thêm đề thi khóa học'"
+    (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()" [nzOkLoading]="isConfirmLoading">
+    <ng-container *nzModalContent>
+        <form nz-form [formGroup]="examForm">
+            <!-- Course Mode: Display Course Name -->
+            <nz-form-item>
+                <nz-form-label [nzSm]="6" [nzXs]="24">Khóa học</nz-form-label>
+                <div nz-col [nzSm]="14" [nzXs]="24" class="ant-form-text" style="padding-top: 5px;">
+                    <strong>{{ courseData?.NameCourse }}</strong>
+                </div>
+            </nz-form-item>
+
+            <nz-form-item>
+                <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="Code">Mã đề thi</nz-form-label>
+                <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Vui lòng nhập mã đề thi!">
+                    <input nz-input formControlName="CodeExam" id="Code" />
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+                <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="NameExam">Tên đề thi</nz-form-label>
+                <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Vui lòng nhập tên đề thi!">
+                    <input nz-input formControlName="NameExam" id="NameExam" />
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+                <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="Goal">Điểm đạt (%)</nz-form-label>
+                <nz-form-control [nzSm]="14" [nzXs]="24">
+                    <nz-input-number formControlName="Goal" [nzMin]="0" [nzMax]="100" [nzStep]="1"
+                        style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+                <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="TestTime">Thời gian (phút)</nz-form-label>
+                <nz-form-control [nzSm]="14" [nzXs]="24">
+                    <nz-input-number formControlName="TestTime" [nzMin]="0" [nzStep]="1"
+                        style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+                <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="ExamType">Loại đề thi</nz-form-label>
+                <nz-form-control [nzSm]="14" [nzXs]="24">
+                    <nz-select formControlName="ExamType">
+                        <nz-option [nzValue]="1" nzLabel="Trắc nghiệm"></nz-option>
+                        <nz-option [nzValue]="2" nzLabel="Thực hành"></nz-option>
+                        <nz-option [nzValue]="3" nzLabel="Bài tập"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
+        </form>
+    </ng-container>
+</nz-modal>

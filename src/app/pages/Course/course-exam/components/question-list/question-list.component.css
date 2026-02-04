@@ -1,0 +1,36 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    /* Prevent host from leaking */
+}
+
+.table-container {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    /* Crucial: contain Tabulator's height */
+    position: relative;
+}
+
+:host ::ng-deep .ant-spin-nested-loading,
+:host ::ng-deep .ant-spin-container {
+    height: 100%;
+    width: 100%;
+    display: block;
+    overflow: hidden;
+    /* Crucial: contain the table container */
+}
+
+:host ::ng-deep .ant-spin {
+    max-height: 100%;
+}
+
+:host ::ng-deep .tabulator {
+    border: none;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}

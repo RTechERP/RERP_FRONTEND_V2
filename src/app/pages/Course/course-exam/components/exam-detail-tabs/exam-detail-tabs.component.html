@@ -1,0 +1,14 @@
+<nz-tabset [nzSelectedIndex]="mainTabIndex" (nzSelectedIndexChange)="onMainTabChange($event)" style="height: 100%;">
+    <nz-tab nzTitle="Khóa học">
+        <nz-spin [nzSpinning]="isLoading" [nzDelay]="200" style="height: 100%; display: block;">
+            <div #CourseExamTable class="h-100 table-container"></div>
+        </nz-spin>
+    </nz-tab>
+    <nz-tab nzTitle="Bài học">
+        <div class="d-flex flex-column h-100">
+            <nz-spin [nzSpinning]="isLoading" [nzDelay]="200" style="height: 100%; display: block;">
+                <div #LessonExamTable class="flex-grow-1 table-container"></div>
+            </nz-spin>
+        </div>
+    </nz-tab>
+</nz-tabset>

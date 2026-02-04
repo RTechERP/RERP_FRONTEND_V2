@@ -4096,7 +4096,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         Manufacturer: row.Manufacturer || '',
         Unit: row.Unit || '',
         IsNewCode: row.IsNewCode || false,
-        IsLeaf: isLeaf
+        IsLeaf: isLeaf, 
+        ProjectID: row.ProjectID || 0 
       });
     }
     if (requestItems.length === 0) {

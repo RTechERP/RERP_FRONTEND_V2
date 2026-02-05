@@ -73,6 +73,7 @@ export class LuckyNumberComponent implements OnInit {
     modalBodyStyle: any = {};
 
     selectedIndex = 0;
+    employeeLuckyName = '';
 
 
     getBase64 = (file: File): Promise<string | ArrayBuffer | null> =>
@@ -106,10 +107,15 @@ export class LuckyNumberComponent implements OnInit {
                 ?? 0;
         });
 
-        console.log('isPerson:', this.isPerson);
+        // console.log('isPerson:', this.isPerson);
+
+        // this.isVisible = this.isPerson == 1;
+
 
         this.initMenuBar();
         this.initGrid();
+
+
     }
 
     initMenuBar() {
@@ -153,14 +159,7 @@ export class LuckyNumberComponent implements OnInit {
                 icon: 'fa-solid fa-clover fa-lg text-success',
                 // visible: this.permissionService.hasPermission(""),
                 command: () => {
-                    const activeCell = this.angularGrid.slickGrid.getSelectedRows();
-                    console.log('activeCell:', activeCell);
-                    if (activeCell.length > 0) {
-                        this.isVisible = true;
-                        const rowIndex = activeCell[0];
-                        this.employeeLucky = this.angularGrid.dataView.getItem(rowIndex); //as EmployeeLuckyNumber;
-                        // console.log('item:', this.employeeLucky);
-                    }
+                    this.onGetNumber();
                 },
             },
             {
@@ -185,9 +184,22 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'STT',
                 type: 'number',
                 sortable: true, filterable: true,
+                minWidth: 50,
                 // formatter: Formatters.tree,
                 filter: { model: Filters['compoundInputNumber'] },
                 cssClass: 'text-center'
+
+            },
+            {
+                id: 'LuckyNumber',
+                name: 'Số may mắn',
+                field: 'LuckyNumber',
+                type: 'number',
+                sortable: true, filterable: true,
+                minWidth: 80,
+                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end'
 
             },
             {
@@ -196,6 +208,7 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'Code',
                 type: 'string',
                 sortable: true, filterable: true,
+                minWidth: 100,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 filter: { model: Filters['compoundInputText'] }
 
@@ -207,6 +220,7 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'FullName',
                 type: 'string',
                 sortable: true, filterable: true,
+                minWidth: 150,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 filter: { model: Filters['compoundInputText'] }
 
@@ -218,48 +232,42 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'PositionName',
                 type: 'string',
                 sortable: true, filterable: true,
+                minWidth: 150,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 filter: { model: Filters['compoundInputText'] }
 
             },
-            {
-                id: 'PhoneNumber',
-                name: 'SĐT',
-                field: 'PhoneNumber',
-                type: 'string',
-                sortable: true, filterable: true,
-                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
-                filter: { model: Filters['compoundInputText'] }
+            // {
+            //     id: 'PhoneNumber',
+            //     name: 'SĐT',
+            //     field: 'PhoneNumber',
+            //     type: 'string',
+            //     sortable: true, filterable: true,
+            //     minWidth: 200,
+            //     // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+            //     filter: { model: Filters['compoundInputText'] }
 
-            },
+            // },
             {
                 id: 'YearValue',
                 name: 'Năm',
                 field: 'YearValue',
                 type: 'number',
                 sortable: true, filterable: true,
+                minWidth: 50,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 filter: { model: Filters['compoundInputNumber'] },
                 cssClass: 'text-end'
 
             },
-            {
-                id: 'LuckyNumber',
-                name: 'Số may mắn',
-                field: 'LuckyNumber',
-                type: 'number',
-                sortable: true, filterable: true,
-                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
-                filter: { model: Filters['compoundInputNumber'] },
-                cssClass: 'text-end'
 
-            },
             {
                 id: 'ImageName',
                 name: 'Avartar',
                 field: 'ImageName',
                 type: 'number',
                 sortable: true, filterable: true,
+                minWidth: 200,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 filter: { model: Filters['compoundInputText'] },
                 onCellClick(e, args) {
@@ -276,6 +284,7 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'StartWorking',
                 type: 'string',
                 sortable: true, filterable: true,
+                minWidth: 100,
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center'
@@ -286,6 +295,7 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'BirthOfDate',
                 type: 'string',
                 sortable: true, filterable: true,
+                minWidth: 100,
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center'
@@ -328,6 +338,9 @@ export class LuckyNumberComponent implements OnInit {
                 sanitizeDataExport: true,
                 exportWithFormatter: true,
             },
+
+            autoFitColumnsOnFirstLoad: false,
+            enableAutoSizeColumns: false,
         };
 
         this.loadData();
@@ -391,7 +404,12 @@ export class LuckyNumberComponent implements OnInit {
                     id: i + 1
                 }));
 
-                if (this.isPerson == 1) this.gridData.setSelectedRows([1]);
+                if (this.isPerson == 1) {
+                    this.gridData.setSelectedRows([1]);
+
+                    this.employeeLucky = this.dataset.find(x => x.EmployeeID == this.appUserService?.currentUser?.EmployeeID);
+                    if (this.employeeLucky) this.onGetNumber();
+                }
                 // console.log('this.dataset:', this.dataset);
             },
             error: (err) => {
@@ -661,5 +679,25 @@ export class LuckyNumberComponent implements OnInit {
                     });
             }
         })
+    }
+
+
+    onGetNumber() {
+        const activeCell = this.angularGrid.slickGrid.getSelectedRows();
+
+        // console.log('activeCell:', activeCell);
+        if (activeCell.length > 0) {
+
+
+            this.isVisible = true;
+            const rowIndex = activeCell[0];
+
+            // console.log('Rowindex:', rowIndex);
+            // console.log('getItems:', this.angularGrid.dataView.getItems());
+            // this.employeeLucky = this.angularGrid.dataView.getItem(rowIndex); //as EmployeeLuckyNumber;
+            const item = this.angularGrid.dataView.getItem(rowIndex); //as EmployeeLuckyNumber;
+            if (item) this.employeeLucky = item;
+            this.employeeLuckyName = this.employeeLucky.Code + ' - ' + this.employeeLucky.FullName;
+        }
     }
 }

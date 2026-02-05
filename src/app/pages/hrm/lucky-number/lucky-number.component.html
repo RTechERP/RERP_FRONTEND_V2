@@ -27,14 +27,13 @@
             <nz-tab nzTitle="Ảnh đại diện">
 
                 <!-- <input nz-input [(ngModel)]="employeeLucky.PhoneNumber" placeholder="Số điện thoại" class="mt-1"> -->
-                <nz-input-group [nzSuffix]="suffixTemplateInfo" [nzPrefix]="prefixTemplateUser" class="mt-1">
-                    <input type="text" nz-input [(ngModel)]="employeeLucky.PhoneNumber"
-                        placeholder="Nhập số điện thoại" />
+                <nz-input-group [nzPrefix]="prefixTemplateUser" class="mt-1">
+                    <input type="text" nz-input [(ngModel)]="employeeLuckyName" placeholder="" readonly />
                 </nz-input-group>
-                <ng-template #prefixTemplateUser><span nz-icon nzType="phone"></span></ng-template>
-                <ng-template #suffixTemplateInfo>
+                <ng-template #prefixTemplateUser><span nz-icon nzType="user"></span></ng-template>
+                <!-- <ng-template #suffixTemplateInfo>
                     <span nz-icon nz-tooltip nzTooltipTitle="Số điện thoại liên hệ" nzType="info-circle"></span>
-                </ng-template>
+                </ng-template> -->
 
                 <nz-upload nzAction="https://www.mocky.io/v2/5cc8019d300000980a055e76" nzListType="picture-card"
                     class="mt-1" [(nzFileList)]="fileList" [nzShowButton]="fileList.length < 1"

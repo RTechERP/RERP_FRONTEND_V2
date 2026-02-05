@@ -152,6 +152,14 @@ export class OverTimePersonComponent implements OnInit {
     const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
+    // Convert Date to YYYY-MM-DD format for HTML date input
+    const formatDateForInput = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     this.searchForm = this.fb.group({
       startDate: [this.formatDateForInput(firstDay)],
       endDate: [this.formatDateForInput(lastDay)],
@@ -183,6 +191,14 @@ export class OverTimePersonComponent implements OnInit {
     const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
+    // Convert Date to YYYY-MM-DD format for HTML date input
+    const formatDateForInput = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     this.searchForm.reset({
       startDate: this.formatDateForInput(firstDay),
       endDate: this.formatDateForInput(lastDay),
@@ -197,8 +213,9 @@ export class OverTimePersonComponent implements OnInit {
     this.isLoading = true;
     const formValue = this.searchForm.value;
 
-    const startDate = formValue.startDate ? new Date(formValue.startDate).toISOString() : null;
-    const endDate = formValue.endDate ? new Date(formValue.endDate).toISOString() : null;
+    // Convert YYYY-MM-DD format to ISO string
+    const startDate = formValue.startDate ? new Date(formValue.startDate + 'T00:00:00').toISOString() : null;
+    const endDate = formValue.endDate ? new Date(formValue.endDate + 'T23:59:59').toISOString() : null;
 
     const request: any = {
       DateStart: startDate,
@@ -1059,8 +1076,9 @@ export class OverTimePersonComponent implements OnInit {
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const startDate = this.searchForm.get('startDate')?.value;
       const endDate = this.searchForm.get('endDate')?.value;
-      const startDateStr = startDate ? DateTime.fromJSDate(new Date(startDate)).toFormat('ddMMyyyy') : '';
-      const endDateStr = endDate ? DateTime.fromJSDate(new Date(endDate)).toFormat('ddMMyyyy') : '';
+      // Convert YYYY-MM-DD format to ddMMyyyy format for filename
+      const startDateStr = startDate ? DateTime.fromISO(startDate).toFormat('ddMMyyyy') : '';
+      const endDateStr = endDate ? DateTime.fromISO(endDate).toFormat('ddMMyyyy') : '';
       saveAs(blob, `DangKyLamThem_${startDateStr}_${endDateStr}.xlsx`);
 
     } catch (error: any) {

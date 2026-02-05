@@ -2,7 +2,7 @@
   <h6 class="modal-title text-white m-0">
     {{ isEditMode ? "SỬA ĐĂNG KÝ LÀM ĐÊM" : "ĐĂNG KÝ LÀM ĐÊM" }}
   </h6>
-  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()" style="margin-right: 2px;"></button>
 </div>
 
 <div class="modal-body p-1 px-2" style="
@@ -78,7 +78,7 @@
             </nz-form-item>
           </nz-col>
 
-          <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8" [nzLg]="8">
+          <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8" [nzLg]="8" *ngIf="getTabDatePickerKey() >= 0">
             <nz-form-item>
               <nz-form-label [nzSpan]="24">
                 Thời gian bắt đầu<span class="text-danger ps-1 me-1"> (*)</span>
@@ -90,7 +90,7 @@
             </nz-form-item>
           </nz-col>
 
-          <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8" [nzLg]="8">
+          <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8" [nzLg]="8" *ngIf="getTabDatePickerKey() >= 0">
             <nz-form-item>
               <nz-form-label [nzSpan]="24">
                 Thời gian kết thúc<span class="text-danger ps-1 me-1">

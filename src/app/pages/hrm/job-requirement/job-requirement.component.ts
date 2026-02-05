@@ -76,6 +76,7 @@ import { NoteFormComponent } from './note-form/note-form.component';
 import { ProjectPartlistPriceRequestFormComponent } from '../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { JobRequirementPurchaseRequestViewComponent } from './job-requirement-purchase-request-view/job-requirement-purchase-request-view.component';
+import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { JobRequirementSummaryComponent } from './job-requirement-summary/job-requirement-summary.component';
 import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
@@ -409,10 +410,15 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
         // View buttons - always available
         this.menuBars.push(
+            // {
+            //     label: 'Xem yêu cầu mua',
+            //     icon: 'fa-solid fa-eye fa-lg text-info',
+            //     command: () => this.onViewPurchaseRequest()
+            // },
             {
                 label: 'Xem yêu cầu mua',
                 icon: 'fa-solid fa-eye fa-lg text-info',
-                command: () => this.onViewPurchaseRequest()
+                command: () => this.onViewPurchaseRequestNew()
             },
             {
                 label: 'Tổng hợp',
@@ -986,6 +992,27 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     }
 
     /**
+     * Xem yêu cầu mua hàng (new) - mở modal ProjectPartListPurchaseRequestSlickGridComponent với isFromHr
+     */
+    onViewPurchaseRequestNew(): void {
+        const modalRef = this.modalService.open(ProjectPartListPurchaseRequestSlickGridComponent, {
+            fullscreen: true,
+            backdrop: 'static',
+            keyboard: false,
+        });
+
+        modalRef.componentInstance.isFromHr = true;
+        modalRef.componentInstance.showHeader = true;
+        modalRef.componentInstance.headerText = 'YÊU CẦU MUA HÀNG HR';
+        modalRef.componentInstance.showCloseButton = true;
+
+        modalRef.result.then(
+            () => {},
+            () => {}
+        );
+    }
+
+    /**
      * Tổng hợp yêu cầu công việc - mở modal JobRequirementSummaryComponent
      */
     onOpenSummary(): void {
@@ -1106,7 +1133,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
         // Get approval info for each step
         const tbpApproval = extractApprovalInfo(2); // TBP duyệt
-        const hrApproval = extractApprovalInfo(4);  // TBP HCNS duyệt  
+        const hrApproval = extractApprovalInfo(4);  // TBP HCNS duyệt
         const bgdApproval = extractApprovalInfo(5); // BGĐ duyệt
 
         // Tạo danh sách chi tiết cho bảng "Nội dung yêu cầu"
@@ -1591,9 +1618,9 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     nzTitle: fileName,
                     nzContent: `
             <div style="text-align: center; padding: 10px;">
-              <img 
-                src="${url}" 
-                style="max-width: 100%; max-height: 80vh; height: auto; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" 
+              <img
+                src="${url}"
+                style="max-width: 100%; max-height: 80vh; height: auto; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"
                 alt="${fileName}"
                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'300\\'%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dominant-baseline=\\'middle\\' font-family=\\'Arial\\' font-size=\\'16\\' fill=\\'%23999\\'%3EKhông thể tải ảnh%3C/text%3E%3C/svg%3E';"
               />

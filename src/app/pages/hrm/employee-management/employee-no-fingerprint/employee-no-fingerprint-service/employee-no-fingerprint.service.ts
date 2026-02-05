@@ -40,7 +40,7 @@ export class EmployeeNofingerprintService {
   constructor(
     private http: HttpClient,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   GlobalEmployeeId: number = 78;
   LoginName: string = 'ADMIN';
@@ -70,7 +70,7 @@ export class EmployeeNofingerprintService {
    * @param params Request parameters
    * @returns Promise with response data
    */
-  getENFListPost(params: EmployeeNoFingerprintRequestParam): Promise<any> {
+  getENFListPost(params: EmployeeNoFingerprintRequestParam): Observable<any> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Accept: 'application/json',
@@ -89,8 +89,7 @@ export class EmployeeNofingerprintService {
     };
 
     return this.http
-      .post<any>(this.apiUrl + 'get-employee-no-fingerprint', requestBody, { headers })
-      .toPromise();
+      .post<any>(this.apiUrl + 'get-employee-no-fingerprint', requestBody, { headers });
   }
 
   getEmloyeeApprover(): Observable<any> {
@@ -163,7 +162,7 @@ export class EmployeeNofingerprintService {
     return this.http.post<any>(this.apiUrl + 'savedata', data, { headers });
   }
 
-   checkDuplicateENF(
+  checkDuplicateENF(
     id: number,
     employeeId: number,
     dayWork: string,

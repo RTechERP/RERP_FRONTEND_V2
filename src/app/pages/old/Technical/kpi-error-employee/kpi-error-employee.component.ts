@@ -113,12 +113,21 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
     ) { }
 
     ngOnInit(): void {
+        // Get departmentId from route snapshot or tabData synchronously first
+        const queryDepartmentId = this.route.snapshot.queryParams['departmentId'];
+        this.departmentId = queryDepartmentId
+            ? Number(queryDepartmentId)
+            : (this.tabData?.departmentId ?? 0);
+
+        // Also subscribe for dynamic changes
         this.route.queryParams.subscribe(params => {
-            // this.departmentId = params['departmentId'] ? Number(params['departmentId']) : 0;
-            this.departmentId =
-                params['departmentId']
-                ?? this.tabData?.departmentId
-                ?? 0;
+            const newDepartmentId = params['departmentId']
+                ? Number(params['departmentId'])
+                : (this.tabData?.departmentId ?? 0);
+            if (newDepartmentId !== this.departmentId) {
+                this.departmentId = newDepartmentId;
+                this.search();
+            }
         });
 
         const today = new Date();
@@ -752,13 +761,13 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 this.angularGrid.dataView.setGrouping([
                     {
                         getter: 'TypeName',
-                        formatter: (g: any) => `Loại lỗi: <strong>${g.value}</strong> <span style="color:green">(${g.count} dòng)</span>`,
+                        formatter: (g: any) => `Loại lỗi: <strong>${g.value}</strong> <span style="color:red">(${g.count} lỗi)</span>`,
                         aggregateCollapsed: false,
                         lazyTotalsCalculation: true,
                     },
                     {
                         getter: 'Employee',
-                        formatter: (g: any) => `Nhân viên: <strong>${g.value}</strong> <span style="color:green">(${g.count} dòng)</span>`,
+                        formatter: (g: any) => `Nhân viên: <strong>${g.value}</strong> <span style="color:red">(${g.count} lỗi)</span>`,
                         aggregateCollapsed: false,
                         lazyTotalsCalculation: true,
                     },

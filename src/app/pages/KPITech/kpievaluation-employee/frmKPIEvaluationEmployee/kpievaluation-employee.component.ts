@@ -779,7 +779,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'ExamCode',
         field: 'ExamCode',
         name: 'Mã bài đánh giá',
-        width: 140,
+        minWidth: 140,
         sortable: true,
         cssClass: 'cell-multiline',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -795,7 +795,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'ExamName',
         field: 'ExamName',
         name: 'Tên bài đánh giá',
-        width: 130,
+        minWidth: 130,
         sortable: true,
         cssClass: 'cell-multiline',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -811,7 +811,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'StatusText',
         field: 'StatusText',
         name: 'Trạng thái',
-        width: 90,
+        minWidth: 90,
         sortable: true,
         cssClass: 'cell-multiline',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -826,6 +826,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       {
         id: 'Deadline',
         field: 'Deadline',
+        minWidth: 120,
         name: 'Deadline',
         formatter: Formatters.dateIso,
         sortable: true
@@ -848,7 +849,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       },
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: false,
+      forceFitColumns: true,
     };
   }
 

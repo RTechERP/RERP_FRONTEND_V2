@@ -127,3 +127,39 @@
     z-index: 1 !important;
   }
 }
+
+:host ::ng-deep .ant-tabs-content {
+  height: 100%;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+}
+
+:host ::ng-deep .ant-tabs-tabpane-active {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+/* Grid container - same as propose-vehicle-repair */
+.grid-container {
+  height: 100%;
+  width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+::ng-deep .ant-layout {
+  height: 98% !important;
+}

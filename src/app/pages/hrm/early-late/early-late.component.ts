@@ -87,7 +87,7 @@ import {
   ]
 })
 export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
-
+  //test
   private tabulator!: Tabulator;
   sizeSearch: string = '0';
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;

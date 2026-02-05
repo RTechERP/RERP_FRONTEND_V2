@@ -44,68 +44,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 export class LuckyNumberComponent implements OnInit {
 
     isPerson = 0;
-    menuBars: MenuItem[] = [
-        {
-            label: 'Thêm',
-            icon: 'fa-solid fa-circle-plus fa-lg text-success',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.onCreate();
-            },
-        },
-
-        // {
-        //     label: 'Sửa',
-        //     icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        //     // visible: this.permissionService.hasPermission(""),
-        //     command: () => {
-        //         // this.onEdit();
-        //     },
-        // },
-        // {
-        //     label: 'Xóa',
-        //     icon: 'fa-solid fa-trash fa-lg text-danger',
-        //     // visible: this.permissionService.hasPermission(""),
-        //     command: () => {
-        //         // this.onDelete();
-        //     },
-        // },
-
-        {
-            label: 'Refresh',
-            icon: 'fa-solid fa-arrows-rotate fa-lg text-info',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                this.loadData();
-            },
-        },
-        {
-            label: 'Nhận số may mắn',
-            icon: 'fa-solid fa-clover fa-lg text-success',
-            // visible: this.permissionService.hasPermission(""),
-            command: () => {
-                const activeCell = this.angularGrid.slickGrid.getSelectedRows();
-                console.log('activeCell:', activeCell);
-                if (activeCell.length > 0) {
-                    this.isVisible = true;
-                    const rowIndex = activeCell[0];
-                    this.employeeLucky = this.angularGrid.dataView.getItem(rowIndex); //as EmployeeLuckyNumber;
-                    // console.log('item:', this.employeeLucky);
-                }
-            },
-        },
-        {
-            label: 'Xuất excel',
-            icon: 'fa-solid fa-file-excel fa-lg text-success',
-            command: () => {
-                this.excelExportService.exportToExcel({
-                    filename: `DanhSanhNhanVienQuaySo_2026`,
-                    format: 'xlsx'
-                });
-
-            }
-        },
-    ];
+    menuBars: MenuItem[] = [];
 
     param = {
         year: 2026,
@@ -167,10 +106,76 @@ export class LuckyNumberComponent implements OnInit {
                 ?? 0;
         });
 
-        // this.loadData();
+        console.log('isPerson:', this.isPerson);
+
+        this.initMenuBar();
         this.initGrid();
     }
 
+    initMenuBar() {
+        this.menuBars = [
+            {
+                label: 'Thêm',
+                icon: 'fa-solid fa-circle-plus fa-lg text-success',
+                visible: this.isPerson == 0,
+                command: () => {
+                    this.onCreate();
+                },
+            },
+
+            // {
+            //     label: 'Sửa',
+            //     icon: 'fa-solid fa-file-pen fa-lg text-primary',
+            //     // visible: this.permissionService.hasPermission(""),
+            //     command: () => {
+            //         // this.onEdit();
+            //     },
+            // },
+            // {
+            //     label: 'Xóa',
+            //     icon: 'fa-solid fa-trash fa-lg text-danger',
+            //     // visible: this.permissionService.hasPermission(""),
+            //     command: () => {
+            //         // this.onDelete();
+            //     },
+            // },
+
+            {
+                label: 'Refresh',
+                icon: 'fa-solid fa-arrows-rotate fa-lg text-info',
+                // visible: this.permissionService.hasPermission(""),
+                command: () => {
+                    this.loadData();
+                },
+            },
+            {
+                label: 'Nhận số may mắn',
+                icon: 'fa-solid fa-clover fa-lg text-success',
+                // visible: this.permissionService.hasPermission(""),
+                command: () => {
+                    const activeCell = this.angularGrid.slickGrid.getSelectedRows();
+                    console.log('activeCell:', activeCell);
+                    if (activeCell.length > 0) {
+                        this.isVisible = true;
+                        const rowIndex = activeCell[0];
+                        this.employeeLucky = this.angularGrid.dataView.getItem(rowIndex); //as EmployeeLuckyNumber;
+                        // console.log('item:', this.employeeLucky);
+                    }
+                },
+            },
+            {
+                label: 'Xuất excel',
+                icon: 'fa-solid fa-file-excel fa-lg text-success',
+                command: () => {
+                    this.excelExportService.exportToExcel({
+                        filename: `DanhSanhNhanVienQuaySo_2026`,
+                        format: 'xlsx'
+                    });
+
+                }
+            },
+        ];
+    }
 
     initGrid() {
         this.columnDefinitions = [

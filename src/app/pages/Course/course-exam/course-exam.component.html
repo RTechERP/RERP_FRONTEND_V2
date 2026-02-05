@@ -1,7 +1,7 @@
 <!-- DESKTOP LAYOUT -->
-<ng-container *ngIf="!isSmallScreen">
+<div style="height: 94vh;" *ngIf="!isSmallScreen">
     <nz-splitter [nzLayout]="splitterLayout">
-        <nz-splitter-panel nzDefaultSize="35%" nzMin="20%" nzMax="100%">
+        <nz-splitter-panel nzDefaultSize="40%" nzMin="20%" nzMax="100%">
             <div class="box h-100">
                 <ng-container class="w-100">
                     <nz-splitter [nzLayout]="'vertical'">
@@ -23,7 +23,7 @@
             </div>
         </nz-splitter-panel>
 
-        <nz-splitter-panel nzDefaultSize="65%" nzMin="20%" nzMax="100%">
+        <nz-splitter-panel nzDefaultSize="60%" nzMin="20%" nzMax="100%">
             <div class="box h-100">
                 <ng-container class="w-100">
                     <nz-splitter [nzLayout]="'vertical'">
@@ -45,11 +45,11 @@
             </div>
         </nz-splitter-panel>
     </nz-splitter>
-</ng-container>
+</div>
 
 <!-- MOBILE LAYOUT -->
-<ng-container *ngIf="isSmallScreen">
-    <nz-tabset class="h-100 mobile-tabset" [nzTabBarGutter]="10">
+<div style="height: 94vh;" *ngIf="isSmallScreen">
+    <nz-tabset class="h-100 mobile-tabset" [nzTabBarGutter]="10" [(nzSelectedIndex)]="mobileTabIndex">
         <nz-tab nzTitle="Danh sách">
             <div class="d-flex flex-column h-100">
                 <!-- Top Half: Exam List -->
@@ -71,7 +71,7 @@
         </nz-tab>
 
         <nz-tab nzTitle="Câu hỏi & Đáp án">
-            <div class="d-flex flex-column h-100">
+            <div class="d-flex flex-column h-100" *ngIf="mobileTabIndex === 1">
                 <!-- Top Half: Questions -->
                 <div class="flex-grow-1" [style.flex-basis]="selectedExamType === 1 ? '60%' : '100%'"
                     style="min-height: 0;">
@@ -92,7 +92,7 @@
             </div>
         </nz-tab>
     </nz-tabset>
-</ng-container>
+</div>
 
 <app-exam-form-course [isVisible]="isCourseExamModalVisible" [isEdit]="isExamEditMode" [examData]="currentExamData"
     [courseData]="currentCourse" [existingExams]="courseExamData" (onCancel)="handleCourseExamCancel()"

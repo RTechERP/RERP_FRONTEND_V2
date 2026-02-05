@@ -32,28 +32,19 @@ export class ExamDetailTabsComponent implements OnChanges, AfterViewInit, OnDest
     courseExamTable: Tabulator | null = null;
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['lessonExamData']) {
-            if (this.lessonExamTable) {
-                this.lessonExamTable.replaceData(this.lessonExamData).then(() => {
-                    if (this.autoSelectFirst && this.activeTab === 1) {
-                        this.selectFirstRow(this.lessonExamTable);
-                    }
-                });
-            } else {
-                // Try to draw if not exists (e.g. if tab became visible)
-                this.drawLessonExamTable();
-            }
+        if (changes['lessonExamData'] && this.lessonExamTable) {
+            this.lessonExamTable.replaceData(this.lessonExamData).then(() => {
+                if (this.autoSelectFirst && this.activeTab === 1) {
+                    this.selectFirstRow(this.lessonExamTable);
+                }
+            });
         }
-        if (changes['courseExamData']) {
-            if (this.courseExamTable) {
-                this.courseExamTable.replaceData(this.courseExamData).then(() => {
-                    if (this.autoSelectFirst && this.activeTab === 0) {
-                        this.selectFirstRow(this.courseExamTable);
-                    }
-                });
-            } else {
-                this.drawCourseExamTable();
-            }
+        if (changes['courseExamData'] && this.courseExamTable) {
+            this.courseExamTable.replaceData(this.courseExamData).then(() => {
+                if (this.autoSelectFirst && this.activeTab === 0) {
+                    this.selectFirstRow(this.courseExamTable);
+                }
+            });
         }
     }
 
@@ -73,13 +64,20 @@ export class ExamDetailTabsComponent implements OnChanges, AfterViewInit, OnDest
     private drawTables(): void {
         // Use timeout to ensure DOM is ready, especially for tabs
         setTimeout(() => {
-            this.drawLessonExamTable();
-            this.drawCourseExamTable();
+            // Only draw visible tables
+            if (this.mainTabIndex === 0) {
+                this.drawCourseExamTable();
+            } else if (this.mainTabIndex === 1) {
+                this.drawLessonExamTable();
+            }
         }, 100);
     }
 
     private drawLessonExamTable(): void {
         if (!this.lessonExamTableRef || !this.lessonExamTableRef.nativeElement) return;
+
+        // Check visibility to avoid 'offsetWidth' error
+        if (this.lessonExamTableRef.nativeElement.offsetParent === null) return;
 
         // Check if table exists and element is consistent
         if (this.lessonExamTable) {
@@ -111,15 +109,22 @@ export class ExamDetailTabsComponent implements OnChanges, AfterViewInit, OnDest
                 (value: any) => `<strong>Mã bài học: ${value}</strong>`,
             ],
             columns: [
-                { title: 'Mã đề thi', field: 'CodeExam', hozAlign: 'left', headerHozAlign: 'center' },
-                { title: 'Tên đề thi', field: 'NameExam', hozAlign: 'left', headerHozAlign: 'center' },
-                { title: 'Số điểm cần đạt (%)', field: 'Goal', hozAlign: 'center', headerHozAlign: 'center' },
-                { title: 'Thời gian thi', field: 'TestTime', hozAlign: 'center', headerHozAlign: 'center' },
-                { title: 'Loại đề thi', field: 'ExamTypeText', hozAlign: 'center', headerHozAlign: 'center' },
+                { title: 'Mã đề thi', field: 'CodeExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200 },
+                { title: 'Tên đề thi', field: 'NameExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200 },
+                { title: 'Số điểm cần đạt (%)', field: 'Goal', hozAlign: 'center', headerHozAlign: 'center', width: 150 },
+                { title: 'Thời gian thi', field: 'TestTime', hozAlign: 'center', headerHozAlign: 'center', width: 120 },
+                { title: 'Loại đề thi', field: 'ExamTypeText', hozAlign: 'center', headerHozAlign: 'center', width: 120 },
             ],
         });
 
         this.lessonExamTable.on('rowClick', (e: any, row: RowComponent) => {
+            console.log('ExamDetailTabs: Lesson rowClick triggered', row.getData()['ID']);
+            const rowData = row.getData();
+            this.examSelected.emit(rowData);
+        });
+
+        this.lessonExamTable.on('rowTap', (e: any, row: RowComponent) => {
+            console.log('ExamDetailTabs: Lesson rowTap triggered', row.getData()['ID']);
             const rowData = row.getData();
             this.examSelected.emit(rowData);
         });
@@ -129,10 +134,19 @@ export class ExamDetailTabsComponent implements OnChanges, AfterViewInit, OnDest
             this.examSelected.emit(rowData);
             this.action.emit('edit');
         });
+
+        this.lessonExamTable.on('tableBuilt', () => {
+            if (this.autoSelectFirst && this.lessonExamData.length > 0) {
+                this.selectFirstRow(this.lessonExamTable);
+            }
+        });
     }
 
     private drawCourseExamTable(): void {
         if (!this.courseExamTableRef || !this.courseExamTableRef.nativeElement) return;
+
+        // Check visibility to avoid 'offsetWidth' error
+        if (this.courseExamTableRef.nativeElement.offsetParent === null) return;
 
         if (this.courseExamTable) {
             const tableElement = this.courseExamTable.element;
@@ -162,14 +176,21 @@ export class ExamDetailTabsComponent implements OnChanges, AfterViewInit, OnDest
                 (value: any) => `<strong>Loại: ${value}</strong>`,
             ],
             columns: [
-                { title: 'Mã đề thi', field: 'CodeExam', hozAlign: 'left', headerHozAlign: 'center' },
-                { title: 'Tên đề thi', field: 'NameExam', hozAlign: 'left', headerHozAlign: 'center' },
-                { title: 'Số điểm cần đạt (%)', field: 'Goal', hozAlign: 'center', headerHozAlign: 'center' },
-                { title: 'Thời gian (Phút)', field: 'TestTime', hozAlign: 'center', headerHozAlign: 'center' },
+                { title: 'Mã đề thi', field: 'CodeExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200 },
+                { title: 'Tên đề thi', field: 'NameExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200 },
+                { title: 'Số điểm cần đạt (%)', field: 'Goal', hozAlign: 'center', headerHozAlign: 'center', width: 180 },
+                { title: 'Thời gian (Phút)', field: 'TestTime', hozAlign: 'center', headerHozAlign: 'center', width: 150 },
             ],
         });
 
         this.courseExamTable.on('rowClick', (e: any, row: RowComponent) => {
+            console.log('ExamDetailTabs: Course rowClick triggered', row.getData()['ID']);
+            const rowData = row.getData();
+            this.examSelected.emit(rowData);
+        });
+
+        this.courseExamTable.on('rowTap', (e: any, row: RowComponent) => {
+            console.log('ExamDetailTabs: Course rowTap triggered', row.getData()['ID']);
             const rowData = row.getData();
             this.examSelected.emit(rowData);
         });
@@ -189,14 +210,18 @@ export class ExamDetailTabsComponent implements OnChanges, AfterViewInit, OnDest
 
     private selectFirstRow(table: Tabulator | null) {
         if (!table) return;
+
         const rows = table.getRows("active");
         const firstRow = this.findFirstRowRecursive(rows);
 
         if (firstRow) {
+            console.log('ExamDetailTabs: Auto-selecting first row', firstRow.getData());
             firstRow.select();
-            firstRow.scrollTo();
+            // firstRow.scrollTo(); // Scroll can be disruptive if automatic
             const rowData = firstRow.getData();
             this.examSelected.emit(rowData);
+        } else {
+            console.warn('ExamDetailTabs: No rows found to auto-select');
         }
     }
 

@@ -431,7 +431,12 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             nzOkText: 'Đồng ý',
             nzCancelText: 'Hủy',
             nzOnOk: () => {
-                this.kpiErrorEmployeeService.autoAdd(this.startDate!, this.endDate!).subscribe({
+                const start = new Date(this.startDate!);
+                start.setHours(0, 0, 0, 0);
+                const end = new Date(this.endDate!);
+                end.setHours(23, 59, 59, 999);
+
+                this.kpiErrorEmployeeService.autoAdd(start, end).subscribe({
                     next: (response: any) => {
                         if (response.status === 1) {
                             const inserted = response.data?.Inserted || 0;

@@ -655,10 +655,10 @@ export class BillImportDetailNewComponent
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      createFooterRow: true,
-      showFooterRow: true,
-      footerRowHeight: 30,
+      createFooterRow: false,
+      showFooterRow: false,
       forceFitColumns: false,
+      frozenColumn: 5,
       enableColumnReorder: true,
       enableCheckboxSelector: true,
       enableRowSelection: true,
@@ -2370,7 +2370,7 @@ export class BillImportDetailNewComponent
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      forceFitColumns: false,
+      forceFitColumns: true,
       enableColumnReorder: true,
     };
   }

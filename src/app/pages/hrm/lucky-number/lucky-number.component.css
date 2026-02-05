@@ -1,0 +1,42 @@
+::ng-deep #grdDataluckynumber0{
+    height: 89vh !important;
+}
+
+::ng-deep #grdDataluckynumber1{
+    height: 89vh !important;
+}
+
+::ng-deep .ant-modal-body{
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    height: 25rem !important;
+    /* background-image: url('/assets/images/congratulations.gif');
+    background-position: center;
+    background-repeat: no-repeat; */
+}
+
+::ng-deep .ant-upload.ant-upload-select-picture-card{
+    width: 100% !important;
+    height: 19rem !important;
+    margin: 0 !important;
+}
+::ng-deep .ant-upload-list-picture-card-container{
+    width: 100% !important;
+    height: 19rem !important;
+    margin: 0 !important;
+}
+
+.congratulations{
+    background-image: url('/rerpweb/assets/images/congratulations.gif');
+    position: absolute;
+    width: 100%;
+    height: 90vh;
+    z-index: 1;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.lucky-number-text{
+    font-size: 15rem;
+}

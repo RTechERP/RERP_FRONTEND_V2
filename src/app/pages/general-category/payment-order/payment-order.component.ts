@@ -4448,8 +4448,8 @@ export class PaymentOrderComponent implements OnInit {
         const signEmp = signs.find((x: any) => x.Step == 1 && x.IsApproved == 1);
         const signTBP = signs.find((x: any) => x.Step == 2 && x.IsApproved == 1);
         // const signHR = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
-        const signKT = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
-        const signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
+        const signKT = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
+        const signBGD = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
 
         const dateApprovedEmp = signEmp?.DateApproved ? DateTime.fromISO(signEmp?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
         const dateApprovedTBP = (signTBP?.DateApproved || '') != '' ? DateTime.fromISO(signTBP?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';

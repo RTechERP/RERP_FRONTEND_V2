@@ -2,10 +2,6 @@
   font-size: 12px !important;
 }
 
-.tabulator {
-  font-size: 12px;
-}
-
 .card {
   display: flex;
   flex-direction: column;
@@ -32,17 +28,6 @@
   font-size: 0.75rem;
 }
 
-.reset {
-  all: revert;
-}
-
-:host ::ng-deep .tabulator-cell {
-  white-space: pre-wrap !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  word-break: break-word !important;
-}
-
 /* Set font-size 12px for all elements */
 :host *,
 :host ::ng-deep * {
@@ -55,13 +40,6 @@
   z-index: 10;
   background: #f8f9fa;
   border-bottom: 1px solid #dee2e6;
-}
-
-/* Ensure buttons stay above search form on desktop */
-.card-header {
-  position: relative;
-  z-index: 20;
-  background: white;
 }
 
 /* Mobile modal styles */
@@ -105,12 +83,76 @@
   }
 }
 
-/* Font-size 10px cho cột TBP Duyệt và HR Duyệt */
-:host ::ng-deep .tabulator-cell.approval-column-small-font,
-:host ::ng-deep .tabulator-cell.approval-column-small-font * {
-  font-size: 10px !important;
+/* SlickGrid adjustment */
+:host ::ng-deep .slick-cell {
+  font-size: 12px !important;
 }
 
-:host ::ng-deep .tabulator-cell.approval-column-small-font .badge {
+:host ::ng-deep .slick-header-column {
+  font-size: 12px !important;
+  font-weight: bold;
+}
+
+:host ::ng-deep .badge {
   font-size: 10px !important;
+  padding: 4px 8px;
+}
+
+
+/* Grid container needs explicit height */
+#grvENFContainer {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure angular-slickgrid component fills container */
+#grvENFContainer angular-slickgrid {
+  flex: 1;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* SlickGrid internal container */
+::ng-deep #grvENFContainer .slickgrid-container {
+  font-size: 12px !important;
+  height: 100% !important;
+  min-height: 85vh !important;
+}
+
+:host ::ng-deep .ant-tabs-content {
+  height: 100%;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+}
+
+:host ::ng-deep .ant-tabs-tabpane-active {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+/* Grid container - same as propose-vehicle-repair */
+.grid-container {
+  height: 100%;
+  width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+::ng-deep .ant-layout {
+  height: 98% !important;
 }

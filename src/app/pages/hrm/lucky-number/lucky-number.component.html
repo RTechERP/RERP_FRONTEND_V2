@@ -1,0 +1,68 @@
+<div [ngClass]="luckyClass"></div>
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
+
+    <ng-template #end>
+
+    </ng-template>
+</p-menubar>
+
+<div class=" border" [ngClass]="'grid-container-luckynumber' + isPerson" style="height:89vh;">
+    <angular-slickgrid [gridId]="'grdDataluckynumber' + isPerson" [columns]="columnDefinitions" [options]="gridOptions"
+        [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+    </angular-slickgrid>
+</div>
+
+
+<nz-modal [(nzVisible)]="isVisible" nzTitle="NHẬN SỐ MAY MẮN" (nzOnCancel)="handleCancel()"
+    [nzBodyStyle]="modalBodyStyle">
+    <ng-container *nzModalContent>
+
+        <nz-tabset (nzSelectChange)="onChangeTab($event)" [(nzSelectedIndex)]="selectedIndex">
+            <nz-tab nzTitle="Ảnh đại diện">
+
+                <!-- <input nz-input [(ngModel)]="employeeLucky.PhoneNumber" placeholder="Số điện thoại" class="mt-1"> -->
+                <nz-input-group [nzSuffix]="suffixTemplateInfo" [nzPrefix]="prefixTemplateUser" class="mt-1">
+                    <input type="text" nz-input [(ngModel)]="employeeLucky.PhoneNumber"
+                        placeholder="Nhập số điện thoại" />
+                </nz-input-group>
+                <ng-template #prefixTemplateUser><span nz-icon nzType="phone"></span></ng-template>
+                <ng-template #suffixTemplateInfo>
+                    <span nz-icon nz-tooltip nzTooltipTitle="Số điện thoại liên hệ" nzType="info-circle"></span>
+                </ng-template>
+
+                <nz-upload nzAction="https://www.mocky.io/v2/5cc8019d300000980a055e76" nzListType="picture-card"
+                    class="mt-1" [(nzFileList)]="fileList" [nzShowButton]="fileList.length < 1"
+                    [nzPreview]="handlePreview">
+                    <div>
+                        <span nz-icon nzType="plus"></span>
+                        <div style="margin-top: 8px">Chọn ảnh đại diện</div>
+                    </div>
+                </nz-upload>
+                <nz-modal [nzVisible]="previewVisible" [nzContent]="modalContent" [nzFooter]="null"
+                    (nzOnCancel)="previewVisible = false">
+                    <ng-template #modalContent>
+                        <img [src]="previewImage" />
+                    </ng-template>
+                </nz-modal>
+            </nz-tab>
+            <nz-tab nzTitle="Quay số">
+                <div class="d-flex justify-content-center justify-items-center">
+                    <p class="m-0 fw-bold lucky-number-text" [style.color]="luckyColor">{{luckyNumber}}
+                    </p>
+                </div>
+            </nz-tab>
+        </nz-tabset>
+    </ng-container>
+
+    <div *nzModalFooter>
+        <!-- <span>Modal Footer:</span> -->
+        <!-- <button nz-button nzType="default" (click)="handleCancel()">Custom Callback</button> -->
+        <button nz-button nzType="primary" (click)="handleOk()">Quay số</button>
+    </div>
+</nz-modal>

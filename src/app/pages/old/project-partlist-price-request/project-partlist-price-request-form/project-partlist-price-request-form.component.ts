@@ -275,16 +275,16 @@ export class ProjectPartlistPriceRequestFormComponent
     this.tableData = this.dataInput.map((row: any) => {
       return {
         ...row,
-        NoteHR: row.NoteHR || row.HRNote || '',
+        NoteHR: row.NoteHR || '',
       };
     });
 
     // Lưu mapping HR notes nếu có
     this.dataInput.forEach((row: any) => {
-      if (row.ID > 0 && (row.NoteHR || row.HRNote)) {
+      if (row.ID > 0 && row.NoteHR) {
         this.hrNotesMap.set(row.ID, {
           id: row.HRNoteID || 0,
-          note: row.NoteHR || row.HRNote || '',
+          note: row.NoteHR || '',
         });
       }
     });
@@ -1145,6 +1145,16 @@ export class ProjectPartlistPriceRequestFormComponent
             r.update({ NoteHR: null });
           }
         });
+      }
+    }
+
+    // Ẩn cột Ghi chú chung khi là tab HR (typeID = 3)
+    const colRequestNote = this.table.getColumn('RequestNote');
+    if (colRequestNote) {
+      if (this.priceRequestTypeID === 3) {
+        colRequestNote.hide();
+      } else {
+        colRequestNote.show();
       }
     }
 

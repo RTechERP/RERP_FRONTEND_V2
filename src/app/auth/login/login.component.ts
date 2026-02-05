@@ -6,7 +6,7 @@ import {
     ReactiveFormsModule,
 } from '@angular/forms';
 
-import { Router } from '@angular/router';
+import { ActivatedRoute, Route, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { log } from 'ng-zorro-antd/core/logger';
 import { AuthService } from '../auth.service';
@@ -26,11 +26,15 @@ export class LoginComponent {
     submitted = false;
     isLoading = false;
     token: any;
+
+    returnUrl = '/home';
+
     constructor(
         private formBuilder: FormBuilder,
         private authService: AuthService,
         private router: Router,
         private crypto: CryptoService,
+        private route: ActivatedRoute,
     ) {
         this.loginForm = this.formBuilder.group({
             loginname: ['', [Validators.required]],
@@ -41,6 +45,8 @@ export class LoginComponent {
 
     ngOnInit(): void {
         this.loadRememberLogin();
+        this.returnUrl =
+            this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
     }
     // 🔹 Load username + password đã nhớ
     private async loadRememberLogin(): Promise<void> {
@@ -99,7 +105,8 @@ export class LoginComponent {
                     console.error('Invalid token', error);
                 }
 
-                this.router.navigate(['/home']);
+                // this.router.navigate(['/home']);
+                this.router.navigateByUrl(this.returnUrl);
             },
             error: (err) => {
                 this.isLoading = false;

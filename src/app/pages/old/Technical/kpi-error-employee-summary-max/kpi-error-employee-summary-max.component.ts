@@ -384,7 +384,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
             {
                 getter: 'DepartmentName',
                 formatter: (g: any) => {
-                    return `Phòng ban: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:green">(${g.count} dòng)</span>`;
+                    return `Phòng ban: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:red">(${g.count} lỗi)</span>`;
                 },
                 aggregators: [
                     ...dynamicAggregators
@@ -396,7 +396,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
             {
                 getter: 'FullName',
                 formatter: (g: any) => {
-                    return `Nhân viên: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:green">(${g.count} dòng)</span>`;
+                    return `Nhân viên: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:red">(${g.count} lỗi)</span>`;
                 },
                 aggregators: [
                     ...dynamicAggregators

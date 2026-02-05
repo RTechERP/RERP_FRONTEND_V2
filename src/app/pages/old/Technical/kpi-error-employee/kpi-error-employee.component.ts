@@ -590,7 +590,13 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 minWidth: 120,
                 formatter: Formatters.dateEuro,
-                filter: { model: Filters['compoundDate'] },
+                filter: {
+                    model: Filters['compoundDate'],
+                    filterOptions: {
+                        enableTime: false,
+                        dateFormat: 'd/m/Y',
+                    },
+                },
             },
             {
                 id: 'ErrorNumber',
@@ -602,6 +608,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0 },
                 filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-center',
             },
             {
                 id: 'Note',

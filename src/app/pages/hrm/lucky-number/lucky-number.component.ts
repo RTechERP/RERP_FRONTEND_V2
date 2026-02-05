@@ -65,6 +65,7 @@ export class LuckyNumberComponent implements OnInit {
 
     spinStop$ = new Subject<void>();
     isVisible = false;
+    isVisibleFinal = false;
     year = 2026;
     luckyNumber = 0;
 
@@ -440,6 +441,8 @@ export class LuckyNumberComponent implements OnInit {
 
     getRandomNumber() {
         this.isVisible = true;
+        this.isVisibleFinal = false;
+        this.modalBodyStyle = {};
 
         const interval = setInterval(() => {
             this.luckyNumber = Math.floor(Math.random() * 225) + 1;
@@ -467,6 +470,8 @@ export class LuckyNumberComponent implements OnInit {
                         'background-repeat': 'no-repeat',
                         'background-size': 'cover' // hoặc cover
                     };
+
+                    this.isVisibleFinal = true;
                 },
                 error: (err) => {
                     // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
@@ -480,6 +485,7 @@ export class LuckyNumberComponent implements OnInit {
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
                         });
+
                 },
             })
         }, 5000); // quay 5 giây

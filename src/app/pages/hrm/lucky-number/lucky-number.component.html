@@ -19,8 +19,12 @@
 </div>
 
 
-<nz-modal [(nzVisible)]="isVisible" nzTitle="NHẬN SỐ MAY MẮN" (nzOnCancel)="handleCancel()"
-    [nzBodyStyle]="modalBodyStyle">
+<nz-modal [(nzVisible)]="isVisible" [nzTitle]="title" (nzOnCancel)="handleCancel()" [nzBodyStyle]="modalBodyStyle">
+
+    <ng-template #title>
+        <p class="text-danger m-0">NHẬN SỐ MAY MẮN</p>
+    </ng-template>
+
     <ng-container *nzModalContent>
 
         <nz-tabset (nzSelectChange)="onChangeTab($event)" [(nzSelectedIndex)]="selectedIndex">
@@ -51,8 +55,14 @@
                 </nz-modal>
             </nz-tab>
             <nz-tab nzTitle="Quay số">
-                <div class="d-flex justify-content-center justify-items-center">
-                    <p class="m-0 fw-bold lucky-number-text" [style.color]="luckyColor">{{luckyNumber}}
+                <div class="d-flex justify-content-center justify-items-center mt-3">
+                    <p class="m-0 fw-bold lucky-number-text" [style.color]="luckyColor" *ngIf="!isVisibleFinal">
+                        {{luckyNumber}}
+                    </p>
+                    <p class="m-0 fw-bold text-danger text-center fs-3" *ngIf="isVisibleFinal">CON SỐ
+                        MAY MẮN CỦA
+                        BẠN LÀ: <br />
+                        <span style="font-size:10rem;">{{luckyNumber}}</span>
                     </p>
                 </div>
             </nz-tab>
@@ -65,3 +75,16 @@
         <button nz-button nzType="primary" (click)="handleOk()">Quay số</button>
     </div>
 </nz-modal>
+
+
+<!-- <nz-modal [(nzVisible)]="isVisibleFinal" [nzTitle]="title" (nzOnCancel)="handleCancel()" [nzBodyStyle]="modalBodyStyle">
+
+    <ng-container *nzModalContent>
+
+        <div class="d-flex justify-content-center justify-items-center">
+            <p class="m-0 fw-bold text-danger" [style.color]="luckyColor">CON SỐ MAY MẮN CỦA BẠN LÀ:
+                {{luckyNumber}}
+            </p>
+        </div>
+    </ng-container>
+</nz-modal> -->

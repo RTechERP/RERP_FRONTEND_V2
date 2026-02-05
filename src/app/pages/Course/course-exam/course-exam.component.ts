@@ -97,6 +97,7 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
   // activeTab = 0; // Moved to ExamDetailTabsComponent
   // mainTabIndex = 0; // Moved to ExamDetailTabsComponent
   currentDetailTabIndex: number = 0;
+  mobileTabIndex: number = 0;
 
   lessons: CourseLesson[] = [];
   examMode: 'course' | 'lesson' = 'course';
@@ -258,18 +259,24 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
   }
 
   onDetailTabExamSelected(exam: any) {
-    if (!exam || !exam.ID) return;
+    console.log('Detail Tab Exam Selected:', exam);
+    if (!exam || !exam.ID) {
+      console.warn('onDetailTabExamSelected: Invalid exam or missing ID', exam);
+      return;
+    }
 
     // Update selected ID and Type
     this.selectedCourseDataID = exam.ID;
     this.selectedExamID = exam.ID; // Track Exam ID explicitly
 
     // Update ExamType for column visibility
-    if (exam.ExamType) {
+    if (exam.ExamType !== undefined && exam.ExamType !== null) {
       this.selectedExamType = parseInt(exam.ExamType.toString());
     } else {
       this.selectedExamType = 0;
     }
+
+    console.log('Loading questions for Exam ID:', exam.ID, 'Type:', this.selectedExamType);
     this.loadQuestions(exam.ID);
     this.answerData = []; // Clear answers when new exam selected
   }
@@ -338,16 +345,20 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
   }
 
   loadQuestions(examId: number) {
+    console.log('loadQuestions: Requesting questions for examId:', examId);
     this.isLoadingQuestions = true;
     this.courseExamService.getQuestionsByExamID(examId).subscribe(
       (res: any) => {
         this.isLoadingQuestions = false;
+        console.log('loadQuestions: Response received', res);
         if (res && res.status === 1) {
-          this.questionData = res.data;
+          this.questionData = res.data || [];
+          console.log(`loadQuestions: Loaded ${this.questionData.length} questions`);
           // Cascading load: Auto-select first question is handled by QuestionListComponent via autoSelectFirst
           // if (this.questionData.length > 0) { ... }
         } else {
           this.questionData = [];
+          console.warn('loadQuestions: Failed or no data', res);
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không có câu hỏi');
         }
       },
@@ -369,6 +380,7 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
   }
 
   onQuestionFocused(question: QuestionData) {
+    console.log('CourseExam: onQuestionFocused triggered for Question ID:', question?.ID);
     // This event reflects the ACTIVE row (clicked) (for Edit)
     // Avoid reloading if same question is clicked or focused
     if (this.currentQuestionData && this.currentQuestionData.ID === question.ID && this.answerData.length > 0) {
@@ -376,9 +388,11 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
     }
 
     this.currentQuestionData = question;
-    // Also load answers for the focused question so the answer list updates
-    if (question && question.ID) {
+    // Only load answers for Multiple Choice exams (Type 1)
+    if (this.selectedExamType === 1 && question && question.ID) {
       this.loadAnswers(question.ID);
+    } else {
+      this.answerData = []; // Clear answers for other types (e.g., Essay)
     }
   }
 

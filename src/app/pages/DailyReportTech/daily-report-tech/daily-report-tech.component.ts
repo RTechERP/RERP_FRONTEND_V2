@@ -1267,6 +1267,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     });
     modalRef.componentInstance.teams = this.teams;
     modalRef.componentInstance.currentUser = this.currentUser;
+    modalRef.componentInstance.selectedTeamId = this.teamId;
     modalRef.componentInstance.projects = this.projects;
     modalRef.componentInstance.projectItems = [];
     modalRef.componentInstance.projectItems = [];

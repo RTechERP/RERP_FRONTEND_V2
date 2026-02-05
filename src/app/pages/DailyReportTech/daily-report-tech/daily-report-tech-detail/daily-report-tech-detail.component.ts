@@ -941,6 +941,10 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
           return { isValid: false, message: `${prefixText}% Hoàn thành phải từ 0 đến 100!` };
         }
 
+        // if (item.PercentComplete === 0) {
+        //   return { isValid: false, message: `${prefixText}% Hoàn thành phải lớn hơn 0!` };
+        // }
+
         // Validate Content
         if (!item.Content || item.Content.trim() === '') {
           return { isValid: false, message: `${prefixText}Vui lòng nhập Nội dung công việc!` };
@@ -1085,6 +1089,10 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
           return { isValid: false, message: `${prefixText}% Hoàn thành phải từ 0 đến 100!` };
         }
 
+        // if (item.PercentComplete === 0) {
+        //   return { isValid: false, message: `${prefixText}% Hoàn thành phải lớn hơn 0!` };
+        // }
+
         // Validate Content
         if (!item.Content || item.Content.trim() === '') {
           return { isValid: false, message: `${prefixText}Vui lòng nhập Nội dung công việc!` };
@@ -1167,6 +1175,10 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
         return { isValid: false, message: `${prefixText}% Hoàn thành phải từ 0 đến 100!` };
       }
       
+
+      if (report.PercentComplete === 0) {
+        return { isValid: false, message: `${prefixText}% Hoàn thành phải lớn hơn 0!` };
+      }
 
       // Validate Content
       if (!report.Content || report.Content.trim() === '') {

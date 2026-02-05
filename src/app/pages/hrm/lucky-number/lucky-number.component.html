@@ -1,3 +1,4 @@
+<div [ngClass]="luckyClass"></div>
 <p-menubar [model]="menuBars">
     <ng-template pTemplate="item" let-item>
         <a class="p-menuitem-link" [ngClass]="item.styleClass">
@@ -18,11 +19,12 @@
 </div>
 
 
-<nz-modal [(nzVisible)]="isVisible" nzTitle="NHẬN SỐ MAY MẮN" (nzOnCancel)="handleCancel()">
-    <ng-container *nzModalContent style="height:50vh !important;">
+<nz-modal [(nzVisible)]="isVisible" nzTitle="NHẬN SỐ MAY MẮN" (nzOnCancel)="handleCancel()"
+    [nzBodyStyle]="modalBodyStyle">
+    <ng-container *nzModalContent>
 
-        <nz-tabset (nzSelectChange)="onChangeTab($event)">
-            <nz-tab nzTitle="Nhập thông tin">
+        <nz-tabset (nzSelectChange)="onChangeTab($event)" [(nzSelectedIndex)]="selectedIndex">
+            <nz-tab nzTitle="Ảnh đại diện">
 
                 <!-- <input nz-input [(ngModel)]="employeeLucky.PhoneNumber" placeholder="Số điện thoại" class="mt-1"> -->
                 <nz-input-group [nzSuffix]="suffixTemplateInfo" [nzPrefix]="prefixTemplateUser" class="mt-1">
@@ -51,7 +53,8 @@
             </nz-tab>
             <nz-tab nzTitle="Quay số">
                 <div class="d-flex justify-content-center justify-items-center">
-                    <p class="m-0" style="font-size:200px; font-weight:bold;">{{luckyNumber}}</p>
+                    <p class="m-0 fw-bold lucky-number-text" [style.color]="luckyColor">{{luckyNumber}}
+                    </p>
                 </div>
             </nz-tab>
         </nz-tabset>

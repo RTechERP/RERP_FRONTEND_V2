@@ -21,6 +21,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../../environments/environment';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
 
 @Component({
     selector: 'app-lucky-number',
@@ -93,6 +94,17 @@ export class LuckyNumberComponent implements OnInit {
                 }
             },
         },
+        {
+            label: 'Xuất excel',
+            icon: 'fa-solid fa-file-excel fa-lg text-success',
+            command: () => {
+                this.excelExportService.exportToExcel({
+                    filename: `DanhSanhNhanVienQuaySo_2026`,
+                    format: 'xlsx'
+                });
+
+            }
+        },
     ];
 
     param = {
@@ -110,13 +122,18 @@ export class LuckyNumberComponent implements OnInit {
     gridOptions: GridOption = {};
     dataset: any[] = [];
 
+    excelExportService = new ExcelExportService();
+
     spinStop$ = new Subject<void>();
     isVisible = false;
-    luckyNumber = 0;
     year = 2026;
+    luckyNumber = 0;
 
-    index = 0;
-    disable = false;
+    luckyColor = '';
+    luckyClass = '';
+    modalBodyStyle: any = {};
+
+    selectedIndex = 0;
 
 
     getBase64 = (file: File): Promise<string | ArrayBuffer | null> =>
@@ -297,6 +314,15 @@ export class LuckyNumberComponent implements OnInit {
             showFooterRow: true,
             createFooterRow: true,
             forceFitColumns: true,
+
+            //Config xuất excel
+            externalResources: [this.excelExportService],
+            enableExcelExport: true,
+            excelExportOptions: {
+                // filename: `TheoDoiChiPhiVP_${DateTime.fromJSDate(new Date()).toFormat()}`,
+                sanitizeDataExport: true,
+                exportWithFormatter: true,
+            },
         };
 
         this.loadData();
@@ -372,17 +398,35 @@ export class LuckyNumberComponent implements OnInit {
         })
     }
 
+    randomColor(): string {
+        let color = '#000000';
+
+        while (color === '#000000' || color === '#FFFFFF') {
+            color =
+                '#' +
+                Math.floor(Math.random() * 16777215)
+                    .toString(16)
+                    .padStart(6, '0')
+                    .toUpperCase();
+        }
+
+        return color;
+    }
+
+
 
     getRandomNumber() {
         this.isVisible = true;
 
         const interval = setInterval(() => {
-            this.luckyNumber = Math.floor(Math.random() * 100) + 1;
-        }, 100); // số nhảy liên tục
+            this.luckyNumber = Math.floor(Math.random() * 225) + 1;
+            this.luckyColor = this.randomColor();
+        }, 70); // số nhảy liên tục
 
         setTimeout(() => {
             clearInterval(interval); // dừng quay
-            this.luckyNumber = Math.floor(Math.random() * 100) + 1; // số cuối
+            this.luckyNumber = Math.floor(Math.random() * 225) + 1; // số cuối
+            this.luckyColor = this.randomColor();
 
             const obj = {
                 PhoneNumber: '',
@@ -392,6 +436,14 @@ export class LuckyNumberComponent implements OnInit {
             this.luckynumberService.getRandomNumber(obj).subscribe({
                 next: (response) => {
                     this.luckyNumber = response.data.randomNumber;
+                    this.luckyClass = 'congratulations';
+
+                    this.modalBodyStyle = {
+                        'background-image': "url('assets/images/congratulations.gif')",
+                        'background-position': 'center',
+                        'background-repeat': 'no-repeat',
+                        'background-size': 'cover' // hoặc cover
+                    };
                 },
                 error: (err) => {
                     // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
@@ -399,6 +451,8 @@ export class LuckyNumberComponent implements OnInit {
                     //         nzStyle: { whiteSpace: 'pre-line' }
                     //     });
                     this.luckyNumber = 0;
+                    this.luckyClass = '';
+                    this.modalBodyStyle = {};
                     this.notification.error(NOTIFICATION_TITLE.error, "Có lỗi xảy ra. Vui lòng quay số lại!",
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
@@ -510,6 +564,8 @@ export class LuckyNumberComponent implements OnInit {
         // this.spinStop$.complete();
         // this.isVisible = false;
 
+        this.selectedIndex = 1;
+
         this.getRandomNumber();
 
         // const obj = {
@@ -536,6 +592,8 @@ export class LuckyNumberComponent implements OnInit {
 
     handleCancel(): void {
         this.isVisible = false;
+        this.luckyClass = '';
+        this.modalBodyStyle = {};
     }
 
 
@@ -564,9 +622,9 @@ export class LuckyNumberComponent implements OnInit {
         this.initModal();
     }
 
-    onIndexChange(index: number): void {
-        this.index = index;
-    }
+    // onIndexChange(index: number): void {
+    //     this.index = index;
+    // }
 
     handlePreview = async (file: NzUploadFile): Promise<void> => {
         if (!file.url && !file['preview']) {

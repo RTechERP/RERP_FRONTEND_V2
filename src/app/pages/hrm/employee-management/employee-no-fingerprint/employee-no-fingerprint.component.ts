@@ -29,21 +29,30 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 // NgBootstrap Modal
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 
-// Tabulator
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// Services and Components
+import { EmployeeNofingerprintService } from './employee-no-fingerprint-service/employee-no-fingerprint.service';
+import { ENFDetailComponent } from './ENF-detail/ENF-detail.component';
+import { AuthService } from '../../../../auth/auth.service';
+import { PermissionService } from '../../../../services/permission.service';
+import { Menubar } from 'primeng/menubar';
 
 // XLSX for Excel export
 import * as XLSX from 'xlsx';
 import { DateTime } from 'luxon';
 
-// Services and Components
-import { EmployeeNofingerprintService } from './employee-no-fingerprint-service/employee-no-fingerprint.service';
-import { ENFDetailComponent } from './ENF-detail/ENF-detail.component';
-import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
-import { AuthService } from '../../../../auth/auth.service';
-import { PermissionService } from '../../../../services/permission.service';
-import { Menubar } from 'primeng/menubar';
+// SlickGrid
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  Formatter,
+  Formatters,
+  GridOption,
+  MultipleSelectOption,
+  OnClickEventArgs,
+  OnSelectedRowsChangedEventArgs,
+} from 'angular-slickgrid';
 
 @Component({
   selector: 'app-enf',
@@ -62,10 +71,10 @@ import { Menubar } from 'primeng/menubar';
     NzGridModule,
     NzModalModule,
     NgbModalModule, //
-    // ENFDetailComponent,
     HasPermissionDirective,
     NzDropDownModule,
-    Menubar
+    Menubar,
+    AngularSlickgridModule
   ],
   templateUrl: './employee-no-fingerprint.component.html',
   styleUrls: ['./employee-no-fingerprint.component.css'],
@@ -73,14 +82,14 @@ import { Menubar } from 'primeng/menubar';
 export class EmployeeNoFingerprintComponent
   implements OnInit, AfterViewInit, OnDestroy {
   // #region ViewChild and Properties
-  @ViewChild('tb_ENF', { static: false }) tb_ENFRef!: ElementRef;
-
-  // Table instance
-  tb_ENF!: Tabulator;
+  // SlickGrid properties
+  angularGrid!: AngularGridInstance;
+  columnDefinitions: Column[] = [];
+  gridOptions: GridOption = {};
+  dataset: any[] = [];
 
   // Loading states
   isLoadTable: boolean = false;
-  isTableReady: boolean = false;
 
   // UI states
   sizeSearch: string = '0';
@@ -151,6 +160,7 @@ export class EmployeeNoFingerprintComponent
     this.initMenuBar();
     this.loadDepartments();
     this.getCurrentUser();
+    this.initGrid();
   }
 
   initMenuBar(): void {
@@ -219,14 +229,11 @@ export class EmployeeNoFingerprintComponent
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-      this.initializeTable();
+      this.searchenf();
     }, 100);
   }
 
   ngOnDestroy(): void {
-    if (this.tb_ENF) {
-      this.tb_ENF.destroy();
-    }
   }
   // #endregion
 
@@ -259,316 +266,280 @@ export class EmployeeNoFingerprintComponent
   // #endregion
 
   // #region Table Setup
-  private initializeTable(): void {
-    if (!this.tb_ENFRef) {
-      console.error('Table container not found');
-      return;
-    }
-    this.drawTbenf(this.tb_ENFRef.nativeElement);
-  }
-
-  private drawTbenf(container: HTMLElement): void {
-    console.log('Creating enf table...');
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-
-    this.tb_ENF = new Tabulator(container, {
-      ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataStretch',
-      ajaxURL: this.enfService.getENFListURL(),
-      ajaxConfig: 'POST',
-      ajaxRequestFunc: (url: any, config: any, params: any) => {
-        const requestParams = {
-          Page: params.page || 1,
-          Size: params.size || 100,
-          DateStart: this.toISODate(this.dateStart),
-          DateEnd: this.toISODate(this.dateEnd),
-          KeyWord: this.searchValue?.trim() || '',
-          DepartmentID: this.selectedDepartmentFilter || 0,
-          EmployeeID: 0,
-          IDApprovedTP: 0,
-          Status:
-            this.selectedTBPStatusFilter === null ||
-              this.selectedTBPStatusFilter === undefined
-              ? -1
-              : this.selectedTBPStatusFilter,
-        };
-        return this.enfService.getENFListPost(requestParams);
-      },
-      ajaxResponse: (url: any, params: any, res: any) => {
-        console.log('API Response:', res);
-        // Response structure: { status: 1, data: { data: [...], totalPage: [...] }, message: "..." }
-        if (res && res.status === 1 && res.data) {
-          const data = res.data.data || [];
-          // totalPage có thể là array hoặc number
-          let totalPage = 1;
-          if (Array.isArray(res.data.totalPage)) {
-            totalPage =
-              res.data.totalPage[0]?.TotalPage || res.data.totalPage[0] || 1;
-          } else if (typeof res.data.totalPage === 'number') {
-            totalPage = res.data.totalPage;
-          }
-          console.log('Total pages:', totalPage, 'Data count:', data.length);
-          return {
-            data: data,
-            last_page: totalPage,
-          };
-        }
-        console.warn('Unexpected response structure:', res);
-        return {
-          data: [],
-          last_page: 1,
-        };
-      },
-      ajaxError: (error: any) => {
-        console.error('ENF AJAX Error:', error);
-        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
-        this.message.error(
-          'Lỗi khi tải dữ liệu ENF: ' + errorMessage
-        );
-        return [];
-      },
-
-      rowContextMenu: this.getContextMenu(),
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      selectableRows: true,
-      selectableRowsRangeMode: false, // Cho phép chọn nhiều bằng checkbox hoặc Ctrl+Click
-      groupBy: ['DepartmentName'],
-      groupByStartOpen: true,
-      groupHeader: (value: any) => `Phòng ban: ${value}`,
-      groupFooter: (value: any, count: number, data: any[]) => {
-        return `<div style="padding: 8px; background-color: #f5f5f5; font-weight: bold; text-align: right; border-top: 1px solid #e8e8e8;">
-          Tổng số bản ghi: <span style="color: #1890ff; font-size: 1.05em;">${data.length}</span>
-        </div>`;
-      },
-      columns: this.getTableColumns(isMobile),
-    } as any);
-
-    this.setupTableEvents();
-  }
-
-  private getContextMenu(): any[] {
-    return [
+  private initGrid(): void {
+    this.columnDefinitions = [
       {
-        label:
-          '<span style="font-size: 0.75rem;"><i class="fas fa-ban"></i> TBP Hủy duyệt</span>',
-        action: () => this.cancelApproveTBP(),
-      },
-      {
-        label:
-          '<span style="font-size: 0.75rem;"><i class="fas fa-user-slash"></i> HR Hủy duyệt</span>',
-        action: () => this.cancelApprovedHR(),
-      },
-    ];
-  }
-
-  private getTableColumns(isMobile: boolean = false): any[] {
-    const frozenOn = !isMobile;
-    return [
-      {
-        title: 'TBP Duyệt',
+        id: 'StatusText',
+        name: 'TBP Duyệt',
         field: 'StatusText',
-        width: 100,
-        headerHozAlign: 'center',
-        hozAlign: 'center',
-        cssClass: 'approval-column-small-font',
-        formatter: (cell: any) => {
-          const value = cell.getValue();
-          // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
-          let numValue = 0;
-          if (value === null || value === undefined) {
-            numValue = 0;
-          } else if (typeof value === 'number') {
-            numValue = value;
-          } else if (typeof value === 'string') {
-            // Map string sang number
-            if (value === 'Đã duyệt') numValue = 1;
-            else if (value === 'Từ chối' || value === 'Không duyệt')
-              numValue = 2;
-            else numValue = 0; // Chưa duyệt hoặc giá trị khác
-          }
-          return this.formatApprovalBadge(numValue);
+        width: 80,
+        sortable: true,
+        filterable: true,
+        formatter: this.approvalBadgeFormatter,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
-        frozen: frozenOn,
+        cssClass: 'text-center',
       },
       {
-        title: 'HR Duyệt',
+        id: 'StatusHRText',
+        name: 'HR Duyệt',
         field: 'StatusHRText',
         width: 100,
-        headerHozAlign: 'center',
-        hozAlign: 'center',
-        cssClass: 'approval-column-small-font',
-        formatter: (cell: any) => {
-          const value = cell.getValue();
-          // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
-          let numValue = 0;
-          if (value === null || value === undefined) {
-            numValue = 0;
-          } else if (typeof value === 'number') {
-            numValue = value;
-          } else if (typeof value === 'string') {
-            // Map string sang number
-            if (value === 'Đã duyệt') numValue = 1;
-            else if (value === 'Từ chối' || value === 'Không duyệt')
-              numValue = 2;
-            else numValue = 0; // Chưa duyệt hoặc giá trị khác
-          }
-          return this.formatApprovalBadge(numValue);
+        sortable: true,
+        filterable: true,
+        formatter: this.approvalBadgeFormatter,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
         },
-        frozen: frozenOn,
+        cssClass: 'text-center',
       },
       {
-        title: 'Mã nhân viên',
+        id: 'Code',
+        name: 'Mã nhân viên',
         field: 'Code',
         width: 100,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
-        bottomCalc: 'count',
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
       },
       {
-        title: 'Tên nhân viên',
+        id: 'FullName',
+        name: 'Tên nhân viên',
         field: 'FullName',
         width: 200,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
       },
       {
-        title: 'Người duyệt ',
+        id: 'ApprovedName',
+        name: 'Người duyệt',
         field: 'ApprovedName',
         width: 140,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
       },
       {
-        title: 'Ngày',
+        id: 'DayWork',
+        name: 'Ngày',
         field: 'DayWork',
         width: 110,
-        headerHozAlign: 'center',
-        hozAlign: 'center',
-        formatter: (cell: any) => this.formatDateOnly(cell.getValue()),
+        sortable: true,
+        filterable: true,
+        formatter: (row, cell, value) => this.formatDateOnly(value),
+        type: 'date',
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center',
       },
       {
-        title: 'Loại',
+        id: 'TypeText',
+        name: 'Loại',
         field: 'TypeText',
         width: 140,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+        },
       },
-
       {
-        title: 'Lý do sửa',
+        id: 'ReasonHREdit',
+        name: 'Lý do sửa',
         field: 'ReasonHREdit',
         width: 150,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
       },
       {
-        title: 'Lý do không đồng ý',
+        id: 'ReasonDeciline',
+        name: 'Lý do không đồng ý',
         field: 'ReasonDeciline',
         width: 180,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
       },
       {
-        title: 'Ghi chú',
+        id: 'Note',
+        name: 'Ghi chú',
         field: 'Note',
         width: 420,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
-        formatter: 'textarea',
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
       },
     ];
+
+    this.gridOptions = {
+      autoResize: {
+        container: '#grvENFContainer',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false,
+      },
+      checkboxSelector: {
+        hideInFilterHeaderRow: true,
+        hideInColumnTitleRow: false,
+        applySelectOnAllPages: true,
+      },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      frozenColumn: this.isMobile() ? -1 : 3,
+      showFooterRow: true,
+      createFooterRow: true,
+      forceFitColumns: true,
+    };
   }
 
-  private setupTableEvents(): void {
-    this.tb_ENF.on('dataLoading', () => {
-      console.log('ENF Data loading...');
-      this.isLoadTable = true;
-      this.tb_ENF.deselectRow();
-    });
-
-    this.tb_ENF.on('dataLoaded', (data: any) => {
-      console.log('ENF Data loaded:', data.length, 'items');
-      this.isLoadTable = false;
-    });
-
-    this.tb_ENF.on('dataLoadError', (error: any) => {
-      console.error('ENF Data Load Error:', error);
-      this.isLoadTable = false;
-      const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
-      this.message.error(
-        'Lỗi khi tải dữ liệu ENF: ' + errorMessage
-      );
-    });
-
-    this.tb_ENF.on('rowClick', (e: any, row: any) => {
-      this.selectedENF = row.getData();
-      this.lastSelectedENF = row.getData();
-    });
-
-    this.tb_ENF.on('rowSelectionChanged', (data: any, rows: any) => {
-      this.selectedRows = rows.map((row: any) => row.getData());
-      if (rows.length > 0) {
-        this.selectedENF = rows[rows.length - 1].getData();
+  handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs): void {
+    if (args && args.rows) {
+      this.selectedRows = args.rows.map((idx: number) => this.angularGrid.dataView.getItem(idx));
+      if (this.selectedRows.length > 0) {
+        this.selectedENF = this.selectedRows[this.selectedRows.length - 1];
         this.lastSelectedENF = this.selectedENF;
       } else {
         this.selectedENF = null;
         this.lastSelectedENF = null;
       }
+    }
+  }
+
+  onCellClicked(e: any, args: OnClickEventArgs): void {
+    const item = this.angularGrid.dataView.getItem(args.row);
+    this.selectedENF = item;
+    this.lastSelectedENF = item;
+  }
+
+  // Custom formatter for approval badge
+  approvalBadgeFormatter: Formatter = (row, cell, value, columnDef, dataContext) => {
+    let numValue = 0;
+    if (value === null || value === undefined) {
+      numValue = 0;
+    } else if (typeof value === 'number') {
+      numValue = value;
+    } else if (typeof value === 'string') {
+      if (value === 'Đã duyệt') numValue = 1;
+      else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+      else numValue = 0;
+    }
+    return this.formatApprovalBadge(numValue);
+  };
+
+  angularGridReady(angularGrid: AngularGridInstance): void {
+    this.angularGrid = angularGrid;
+
+    // Update footer row count and sum when data changes
+    angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      this.updateFooterTotals();
     });
 
-    this.tb_ENF.on('tableBuilt', () => {
-      console.log('ENF table built successfully');
-      this.isTableReady = true;
-      // Load dữ liệu mặc định theo khoảng từ ngày đầu đến cuối tháng hiện tại
-      this.searchenf();
+    // Also update when filter changes
+    angularGrid.dataView.onRowsChanged.subscribe(() => {
+      this.updateFooterTotals();
     });
 
-    this.tb_ENF.on('rowDblClick', (e: any, row: any) => {
-      this.selectedENF = row.getData();
-      this.lastSelectedENF = row.getData();
-      this.editenf();
+    // Update footer after grid render
+    angularGrid.slickGrid.onRendered.subscribe(() => {
+      setTimeout(() => this.updateFooterTotals(), 0);
     });
 
-    this.tb_ENF.on('renderStarted', () => {
-      setTimeout(() => {
-        if (this.isLoadTable) {
-          this.isLoadTable = false;
+    setTimeout(() => {
+      this.applyDistinctFilters();
+      this.updateFooterTotals();
+    }, 100);
+  }
+
+  private updateFooterTotals(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid || !this.angularGrid.dataView) return;
+
+    const totalCount = this.angularGrid.dataView.getLength();
+
+    // Update count for Code column
+    const countElement = this.angularGrid.slickGrid.getFooterRowColumn('Code');
+    if (countElement) {
+      countElement.innerHTML = `<div style="font-weight: bold; text-align: center;">${totalCount}</div>`;
+    }
+  }
+
+  applyDistinctFilters(data?: any[]): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid || !this.angularGrid.dataView) return;
+
+    this.updateFooterTotals();
+
+    const gridData = data || this.angularGrid.dataView.getItems() as any[];
+    if (!gridData || gridData.length === 0) return;
+
+    const getUniqueValues = (items: any[], field: string): Array<{ value: any; label: string }> => {
+      const map = new Map<string, { value: any; label: string }>();
+      items.forEach((row: any) => {
+        const value = row?.[field];
+        if (value === null || value === undefined || value === '') return;
+        const key = `${typeof value}:${String(value)}`;
+        if (!map.has(key)) {
+          map.set(key, { value, label: String(value) });
         }
-      }, 10000);
-    });
+      });
+      return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    // Update all columns references
+    const gridColumns = this.angularGrid.slickGrid.getColumns();
+    if (gridColumns) {
+      gridColumns.forEach((column: any) => {
+        // Skip null columns (e.g., checkbox selector)
+        if (!column) return;
+        if (column.filter && column.filter.model === Filters['multipleSelect']) {
+          const field = column.field;
+          if (!field) return;
+          column.filter.collection = getUniqueValues(gridData, field);
+        }
+      });
+    }
+
+    if (this.columnDefinitions) {
+      this.columnDefinitions.forEach((colDef: any) => {
+        // Skip null column definitions
+        if (!colDef) return;
+        if (colDef.filter && colDef.filter.model === Filters['multipleSelect']) {
+          const field = colDef.field;
+          if (!field) return;
+          colDef.filter.collection = getUniqueValues(gridData, field);
+        }
+      });
+    }
+
+    // Refresh columns in the grid
+    const updatedColumns = this.angularGrid.slickGrid.getColumns();
+    this.angularGrid.slickGrid.setColumns(updatedColumns);
+    this.angularGrid.slickGrid.invalidate();
+    this.angularGrid.slickGrid.render();
   }
   // #endregion
 
   // #region Search and Filter
   searchenf(): void {
-    if (!this.isTableReady) {
-      console.log('Table not ready yet');
-      return;
-    }
-
-    console.log('Searching ENF with params:', this.getENFAjaxParams());
-    // Sử dụng replaceData() để trigger ajaxRequestFunc với params mới
-    this.tb_ENF.replaceData();
-  }
-
-  private getENFAjaxParams(): any {
-    const currentPage = this.tb_ENF ? this.tb_ENF.getPage() : 1;
-    const currentSize = this.tb_ENF ? this.tb_ENF.getPageSize() : 100;
-
-    return {
-      Page: currentPage,
-      Size: currentSize,
-      DateStart: this.toISODate(this.dateStart), // "YYYY-MM-DD"
+    this.isLoadTable = true;
+    const requestParams = {
+      Page: 1,
+      Size: 100000, // Load all data for local filtering
+      DateStart: this.toISODate(this.dateStart),
       DateEnd: this.toISODate(this.dateEnd),
       KeyWord: this.searchValue?.trim() || '',
       DepartmentID: this.selectedDepartmentFilter || 0,
@@ -580,6 +551,27 @@ export class EmployeeNoFingerprintComponent
           ? -1
           : this.selectedTBPStatusFilter,
     };
+
+    this.enfService.getENFListPost(requestParams).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          const data = res.data.data || [];
+          this.dataset = data.map((item: any, index: number) => ({
+            ...item,
+            id: item.ID || index,
+          }));
+          if (this.angularGrid) {
+            this.applyDistinctFilters(this.dataset);
+          }
+        }
+        this.isLoadTable = false;
+      },
+      error: (error: any) => {
+        console.error('ENF Load Error:', error);
+        this.isLoadTable = false;
+        this.message.error('Lỗi khi tải dữ liệu ENF');
+      },
+    });
   }
 
   onDepartmentFilterChange(): void {
@@ -600,11 +592,7 @@ export class EmployeeNoFingerprintComponent
     this.searchValue = '';
     this.dateStart = DateTime.local().startOf('month').toISODate()!;
     this.dateEnd = DateTime.local().endOf('month').toISODate()!;
-
-    if (this.tb_ENF) {
-      this.tb_ENF.clearData();
-      this.tb_ENF.setPage(1);
-    }
+    this.searchenf();
   }
 
   toggleSearchPanel(): void {
@@ -613,31 +601,30 @@ export class EmployeeNoFingerprintComponent
   // #endregion
 
   // #region Selection Management
-  selectAllRows(): void {
-    if (!this.tb_ENF) return;
-    // Sử dụng Tabulator API để chọn tất cả rows trên trang hiện tại
-    const rows = this.tb_ENF.getRows();
-    if (rows.length > 0) {
-      this.tb_ENF.selectRow(rows);
-      const rowCount = rows.length;
-      this.message.info(`Đã chọn ${rowCount} bản ghi trên trang hiện tại`);
-    }
-  }
+  // selectAllRows(): void {
+  //   if (!this.tb_ENF) return;
+  //   // Sử dụng Tabulator API để chọn tất cả rows trên trang hiện tại
+  //   const rows = this.tb_ENF.getRows();
+  //   if (rows.length > 0) {
+  //     this.tb_ENF.selectRow(rows);
+  //     const rowCount = rows.length;
+  //     this.message.info(`Đã chọn ${rowCount} bản ghi trên trang hiện tại`);
+  //   }
+  // }
 
-  deselectAllRows(): void {
-    if (!this.tb_ENF) return;
-    // Sử dụng Tabulator API để bỏ chọn tất cả rows
-    const selectedRows = this.tb_ENF.getSelectedRows();
-    if (selectedRows.length > 0) {
-      this.tb_ENF.deselectRow(selectedRows);
-    }
-  }
+  // deselectAllRows(): void {
+  //   if (!this.tb_ENF) return;
+  //   // Sử dụng Tabulator API để bỏ chọn tất cả rows
+  //   const selectedRows = this.tb_ENF.getSelectedRows();
+  //   if (selectedRows.length > 0) {
+  //     this.tb_ENF.deselectRow(selectedRows);
+  //   }
+  // }
 
   getSelectedRows(): any[] {
-    if (!this.tb_ENF) return [];
-    // Sử dụng getSelectedRows() từ Tabulator thay vì filter
-    const selectedRows = this.tb_ENF.getSelectedRows();
-    return selectedRows.map((row: any) => row.getData());
+    if (!this.angularGrid || !this.angularGrid.slickGrid) return [];
+    const selectedRowIndexes = this.angularGrid.slickGrid.getSelectedRows();
+    return selectedRowIndexes.map((idx: number) => this.angularGrid.dataView.getItem(idx));
   }
 
   getSelectedRowsCount(): number {
@@ -653,10 +640,9 @@ export class EmployeeNoFingerprintComponent
   }
 
   private clearSelection(): void {
-    this.selectedENF = null;
-    this.lastSelectedENF = null;
-    this.selectedRows = [];
-    this.deselectAllRows();
+    if (this.angularGrid && this.angularGrid.slickGrid) {
+      this.angularGrid.slickGrid.setSelectedRows([]);
+    }
   }
   // #endregion
 
@@ -838,11 +824,7 @@ export class EmployeeNoFingerprintComponent
       return;
     }
 
-    // Lấy tên nhân viên đầu tiên (focused row)
-    const focusedRow = this.tb_ENF?.getSelectedRows()[0];
-    const employeeName = focusedRow
-      ? focusedRow.getData()['FullName']
-      : selectedRows[0]?.['FullName'] || '';
+    const employeeName = selectedRows.length > 0 ? selectedRows[0]?.FullName : '';
 
     let confirmMessage = '';
     if (rowCount === 1) {
@@ -979,11 +961,7 @@ export class EmployeeNoFingerprintComponent
       return;
     }
 
-    // Lấy tên nhân viên đầu tiên (focused row)
-    const focusedRow = this.tb_ENF?.getSelectedRows()[0];
-    const employeeName = focusedRow
-      ? focusedRow.getData()['FullName']
-      : validRows[0]?.['FullName'] || '';
+    const employeeName = validRows.length > 0 ? validRows[0]?.FullName : '';
 
     let confirmMessage = '';
     if (validRows.length === 1) {
@@ -1227,12 +1205,7 @@ export class EmployeeNoFingerprintComponent
 
   // #region Export Excel
   exportExcel(): void {
-    if (!this.tb_ENF) {
-      this.notification.error('Thông báo', 'Bảng dữ liệu chưa sẵn sàng!');
-      return;
-    }
-
-    const allData = this.tb_ENF.getData();
+    const allData = this.dataset;
 
     if (allData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để xuất!');

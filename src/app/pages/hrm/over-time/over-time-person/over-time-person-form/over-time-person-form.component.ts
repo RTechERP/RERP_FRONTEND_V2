@@ -314,73 +314,34 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
         selectedDateOnly.setHours(0, 0, 0, 0);
         const isToday = selectedDateOnly.getTime() === today.getTime();
 
-        // Cập nhật TimeStart cho TẤT CẢ các tab
+        // Cập nhật TimeStart cho TẤT CẢ các tab - CHỈ KHI CHƯA CÓ GIÁ TRỊ
         this.formTabs.forEach((tab) => {
           const tabForm = tab.form;
           const currentTimeStart = tabForm.get('TimeStart')?.value;
 
-          if (isToday) {
-            if (!currentTimeStart || !this.isEditMode) {
-              const defaultTimeStart = new Date(today);
-              defaultTimeStart.setHours(18, 0, 0, 0);
-              tabForm.patchValue({
-                TimeStart: defaultTimeStart
-              }, { emitEvent: false });
-            } else {
-              const timeStartDate = currentTimeStart instanceof Date ? currentTimeStart : new Date(currentTimeStart);
-              const timeStartDateOnly = new Date(timeStartDate.getFullYear(), timeStartDate.getMonth(), timeStartDate.getDate());
-              timeStartDateOnly.setHours(0, 0, 0, 0);
-
-              const tomorrow = new Date(today);
-              tomorrow.setDate(tomorrow.getDate() + 1);
-              tomorrow.setHours(0, 0, 0, 0);
-
-              if (timeStartDateOnly.getTime() < today.getTime() || timeStartDateOnly.getTime() > tomorrow.getTime()) {
-                const defaultTimeStart = new Date(today);
-                defaultTimeStart.setHours(18, 0, 0, 0);
-                tabForm.patchValue({
-                  TimeStart: defaultTimeStart
-                }, { emitEvent: false });
-              } else {
-                const newTimeStart = new Date(timeStartDateOnly);
-                newTimeStart.setHours(timeStartDate.getHours(), timeStartDate.getMinutes(), 0, 0);
-                tabForm.patchValue({
-                  TimeStart: newTimeStart
-                }, { emitEvent: false });
-              }
-            }
-          } else {
+          // Chỉ set default nếu chưa có giá trị TimeStart
+          if (!currentTimeStart) {
             const defaultTimeStart = new Date(selectedYear, selectedMonth, selectedDay, 18, 0, 0, 0);
             tabForm.patchValue({
               TimeStart: defaultTimeStart
+            }, { emitEvent: false });
+          } else {
+            // Nếu đã có giá trị, chỉ cập nhật ngày, giữ nguyên giờ/phút
+            const timeStartDate = currentTimeStart instanceof Date ? currentTimeStart : new Date(currentTimeStart);
+            const newTimeStart = new Date(selectedYear, selectedMonth, selectedDay, timeStartDate.getHours(), timeStartDate.getMinutes(), 0, 0);
+            tabForm.patchValue({
+              TimeStart: newTimeStart
             }, { emitEvent: false });
           }
 
           const currentEndTime = tabForm.get('EndTime')?.value;
           if (currentEndTime) {
+            // Nếu đã có EndTime, chỉ cập nhật ngày, giữ nguyên giờ/phút
             const endTimeDate = currentEndTime instanceof Date ? currentEndTime : new Date(currentEndTime);
-            if (isToday) {
-              const endTimeDateOnly = new Date(endTimeDate.getFullYear(), endTimeDate.getMonth(), endTimeDate.getDate());
-              endTimeDateOnly.setHours(0, 0, 0, 0);
-
-              if (endTimeDateOnly.getTime() < today.getTime()) {
-                const todayEndTime = new Date(today);
-                todayEndTime.setHours(endTimeDate.getHours(), endTimeDate.getMinutes(), 0, 0);
-                tabForm.patchValue({
-                  EndTime: todayEndTime
-                }, { emitEvent: false });
-              } else {
-                const newEndTime = new Date(selectedYear, selectedMonth, selectedDay, endTimeDate.getHours(), endTimeDate.getMinutes(), 0, 0);
-                tabForm.patchValue({
-                  EndTime: newEndTime
-                }, { emitEvent: false });
-              }
-            } else {
-              const newEndTime = new Date(selectedYear, selectedMonth, selectedDay, endTimeDate.getHours(), endTimeDate.getMinutes(), 0, 0);
-              tabForm.patchValue({
-                EndTime: newEndTime
-              }, { emitEvent: false });
-            }
+            const newEndTime = new Date(selectedYear, selectedMonth, selectedDay, endTimeDate.getHours(), endTimeDate.getMinutes(), 0, 0);
+            tabForm.patchValue({
+              EndTime: newEndTime
+            }, { emitEvent: false });
           }
         });
 
@@ -390,10 +351,6 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
 
         // Cập nhật min/max dates cho Flatpickr khi DateRegister thay đổi
         this.updateFlatpickrMinMaxDates();
-        // Cập nhật giá trị hiển thị trong Flatpickr
-        this.formTabs.forEach((tab) => {
-          this.setFlatpickrValue(tab);
-        });
       }
     });
   }
@@ -449,23 +406,139 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
         defaultDate: tab.form.get('TimeStart')?.value || undefined,
         allowInput: true,
         disableMobile: false,
-        onChange: (selectedDates: Date[]) => {
+        onChange: (selectedDates) => {
           if (selectedDates.length > 0) {
-            const date = this.normalizeToMinute(selectedDates[0]);
-            if (date) {
-              tab.form.patchValue({ TimeStart: date });
+            const normalized = this.normalizeToMinute(selectedDates[0]);
+            if (normalized) {
+              tab.form.patchValue(
+                { TimeStart: normalized },
+                { emitEvent: true }
+              );
               this.calculateTotalHour(tab.form);
-              // Update EndTime minDate
               this.updateEndTimeFlatpickr(tab);
             }
           }
+        },
+        onClose: (selectedDates, dateStr, instance) => {
+          const hourEl = (instance as any).hourElement;
+          const minuteEl = (instance as any).minuteElement;
+          if (hourEl && minuteEl) {
+            const hour = parseInt(hourEl.value, 10);
+            const minute = parseInt(minuteEl.value, 10);
+            let baseDate: Date;
+            if (selectedDates.length > 0) {
+              baseDate = new Date(selectedDates[0]);
+            } else {
+              const currentValue = tab.form.get('TimeStart')?.value;
+              baseDate = currentValue ? new Date(currentValue) : new Date();
+            }
+            const newDate = new Date(
+              baseDate.getFullYear(),
+              baseDate.getMonth(),
+              baseDate.getDate(),
+              hour,
+              minute,
+              0,
+              0
+            );
+            const normalized = this.normalizeToMinute(newDate);
+            if (normalized) {
+              tab.form.patchValue(
+                { TimeStart: normalized },
+                { emitEvent: true }
+              );
+              // Cập nhật input value để hiển thị đúng
+              instance.setDate(normalized, false);
+              this.calculateTotalHour(tab.form);
+              this.updateEndTimeFlatpickr(tab);
+            }
+          }
+        },
+        onReady: (_, __, instance) => {
+          let lastValid: string | null = null;
+          const updateFromMainInput = () => {
+            const val = instance.input.value;
+            const parsed = instance.parseDate(val, 'd/m/Y H:i');
+
+            if (parsed) {
+              const normalized = this.normalizeToMinute(parsed);
+              if (!normalized) return;
+
+              if (lastValid === val) return;
+              lastValid = val;
+
+              tab.form.patchValue(
+                { TimeStart: normalized },
+                { emitEvent: true }
+              );
+
+              this.calculateTotalHour(tab.form);
+              this.updateEndTimeFlatpickr(tab);
+            }
+          };
+          instance.input.addEventListener('input', updateFromMainInput);
+          instance.input.addEventListener('change', updateFromMainInput);
+          instance.input.addEventListener('blur', updateFromMainInput);
+          const hourEl = (instance as any).hourElement;
+          const minuteEl = (instance as any).minuteElement;
+          const updateFromTimePicker = () => {
+            if (hourEl && minuteEl) {
+              const hour = parseInt(hourEl.value, 10);
+              const minute = parseInt(minuteEl.value, 10);
+              if (!isNaN(hour) && !isNaN(minute) && hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+                const currentValue = tab.form.get('TimeStart')?.value;
+                const baseDate = currentValue ? new Date(currentValue) : new Date();
+
+                const newDate = new Date(
+                  baseDate.getFullYear(),
+                  baseDate.getMonth(),
+                  baseDate.getDate(),
+                  hour,
+                  minute,
+                  0,
+                  0
+                );
+                const normalized = this.normalizeToMinute(newDate);
+                if (normalized) {
+                  // QUAN TRỌNG: Gọi setDate để commit giá trị vào Flatpickr
+                  // Nếu không, Flatpickr sẽ reset về giá trị cũ khi popup đóng
+                  instance.setDate(normalized, false);
+
+                  tab.form.patchValue(
+                    { TimeStart: normalized },
+                    { emitEvent: true }
+                  );
+                  this.calculateTotalHour(tab.form);
+                  this.updateEndTimeFlatpickr(tab);
+                }
+              }
+            }
+          };
+          let debounceTimer: any = null;
+
+          const debouncedUpdate = () => {
+            if (debounceTimer) {
+              clearTimeout(debounceTimer);
+            }
+            debounceTimer = setTimeout(() => {
+              updateFromTimePicker();
+            }, 400); // Chờ 400ms sau khi user ngừng gõ
+          };
+          if (hourEl) {
+            hourEl.addEventListener('input', debouncedUpdate);
+            hourEl.addEventListener('change', updateFromTimePicker);
+            hourEl.addEventListener('blur', updateFromTimePicker);
+          }
+          if (minuteEl) {
+            minuteEl.addEventListener('input', debouncedUpdate);
+            minuteEl.addEventListener('change', updateFromTimePicker);
+            minuteEl.addEventListener('blur', updateFromTimePicker);
+          }
         }
       });
-
       this.flatpickrInstances.set(timeStartId, fpTimeStart);
       tab.flatpickrTimeStart = fpTimeStart;
     }
-
     if (endTimeElement) {
       const minDate = this.getMinDateForEndTime(tab.form);
       const maxDate = this.getMaxDateForEndTime();
@@ -480,18 +553,165 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
         defaultDate: tab.form.get('EndTime')?.value || undefined,
         allowInput: true,
         disableMobile: false,
-        onChange: (selectedDates: Date[]) => {
+        onChange: (selectedDates) => {
           if (selectedDates.length > 0) {
-            const date = this.normalizeToMinute(selectedDates[0]);
-            if (date) {
-              tab.form.patchValue({ EndTime: date });
+            const normalized = this.normalizeToMinute(selectedDates[0]);
+            if (normalized) {
+              tab.form.patchValue(
+                { EndTime: normalized },
+                { emitEvent: true }
+              );
               this.calculateTotalHour(tab.form);
-              // Auto check Overnight nếu EndTime >= 20:00
-              const hours = date.getHours();
-              if (hours >= 20) {
+
+              if (normalized.getHours() >= 20) {
                 tab.form.patchValue({ Overnight: true }, { emitEvent: false });
               }
             }
+          }
+        },
+        onClose: (selectedDates, dateStr, instance) => {
+          // Đọc trực tiếp từ hourElement và minuteElement của Flatpickr
+          // vì selectedDates có thể chưa được cập nhật khi user dùng time picker arrows
+          const hourEl = (instance as any).hourElement;
+          const minuteEl = (instance as any).minuteElement;
+
+          if (hourEl && minuteEl) {
+            const hour = parseInt(hourEl.value, 10);
+            const minute = parseInt(minuteEl.value, 10);
+
+            // Lấy ngày từ selectedDates hoặc từ form hiện tại
+            let baseDate: Date;
+            if (selectedDates.length > 0) {
+              baseDate = new Date(selectedDates[0]);
+            } else {
+              const currentValue = tab.form.get('EndTime')?.value;
+              baseDate = currentValue ? new Date(currentValue) : new Date();
+            }
+
+            // Tạo ngày mới với giờ/phút từ time picker
+            const newDate = new Date(
+              baseDate.getFullYear(),
+              baseDate.getMonth(),
+              baseDate.getDate(),
+              hour,
+              minute,
+              0,
+              0
+            );
+
+            const normalized = this.normalizeToMinute(newDate);
+            if (normalized) {
+              tab.form.patchValue(
+                { EndTime: normalized },
+                { emitEvent: true }
+              );
+              // Cập nhật input value để hiển thị đúng
+              instance.setDate(normalized, false);
+              this.calculateTotalHour(tab.form);
+
+              if (normalized.getHours() >= 20) {
+                tab.form.patchValue({ Overnight: true }, { emitEvent: false });
+              }
+            }
+          }
+        },
+        onReady: (_, __, instance) => {
+          let lastValid: string | null = null;
+
+          // Listener cho main input khi user gõ trực tiếp
+          const updateFromMainInput = () => {
+            const val = instance.input.value;
+            const parsed = instance.parseDate(val, 'd/m/Y H:i');
+
+            if (parsed) {
+              const normalized = this.normalizeToMinute(parsed);
+              if (!normalized) return;
+
+              if (lastValid === val) return;
+              lastValid = val;
+
+              tab.form.patchValue(
+                { EndTime: normalized },
+                { emitEvent: true }
+              );
+
+              this.calculateTotalHour(tab.form);
+
+              if (normalized.getHours() >= 20) {
+                tab.form.patchValue({ Overnight: true }, { emitEvent: false });
+              }
+            }
+          };
+
+          // Thêm nhiều event để bắt mọi trường hợp
+          instance.input.addEventListener('input', updateFromMainInput);
+          instance.input.addEventListener('change', updateFromMainInput);
+          instance.input.addEventListener('blur', updateFromMainInput);
+
+          // Listener cho hourElement và minuteElement khi user gõ trực tiếp vào time picker
+          const hourEl = (instance as any).hourElement;
+          const minuteEl = (instance as any).minuteElement;
+
+          const updateFromTimePicker = () => {
+            if (hourEl && minuteEl) {
+              const hour = parseInt(hourEl.value, 10);
+              const minute = parseInt(minuteEl.value, 10);
+
+              if (!isNaN(hour) && !isNaN(minute) && hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+                const currentValue = tab.form.get('EndTime')?.value;
+                const baseDate = currentValue ? new Date(currentValue) : new Date();
+
+                const newDate = new Date(
+                  baseDate.getFullYear(),
+                  baseDate.getMonth(),
+                  baseDate.getDate(),
+                  hour,
+                  minute,
+                  0,
+                  0
+                );
+
+                const normalized = this.normalizeToMinute(newDate);
+                if (normalized) {
+                  // QUAN TRỌNG: Gọi setDate để commit giá trị vào Flatpickr
+                  // Nếu không, Flatpickr sẽ reset về giá trị cũ khi popup đóng
+                  instance.setDate(normalized, false);
+
+                  tab.form.patchValue(
+                    { EndTime: normalized },
+                    { emitEvent: true }
+                  );
+                  this.calculateTotalHour(tab.form);
+
+                  if (normalized.getHours() >= 20) {
+                    tab.form.patchValue({ Overnight: true }, { emitEvent: false });
+                  }
+                }
+              }
+            }
+          };
+
+          // Debounce timer để tránh update liên tục khi user đang gõ
+          let debounceTimer: any = null;
+
+          const debouncedUpdate = () => {
+            if (debounceTimer) {
+              clearTimeout(debounceTimer);
+            }
+            debounceTimer = setTimeout(() => {
+              updateFromTimePicker();
+            }, 400); // Chờ 400ms sau khi user ngừng gõ
+          };
+
+          if (hourEl) {
+            hourEl.addEventListener('input', debouncedUpdate);
+            hourEl.addEventListener('change', updateFromTimePicker);
+            hourEl.addEventListener('blur', updateFromTimePicker);
+          }
+          if (minuteEl) {
+            minuteEl.addEventListener('input', debouncedUpdate);
+            minuteEl.addEventListener('change', updateFromTimePicker);
+            minuteEl.addEventListener('blur', updateFromTimePicker);
           }
         }
       });

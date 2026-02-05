@@ -37,6 +37,15 @@
     overflow: hidden;
 }
 
+/* Maintain height when search bar is shown/hidden */
+.card-body.with-search-bar,
+.card-body.without-search-bar {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 /* Set font-size 12px for all elements in the component */
 :host *,
 :host ::ng-deep * {
@@ -141,4 +150,41 @@
         position: static !important;
         z-index: 1 !important;
     }
+}
+
+:host ::ng-deep .ant-tabs-content {
+    height: 100%;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+    height: 100%;
+}
+
+:host ::ng-deep .ant-tabs-tabpane-active {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+
+/* Grid container - same as propose-vehicle-repair */
+.grid-container,
+.grid-container-early-late {
+    height: 100%;
+    width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+::ng-deep .ant-layout {
+    height: 98% !important;
 }

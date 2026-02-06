@@ -30,6 +30,10 @@
                     <img src="assets/icon/action_export_excel_16.png" alt="Xuất danh sách" class="me-1" /> Xuất
                     danh sách
                 </button>
+                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportReportTeam()">
+                    <img src="assets/icon/action_export_excel_16.png" alt="Xuất báo cáo" class="me-1" /> Xuất
+                    báo cáo
+                </button>
             </div>
         </div>
 
@@ -45,7 +49,7 @@
             <form nz-form class="mobile-filter-form">
                 <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
                     <!-- Từ ngày -->
-                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ</nz-form-label>
                             <nz-form-control>
@@ -56,7 +60,7 @@
                     </nz-col>
 
                     <!-- Đến ngày -->
-                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Đến</nz-form-label>
                             <nz-form-control>
@@ -67,7 +71,7 @@
                     </nz-col>
 
                     <!-- Phòng ban -->
-                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="5">
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
                             <nz-form-control>
@@ -119,7 +123,7 @@
                     </nz-col>
 
                     <!-- Từ khóa và nút tìm kiếm -->
-                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="6">
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="5">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
                             <nz-form-control>

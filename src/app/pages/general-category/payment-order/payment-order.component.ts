@@ -671,14 +671,14 @@ export class PaymentOrderComponent implements OnInit {
 
                 }
             },
-            // {
-            //     label: 'In',
-            //     icon: 'fa-solid fa-print fa-lg text-primary',
-            //     command: () => {
-            //         // this.onPrint();
-
-            //     }
-            // }
+            {
+                label: 'Chuẩn hóa tổng tiền',
+                icon: 'fa-solid fa-file-excel fa-lg text-success',
+                // visible: this.isAdmin == '1',
+                command: () => {
+                    this.onUpdateTotalMoney();
+                }
+            },
         ]
     }
 
@@ -3934,7 +3934,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -4661,5 +4661,47 @@ export class PaymentOrderComponent implements OnInit {
         this.activeTab = e;
         // console.log('this.activeTab:', this.activeTab);
         this.getSteps();
+    }
+
+    onUpdateTotalMoney() {
+        let gridInstance = this.angularGrid;
+        // let gridInstance = this.angularGridSpecial;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
+
+        const rowIndexes = grid.getSelectedRows();
+        let selectedItems = rowIndexes
+            .map(i => dataView.getItem(i));
+
+        selectedItems = selectedItems.map((x, i) => ({
+            ID: x.ID,
+            Code: x.Code,
+            TotalPayment: x.TotalPayment,
+            TotalPaymentActual: x.TotalPaymentActual,
+            TotalMoneyText: this.paymentService.readMoney(x.TotalPaymentActual != 0 ? x.TotalPaymentActual : x.TotalPayment, x.Unit),
+            TotalMoney: x.TotalPaymentActual != 0 ? x.TotalPaymentActual : x.TotalPayment
+        }));
+
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
+        console.log('selectedItems:', selectedItems);
+
+        this.paymentService.updateTotalmoney(selectedItems).subscribe(({
+            next: (response) => {
+                this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                this.loadData();
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
+            },
+        }))
+
     }
 }

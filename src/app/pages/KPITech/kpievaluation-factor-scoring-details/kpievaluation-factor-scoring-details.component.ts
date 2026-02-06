@@ -1682,6 +1682,14 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
           this.updateGrid(this.angularGridRule, this.dataRule);
           this.updateGrid(this.angularGridTeam, this.dataTeam);
 
+          //#region Tính toán điểm Rule sau khi load data (giống parent component)
+          // Theo luồng WinForm: LoadSummaryRuleNew → CalculatorPoint → update footer
+          setTimeout(() => {
+            this.calculatorPointForRule();
+            this.updateRuleFooter();
+          }, 200);
+          //#endregion
+
           // Lấy điểm cuối cùng từ API mới
           this.kpiSharedService.getFinalPoint(empId, sessionId).subscribe({
             next: (finalRes) => {
@@ -1692,6 +1700,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
             },
             error: (err) => console.error('Lỗi load điểm cuối cùng:', err)
           });
+
         }
       },
       error: (err) => console.error('Lỗi load KPI Rule & Team:', err)
@@ -2154,6 +2163,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       return;
     }
 
+
     const grid = this.angularGridRule.slickGrid;
     const dataView = this.angularGridRule.dataView;
     const changedItem = args.item;
@@ -2219,7 +2229,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   private calculatorPointForRule(): void {
     const listCodes = ['MA01', 'MA02', 'MA03', 'MA04', 'MA05', 'MA06', 'MA07', 'WORKLATE', 'NOTWORKING'];
 
-    // Bước 1: Tính toán cho từng dòng
+    //#region Bước 1: Tính toán cho từng dòng node lá (không có node con)
     for (const row of this.dataRule) {
       const ruleCode = String(row.EvaluationCode || '').toUpperCase();
       const maxPercentBonus = Number(row.MaxPercent) || 0;
@@ -2229,39 +2239,51 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       const secondMonth = Number(row.SecondMonth) || 0;
       const thirdMonth = Number(row.ThirdMonth) || 0;
 
+      // Bỏ qua node cha (có node con)
       if (row.__hasChildren) continue;
 
-      let totalError = 0;
-      if (ruleCode === 'OT') {
-        console.log('OT', thirdMonth);
-        totalError = ((firstMonth + secondMonth + thirdMonth) / 3) >= 20 ? 1 : 0;
-      } else if (ruleCode.startsWith('KPI')) {
-        console.log('KPI chỉ lấy tháng 3', thirdMonth);
-        // KPI chỉ lấy tháng 3
-        totalError = thirdMonth;
-      } else {
-        totalError = firstMonth + secondMonth + thirdMonth;
-      }
+      // DEBUG: Xem tất cả EvaluationCode
+      // console.log(`[ALL CODES] EvaluationCode: "${row.EvaluationCode}", ruleCode (uppercase): "${ruleCode}"`);
+
+      //#region Tính TotalError
+
+      // Tính tổng lỗi từ 3 tháng trước (mặc định)
+      let totalError = firstMonth + secondMonth + thirdMonth;
       row.TotalError = totalError;
 
+      // Xử lý đặc biệt cho OT: nếu trung bình >= 20 thì = 1, ngược lại = 0
+      if (ruleCode === 'OT') {
+        row.TotalError = (totalError / 3) >= 20 ? 1 : 0;
+      }
+      //#endregion
+
+      //#region Tính PercentBonus và PercentRemaining
+      // Tính % trừ (cộng) - logic mặc định
+      const totalPercentDeduction = percentageAdjustment * (Number(row.TotalError) || 0);
+      row.PercentBonus = maxPercentageAdjustment > 0
+        ? (totalPercentDeduction > maxPercentageAdjustment ? maxPercentageAdjustment : totalPercentDeduction)
+        : totalPercentDeduction;
+
+      // Xử lý đặc biệt theo mã
       if (ruleCode.startsWith('KPI') && !(ruleCode === 'KPINL' || ruleCode === 'KPINQ')) {
         // KPI (trừ KPINL, KPINQ): Tổng = tháng 3, % còn lại = tổng * maxPercent / 5
         row.TotalError = thirdMonth;
         row.PercentRemaining = thirdMonth * maxPercentBonus / 5;
-        console.log('Tran nhuy binh', row.TotalError, row.PercentRemaining);
       } else if (ruleCode.startsWith('TEAMKPI')) {
-        row.PercentBonus = totalError * maxPercentageAdjustment / 5;
+
+        // Team KPI: PercentBonus = tổng lỗi * maxPercentageAdjustment / 5
+        row.PercentBonus = (Number(row.TotalError) || 0) * maxPercentageAdjustment / 5;
       } else if (ruleCode === 'MA09') {
+        // MA09: Sẽ được tính riêng trong calculateMA09Total
         continue;
       } else {
-        let totalPercentDeduction = percentageAdjustment * totalError;
-        if (maxPercentageAdjustment > 0 && totalPercentDeduction > maxPercentageAdjustment) {
-          totalPercentDeduction = maxPercentageAdjustment;
-        }
-        row.PercentBonus = totalPercentDeduction;
-        row.PercentRemaining = totalError * maxPercentBonus;
+        // Mặc định: PercentRemaining = TotalError * MaxPercent
+        row.PercentRemaining = (Number(row.TotalError) || 0) * maxPercentBonus;
       }
+      //#endregion
     }
+    //#endregion
+
 
     // Bước 2: Tính MA09
     this.calculateMA09Total(listCodes);

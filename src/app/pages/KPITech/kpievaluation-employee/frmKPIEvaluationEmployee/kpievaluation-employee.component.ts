@@ -174,14 +174,14 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
    */
   private employeePointFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
     const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
-    
+
     // Tạo tooltip công thức
     const employeePoint = Number(dataContext.EmployeePoint) || 0;
     const coefficient = Number(dataContext.Coefficient) || 0;
     const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
-    
+
     const tooltipText = `Điểm hệ số = Điểm nhân viên × Hệ số\n= ${employeePoint.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
-    
+
     return `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>`;
   };
 
@@ -2780,15 +2780,21 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         }
 
         // Cập nhật footer cho Rule - hiển thị xếp loại
-        // Theo luồng WinForm: LoadSummaryRuleNew → KHÔNG gọi CalculatorPoint (dòng 3290 bị comment)
+        // Theo luồng WinForm: LoadSummaryRuleNew → CalculatorPoint → update footer
         if (this.dataRule.length > 0 && this.departmentID !== this.departmentCK) {
           setTimeout(() => {
             // Gọi hàm lấy summary từ grid team và thêm các dòng TEAM
             this.loadTeamSummaryAndAddTeamNodes();
+
+            // Gọi calculatorPoint để tính toán lại TotalError
+            const isTBP = this.isTBPView; // Sử dụng isTBPView thay vì typeID
+            this.calculatorPoint(isTBP, this.isPublic);
+
             this.refreshGrid(this.angularGridRule, this.dataRule);
             this.updateRuleFooter();
           }, 200);
         }
+
 
         this.cdr.detectChanges();
       },
@@ -2976,7 +2982,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
    * Matches WinForm CalculatorAvgPointNew logic
    */
   private calculatorAvgPoint(dataTable: any[]): any[] {
-        if (!dataTable || dataTable.length === 0) return dataTable;
+    if (!dataTable || dataTable.length === 0) return dataTable;
 
     // Find list of parent STT values
     const listFatherID: string[] = [];

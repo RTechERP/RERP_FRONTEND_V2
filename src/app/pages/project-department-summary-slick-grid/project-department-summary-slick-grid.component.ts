@@ -1952,11 +1952,17 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
     });
     modalRef.componentInstance.projectId = this.projectId;
 
-    modalRef.result.catch((reason) => {
-      if (reason == true || reason?.success) {
-        this.loadProjects();
-      }
-    });
+    modalRef.result
+      .then((result) => {
+        if (result?.success || result == true) {
+          this.loadProjects();
+        }
+      })
+      .catch((reason) => {
+        if (reason == true || reason?.success) {
+          this.loadProjects();
+        }
+      });
   }
 
   setPersionalPriority(priority: number) {

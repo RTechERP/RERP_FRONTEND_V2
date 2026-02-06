@@ -2268,7 +2268,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       if (ruleCode.startsWith('KPI') && !(ruleCode === 'KPINL' || ruleCode === 'KPINQ')) {
         // KPI (trừ KPINL, KPINQ): Tổng = tháng 3, % còn lại = tổng * maxPercent / 5
         row.TotalError = thirdMonth;
-        row.PercentRemaining = thirdMonth * maxPercentBonus / 5;
+        row.PercentRemaining = this.formatDecimalNumber(thirdMonth || 0, 2) * maxPercentBonus / 5;
       } else if (ruleCode.startsWith('TEAMKPI')) {
 
         // Team KPI: PercentBonus = tổng lỗi * maxPercentageAdjustment / 5
@@ -2278,7 +2278,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         continue;
       } else {
         // Mặc định: PercentRemaining = TotalError * MaxPercent
-        row.PercentRemaining = (Number(row.TotalError) || 0) * maxPercentBonus;
+        row.PercentRemaining = this.formatDecimalNumber(row.TotalError || 0, 2) * maxPercentBonus;
       }
       //#endregion
     }

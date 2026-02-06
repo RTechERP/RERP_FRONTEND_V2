@@ -1181,10 +1181,10 @@ export class ProjectService {
       dateTimeS: dateTimeS?.toISO() || new Date().toISOString(),
       dateTimeE: dateTimeE?.toISO() || new Date().toISOString(),
       keyword: keyword.trim(),
-      userID: userID.toString(),
+      userID: (userID ?? 0).toString(),
       projectTypeID: projectTypeID.trim(),
-      userTeamID: userTeamID.toString(),
-      departmentID: departmentID.toString(),
+      userTeamID: (userTeamID ?? 0).toString(),
+      departmentID: (departmentID ?? 0).toString(),
     };
 
     return this.http.post(`${this.urlProjectSummary}get-projects`, filter);

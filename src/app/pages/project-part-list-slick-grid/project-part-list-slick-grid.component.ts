@@ -4096,8 +4096,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         Manufacturer: row.Manufacturer || '',
         Unit: row.Unit || '',
         IsNewCode: row.IsNewCode || false,
-        IsLeaf: isLeaf, 
-        ProjectID: row.ProjectID || 0 
+        IsLeaf: isLeaf,
+        ProjectID: row.ProjectID || 0
       });
     }
     if (requestItems.length === 0) {
@@ -5363,9 +5363,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     console.log('[OPEN BILL EXPORT DETAIL] DetailsForModal:', detailsForModal);
     const modalRef = this.ngbModal.open(BillExportDetailNewComponent, {
       centered: true,
-      size: 'xl',
+      //size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      //fullscreen: true,
+      windowClass: 'full-screen-modal'
+
     });
     // CRITICAL: Set selectedList FIRST after opening modal (before other properties)
     modalRef.componentInstance.selectedList = detailsForModal;

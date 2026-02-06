@@ -214,7 +214,7 @@
                                 <img src="assets/icon/action_delete_item_16.png" alt="Xóa " /> Xóa
                             </button>
                         </ng-container>
-                        <ng-container *ngIf="!tbp">
+                        <ng-container>
                             <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
                                 [nzDropdownMenu]="menuYeuCau">
                                 <img src="assets/icon/action_confirm_tbp_16.png" alt="yêu cầu " /> Yêu cầu
@@ -223,23 +223,23 @@
                         </ng-container>
                         <nz-dropdown-menu #menuYeuCau="nzDropdownMenu">
                             <ul nz-menu>
-                                <li nz-menu-item (click)="requestPriceQuote()" *ngIf="!tbp">
+                                <li nz-menu-item (click)="requestPriceQuote()">
                                     <img src="assets/icon/action_approved_16.png" />
                                     <span class="ms-1">Yêu cầu báo giá</span>
                                 </li>
-                                <li nz-menu-item (click)="cancelPriceRequest()" *ngIf="!tbp">
+                                <li nz-menu-item (click)="cancelPriceRequest()">
                                     <img src="assets/icon/action_unapproved_16.png" />
                                     <span class="ms-1">Hủy yêu cầu báo giá</span>
                                 </li>
 
                                 <!-- Divider giữa cặp báo giá và cặp mua hàng -->
-                                <li nz-menu-divider *ngIf="type == 2 && !tbp"></li>
+                                <li nz-menu-divider *ngIf="type == 2"></li>
 
-                                <li nz-menu-item (click)="requestPurchase()" *ngIf="type == 2 && !tbp">
+                                <li nz-menu-item (click)="requestPurchase()" *ngIf="type == 2">
                                     <img src="assets/icon/purchase_16.png" />
                                     <span class="ms-1">Yêu cầu mua hàng</span>
                                 </li>
-                                <li nz-menu-item (click)="cancelPurchaseRequest()" *ngIf="type == 2 && !tbp">
+                                <li nz-menu-item (click)="cancelPurchaseRequest()" *ngIf="type == 2">
                                     <img src="assets/icon/cancel_purchase_16.png" />
                                     <span class="ms-1">Hủy yêu cầu mua hàng</span>
                                 </li>
@@ -363,7 +363,7 @@
                             <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Chọn sản phẩm
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small"
-                            (click)="openImportExcelProjectPartList()" *ngIf="!tbp">
+                            (click)="openImportExcelProjectPartList()">
                             <img src="assets/icon/action_import_16.png" /> Nhập Excel
                         </button>
 

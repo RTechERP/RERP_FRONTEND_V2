@@ -1,12 +1,7 @@
 <div class="modal-dialog-scrollable">
   <div class="modal-header bg-primary text-uppercase py-2">
     <h6 class="modal-title text-white">Tình hình hiện tại dự án</h6>
-    <button
-      type="button"
-      class="btn-close"
-      (click)="closeModal()"
-      aria-label="Close"
-    ></button>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
   </div>
 
   <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
@@ -19,27 +14,16 @@
               Dự án
               <span class="text-danger ps-1 me-1">*</span>
             </nz-form-label>
-            <nz-form-control
-              [nzErrorTip]="
+            <nz-form-control [nzErrorTip]="
                 form.get('projectId')?.invalid &&
                 (form.get('projectId')?.dirty || form.get('projectId')?.touched)
                   ? 'Vui lòng chọn dự án!'
                   : undefined
-              "
-            >
-              <nz-select
-                formControlName="projectId"
-                nzPlaceHolder="Chọn dự án"
-                class="fs-12 w-100"
-                required
-                nzShowSearch
-                nzAllowClear
-              >
+              ">
+              <nz-select formControlName="projectId" nzPlaceHolder="Chọn dự án" class="fs-12 w-100" required
+                nzShowSearch nzAllowClear>
                 @for (item of projects; track $index) {
-                  <nz-option 
-                    [nzValue]="item.ID" 
-                    [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
-                  ></nz-option>
+                <nz-option [nzValue]="item.ID" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
                 }
               </nz-select>
             </nz-form-control>
@@ -56,26 +40,16 @@
               <span class="text-danger ps-1 me-1">*</span>
             </nz-form-label>
             <nz-form-control>
-              <nz-select
-                formControlName="updatedBy"
-                nzPlaceHolder="Chọn người cập nhật"
-                class="fs-12 w-100"
-                required
-                nzShowSearch
-                [nzDisabled]="true"
-              >
+              <nz-select formControlName="updatedBy" nzPlaceHolder="Chọn người cập nhật" class="fs-12 w-100" required
+                nzShowSearch [nzDisabled]="true">
                 @for (parent of employees; track $index) {
-                  <nz-option-group [nzLabel]="parent.label">
-                    @for (child of parent.options; track $index) {
-                      <nz-option 
-                        nzCustomContent="true"
-                        [nzValue]="child.item.ID" 
-                        [nzLabel]="child.item.FullName"
-                      >
-                        {{ child.item.Code + " - " + child.item.FullName }}
-                      </nz-option>
-                    }
-                  </nz-option-group>
+                <nz-option-group [nzLabel]="parent.label">
+                  @for (child of parent.options; track $index) {
+                  <nz-option nzCustomContent="true" [nzValue]="child.item.ID" [nzLabel]="child.item.FullName">
+                    {{ child.item.Code + " - " + child.item.FullName }}
+                  </nz-option>
+                  }
+                </nz-option-group>
                 }
               </nz-select>
             </nz-form-control>
@@ -91,21 +65,14 @@
               Nội dung
               <span class="text-danger ps-1 me-1">*</span>
             </nz-form-label>
-            <nz-form-control
-              [nzErrorTip]="
+            <nz-form-control [nzErrorTip]="
                 form.get('content')?.invalid &&
                 (form.get('content')?.dirty || form.get('content')?.touched)
                   ? 'Vui lòng nhập nội dung!'
                   : undefined
-              "
-            >
-              <textarea
-                nz-input
-                placeholder="Nhập nội dung"
-                formControlName="content"
-                class="fs-12"
-                rows="4"
-              ></textarea>
+              ">
+              <textarea nz-input placeholder="Nhập nội dung" formControlName="content" class="fs-12"
+                rows="4"></textarea>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -114,7 +81,8 @@
       <!-- Hàng 4: Bảng -->
       <div class="row">
         <div class="col-md-12">
-          <div #tb_ProjectCurrentSituation id="tb_ProjectCurrentSituation" style="height: 100%; min-height: 300px;"></div>
+          <div #tb_ProjectCurrentSituation id="tb_ProjectCurrentSituation" style="height: 100%; min-height: 300px;">
+          </div>
         </div>
       </div>
     </form>
@@ -124,7 +92,7 @@
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
       Đóng
     </button>
-    <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N1'" (click)="saveData()">
+    <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N1,N13,N27'" (click)="saveData()">
       Lưu
     </button>
   </div>

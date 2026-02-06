@@ -51,6 +51,15 @@
     background-color: orange !important;
 }
 
+:host ::ng-deep .bg-type2{
+    background-color: lightyellow !important;
+}
+
+:host ::ng-deep .bg-isapproved{
+    background-color: red !important;
+    color: white !important;
+}
+
 :host ::ng-deep .slick-cell.ellipsis {
   white-space: nowrap;
   overflow: hidden;
@@ -76,5 +85,7 @@
     background-color: lightgrey !important;
     font-weight: bold !important;
 } */
+
+
 
 

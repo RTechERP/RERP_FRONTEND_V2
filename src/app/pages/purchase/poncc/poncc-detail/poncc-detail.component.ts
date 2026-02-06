@@ -1825,7 +1825,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
             console.log('🔵 [Existing BillImport] Opening modal for ID:', billImportId);
 
-            const modalRef = this.modalService.open(BillImportDetailComponent, {
+            const modalRef = this.modalService.open(BillImportDetailNewComponent, {
               backdrop: 'static',
               keyboard: false,
               centered: true,

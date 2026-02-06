@@ -18,6 +18,7 @@ export class LuckyNumberService {
             .set('departmentID', data.departmentID)
             .set('employeeID', data.employeeID)
             .set('keyword', data.keyword)
+            .set('isPerson', data.isPerson)
         return this.http.get<any>(this.url, { params });
     }
 

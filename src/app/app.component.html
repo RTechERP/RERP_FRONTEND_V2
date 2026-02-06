@@ -2,7 +2,7 @@
     <nz-sider class="menu-sidebar" nzWidth="300px" [(nzCollapsed)]="isCollapsed" [nzCollapsedWidth]="0"
         [nzTrigger]="null" nzTheme="light">
         <div class="sidebar-logo d-flex justify-content-center align-items-center" nzTheme="light">
-            <a routerLink="/home" class="text-center p-3">
+            <a class="text-center p-3">
                 <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="logo" class="img-logo " />
                 <!-- <img [src]="isCollapsed ? 'assets/images/icon-logo-RTC-2023.png' : 'assets/images/logo-RTC-2023-1200-banchuan.png'"
                     alt="" class="p-1"> -->
@@ -15,77 +15,6 @@
                 <img src="assets/icon/home.svg" class="menu-icon m-1" width="24px" />
                 <a routerLink="/home">Trang chủ</a>
             </li>
-            <!-- @for (m of menus; track m.id) {
-
-            <ng-template #nzTitle style="padding: 0 16px;">
-                <img [src]="m.icon" class="menu-icon m-1" *ngIf="(m.icon || '') != ''" width="24px" />
-                <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(m.icon || '') == ''" />
-                <p class="m-0 fw-bold">{{ m.title }}</p>
-            </ng-template>
-            <li nz-submenu [nzTitle]="nzTitle" *ngIf=" m.isPermission && m.isOpen"
-                [nzOpen]="menuKey === m.key || rootMenuKey ===m.key">
-                <ul>
-                    @for (c1 of m.children; track c1.id) {
-                    <li nz-menu-item nzMatchRouter *ngIf="c1.isPermission && c1.isOpen && c1.children.length <= 0"
-                        (click)="newTab((c1.router || ''), c1.title,c1.queryParams)">
-                        <img [src]="c1.icon" class="menu-icon m-1" *ngIf="(c1.icon || '') != ''" width="24px" />
-                        <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
-                        <a [routerLink]="c1.router">{{c1.title}}</a>
-                    </li>
-
-                    <ng-template #nzTitle1 style="padding: 0 16px;">
-                        <img [src]="c1.icon" class="menu-icon m-1" *ngIf="(c1.icon || '') != ''" width="24px" />
-                        <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
-                        <p class="m-0" style="white-space: pre-line;">{{ c1.title }}</p>
-                    </ng-template>
-                    <li nz-submenu [nzTitle]="nzTitle1" *ngIf=" c1.isPermission && c1.isOpen && c1.children.length > 0"
-                        [nzOpen]="menuKey === c1.key || rootMenuKey === c1.key">
-                        <ul>
-                            @for (c2 of c1.children; track c2.id) {
-                            <li nz-menu-item nzMatchRouter
-                                *ngIf=" c2.isPermission && c2.isOpen  && c2.children.length <= 0"
-                                (click)="newTab((c2.router || ''), c2.title,c2.queryParams)"
-                                style="font-size: 11px !important;">
-                                <img [src]="c2.icon" class="menu-icon m-1" *ngIf="(c2.icon || '') != ''" width="24px" />
-                                <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
-                                <a [routerLink]="c2.router">{{c2.title}}</a>
-                            </li>
-
-
-                            <ng-template #nzTitle2 style="padding: 0 16px;">
-                                <img [src]="c2.icon" class="menu-icon m-1" *ngIf="(c2.icon || '') != ''" width="24px" />
-                                <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
-                                <p class="m-0" style="white-space: pre-line !important;font-size: 11px !important;">{{
-                                    c2.title }} </p>
-                            </ng-template>
-                            <li nz-submenu [nzTitle]="nzTitle2"
-                                *ngIf="c2.isPermission && c2.isOpen && c2.children.length > 0"
-                                [nzOpen]="menuKey === c2.key || rootMenuKey === c2.key">
-                                <ul>
-                                    @for (c3 of c2.children; track c3.id) {
-                                    <li nz-menu-item nzMatchRouter
-                                        *ngIf=" c3.isPermission && c3.isOpen && c3.children.length <= 0"
-                                        (click)="newTab((c3.router || ''), c3.title,c3.queryParams)"
-                                        style="font-size: 10px !important;">
-                                        <img [src]="c3.icon" class="menu-icon m-1" *ngIf="(c3.icon || '') != ''"
-                                            width="24px" />
-                                        <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c3.icon || '') == ''" />
-                                        <a [routerLink]="c3.router">{{c3.title}}</a>
-                                    </li>
-                                    }
-
-                                </ul>
-                            </li>
-                            }
-
-                        </ul>
-                    </li>
-                    }
-                </ul>
-            </li>
-            } -->
-
-
             @for (m of menuComps; track m.key) {
 
             <ng-template #nzTitle style="padding: 0 16px;">
@@ -167,19 +96,14 @@
     <nz-layout>
         <nz-header>
             <div class="app-header">
-
-                <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
+                <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
+                    class=" text-light" nzTrigger="click">
+                    <img src="assets/icon/app_store.svg" width="24">
+                </button>
+                <span class="header-trigger ps-0" (click)="isCollapsed = !isCollapsed">
                     <nz-icon class="trigger text-light" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
                 </span>
                 <div style="width: 100%; max-width: 100%; overflow: auto" class="app-header-tabs">
-
-                    <!-- <nz-tabset nzType="editable-card" nzHideAdd [(nzSelectedIndex)]="selectedIndex"
-                        (nzSelectedIndexChange)="onTabChange($event)" (nzClose)="closeTab($event.index)">
-                        <nz-tab *ngFor="let tab of dynamicTabs;let i = index" [nzTitle]="tab.title" [nzClosable]="true"
-                            class="text-uppercase">
-
-                        </nz-tab>
-                    </nz-tabset> -->
 
                     <nz-tabset nzType="editable-card" nzHideAdd [(nzSelectedIndex)]="selectedCompIndex"
                         (nzClose)="closeTabComp($event)">
@@ -197,23 +121,10 @@
                     </nz-tabset>
                 </div>
                 <div class="header-trigger">
-                    <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
-                        class=" text-light" nzTrigger="click">
-                        <img src="assets/icon/app_store.svg" width="16">
-                    </button>
+
 
                     <nz-dropdown-menu #appmenu="nzDropdownMenu">
                         <div class="app-launcher">
-                            <!-- <div class="app-launcher-inner">
-                                @for (m of menus; track m.id) {
-
-                                <a [href]="m.router" (click)="toggleMenu($event, m.router, m.key)"
-                                    [class.active]="isMenuOpen(m.key)" *ngIf="m.isPermission">
-                                    <img [src]="m.icon?.replace('24','64')" />
-                                    <span class="mt-1">{{m.title}}</span>
-                                </a>
-                                }
-                            </div> -->
 
                             <div class="app-launcher-inner">
                                 @for (m of menuComps; track m.key) {

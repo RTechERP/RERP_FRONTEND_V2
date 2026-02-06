@@ -3861,7 +3861,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
               : maxPercentageAdjustment - totalPercentDeduction;
           } else {
             // Mặc định: PercentRemaining = TotalError * MaxPercent
-            row.PercentRemaining = (Number(row.TotalError) || 0) * maxPercentBonus;
+            row.PercentRemaining = this.formatDecimalNumber(row.TotalError || 0, 2) * maxPercentBonus;
           }
         }
 

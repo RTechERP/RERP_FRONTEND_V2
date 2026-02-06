@@ -476,6 +476,8 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
   @Input() isTechBill: boolean = false; // true phiếu nhập, false phiếu xuất
   @Input() warehouseId: any = null; // true phiếu nhập, false phiếu xuất
   @Input() isBillImport: boolean = false; // true phiếu nhập, false phiếu xuất
+  @Input() existingSerials: { ID: number; Serial: string }[] = []; // Serials đã tồn tại (cho auto-bind)
+  @Input() skipSaveDB: boolean = false; // Nếu true, modal chỉ trả về list serial, không lưu vào DB
   modularGrid: any = [];
   isAddSerial: boolean = true;
   serialData: any = [];
@@ -487,6 +489,7 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     console.log('ngOnInit - isTechBill:', this.isTechBill);
+    console.log('ngOnInit - existingSerials:', this.existingSerials);
     if (this.type == 1) {
       this.isAddSerial = true;
       this.name = 'phiếu nhập';
@@ -531,7 +534,17 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
           const currentCount = this.serialData.length;
           const requiredQty = this.dataBillDetail.Quantity || 0;
 
-          if (currentCount < requiredQty) {
+          // Nếu không có data từ API và có existingSerials, sử dụng existingSerials
+          if (currentCount === 0 && this.existingSerials && this.existingSerials.length > 0) {
+            console.log('Sử dụng existingSerials để populate grid:', this.existingSerials);
+            this.serialData = this.existingSerials.map((serial, index) => ({
+              ID: serial.ID,
+              STT: index + 1,
+              SerialNumber: serial.Serial,
+              ModularLocationDetailID: 0,
+            }));
+          } else if (currentCount < requiredQty) {
+            // Thêm các dòng trống nếu cần
             for (let i = currentCount; i < requiredQty; i++) {
               this.serialData.push({
                 ID: -(i + 1),
@@ -541,6 +554,8 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
               });
             }
           }
+
+          console.log('Final serialData:', this.serialData);
         });
     } else {
       this.billImportChoseSerialService
@@ -819,18 +834,6 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
 
     const data = this.serialData;
 
-    // // Validate: kiểm tra SerialNumber không được rỗng
-    // const isValid = data.every(
-    //   (row: any) => row.SerialNumber && row.SerialNumber.trim() !== ''
-    // );
-    // if (!isValid) {
-    //   this.notification.error(
-    //     NOTIFICATION_TITLE.error,
-    //     'Vui lòng nhập đầy đủ Serial cho tất cả dòng!'
-    //   );
-    //   return;
-    // }
-
     // Lấy danh sách serial hợp lệ
     const serialList = data
       .map((r: any) => (r.SerialNumberRTC || '').trim())
@@ -850,6 +853,25 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // REFACTOR: Nếu skipSaveDB = true, chỉ trả về danh sách serial, không lưu vào DB
+    if (this.skipSaveDB) {
+      // Chỉ lấy các serial có SerialNumber không rỗng
+      const validSerials = data
+        .filter((row: any) => row.SerialNumber && row.SerialNumber.trim() !== '')
+        .map((row: any, index: number) => ({
+          ID: 0, // ID = 0 nghĩa là serial mới chưa lưu
+          STT: index + 1,
+          Serial: row.SerialNumber.trim(),
+          SerialNumber: row.SerialNumber.trim(),
+          ModulaLocationDetailID: row.ModulaLocationDetailID ?? 0
+        }));
+
+      console.log('skipSaveDB = true, trả về serials:', validSerials);
+      this.activeModal.close(validSerials);
+      return;
+    }
+
+    // Nếu không skip, thực hiện luồng lưu vào DB như cũ
     if (this.isBillImport) {
       this.billImportChoseSerialService
         .getSerialProduct(this.dataBillDetail.ProductID ?? 0)

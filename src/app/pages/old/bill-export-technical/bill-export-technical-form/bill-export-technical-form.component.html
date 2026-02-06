@@ -48,7 +48,7 @@
         <nz-form-item>
           <nz-form-label>Nhà cung cấp<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn nhà cung cấp'">
-            <nz-select formControlName="SupplierSaleID" nzPlaceHolder="Chọn nhà cung cấp" name="SupplierSaleID" nzShowSearch nzAllowClear>
+            <nz-select formControlName="SupplierSaleID" nzPlaceHolder="Chọn nhà cung cấp" name="SupplierSaleID" nzShowSearch nzAllowClear (ngModelChange)="onSupplierChange($event)">
               <nz-option *ngFor="let item of nccList" [nzValue]="item.ID"
                 [nzLabel]="item.NameNCC" nzCustomContent>
                 {{ item.CodeNCC }} - {{ item.NameNCC }}
@@ -59,8 +59,16 @@
       <nz-col [nzSpan]="8">
         <nz-form-item>
           <nz-form-label required>Liên hệ<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="'Vui lòng nhập người liên hệ'">
-            <input nz-input formControlName="Deliver" name="Deliver" [disabled]="true" />
+          <nz-form-control [nzErrorTip]="'Vui lòng chọn người liên hệ'">
+            <nz-select formControlName="DeliverID" nzPlaceHolder="Chọn người liên hệ" name="DeliverID" nzShowSearch nzAllowClear (ngModelChange)="onDeliverChange($event)">
+              <nz-option
+                *ngFor="let item of emPloyeeLists"
+                [nzValue]="item.ID"
+                [nzLabel]="item.FullName"
+                nzCustomContent>
+                {{ item.EmployeeCode }} - {{ item.FullName }}
+              </nz-option>
+            </nz-select>
           </nz-form-control>
         </nz-form-item>
       </nz-col>

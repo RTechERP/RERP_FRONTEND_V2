@@ -1343,7 +1343,8 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
 
     // Xử lý sự kiện khi cell được edit
     this.angularGrid.slickGrid?.onCellChange.subscribe((e: any, args: any) => {
-      const columnId = this.columnDefinitions[args.cell]?.id;
+      // const columnId = this.columnDefinitions[args.cell]?.id;
+      const columnId = args.column?.id || args.column?.field;
 
       if (columnId === 'QuantityRequestExport') {
         const rowData = args.item;

@@ -50,7 +50,8 @@ export class LuckyNumberComponent implements OnInit {
         year: 2026,
         departmentID: 0,
         employeeID: 0,
-        keyword: ''
+        keyword: '',
+        isPerson: 0,
     }
 
     employeeLucky: any = {};
@@ -395,6 +396,7 @@ export class LuckyNumberComponent implements OnInit {
     loadData() {
 
         this.param.employeeID = this.isPerson == 0 ? 0 : this.appUserService?.currentUser?.EmployeeID || 0;
+        this.param.isPerson = this.isPerson;
         this.luckynumberService.getall(this.param).subscribe({
             next: (response) => {
 

@@ -505,8 +505,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   }
 
   ngOnInit(): void {
-    this.applyVisibilityRules();
     this.initializeGrids();
+    this.applyVisibilityRules();
     this.loadKPISession(); // Load real data from API
   }
 
@@ -535,28 +535,26 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       this.showTabRule = false;
       this.showTabTeam = false;
 
-      // Cập nhật hiển thị cột trong Grid Đánh giá (Tab 0)
-      this.evaluationColumns.forEach(col => {
-        // Ẩn các cột hệ số và điểm đánh giá chi tiết
-        if (['Coefficient', 'EmployeeCoefficient', 'TBPCoefficient', 'BGDCoefficient', 'TBPPoint', 'BGDPoint'].includes(col.id as string)) {
-          col.hidden = true;
-        }
-        // Luôn hiển thị cột Điểm chuẩn
-        if (col.id === 'StandardPoint') {
-          col.hidden = false;
-        }
-      });
+      // Cập nhật bằng cách lọc mảng (loại bỏ hoàn toàn cột) để tránh lỗi lệch Group Header
+      const evalHiddenIds = ['Coefficient', 'EmployeeCoefficient', 'TBPCoefficient', 'BGDCoefficient', 'TBPPoint', 'BGDPoint'];
+      this.evaluationColumns = this.evaluationColumns.filter(col => !evalHiddenIds.includes(col.id as string));
+      this.evaluation2Columns = this.evaluation2Columns.filter(col => !evalHiddenIds.includes(col.id as string));
+      this.evaluation4Columns = this.evaluation4Columns.filter(col => !evalHiddenIds.includes(col.id as string));
 
-      // Cập nhật hiển thị cột trong Grid Master (Tab 3 - Tổng hợp)
-      this.masterColumns.forEach(col => {
-        // Ẩn các cột thuộc nhóm gridBand2 (PLC, Vision, Software, AVG) và cột Chung
-        if (['PLCPoint', 'VisionPoint', 'SoftWarePoint', 'AVGPoint', 'GeneralPoint'].includes(col.id as string)) {
-          col.hidden = true;
-        }
-        // Hiển thị các cột thuộc nhóm gridBand8 (Phần trăm đạt được, Xếp loại) và cột Tổng điểm chuẩn
-        if (['PercentageAchieved', 'EvaluationRank', 'StandartPoint'].includes(col.id as string)) {
+      const masterHiddenIds = ['PLCPoint', 'VisionPoint', 'SoftWarePoint', 'AVGPoint', 'GeneralPoint'];
+      const masterShowIds = ['PercentageAchieved', 'EvaluationRank', 'StandartPoint'];
+
+      this.masterColumns = this.masterColumns.filter(col => {
+        // Loại bỏ các cột trong danh sách ẩn
+        if (masterHiddenIds.includes(col.id as string)) return false;
+
+        // Ép hiển thị các cột cần thiết cho TKCK
+        if (masterShowIds.includes(col.id as string)) {
           col.hidden = false;
+          return true;
         }
+
+        return true;
       });
     } else {
       // Chế độ xem bình thường: Đảm bảo các Tab được hiển thị

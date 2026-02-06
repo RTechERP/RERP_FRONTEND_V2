@@ -10,13 +10,15 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzImageService, NzImageModule } from 'ng-zorro-antd/image';
 
 @Component({
     selector: 'app-question-list',
     standalone: true,
-    imports: [CommonModule, MenubarModule, NzSpinModule],
+    imports: [CommonModule, MenubarModule, NzSpinModule, NzImageModule],
     templateUrl: './question-list.component.html',
-    styleUrls: ['./question-list.component.css']
+    styleUrls: ['./question-list.component.css'],
+    providers: [NzImageService]
 })
 export class QuestionListComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
     @Input() data: QuestionData[] = [];
@@ -62,17 +64,32 @@ export class QuestionListComponent implements OnInit, OnChanges, AfterViewInit, 
         { separator: true },
     ];
 
-    constructor(private notification: NzNotificationService) { }
+    constructor(
+        private notification: NzNotificationService,
+        private nzImageService: NzImageService
+    ) { }
 
     ngOnInit(): void { }
 
     ngOnChanges(changes: SimpleChanges): void {
+        console.log('QuestionList: ngOnChanges', changes);
+        // Retry initialization if table doesn't exist yet but view is ready
+        if (!this.table && this.tableRef && this.tableRef.nativeElement) {
+            console.log('QuestionList: Retrying initialization in ngOnChanges');
+            this.drawTable();
+        }
+
         if (this.table && this.isTableBuilt) {
             const el = this.table.element;
-            if (!el || !document.body.contains(el)) return;
+            if (!el || !document.body.contains(el)) {
+                console.warn('QuestionList: Table element detached');
+                return;
+            }
 
             if (changes['data']) {
+                console.log(`QuestionList: Replacing data with ${this.data.length} items`);
                 this.table.replaceData(this.data).then(() => {
+                    console.log('QuestionList: replaceData success');
                     if (this.autoSelectFirst) {
                         this.selectFirstRow();
                     }
@@ -112,7 +129,10 @@ export class QuestionListComponent implements OnInit, OnChanges, AfterViewInit, 
     }
 
     private drawTable(): void {
-        if (!this.tableRef) return;
+        if (!this.tableRef || !this.tableRef.nativeElement) return;
+
+        // Check visibility to avoid malformed table initialization
+        if (this.tableRef.nativeElement.offsetParent === null) return;
 
         this.table = new Tabulator(this.tableRef.nativeElement, {
             data: this.data,
@@ -151,15 +171,27 @@ export class QuestionListComponent implements OnInit, OnChanges, AfterViewInit, 
                     formatter: (cell: any) => {
                         const val = cell.getValue();
                         if (val && typeof val === 'string' && val.trim() !== '' && val !== 'null') {
-                            return `<i class="fa-solid fa-eye text-primary cursor-pointer" style="font-size: 1.1rem" title="Xem ảnh"></i>`;
+                            // Added padding and larger size for easier touch on mobile
+                            return `<i class="fa-solid fa-eye text-primary cursor-pointer" style="font-size: 1.3rem; padding: 10px;" title="Xem ảnh"></i>`;
                         }
                         return "";
                     },
                     cellClick: (e: any, cell: any) => {
                         const val = cell.getValue();
                         if (val && typeof val === 'string' && val.trim() !== '' && val !== 'null') {
+                            console.log('QuestionList: Image cellClick', val);
+                            e.preventDefault();
+                            e.stopPropagation();
                             this.viewImage(val);
-                            e.stopPropagation(); // Prevent row selection when clicking view icon
+                        }
+                    },
+                    cellTap: (e: any, cell: any) => {
+                        const val = cell.getValue();
+                        if (val && typeof val === 'string' && val.trim() !== '' && val !== 'null') {
+                            console.log('QuestionList: Image cellTap (mobile)', val);
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.viewImage(val);
                         }
                     },
                     vertAlign: 'middle',
@@ -220,12 +252,21 @@ export class QuestionListComponent implements OnInit, OnChanges, AfterViewInit, 
 
         // Event for row click (Edit focus)
         this.table.on('rowClick', (e: any, row: RowComponent) => {
+            if (e.target && e.target.closest('.fa-eye')) return; // Ignore eye icon
+            console.log('QuestionList: rowClick triggered', row.getData()['ID']);
             // Native selection handles highlighting now
+            this.questionFocused.emit(row.getData() as QuestionData);
+        });
+
+        this.table.on('rowTap', (e: any, row: RowComponent) => {
+            if (e.target && e.target.closest('.fa-eye')) return; // Ignore eye icon
+            console.log('QuestionList: rowTap triggered', row.getData()['ID']);
             this.questionFocused.emit(row.getData() as QuestionData);
         });
 
         // Event for row double click (Edit action)
         this.table.on('rowDblClick', (e: any, row: RowComponent) => {
+            if (e.target && e.target.closest('.fa-eye')) return; // Ignore eye icon
             // Ensure the row is focused/selected logic ran (it usually does via click)
             // But explicitly emitting focus here might be safer if click didn't fire (unlikely)
             this.questionFocused.emit(row.getData() as QuestionData);
@@ -267,17 +308,13 @@ export class QuestionListComponent implements OnInit, OnChanges, AfterViewInit, 
             return;
         }
 
-        console.log('Opening image URL:', imageUrl);
-
-        const newWindow = window.open(
-            imageUrl,
-            '_blank',
-            'width=1000,height=700'
-        );
-
-        if (!newWindow) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Popup bị chặn! Vui lòng cho phép popup trong trình duyệt.');
-        }
+        const images = [
+            {
+                src: imageUrl,
+                alt: 'Image Preview'
+            }
+        ];
+        this.nzImageService.preview(images, { nzZoom: 1.5, nzRotate: 0 });
     }
 
     selectFirstRow() {

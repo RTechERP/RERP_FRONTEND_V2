@@ -131,14 +131,14 @@ export class LuckyNumberComponent implements OnInit {
                 },
             },
 
-            // {
-            //     label: 'Sửa',
-            //     icon: 'fa-solid fa-file-pen fa-lg text-primary',
-            //     // visible: this.permissionService.hasPermission(""),
-            //     command: () => {
-            //         // this.onEdit();
-            //     },
-            // },
+            {
+                label: 'Sửa',
+                icon: 'fa-solid fa-file-pen fa-lg text-primary',
+                visible: this.isPerson == 1,
+                command: () => {
+                    this.onGetNumber();
+                },
+            },
             // {
             //     label: 'Xóa',
             //     icon: 'fa-solid fa-trash fa-lg text-danger',
@@ -345,7 +345,7 @@ export class LuckyNumberComponent implements OnInit {
             enableAutoSizeColumns: false,
         };
 
-        this.loadData();
+        this.loadData(true);
     }
 
     angularGridReady(angularGrid: AngularGridInstance) {
@@ -393,7 +393,7 @@ export class LuckyNumberComponent implements OnInit {
         });
     }
 
-    loadData() {
+    loadData(isAuto: boolean = false) {
 
         this.param.employeeID = this.isPerson == 0 ? 0 : this.appUserService?.currentUser?.EmployeeID || 0;
         this.param.isPerson = this.isPerson;
@@ -411,7 +411,7 @@ export class LuckyNumberComponent implements OnInit {
                     this.gridData.setSelectedRows([1]);
 
                     this.employeeLucky = this.dataset.find(x => x.EmployeeID == this.appUserService?.currentUser?.EmployeeID);
-                    if (this.employeeLucky) this.onGetNumber();
+                    if (this.employeeLucky && isAuto) this.onGetNumber();
                 }
                 // console.log('this.dataset:', this.dataset);
             },
@@ -625,6 +625,7 @@ export class LuckyNumberComponent implements OnInit {
         this.isVisible = false;
         this.luckyClass = '';
         this.modalBodyStyle = {};
+        this.loadData();
     }
 
 
@@ -668,9 +669,34 @@ export class LuckyNumberComponent implements OnInit {
 
     onChangeTab(event: any) {
 
-        console.log('event:', event.index);
+        // console.log('event:', event.index);
         if (event.index == 0) return;
+
+        this.updateImage();
+        // const fileUploads = this.fileList.map((x: any) => x.originFileObj);
+        // // console.log('this.employeeLucky:', this.employeeLucky);
+        // this.luckynumberService.uploadFile(fileUploads, this.employeeLucky.EmployeeLuckyNumberID, this.employeeLucky.PhoneNumber).subscribe({
+        //     next: (reponse) => {
+        //         // console.log(reponse);
+
+        //         if (reponse.status == 1) {
+        //             this.notification.success(NOTIFICATION_TITLE.success, reponse.message);
+        //         }
+        //     },
+        //     error: (err) => {
+        //         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+        //             {
+        //                 nzStyle: { whiteSpace: 'pre-line' }
+        //             });
+        //     }
+        // })
+    }
+
+
+    updateImage() {
         const fileUploads = this.fileList.map((x: any) => x.originFileObj);
+
+        if (fileUploads.length <= 0) return;
         // console.log('this.employeeLucky:', this.employeeLucky);
         this.luckynumberService.uploadFile(fileUploads, this.employeeLucky.EmployeeLuckyNumberID, this.employeeLucky.PhoneNumber).subscribe({
             next: (reponse) => {

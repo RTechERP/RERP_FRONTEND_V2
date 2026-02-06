@@ -71,20 +71,7 @@
 
     <div *nzModalFooter>
         <!-- <span>Modal Footer:</span> -->
-        <!-- <button nz-button nzType="default" (click)="handleCancel()">Custom Callback</button> -->
+        <button nz-button nzType="default" (click)="updateImage()">Cập nhật ảnh</button>
         <button nz-button nzType="primary" (click)="handleOk()">Quay số</button>
     </div>
 </nz-modal>
-
-
-<!-- <nz-modal [(nzVisible)]="isVisibleFinal" [nzTitle]="title" (nzOnCancel)="handleCancel()" [nzBodyStyle]="modalBodyStyle">
-
-    <ng-container *nzModalContent>
-
-        <div class="d-flex justify-content-center justify-items-center">
-            <p class="m-0 fw-bold text-danger" [style.color]="luckyColor">CON SỐ MAY MẮN CỦA BẠN LÀ:
-                {{luckyNumber}}
-            </p>
-        </div>
-    </ng-container>
-</nz-modal> -->

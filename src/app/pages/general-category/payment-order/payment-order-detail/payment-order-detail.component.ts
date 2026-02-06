@@ -330,6 +330,9 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 this.registerContracts = response.data.registerContracts;
                 this.projects = response.data.projects;
 
+
+                // console.log('this.supplierSales:', this.supplierSales);
+
                 this.initFormGroup();
             },
             error: (err) => {

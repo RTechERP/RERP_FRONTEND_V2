@@ -10,6 +10,7 @@ import { HomeLayoutService } from '../home-layout-service/home-layout.service';
 import { HolidayServiceService } from '../../../pages/hrm/holiday/holiday-service/holiday-service.service';
 import { Router, RouterLink } from '@angular/router';
 import { AppUserService } from '../../../services/app-user.service';
+import { BorrowService } from '../../../pages/old/inventory-demo/borrow/borrow-service/borrow.service';
 import { PermissionService } from '../../../services/permission.service';
 import { GroupItem, LeafItem, MenuItem, MenuService } from '../../../pages/systems/menus/menu-service/menu.service';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -78,6 +79,8 @@ export class HomeLayoutNewComponent implements OnInit {
     holidays: any[] = [];
     scheduleWorkSaturdays: any[] = [];
     quantityApprove: any = {};
+    quantityBorrow: any = {};
+    quantityBorrowExpried: any = {};
 
     isHoliday(date: Date): boolean {
         let isHoliday = this.holidays.some(
@@ -144,7 +147,8 @@ export class HomeLayoutNewComponent implements OnInit {
         private permissionService: PermissionService,
         private tabService: TabServiceService,
         private approveTpService: ApproveTpService,
-        private modalService: NgbModal
+        private modalService: NgbModal,
+        private borrowService: BorrowService
     ) { }
 
     ngOnInit(): void {
@@ -169,6 +173,7 @@ export class HomeLayoutNewComponent implements OnInit {
         this.getHoliday(this.today.getFullYear(), this.today.getMonth());
         this.getEmployeeOnleaveAndWFH();
         this.getQuantityApprove();
+        this.getQuantityBorrow();
         this.loadNewsletters();
     }
 
@@ -186,6 +191,21 @@ export class HomeLayoutNewComponent implements OnInit {
             }
         })
     }
+
+    getQuantityBorrow() {
+        this.borrowService.getQuantityBorrow().subscribe({
+            next: (res: any) => {
+                this.quantityBorrow = res.data.QuantitySemiExpired;
+                console.log('Sắp hết hạn:', this.quantityBorrow);
+                this.quantityBorrowExpried = res.data.QuantityExpired;
+                console.log('Hết hạn:', this.quantityBorrowExpried);
+            },
+            error: (err: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            }
+        })
+    }
+
     newTabApprove() {
         const approvalType = this.quantityApprove?.Type;
         // if (!approvalType || !this.quantityApprove || Object.keys(this.quantityApprove).length === 0) {

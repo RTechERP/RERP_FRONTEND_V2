@@ -135,8 +135,7 @@
     <div *ngIf="saving" class="px-3 pb-2">
       <nz-progress
         [nzPercent]="progressPercent"
-        [nzShowInfo]="true"
-        [nzFormat]="progressFormat"
+        [nzShowInfo]="false"
       ></nz-progress>
       <div class="text-center mt-2 fs-12 text-muted">
         {{ progressText }}

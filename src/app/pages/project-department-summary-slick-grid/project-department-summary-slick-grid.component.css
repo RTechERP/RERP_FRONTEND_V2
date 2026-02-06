@@ -315,3 +315,54 @@
     background-color: inherit !important;
     color: inherit !important;
 }
+
+/* Context Menu Icons - Custom image icons */
+::ng-deep .ctx-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    vertical-align: middle;
+}
+
+::ng-deep .ctx-icon-priority {
+    background-image: url('/assets/icon/priority_level_16.png');
+}
+
+::ng-deep .ctx-icon-participants {
+    background-image: url('/assets/icon/participants_16.png');
+}
+
+::ng-deep .ctx-icon-compare {
+    background-image: url('/assets/icon/compare_project_16.png');
+}
+
+::ng-deep .ctx-icon-additional {
+    background-image: url('/assets/icon/additional_goods_16.png');
+}
+
+::ng-deep .ctx-icon-solution {
+    background-image: url('/assets/icon/solution_16.png');
+}
+
+::ng-deep .ctx-icon-leader {
+    background-image: url('/assets/icon/update_leader_16.png');
+}
+
+::ng-deep .ctx-icon-history {
+    background-image: url('/assets/icon/problem_history_16.png');
+}
+
+::ng-deep .ctx-icon-status {
+    background-image: url('/assets/icon/project_status_16.png');
+}
+
+::ng-deep .ctx-icon-update {
+    background-image: url('/assets/icon/update_status_16.png');
+}
+
+::ng-deep .ctx-icon-sync {
+    background-image: url('/assets/icon/update_status2_16.png');
+}

@@ -757,6 +757,8 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
           d.KhoTypeID.toString() === khoTypeID
       );
 
+      console.log("=== groupDetails ===", groupDetails);
+
       return {
         CustomerID: Number(customerID),
         UserID: this.appUserService.id || 0,
@@ -1289,8 +1291,16 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         return rowData?.POKHDetailID;
       }).filter((id: any) => id !== undefined);
 
-      // Lấy danh sách POKHDetailID của dataset hiện tại
-      const datasetIds = this.dataset.map((d: any) => d.POKHDetailID);
+      // Lấy danh sách POKHDetailID của các dòng đang hiển thị trong dataView (sau filter)
+      const dataView = this.angularGrid.dataView;
+      const visibleItemCount = dataView?.getLength() || 0;
+      const visibleIds: any[] = [];
+      for (let i = 0; i < visibleItemCount; i++) {
+        const item = dataView?.getItem(i);
+        if (item && item.POKHDetailID !== undefined) {
+          visibleIds.push(item.POKHDetailID);
+        }
+      }
 
       // Tìm các dòng vừa được chọn (có trong currentSelectedIds nhưng chưa có trong selectedRowsAll)
       selectedRows.forEach((rowIdx: number) => {
@@ -1302,6 +1312,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
           if (index === -1) {
             // Thêm mới vào selectedRowsAll
             this.selectedRowsAll.push({ ...rowData });
+
+            // Nếu là parent row (có children), tự động chọn tất cả children
+            if (rowData.__hasChildren) {
+              this.selectChildrenOfParent(rowData.POKHDetailID);
+            }
           } else {
             // Cập nhật data mới nhất
             this.selectedRowsAll[index] = { ...rowData };
@@ -1309,8 +1324,9 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         }
       });
 
-      // Tìm các dòng vừa bị bỏ chọn (có trong dataset hiện tại, có trong selectedRowsAll, nhưng không có trong currentSelectedIds)
-      const deselectedIds = datasetIds.filter((id: any) =>
+      // Tìm các dòng vừa bị bỏ chọn (CHỈ trong các dòng đang hiển thị sau filter, có trong selectedRowsAll, nhưng không có trong currentSelectedIds)
+      // Điều này đảm bảo rằng các dòng bị filter ra vẫn giữ trạng thái select trong selectedRowsAll
+      const deselectedIds = visibleIds.filter((id: any) =>
         !currentSelectedIds.includes(id) &&
         this.selectedRowsAll.some(r => r['POKHDetailID'] === id)
       );
@@ -1363,4 +1379,52 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
     });
   }
   //#endregion
+
+  /**
+   * Tự động chọn tất cả descendants (con, cháu, chắt...) của một parent và cập nhật UI
+   */
+  private selectChildrenOfParent(parentId: number): void {
+    const grid = this.angularGrid?.slickGrid;
+    const dataView = this.angularGrid?.dataView;
+    if (!grid || !dataView) return;
+
+    const itemCount = dataView.getLength();
+    const childRowsToSelect: number[] = [];
+
+    // Hàm đệ quy để tìm tất cả descendants
+    const findAllDescendants = (parentIdToFind: number) => {
+      for (let i = 0; i < itemCount; i++) {
+        const item = dataView.getItem(i);
+        if (item && item.parentId === parentIdToFind) {
+          // Thêm vào selectedRowsAll nếu chưa có
+          if (!this.selectedRowsAll.some(r => r['POKHDetailID'] === item.POKHDetailID)) {
+            this.selectedRowsAll.push({ ...item });
+          }
+          childRowsToSelect.push(i);
+
+          // Nếu item này cũng có children, đệ quy tìm tiếp
+          if (item.__hasChildren) {
+            findAllDescendants(item.POKHDetailID);
+          }
+        }
+      }
+    };
+
+    // Bắt đầu tìm từ parentId được truyền vào
+    findAllDescendants(parentId);
+
+    // Cập nhật UI: thêm descendants vào danh sách selected rows của grid
+    if (childRowsToSelect.length > 0) {
+      const currentSelected = grid.getSelectedRows() || [];
+      const newSelected = [...new Set([...currentSelected, ...childRowsToSelect])];
+
+      // Set flag để tránh trigger lại event
+      this.isRestoringSelection = true;
+      grid.setSelectedRows(newSelected);
+
+      setTimeout(() => {
+        this.isRestoringSelection = false;
+      }, 50);
+    }
+  }
 }

@@ -163,14 +163,14 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
    */
   private employeePointFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
     const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
-    
+
     // Tạo tooltip công thức
     const employeePoint = Number(dataContext.EmployeePoint) || 0;
     const coefficient = Number(dataContext.Coefficient) || 0;
     const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
-    
+
     const tooltipText = `Điểm hệ số = Điểm nhân viên × Hệ số\n= ${employeePoint.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
-    
+
     return `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>`;
   };
 
@@ -585,7 +585,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'ExamCode',
         field: 'ExamCode',
         name: 'Mã bài đánh giá',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         cssClass: 'cell-multiline',
@@ -602,7 +602,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'ExamName',
         field: 'ExamName',
         name: 'Tên bài đánh giá',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         cssClass: 'cell-multiline',
@@ -619,7 +619,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'PositionName',
         field: 'PositionName',
         name: 'Vị trí',
-        width: 90,
+        minWidth: 90,
         sortable: true,
         filterable: true,
         cssClass: 'cell-multiline',
@@ -692,7 +692,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'Code',
         field: 'Code',
         name: 'Mã NV',
-        width: 80,
+        minWidth: 60,
         sortable: true,
         filterable: true,
       },
@@ -700,7 +700,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'FullName',
         field: 'FullName',
         name: 'Tên nhân viên',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         cssClass: 'cell-multiline',
@@ -717,13 +717,12 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'StatusKPIExamText',
         field: 'StatusKPIExamText',
         name: 'Trạng thái',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         cssClass: 'cell-multiline',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
-
           const status = dataContext.StatusKPIExam;
           let classes = 'status-cell-wrapper';
 
@@ -738,8 +737,9 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
           } else if (status === 3) {
             classes += ' cell-status-3';
           }
+          const escaped = this.escapeHtml(dataContext.StatusKPIExamText);
 
-          return `<div class="${classes}" title="${value}">${value}</div>`;
+          return `<div class="${classes}" title="${escaped}">${value}</div>`;
         },
         customTooltip: {
           useRegularTooltip: true,
@@ -749,7 +749,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'IsAdminConfirm',
         field: 'IsAdminConfirm',
         name: 'Amdin',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         filter: {

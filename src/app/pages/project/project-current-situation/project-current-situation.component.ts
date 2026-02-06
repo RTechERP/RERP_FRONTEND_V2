@@ -45,12 +45,12 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
     private activeModal: NgbActiveModal,
     private projectService: ProjectService,
     private appUserService: AppUserService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // Lấy thông tin user hiện tại
     this.currentUser = this.appUserService.currentUser;
-    
+
     this.form = new FormGroup({
       projectId: new FormControl(this.projectId || null, [Validators.required]),
       updatedBy: new FormControl(
@@ -62,7 +62,7 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
 
     this.getProjects();
     this.getEmployees();
-    
+
     // Nếu có projectId từ input, tự động load data
     if (this.projectId && this.projectId > 0) {
       // Load data ngay
@@ -70,7 +70,7 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
         this.loadData();
       }, 100);
     }
-    
+
     // Subscribe to projectId changes
     this.form.get('projectId')?.valueChanges.subscribe((value) => {
       if (value) {
@@ -125,8 +125,8 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
 
   loadData(): void {
     // Ưu tiên sử dụng projectId từ @Input, nếu không có thì lấy từ form
-    const projectId = this.projectId && this.projectId > 0 
-      ? this.projectId 
+    const projectId = this.projectId && this.projectId > 0
+      ? this.projectId
       : this.form.get('projectId')?.value;
     if (!projectId || projectId <= 0) {
       this.currentSituationData = [];
@@ -135,11 +135,11 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
       }
       return;
     }
-    
+
     this.projectService.getProjectCurrentSituationData(projectId).subscribe({
       next: (response: any) => {
-        if ( response.status === 1) {
-          this.currentSituationData =response.data;
+        if (response.status === 1) {
+          this.currentSituationData = response.data;
           if (this.tb_ProjectCurrentSituationTable) {
             this.tb_ProjectCurrentSituationTable.setData(this.currentSituationData);
           }
@@ -161,19 +161,19 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
     });
   }
 
-  saveData(): void {
+  saveData(isClose: boolean = false): void {
     // Validate form trước khi lưu
     if (!this.validateForm()) {
       return;
     }
 
     // Ưu tiên sử dụng projectId từ @Input, nếu không có thì lấy từ form
-    const projectId = this.projectId && this.projectId > 0 
-      ? this.projectId 
+    const projectId = this.projectId && this.projectId > 0
+      ? this.projectId
       : this.form.get('projectId')?.value;
     const content = this.form.get('content')?.value?.trim();
     const employeeId = this.currentUser?.EmployeeID || 0;
-    
+
     const payload = {
       ID: 0, // Tạo mới
       ProjectID: projectId,
@@ -186,10 +186,18 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response && response.status === 1) {
           this.notification.success('Thành công', response.message || 'Thêm tình hình hiện tại thành công!');
-          // Reset form content
-          this.form.get('content')?.setValue('');
-          // Reload data để cập nhật bảng (không đóng form)
-          this.loadData();
+
+          if (isClose) {
+            this.activeModal.close({ success: true });
+          } else {
+            // Reset form content (reset() xóa cả giá trị và trạng thái validation)
+            const contentControl = this.form.get('content');
+            if (contentControl) {
+              contentControl.reset('');
+            }
+            // Reload data để cập nhật bảng (không đóng form)
+            this.loadData();
+          }
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể lưu dữ liệu');
         }
@@ -200,6 +208,10 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
         this.notification.error('Lỗi', errorMessage);
       }
     });
+  }
+
+  saveAndClose(): void {
+    this.saveData(true);
   }
 
   //#region Validation methods
@@ -234,17 +246,17 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
   // Method để validate form
   validateForm(): boolean {
     this.trimAllStringControls();
-    
+
     // Nếu đã có projectId từ input, không cần validate projectId trong form
-    const requiredFields = this.projectId && this.projectId > 0 
-      ? ['content'] 
+    const requiredFields = this.projectId && this.projectId > 0
+      ? ['content']
       : ['projectId', 'content'];
-    
+
     const invalidFields = requiredFields.filter(key => {
       const control = this.form.get(key);
       return !control || control.invalid || control.value === '' || control.value == null;
     });
-    
+
     // Kiểm tra projectId nếu không có từ input
     if (!this.projectId || this.projectId <= 0) {
       const projectIdControl = this.form.get('projectId');
@@ -252,7 +264,7 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
         invalidFields.push('projectId');
       }
     }
-    
+
     if (invalidFields.length > 0) {
       this.form.markAllAsTouched();
       return false;
@@ -262,8 +274,8 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
   //#endregion
 
   closeModal(): void {
-    this.activeModal.close({ 
-      success: true 
+    this.activeModal.close({
+      success: true
     });
   }
 
@@ -280,7 +292,7 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
           field: 'FullName',
           hozAlign: 'left',
           width: 200,
-       
+
         },
         {
           title: 'Ngày cập nhật',

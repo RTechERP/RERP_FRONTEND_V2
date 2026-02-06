@@ -5,7 +5,7 @@
   </div>
 
   <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
-    <form nz-form [formGroup]="form" nzLayout="vertical" class="g-3 needs-validation was-validated">
+    <form nz-form [formGroup]="form" nzLayout="vertical" class="g-3 needs-validation">
       <!-- Hàng 1: Dự án -->
       <div class="row">
         <div class="col-md-12">
@@ -94,6 +94,9 @@
     </button>
     <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N1,N13,N27'" (click)="saveData()">
       Lưu
+    </button>
+    <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N1,N13,N27'" (click)="saveAndClose()">
+      Lưu và Đóng
     </button>
   </div>
 </div>

@@ -107,7 +107,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
   pageNumber: number = 1;
   pageSize: number = 50;
   totalPage: number = 1;
-  readonly pageSizeOptions: number[] = [10, 20, 50, 100];
+  readonly pageSizeOptions: number[] = [10, 20, 50, 100, 1000000];
   //#endregion
 
   //#region Load dữ liệu
@@ -173,7 +173,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
       employeeRequestId: this.employeeRequestId ?? 0,
       keyword: this.keyword?.trim() ?? '',
     };
-
+    0
     this.projectService.getPriceHistoryPartlist(data).subscribe({
       next: (response: any) => {
         let rawData = response.data || [];
@@ -252,7 +252,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
   }
 
   exportExcel() {
-    if (!this.angularGrid) return;
+    if (!this.angularGrid || !this.angularGrid.slickGrid) return;
 
     const datatable = this.angularGrid.dataView.getItems();
     if (!datatable || datatable.length === 0) {
@@ -260,14 +260,15 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
       return;
     }
 
-    this.projectService.exportExcelGroup(
-      this.angularGrid,
+    this.projectService.exportExcelGroupBinh(
+      this.angularGrid.slickGrid,
       datatable,
       'Lịch sử giá',
       'LichSuGia',
       'TableType'
     );
   }
+
 
   initGrid() {
     this.columnDefinitions = [
@@ -278,7 +279,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         width: 200,
         sortable: true,
         filterable: true,
-         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
             <span
@@ -309,7 +310,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         width: 250,
         sortable: true,
         filterable: true,
-         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
             <span

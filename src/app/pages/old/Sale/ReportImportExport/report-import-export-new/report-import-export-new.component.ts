@@ -41,7 +41,6 @@ import {
     OnSelectedRowsChangedEventArgs,
     MenuCommandItemCallbackArgs,
 } from 'angular-slickgrid';
-import { ExcelExportService } from '@slickgrid-universal/excel-export';
 
 interface ProductSale {
     Id?: number;
@@ -89,6 +88,13 @@ interface ProductGroup {
     styleUrl: './report-import-export-new.component.css',
 })
 export class ReportImportExportNewComponent implements OnInit, AfterViewInit, OnDestroy {
+    // Unique grid identifiers using crypto
+    private readonly uniqueId = crypto.randomUUID();
+    private readonly gridIdProductGroupUnique = `gridreportimportexportproductgroup${this.uniqueId}`;
+    private readonly gridIdReportUnique = `gridreportimportexportreport${this.uniqueId}`;
+    private readonly containerProductGroupClass = `gridcontainerreportimportexportproductgroup${this.uniqueId}`;
+    private readonly containerReportClass = `gridcontainerreportimportexportreport${this.uniqueId}`;
+
     // Grid instances
     angularGridProductGroup!: AngularGridInstance;
     angularGridReport!: AngularGridInstance;
@@ -152,9 +158,6 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
     // Subscriptions
     private subscriptions: Subscription[] = [];
 
-    // Excel export service
-    private excelExportService = new ExcelExportService();
-
     constructor(
         private reportImportExportService: ReportImportExportService,
         private notification: NzNotificationService,
@@ -192,11 +195,20 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
 
     // Grid ID getter
     get gridIdProductGroup(): string {
-        return `productGroup-${this.warehouseCode}`;
+        return this.gridIdProductGroupUnique;
     }
 
     get gridIdReport(): string {
-        return `report-${this.warehouseCode}`;
+        return this.gridIdReportUnique;
+    }
+
+    // Container class getters
+    get containerClassProductGroup(): string {
+        return this.containerProductGroupClass;
+    }
+
+    get containerClassReport(): string {
+        return this.containerReportClass;
     }
 
     //#region Grid Initialization
@@ -362,7 +374,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
         this.gridOptionsProductGroup = {
             enableAutoResize: true,
             autoResize: {
-                container: `.grid-container-productgroup-${this.warehouseCode}`,
+                container: `.${this.containerProductGroupClass}`,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -376,6 +388,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: true,
             enableAutoSizeColumns: true,
+            forceFitColumns: true,
             enableHeaderMenu: false,
         };
 
@@ -383,7 +396,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
         this.gridOptionsReport = {
             enableAutoResize: true,
             autoResize: {
-                container: `.grid-container-report-${this.warehouseCode}`,
+                container: `.${this.containerReportClass}`,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -400,8 +413,6 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
             frozenColumn: 3,
             enableHeaderMenu: false,
             enableContextMenu: true,
-            enableExcelExport: true,
-            externalResources: [this.excelExportService],
             contextMenu: {
                 commandItems: [
                     {
@@ -472,24 +483,18 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
 
     angularGridReadyReport(angularGrid: AngularGridInstance): void {
         this.angularGridReport = angularGrid;
-        setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
-            this.updateReportFooterRow();
-        }, 100);
 
         // Subscribe to dataView.onRowCountChanged để update footer khi filter
         if (angularGrid.dataView) {
             angularGrid.dataView.onRowCountChanged.subscribe(() => {
-                setTimeout(() => this.updateReportFooterRow(), 100);
+                this.updateReportFooterRow();
             });
         }
 
-        // Đăng ký sự kiện onRendered
-        if (angularGrid.slickGrid) {
-            angularGrid.slickGrid.onRendered.subscribe(() => {
-                setTimeout(() => this.updateReportFooterRow(), 50);
-            });
-        }
+        setTimeout(() => {
+            angularGrid.resizerService.resizeGrid();
+            this.updateReportFooterRow();
+        }, 100);
     }
 
     //#endregion
@@ -617,7 +622,7 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
                         // Map data với id unique cho SlickGrid
                         const mappedData = this.dataReport.map((item: any, index: number) => ({
                             ...item,
-                            id: item.ProductSaleID || `rpt_${index}_${Date.now()}`,
+                            id: `rpt_${index}_${Date.now()}`,
                         }));
 
                         this.datasetReport = mappedData;
@@ -689,44 +694,31 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
     //#region Footer Row
 
     updateReportFooterRow(): void {
-        if (!this.angularGridReport || !this.angularGridReport.slickGrid) return;
+        if (!this.angularGridReport || !this.angularGridReport.slickGrid || !this.angularGridReport.dataView) return;
 
         // Lấy dữ liệu đã lọc trên view
-        const items =
-            (this.angularGridReport.dataView?.getFilteredItems?.() as any[]) ||
-            this.datasetReport ||
-            [];
+        const items = this.angularGridReport.dataView.getFilteredItems() as any[] || [];
 
-        // Đếm số lượng sản phẩm
+        // Đếm số lượng sản phẩm - hiển thị ở cột ProductName
         const productCount = items.length;
+        const columnProductName = this.angularGridReport.slickGrid.getFooterRowColumn('ProductName' + this.warehouseCode);
+        if (columnProductName) {
+            columnProductName.textContent = this.formatNumber(productCount, 0);
+        }
 
-        // Các cột cần tính tổng
-        const sumFields = ['TonDauKy' + this.warehouseCode, 'Import1' + this.warehouseCode, 'Export1' + this.warehouseCode, 'TonCuoiKy' + this.warehouseCode];
+        // Tính tổng cho các cột số
+        const sumColumns = [
+            { id: 'TonDauKy' + this.warehouseCode, field: 'TonDauKy' },
+            { id: 'Import1' + this.warehouseCode, field: 'Import1' },
+            { id: 'Export1' + this.warehouseCode, field: 'Export1' },
+            { id: 'TonCuoiKy' + this.warehouseCode, field: 'TonCuoiKy' }
+        ];
 
-        // Tính tổng cho từng cột
-        const sums: { [key: string]: number } = {};
-        sumFields.forEach((field) => {
-            sums[field] = items.reduce((sum, item) => sum + (Number(item[field]) || 0), 0);
-        });
-
-        this.angularGridReport.slickGrid.setFooterRowVisibility(true);
-
-        // Set footer values cho từng column
-        const columns = this.angularGridReport.slickGrid.getColumns();
-        columns.forEach((col: any) => {
-            const footerCell = this.angularGridReport.slickGrid.getFooterRowColumn(col.id);
-            if (!footerCell) return;
-
-            // Count cho cột ProductName
-            if (col.id === 'ProductName' + this.warehouseCode) {
-                footerCell.innerHTML = `<b style="display:block;text-align:right;">${productCount}</b>`;
-            }
-            // Sum cho các cột số
-            else if (sumFields.includes(col.id)) {
-                const formattedValue = this.formatNumber(sums[col.id], 2);
-                footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
-            } else {
-                footerCell.innerHTML = '';
+        sumColumns.forEach(col => {
+            const sum = items.reduce((total, item) => total + (Number(item[col.field]) || 0), 0);
+            const columnElement = this.angularGridReport.slickGrid.getFooterRowColumn(col.id);
+            if (columnElement) {
+                columnElement.textContent = this.formatNumber(sum, 2);
             }
         });
     }
@@ -893,21 +885,187 @@ export class ReportImportExportNewComponent implements OnInit, AfterViewInit, On
     //#region Export Excel
 
     exportExcel(): void {
-        if (!this.angularGridReport) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Grid chưa sẵn sàng!');
+        const today = new Date();
+        const formattedDate = `${today.getDate().toString().padStart(2, '0')}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getFullYear().toString().slice(-2)}`;
+
+        if (!this.angularGridReport || !this.datasetReport || this.datasetReport.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Không có dữ liệu xuất excel!'
+            );
             return;
         }
 
-        const data = this.datasetReport;
-        if (!data || data.length === 0) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
-            return;
-        }
+        try {
+            // Get filtered data from grid
+            const items = this.angularGridReport.dataView?.getFilteredItems?.() || this.datasetReport;
 
-        this.excelExportService.exportToExcel({
-            filename: `BaoCaoNhapXuat_${this.warehouseCode}`,
-            format: 'xlsx',
-        });
+            // Create workbook
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Báo Cáo Nhập Xuất');
+
+            // Define columns with headers
+            const columns = [
+                { header: 'STT', key: 'stt', width: 8 },
+                { header: 'Tên nhóm', key: 'ProductGroupName', width: 20 },
+                { header: 'Mã sản phẩm', key: 'ProductCode', width: 15 },
+                { header: 'Mã nội bộ', key: 'ProductNewCode', width: 15 },
+                { header: 'Tên sản phẩm', key: 'ProductName', width: 30 },
+                { header: 'Hãng', key: 'Maker', width: 15 },
+                { header: 'ĐVT', key: 'Unit', width: 10 },
+                { header: 'Tồn ĐK', key: 'TonDauKy', width: 12 },
+                { header: 'Nhập', key: 'Import1', width: 12 },
+                { header: 'Xuất', key: 'Export1', width: 12 },
+                { header: 'Tồn CK', key: 'TonCuoiKy', width: 12 },
+                { header: 'Vị trí', key: 'AddressBox', width: 20 },
+                { header: 'Ghi chú', key: 'Note', width: 25 },
+            ];
+
+            worksheet.columns = columns;
+
+            // Style header row
+            const headerRow = worksheet.getRow(1);
+            headerRow.font = { bold: true, size: 11 };
+            headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            headerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFD9E1F2' }
+            };
+            headerRow.height = 25;
+
+            // Add border to header
+            headerRow.eachCell((cell: any) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            });
+
+            // Initialize sum variables for footer
+            const sums = {
+                TonDauKy: 0,
+                Import1: 0,
+                Export1: 0,
+                TonCuoiKy: 0,
+            };
+
+            // Add data rows
+            items.forEach((item: any, index: number) => {
+                const row = worksheet.addRow({
+                    stt: index + 1,
+                    ProductGroupName: item.ProductGroupName || '',
+                    ProductCode: item.ProductCode || '',
+                    ProductNewCode: item.ProductNewCode || '',
+                    ProductName: item.ProductName || '',
+                    Maker: item.Maker || '',
+                    Unit: item.Unit || '',
+                    TonDauKy: item.TonDauKy || 0,
+                    Import1: item.Import1 || 0,
+                    Export1: item.Export1 || 0,
+                    TonCuoiKy: item.TonCuoiKy || 0,
+                    AddressBox: item.AddressBox || '',
+                    Note: item.Note || '',
+                });
+
+                // Add borders to data cells
+                row.eachCell((cell: any) => {
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                });
+
+                // Center align specific columns
+                row.getCell('stt').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('Unit').alignment = { horizontal: 'center', vertical: 'middle' };
+
+                // Number columns alignment and format
+                const numberCells = ['TonDauKy', 'Import1', 'Export1', 'TonCuoiKy'];
+                numberCells.forEach(key => {
+                    row.getCell(key).alignment = { horizontal: 'right', vertical: 'middle' };
+                    row.getCell(key).numFmt = '#,##0.00';
+                });
+
+                // Accumulate sums for footer
+                sums.TonDauKy += item.TonDauKy || 0;
+                sums.Import1 += item.Import1 || 0;
+                sums.Export1 += item.Export1 || 0;
+                sums.TonCuoiKy += item.TonCuoiKy || 0;
+            });
+
+            // Add footer row with totals
+            const footerRow = worksheet.addRow({
+                stt: '',
+                ProductGroupName: '',
+                ProductCode: '',
+                ProductNewCode: '',
+                ProductName: 'TỔNG',
+                Maker: '',
+                Unit: '',
+                TonDauKy: sums.TonDauKy,
+                Import1: sums.Import1,
+                Export1: sums.Export1,
+                TonCuoiKy: sums.TonCuoiKy,
+                AddressBox: '',
+                Note: '',
+            });
+
+            // Style footer row
+            footerRow.font = { bold: true, size: 11 };
+            footerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFD966' }
+            };
+
+            // Add borders and alignment to footer
+            footerRow.eachCell((cell: any, colNumber: any) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+
+                // Format number cells in footer (columns 8-11: TonDauKy, Import1, Export1, TonCuoiKy)
+                if (colNumber >= 8 && colNumber <= 11) {
+                    cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                    cell.numFmt = '#,##0.00';
+                } else {
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                }
+            });
+
+            // Save workbook
+            workbook.xlsx.writeBuffer().then((buffer: any) => {
+                const blob = new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = `BaoCaoNhapXuat_${this.warehouseCode}_${formattedDate}.xlsx`;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+
+                this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    'Xuất file Excel thành công!',
+                    { nzDuration: 1000 }
+                );
+            });
+        } catch (error) {
+            console.error('Lỗi khi xuất Excel:', error);
+            this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Có lỗi xảy ra khi xuất file Excel'
+            );
+        }
     }
 
     //#endregion

@@ -149,12 +149,15 @@
 
         <input nz-input nzSize="small" placeholder="Nhập từ khóa" style="width: 230px; font-size: 0.75rem !important;"
             [(ngModel)]="txtKeywords" (keyup.enter)="btnSearch_Click()" class="fs-12" />
-
-        <button style="font-size: 0.75rem !important;" type="button" nz-button nzType="primary" nzSize="small"
+            <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
+                                        (click)="btnSearch_Click()">
+                                        <nz-icon nzType="search" />
+                                    </button>
+        <!-- <button style="font-size: 0.75rem !important;" type="button" nz-button nzType="primary" nzSize="small"
             (click)="btnSearch_Click()" class="fs-12">
             <i nz-icon nzType="search"></i>
             Tìm kiếm
-        </button>
+        </button> -->
     </div>
 
     <!-- Main Content with Splitter -->

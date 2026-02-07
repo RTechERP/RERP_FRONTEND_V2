@@ -26,11 +26,11 @@ import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 import * as ExcelJS from 'exceljs';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { DailyReportExcelComponent } from '../DailyReportTech/daily-report-excel/daily-report-excel.component';
 import { DailyReportMachineDetailComponent } from './daily-report-machine-detail/daily-report-machine-detail.component';
 import { USER_ALL_REPORT_TECH } from '../../app.config';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { DailyReportExcelComponent } from '../DailyReportTech/daily-report-excel/daily-report-excel.component';
 
 @Component({
   selector: 'app-daily-report-machine',
@@ -1177,6 +1177,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
       centered: false,
     });
     modalRef.componentInstance.teams = this.teams;
+    modalRef.componentInstance.selectedTeamId = this.teamId; // Truyền teamId đã chọn vào modal
     modalRef.componentInstance.currentUser = this.currentUser;
     modalRef.componentInstance.projects = this.projects;
     modalRef.componentInstance.projectItems = [];

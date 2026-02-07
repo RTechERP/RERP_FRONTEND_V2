@@ -36,6 +36,7 @@ import {
     MultipleSelectOption,
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import * as ExcelJS from 'exceljs';
 
 // Interface cho Document Import
 interface DocumentImport {
@@ -317,6 +318,15 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
             },
+                        {
+                id: 'Address',
+                name: 'Địa chỉ',
+                field: 'Address',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
             {
                 id: 'CreatDate',
                 name: 'Ngày xuất',
@@ -346,21 +356,21 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                     } as MultipleSelectOption,
                 },
             },
-            {
-                id: 'WarehouseName',
-                name: 'Kho',
-                field: 'WarehouseName',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                    } as MultipleSelectOption,
-                },
-            },
+            // {
+            //     id: 'WarehouseName',
+            //     name: 'Kho',
+            //     field: 'WarehouseName',
+            //     width: 120,
+            //     sortable: true,
+            //     filterable: true,
+            //     filter: {
+            //         collection: [],
+            //         model: Filters['multipleSelect'],
+            //         filterOptions: {
+            //             autoAdjustDropHeight: true,
+            //         } as MultipleSelectOption,
+            //     },
+            // },
             {
                 id: 'FullNameSender',
                 name: 'Người giao',
@@ -434,6 +444,15 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
             },
+                        {
+                id: 'ProductTypeText',
+                name: 'Hàng xuất',
+                field: 'ProductTypeText',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
             {
                 id: 'SerialNumber',
                 name: 'SerialNumber',
@@ -488,7 +507,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
             rowSelectionOptions: {
                 selectActiveRow: false,
             },
-            frozenColumn: 3,
+            frozenColumn: 7,
             gridHeight: 600,
         };
     }
@@ -531,7 +550,14 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
 
     // #region Export Excel
     exportExcel() {
-        if (!this.angularGrid) {
+        const today = new Date();
+        const formattedDate = `${today.getDate().toString().padStart(2, '0')}${(
+            today.getMonth() + 1
+        )
+            .toString()
+            .padStart(2, '0')}${today.getFullYear().toString().slice(-2)}`;
+
+        if (!this.angularGrid || !this.dataset || this.dataset.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
                 'Không có dữ liệu xuất excel!'
@@ -539,17 +565,247 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        const formattedDate = new Date()
-            .toISOString()
-            .slice(2, 10)
-            .split('-')
-            .reverse()
-            .join('');
+        try {
+            // Get filtered data from grid
+            const items = this.angularGrid.dataView?.getFilteredItems?.() || this.dataset;
 
-        this.excelExportService.exportToExcel({
-            filename: `TongHopPhieuXuat_${formattedDate}`,
-            format: 'xlsx',
-        });
+            // Create workbook
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Tổng hợp phiếu xuất');
+
+            // Define columns with headers
+            const columns: any[] = [
+                { header: 'STT', key: 'stt', width: 8 },
+                { header: 'Nhận chứng từ', key: 'IsApproved', width: 12 },
+                { header: 'Ngày nhận', key: 'DateStatus', width: 15 },
+                { header: 'Trạng thái', key: 'nameStatus', width: 15 },
+                { header: 'Ngày yêu cầu xuất kho', key: 'RequestDate', width: 18 },
+                { header: 'Số phiếu', key: 'Code', width: 18 },
+                { header: 'Phòng ban', key: 'DepartmentName', width: 20 },
+                { header: 'Mã NV', key: 'EmployeeCode', width: 12 },
+                { header: 'Tên NV', key: 'FullName', width: 20 },
+                { header: 'Mã khách hàng', key: 'CustomerCode', width: 15 },
+                { header: 'Khách hàng', key: 'CustomerName', width: 25 },
+                { header: 'Mã NCC', key: 'CodeNCC', width: 12 },
+                { header: 'Nhà cung cấp', key: 'NameNCC', width: 25 },
+                { header: 'Địa chỉ', key: 'Address', width: 30 },
+                { header: 'Ngày xuất', key: 'CreatDate', width: 15 },
+                { header: 'Loại vật tư', key: 'ProductTypeText', width: 18 },
+                { header: 'Người giao', key: 'FullNameSender', width: 20 },
+                { header: 'Mã sản phẩm', key: 'ProductCode', width: 15 },
+                { header: 'Tổng số lượng', key: 'Qty', width: 15 },
+                { header: 'Tên sản phẩm', key: 'ProductName', width: 30 },
+                { header: 'ĐVT', key: 'Unit', width: 10 },
+                { header: 'Mã nội bộ', key: 'ProductNewCode', width: 15 },
+                { header: 'Dự án', key: 'ProjectNameText', width: 25 },
+                { header: 'Loại hàng', key: 'ItemType', width: 15 },
+                { header: 'Hàng xuất', key: 'ProductTypeTextExport', width: 15 },
+                { header: 'SerialNumber', key: 'SerialNumber', width: 20 },
+                { header: 'Ghi chú', key: 'Note', width: 25 },
+                { header: 'Trạng thái chứng từ', key: 'IsSuccessText', width: 25 },
+            ];
+
+            // Add dynamic document columns
+            if (this.dataDocumentImport && this.dataDocumentImport.length > 0) {
+                this.dataDocumentImport.forEach((doc) => {
+                    columns.push({
+                        header: doc.DocumentImportName || `D${doc.ID}`,
+                        key: `D${doc.ID}`,
+                        width: 25
+                    });
+                });
+            }
+
+            worksheet.columns = columns;
+
+            // Style header row
+            const headerRow = worksheet.getRow(1);
+            headerRow.font = { bold: true, size: 11 };
+            headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            headerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFD9E1F2' }
+            };
+            headerRow.height = 25;
+
+            // Add border to header
+            headerRow.eachCell((cell: any) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            });
+
+            // Initialize sum variables for footer
+            const sums = {
+                Qty: 0,
+            };
+
+            // Add data rows
+            items.forEach((item: any, index: number) => {
+                const rowData: any = {
+                    stt: index + 1,
+                    IsApproved: item.IsApproved ? 'V' : 'X',
+                    DateStatus: item.DateStatus ? DateTime.fromISO(item.DateStatus).toFormat('dd/MM/yyyy') : '',
+                    nameStatus: item.nameStatus || '',
+                    RequestDate: item.RequestDate ? DateTime.fromISO(item.RequestDate).toFormat('dd/MM/yyyy') : '',
+                    Code: item.Code || '',
+                    DepartmentName: item.DepartmentName || '',
+                    EmployeeCode: item.EmployeeCode || '',
+                    FullName: item.FullName || '',
+                    CustomerCode: item.CustomerCode || '',
+                    CustomerName: item.CustomerName || '',
+                    CodeNCC: item.CodeNCC || '',
+                    NameNCC: item.NameNCC || '',
+                    Address: item.Address || '',
+                    CreatDate: item.CreatDate ? DateTime.fromISO(item.CreatDate).toFormat('dd/MM/yyyy') : '',
+                    ProductTypeText: item.ProductTypeText || '',
+                    FullNameSender: item.FullNameSender || '',
+                    ProductCode: item.ProductCode || '',
+                    Qty: item.Qty || 0,
+                    ProductName: item.ProductName || '',
+                    Unit: item.Unit || '',
+                    ProductNewCode: item.ProductNewCode || '',
+                    ProjectNameText: item.ProjectNameText || '',
+                    ItemType: item.ItemType || '',
+                    ProductTypeTextExport: item.ProductTypeText || '',
+                    SerialNumber: item.SerialNumber || '',
+                    Note: item.Note || '',
+                    IsSuccessText: item.IsSuccessText || '',
+                };
+
+                // Add dynamic document columns data
+                if (this.dataDocumentImport && this.dataDocumentImport.length > 0) {
+                    this.dataDocumentImport.forEach((doc) => {
+                        const fieldKey = `D${doc.ID}`;
+                        rowData[fieldKey] = item[fieldKey] || '';
+                    });
+                }
+
+                const row = worksheet.addRow(rowData);
+
+                // Add borders to data cells
+                row.eachCell((cell: any) => {
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                });
+
+                // Center align specific columns
+                row.getCell('stt').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('IsApproved').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('DateStatus').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('RequestDate').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('CreatDate').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('Unit').alignment = { horizontal: 'center', vertical: 'middle' };
+
+                // Number columns alignment
+                row.getCell('Qty').alignment = { horizontal: 'right', vertical: 'middle' };
+                row.getCell('Qty').numFmt = '#,##0';
+
+                // Accumulate sums for footer
+                sums.Qty += item.Qty || 0;
+            });
+
+            // Add footer row with totals
+            const footerRowData: any = {
+                stt: '',
+                IsApproved: '',
+                DateStatus: '',
+                nameStatus: '',
+                RequestDate: '',
+                Code: 'TỔNG',
+                DepartmentName: '',
+                EmployeeCode: '',
+                FullName: '',
+                CustomerCode: '',
+                CustomerName: '',
+                CodeNCC: '',
+                NameNCC: '',
+                Address: '',
+                CreatDate: '',
+                ProductTypeText: '',
+                FullNameSender: '',
+                ProductCode: '',
+                Qty: sums.Qty,
+                ProductName: '',
+                Unit: '',
+                ProductNewCode: '',
+                ProjectNameText: '',
+                ItemType: '',
+                ProductTypeTextExport: '',
+                SerialNumber: '',
+                Note: '',
+                IsSuccessText: '',
+            };
+
+            // Add empty values for dynamic document columns in footer
+            if (this.dataDocumentImport && this.dataDocumentImport.length > 0) {
+                this.dataDocumentImport.forEach((doc) => {
+                    const fieldKey = `D${doc.ID}`;
+                    footerRowData[fieldKey] = '';
+                });
+            }
+
+            const footerRow = worksheet.addRow(footerRowData);
+
+            // Style footer row
+            footerRow.font = { bold: true, size: 11 };
+            footerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFD966' }
+            };
+
+            // Add borders and alignment to footer
+            footerRow.eachCell((cell: any, colNumber: any) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+
+                // Format number cells in footer
+                if (colNumber === 19) { // Qty column
+                    cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                    cell.numFmt = '#,##0';
+                } else {
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                }
+            });
+
+            // Save workbook
+            workbook.xlsx.writeBuffer().then((buffer: any) => {
+                const blob = new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = `TongHopPhieuXuat_${this.warehouseCode}_${formattedDate}.xlsx`;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+
+                this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    'Xuất file Excel thành công!',
+                    { nzDuration: 1000 }
+                );
+            });
+        } catch (error) {
+            console.error('Lỗi khi xuất Excel:', error);
+            this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Có lỗi xảy ra khi xuất file Excel'
+            );
+        }
     }
     // #endregion
 

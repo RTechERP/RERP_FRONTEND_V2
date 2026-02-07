@@ -164,8 +164,7 @@ export class HomeLayoutNewComponent implements OnInit {
                 (this.employeeHRs.includes(this.employeeID) ||
                     this.departmentHRs.includes(this.departmentID)) || false;
 
-            this.isAdmin = (this.appUserService.currentUser?.IsAdmin &&
-                this.appUserService.currentUser?.EmployeeID <= 0) || false;
+            this.isAdmin = (this.appUserService.currentUser?.IsAdmin) || false;
         });
 
         this.getMenus();
@@ -176,7 +175,6 @@ export class HomeLayoutNewComponent implements OnInit {
         this.getQuantityBorrow();
         this.loadNewsletters();
     }
-
 
 
     getQuantityApprove() {
@@ -236,124 +234,138 @@ export class HomeLayoutNewComponent implements OnInit {
     getMenus() {
 
         // console.log('this.appUserService.currentUser:', this.appUserService.currentUser);
+        // this.menuAppService.getAll().subscribe({
+        //     next: (response) => {
+
+        //         const map = new Map<number, any>();
+        //         // this.nodes = [];
+        //         // Tạo map trước
+        //         response.data.menus.forEach((item: any) => {
+
+        //             let isPermission = item.IsPermission;
+
+        //             //Nếu là AGV-Cơ khí
+        //             if (item.Router == 'daily-report-machine') {
+        //                 isPermission = this.isAdmin ||
+        //                     this.departmentAgvCokhis.includes(this.departmentID) ||
+        //                     this.userAllReportTechs.includes(this.id);
+        //             }
+
+        //             //nếu là sale
+        //             if (item.Router == 'daily-report-sale-admin' || item.Router == 'daily-report-sale' || item.Code == 'M66') {
+        //                 isPermission = this.isAdmin || this.departmentSales.includes(this.departmentID);
+        //             }
+
+        //             //Nếu là Kỹ thuật
+        //             if (item.Router == 'daily-report-tech') {
+        //                 isPermission = this.isAdmin ||
+        //                     this.departmentTechs.includes(this.departmentID) ||
+        //                     this.userAllReportTechs.includes(this.id);
+        //             }
+
+        //             //Nếu là HR
+        //             if (item.Router == 'daily-report-thr' || item.Router == 'daily-report-lxcp' || item.Code == 'M70') {
+        //                 isPermission = this.isAdmin ||
+        //                     this.isHR ||
+        //                     this.positinCPs.includes(this.positionID) ||
+        //                     this.positinLXs.includes(this.positionID);
+        //             }
+
+        //             //Nếu là lắp rap
+        //             if (item.Router == 'daily-report-lr') {
+        //                 isPermission = this.isAdmin ||
+        //                     this.departmentLapraps.includes(this.departmentID) ||
+        //                     this.userAllReportTechs.includes(this.id);
+        //             }
+
+        //             //Nếu là MKT
+        //             if (item.Router == 'daily-report-mkt') {
+        //                 isPermission = this.isAdmin || this.marketings.includes(this.departmentID);
+        //             }
+
+        //             map.set(item.ID, {
+        //                 STT: item.STT,
+        //                 Code: item.Code,
+        //                 Title: item.Title,
+        //                 Router: item.Router == '' ? '' : `${environment.baseHref}/${item.Router}`,
+        //                 Icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+        //                 IsPermission: isPermission,
+        //                 IsOpen: true,
+        //                 ParentID: item.ParentID,
+        //                 Children: [],
+        //                 ID: item.ID,
+        //                 QueryParam: item.QueryParam ?? ''
+        //             });
+        //         });
+
+        //         // Gắn cha – con
+        //         response.data.menus.forEach((item: any) => {
+        //             const node = map.get(item.ID);
+
+        //             if (item.ParentID && map.has(item.ParentID)) {
+        //                 const parent = map.get(item.ParentID);
+        //                 parent.Children.push(node);
+        //             } else {
+        //                 this.menus.push(node);
+        //             }
+        //         });
+
+        //         // console.log('this.menus:', this.menus);
+
+        //         this.menus = this.menuAppService.sortBySTTImmutable(this.menus, i => i.STT ?? i.stt ?? 0);
+
+        //         this.menuApproves = this.menus.find((x) => x.Code == 'appvovedperson');
+        //         // console.log('this.menuApproves:', this.menuApproves);
+
+        //         var pesons = this.menus.find((x) => x.Code == 'person');
+        //         this.menuPersons = pesons.Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');
+
+        //         // this.menuPersons = pesons.Children
+        //         //     .filter((x: any) =>
+        //         //         ['registerpayroll', 'dailyreport', 'registercommon'].includes(x.Code)
+        //         //     )
+        //         //     .map((item: any) => {
+        //         //         if (item.Code === 'dailyreport' && item.Children?.length) {
+        //         //             return {
+        //         //                 ...item,
+        //         //                 Children: item.Children.map((c: any) => ({
+        //         //                     ...c,
+        //         //                     IsPermission: false
+        //         //                 }))
+        //         //             };
+        //         //         }
+        //         //         return item;
+        //         //     });
+
+        //         // console.log('this.menuPersons', this.menuPersons);
+
+        //         this.menuWeekplans = pesons.Children.find((x: any) => x.Code == 'planweek');
+
+        //         this.menuQickAcesss = this.menus.find((x) => x.Code == 'M4');
+        //         // console.log('this.menuQickAcesss:', this.menuQickAcesss);
+        //         // console.log('this.menuWeekplans:', this.menuWeekplans);
+
+        //     },
+        //     error: (err) => {
+        //         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+        //     },
+        // })
 
 
-        this.menuAppService.getAll().subscribe({
-            next: (response) => {
+        const menuPersonCodes: any[] = ['registerpayroll', 'dailyreport', 'registercommon'];
+        this.menuService.getCompMenus('').subscribe(menus => {
 
-                const map = new Map<number, any>();
-                // this.nodes = [];
-                // Tạo map trước
-                response.data.menus.forEach((item: any) => {
+            // this.menuComps = menus;
 
-                    let isPermission = item.IsPermission;
+            this.menus = menus;
+            // console.log('this.menus:', this.menus);
 
-                    //Nếu là AGV-Cơ khí
-                    if (item.Router == 'daily-report-machine') {
-                        isPermission = this.isAdmin ||
-                            this.departmentAgvCokhis.includes(this.departmentID) ||
-                            this.userAllReportTechs.includes(this.id);
-                    }
-
-                    //nếu là sale
-                    if (item.Router == 'daily-report-sale-admin' || item.Router == 'daily-report-sale' || item.Code == 'M66') {
-                        isPermission = this.isAdmin || this.departmentSales.includes(this.departmentID);
-                    }
-
-                    //Nếu là Kỹ thuật
-                    if (item.Router == 'daily-report-tech') {
-                        isPermission = this.isAdmin ||
-                            this.departmentTechs.includes(this.departmentID) ||
-                            this.userAllReportTechs.includes(this.id);
-                    }
-
-                    //Nếu là HR
-                    if (item.Router == 'daily-report-thr' || item.Router == 'daily-report-lxcp' || item.Code == 'M70') {
-                        isPermission = this.isAdmin ||
-                            this.isHR ||
-                            this.positinCPs.includes(this.positionID) ||
-                            this.positinLXs.includes(this.positionID);
-                    }
-
-                    //Nếu là lắp rap
-                    if (item.Router == 'daily-report-lr') {
-                        isPermission = this.isAdmin ||
-                            this.departmentLapraps.includes(this.departmentID) ||
-                            this.userAllReportTechs.includes(this.id);
-                    }
-
-                    //Nếu là MKT
-                    if (item.Router == 'daily-report-mkt') {
-                        isPermission = this.isAdmin || this.marketings.includes(this.departmentID);
-                    }
-
-                    map.set(item.ID, {
-                        STT: item.STT,
-                        Code: item.Code,
-                        Title: item.Title,
-                        Router: item.Router == '' ? '' : `${environment.baseHref}/${item.Router}`,
-                        Icon: `${environment.host}api/share/software/icon/${item.Icon}`,
-                        IsPermission: isPermission,
-                        IsOpen: true,
-                        ParentID: item.ParentID,
-                        Children: [],
-                        ID: item.ID,
-                        QueryParam: item.QueryParam ?? ''
-                    });
-                });
-
-                // Gắn cha – con
-                response.data.menus.forEach((item: any) => {
-                    const node = map.get(item.ID);
-
-                    if (item.ParentID && map.has(item.ParentID)) {
-                        const parent = map.get(item.ParentID);
-                        parent.Children.push(node);
-                    } else {
-                        this.menus.push(node);
-                    }
-                });
-
-                // console.log('this.menus:', this.menus);
-
-                this.menus = this.menuAppService.sortBySTTImmutable(this.menus, i => i.STT ?? i.stt ?? 0);
-
-                this.menuApproves = this.menus.find((x) => x.Code == 'appvovedperson');
-                // console.log('this.menuApproves:', this.menuApproves);
-
-                var pesons = this.menus.find((x) => x.Code == 'person');
-                this.menuPersons = pesons.Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');
-
-                // this.menuPersons = pesons.Children
-                //     .filter((x: any) =>
-                //         ['registerpayroll', 'dailyreport', 'registercommon'].includes(x.Code)
-                //     )
-                //     .map((item: any) => {
-                //         if (item.Code === 'dailyreport' && item.Children?.length) {
-                //             return {
-                //                 ...item,
-                //                 Children: item.Children.map((c: any) => ({
-                //                     ...c,
-                //                     IsPermission: false
-                //                 }))
-                //             };
-                //         }
-                //         return item;
-                //     });
-
-                // console.log('this.menuPersons', this.menuPersons);
-
-                this.menuWeekplans = pesons.Children.find((x: any) => x.Code == 'planweek');
-
-                this.menuQickAcesss = this.menus.find((x) => x.Code == 'M4');
-                // console.log('this.menuQickAcesss:', this.menuQickAcesss);
-                // console.log('this.menuWeekplans:', this.menuWeekplans);
-
-            },
-            error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-            },
-        })
+            this.menuApproves = this.menus.find((x) => x.key == 'appvovedperson');
+            var pesons = this.menus.find((x) => x.key == 'person');
+            this.menuPersons = pesons.children.filter((x: any) => menuPersonCodes.includes(x.key));
+            this.menuWeekplans = pesons.children.find((x: any) => x.key == 'planweek');
+            this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
+        });
     }
 
 

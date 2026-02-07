@@ -32,6 +32,7 @@ import {
   OnEventArgs,
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import * as ExcelJS from 'exceljs';
 
 // Interface cho Document Import
 interface DocumentImport {
@@ -566,15 +567,15 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
       },
-      // {
-      //   id: 'FullNameSender',
-      //   name: 'Người giao',
-      //   field: 'FullNameSender',
-      //   width: 150,
-      //   sortable: true,
-      //   filterable: true,
-      //   filter: { model: Filters['compoundInputText'] },
-      // },
+      {
+        id: 'DeliverFullName',
+        name: 'Người giao',
+        field: 'Deliver',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
       {
         id: 'ProductName',
         name: 'Tên sản phẩm',
@@ -664,15 +665,15 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
       },
-      // {
-      //   id: 'SerialNumber',
-      //   name: 'SerialNumber',
-      //   field: 'SerialNumber',
-      //   width: 150,
-      //   sortable: true,
-      //   filterable: true,
-      //   filter: { model: Filters['compoundInputText'] },
-      // },
+      {
+        id: 'SerialNumber',
+        name: 'Serial Number',
+        field: 'SerialNumber',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
       {
         id: 'Note',
         name: 'Ghi chú',
@@ -1066,7 +1067,14 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
 
   // #region Export Excel
   exportExcel() {
-    if (!this.angularGrid) {
+    const today = new Date();
+    const formattedDate = `${today.getDate().toString().padStart(2, '0')}${(
+      today.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, '0')}${today.getFullYear().toString().slice(-2)}`;
+
+    if (!this.angularGrid || !this.dataset || this.dataset.length === 0) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
         'Không có dữ liệu xuất excel!'
@@ -1074,17 +1082,304 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const formattedDate = new Date()
-      .toISOString()
-      .slice(2, 10)
-      .split('-')
-      .reverse()
-      .join('');
+    try {
+      // Get filtered data from grid
+      const items = this.angularGrid.dataView?.getFilteredItems?.() || this.dataset;
 
-    this.excelExportService.exportToExcel({
-      filename: `TongHopPhieuNhap_${formattedDate}`,
-      format: 'xlsx',
-    });
+      // Create workbook
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Tổng hợp phiếu nhập');
+
+      // Define columns with headers
+      const columns: any[] = [
+        { header: 'STT', key: 'stt', width: 8 },
+        { header: 'Nhận chứng từ', key: 'Status', width: 12 },
+        { header: 'Ngày nhận/hủy CT', key: 'DateStatus', width: 15 },
+        { header: 'Người nhận/hủy CT', key: 'DoccumentReceiver', width: 18 },
+        { header: 'Loại phiếu', key: 'BillTypeText', width: 15 },
+        { header: 'Ngày Y/c nhập', key: 'DateRequestImport', width: 15 },
+        { header: 'Số phiếu', key: 'BillImportCode', width: 20 },
+        { header: 'Mã NCC', key: 'CodeNCC', width: 15 },
+        { header: 'Nhà cung cấp / Bộ phận', key: 'NameNCC', width: 30 },
+        { header: 'Phòng ban', key: 'DepartmentName', width: 20 },
+        { header: 'Mã NV', key: 'Code', width: 12 },
+        { header: 'Người giao / Người trả', key: 'Deliver', width: 22 },
+        { header: 'Người nhận', key: 'Reciver', width: 18 },
+        { header: 'Ngày nhập kho', key: 'CreatDateActual', width: 15 },
+        { header: 'Loại vật tư', key: 'KhoType', width: 18 },
+        { header: 'Kho', key: 'WarehouseName', width: 12 },
+        { header: 'Mã hàng', key: 'ProductCode', width: 15 },
+        { header: 'ĐVT', key: 'Unit', width: 10 },
+        { header: 'Mã nội bộ', key: 'ProductNewCode', width: 15 },
+        { header: 'SL thực tế', key: 'Qty', width: 12 },
+        { header: 'Loại hàng', key: 'Maker', width: 15 },
+        { header: 'Hóa đơn', key: 'IsBill', width: 10 },
+        { header: 'Số hóa đơn', key: 'SomeBill', width: 15 },
+        { header: 'Ngày hóa đơn', key: 'DateSomeBill', width: 15 },
+        { header: 'Số ngày công nợ', key: 'DPO', width: 15 },
+        { header: 'Ngày tới hạn', key: 'DueDate', width: 15 },
+        { header: 'Tiền thuế giảm', key: 'TaxReduction', width: 15 },
+        { header: 'Chi phí FE', key: 'COFormE', width: 15 },
+        { header: 'Mã dự án', key: 'ProjectCodeText', width: 15 },
+        { header: 'Người giao', key: 'DeliverFullName', width: 20 },
+        { header: 'Tên sản phẩm', key: 'ProductName', width: 30 },
+        { header: 'Mã theo dự án', key: 'ProjectCode', width: 15 },
+        { header: 'Tên dự án', key: 'ProjectNameText', width: 30 },
+        { header: 'Đơn mua hàng', key: 'BillCodePO', width: 15 },
+        { header: 'Đơn giá', key: 'UnitPricePO', width: 15 },
+        { header: 'Thuế', key: 'VATPO', width: 12 },
+        { header: 'Tổng tiền', key: 'TotalPricePO', width: 15 },
+        { header: 'Loại tiền', key: 'CurrencyCode', width: 12 },
+        { header: 'Serial Number', key: 'SerialNumber', width: 20 },
+        { header: 'Ghi chú', key: 'Note', width: 25 },
+        { header: 'Trạng thái chứng từ', key: 'IsSuccessText', width: 25 },
+      ];
+
+      // Add dynamic document columns
+      if (this.documents && this.documents.length > 0) {
+        this.documents.forEach((doc) => {
+          columns.push({
+            header: doc.DocumentImportName || `D${doc.ID}`,
+            key: `D${doc.ID}`,
+            width: 25
+          });
+        });
+      }
+
+      worksheet.columns = columns;
+
+      // Style header row
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, size: 11 };
+      headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFD9E1F2' }
+      };
+      headerRow.height = 25;
+
+      // Add border to header
+      headerRow.eachCell((cell: any) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // Initialize sum variables for footer
+      const sums = {
+        Qty: 0,
+        DPO: 0,
+        TaxReduction: 0,
+        COFormE: 0,
+        UnitPricePO: 0,
+        VATPO: 0,
+        TotalPricePO: 0,
+      };
+
+      // Add data rows
+      items.forEach((item: any, index: number) => {
+        const rowData: any = {
+          stt: index + 1,
+          Status: item.Status ? 'V' : 'X',
+          DateStatus: item.DateStatus ? DateTime.fromISO(item.DateStatus).toFormat('dd/MM/yyyy') : '',
+          DoccumentReceiver: item.DoccumentReceiver || '',
+          BillTypeText: item.BillTypeText || '',
+          DateRequestImport: item.DateRequestImport ? DateTime.fromISO(item.DateRequestImport).toFormat('dd/MM/yyyy') : '',
+          BillImportCode: item.BillImportCode || '',
+          CodeNCC: item.CodeNCC || '',
+          NameNCC: item.NameNCC || '',
+          DepartmentName: item.DepartmentName || '',
+          Code: item.Code || '',
+          Deliver: item.Deliver || '',
+          Reciver: item.Reciver || '',
+          CreatDateActual: item.CreatDateActual ? DateTime.fromISO(item.CreatDateActual).toFormat('dd/MM/yyyy') : '',
+          KhoType: item.KhoType || '',
+          WarehouseName: item.WarehouseName || '',
+          ProductCode: item.ProductCode || '',
+          Unit: item.Unit || '',
+          ProductNewCode: item.ProductNewCode || '',
+          Qty: item.Qty || 0,
+          Maker: item.Maker || '',
+          IsBill: item.IsBill ? 'V' : 'X',
+          SomeBill: item.SomeBill || '',
+          DateSomeBill: item.DateSomeBill ? DateTime.fromISO(item.DateSomeBill).toFormat('dd/MM/yyyy') : '',
+          DPO: item.DPO || 0,
+          DueDate: item.DueDate ? DateTime.fromISO(item.DueDate).toFormat('dd/MM/yyyy') : '',
+          TaxReduction: item.TaxReduction || 0,
+          COFormE: item.COFormE || 0,
+          ProjectCodeText: item.ProjectCodeText || '',
+          DeliverFullName: item.Deliver || '',
+          ProductName: item.ProductName || '',
+          ProjectCode: item.ProjectCode || '',
+          ProjectNameText: item.ProjectNameText || '',
+          BillCodePO: item.BillCodePO || '',
+          UnitPricePO: item.UnitPricePO || 0,
+          VATPO: item.VATPO || 0,
+          TotalPricePO: item.TotalPricePO || 0,
+          CurrencyCode: item.CurrencyCode || '',
+          SerialNumber: item.SerialNumber || '',
+          Note: item.Note || '',
+          IsSuccessText: item.IsSuccessText || '',
+        };
+
+        // Add dynamic document columns data
+        if (this.documents && this.documents.length > 0) {
+          this.documents.forEach((doc) => {
+            const fieldKey = `D${doc.ID}`;
+            rowData[fieldKey] = item[fieldKey] || '';
+          });
+        }
+
+        const row = worksheet.addRow(rowData);
+
+        // Add borders to data cells
+        row.eachCell((cell: any) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+
+        // Center align specific columns
+        row.getCell('stt').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('Status').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('DateStatus').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('DateRequestImport').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('CreatDateActual').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('DateSomeBill').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('DueDate').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('Unit').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('IsBill').alignment = { horizontal: 'center', vertical: 'middle' };
+
+        // Number columns alignment
+        const numberCells = ['Qty', 'DPO', 'TaxReduction', 'COFormE', 'UnitPricePO', 'VATPO', 'TotalPricePO'];
+        numberCells.forEach(key => {
+          row.getCell(key).alignment = { horizontal: 'right', vertical: 'middle' };
+          row.getCell(key).numFmt = '#,##0';
+        });
+
+        // Accumulate sums for footer
+        sums.Qty += item.Qty || 0;
+        sums.DPO += item.DPO || 0;
+        sums.TaxReduction += item.TaxReduction || 0;
+        sums.COFormE += item.COFormE || 0;
+        sums.UnitPricePO += item.UnitPricePO || 0;
+        sums.VATPO += item.VATPO || 0;
+        sums.TotalPricePO += item.TotalPricePO || 0;
+      });
+
+      // Add footer row with totals
+      const footerRowData: any = {
+        stt: '',
+        Status: '',
+        DateStatus: '',
+        DoccumentReceiver: '',
+        BillTypeText: '',
+        DateRequestImport: '',
+        BillImportCode: 'TỔNG',
+        CodeNCC: '',
+        NameNCC: '',
+        DepartmentName: '',
+        Code: '',
+        Deliver: '',
+        Reciver: '',
+        CreatDateActual: '',
+        KhoType: '',
+        WarehouseName: '',
+        ProductCode: '',
+        Unit: '',
+        ProductNewCode: '',
+        Qty: sums.Qty,
+        Maker: '',
+        IsBill: '',
+        SomeBill: '',
+        DateSomeBill: '',
+        DPO: sums.DPO,
+        DueDate: '',
+        TaxReduction: sums.TaxReduction,
+        COFormE: sums.COFormE,
+        ProjectCodeText: '',
+        DeliverFullName: '',
+        ProductName: '',
+        ProjectCode: '',
+        ProjectNameText: '',
+        BillCodePO: '',
+        UnitPricePO: sums.UnitPricePO,
+        VATPO: sums.VATPO,
+        TotalPricePO: sums.TotalPricePO,
+        CurrencyCode: '',
+        SerialNumber: '',
+        Note: '',
+        IsSuccessText: '',
+      };
+
+      // Add empty values for dynamic document columns in footer
+      if (this.documents && this.documents.length > 0) {
+        this.documents.forEach((doc) => {
+          const fieldKey = `D${doc.ID}`;
+          footerRowData[fieldKey] = '';
+        });
+      }
+
+      const footerRow = worksheet.addRow(footerRowData);
+
+      // Style footer row
+      footerRow.font = { bold: true, size: 11 };
+      footerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFD966' }
+      };
+
+      // Add borders and alignment to footer
+      footerRow.eachCell((cell: any, colNumber: any) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+
+        // Format number cells in footer
+        if ([20, 25, 27, 28, 34, 35, 36].includes(colNumber)) { // Qty, DPO, TaxReduction, COFormE, UnitPricePO, VATPO, TotalPricePO
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          cell.numFmt = '#,##0';
+        } else {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      });
+
+      // Save workbook
+      workbook.xlsx.writeBuffer().then((buffer: any) => {
+        const blob = new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `TongHopPhieuNhap_${this.warehouseCode}_${formattedDate}.xlsx`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Xuất file Excel thành công!',
+          { nzDuration: 1000 }
+        );
+      });
+    } catch (error) {
+      console.error('Lỗi khi xuất Excel:', error);
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Có lỗi xảy ra khi xuất file Excel'
+      );
+    }
   }
   // #endregion
 

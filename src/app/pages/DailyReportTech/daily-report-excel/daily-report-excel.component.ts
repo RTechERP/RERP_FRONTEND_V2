@@ -37,6 +37,7 @@ import { DailyReportTechService } from '../DailyReportTechService/daily-report-t
 })
 export class DailyReportExcelComponent implements OnInit, AfterViewInit {
   @Input() teams: any[] = []; // Nhận dữ liệu teams từ parent component
+  @Input() selectedTeamId: number = 0; // Nhận teamId đã chọn từ parent component
 
   form!: FormGroup;
   exporting: boolean = false;
@@ -52,10 +53,15 @@ export class DailyReportExcelComponent implements OnInit, AfterViewInit {
     const today = DateTime.local().toJSDate();
     const yesterday = DateTime.local().minus({ days: 1 }).toJSDate();
 
+    // Nếu có selectedTeamId từ parent (khác 0), tự động điền vào form
+    const initialTeamIds = this.selectedTeamId && this.selectedTeamId !== 0
+      ? [this.selectedTeamId]
+      : [];
+
     this.form = this.fb.group({
       dateStart: [yesterday, [Validators.required]],
       dateEnd: [today, [Validators.required]],
-      teamId: [[], [Validators.required, this.arrayNotEmptyValidator]],
+      teamId: [initialTeamIds, [Validators.required, this.arrayNotEmptyValidator]],
     });
   }
 
@@ -82,12 +88,12 @@ export class DailyReportExcelComponent implements OnInit, AfterViewInit {
     }
 
     const formValue = this.form.getRawValue();
-    
+
     // Validate ngày
     if (formValue.dateStart && formValue.dateEnd) {
       const startDate = DateTime.fromJSDate(formValue.dateStart);
       const endDate = DateTime.fromJSDate(formValue.dateEnd);
-      
+
       if (endDate < startDate) {
         this.notification.warning(NOTIFICATION_TITLE.warning, 'Đến ngày phải lớn hơn hoặc bằng Từ ngày!');
         return;
@@ -112,11 +118,11 @@ export class DailyReportExcelComponent implements OnInit, AfterViewInit {
     const teamName = teamNames || 'All';
 
     // Format dates
-    const dateStart = formValue.dateStart instanceof Date 
-      ? formValue.dateStart 
+    const dateStart = formValue.dateStart instanceof Date
+      ? formValue.dateStart
       : DateTime.fromJSDate(formValue.dateStart).toJSDate();
-    const dateEnd = formValue.dateEnd instanceof Date 
-      ? formValue.dateEnd 
+    const dateEnd = formValue.dateEnd instanceof Date
+      ? formValue.dateEnd
       : DateTime.fromJSDate(formValue.dateEnd).toJSDate();
 
     // Gọi API xuất Excel
@@ -154,7 +160,7 @@ export class DailyReportExcelComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         this.exporting = false;
-        
+
         // Xử lý lỗi nếu response là blob (có thể server trả về lỗi dạng blob)
         if (error.error instanceof Blob) {
           const reader = new FileReader();
@@ -162,7 +168,7 @@ export class DailyReportExcelComponent implements OnInit, AfterViewInit {
             try {
               const errorText = JSON.parse(reader.result as string);
               this.notification.error(
-                NOTIFICATION_TITLE.error, 
+                NOTIFICATION_TITLE.error,
                 errorText.message || errorText.Message || 'Có lỗi xảy ra khi xuất Excel!'
               );
             } catch {

@@ -549,3 +549,9 @@ body>.p-component {
   line-height: 1.5;
 }
 /* end dropdown combobox tự động xuống dòng */
+
+
+.slick-row.active {
+  background-color: #dae8f1 !important;
+  color: black !important;
+}

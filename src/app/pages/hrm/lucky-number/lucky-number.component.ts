@@ -50,7 +50,8 @@ export class LuckyNumberComponent implements OnInit {
         year: 2026,
         departmentID: 0,
         employeeID: 0,
-        keyword: ''
+        keyword: '',
+        isPerson: 0,
     }
 
     employeeLucky: any = {};
@@ -65,6 +66,7 @@ export class LuckyNumberComponent implements OnInit {
 
     spinStop$ = new Subject<void>();
     isVisible = false;
+    isVisibleFinal = false;
     year = 2026;
     luckyNumber = 0;
 
@@ -73,6 +75,7 @@ export class LuckyNumberComponent implements OnInit {
     modalBodyStyle: any = {};
 
     selectedIndex = 0;
+    employeeLuckyName = '';
 
 
     getBase64 = (file: File): Promise<string | ArrayBuffer | null> =>
@@ -106,10 +109,15 @@ export class LuckyNumberComponent implements OnInit {
                 ?? 0;
         });
 
-        console.log('isPerson:', this.isPerson);
+        // console.log('isPerson:', this.isPerson);
+
+        // this.isVisible = this.isPerson == 1;
+
 
         this.initMenuBar();
         this.initGrid();
+
+
     }
 
     initMenuBar() {
@@ -123,14 +131,14 @@ export class LuckyNumberComponent implements OnInit {
                 },
             },
 
-            // {
-            //     label: 'Sửa',
-            //     icon: 'fa-solid fa-file-pen fa-lg text-primary',
-            //     // visible: this.permissionService.hasPermission(""),
-            //     command: () => {
-            //         // this.onEdit();
-            //     },
-            // },
+            {
+                label: 'Sửa',
+                icon: 'fa-solid fa-file-pen fa-lg text-primary',
+                visible: this.isPerson == 1,
+                command: () => {
+                    this.onGetNumber();
+                },
+            },
             // {
             //     label: 'Xóa',
             //     icon: 'fa-solid fa-trash fa-lg text-danger',
@@ -153,14 +161,7 @@ export class LuckyNumberComponent implements OnInit {
                 icon: 'fa-solid fa-clover fa-lg text-success',
                 // visible: this.permissionService.hasPermission(""),
                 command: () => {
-                    const activeCell = this.angularGrid.slickGrid.getSelectedRows();
-                    console.log('activeCell:', activeCell);
-                    if (activeCell.length > 0) {
-                        this.isVisible = true;
-                        const rowIndex = activeCell[0];
-                        this.employeeLucky = this.angularGrid.dataView.getItem(rowIndex); //as EmployeeLuckyNumber;
-                        // console.log('item:', this.employeeLucky);
-                    }
+                    this.onGetNumber();
                 },
             },
             {
@@ -185,9 +186,22 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'STT',
                 type: 'number',
                 sortable: true, filterable: true,
+                minWidth: 50,
                 // formatter: Formatters.tree,
                 filter: { model: Filters['compoundInputNumber'] },
                 cssClass: 'text-center'
+
+            },
+            {
+                id: 'LuckyNumber',
+                name: 'Số may mắn',
+                field: 'LuckyNumber',
+                type: 'number',
+                sortable: true, filterable: true,
+                minWidth: 80,
+                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end'
 
             },
             {
@@ -196,6 +210,7 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'Code',
                 type: 'string',
                 sortable: true, filterable: true,
+                minWidth: 100,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 filter: { model: Filters['compoundInputText'] }
 
@@ -207,6 +222,7 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'FullName',
                 type: 'string',
                 sortable: true, filterable: true,
+                minWidth: 150,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 filter: { model: Filters['compoundInputText'] }
 
@@ -218,48 +234,42 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'PositionName',
                 type: 'string',
                 sortable: true, filterable: true,
+                minWidth: 150,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 filter: { model: Filters['compoundInputText'] }
 
             },
-            {
-                id: 'PhoneNumber',
-                name: 'SĐT',
-                field: 'PhoneNumber',
-                type: 'string',
-                sortable: true, filterable: true,
-                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
-                filter: { model: Filters['compoundInputText'] }
+            // {
+            //     id: 'PhoneNumber',
+            //     name: 'SĐT',
+            //     field: 'PhoneNumber',
+            //     type: 'string',
+            //     sortable: true, filterable: true,
+            //     minWidth: 200,
+            //     // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+            //     filter: { model: Filters['compoundInputText'] }
 
-            },
+            // },
             {
                 id: 'YearValue',
                 name: 'Năm',
                 field: 'YearValue',
                 type: 'number',
                 sortable: true, filterable: true,
+                minWidth: 50,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 filter: { model: Filters['compoundInputNumber'] },
                 cssClass: 'text-end'
 
             },
-            {
-                id: 'LuckyNumber',
-                name: 'Số may mắn',
-                field: 'LuckyNumber',
-                type: 'number',
-                sortable: true, filterable: true,
-                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
-                filter: { model: Filters['compoundInputNumber'] },
-                cssClass: 'text-end'
 
-            },
             {
                 id: 'ImageName',
                 name: 'Avartar',
                 field: 'ImageName',
                 type: 'number',
                 sortable: true, filterable: true,
+                minWidth: 200,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 filter: { model: Filters['compoundInputText'] },
                 onCellClick(e, args) {
@@ -276,6 +286,7 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'StartWorking',
                 type: 'string',
                 sortable: true, filterable: true,
+                minWidth: 100,
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center'
@@ -286,6 +297,7 @@ export class LuckyNumberComponent implements OnInit {
                 field: 'BirthOfDate',
                 type: 'string',
                 sortable: true, filterable: true,
+                minWidth: 100,
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center'
@@ -328,9 +340,12 @@ export class LuckyNumberComponent implements OnInit {
                 sanitizeDataExport: true,
                 exportWithFormatter: true,
             },
+
+            autoFitColumnsOnFirstLoad: false,
+            enableAutoSizeColumns: false,
         };
 
-        this.loadData();
+        this.loadData(true);
     }
 
     angularGridReady(angularGrid: AngularGridInstance) {
@@ -378,9 +393,10 @@ export class LuckyNumberComponent implements OnInit {
         });
     }
 
-    loadData() {
+    loadData(isAuto: boolean = false) {
 
         this.param.employeeID = this.isPerson == 0 ? 0 : this.appUserService?.currentUser?.EmployeeID || 0;
+        this.param.isPerson = this.isPerson;
         this.luckynumberService.getall(this.param).subscribe({
             next: (response) => {
 
@@ -391,7 +407,12 @@ export class LuckyNumberComponent implements OnInit {
                     id: i + 1
                 }));
 
-                if (this.isPerson == 1) this.gridData.setSelectedRows([1]);
+                if (this.isPerson == 1) {
+                    this.gridData.setSelectedRows([1]);
+
+                    this.employeeLucky = this.dataset.find(x => x.EmployeeID == this.appUserService?.currentUser?.EmployeeID);
+                    if (this.employeeLucky && isAuto) this.onGetNumber();
+                }
                 // console.log('this.dataset:', this.dataset);
             },
             error: (err) => {
@@ -422,6 +443,8 @@ export class LuckyNumberComponent implements OnInit {
 
     getRandomNumber() {
         this.isVisible = true;
+        this.isVisibleFinal = false;
+        this.modalBodyStyle = {};
 
         const interval = setInterval(() => {
             this.luckyNumber = Math.floor(Math.random() * 225) + 1;
@@ -449,6 +472,8 @@ export class LuckyNumberComponent implements OnInit {
                         'background-repeat': 'no-repeat',
                         'background-size': 'cover' // hoặc cover
                     };
+
+                    this.isVisibleFinal = true;
                 },
                 error: (err) => {
                     // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
@@ -462,6 +487,7 @@ export class LuckyNumberComponent implements OnInit {
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
                         });
+
                 },
             })
         }, 5000); // quay 5 giây
@@ -599,6 +625,7 @@ export class LuckyNumberComponent implements OnInit {
         this.isVisible = false;
         this.luckyClass = '';
         this.modalBodyStyle = {};
+        this.loadData();
     }
 
 
@@ -642,9 +669,34 @@ export class LuckyNumberComponent implements OnInit {
 
     onChangeTab(event: any) {
 
-        console.log('event:', event.index);
+        // console.log('event:', event.index);
         if (event.index == 0) return;
+
+        this.updateImage();
+        // const fileUploads = this.fileList.map((x: any) => x.originFileObj);
+        // // console.log('this.employeeLucky:', this.employeeLucky);
+        // this.luckynumberService.uploadFile(fileUploads, this.employeeLucky.EmployeeLuckyNumberID, this.employeeLucky.PhoneNumber).subscribe({
+        //     next: (reponse) => {
+        //         // console.log(reponse);
+
+        //         if (reponse.status == 1) {
+        //             this.notification.success(NOTIFICATION_TITLE.success, reponse.message);
+        //         }
+        //     },
+        //     error: (err) => {
+        //         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+        //             {
+        //                 nzStyle: { whiteSpace: 'pre-line' }
+        //             });
+        //     }
+        // })
+    }
+
+
+    updateImage() {
         const fileUploads = this.fileList.map((x: any) => x.originFileObj);
+
+        if (fileUploads.length <= 0) return;
         // console.log('this.employeeLucky:', this.employeeLucky);
         this.luckynumberService.uploadFile(fileUploads, this.employeeLucky.EmployeeLuckyNumberID, this.employeeLucky.PhoneNumber).subscribe({
             next: (reponse) => {
@@ -661,5 +713,25 @@ export class LuckyNumberComponent implements OnInit {
                     });
             }
         })
+    }
+
+
+    onGetNumber() {
+        const activeCell = this.angularGrid.slickGrid.getSelectedRows();
+
+        // console.log('activeCell:', activeCell);
+        if (activeCell.length > 0) {
+
+
+            this.isVisible = true;
+            const rowIndex = activeCell[0];
+
+            // console.log('Rowindex:', rowIndex);
+            // console.log('getItems:', this.angularGrid.dataView.getItems());
+            // this.employeeLucky = this.angularGrid.dataView.getItem(rowIndex); //as EmployeeLuckyNumber;
+            const item = this.angularGrid.dataView.getItem(rowIndex); //as EmployeeLuckyNumber;
+            if (item) this.employeeLucky = item;
+            this.employeeLuckyName = this.employeeLucky.Code + ' - ' + this.employeeLucky.FullName;
+        }
     }
 }

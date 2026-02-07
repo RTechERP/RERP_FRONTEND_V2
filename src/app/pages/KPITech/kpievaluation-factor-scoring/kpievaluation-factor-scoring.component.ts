@@ -130,6 +130,15 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
   departmentID: number = 2;
   isAdmin: boolean = false;
 
+  // Hằng số ID phòng ban CK (TKCK)
+  readonly departmentCK = 10;
+
+  // Các cờ hiển thị cho các Tab
+  showTabGeneral = true;     // Tab Đánh giá chung
+  showTabChuyenMon = true;   // Tab Đánh giá chuyên môn
+  showTabRule = true;        // Tab KPI Rule
+  showTabTeam = true;        // Tab Team Rule
+
   @Input() typeID: number = 0; // 2: TBP, 3: BGĐ, 4: Admin
   isPublic: boolean = true; // Default true matching logic
 
@@ -526,6 +535,8 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       console.log('showAdminConfirm', this.showAdminConfirm);
       // Khởi tạo grids SAU khi có typeID để editor được config đúng
       this.initializeGrids();
+      // Áp dụng logic ẩn/hiện tab và cột - PHẢI gọi TRƯỚC khi grid render
+      this.updateTabVisibility();
       this.loadDepartments();
       // Load initial data
       setTimeout(() => {
@@ -1076,14 +1087,14 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'EvaluatedType',
         field: 'EvaluatedType',
         name: 'Người đánh giá',
-        width: 429,
+        minWidth: 429,
         sortable: true
       },
       {
         id: 'SkillPoint',
         field: 'SkillPoint',
         name: 'Kỹ năng',
-        width: 160,
+        minWidth: 160,
         cssClass: 'text-right',
         sortable: true
       },
@@ -1091,20 +1102,46 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'GeneralPoint',
         field: 'GeneralPoint',
         name: 'Chung',
-        width: 160,
+        minWidth: 160,
         cssClass: 'text-right',
         sortable: true
+      },
+      {
+        id: 'StandartPoint',
+        field: 'StandartPoint',
+        name: 'Tổng điểm chuẩn',
+        minWidth: 150,
+        cssClass: 'text-right',
+        sortable: true,
+        hidden: true
       },
       {
         id: 'SpecializationPoint',
         field: 'SpecializationPoint',
         name: 'Chuyên môn',
-        width: 144,
         minWidth: 100,
         cssClass: 'text-right',
         sortable: true,
         resizable: true
-      }
+      },
+      {
+        id: 'PercentageAchieved',
+        field: 'PercentageAchieved',
+        name: 'Phần trăm đạt được',
+        minWidth: 150,
+        cssClass: 'text-right',
+        sortable: true,
+        hidden: true
+      },
+      {
+        id: 'EvaluationRank',
+        field: 'EvaluationRank',
+        name: 'Xếp loại',
+        minWidth: 120,
+        cssClass: 'text-center',
+        sortable: true,
+        hidden: true
+      },
     ];
 
     this.masterGridOptions = {
@@ -1119,7 +1156,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       enableSorting: true,
       enablePagination: false,
       // Tắt forceFitColumns để giữ nguyên độ rộng cột đã cấu hình
-      forceFitColumns: false
+      forceFitColumns: true
     };
   }
   //#endregion
@@ -2283,6 +2320,12 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
   // Event handlers
   onDepartmentChange(): void {
+    // Cập nhật departmentID từ selectedDepartmentID
+    this.departmentID = this.selectedDepartmentID;
+
+    // Cập nhật hiển thị tab và cột theo departmentID
+    this.updateTabVisibility();
+
     // Clear all dependent data when department changes
     this.selectedKPISessionID = null;
     this.kpiSessionData = [];
@@ -2294,12 +2337,74 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     }
   }
 
-  onKPISessionChange(): void {
-    // Clear dependent data when KPI session changes
-    this.clearDependentData();
+  /**
+   * Cập nhật hiển thị tab và cột theo departmentID
+   * Logic từ WinForms: LoadEventForTKCK
+   * - Nếu selectedDepartmentID == departmentCK (10): ẩn các Tab Chung, Rule, Team và ẩn các cột không cần thiết
+   */
+  private updateTabVisibility(): void {
+    // Logic theo selectedDepartmentID (tương ứng LoadEventForTKCK trong WinForm)
+    if (this.selectedDepartmentID === this.departmentCK) {
+      // Ẩn các Tab không cần thiết cho TKCK: Chung (1), Chuyên môn (2), Rule (4), Team (5)
+      this.showTabGeneral = false;
+      this.showTabChuyenMon  = true;
+      this.showTabRule = false;
+      this.showTabTeam = false;
 
-    // Load new data for the selected session
-    if (this.selectedKPISessionID) {
+      // Ẩn các cột không cần thiết cho TKCK bằng cách set hidden property
+      const evalHiddenIds = ['Coefficient', 'EmployeeCoefficient', 'TBPCoefficient', 'BGDCoefficient', 'TBPPoint', 'BGDPoint'];
+      const masterHiddenIds = ['PLCPoint', 'VisionPoint', 'SoftWarePoint', 'AVGPoint', 'GeneralPoint'];
+      const masterShowIds = ['PercentageAchieved', 'EvaluationRank', 'StandartPoint'];
+
+      // Xử lý evaluationColumns
+      this.evaluationColumns.forEach(col => {
+        if (evalHiddenIds.includes(col.id as string)) {
+          col.hidden = true;
+        }
+      });
+
+      // Xử lý evaluation2Columns
+      this.evaluation2Columns.forEach(col => {
+        if (evalHiddenIds.includes(col.id as string)) {
+          col.hidden = true;
+        }
+      });
+
+      // Xử lý evaluation4Columns
+      this.evaluation4Columns.forEach(col => {
+        if (evalHiddenIds.includes(col.id as string)) {
+          col.hidden = true;
+        }
+      });
+
+      // Xử lý masterColumns
+      this.masterColumns.forEach(col => {
+        if (masterHiddenIds.includes(col.id as string)) {
+          col.hidden = true;
+        } else if (masterShowIds.includes(col.id as string)) {
+          col.hidden = false;
+        }
+      });
+    } else {
+      // Chế độ xem bình thường: Đảm bảo các Tab được hiển thị
+      this.showTabGeneral = true;
+      this.showTabChuyenMon = true;
+      this.showTabRule = true;
+      this.showTabTeam = true;
+
+      // Hiển thị tất cả các cột
+      this.evaluationColumns.forEach(col => col.hidden = false);
+      this.evaluation2Columns.forEach(col => col.hidden = false);
+      this.evaluation4Columns.forEach(col => col.hidden = false);
+      this.masterColumns.forEach(col => col.hidden = false);
+    }
+  }
+  onKPISessionChange(): void {
+      // Clear dependent data when KPI session changes
+      this.clearDependentData();
+
+      // Load new data for the selected session
+      if(this.selectedKPISessionID) {
       this.loadUserTeam();
       this.loadKPIExam();
     }

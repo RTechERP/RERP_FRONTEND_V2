@@ -229,7 +229,7 @@
                             </nz-tab>
 
                             <!-- Tab 2: Chung (treeList2 / xtraTabPage4) -->
-                            <nz-tab nzTitle="ĐÁNH GIÁ CHUNG">
+                            <nz-tab nzTitle="ĐÁNH GIÁ CHUNG" *ngIf="showTabGeneral">
                                 <div class="grid-evaluation4-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 1"
                                         gridId="grid-evaluation4" [columns]="evaluation4Columns"
@@ -242,7 +242,7 @@
                             </nz-tab>
 
                             <!-- Tab 3: Chuyên môn (treeList1 / xtraTabPage2) -->
-                            <nz-tab nzTitle="ĐÁNH GIÁ CHUYÊN MÔN">
+                            <nz-tab nzTitle="ĐÁNH GIÁ CHUYÊN MÔN" *ngIf="showTabChuyenMon">
                                 <div class="grid-evaluation2-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 2"
                                         gridId="grid-evaluation2" [columns]="evaluation2Columns"
@@ -265,7 +265,7 @@
                             </nz-tab>
 
                             <!-- Tab 5: KPI Rule (tlKPIRule) -->
-                            <nz-tab nzTitle="KPI RULE">
+                            <nz-tab nzTitle="KPI RULE" *ngIf="showTabRule">
                                 <div class="grid-rule-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 4"
                                         gridId="grid-rule" [columns]="ruleColumns" [options]="ruleGridOptions"
@@ -277,7 +277,7 @@
                             </nz-tab>
 
                             <!-- Tab 6: Team Rule (grdTeam) -->
-                            <nz-tab nzTitle="TEAM RULE">
+                            <nz-tab nzTitle="TEAM RULE" *ngIf="showTabTeam">
                                 <div class="grid-team-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 5"
                                         gridId="grid-team" [columns]="teamColumns" [options]="teamGridOptions"

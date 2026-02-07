@@ -67,7 +67,6 @@ export class BookingRoomFormComponent implements OnInit {
     { value: 3, label: 'MEETING ROOM 3 (HỒ TRÚC BẠCH)' },
   ];
 
-  // Time slots from 8:00 to 17:30 with 30-minute intervals
   timeSlots: Array<{ value: string; label: string }> = [];
 
   constructor(
@@ -102,7 +101,6 @@ export class BookingRoomFormComponent implements OnInit {
   }
 
   private generateTimeSlots(): void {
-    // Generate time slots from 8:00 to 17:30 with 30-minute intervals
     const startHour = 8;
     const endHour = 17;
     const endMinute = 30;
@@ -137,7 +135,6 @@ export class BookingRoomFormComponent implements OnInit {
       DepartmentId: [this.currentDepartmentId, [Validators.required, Validators.min(1)]],
     });
 
-    // Auto-calculate end time when start time changes (add 2 hours)
     this.bookingForm.get('StartTime')?.valueChanges.subscribe((value) => {
       if (value && typeof value === 'string') {
         const endTime = this.calculateEndTime(value);
@@ -154,14 +151,12 @@ export class BookingRoomFormComponent implements OnInit {
     const endHours = hours + 2;
     const endMinutes = minutes;
 
-    // Make sure end time doesn't exceed 17:30
     if (endHours > 17 || (endHours === 17 && endMinutes > 30)) {
       return '17:30';
     }
 
     const calculatedEndTime = `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
 
-    // Find the nearest available time slot
     const nearestSlot = this.timeSlots.find(slot => slot.value >= calculatedEndTime);
     return nearestSlot ? nearestSlot.value : '17:30';
   }
@@ -177,8 +172,6 @@ export class BookingRoomFormComponent implements OnInit {
   };
 
   private loadBookingRoom(id: number): void {
-    // Load booking room data by ID if needed
-    // For now, we'll use the data passed via @Input
     if (this.data) {
       this.populateForm(this.data);
     }

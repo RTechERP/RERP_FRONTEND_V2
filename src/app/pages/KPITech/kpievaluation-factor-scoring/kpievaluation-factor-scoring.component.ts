@@ -139,6 +139,43 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
   showTabRule = true;        // Tab KPI Rule
   showTabTeam = true;        // Tab Team Rule
 
+  // Dynamic tab active getters - Tính toán index động khi ẩn/hiện tab
+  get isEvaluationTabActive(): boolean {
+    return this.selectedTabIndex === 0;
+  }
+
+  get isGeneralTabActive(): boolean {
+    // Tab Chung chỉ hiện khi showTabGeneral = true, lúc đó index = 1
+    return this.showTabGeneral && this.selectedTabIndex === 1;
+  }
+
+  get isChuyenMonTabActive(): boolean {
+    // Tab Chuyên môn: index = 2 nếu Tab Chung hiện, index = 1 nếu Tab Chung ẩn
+    const expectedIndex = this.showTabGeneral ? 2 : 1;
+    return this.selectedTabIndex === expectedIndex;
+  }
+
+  get isMasterTabActive(): boolean {
+    // Tab Tổng hợp: index phụ thuộc vào số tab hiển thị trước nó
+    const expectedIndex = this.showTabGeneral ? 3 : 2;
+    return this.selectedTabIndex === expectedIndex;
+  }
+
+  get isRuleTabActive(): boolean {
+    // Tab Rule: chỉ hiện khi showTabRule = true
+    if (!this.showTabRule) return false;
+    const baseIndex = this.showTabGeneral ? 4 : 3;
+    return this.selectedTabIndex === baseIndex;
+  }
+
+  get isTeamTabActive(): boolean {
+    // Tab Team: chỉ hiện khi showTabTeam = true
+    if (!this.showTabTeam) return false;
+    let baseIndex = this.showTabGeneral ? 5 : 4;
+    if (!this.showTabRule) baseIndex--;
+    return this.selectedTabIndex === baseIndex;
+  }
+
   @Input() typeID: number = 0; // 2: TBP, 3: BGĐ, 4: Admin
   isPublic: boolean = true; // Default true matching logic
 
@@ -925,7 +962,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'EmployeeEvaluation',
         field: 'EmployeeEvaluation',
         name: 'Điểm đánh giá',
-        minWidth: 85,
+        minWidth: 100,
         cssClass: 'text-right',
         sortable: true,
         formatter: this.employeeEvaluationFormatter,
@@ -947,7 +984,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'TBPEvaluation',
         field: 'TBPEvaluation',
         name: 'Điểm đánh giá',
-        minWidth: 85,
+        minWidth: 100,
         cssClass: 'text-right',
         sortable: true,
         formatter: this.tbpEvaluationFormatter,
@@ -969,7 +1006,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         id: 'BGDEvaluation',
         field: 'BGDEvaluation',
         name: 'Điểm đánh giá',
-        minWidth: 85,
+        minWidth: 100,
         cssClass: 'text-right',
         sortable: true,
         formatter: this.bgdEvaluationFormatter,
@@ -1113,7 +1150,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         minWidth: 150,
         cssClass: 'text-right',
         sortable: true,
-        hidden: true
+        hidden: this.selectedDepartmentID !== this.departmentCK
       },
       {
         id: 'SpecializationPoint',
@@ -1701,7 +1738,15 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     this.applyEvaluationRowStyling(this.angularGridEvaluation);
     // Cập nhật columns với editor config dựa trên typeID hiện tại
     this.updateEvaluationGridColumns(this.angularGridEvaluation);
-    setTimeout(() => this.angularGridEvaluation?.resizerService?.resizeGrid(), 100);
+    // Đồng bộ layout sau khi grid được tạo lại (quan trọng khi chuyển tab)
+    setTimeout(() => {
+      try {
+        if (this.angularGridEvaluation?.slickGrid) {
+          this.angularGridEvaluation.slickGrid.invalidate();
+        }
+        this.angularGridEvaluation?.resizerService?.resizeGrid();
+      } catch (e) { /* Grid not ready yet */ }
+    }, 200);
   }
 
   onEvaluation2GridReady(angularGrid: any): void {
@@ -1709,7 +1754,15 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     this.applyEvaluationRowStyling(this.angularGridEvaluation2);
     // Cập nhật columns với editor config dựa trên typeID hiện tại
     this.updateEvaluationGridColumns(this.angularGridEvaluation2);
-    setTimeout(() => this.angularGridEvaluation2?.resizerService?.resizeGrid(), 100);
+    // Đồng bộ layout sau khi grid được tạo lại (quan trọng khi chuyển tab)
+    setTimeout(() => {
+      try {
+        if (this.angularGridEvaluation2?.slickGrid) {
+          this.angularGridEvaluation2.slickGrid.invalidate();
+        }
+        this.angularGridEvaluation2?.resizerService?.resizeGrid();
+      } catch (e) { /* Grid not ready yet */ }
+    }, 200);
   }
 
   onEvaluation4GridReady(angularGrid: any): void {
@@ -1717,7 +1770,15 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     this.applyEvaluationRowStyling(this.angularGridEvaluation4);
     // Cập nhật columns với editor config dựa trên typeID hiện tại
     this.updateEvaluationGridColumns(this.angularGridEvaluation4);
-    setTimeout(() => this.angularGridEvaluation4?.resizerService?.resizeGrid(), 100);
+    // Đồng bộ layout sau khi grid được tạo lại (quan trọng khi chuyển tab)
+    setTimeout(() => {
+      try {
+        if (this.angularGridEvaluation4?.slickGrid) {
+          this.angularGridEvaluation4.slickGrid.invalidate();
+        }
+        this.angularGridEvaluation4?.resizerService?.resizeGrid();
+      } catch (e) { /* Grid not ready yet */ }
+    }, 200);
   }
 
   onMasterGridReady(angularGrid: any): void {
@@ -1905,7 +1966,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
           if (res.data) {
             // Chuyển đổi và tính toán dữ liệu
             this.dataEvaluation = this.transformToTreeData(res.data);
-            this.dataEvaluation = this.calculatorAvgPoint(this.dataEvaluation);
+            this.dataEvaluation = this.selectedDepartmentID === this.departmentCK ? this.calculatorAvgPointTKCK(this.dataEvaluation) : this.calculatorAvgPoint(this.dataEvaluation);
             // Cập nhật Grid
             this.updateGrid(this.angularGridEvaluation, this.dataEvaluation);
 
@@ -1982,7 +2043,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         // Tab 1 (UI Index 1) - Chung (Grid Evaluation4)
         if (results.chung?.data) {
           this.dataEvaluation4 = this.transformToTreeData(results.chung.data);
-          this.dataEvaluation4 = this.calculatorAvgPoint(this.dataEvaluation4);
+          this.dataEvaluation4 = this.selectedDepartmentID === this.departmentCK ? this.calculatorAvgPointTKCK(this.dataEvaluation4) : this.calculatorAvgPoint(this.dataEvaluation4);
           this.isTab2Loaded = true;
 
           this.updateGrid(this.angularGridEvaluation4, this.dataEvaluation4);
@@ -1994,7 +2055,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         // Tab 2 (UI Index 2) - Chuyên môn (Grid Evaluation2)
         if (results.chuyenMon?.data) {
           this.dataEvaluation2 = this.transformToTreeData(results.chuyenMon.data);
-          this.dataEvaluation2 = this.calculatorAvgPoint(this.dataEvaluation2);
+          this.dataEvaluation2 = this.selectedDepartmentID === this.departmentCK ? this.calculatorAvgPointTKCK(this.dataEvaluation2) : this.calculatorAvgPoint(this.dataEvaluation2);
           this.isTab3Loaded = true;
 
           this.updateGrid(this.angularGridEvaluation2, this.dataEvaluation2);
@@ -2004,7 +2065,14 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         }
 
         // Tab 4 - Tổng hợp (Master) - Tính toán từ dữ liệu Tab 1, 2, 3
-        this.calculateTotalAVG();
+        if (this.departmentID === this.departmentCK) {
+          this.loadSumaryRank_TKCK();
+        } else {
+          this.calculateTotalAVG();
+          if (this.angularGridMaster) {
+            this.updateGrid(this.angularGridMaster, this.dataMaster);
+          }
+        }
         this.isTab4Loaded = true;
         this.updateGrid(this.angularGridMaster, this.dataMaster);
 
@@ -2341,70 +2409,108 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
    * Cập nhật hiển thị tab và cột theo departmentID
    * Logic từ WinForms: LoadEventForTKCK
    * - Nếu selectedDepartmentID == departmentCK (10): ẩn các Tab Chung, Rule, Team và ẩn các cột không cần thiết
+   * - Cách tiếp cận an toàn: Thay đổi thuộc tính 'hidden' trên mảng gốc và chỉ update grid đang hiển thị.
    */
   private updateTabVisibility(): void {
-    // Logic theo selectedDepartmentID (tương ứng LoadEventForTKCK trong WinForm)
-    if (this.selectedDepartmentID === this.departmentCK) {
-      // Ẩn các Tab không cần thiết cho TKCK: Chung (1), Chuyên môn (2), Rule (4), Team (5)
-      this.showTabGeneral = false;
-      this.showTabChuyenMon  = true;
-      this.showTabRule = false;
-      this.showTabTeam = false;
+    const isCKDepartment = (this.selectedDepartmentID === this.departmentCK);
 
-      // Ẩn các cột không cần thiết cho TKCK bằng cách set hidden property
-      const evalHiddenIds = ['Coefficient', 'EmployeeCoefficient', 'TBPCoefficient', 'BGDCoefficient', 'TBPPoint', 'BGDPoint'];
-      const masterHiddenIds = ['PLCPoint', 'VisionPoint', 'SoftWarePoint', 'AVGPoint', 'GeneralPoint'];
-      const masterShowIds = ['PercentageAchieved', 'EvaluationRank', 'StandartPoint'];
+    // 1. Cập nhật trạng thái hiển thị của các Tab (Angular handled via *ngIf)
+    this.showTabGeneral = !isCKDepartment;
+    this.showTabChuyenMon = true; // Luôn hiển thị
+    this.showTabRule = !isCKDepartment;
+    this.showTabTeam = !isCKDepartment;
 
-      // Xử lý evaluationColumns
-      this.evaluationColumns.forEach(col => {
-        if (evalHiddenIds.includes(col.id as string)) {
-          col.hidden = true;
+    // 2. Định nghĩa các cột cần ẩn khi là CK department
+    const evalHiddenIds = [
+      'Coefficient', 'EmployeeCoefficient',
+      'TBPPoint', 'TBPTotalPoint',
+      'BGDPoint', 'BGDTotalPoint'
+    ];
+    const masterHiddenIds = ['GeneralPoint'];
+    const masterShowIds = ['PercentageAchieved', 'EvaluationRank', 'StandartPoint'];
+
+    // 3. Cập nhật thuộc tính 'hidden' trong các mảng cấu hình (Source of truth)
+    const updateColumnState = (columns: Column[], hiddenIds: string[], showIds: string[] = []) => {
+      if (!columns) return;
+      columns.forEach(col => {
+        if (!col) return;
+
+        if (isCKDepartment) {
+          if (hiddenIds.includes(col.id as string)) {
+            col.hidden = true;
+          } else if (showIds.includes(col.id as string)) {
+            col.hidden = false;
+          }
+        } else {
+          // Khi không phải CK:
+          if (hiddenIds.includes(col.id as string)) {
+            col.hidden = false; // Hiện lại các cột thông thường
+          } else if (showIds.includes(col.id as string)) {
+            col.hidden = true;  // Ẩn các cột chỉ dành riêng cho CK
+          }
         }
       });
+    };
 
-      // Xử lý evaluation2Columns
-      this.evaluation2Columns.forEach(col => {
-        if (evalHiddenIds.includes(col.id as string)) {
-          col.hidden = true;
-        }
-      });
+    updateColumnState(this.evaluationColumns, evalHiddenIds);
+    updateColumnState(this.evaluation2Columns, evalHiddenIds);
+    updateColumnState(this.evaluation4Columns, evalHiddenIds);
+    updateColumnState(this.masterColumns, masterHiddenIds, masterShowIds);
 
-      // Xử lý evaluation4Columns
-      this.evaluation4Columns.forEach(col => {
-        if (evalHiddenIds.includes(col.id as string)) {
-          col.hidden = true;
-        }
-      });
+    // 4. Cho Angular cập nhật DOM trước (xóa/tạo tab theo showTabX flags)
+    this.cdr.detectChanges();
 
-      // Xử lý masterColumns
-      this.masterColumns.forEach(col => {
-        if (masterHiddenIds.includes(col.id as string)) {
-          col.hidden = true;
-        } else if (masterShowIds.includes(col.id as string)) {
-          col.hidden = false;
-        }
-      });
-    } else {
-      // Chế độ xem bình thường: Đảm bảo các Tab được hiển thị
-      this.showTabGeneral = true;
-      this.showTabChuyenMon = true;
-      this.showTabRule = true;
-      this.showTabTeam = true;
+    // 5. Cập nhật giao diện cho Grid ĐANG HIỂN THỊ sau khi DOM đã ổn định
+    // Sử dụng getter động thay vì hard-coded indexes để tránh lỗi container không tồn tại
+    setTimeout(() => {
+      // Chỉ update grid đang thực sự hiển thị (sử dụng getters đã tính toán index động)
+      if (this.isEvaluationTabActive && this.angularGridEvaluation?.slickGrid) {
+        this.safeSetColumns(this.angularGridEvaluation, this.evaluationColumns);
+      }
+      if (this.isGeneralTabActive && this.angularGridEvaluation4?.slickGrid) {
+        this.safeSetColumns(this.angularGridEvaluation4, this.evaluation4Columns);
+      }
+      if (this.isChuyenMonTabActive && this.angularGridEvaluation2?.slickGrid) {
+        this.safeSetColumns(this.angularGridEvaluation2, this.evaluation2Columns);
+      }
+      if (this.isMasterTabActive && this.angularGridMaster?.slickGrid) {
+        this.safeSetColumns(this.angularGridMaster, this.masterColumns);
+      }
+    }, 150);
+  }
 
-      // Hiển thị tất cả các cột
-      this.evaluationColumns.forEach(col => col.hidden = false);
-      this.evaluation2Columns.forEach(col => col.hidden = false);
-      this.evaluation4Columns.forEach(col => col.hidden = false);
-      this.masterColumns.forEach(col => col.hidden = false);
+  /**
+   * Cập nhật cột cho SlickGrid một cách an toàn
+   * - Tự động lọc các cột có hidden: true để fix độ rộng Group Header (theo pattern kpievaluation-employee)
+   */
+  private safeSetColumns(grid: AngularGridInstance, columns: Column[]): void {
+    if (!this.isValidGrid(grid)) return;
+    try {
+      // 1. Lọc bỏ null/undefined
+      // 2. Lọc bỏ các cột bị ẩn (hidden: true) để SlickGrid resize Group Header chính xác
+      const visibleColumns = (columns || []).filter(col => col && col.id && !col.hidden);
+
+      grid.slickGrid.setColumns(visibleColumns);
+
+      // Đồng bộ lại canvas và header - Quan trọng khi có frozenColumn
+      grid.slickGrid.invalidate();
+      grid.slickGrid.resizeCanvas();
+      grid.slickGrid.autosizeColumns();
+
+      // Resize lại qua service để đảm bảo các container khớp nhau
+      if (grid.resizerService) {
+        grid.resizerService.resizeGrid();
+      }
+    } catch (e) {
+      console.warn('Lỗi khi setColumns:', e);
     }
   }
   onKPISessionChange(): void {
-      // Clear dependent data when KPI session changes
-      this.clearDependentData();
+    // Clear dependent data when KPI session changes
+    this.clearDependentData();
 
-      // Load new data for the selected session
-      if(this.selectedKPISessionID) {
+    // Load new data for the selected session
+    if (this.selectedKPISessionID) {
       this.loadUserTeam();
       this.loadKPIExam();
     }
@@ -3476,6 +3582,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
     // Update editor config for each editable column based on typeID
     columns.forEach((col: any) => {
+      if (!col) return;  // Null check
       if (col.id === 'EmployeePoint') {
         col.editor = (this.typeID === 1 || this.typeID === 0) ? {
           model: Editors['integer'],
@@ -3497,8 +3604,9 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       }
     });
 
-    // Apply updated columns to grid
-    grid.setColumns(columns);
+    // Apply updated columns to grid - sanitize for nulls
+    const cleanColumns = columns.filter((col: any) => col && col.id);
+    grid.setColumns(cleanColumns);
     grid.invalidate();
     grid.render();
   }
@@ -4215,76 +4323,68 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     // First resize after short delay to let Angular render the component
     // Also refresh grid data and footers
     setTimeout(() => {
-      this.resizeGridForTab(index);
+      this.resizeActiveGrid();
 
-      // Refresh grid and update footer based on active tab
-      switch (index) {
-        case 0: // Tab 1: Kỹ năng
-          if (this.isTab1Loaded && this.dataEvaluation.length > 0) {
-            this.refreshGrid(this.angularGridEvaluation, this.dataEvaluation);
-            setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation, this.dataEvaluation), 100);
-          }
-          break;
-        case 1: // Tab 2: Chung
-          if (this.isTab2Loaded && this.dataEvaluation4.length > 0) {
-            this.refreshGrid(this.angularGridEvaluation4, this.dataEvaluation4);
-            setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation4, this.dataEvaluation4), 100);
-          }
-          break;
-        case 2: // Tab 3: Chuyên môn
-          if (this.isTab3Loaded && this.dataEvaluation2.length > 0) {
-            this.refreshGrid(this.angularGridEvaluation2, this.dataEvaluation2);
-            setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation2, this.dataEvaluation2), 100);
-          }
-          break;
-        case 3: // Tab 4: Tổng hợp
-          if (this.isTab4Loaded && this.dataMaster.length > 0) {
-            this.refreshGrid(this.angularGridMaster, this.dataMaster);
-          }
-          break;
-        case 4: // Tab 5: Rule
-          if (this.isTab5Loaded && this.dataRule.length > 0) {
-            this.refreshGrid(this.angularGridRule, this.dataRule);
-            setTimeout(() => this.updateRuleFooter(), 100);
-          }
-          break;
-        case 5: // Tab 6: Team
-          if (this.isTab5Loaded && this.dataTeam.length > 0) {
-            this.refreshGrid(this.angularGridTeam, this.dataTeam);
-          }
-          break;
+      // Refresh grid and update footer based on active tab (using dynamic getters)
+      if (this.isEvaluationTabActive && this.isTab1Loaded && this.dataEvaluation.length > 0) {
+        this.refreshGrid(this.angularGridEvaluation, this.dataEvaluation);
+        setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation, this.dataEvaluation), 100);
+      }
+      if (this.isGeneralTabActive && this.isTab2Loaded && this.dataEvaluation4.length > 0) {
+        this.refreshGrid(this.angularGridEvaluation4, this.dataEvaluation4);
+        setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation4, this.dataEvaluation4), 100);
+      }
+      if (this.isChuyenMonTabActive && this.isTab3Loaded && this.dataEvaluation2.length > 0) {
+        this.refreshGrid(this.angularGridEvaluation2, this.dataEvaluation2);
+        setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation2, this.dataEvaluation2), 100);
+      }
+      if (this.isMasterTabActive && this.isTab4Loaded && this.dataMaster.length > 0) {
+        this.refreshGrid(this.angularGridMaster, this.dataMaster);
+      }
+      if (this.isRuleTabActive && this.isTab5Loaded && this.dataRule.length > 0) {
+        this.refreshGrid(this.angularGridRule, this.dataRule);
+        setTimeout(() => this.updateRuleFooter(), 100);
+      }
+      if (this.isTeamTabActive && this.isTab5Loaded && this.dataTeam.length > 0) {
+        this.refreshGrid(this.angularGridTeam, this.dataTeam);
       }
     }, 200);
 
     // Second resize after animation complete for reliability
     setTimeout(() => {
-      this.resizeGridForTab(index);
+      this.resizeActiveGrid();
     }, 400);
   }
 
-  // Helper to resize grid for specific tab
-  private resizeGridForTab(index: number): void {
-    // Safety check for cached grid instances
-    switch (index) {
-      case 0:
-        if (this.angularGridEvaluation?.resizerService) this.angularGridEvaluation.resizerService.resizeGrid();
-        break;
-      case 1:
-        if (this.angularGridEvaluation4?.resizerService) this.angularGridEvaluation4.resizerService.resizeGrid();
-        break;
-      case 2:
-        if (this.angularGridEvaluation2?.resizerService) this.angularGridEvaluation2.resizerService.resizeGrid();
-        break;
-      case 3:
-        if (this.angularGridMaster?.resizerService) this.angularGridMaster.resizerService.resizeGrid();
-        break;
-      case 4:
-        if (this.angularGridRule?.resizerService) this.angularGridRule.resizerService.resizeGrid();
-        break;
-      case 5:
-        if (this.angularGridTeam?.resizerService) this.angularGridTeam.resizerService.resizeGrid();
-        break;
+  // Helper to resize the currently active grid
+  private resizeActiveGrid(): void {
+    try {
+      if (this.isEvaluationTabActive && this.angularGridEvaluation?.resizerService) {
+        this.angularGridEvaluation.resizerService.resizeGrid();
+      }
+      if (this.isGeneralTabActive && this.angularGridEvaluation4?.resizerService) {
+        this.angularGridEvaluation4.resizerService.resizeGrid();
+      }
+      if (this.isChuyenMonTabActive && this.angularGridEvaluation2?.resizerService) {
+        this.angularGridEvaluation2.resizerService.resizeGrid();
+      }
+      if (this.isMasterTabActive && this.angularGridMaster?.resizerService) {
+        this.angularGridMaster.resizerService.resizeGrid();
+      }
+      if (this.isRuleTabActive && this.angularGridRule?.resizerService) {
+        this.angularGridRule.resizerService.resizeGrid();
+      }
+      if (this.isTeamTabActive && this.angularGridTeam?.resizerService) {
+        this.angularGridTeam.resizerService.resizeGrid();
+      }
+    } catch (e) {
+      // Grid stylesheet not ready yet - ignore
     }
+  }
+
+  // Helper to resize grid for specific tab (Legacy - kept for compatibility)
+  private resizeGridForTab(index: number): void {
+    this.resizeActiveGrid();
   }
 
   //#region Load Team Summary and Add Team Nodes
@@ -4366,5 +4466,217 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       return sum + value;
     }, 0);
   }
+  //#endregion
+  //#endregion
+  //#region Tính toán điểm cho phòng Cơ Khí (TKCK)
+
+  /**
+   * Tính điểm trung bình cho phòng Cơ Khí (TKCK)
+   * Logic: Tìm các node cha theo STT, sau đó tính tổng điểm từ các node con
+   * Tương ứng với hàm CalculatorAvgPoint_TKCK trong WinForm
+   * @param dataTable Mảng dữ liệu cần tính toán
+   * @returns Mảng dữ liệu đã được tính toán
+   */
+  private calculatorAvgPointTKCK(dataTable: any[]): any[] {
+    if (!dataTable || dataTable.length === 0) return dataTable;
+
+    // Bước 1: Tìm danh sách các node cha từ trường STT
+    const listFatherID: string[] = [];
+    for (const row of dataTable) {
+      const stt = String(row.STT || '').trim();
+      if (!stt) continue;
+
+      // Lấy ID cha: cắt chuỗi từ đầu đến dấu '.' cuối cùng
+      const lastDotIndex = stt.lastIndexOf('.');
+      const fatherID = lastDotIndex > 0 ? stt.substring(0, lastDotIndex) : stt.substring(0, 1);
+
+      // Kiểm tra trùng lặp
+      if (!listFatherID.includes(fatherID)) {
+        listFatherID.push(fatherID);
+      }
+    }
+
+    // Bước 2: Duyệt từ node cha cuối cùng lên (bottom-up) để tính toán
+    for (let i = listFatherID.length - 1; i >= 0; i--) {
+      const fatherId = listFatherID[i];
+      let fatherRowIndex = -1;
+
+      let count = 0;
+      let totalEmpPoint = 0;
+      let totalTbpPoint = 0;
+      let totalBgdPoint = 0;
+      let totalStandardPoint = 0;  // LĐ.Dat update 2/10/25
+
+      const startStt = fatherId + '.'; // Tiền tố của các node con
+
+      for (let rowIndex = 0; rowIndex < dataTable.length; rowIndex++) {
+        const row = dataTable[rowIndex];
+        const stt = String(row.STT || '').trim();
+        if (!stt) continue;
+
+        // Kiểm tra xem row hiện tại có phải là node cha khác không
+        const isParentNode = listFatherID.includes(stt);
+
+        if (stt === fatherId) {
+          // Đây là node cha hiện tại
+          fatherRowIndex = rowIndex;
+          // Lấy giá trị TBP/BGD của node cha (nếu có)
+          totalTbpPoint = this.formatDecimalNumber(parseFloat(row.TBPEvaluation) || 0, 2);
+          totalBgdPoint = this.formatDecimalNumber(parseFloat(row.BGDEvaluation) || 0, 2);
+        } else if (stt.startsWith(startStt)) {
+          // Đây là node con
+          if (isParentNode) continue; // Bỏ qua nếu là node cha của một nhánh khác
+
+          // Cộng dồn điểm từ các node con
+          totalEmpPoint += this.formatDecimalNumber(parseFloat(row.EmployeePoint) || 0, 2);
+          totalTbpPoint += this.formatDecimalNumber(parseFloat(row.TBPPoint) || 0, 2);
+          totalBgdPoint += this.formatDecimalNumber(parseFloat(row.TBPPoint) || 0, 2); // Lưu ý: WinForm dùng TBPPoint cho cả BGD
+          totalStandardPoint += this.formatDecimalNumber(parseFloat(row.StandardPoint) || 0, 2);
+          count++;
+        }
+      }
+
+      // Bước 3: Cập nhật giá trị cho node cha
+      if (fatherRowIndex === -1 || count === 0) continue;
+
+      dataTable[fatherRowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpPoint, 2);
+      dataTable[fatherRowIndex].TBPEvaluation = this.formatDecimalNumber(totalTbpPoint, 2);
+      dataTable[fatherRowIndex].BGDEvaluation = this.formatDecimalNumber(totalBgdPoint, 2);
+      dataTable[fatherRowIndex].StandardPoint = this.formatDecimalNumber(totalStandardPoint, 2);
+    }
+
+    // Bước 4: Gọi hàm tính tổng điểm cho các node gốc (ParentID = 0)
+    dataTable = this.calculatorTotalPointTKCK(dataTable);
+
+    return dataTable;
+  }
+
+  /**
+   * Tính tổng điểm cho các node gốc (ParentID = 0) của phòng Cơ Khí
+   * Tương ứng với hàm CalculatorTotalPoint_TKCK trong WinForm
+   * @param dataTable Mảng dữ liệu cần tính toán
+   * @returns Mảng dữ liệu đã được tính toán
+   */
+  private calculatorTotalPointTKCK(dataTable: any[]): any[] {
+    // Lấy danh sách các node gốc (ParentID = 0 hoặc parentId = null)
+    const parentRows = dataTable.filter(row => row.ParentID === 0 || row.parentId === null);
+
+    for (const parentRow of parentRows) {
+      const rowIndex = dataTable.indexOf(parentRow);
+      const childrenRows = dataTable.filter(row => row.ParentID === parentRow.ID);
+
+      // Tính tổng StandardPoint từ các node con
+      let totalStandardPoint = 0;
+      let totalEmpPoint = 0;
+      let totalTbpPoint = 0;
+      let totalBgdPoint = 0;
+
+      for (const child of childrenRows) {
+        // Cộng StandardPoint từ các node con
+        totalStandardPoint += this.formatDecimalNumber(parseFloat(child.StandardPoint) || 0, 2);
+
+        // Cộng các điểm Evaluation từ các node con
+        totalEmpPoint += this.formatDecimalNumber(parseFloat(child.EmployeeEvaluation) || 0, 2);
+        totalTbpPoint += this.formatDecimalNumber(parseFloat(child.TBPEvaluation) || 0, 2);
+        totalBgdPoint += this.formatDecimalNumber(parseFloat(child.BGDEvaluation) || 0, 2);
+      }
+
+      // Cập nhật giá trị cho node gốc
+      dataTable[rowIndex].StandardPoint = this.formatDecimalNumber(totalStandardPoint, 2);
+      dataTable[rowIndex].VerificationToolsContent = 'TỔNG ĐIỂM TRUNG BÌNH';
+
+      dataTable[rowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpPoint, 2);
+      dataTable[rowIndex].TBPEvaluation = this.formatDecimalNumber(totalTbpPoint, 2);
+      dataTable[rowIndex].BGDEvaluation = this.formatDecimalNumber(totalBgdPoint, 2);
+    }
+
+    return dataTable;
+  }
+  /**
+ * Lấy Xếp loại đánh giá KPI cho TKCK
+ * Khớp với logic GetEvaluationRank_TKCK trong WinForm
+ */
+  private getEvaluationRank_TKCK(totalPercent: number): string {
+    if (totalPercent < 60) return 'D';
+    if (totalPercent < 65) return 'C-';
+    if (totalPercent < 70) return 'C';
+    if (totalPercent < 75) return 'C+';
+    if (totalPercent < 80) return 'B-';
+    if (totalPercent < 85) return 'B';
+    if (totalPercent < 90) return 'B+';
+    if (totalPercent < 95) return 'A-';
+    if (totalPercent < 100) return 'A';
+    return 'A+';
+  }
+  /**
+ * Tải bảng xếp loại tổng hợp cho phòng ban TKCK
+ * Khớp với logic LoadSumaryRank_TKCK trong WinForm
+ */
+  loadSumaryRank_TKCK(): void {
+    let totalEmpSkillPoint = 0;
+    let totalTBPSkillPoint = 0;
+    let totalBGDSkillPoint = 0;
+    let totalSkillPoint = 0;
+
+    let totalEmpCMPoint = 0;
+    let totalTBPCMPoint = 0;
+    let totalBGDCMPoint = 0;
+    let totalCMPoint = 0;
+
+    // Tính toán tổng điểm từ Tab Kỹ năng (Skill)
+    const skillSummaryRow = this.dataEvaluation.find(row => row.ID === -1);
+    if (skillSummaryRow) {
+      totalSkillPoint = parseFloat(skillSummaryRow.StandardPoint) || 0;
+      totalEmpSkillPoint = parseFloat(skillSummaryRow.EmployeeEvaluation) || 0;
+      totalTBPSkillPoint = parseFloat(skillSummaryRow.TBPEvaluation) || 0;
+      totalBGDSkillPoint = parseFloat(skillSummaryRow.BGDEvaluation) || 0;
+    }
+
+    // Tính toán tổng điểm từ Tab Chuyên môn (Chuyen Mon)
+    const cmSummaryRow = this.dataEvaluation2.find(row => row.ID === -1);
+    if (cmSummaryRow) {
+      totalCMPoint = parseFloat(cmSummaryRow.StandardPoint) || 0;
+      totalEmpCMPoint = parseFloat(cmSummaryRow.EmployeeEvaluation) || 0;
+      totalTBPCMPoint = parseFloat(cmSummaryRow.TBPEvaluation) || 0;
+      totalBGDCMPoint = parseFloat(cmSummaryRow.BGDEvaluation) || 0;
+    }
+
+    const divSkill = totalSkillPoint + totalCMPoint;
+    const totalStandart = totalSkillPoint + totalCMPoint;
+
+    this.dataMaster = [
+      {
+        id: 1,
+        EvaluatedType: 'Tự đánh giá',
+        SkillPoint: totalEmpSkillPoint,
+        SpecializationPoint: totalEmpCMPoint,
+        StandartPoint: totalStandart,
+        PercentageAchieved: this.formatDecimalNumber(((totalEmpSkillPoint + totalEmpCMPoint) / divSkill) * 100, 2),
+        EvaluationRank: this.getEvaluationRank_TKCK(((totalEmpSkillPoint + totalEmpCMPoint) / divSkill) * 100)
+      },
+      {
+        id: 2,
+        EvaluatedType: 'Đánh giá của Trưởng/Phó BP',
+        SkillPoint: totalTBPSkillPoint,
+        SpecializationPoint: totalTBPCMPoint,
+        StandartPoint: totalStandart,
+        PercentageAchieved: this.formatDecimalNumber(((totalTBPSkillPoint + totalTBPCMPoint) / divSkill) * 100, 2),
+        EvaluationRank: this.getEvaluationRank_TKCK(((totalTBPSkillPoint + totalTBPCMPoint) / divSkill) * 100)
+      },
+      {
+        id: 3,
+        EvaluatedType: 'Đánh giá của GĐ',
+        SkillPoint: totalBGDSkillPoint,
+        SpecializationPoint: totalBGDCMPoint,
+        StandartPoint: totalStandart,
+        PercentageAchieved: this.formatDecimalNumber(((totalBGDSkillPoint + totalBGDCMPoint) / divSkill) * 100, 2),
+        EvaluationRank: this.getEvaluationRank_TKCK(((totalBGDSkillPoint + totalBGDCMPoint) / divSkill) * 100)
+      }
+    ];
+    console.log("kaka", this.dataMaster);
+
+    this.updateGrid(this.angularGridMaster, this.dataMaster);
+  }
+
   //#endregion
 }

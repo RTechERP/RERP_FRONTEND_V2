@@ -149,10 +149,9 @@
 
         <input nz-input nzSize="small" placeholder="Nhập từ khóa" style="width: 230px; font-size: 0.75rem !important;"
             [(ngModel)]="txtKeywords" (keyup.enter)="btnSearch_Click()" class="fs-12" />
-            <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
-                                        (click)="btnSearch_Click()">
-                                        <nz-icon nzType="search" />
-                                    </button>
+        <button nz-button nzType="primary" style="width: 40px;" nzSize="small" (click)="btnSearch_Click()">
+            <nz-icon nzType="search" />
+        </button>
         <!-- <button style="font-size: 0.75rem !important;" type="button" nz-button nzType="primary" nzSize="small"
             (click)="btnSearch_Click()" class="fs-12">
             <i nz-icon nzType="search"></i>
@@ -218,7 +217,7 @@
                             <!-- Tab 1: Kỹ năng (treeData) -->
                             <nz-tab nzTitle="ĐÁNH GIÁ KỸ NĂNG">
                                 <div class="grid-evaluation-container" style="height: 100%; position: relative;">
-                                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 0"
+                                    <angular-slickgrid *ngIf="gridsInitialized && isEvaluationTabActive"
                                         gridId="grid-evaluation" [columns]="evaluationColumns"
                                         [options]="evaluationGridOptions" [dataset]="dataEvaluation"
                                         (onAngularGridCreated)="onEvaluationGridReady($event)"
@@ -231,7 +230,7 @@
                             <!-- Tab 2: Chung (treeList2 / xtraTabPage4) -->
                             <nz-tab nzTitle="ĐÁNH GIÁ CHUNG" *ngIf="showTabGeneral">
                                 <div class="grid-evaluation4-container" style="height: 100%; position: relative;">
-                                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 1"
+                                    <angular-slickgrid *ngIf="gridsInitialized && isGeneralTabActive"
                                         gridId="grid-evaluation4" [columns]="evaluation4Columns"
                                         [options]="evaluation4GridOptions" [dataset]="dataEvaluation4"
                                         (onAngularGridCreated)="onEvaluation4GridReady($event)"
@@ -244,7 +243,7 @@
                             <!-- Tab 3: Chuyên môn (treeList1 / xtraTabPage2) -->
                             <nz-tab nzTitle="ĐÁNH GIÁ CHUYÊN MÔN" *ngIf="showTabChuyenMon">
                                 <div class="grid-evaluation2-container" style="height: 100%; position: relative;">
-                                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 2"
+                                    <angular-slickgrid *ngIf="gridsInitialized && isChuyenMonTabActive"
                                         gridId="grid-evaluation2" [columns]="evaluation2Columns"
                                         [options]="evaluation2GridOptions" [dataset]="dataEvaluation2"
                                         (onAngularGridCreated)="onEvaluation2GridReady($event)"
@@ -257,7 +256,7 @@
                             <!-- Tab 4: Tổng hợp (grdMaster / xtraTabPage3) -->
                             <nz-tab nzTitle="TỔNG HỢP ĐÁNH GIÁ">
                                 <div class="grid-master-container" style="height: 100%; position: relative;">
-                                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 3"
+                                    <angular-slickgrid *ngIf="gridsInitialized && isMasterTabActive"
                                         gridId="grid-master" [columns]="masterColumns" [options]="masterGridOptions"
                                         [dataset]="dataMaster" (onAngularGridCreated)="onMasterGridReady($event)">
                                     </angular-slickgrid>
@@ -267,9 +266,9 @@
                             <!-- Tab 5: KPI Rule (tlKPIRule) -->
                             <nz-tab nzTitle="KPI RULE" *ngIf="showTabRule">
                                 <div class="grid-rule-container" style="height: 100%; position: relative;">
-                                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 4"
-                                        gridId="grid-rule" [columns]="ruleColumns" [options]="ruleGridOptions"
-                                        [dataset]="dataRule" (onAngularGridCreated)="onRuleGridReady($event)"
+                                    <angular-slickgrid *ngIf="gridsInitialized && isRuleTabActive" gridId="grid-rule"
+                                        [columns]="ruleColumns" [options]="ruleGridOptions" [dataset]="dataRule"
+                                        (onAngularGridCreated)="onRuleGridReady($event)"
                                         (onBeforeEditCell)="onRuleBeforeEditCell($event)"
                                         (onCellChange)="onRuleCellChange($event)">
                                     </angular-slickgrid>
@@ -279,9 +278,9 @@
                             <!-- Tab 6: Team Rule (grdTeam) -->
                             <nz-tab nzTitle="TEAM RULE" *ngIf="showTabTeam">
                                 <div class="grid-team-container" style="height: 100%; position: relative;">
-                                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 5"
-                                        gridId="grid-team" [columns]="teamColumns" [options]="teamGridOptions"
-                                        [dataset]="dataTeam" (onAngularGridCreated)="onTeamGridReady($event)">
+                                    <angular-slickgrid *ngIf="gridsInitialized && isTeamTabActive" gridId="grid-team"
+                                        [columns]="teamColumns" [options]="teamGridOptions" [dataset]="dataTeam"
+                                        (onAngularGridCreated)="onTeamGridReady($event)">
                                     </angular-slickgrid>
                                 </div>
                             </nz-tab>

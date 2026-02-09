@@ -1064,7 +1064,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       // Enable Column Groups (Pre-Header Panel)
       createPreHeaderPanel: true,
       showPreHeaderPanel: true,
-      preHeaderPanelHeight: 30,
+      preHeaderPanelHeight: 40,
 
       // Default sort by STT ascending
       presets: {
@@ -2391,6 +2391,9 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     // Cập nhật departmentID từ selectedDepartmentID
     this.departmentID = this.selectedDepartmentID;
 
+    // Reset về tab đầu tiên (Kỹ năng) để tránh lỗi SlickGrid container not found khi ẩn/hiện tab
+    this.selectedTabIndex = 0;
+
     // Cập nhật hiển thị tab và cột theo departmentID
     this.updateTabVisibility();
 
@@ -2496,6 +2499,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       grid.slickGrid.invalidate();
       grid.slickGrid.resizeCanvas();
       grid.slickGrid.autosizeColumns();
+      grid.slickGrid.render();
 
       // Resize lại qua service để đảm bảo các container khớp nhau
       if (grid.resizerService) {
@@ -4323,9 +4327,14 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     // First resize after short delay to let Angular render the component
     // Also refresh grid data and footers
     setTimeout(() => {
+      // Update columns: REMOVED redundant safeSetColumns calls.
+      // Since *ngIf is used, onGridReady handles initialization and column setup correctly.
+      // Calling safeSetColumns here creates race conditions (overwriting editor config) and errors (stale instances).
+
       this.resizeActiveGrid();
 
       // Refresh grid and update footer based on active tab (using dynamic getters)
+
       if (this.isEvaluationTabActive && this.isTab1Loaded && this.dataEvaluation.length > 0) {
         this.refreshGrid(this.angularGridEvaluation, this.dataEvaluation);
         setTimeout(() => this.updateEvaluationFooter(this.angularGridEvaluation, this.dataEvaluation), 100);

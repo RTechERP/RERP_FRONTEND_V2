@@ -528,6 +528,14 @@ export class KPIService {
       .set('sessionID', sessionID.toString());
     return this.http.get<any>(this.apiUrl + 'get-ispublish', { params });
   }
+  /**
+   * Lấy thông tin IsPublic
+   * API: GET api/KPIEvaluationEmployee/get-ispublic?empPointID={empPointID}
+   */
+  getIsPublic(empPointID: number): Observable<any> {
+    const params = new HttpParams().set('empPointID', empPointID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-ispublic', { params });
+  }
 }
 
 

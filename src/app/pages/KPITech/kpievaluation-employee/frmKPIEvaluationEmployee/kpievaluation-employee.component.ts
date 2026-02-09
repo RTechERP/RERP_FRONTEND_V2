@@ -1080,7 +1080,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       // Enable Column Groups (Pre-Header Panel)
       createPreHeaderPanel: true,
       showPreHeaderPanel: true,
-      preHeaderPanelHeight: 30,
+      preHeaderPanelHeight: 40,
       // Default sort by STT ascending
       presets: {
         sorters: [
@@ -1190,7 +1190,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         minWidth: 150,
         cssClass: 'text-right',
         sortable: true,
-        hidden: true
+        hidden: true,
+        formatter: Formatters.percentComplete
       },
       {
         id: 'EvaluationRank',
@@ -3128,77 +3129,6 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     return dataTable;
   }
 
-  /**
-   * Tải bảng xếp loại tổng hợp cho phòng ban TKCK
-   * Khớp với logic LoadSumaryRank_TKCK trong WinForm
-   */
-  loadSumaryRank_TKCK(): void {
-    let totalEmpSkillPoint = 0;
-    let totalTBPSkillPoint = 0;
-    let totalBGDSkillPoint = 0;
-    let totalSkillPoint = 0;
-
-    let totalEmpCMPoint = 0;
-    let totalTBPCMPoint = 0;
-    let totalBGDCMPoint = 0;
-    let totalCMPoint = 0;
-
-    // Tính toán tổng điểm từ Tab Kỹ năng (Skill)
-    const skillSummaryRow = this.dataEvaluation.find(row => row.ID === -1);
-    if (skillSummaryRow) {
-      totalSkillPoint = parseFloat(skillSummaryRow.StandardPoint) || 0;
-      totalEmpSkillPoint = parseFloat(skillSummaryRow.EmployeeEvaluation) || 0;
-      totalTBPSkillPoint = parseFloat(skillSummaryRow.TBPEvaluation) || 0;
-      totalBGDSkillPoint = parseFloat(skillSummaryRow.BGDEvaluation) || 0;
-    }
-
-    // Tính toán tổng điểm từ Tab Chuyên môn (Chuyen Mon)
-    const cmSummaryRow = this.dataEvaluation2.find(row => row.ID === -1);
-    if (cmSummaryRow) {
-      totalCMPoint = parseFloat(cmSummaryRow.StandardPoint) || 0;
-      totalEmpCMPoint = parseFloat(cmSummaryRow.EmployeeEvaluation) || 0;
-      totalTBPCMPoint = parseFloat(cmSummaryRow.TBPEvaluation) || 0;
-      totalBGDCMPoint = parseFloat(cmSummaryRow.BGDEvaluation) || 0;
-    }
-
-    const divSkill = totalSkillPoint + totalCMPoint;
-    const totalStandart = totalSkillPoint + totalCMPoint;
-
-    this.dataMaster = [
-      {
-        id: 1,
-        EvaluatedType: 'Tự đánh giá',
-        SkillPoint: totalEmpSkillPoint,
-        SpecializationPoint: totalEmpCMPoint,
-        StandartPoint: totalStandart,
-        PercentageAchieved: this.formatDecimalNumber(((totalEmpSkillPoint + totalEmpCMPoint) / divSkill) * 100, 2),
-        EvaluationRank: this.getEvaluationRank_TKCK(((totalEmpSkillPoint + totalEmpCMPoint) / divSkill) * 100)
-      },
-      {
-        id: 2,
-        EvaluatedType: 'Đánh giá của Trưởng/Phó BP',
-        SkillPoint: totalTBPSkillPoint,
-        SpecializationPoint: totalTBPCMPoint,
-        StandartPoint: totalStandart,
-        PercentageAchieved: this.formatDecimalNumber(((totalTBPSkillPoint + totalTBPCMPoint) / divSkill) * 100, 2),
-        EvaluationRank: this.getEvaluationRank_TKCK(((totalTBPSkillPoint + totalTBPCMPoint) / divSkill) * 100)
-      },
-      {
-        id: 3,
-        EvaluatedType: 'Đánh giá của GĐ',
-        SkillPoint: totalBGDSkillPoint,
-        SpecializationPoint: totalBGDCMPoint,
-        StandartPoint: totalStandart,
-        PercentageAchieved: this.formatDecimalNumber(((totalBGDSkillPoint + totalBGDCMPoint) / divSkill) * 100, 2),
-        EvaluationRank: this.getEvaluationRank_TKCK(((totalBGDSkillPoint + totalBGDCMPoint) / divSkill) * 100)
-      }
-    ];
-    console.log("kaka", this.dataMaster);
-
-    this.updateGrid(this.angularGridMaster, this.dataMaster);
-  }
-
-
   private formatDecimalNumber(value: number, precision: number): number {
     return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
   }
@@ -3851,6 +3781,75 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     if (totalPercent < 95) return 'A-';
     if (totalPercent < 100) return 'A';
     return 'A+';
+  }
+  /**
+ * Tải bảng xếp loại tổng hợp cho phòng ban TKCK
+ * Khớp với logic LoadSumaryRank_TKCK trong WinForm
+ */
+  loadSumaryRank_TKCK(): void {
+    let totalEmpSkillPoint = 0;
+    let totalTBPSkillPoint = 0;
+    let totalBGDSkillPoint = 0;
+    let totalSkillPoint = 0;
+
+    let totalEmpCMPoint = 0;
+    let totalTBPCMPoint = 0;
+    let totalBGDCMPoint = 0;
+    let totalCMPoint = 0;
+
+    // Tính toán tổng điểm từ Tab Kỹ năng (Skill)
+    const skillSummaryRow = this.dataEvaluation.find(row => row.ID === -1);
+    if (skillSummaryRow) {
+      totalSkillPoint = parseFloat(skillSummaryRow.StandardPoint) || 0;
+      totalEmpSkillPoint = parseFloat(skillSummaryRow.EmployeeEvaluation) || 0;
+      totalTBPSkillPoint = parseFloat(skillSummaryRow.TBPEvaluation) || 0;
+      totalBGDSkillPoint = parseFloat(skillSummaryRow.BGDEvaluation) || 0;
+    }
+
+    // Tính toán tổng điểm từ Tab Chuyên môn (Chuyen Mon)
+    const cmSummaryRow = this.dataEvaluation2.find(row => row.ID === -1);
+    if (cmSummaryRow) {
+      totalCMPoint = parseFloat(cmSummaryRow.StandardPoint) || 0;
+      totalEmpCMPoint = parseFloat(cmSummaryRow.EmployeeEvaluation) || 0;
+      totalTBPCMPoint = parseFloat(cmSummaryRow.TBPEvaluation) || 0;
+      totalBGDCMPoint = parseFloat(cmSummaryRow.BGDEvaluation) || 0;
+    }
+
+    const divSkill = totalSkillPoint + totalCMPoint;
+    const totalStandart = totalSkillPoint + totalCMPoint;
+
+    this.dataMaster = [
+      {
+        id: 1,
+        EvaluatedType: 'Tự đánh giá',
+        SkillPoint: totalEmpSkillPoint,
+        SpecializationPoint: totalEmpCMPoint,
+        StandartPoint: totalStandart,
+        PercentageAchieved: this.formatDecimalNumber(((totalEmpSkillPoint + totalEmpCMPoint) / divSkill) * 100, 2),
+        EvaluationRank: this.getEvaluationRank_TKCK(((totalEmpSkillPoint + totalEmpCMPoint) / divSkill) * 100)
+      },
+      {
+        id: 2,
+        EvaluatedType: 'Đánh giá của Trưởng/Phó BP',
+        SkillPoint: totalTBPSkillPoint,
+        SpecializationPoint: totalTBPCMPoint,
+        StandartPoint: totalStandart,
+        PercentageAchieved: this.formatDecimalNumber(((totalTBPSkillPoint + totalTBPCMPoint) / divSkill) * 100, 2),
+        EvaluationRank: this.getEvaluationRank_TKCK(((totalTBPSkillPoint + totalTBPCMPoint) / divSkill) * 100)
+      },
+      {
+        id: 3,
+        EvaluatedType: 'Đánh giá của GĐ',
+        SkillPoint: totalBGDSkillPoint,
+        SpecializationPoint: totalBGDCMPoint,
+        StandartPoint: totalStandart,
+        PercentageAchieved: this.formatDecimalNumber(((totalBGDSkillPoint + totalBGDCMPoint) / divSkill) * 100, 2),
+        EvaluationRank: this.getEvaluationRank_TKCK(((totalBGDSkillPoint + totalBGDCMPoint) / divSkill) * 100)
+      }
+    ];
+    console.log("kaka", this.dataMaster);
+
+    this.updateGrid(this.angularGridMaster, this.dataMaster);
   }
 
   //#endregion

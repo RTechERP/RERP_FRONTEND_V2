@@ -139,12 +139,17 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
     };
     this.tabDatePickerKeys[0] = 0;
 
-    // Nếu là edit mode, thêm validator cho ReasonHREdit
-    if (this.isEditMode) {
+    // Nếu là edit mode và cần hiển thị ReasonHREdit, thêm validator
+    if (this.isEditMode && this.shouldShowReasonHREdit()) {
       this.formGroup.get('ReasonHREdit')?.setValidators([Validators.required]);
       this.formGroup.get('ReasonHREdit')?.updateValueAndValidity();
       this.formGroup.get('ReasonHREdit')?.enable();
+    } else {
+      this.formGroup.get('ReasonHREdit')?.clearValidators();
+      this.formGroup.get('ReasonHREdit')?.updateValueAndValidity();
+    }
 
+    if (this.isEditMode) {
       // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
       if (!this.canEditEmployee()) {
         this.formGroup.get('EmployeeID')?.disable();
@@ -641,10 +646,12 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
       dateEnd.setSeconds(0, 0); // Set giây về 00
     }
 
-    // Đảm bảo ReasonHREdit được enable trước khi patchValue
-    if (this.isEditMode) {
+    // Đảm bảo ReasonHREdit được cấu hình đúng trước khi patchValue
+    if (this.isEditMode && this.shouldShowReasonHREdit()) {
       this.formGroup.get('ReasonHREdit')?.enable();
       this.formGroup.get('ReasonHREdit')?.setValidators([Validators.required]);
+    } else {
+      this.formGroup.get('ReasonHREdit')?.clearValidators();
     }
 
     this.formGroup.patchValue({
@@ -674,7 +681,7 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
     }
 
     // Update validity cho ReasonHREdit sau khi patchValue
-    if (this.isEditMode) {
+    if (this.isEditMode && this.shouldShowReasonHREdit()) {
       this.formGroup.get('ReasonHREdit')?.updateValueAndValidity();
     }
 
@@ -825,6 +832,18 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
     });
     this.formGroup.get('ReasonHREdit')?.valueChanges.subscribe(() => {
       this.saveTabData(this.selectedIndex);
+    });
+
+    // Khi EmployeeID thay đổi trong edit mode, cập nhật validators cho ReasonHREdit
+    this.formGroup.get('EmployeeID')?.valueChanges.subscribe(() => {
+      if (this.isEditMode) {
+        if (this.shouldShowReasonHREdit()) {
+          this.formGroup.get('ReasonHREdit')?.setValidators([Validators.required]);
+        } else {
+          this.formGroup.get('ReasonHREdit')?.clearValidators();
+        }
+        this.formGroup.get('ReasonHREdit')?.updateValueAndValidity();
+      }
     });
   }
 
@@ -1456,5 +1475,20 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
     const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
 
     return hasN1Permission || hasN2Permission || isAdmin;
+  }
+
+  // Helper method để kiểm tra có nên hiển thị và yêu cầu nhập ReasonHREdit
+  // Hiển thị khi: có quyền N1/N2 HOẶC người dùng hiện tại khác với employee đang sửa
+  shouldShowReasonHREdit(): boolean {
+    if (!this.isEditMode) {
+      return false;
+    }
+
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const employeeID = this.formGroup.get('EmployeeID')?.value;
+    const isDifferentUser = this.currentUser?.EmployeeID && employeeID && this.currentUser.EmployeeID !== employeeID;
+
+    return hasN1Permission || hasN2Permission || isDifferentUser;
   }
 }

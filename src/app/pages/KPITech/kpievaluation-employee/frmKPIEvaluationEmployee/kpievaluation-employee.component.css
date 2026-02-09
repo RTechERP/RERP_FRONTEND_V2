@@ -186,8 +186,8 @@ nz-tabset {
     border-right: none !important;
     font-weight: bold !important;
     text-align: center !important;
-    line-height: 30px !important;
-    height: 30px !important;
+    line-height: 40px !important;
+    height: 40px !important;
 }
 
 /* Chỉ thêm border cho các group thực sự (có text) */

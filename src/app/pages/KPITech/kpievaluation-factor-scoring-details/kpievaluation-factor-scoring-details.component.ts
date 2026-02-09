@@ -98,6 +98,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   private readonly DEPARTMENT_CO_KHI = 10;
   private readonly SPECIALIZATION_SKILL = 1;
   private readonly SPECIALIZATION_GENERAL = 6;
+
+  // State flags
+  isLockEvents: boolean = false;
   private readonly SPECIALIZATION_SPECIALIZATION = 28;
 
   // DI
@@ -695,6 +698,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 67,
         cssClass: 'text-right',
         sortable: true,
+        hidden: this.departmentID === this.DEPARTMENT_CO_KHI,
       },
       {
         id: 'EmployeePoint',
@@ -704,9 +708,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
         editor: (this.typePoint === 1) ? {
-          model: Editors['integer'],
+          model: this.departmentID === this.DEPARTMENT_CO_KHI ? Editors['float'] : Editors['integer'],
           minValue: 0,
-          maxValue: 5
+          maxValue: this.departmentID === this.DEPARTMENT_CO_KHI ? 100 : 5,
+          decimal: this.departmentID === this.DEPARTMENT_CO_KHI ? 2 : 0,
+          params: this.departmentID === this.DEPARTMENT_CO_KHI ? { decimalPlaces: 2 } : undefined
         } : undefined,
         columnGroup: 'NV đánh giá',
       },
@@ -718,9 +724,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
         editor: this.typePoint === 2 ? {
-          model: Editors['integer'],
+          model: this.departmentID === this.DEPARTMENT_CO_KHI ? Editors['float'] : Editors['integer'],
           minValue: 0,
-          maxValue: 5
+          maxValue: this.departmentID === this.DEPARTMENT_CO_KHI ? 100 : 5,
+          decimal: this.departmentID === this.DEPARTMENT_CO_KHI ? 2 : 0,
+          params: this.departmentID === this.DEPARTMENT_CO_KHI ? { decimalPlaces: 2 } : undefined
         } : undefined,
         columnGroup: 'TBP đánh giá',
       },
@@ -734,6 +742,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2 },
         columnGroup: 'TBP đánh giá',
+        hidden: this.departmentID === this.DEPARTMENT_CO_KHI,
       },
       {
         id: 'BGDPointInput',
@@ -743,9 +752,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
         editor: this.typePoint === 3 ? {
-          model: Editors['integer'],
+          model: this.departmentID === this.DEPARTMENT_CO_KHI ? Editors['float'] : Editors['integer'],
           minValue: 0,
-          maxValue: 5
+          maxValue: this.departmentID === this.DEPARTMENT_CO_KHI ? 100 : 5,
+          decimal: this.departmentID === this.DEPARTMENT_CO_KHI ? 2 : 0,
+          params: this.departmentID === this.DEPARTMENT_CO_KHI ? { decimalPlaces: 2 } : undefined
         } : undefined,
         columnGroup: 'BGĐ đánh giá',
       },
@@ -759,6 +770,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         formatter: Formatters.decimal,
         params: { decimalPlaces: 2 },
         columnGroup: 'BGĐ đánh giá',
+        hidden: this.departmentID === this.DEPARTMENT_CO_KHI,
       },
       {
         id: 'VerificationToolsContent',
@@ -811,6 +823,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         sortable: true,
         formatter: this.employeeCoefficientFormatter,
         columnGroup: 'Đánh giá của Nhân viên',
+        hidden: this.departmentID === this.DEPARTMENT_CO_KHI,
       },
       {
         id: 'TBPEvaluation',
@@ -831,6 +844,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         sortable: true,
         formatter: this.tbpCoefficientFormatter,
         columnGroup: 'Đánh giá của TBP/PBP',
+        hidden: this.departmentID === this.DEPARTMENT_CO_KHI,
       },
       {
         id: 'BGDEvaluation',
@@ -851,6 +865,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         sortable: true,
         formatter: this.bgdCoefficientFormatter,
         columnGroup: 'Đánh giá của BGĐ',
+        hidden: this.departmentID === this.DEPARTMENT_CO_KHI,
       },
     ];
   }
@@ -895,7 +910,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       enableAutoSizeColumns: false,
       createPreHeaderPanel: true,
       showPreHeaderPanel: true,
-      preHeaderPanelHeight: 30,
+      preHeaderPanelHeight: 40,
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 30,
@@ -907,20 +922,20 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   private initSkillGrid(): void {
     this.skillColumns = this.createBaseEvaluationColumns();
-    this.skillGridOptions = this.createBaseGridOptions('.grid-skill-container');
+    this.skillGridOptions = this.createBaseGridOptions('.grid-skill-details-container');
   }
 
   private initGeneralGrid(): void {
     this.generalColumns = this.createBaseEvaluationColumns();
     this.generalGridOptions = {
-      ...this.createBaseGridOptions('.grid-general-container'),
+      ...this.createBaseGridOptions('.grid-general-details-container'),
     };
   }
 
   private initSpecializationGrid(): void {
     this.specializationColumns = this.createBaseEvaluationColumns();
     this.specializationGridOptions = {
-      ...this.createBaseGridOptions('.grid-specialization-container'),
+      ...this.createBaseGridOptions('.grid-specialization-details-container'),
     };
   }
 
@@ -951,16 +966,6 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         hidden: this.departmentID === this.DEPARTMENT_CO_KHI
       },
       {
-        id: 'SpecializationPoint',
-        field: 'SpecializationPoint',
-        name: 'Chuyên môn',
-        width: 144,
-        minWidth: 100,
-        cssClass: 'text-right',
-        sortable: true,
-        resizable: true
-      },
-      {
         id: 'StandartPoint',
         field: 'StandartPoint',
         name: 'Tổng điểm chuẩn',
@@ -972,6 +977,16 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         params: { decimalPlaces: 2 }
       },
       {
+        id: 'SpecializationPoint',
+        field: 'SpecializationPoint',
+        name: 'Chuyên môn',
+        width: 144,
+        minWidth: 100,
+        cssClass: 'text-right',
+        sortable: true,
+        resizable: true
+      },
+      {
         id: 'PercentageAchieved',
         field: 'PercentageAchieved',
         name: 'Phần trăm đạt được',
@@ -981,6 +996,15 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         hidden: this.departmentID !== this.DEPARTMENT_CO_KHI,
         formatter: Formatters.percentComplete
       },
+      {
+        id: 'EvaluationRank',
+        field: 'EvaluationRank',
+        name: 'Xếp loại',
+        minWidth: 120,
+        cssClass: 'text-center',
+        sortable: true,
+        hidden: this.departmentID !== this.DEPARTMENT_CO_KHI,
+      },
       // {
       //   hidden: this.departmentID !== this.DEPARTMENT_CO_KHI
       // }
@@ -989,7 +1013,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.masterGridOptions = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-master-container',
+        container: '.grid-master-details-container',
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container'
       },
@@ -1211,7 +1235,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.ruleGridOptions = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-rule-container',
+        container: '.grid-rule-details-container',
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container'
       },
@@ -1313,7 +1337,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.teamGridOptions = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-team-container',
+        container: '.grid-team-details-container',
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container'
       },
@@ -1577,21 +1601,73 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    * Mapping: LoadData() trong WinForms
    */
   loadData(): void {
+    if (this.isLockEvents) return;
+    this.isLockEvents = true;
+
     if (!this.selectedEmployeeId || !this.selectedKPIExamId) {
+      this.isLockEvents = false;
       return;
     }
 
-    // Logic tính toán isPublic (mapping WinForms)
-    // WinForm: bool isPublic = typePoint == 2 || typePoint == 3 || empPoint.IsPublish == true;
-    const isPublic = this.typePoint === 2 || this.typePoint === 3 || this.isPublish === true;
-
     const empId = Number(this.selectedEmployeeId);
     const kpiExamID = Number(this.selectedKPIExamId);
+    const kpiSessionID = Number(this.selectedKPISessionId);
 
-    // 1. Tải KPI Kỹ năng ĐẦU TIÊN (Priority Loading)
-    this.loadKPIKyNang(empId, kpiExamID, isPublic);
+    if (isNaN(empId) || isNaN(kpiExamID) || isNaN(kpiSessionID)) {
+      console.error('Invalid IDs for loadData', { empId, kpiExamID, kpiSessionID });
+      this.isLockEvents = false;
+      return;
+    }
 
-    // 2. Các tab còn lại sẽ được load trong background sau khi Tab 1 hoàn tất (xem trong loadKPIKyNang)
+    // Sử dụng switchMap để chuỗi các API calls: getDataKPIExam -> getIsPublic
+    this.kpiSharedService.getDataKPIExam(empId, kpiSessionID).pipe(
+      switchMap((res: any) => {
+        const points = res?.data || res;
+        // Tìm point tương ứng với kpiExamID hiện tại
+        const point: any = Array.isArray(points) ? points.find((p: any) => p.KPIExamID === kpiExamID) : null;
+
+        if (point && point.ID) {
+          return this.kpiSharedService.getIsPublic(point.ID);
+        } else {
+          // Nếu không tìm thấy point, trả về null để xử lý ở bước sau
+          return of(null);
+        }
+      })
+    ).subscribe({
+      next: (res: any) => {
+        // Nếu res có data (từ API getIsPublic), lấy isPublish
+        // Logic WinForm: bool isPublic = typePoint == 2 || typePoint == 3 || empPoint.IsPublish == true;
+
+        let isPublish = false;
+        // API get-ispublic trả về object có thuộc tính IsPublish hoặc isPublish
+        if (res) {
+          // Kiểm tra các biến thể viết hoa/thường
+          if (res.IsPublish !== undefined) isPublish = res.IsPublish;
+          else if (res.isPublish !== undefined) isPublish = res.isPublish;
+          else if (res.data && res.data.IsPublish !== undefined) isPublish = res.data.IsPublish;
+        } else {
+          // Fallback: nếu không gọi dc API hoặc không tìm thấy point => dùng giá trị mặc định input
+          isPublish = this.isPublish;
+        }
+
+        const isPublicComputed = this.typePoint === 2 || this.typePoint === 3 || isPublish === true;
+
+        // 1. Tải KPI Kỹ năng ĐẦU TIÊN (Priority Loading)
+        // Các tab khác sẽ được load trong background sau khi tab Kỹ năng load xong (handle trong loadKPIKyNang)
+        this.loadKPIKyNang(empId, kpiExamID, isPublicComputed);
+
+        this.isLockEvents = false;
+      },
+      error: (err: any) => {
+        console.error('Error in loadData (isPublic flow):', err);
+
+        // Fallback khi lỗi API: sử dụng logic mặc định với input isPublish
+        const isPublicFallback = this.typePoint === 2 || this.typePoint === 3 || this.isPublish === true;
+        this.loadKPIKyNang(empId, kpiExamID, isPublicFallback);
+
+        this.isLockEvents = false;
+      }
+    });
   }
 
   //#region Các hàm tải dữ liệu chi tiết (Load Detail Data)
@@ -1616,9 +1692,13 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       next: (res) => {
         if (res.data) {
           this.dataSkill = this.transformToTreeData(res.data);
-          this.dataSkill = this.calculatorAvgPoint(this.dataSkill);
+          this.dataSkill = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataSkill) : this.calculatorAvgPoint(this.dataSkill);
           this.updateGrid(this.angularGridSkill, this.dataSkill);
-          this.calculateTotalAVG();
+          if (this.departmentID === this.DEPARTMENT_CO_KHI) {
+            this.loadSumaryRank_TKCK();
+          } else {
+            this.calculateTotalAVG();
+          }
 
           // Tải các tab còn lại dưới nền sau khi Tab 1 xong
           this.loadRemainingTabsBackground(empId, examId, isPublic);
@@ -1636,9 +1716,13 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       next: (res) => {
         if (res.data) {
           this.dataGeneral = this.transformToTreeData(res.data);
-          this.dataGeneral = this.calculatorAvgPoint(this.dataGeneral);
+          this.dataGeneral = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataGeneral) : this.calculatorAvgPoint(this.dataGeneral);
           this.updateGrid(this.angularGridGeneral, this.dataGeneral);
-          this.calculateTotalAVG();
+          if (this.departmentID === this.DEPARTMENT_CO_KHI) {
+            this.loadSumaryRank_TKCK();
+          } else {
+            this.calculateTotalAVG();
+          }
         }
       },
       error: (err) => console.error('Lỗi load KPI Chung:', err)
@@ -1653,9 +1737,13 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       next: (res) => {
         if (res.data) {
           this.dataSpecialization = this.transformToTreeData(res.data);
-          this.dataSpecialization = this.calculatorAvgPoint(this.dataSpecialization);
+          this.dataSpecialization = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataSpecialization) : this.calculatorAvgPoint(this.dataSpecialization);
           this.updateGrid(this.angularGridSpecialization, this.dataSpecialization);
-          this.calculateTotalAVG();
+          if (this.departmentID === this.DEPARTMENT_CO_KHI) {
+            this.loadSumaryRank_TKCK();
+          } else {
+            this.calculateTotalAVG();
+          }
         }
       },
       error: (err) => console.error('Lỗi load KPI Chuyên môn:', err)
@@ -2107,13 +2195,13 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     // Không tạo mảng mới để giữ tham chiếu đúng
     let updatedDataSet: any[];
     if (dataSet === this.dataSkill) {
-      updatedDataSet = this.calculatorAvgPoint(this.dataSkill);
+      updatedDataSet = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataSkill) : this.calculatorAvgPoint(this.dataSkill);
       this.dataSkill = updatedDataSet;
     } else if (dataSet === this.dataGeneral) {
-      updatedDataSet = this.calculatorAvgPoint(this.dataGeneral);
+      updatedDataSet = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataGeneral) : this.calculatorAvgPoint(this.dataGeneral);
       this.dataGeneral = updatedDataSet;
     } else if (dataSet === this.dataSpecialization) {
-      updatedDataSet = this.calculatorAvgPoint(this.dataSpecialization);
+      updatedDataSet = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataSpecialization) : this.calculatorAvgPoint(this.dataSpecialization);
       this.dataSpecialization = updatedDataSet;
     } else {
       updatedDataSet = dataSet;
@@ -2140,7 +2228,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     }
 
     // 8. Tính toán lại bảng tổng hợp (Master Grid)
-    this.calculateTotalAVG();
+    if (this.departmentID === this.DEPARTMENT_CO_KHI) {
+      this.loadSumaryRank_TKCK();
+    } else {
+      this.calculateTotalAVG();
+    }
 
     // 8. Highlight ô đã thay đổi
     const column = grid.getColumns()[args.cell];
@@ -2916,7 +3008,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
     //#region Chuẩn bị payload SaveDataKPI
     // Luôn tính lại bảng tổng hợp để đảm bảo số liệu mới nhất
-    this.calculateTotalAVG();
+    if (this.departmentID === this.DEPARTMENT_CO_KHI) {
+      this.loadSumaryRank_TKCK();
+    } else {
+      this.calculateTotalAVG();
+    }
 
     const kpiKyNang = this.buildEvaluationPointParams(this.dataSkill);
     const kpiChung = this.buildEvaluationPointParams(this.dataGeneral);
@@ -3231,6 +3327,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.cellCssStyleQueue = [];
   }
 
+  // chặn edit ở node cha và rule grid
   private subscribeToEditPrevention(angularGrid: any): void {
     if (angularGrid?.slickGrid) {
       angularGrid.slickGrid.onBeforeEditCell.subscribe((e: any, args: any) => {
@@ -3242,7 +3339,21 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
           const canEdit = this.canEditRuleCell(args.item, args.column.field);
           return canEdit;
         } else {
-          // Các grid khác: chỉ ngăn edit node cha
+          // Check special case for Mechanical Dept + TBP/BGD + Skill Grid
+          const isMechnicalSkillGrid = this.departmentID === this.DEPARTMENT_CO_KHI &&
+            (this.typePoint === 2 || this.typePoint === 3) &&
+            angularGrid === this.angularGridSkill && args.item.ID != -1;
+
+          if (isMechnicalSkillGrid) {
+            // Priority: Parent editable, Child readonly
+            if (args.item && args.item.__hasChildren) {
+              return true;
+            } else {
+              return false;
+            }
+          }
+
+          // Default behavior: Parent read-only, Child editable
           if (args.item && args.item.__hasChildren) {
             return false;
           }
@@ -3252,5 +3363,215 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     }
   }
   //#endregion
+  //#region Tính toán điểm cho phòng Cơ Khí (TKCK)
 
+  /**
+   * Tính điểm trung bình cho phòng Cơ Khí (TKCK)
+   * Logic: Tìm các node cha theo STT, sau đó tính tổng điểm từ các node con
+   * Tương ứng với hàm CalculatorAvgPoint_TKCK trong WinForm
+   * @param dataTable Mảng dữ liệu cần tính toán
+   * @returns Mảng dữ liệu đã được tính toán
+   */
+  private calculatorAvgPointTKCK(dataTable: any[]): any[] {
+    if (!dataTable || dataTable.length === 0) return dataTable;
+
+    // Bước 1: Tìm danh sách các node cha từ trường STT
+    const listFatherID: string[] = [];
+    for (const row of dataTable) {
+      const stt = String(row.STT || '').trim();
+      if (!stt) continue;
+
+      // Lấy ID cha: cắt chuỗi từ đầu đến dấu '.' cuối cùng
+      const lastDotIndex = stt.lastIndexOf('.');
+      const fatherID = lastDotIndex > 0 ? stt.substring(0, lastDotIndex) : stt.substring(0, 1);
+
+      // Kiểm tra trùng lặp
+      if (!listFatherID.includes(fatherID)) {
+        listFatherID.push(fatherID);
+      }
+    }
+
+    // Bước 2: Duyệt từ node cha cuối cùng lên (bottom-up) để tính toán
+    for (let i = listFatherID.length - 1; i >= 0; i--) {
+      const fatherId = listFatherID[i];
+      let fatherRowIndex = -1;
+
+      let count = 0;
+      let totalEmpPoint = 0;
+      let totalTbpPoint = 0;
+      let totalBgdPoint = 0;
+      let totalStandardPoint = 0;  // LĐ.Dat update 2/10/25
+
+      const startStt = fatherId + '.'; // Tiền tố của các node con
+
+      for (let rowIndex = 0; rowIndex < dataTable.length; rowIndex++) {
+        const row = dataTable[rowIndex];
+        const stt = String(row.STT || '').trim();
+        if (!stt) continue;
+
+        // Kiểm tra xem row hiện tại có phải là node cha khác không
+        const isParentNode = listFatherID.includes(stt);
+
+        if (stt === fatherId) {
+          // Đây là node cha hiện tại
+          fatherRowIndex = rowIndex;
+          // Lấy giá trị TBPPointInput của node cha (nếu có) - khớp với WinForm
+          totalTbpPoint = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || 0, 2);
+          totalBgdPoint = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || 0, 2); // WinForm dùng TBPPointInput cho cả BGD
+        } else if (stt.startsWith(startStt)) {
+          // Đây là node con
+          if (isParentNode) continue; // Bỏ qua nếu là node cha của một nhánh khác
+
+          // Cộng dồn điểm từ các node con - sử dụng TBPPointInput thay vì TBPPoint
+          totalEmpPoint += this.formatDecimalNumber(parseFloat(row.EmployeePoint) || 0, 2);
+          totalTbpPoint += this.formatDecimalNumber(parseFloat(row.TBPPointInput) || 0, 2);
+          totalBgdPoint += this.formatDecimalNumber(parseFloat(row.TBPPointInput) || 0, 2); // WinForm dùng TBPPointInput cho cả BGD
+          totalStandardPoint += this.formatDecimalNumber(parseFloat(row.StandardPoint) || 0, 2);
+          count++;
+        }
+      }
+
+      // Bước 3: Cập nhật giá trị cho node cha
+      if (fatherRowIndex === -1 || count === 0) continue;
+
+      dataTable[fatherRowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpPoint, 2);
+      dataTable[fatherRowIndex].TBPEvaluation = this.formatDecimalNumber(totalTbpPoint, 2);
+      dataTable[fatherRowIndex].BGDEvaluation = this.formatDecimalNumber(totalBgdPoint, 2);
+      dataTable[fatherRowIndex].StandardPoint = this.formatDecimalNumber(totalStandardPoint, 2);
+    }
+
+    // Bước 4: Gọi hàm tính tổng điểm cho các node gốc (ParentID = 0)
+    dataTable = this.calculatorTotalPointTKCK(dataTable);
+
+    return dataTable;
+  }
+
+  /**
+   * Tính tổng điểm cho các node gốc (ParentID = 0) của phòng Cơ Khí
+   * Tương ứng với hàm CalculatorTotalPoint_TKCK trong WinForm
+   * @param dataTable Mảng dữ liệu cần tính toán
+   * @returns Mảng dữ liệu đã được tính toán
+   */
+  private calculatorTotalPointTKCK(dataTable: any[]): any[] {
+    // Lấy danh sách các node gốc (ParentID = 0 hoặc parentId = null)
+    const parentRows = dataTable.filter(row => row.ParentID === 0 || row.parentId === null);
+
+    for (const parentRow of parentRows) {
+      const rowIndex = dataTable.indexOf(parentRow);
+      const childrenRows = dataTable.filter(row => row.ParentID === parentRow.ID);
+
+      // Tính tổng StandardPoint từ các node con
+      let totalStandardPoint = 0;
+      let totalEmpPoint = 0;
+      let totalTbpPoint = 0;
+      let totalBgdPoint = 0;
+
+      for (const child of childrenRows) {
+        // Cộng StandardPoint từ các node con
+        totalStandardPoint += this.formatDecimalNumber(parseFloat(child.StandardPoint) || 0, 2);
+
+        // Cộng các điểm Evaluation từ các node con
+        totalEmpPoint += this.formatDecimalNumber(parseFloat(child.EmployeeEvaluation) || 0, 2);
+        totalTbpPoint += this.formatDecimalNumber(parseFloat(child.TBPEvaluation) || 0, 2);
+        totalBgdPoint += this.formatDecimalNumber(parseFloat(child.BGDEvaluation) || 0, 2);
+      }
+
+      // Cập nhật giá trị cho node gốc
+      dataTable[rowIndex].StandardPoint = this.formatDecimalNumber(totalStandardPoint, 2);
+      dataTable[rowIndex].VerificationToolsContent = 'TỔNG ĐIỂM TRUNG BÌNH';
+
+      dataTable[rowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpPoint, 2);
+      dataTable[rowIndex].TBPEvaluation = this.formatDecimalNumber(totalTbpPoint, 2);
+      dataTable[rowIndex].BGDEvaluation = this.formatDecimalNumber(totalBgdPoint, 2);
+    }
+
+    return dataTable;
+  }
+  /**
+ * Lấy Xếp loại đánh giá KPI cho TKCK
+ * Khớp với logic GetEvaluationRank_TKCK trong WinForm
+ */
+  private getEvaluationRank_TKCK(totalPercent: number): string {
+    if (totalPercent < 60) return 'D';
+    if (totalPercent < 65) return 'C-';
+    if (totalPercent < 70) return 'C';
+    if (totalPercent < 75) return 'C+';
+    if (totalPercent < 80) return 'B-';
+    if (totalPercent < 85) return 'B';
+    if (totalPercent < 90) return 'B+';
+    if (totalPercent < 95) return 'A-';
+    if (totalPercent < 100) return 'A';
+    return 'A+';
+  }
+
+  /**
+  * Tải bảng xếp loại tổng hợp cho phòng ban TKCK
+  * Khớp với logic LoadSumaryRank_TKCK trong WinForm
+  */
+  loadSumaryRank_TKCK(): void {
+    let totalEmpSkillPoint = 0;
+    let totalTBPSkillPoint = 0;
+    let totalBGDSkillPoint = 0;
+    let totalSkillPoint = 0;
+
+    let totalEmpCMPoint = 0;
+    let totalTBPCMPoint = 0;
+    let totalBGDCMPoint = 0;
+    let totalCMPoint = 0;
+
+    // Tính toán tổng điểm từ Tab Kỹ năng (Skill)
+    const skillSummaryRow = this.dataSkill.find(row => row.ID === -1);
+    if (skillSummaryRow) {
+      totalSkillPoint = parseFloat(skillSummaryRow.StandardPoint) || 0;
+      totalEmpSkillPoint = parseFloat(skillSummaryRow.EmployeeEvaluation) || 0;
+      totalTBPSkillPoint = parseFloat(skillSummaryRow.TBPEvaluation) || 0;
+      totalBGDSkillPoint = parseFloat(skillSummaryRow.BGDEvaluation) || 0;
+    }
+
+    // Tính toán tổng điểm từ Tab Chuyên môn (Chuyen Mon)
+    const cmSummaryRow = this.dataSpecialization.find(row => row.ID === -1);
+    if (cmSummaryRow) {
+      totalCMPoint = parseFloat(cmSummaryRow.StandardPoint) || 0;
+      totalEmpCMPoint = parseFloat(cmSummaryRow.EmployeeEvaluation) || 0;
+      totalTBPCMPoint = parseFloat(cmSummaryRow.TBPEvaluation) || 0;
+      totalBGDCMPoint = parseFloat(cmSummaryRow.BGDEvaluation) || 0;
+    }
+
+    const divSkill = totalSkillPoint + totalCMPoint;
+    const totalStandart = totalSkillPoint + totalCMPoint;
+
+    this.dataMaster = [
+      {
+        id: 1,
+        EvaluatedType: 'Tự đánh giá',
+        SkillPoint: totalEmpSkillPoint,
+        SpecializationPoint: totalEmpCMPoint,
+        StandartPoint: totalStandart,
+        PercentageAchieved: this.formatDecimalNumber(((totalEmpSkillPoint + totalEmpCMPoint) / divSkill) * 100, 2),
+        EvaluationRank: this.getEvaluationRank_TKCK(((totalEmpSkillPoint + totalEmpCMPoint) / divSkill) * 100)
+      },
+      {
+        id: 2,
+        EvaluatedType: 'Đánh giá của Trưởng/Phó BP',
+        SkillPoint: totalTBPSkillPoint,
+        SpecializationPoint: totalTBPCMPoint,
+        StandartPoint: totalStandart,
+        PercentageAchieved: this.formatDecimalNumber(((totalTBPSkillPoint + totalTBPCMPoint) / divSkill) * 100, 2),
+        EvaluationRank: this.getEvaluationRank_TKCK(((totalTBPSkillPoint + totalTBPCMPoint) / divSkill) * 100)
+      },
+      {
+        id: 3,
+        EvaluatedType: 'Đánh giá của GĐ',
+        SkillPoint: totalBGDSkillPoint,
+        SpecializationPoint: totalBGDCMPoint,
+        StandartPoint: totalStandart,
+        PercentageAchieved: this.formatDecimalNumber(((totalBGDSkillPoint + totalBGDCMPoint) / divSkill) * 100, 2),
+        EvaluationRank: this.getEvaluationRank_TKCK(((totalBGDSkillPoint + totalBGDCMPoint) / divSkill) * 100)
+      }
+    ];
+    console.log("kaka", this.dataMaster);
+
+    this.updateGrid(this.angularGridMaster, this.dataMaster);
+  }
+  //#endregion
 }

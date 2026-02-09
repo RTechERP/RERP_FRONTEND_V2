@@ -3,7 +3,8 @@
     <!-- Modal Header -->
     <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0">
         <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
-            Đánh giá KPI - {{typePoint === 1 ? "Cá nhân" : typePoint === 2 ? "TBP đánh giá" : typePoint === 3 ? "Giám đốc đánh giá" : typePoint === 4 ? "Admin đánh giá" : ""}}
+            Đánh giá KPI - {{typePoint === 1 ? "Cá nhân" : typePoint === 2 ? "TBP đánh giá" : typePoint === 3 ? "Giám
+            đốc đánh giá" : typePoint === 4 ? "Admin đánh giá" : ""}}
         </h6>
         <button type="button" class="btn-close" (click)="dismissModal()" aria-label="Close"
             style="background-color:lightcyan !important; font-weight: bold;"></button>
@@ -72,8 +73,8 @@
 
             <!-- Tab 1: KPI Kỹ năng -->
             <nz-tab nzTitle="KPI Kỹ năng">
-                <div class="grid-skill-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 0" gridId="grid-skill"
+                <div class="grid-skill-details-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 0" gridId="grid-skill-details"
                         [columns]="skillColumns" [options]="skillGridOptions" [dataset]="dataSkill"
                         (onAngularGridCreated)="onSkillGridReady($event)">
                     </angular-slickgrid>
@@ -82,8 +83,8 @@
 
             <!-- Tab 2: KPI Chung -->
             <nz-tab nzTitle="KPI Chung" *ngIf="showTabGeneral">
-                <div class="grid-general-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 1" gridId="grid-general"
+                <div class="grid-general-details-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 1" gridId="grid-general-details"
                         [columns]="generalColumns" [options]="generalGridOptions" [dataset]="dataGeneral"
                         (onAngularGridCreated)="onGeneralGridReady($event)">
                     </angular-slickgrid>
@@ -92,17 +93,18 @@
 
             <!-- Tab 3: KPI Chuyên môn -->
             <nz-tab nzTitle="KPI Chuyên môn">
-                <div class="grid-specialization-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 2" gridId="grid-specialization"
-                        [columns]="specializationColumns" [options]="specializationGridOptions"
-                        [dataset]="dataSpecialization" (onAngularGridCreated)="onSpecializationGridReady($event)">
+                <div class="grid-specialization-details-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 2"
+                        gridId="grid-specialization-details" [columns]="specializationColumns"
+                        [options]="specializationGridOptions" [dataset]="dataSpecialization"
+                        (onAngularGridCreated)="onSpecializationGridReady($event)">
                     </angular-slickgrid>
                 </div>
             </nz-tab>
             <!-- Tab 4: Tổng hợp đánh giá -->
             <nz-tab nzTitle="Tổng hợp đánh giá">
-                <div class="grid-master-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 3" gridId="grid-master"
+                <div class="grid-master-details-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 3" gridId="grid-master-details"
                         [columns]="masterColumns" [options]="masterGridOptions" [dataset]="dataMaster"
                         (onAngularGridCreated)="onMasterGridReady($event)">
                     </angular-slickgrid>
@@ -111,7 +113,7 @@
 
             <!-- Tab 5: Rule -->
             <nz-tab nzTitle="Rule" *ngIf="showTabRule">
-                <div class="grid-rule-container" style="height: 100%; position: relative;">
+                <div class="grid-rule-details-container" style="height: 100%; position: relative;">
                     <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 4" gridId="grid-rule-details"
                         [columns]="ruleColumns" [options]="ruleGridOptions" [dataset]="dataRule"
                         (onAngularGridCreated)="onRuleGridReady($event)">
@@ -121,8 +123,8 @@
 
             <!-- Tab 6: Team -->
             <nz-tab nzTitle="Team" *ngIf="showTabTeam">
-                <div class="grid-team-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 5" gridId="grid-team"
+                <div class="grid-team-details-container" style="height: 100%; position: relative;">
+                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 5" gridId="grid-team-details"
                         [columns]="teamColumns" [options]="teamGridOptions" [dataset]="dataTeam"
                         (onAngularGridCreated)="onTeamGridReady($event)">
                     </angular-slickgrid>

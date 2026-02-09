@@ -510,6 +510,33 @@ export class KPIService {
       .set('sessionID', sessionID.toString());
     return this.http.get<any>(this.apiUrl + 'get-final-point', { params });
   }
+
+  /**
+   * Lấy thông tin IsPublish của empPoint
+   * API: GET api/KPIEvaluationEmployee/get-ispublish
+   * @param kpiExamID - ID bài đánh giá KPI
+   * @param isPublic - Trạng thái công khai hiện tại
+   * @param employeeID - ID nhân viên
+   * @param sessionID - ID kỳ đánh giá
+   * @returns empPoint object chứa IsPublish flag
+   */
+  getIsPublish(kpiExamID: number, isPublic: boolean, employeeID: number, sessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-ispublish', { params });
+  }
+  /**
+   * Lấy thông tin IsPublic
+   * API: GET api/KPIEvaluationEmployee/get-ispublic?empPointID={empPointID}
+   */
+  getIsPublic(empPointID: number): Observable<any> {
+    const params = new HttpParams().set('empPointID', empPointID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-ispublic', { params });
+  }
 }
+
 
 

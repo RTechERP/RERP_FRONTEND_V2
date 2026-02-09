@@ -1,11 +1,19 @@
+<!-- <nav class="navbar sticky-top p-0" style="background-image: url('assets/icon/—Pngtree—vietnamese new year apricot blossom_1995958.png'); 
+            background-size: 100% 100%; 
+            background-position: center; 
+            background-repeat: no-repeat;"> -->
 <nav class="navbar sticky-top p-0" style="background-color: #23458a;">
     <div class="container-fluid">
         <a class="navbar-brand p-0" href="#" style="width: 6%;" routerLink="/home">
             <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="" width="100%"
                 class="d-inline-block align-text-top">
-
         </a>
-
+        <span *ngIf="hasNewVersion" (click)="showUpdateModal()" class="text-white fw-bold cursor-pointer blink-text"
+            style="font-size: 14px; margin: 0 10px; vertical-align: right;">
+            <i nz-icon nzType="info-circle" nzTheme="outline"></i> Có phiên bản cập nhật mới!
+            <span style="text-decoration: underline; margin-left: 5px; font-weight: normal; font-size: 12px;">(Xem chi
+                tiết)</span>
+        </span>
         <div class="">
             <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
                 style="border: none !important; background-color:transparent;" nzTrigger="click">
@@ -35,6 +43,7 @@
                 </button>
             </app-app-notifycation-dropdown>
 
+
             <app-app-user-dropdown>
                 <button nz-button nzType="text" trigger style="border: none !important;background-color: transparent;">
                     <img src="assets/icon/user.svg">
@@ -43,7 +52,14 @@
         </div>
     </div>
 </nav>
-
+<!-- <div *ngIf="showLixiRain" class="lixi-container">
+    <div *ngFor="let lixi of lixis" class="lixi" [style.left.%]="lixi.left"
+        [style.animation-duration.s]="lixi.animationDuration" [style.animation-delay.s]="lixi.delay"
+        [style.--rotation.deg]="lixi.rotation">
+        {{ lixi.icon }}
+    </div>
+</div> -->
+<!-- <div class="row m-0" style="background-color: rgb(238, 220, 176);"> -->
 <div class="row m-0" style="background-color: rgb(230, 230, 230);">
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
         <div class="card">
@@ -105,6 +121,13 @@
     </div>
 
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+
+        <!-- <div class="card"
+            style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/Gemini_Generated_Image_ec1n9dec1n9dec1n.png'); background-size: auto 100%; background-repeat: repeat-x; background-position: center;">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">duyệt cá nhân</h5>
+            </div> -->
+
 
         <div class="card">
             <div class="card-header">
@@ -282,7 +305,73 @@
     </div>
 
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+        <!-- <div class="card">
+            <p-tabs value="0">
+                <p-tablist>
+                    <p-tab value="0" class="p-2">Nghỉ {{totalEmployeeOnleave == 0 ?'':`(${totalEmployeeOnleave}) -
+                        ${today | date:'dd/MM/yyyy'}`}}</p-tab>
+                    <p-tab value="1" class="p-2">WFH {{totalEmployeeWfh == 0 ?'':`(${totalEmployeeWfh}) - ${today |
+                        date:'dd/MM/yyyy'}`}}</p-tab>
+                </p-tablist>
+                <p-tabpanels class="p-0">
+                    <p-tabpanel value="0" style="display: block; height: 38vh; overflow: auto;">
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @for (item of employeeOnleaves; track $index) {
+                                <li class="list-group-item border-0 border-bottom py-1">
+                                    <details open>
+                                        <summary class="fw-bold" style="font-size: 12px;">{{item.DepartmentName}}
+                                            ({{item.Employees.length}})
+                                        </summary>
+                                        <ul class="list-group">
+                                            @for (e of item.Employees; track $index) {
+                                            <li class="list-group-item border-0 py-1" style="font-size: 12px;">
+                                                <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
+                                            </li>
+                                            }
+                                        </ul>
+                                    </details>
+
+                                </li>
+                                }
+                            </ul>
+                        </div>
+                    </p-tabpanel>
+                    <p-tabpanel value="1" style="display: block; height: 377px; overflow: auto;">
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @for (item of employeeWfhs; track $index) {
+                                <li class="list-group-item border-0 border-bottom py-1">
+                                    <details open>
+                                        <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
+                                        </summary>
+                                        <ul class="list-group">
+                                            @for (e of item.Employees; track $index) {
+                                            <li class="list-group-item border-0 py-1">
+                                                <span>{{$index + 1}}.{{e.EmployeeName}}
+                                                    {{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
+                                            </li>
+                                            }
+                                        </ul>
+                                    </details>
+
+                                </li>
+                                }
+                            </ul>
+                        </div>
+                    </p-tabpanel>
+
+                </p-tabpanels>
+            </p-tabs>
+
+        </div> -->
+
         <div class="card">
+            <!-- style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)),
+            url('assets/icon/1212121.jpg');
+            background-size: auto 100%;
+            background-repeat: repeat-x;
+            background-position: center;" -->
             <div class="card-header">
                 <nz-tabset nzCentered [(nzSelectedIndex)]="activeTab">
                     <nz-tab [nzTitle]="titleTemplateOnleave"></nz-tab>
@@ -348,7 +437,10 @@
                 </ng-container>
             </div>
         </div>
-        <div class="card">
+        <div class="card" style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/—Pngtree—in spring peach blossoms are_5618880.png');
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+  background-position: center;">
             <div class="card-header d-flex align-items-center">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Lịch làm việc
                 </h5>
@@ -370,7 +462,8 @@
     </div>
 
 </div>
-
+<nz-footer style="padding: 5px !important; padding-left: 10px; background-color: #ffffff;">Version: {{ userAppVersion }}
+</nz-footer>
 
 <!-- <nz-layout>
     <nz-header>
@@ -385,5 +478,5 @@
 
         <div class="inner-content">Content</div>
     </nz-content>
-    <nz-footer>Ant Design ©{{ date.getFullYear() }} Implement By Angular</nz-footer>
+  
 </nz-layout> -->

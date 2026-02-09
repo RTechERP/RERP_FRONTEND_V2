@@ -53,7 +53,7 @@
               </span></nz-form-label>
             <nz-form-control [nzErrorTip]="'Vui lòng chọn người duyệt'">
               <nz-select formControlName="ApprovedID" [formGroup]="commonForm" nzPlaceHolder="Chọn người duyệt"
-                nzAllowClear nzShowSearch style="width: 100%">
+                nzAllowClear nzShowSearch style="width: 100%" nzDropdownClassName="select-dropdown">
                 <nz-option-group *ngFor="let group of approverGroups" [nzLabel]="group.label">
                   <nz-option *ngFor="let approver of group.options" [nzValue]="approver.ID"
                     [nzLabel]="approver.Code + ' - ' + approver.FullName"></nz-option>
@@ -166,7 +166,7 @@
                         (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="showProjectField ? 'Vui lòng chọn dự án' : undefined">
                       <nz-select [formControl]="$any(tab.form.get('ProjectID'))" nzPlaceHolder="Chọn dự án" nzAllowClear
-                        nzShowSearch style="width: 100%">
+                        nzShowSearch style="width: 100%" nzDropdownClassName="select-dropdown">
                         <nz-option *ngFor="let project of projectList" [nzValue]="project.id"
                           [nzLabel]="project.text"></nz-option>
                       </nz-select>

@@ -1,8 +1,9 @@
-import { ChangeDetectorRef, Component, Injector, OnInit, Type } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, Type } from '@angular/core';
 import { AppNotifycationDropdownComponent, NotifyItem } from "../../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component";
 import { AppUserDropdownComponent } from "../../../pages/systems/app-user/app-user-dropdown.component";
 import { NzBadgeComponent } from "ng-zorro-antd/badge";
 import { NzDropDownModule } from "ng-zorro-antd/dropdown";
+import { NzModalModule } from 'ng-zorro-antd/modal';
 
 import { CommonModule, NgSwitchCase } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -28,8 +29,20 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { ApproveTpService } from '../../../pages/person/approve-tp/approve-tp-service/approve-tp.service';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { HostListener } from '@angular/core';
+import { UpdateVersionService } from '../../../pages/systems/update-version/update-version.service';
+import { NzModalService } from 'ng-zorro-antd/modal';
+interface LiXi {
+    id: number;
+    left: number;
+    animationDuration: number;
+    delay: number;
+    rotation: number;
+    icon: string;
+}
 import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newsletter/newsletter-detail/newsletter-detail.component';
 import { DateTime } from 'luxon';
+import { UpdateVersionDetailComponent } from '../../../pages/systems/update-version/update-version-detail/update-version-detail.component';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -48,13 +61,24 @@ import { DateTime } from 'luxon';
         NzTabsModule,
         NgSwitchCase,
         HasPermissionDirective,
-        NgbModalModule
+        NgbModalModule,
+        NzModalModule
     ],
     templateUrl: './home-layout-new.component.html',
     styleUrl: './home-layout-new.component.css'
 })
-export class HomeLayoutNewComponent implements OnInit {
-
+export class HomeLayoutNewComponent implements OnInit, OnDestroy {
+    private eventSource: EventSource | null = null;
+    currentAppVersion: string = '';
+    userAppVersion: string = localStorage.getItem('currentAppVersion') || '0.0.0';
+    lixis: LiXi[] = [];
+    showLixiRain: boolean = false;
+    hasNewVersion: boolean = false;
+    latestVersionDetails: any = null;
+    private lixiIntervalId: any;
+    private lixiIdCounter = 0;
+    private clickCount = 0;
+    private clickTimer: any;
     isMobile = window.innerHeight <= 768;
 
     notifItems: NotifyItem[] = [];
@@ -148,14 +172,15 @@ export class HomeLayoutNewComponent implements OnInit {
         private tabService: TabServiceService,
         private approveTpService: ApproveTpService,
         private modalService: NgbModal,
-        private borrowService: BorrowService
+        private borrowService: BorrowService,
+        private updateVersionService: UpdateVersionService,
+        private nzModal: NzModalService
     ) { }
 
     ngOnInit(): void {
         this.appUserService.user$.subscribe(() => {
             this.permissionService.refreshPermissions();
             this.cdr.markForCheck?.();
-
             this.id = this.appUserService.currentUser?.ID || 0;
             this.employeeID = this.appUserService.currentUser?.EmployeeID || 0;
             this.departmentID = this.appUserService.currentUser?.DepartmentID || 0;
@@ -166,17 +191,15 @@ export class HomeLayoutNewComponent implements OnInit {
 
             this.isAdmin = (this.appUserService.currentUser?.IsAdmin) || false;
         });
-
         this.getMenus();
-
         this.getHoliday(this.today.getFullYear(), this.today.getMonth());
         this.getEmployeeOnleaveAndWFH();
         this.getQuantityApprove();
         this.getQuantityBorrow();
         this.loadNewsletters();
+        this.loadCurrentVersion();
+        this.initSseConnection();
     }
-
-
     getQuantityApprove() {
         this.approveTpService.getQuantityApprove().subscribe({
             next: (res: any) => {
@@ -189,6 +212,7 @@ export class HomeLayoutNewComponent implements OnInit {
             }
         })
     }
+
 
     getQuantityBorrow() {
         this.borrowService.getQuantityBorrow().subscribe({
@@ -468,77 +492,55 @@ export class HomeLayoutNewComponent implements OnInit {
     newTab(route: string, title: string, queryParams?: any) {
         route = route.replace(environment.baseHref, '');
 
-        const idx = this.dynamicTabs.findIndex(t => t.route === route);
-
-
+        // Parse queryParams nếu là string JSON
         let parsedParams: any = null;
-        // console.log('queryParams:', queryParams);
         if (queryParams && queryParams !== '') {
             if (typeof queryParams === 'string') {
                 try {
                     parsedParams = JSON.parse(queryParams);
-                    // console.log('Parsed queryParams:', parsedParams);
                 } catch (e) {
-                    // console.error('Error parsing queryParams:', e, 'queryParams value:', queryParams);
                     parsedParams = null;
                 }
             } else if (typeof queryParams === 'object') {
-                // Đã là object rồi, không cần parse
                 parsedParams = queryParams;
-                // console.log('queryParams already object:', parsedParams);
             }
-        } else {
-            // console.log('queryParams is empty or undefined');
         }
 
-        const normalizedParams =
-            parsedParams && typeof parsedParams === 'object' && Object.keys(parsedParams).length > 0
-                ? parsedParams
-                : undefined;
-        // if (idx >= 0) {
-        this.selectedIndex = idx;
-
-        const cleanRoute = route.startsWith('/') ? route.substring(1) : route;
-        let url = `/${cleanRoute}`;
-        if (normalizedParams) {
+        // Tạo URL với queryParams
+        let fullUrl = route;
+        if (parsedParams && Object.keys(parsedParams).length > 0) {
             const params = new URLSearchParams();
-            Object.keys(normalizedParams).forEach(key => {
-                const value = normalizedParams[key];
-                // Convert boolean, number sang string
-                params.append(key, String(value));
+            Object.keys(parsedParams).forEach(key => {
+                params.append(key, String(parsedParams[key]));
             });
-            url += `?${params.toString()}`;
+            fullUrl = `${route}?${params.toString()}`;
         }
 
-        // this.router.navigateByUrl(route);
-        // console.log('navigateByUrl(url):', url);
-        this.router.navigateByUrl(url).then(() => {
-            // Reset flag sau khi navigation xong
-            setTimeout(() => {
-                // this.isNavigatingFromNewTab = false;
-            }, 100);
-        });
-        return;
-        // }
+        const idx = this.dynamicTabs.findIndex(t => t.route === fullUrl);
+
+        if (idx >= 0) {
+            this.selectedIndex = idx;
+            this.router.navigateByUrl(fullUrl);
+            return;
+        }
 
         this.dynamicTabs = [
             ...this.dynamicTabs,
-            { title, route, queryParams }
+            { title, route: fullUrl, data: parsedParams }
         ];
-        // console.log('this.dynamicTabs after add:', this.dynamicTabs);
 
         setTimeout(() => {
             this.selectedIndex = this.dynamicTabs.length - 1;
-            this.router.navigateByUrl(route);
+            this.router.navigateByUrl(fullUrl);
         });
     }
 
-    handleClickLink(event: MouseEvent, route: string, title: string, queryParam?: string) {
-        // console.log('route:', route);
+    handleClickLink(event: MouseEvent, route: string, title: string, queryParams?: string) {
+        // console.log('route:', route, 'queryParams:', queryParams);
         if (route == '') return;
         if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
             event.preventDefault(); // chặn reload
-            this.newTab(route, title, queryParam);
+            this.newTab(route, title);
 
             localStorage.removeItem('tabOpeneds');
         }
@@ -572,5 +574,139 @@ export class HomeLayoutNewComponent implements OnInit {
         urlImage = urlImage.replace(/\\/g, '/');
 
         return host + urlImage;
+    }
+    ngOnDestroy(): void {
+        clearTimeout(this.clickTimer);
+        if (this.eventSource) {
+            this.eventSource.close();
+            this.eventSource = null;
+        }
+    }
+
+    loadCurrentVersion() {
+        const localVersion = localStorage.getItem('currentAppVersion');
+        this.updateVersionService.getCurrentVersion().subscribe({
+            next: (res) => {
+                if (res?.status === 1) {
+                    this.currentAppVersion = res.data;
+                    console.log('Current App Version:', this.currentAppVersion);
+
+                    if (localVersion && localVersion !== this.currentAppVersion) {
+                        this.hasNewVersion = true;
+                        this.fetchVersionDetails(this.currentAppVersion);
+                    } else if (!localVersion) {
+                        localStorage.setItem('currentAppVersion', this.currentAppVersion);
+                        this.userAppVersion = this.currentAppVersion;
+                    }
+                }
+            },
+            error: (err) => console.error('Lỗi lấy phiên bản hiện tại:', err)
+        });
+    }
+
+    fetchVersionDetails(code: string) {
+        this.updateVersionService.getUpdateVersions().subscribe({
+            next: (res) => {
+                if (res?.status === 1) {
+                    const data = res.data?.data || [];
+                    this.latestVersionDetails = data.find((v: any) => v.Code === code);
+                }
+            }
+        });
+    }
+
+    initSseConnection() {
+        const sseUrl = this.updateVersionService.getSseUrl();
+        this.eventSource = new EventSource(sseUrl);
+
+        this.eventSource.addEventListener('contract-updated', (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log('SSE Event [contract-updated]:', data);
+
+                // data.code là mã phiên bản mới từ server bắn về
+                if (data.code && data.code !== this.currentAppVersion) {
+                    this.hasNewVersion = true;
+                    this.currentAppVersion = data.code;
+                    this.fetchVersionDetails(data.code);
+                    this.showUpdatePrompt(data.code);
+                }
+            } catch (e) {
+                console.error('Lỗi parse dữ liệu SSE:', e, event.data);
+            }
+        });
+
+        this.eventSource.onerror = (error) => {
+            console.error('SSE Connection error:', error);
+        };
+    }
+
+    showUpdatePrompt(newVersion: string) {
+        // Nếu đã có dữ liệu chi tiết của phiên bản này thì hiện modal luôn
+        if (this.latestVersionDetails && this.latestVersionDetails.Code === newVersion) {
+            this.showUpdateModal();
+        } else {
+            // Nếu chưa có thì load lại rồi hiện
+            this.updateVersionService.getUpdateVersions().subscribe({
+                next: (res) => {
+                    if (res?.status === 1) {
+                        const data = res.data?.data || [];
+                        this.latestVersionDetails = data.find((v: any) => v.Code === newVersion);
+
+                        if (this.latestVersionDetails) {
+                            this.showUpdateModal();
+                        } else {
+                            // Fallback nếu không tìm thấy chi tiết
+                            this.showConfirmFallback(newVersion);
+                        }
+                    } else {
+                        this.showConfirmFallback(newVersion);
+                    }
+                },
+                error: (err) => {
+                    console.error('Lỗi load chi tiết phiên bản:', err);
+                    this.showConfirmFallback(newVersion);
+                }
+            });
+        }
+    }
+
+    private showConfirmFallback(newVersion: string) {
+        this.nzModal.confirm({
+            nzTitle: 'Cập nhật phiên bản mới',
+            nzContent: `Hệ thống đã có phiên bản mới (<b>${newVersion}</b>). Bạn có muốn cập nhật ngay không?`,
+            nzOkText: 'Có (Tải lại trang)',
+            nzCancelText: 'Để sau',
+            nzOnOk: () => {
+                localStorage.setItem('currentAppVersion', newVersion);
+                window.location.reload();
+            }
+        });
+    }
+
+    showUpdateModal() {
+        if (!this.latestVersionDetails) {
+            this.showUpdatePrompt(this.currentAppVersion);
+            return;
+        }
+
+        const modalRef = this.modalService.open(UpdateVersionDetailComponent, {
+            centered: true,
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: true,
+            scrollable: true
+        });
+
+        modalRef.componentInstance.versionData = this.latestVersionDetails;
+
+        modalRef.result.then((result) => {
+            if (result === 'update') {
+                localStorage.setItem('currentAppVersion', this.currentAppVersion);
+                window.location.reload();
+            }
+        }).catch(() => {
+            // Modal dismissed
+        });
     }
 }

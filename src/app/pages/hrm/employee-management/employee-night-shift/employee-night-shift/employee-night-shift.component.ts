@@ -1380,7 +1380,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     }
 
     const ExcelJS = await import('exceljs');
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new (ExcelJS as any).default.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách làm đêm');
 
     const columns = this.columnDefinitions.filter(col => col.id !== 'checkbox-selector' && col.id !== 'STT');
@@ -1414,12 +1414,12 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
       worksheet.addRow(rowData);
     });
 
-    worksheet.columns.forEach((col) => {
+    worksheet.columns.forEach((col: any) => {
       col.width = 20;
     });
 
-    worksheet.eachRow((row, rowNumber) => {
-      row.eachCell((cell) => {
+    worksheet.eachRow((row: any, rowNumber: any) => {
+      row.eachCell((cell: any) => {
         cell.border = {
           top: { style: 'thin' },
           left: { style: 'thin' },

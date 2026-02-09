@@ -92,6 +92,13 @@
             </li>
             }
         </ul>
+        <div class="sidebar-footer">
+            Version: {{ userAppVersion }}
+            <div *ngIf="hasNewVersion" (click)="showUpdateModal()" class="cursor-pointer blink-text"
+                style="color: #ff4d4f; font-weight: bold; margin-top: 5px; font-size: 12px;">
+                <i nz-icon nzType="info-circle" nzTheme="outline"></i> Có bản cập nhật mới!
+            </div>
+        </div>
     </nz-sider>
     <nz-layout>
         <nz-header>

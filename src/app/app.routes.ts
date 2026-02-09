@@ -254,6 +254,7 @@ import { KpiPositionEmployeeComponent } from './pages/old/Technical/kpi-position
 import { KpiEvaluationComponent } from './pages/old/Technical/kpi-evaluation/kpi-evaluation.component';
 import { KpiEmployeeTeamComponent } from './pages/old/Technical/kpi-employee-team/kpi-employee-team.component';
 import { KpiEvaluationRuleComponent } from './pages/old/Technical/kpi-evaluation-rule/kpi-evaluation-rule.component';
+import{UpdateVersionComponent} from './pages/systems/update-version/update-version.component';
 import { KpiEvaluationFactorsComponent } from './pages/old/Technical/kpi-evaluation-factors/kpi-evaluation-factors.component';
 import { LuckyNumberComponent } from './pages/hrm/lucky-number/lucky-number.component';
 import { KpiSyntheticYearsComponent } from './pages/old/Technical/kpi-synthetic-years/kpi-synthetic-years.component';
@@ -1031,6 +1032,7 @@ export const routes: Routes = [
             { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
             { path: 'lucky-number-person', component: LuckyNumberComponent, canActivate: [authGuard] },
             { path: 'lucky-number', component: LuckyNumberComponent, canActivate: [authGuard] },
+            { path: 'update-version', component: UpdateVersionComponent, canActivate: [authGuard] },
         ],
     },
 ];

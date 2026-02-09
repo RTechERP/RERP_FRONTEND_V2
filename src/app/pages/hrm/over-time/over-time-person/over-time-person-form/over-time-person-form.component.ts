@@ -145,13 +145,18 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
         const diffMs = endDate.getTime() - startDate.getTime();
         const diffHours = diffMs / (1000 * 60 * 60);
-        const totalHours = Math.round(diffHours * 100) / 100;
 
-        form.patchValue({ TotalHour: totalHours }, { emitEvent: false });
+        if (diffHours > 0) {
+          const totalHours = Math.round(diffHours * 100) / 100;
+          form.patchValue({ TotalHour: totalHours }, { emitEvent: false });
+        } else {
+          form.patchValue({ TotalHour: null }, { emitEvent: false });
+        }
       }
     } else {
       form.patchValue({ TotalHour: null }, { emitEvent: false });
     }
+    this.cdr.detectChanges();
   }
 
   locationList = [
@@ -159,6 +164,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     { value: 1, label: 'Văn phòng' },
     { value: 2, label: 'Địa điểm công tác' },
     { value: 3, label: 'Tại nhà' },
+    { value: 4, label: 'Nhà máy RTC' },
   ];
 
   constructor(
@@ -2079,9 +2085,6 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
 
       if (startDate >= endDate) {
         this.notification.warning(NOTIFICATION_TITLE.warning, 'Thời gian kết thúc phải sau thời gian bắt đầu');
-        form.patchValue({
-          EndTime: null
-        }, { emitEvent: false });
       }
     }
   }

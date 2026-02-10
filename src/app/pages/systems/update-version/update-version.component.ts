@@ -18,6 +18,7 @@ import {
   MultipleSelectOption,
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { forkJoin } from 'rxjs';
 
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { UpdateVersionService } from './update-version.service';
@@ -604,15 +605,15 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
 
     const selectedIds = selectedRows.map(index => this.angularGrid.dataView.getItem(index).ID);
 
-    // Kiểm tra nếu có bản ghi đã public thì không cho xóa
-    const hasPublished = selectedRows.some(index => {
-      const rowData = this.angularGrid.dataView.getItem(index);
-      return rowData.Status === 1;
-    });
-    if (hasPublished) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể xóa phiên bản đã public!');
-      return;
-    }
+    // // Kiểm tra nếu có bản ghi đã public thì không cho xóa
+    // const hasPublished = selectedRows.some(index => {
+    //   const rowData = this.angularGrid.dataView.getItem(index);
+    //   return rowData.Status === 1;
+    // });
+    // if (hasPublished) {
+    //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể xóa phiên bản đã public!');
+    //   return;
+    // }
 
     let content = '';
     if (selectedIds.length === 1) {
@@ -629,24 +630,26 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
       nzOkDanger: true,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        return this.updateVersionService.deleteUpdateVersion(selectedIds)
-          .toPromise()
-          .then((res: any) => {
-            if (res?.status === 1) {
-              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thành công');
+        const tasks = selectedIds.map(id => this.updateVersionService.saveUpdateVersion({ ID: id, IsDeleted: true }));
+        forkJoin(tasks).subscribe({
+          next: (results: any[]) => {
+            const allSuccess = results.every(res => res?.status === 1);
+            if (allSuccess) {
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
               this.loadData();
               this.angularGrid.slickGrid.setSelectedRows([]);
             } else {
-              this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Xóa thất bại');
+              const firstError = results.find(res => res?.status !== 1);
+              this.notification.error(NOTIFICATION_TITLE.error, firstError?.message || 'Xóa thất bại');
             }
-          })
-          .catch((err) => {
-            this.notification.error(
-              NOTIFICATION_TITLE.error,
-              err?.error?.message || `${err?.error || ''}\n${err?.message || 'Không gọi được API'}`,
-              { nzStyle: { whiteSpace: 'pre-line' } }
-            );
-          });
+          },
+          error: (err) => {
+            this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err?.error || ''}\n${err?.message || ''}`,
+              {
+                nzStyle: { whiteSpace: 'pre-line' }
+              });
+          }
+        });
       },
     });
   }

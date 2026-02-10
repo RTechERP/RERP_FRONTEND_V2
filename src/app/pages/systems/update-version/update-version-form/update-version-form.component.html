@@ -3,7 +3,7 @@
         }}</h5>
     <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
 </div>
-<div class="modal-body">
+<div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
     <form nz-form nzLayout="vertical">
         <div nz-row [nzGutter]="[16, 16]">
             <div nz-col [nzXs]="24" [nzMd]="12">
@@ -55,7 +55,7 @@
                     <nz-form-label>Nội dung chi tiết<span class="text-danger ps-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng nhập nội dung'">
                         <p-editor #editor [(ngModel)]="formData.Content" name="content"
-                            [style]="{'height': '400px', 'margin-bottom': '10px'}" [modules]="editorModules">
+                            [style]="{'height': '300px', 'margin-bottom': '10px'}" [modules]="editorModules">
                             <ng-template pTemplate="header">
                                 <span class="ql-formats">
                                     <select class="ql-header">

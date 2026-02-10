@@ -22,6 +22,8 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { UpdateVersionService } from './update-version.service';
 import { UpdateVersionFormComponent } from './update-version-form/update-version-form.component';
+import { UpdateVersionDetailComponent } from './update-version-detail/update-version-detail.component';
+import { DomSanitizer } from '@angular/platform-browser';
 
 interface UpdateVersion {
   ID: number;
@@ -35,6 +37,8 @@ interface UpdateVersion {
   CreatedBy: string;
   UpdatedDate: string;
   UpdatedBy: string;
+  FileNameFE: string;
+  FileNameBE: string;
   IsDeleted: boolean;
 }
 
@@ -65,7 +69,7 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
   angularGrid!: AngularGridInstance;
   gridData: any;
   columnDefinitions: Column[] = [];
-  gridOptions: GridOption = {};
+  gridOptions: any = {};
   dataset: any[] = [];
   nextCode: string = '';
 
@@ -74,7 +78,8 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
   constructor(
     private updateVersionService: UpdateVersionService,
     private notification: NzNotificationService,
-    private nzModal: NzModalService
+    private nzModal: NzModalService,
+    private sanitizer: DomSanitizer
   ) { }
 
   ngOnInit(): void {
@@ -153,6 +158,13 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
         icon: 'fa-solid fa-file-excel fa-lg text-success',
         command: () => {
           this.exportToExcel();
+        }
+      },
+      {
+        label: 'Xem chi tiết',
+        icon: 'fa-solid fa-magnifying-glass-plus fa-lg text-primary',
+        command: () => {
+          this.onViewDetailSelected();
         }
       },
       {
@@ -258,9 +270,11 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
           `;
         },
         customTooltip: {
-          useRegularTooltip: true,
+          formatter: (_row, _cell, _value, _column, dataContext) => {
+            if (!dataContext.Content) return '';
+            return `<div style="max-width: 500px; max-height: 400px; overflow-y: auto; white-space: normal; padding: 5px;">${dataContext.Content}</div>`;
+          }
         },
-
       },
       {
         id: 'Status',
@@ -291,7 +305,7 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
         name: 'Ngày public',
         field: 'PublicDate',
         type: 'string',
-        width: 120,
+        width: 150,
         sortable: true,
         filterable: true,
         formatter: (row, cell, value) => {
@@ -319,6 +333,29 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
         filter: { model: Filters['compoundInputText'] },
         excelExportOptions: { width: 30 }
       },
+      {
+        id: 'FileNameFE',
+        name: 'File FE',
+        field: 'FileNameFE',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        excelExportOptions: { width: 20 }
+      },
+      {
+        id: 'FileNameBE',
+        name: 'File BE',
+        field: 'FileNameBE',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        excelExportOptions: { width: 20 }
+      },
+
       {
         id: 'CreatedDate',
         name: 'Ngày tạo',
@@ -419,6 +456,11 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
       enableAutoSizeColumns: false,
       rowHeight: 30,
       headerRowHeight: 35,
+      enableAutoTooltip: true,
+      enableCustomTooltip: true,
+      customTooltipOptions: {
+        maxTooltipLength: 1000,
+      },
       // Excel Export
       externalResources: [this.excelExportService],
       enableExcelExport: true,
@@ -446,7 +488,7 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
           }
         }
       } as any,
-    };
+    } as any;
   }
 
   angularGridReady(angularGrid: AngularGridInstance) {
@@ -607,6 +649,36 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
           });
       },
     });
+  }
+
+  onViewDetailSelected() {
+    const selectedRows = this.angularGrid?.slickGrid?.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để xem chi tiết!');
+      return;
+    }
+    const rowIndex = selectedRows[0];
+    const rowData = this.angularGrid.dataView.getItem(rowIndex);
+    this.onViewDetail(rowData);
+  }
+
+  onViewDetail(rowData: any) {
+    const modalRef = this.ngbModal.open(UpdateVersionDetailComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+    modalRef.componentInstance.versionData = { ...rowData };
+    modalRef.result.then(
+      (result) => {
+        if (result === 'update') {
+          // Thực hiện reload trang nếu người dùng chọn cập nhật ngay
+          window.location.reload();
+        }
+      },
+      (dismissed) => { }
+    );
   }
 
   onPublic() {

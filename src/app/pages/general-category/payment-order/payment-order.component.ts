@@ -3827,6 +3827,16 @@ export class PaymentOrderComponent implements OnInit {
             const rowIndex = activeCell.row;        // index trong grid
             const item = gridInstance.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
+            if (item.IsApproved != 3) {
+                // this.notification.warning(NOTIFICATION_TITLE.warning,1)
+                this.notification.warning(NOTIFICATION_TITLE.warning, `Chưa yêu cầu bổ sung chứng từ\nBạn không thể bổ sung!`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
+
+                return;
+            }
+
             const { value: files } = await Swal.fire({
                 input: 'file',
                 inputLabel: 'File bổ sung',

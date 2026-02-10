@@ -45,7 +45,7 @@ export class UpdateVersionService {
 
   // Lấy URL SSE để nhận sự kiện từ server
   getSseUrl(): string {
-    return `${this.apiUrl}/sse/contracts`;
+    return `${this.apiUrl}/sse/update-version`;
   }
 
   // Upload file

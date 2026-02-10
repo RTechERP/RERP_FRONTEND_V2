@@ -2659,7 +2659,7 @@ export class PaymentOrderComponent implements OnInit {
         const p = {
             ...this.param,
             isSpecialOrder: 0,
-            isIgnoreHR: this.isPermisstionHR ? 0 : -1,
+            // isIgnoreHR: this.isPermisstionHR ? 0 : -1,
         }
         // console.log(this.param);
         this.paymentService.get(p).subscribe({

@@ -513,6 +513,7 @@ nz-sider {
   border-top: 1px solid #f0f0f0;
   text-align: center;
   background-color: #ffffff;
-  color: #afacac;
+  color: #000000;
   font-size: 12px;
+  font-weight: bold;
 }

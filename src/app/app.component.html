@@ -103,13 +103,14 @@
     <nz-layout>
         <nz-header>
             <div class="app-header">
+
+                <span class="header-trigger pe-0" (click)="isCollapsed = !isCollapsed">
+                    <nz-icon class="trigger text-light" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
+                </span>
                 <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
                     class=" text-light" nzTrigger="click">
                     <img src="assets/icon/app_store.svg" width="24">
                 </button>
-                <span class="header-trigger ps-0" (click)="isCollapsed = !isCollapsed">
-                    <nz-icon class="trigger text-light" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
-                </span>
                 <div style="width: 100%; max-width: 100%; overflow: auto" class="app-header-tabs">
 
                     <nz-tabset nzType="editable-card" nzHideAdd [(nzSelectedIndex)]="selectedCompIndex"

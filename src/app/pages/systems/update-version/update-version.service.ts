@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -28,16 +29,6 @@ export class UpdateVersionService {
   saveUpdateVersion(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/save-version`, data);
   }
-
-  // Xóa phiên bản cập nhật (xóa mềm)
-  deleteUpdateVersion(ids: number[]): Observable<any> {
-    const payload = {
-      IDs: ids,
-      IsDeleted: true
-    };
-    return this.http.post(`${this.apiUrl}/delete-version`, payload);
-  }
-
   // Lấy phiên bản mới nhất hiện tại
   getCurrentVersion(): Observable<any> {
     return this.http.get(`${this.apiUrl}/get-current-version`);

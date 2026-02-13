@@ -496,23 +496,46 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
     this.angularGrid = angularGrid;
     this.gridData = angularGrid.dataView;
 
-    // Bắt sự kiện click vào dòng để tích checkbox
-    this.angularGrid.slickGrid.onClick.subscribe((e, args) => {
-      const column = this.angularGrid.slickGrid.getColumns()[args.cell];
+    const slickGrid = this.angularGrid.slickGrid;
+    const dataView = this.angularGrid.dataView;
+    let clickTimeout: any = null;
+    slickGrid.onClick.subscribe((e: any, args: any) => {
+      const column = slickGrid.getColumns()[args.cell];
       if (column.id === '_checkbox_selector') return;
-
-      const row = args.row;
-      const selectedRows = this.angularGrid.slickGrid.getSelectedRows() as number[];
-      const newSelectedRows = [...selectedRows];
-      const index = newSelectedRows.indexOf(row);
-
-      if (index > -1) {
-        newSelectedRows.splice(index, 1);
-      } else {
-        newSelectedRows.push(row);
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+        return;
       }
+      clickTimeout = setTimeout(() => {
+        clickTimeout = null;
+        const row = args.row;
+        const selectedRows = slickGrid.getSelectedRows() as number[];
+        const newSelectedRows = [...selectedRows];
+        const index = newSelectedRows.indexOf(row);
 
-      this.angularGrid.slickGrid.setSelectedRows(newSelectedRows);
+        if (index > -1) {
+          newSelectedRows.splice(index, 1);
+        } else {
+          newSelectedRows.push(row);
+        }
+
+        slickGrid.setSelectedRows(newSelectedRows);
+      }, 250);
+    });
+
+    // Double click vào dòng để sửa
+    slickGrid.onDblClick.subscribe((e: any, args: any) => {
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }
+      if (args.row !== undefined && args.row >= 0) {
+        const rowData = dataView.getItem(args.row);
+        if (rowData) {
+          this.openEditForm(rowData);
+        }
+      }
     });
   }
 
@@ -569,6 +592,11 @@ export class UpdateVersionComponent implements OnInit, OnDestroy {
     }
     const rowIndex = selectedRows[0];
     const rowData = this.angularGrid.dataView.getItem(rowIndex);
+    this.openEditForm(rowData);
+  }
+
+  openEditForm(rowData: any) {
+    if (!rowData) return;
 
     // Kiểm tra nếu đã public thì không cho sửa
     if (rowData.Status === 1) {

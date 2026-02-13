@@ -1827,7 +1827,7 @@ export class BillImportQcDetailComponent
           'Lưu dữ liệu thành công'
         );
         this.isLoading = false;
-        this.activeModal.close();
+        this.activeModal.close(res?.data);
       },
       error: (err) => {
         const msg =

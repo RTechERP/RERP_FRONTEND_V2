@@ -2924,13 +2924,43 @@ export class PaymentOrderComponent implements OnInit {
         };
     }
 
+    isFiltering = false;
+
+
+    onBeforeSearchChange(event: any) {
+        console.log('event:', event);
+        console.log('event.target:', event.target);
+
+
+    }
+
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
         // this.updateTotal(5, this.angularGrid);
+
+        setTimeout(() => {
+            const inputs = document.querySelectorAll('.compound-input');
+
+            console.log('inputs:', inputs);
+
+            inputs.forEach(i => {
+                i.addEventListener('focus', () => this.isFiltering = true);
+                // i.addEventListener('blur', () => this.isFiltering = false);
+            });
+        });
+
         angularGrid.dataView.onRowCountChanged.subscribe(() => {
 
-            this.applyDistinctFilters(angularGrid);
+            // console.log('this.isFiltering:', this.isFiltering);
+            if (!this.isFiltering) {
+                // this.applyDistinctFilters(angularGrid);
+            };
+
+            // setTimeout(() => {
+            //     this.applyDistinctFilters(angularGrid);
+            // }, 3);
+
             const count = angularGrid.dataView.getLength();
             // console.log('Row count:', count);
             const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
@@ -3811,9 +3841,6 @@ export class PaymentOrderComponent implements OnInit {
                             })
                     }
                 })
-
-
-
             }
         }
     }

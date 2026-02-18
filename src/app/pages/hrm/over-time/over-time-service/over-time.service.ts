@@ -8,7 +8,7 @@ import { environment } from '../../../../../environments/environment';
 })
 export class OverTimeService {
   private _url = environment.host + 'api/'; //'https://localhost:7187/api/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getEmployeeOverTime(employeeOverTimeParam: any): Observable<any> {
     return this.http.post<any>(
@@ -20,6 +20,13 @@ export class OverTimeService {
   saveEmployeeOverTime(employeeOverTime: any): Observable<any> {
     return this.http.post<any>(
       this._url + 'EmployeeOverTime/save-data',
+      employeeOverTime
+    );
+  }
+
+  approveOverTimeHR(employeeOverTime: any): Observable<any> {
+    return this.http.post<any>(
+      this._url + 'EmployeeOverTime/approve-overtime-hr',
       employeeOverTime
     );
   }
@@ -37,7 +44,7 @@ export class OverTimeService {
   ): Observable<any> {
     return this.http.get<any>(
       this._url +
-        `EmployeeOverTime/detail?employeeId=${employeeId}&dateRegister=${dateRegister}`
+      `EmployeeOverTime/detail?employeeId=${employeeId}&dateRegister=${dateRegister}`
     );
   }
 

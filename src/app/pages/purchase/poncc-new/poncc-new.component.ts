@@ -3114,6 +3114,14 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
               ...items,
               //sum footer table
               [
+                {
+                  colSpan: 8,
+                  text: po.OriginItem ?? '',
+                  bold: true,
+                  border: [true, false, true, true],
+                },
+              ],
+              [
                 { colSpan: 2, text: '', border: [true, false, false, true] },
                 '',
                 {
@@ -3320,7 +3328,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     let po = data.po;
     let poDetails = data.poDetails;
     let taxCompany = data.taxCompany;
-
+    debugger;
     const totalAmount = poDetails.reduce(
       (sum: number, x: any) => sum + x.ThanhTien,
       0
@@ -3499,8 +3507,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
               [
                 {
                   colSpan: 8,
-                  text: '',
-                  style: 'header',
+                  text: po.OriginItem ?? '',
+                  bold: true,
                   border: [true, false, true, true],
                 },
               ],

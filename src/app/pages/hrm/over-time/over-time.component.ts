@@ -1045,7 +1045,7 @@ export class OverTimeComponent implements OnInit {
               Location: item.Location,
               Overnight: item.Overnight,
               TypeID: item.TypeID,
-            
+
               Reason: item.Reason,
               ReasonHREdit: item.ReasonHREdit,
               // Giữ nguyên các giá trị hiện tại
@@ -1068,7 +1068,11 @@ export class OverTimeComponent implements OnInit {
           })
         };
 
-        this.overTimeService.saveEmployeeOverTime(formData).subscribe({
+        const serviceCall = isTBP
+          ? this.overTimeService.saveEmployeeOverTime(formData)
+          : this.overTimeService.approveOverTimeHR(formData);
+
+        serviceCall.subscribe({
           next: (response) => {
             this.loadEmployeeOverTime();
             this.notification.success(

@@ -56,16 +56,27 @@ angular-slickgrid,
 }
 
 /* ==================== HEADER STYLES ==================== */
-:host ::ng-deep .slick-header-column {
+/* Scoped to Team Grid only */
+:host ::ng-deep .grid-team-details-container .slick-header-column {
     background-color: #fafafa;
     border-right: 1px solid #ddd !important;
     font-weight: 600;
-    height: 60px !important;
-    line-height: 20px !important;
+    height: 100px !important;
+    line-height: normal !important;
+    white-space: normal !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
 }
 
-:host ::ng-deep .slick-header-columns {
-    height: 60px !important;
+:host ::ng-deep .grid-team-details-container .slick-header-columns {
+    height: 100px !important;
+}
+
+:host ::ng-deep .grid-team-details-container .slick-header-column .slick-column-name {
+    white-space: normal !important;
+    line-height: 1.2 !important;
 }
 
 :host ::ng-deep .slick-row.active {

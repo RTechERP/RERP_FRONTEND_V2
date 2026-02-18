@@ -848,7 +848,8 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
   //#region bảng dánh giá kỹ năng , chung , chuyên môn
   // Evaluation Grid (Tab 1 - treeData / Kỹ năng)
   initEvaluationGrid(): void {
-    this.evaluationColumns = [
+    const isCKDepartment = this.selectedDepartmentID === this.departmentCK;
+    const columns: Column[] = [
       {
         id: 'STT',
         field: 'STT',
@@ -897,6 +898,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         minWidth: 67,
         cssClass: 'text-right',
         sortable: true,
+        hidden: isCKDepartment
       },
       {
         id: 'EmployeePoint',
@@ -978,6 +980,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         sortable: true,
         formatter: this.employeeCoefficientFormatter,
         columnGroup: 'Đánh giá của Nhân viên',
+        hidden: isCKDepartment,
         params: { decimalPlaces: 2 }
       },
       {
@@ -1000,6 +1003,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         sortable: true,
         formatter: this.tbpCoefficientFormatter,
         columnGroup: 'Đánh giá của TBP/PBP',
+        hidden: isCKDepartment,
         params: { decimalPlaces: 2 }
       },
       {
@@ -1022,9 +1026,12 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         sortable: true,
         formatter: this.bgdCoefficientFormatter,
         columnGroup: 'Đánh giá của BGĐ',
+        hidden: isCKDepartment,
         params: { decimalPlaces: 2 }
       },
     ];
+
+    this.evaluationColumns = columns;
 
     this.evaluationGridOptions = {
       enableAutoResize: true,
@@ -1168,7 +1175,8 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
         minWidth: 150,
         cssClass: 'text-right',
         sortable: true,
-        hidden: true
+        hidden: true,
+        formatter: Formatters.percentComplete
       },
       {
         id: 'EvaluationRank',
@@ -1292,10 +1300,6 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       }
       // Node KPINL/KPINQ: Cột TotalError được tô màu vàng (theo WinForm)
       else if (isNQNL) {
-        bgColor = '#FFFFE0';
-      }
-      // Node thường (không phải KPI, KPINL, KPINQ) - vàng nhạt
-      else if (!isKPI && !isNQNL) {
         bgColor = '#FFFFE0';
       }
 
@@ -1657,46 +1661,112 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
   // Team Grid (Tab 6 - grdTeam)
   initTeamGrid(): void {
     this.teamColumns = [
+      // ========== gridBand3: Thông tin cơ bản (Fixed Left, no caption) ==========
       {
         id: 'STT',
         field: 'STT',
         name: 'STT',
-        minWidth: 50,
-        cssClass: 'text-center'
+        minWidth: 99,
+        cssClass: 'text-center',
+        sortable: true
       },
       {
         id: 'FullName',
         field: 'FullName',
         name: 'Thành viên',
-        minWidth: 200
+        minWidth: 180,
+        sortable: true
       },
       {
-        id: 'Position',
-        field: 'Position',
-        name: 'Chức vụ',
-        minWidth: 100
+        id: 'PositionName',
+        field: 'PositionName',
+        name: 'Vị trí',
+        minWidth: 156,
+        sortable: true
       },
+      {
+        id: 'ProjectTypeName',
+        field: 'ProjectTypeName',
+        name: 'Nhóm',
+        minWidth: 100,
+        sortable: true
+      },
+      // ========== gridBand4: Tuân thủ nội quy, Quy định ==========
+      {
+        id: 'TimeWork',
+        field: 'TimeWork',
+        name: 'Thời gian, giờ giấc',
+        minWidth: 120,
+        cssClass: 'text-right',
+        sortable: true,
+        columnGroup: 'Tuân thủ nội quy, Quy định'
+      },
+      {
+        id: 'FiveS',
+        field: 'FiveS',
+        name: '5s, Quy trình quy định',
+        minWidth: 120,
+        cssClass: 'text-right',
+        sortable: true,
+        columnGroup: 'Tuân thủ nội quy, Quy định'
+      },
+      {
+        id: 'ReportWork',
+        field: 'ReportWork',
+        name: 'Chuẩn bị hàng, report',
+        minWidth: 100,
+        cssClass: 'text-right',
+        sortable: true,
+        columnGroup: 'Tuân thủ nội quy, Quy định'
+      },
+      // ========== gridBand5: Tinh thần làm việc ==========
+      // CustomerComplaint và MissingTool ẩn trong WinForm
+      {
+        id: 'ComplaneAndMissing',
+        field: 'ComplaneAndMissing',
+        name: 'Có thái độ không tốt với khách hàng để khách hàng để khách hàng complain ảnh hưởng đến công ty, Không chủ động báo cáo các vấn đề phát sinh làm ảnh hưởng đến tiến dự án',
+        minWidth: 351,
+        cssClass: 'text-right',
+        sortable: true,
+        columnGroup: 'Tinh thần làm việc'
+      },
+      {
+        id: 'DeadlineDelay',
+        field: 'DeadlineDelay',
+        name: 'Không hoàn thành công việc theo đúng tiến độ yêu cầu của TBP/PBP trở lên hoặc từ sale PM yêu cầu',
+        minWidth: 215,
+        cssClass: 'text-right',
+        sortable: true,
+        columnGroup: 'Tinh thần làm việc'
+      },
+      // ========== gridBand6: KPI (no caption) ==========
       {
         id: 'KPIKyNang',
         field: 'KPIKyNang',
-        name: 'KPI Kỹ năng',
-        minWidth: 100,
-        cssClass: 'text-right'
+        name: 'Kỹ năng',
+        minWidth: 99,
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'KPIChung',
         field: 'KPIChung',
-        name: 'KPI Chung',
-        minWidth: 100,
-        cssClass: 'text-right'
+        name: 'Đánh giá chung',
+        minWidth: 140,
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'KPIChuyenMon',
         field: 'KPIChuyenMon',
-        name: 'KPI Chuyên môn',
-        minWidth: 100,
-        cssClass: 'text-right'
+        name: 'Chuyên môn',
+        minWidth: 139,
+        cssClass: 'text-right',
+        sortable: true,
+        resizable: true
       }
+      // ========== gridBand7: Chuyên môn (HIDDEN trong WinForm) ==========
+      // KPIPLC, KPIVision, KPISoftware - không hiển thị
     ];
 
     this.teamGridOptions = {
@@ -1712,8 +1782,15 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       enablePagination: false,
       // Tắt forceFitColumns để giữ nguyên độ rộng cột đã cấu hình
       forceFitColumns: true,
-      headerRowHeight: 45,
-      rowHeight: 40
+      headerRowHeight: 100,
+      rowHeight: 40,
+      createPreHeaderPanel: true,
+      showPreHeaderPanel: true,
+      preHeaderPanelHeight: 40,
+      // Footer row for averages
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 40
     };
   }
   //#endregion
@@ -1796,7 +1873,59 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
   onTeamGridReady(angularGrid: any): void {
     this.angularGridTeam = angularGrid.detail ?? angularGrid;
-    setTimeout(() => this.angularGridTeam?.resizerService?.resizeGrid(), 100);
+    setTimeout(() => {
+      this.angularGridTeam?.resizerService?.resizeGrid();
+      this.updateTeamFooter();
+    }, 100);
+  }
+
+  /**
+   * Cập nhật footer cho Team grid với giá trị trung bình
+   * Công thức: Tổng điểm / Số dòng
+   */
+  private updateTeamFooter(): void {
+    if (!this.angularGridTeam?.slickGrid || !this.angularGridTeam.dataView) return;
+
+    const grid = this.angularGridTeam.slickGrid;
+    const data = this.angularGridTeam.dataView.getItems() || [];
+    const totalRows = data.length;
+
+    if (totalRows === 0) return;
+
+    // Các cột cần tính trung bình
+    const avgColumns = ['TimeWork', 'FiveS', 'ReportWork', 'ComplaneAndMissing', 'DeadlineDelay', 'KPIKyNang', 'KPIChung', 'KPIChuyenMon'];
+
+    // Tính tổng cho tất cả các cột điểm
+    const sums: { [key: string]: number } = {};
+    avgColumns.forEach(col => sums[col] = 0);
+
+    data.forEach((item: any) => {
+      avgColumns.forEach(col => {
+        sums[col] += Number(item[col]) || 0;
+      });
+    });
+
+    // Cập nhật footer cells
+    const columns = grid.getColumns();
+    if (columns) {
+      columns.forEach((col: any) => {
+        const footerCol = grid.getFooterRowColumn(col.id);
+        if (footerCol) {
+          footerCol.style.fontWeight = 'bold';
+          footerCol.style.textAlign = 'right';
+          footerCol.style.paddingRight = '8px';
+          if (col.id === 'STT') {
+            footerCol.textContent = `${totalRows}`;
+            footerCol.style.textAlign = 'center';
+          } else if (avgColumns.includes(col.id)) {
+            const avg = sums[col.id] / totalRows;
+            footerCol.textContent = avg.toFixed(2);
+          } else {
+            footerCol.textContent = '';
+          }
+        }
+      });
+    }
   }
 
   /**
@@ -2433,7 +2562,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     const masterShowIds = ['PercentageAchieved', 'EvaluationRank', 'StandartPoint'];
 
     // 3. Cập nhật thuộc tính 'hidden' trong các mảng cấu hình (Source of truth)
-    const updateColumnState = (columns: Column[], hiddenIds: string[], showIds: string[] = []) => {
+    const updateColumnState = (columns: Column[], hiddenIds: string[], showIds: string[] = [], isEvaluation: boolean = false) => {
       if (!columns) return;
       columns.forEach(col => {
         if (!col) return;
@@ -2444,6 +2573,17 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
           } else if (showIds.includes(col.id as string)) {
             col.hidden = false;
           }
+
+          // [FIX] Cập nhật columnGroup cho "Phòng Cơ khí": Xóa group nếu chỉ còn 1 cột
+          if (isEvaluation) {
+            const groupColumns = [
+              'EmployeePoint', 'TBPPoint', 'BGDPoint',
+
+            ];
+            if (groupColumns.includes(col.id as string)) {
+              col.columnGroup = undefined;
+            }
+          }
         } else {
           // Khi không phải CK:
           if (hiddenIds.includes(col.id as string)) {
@@ -2451,13 +2591,24 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
           } else if (showIds.includes(col.id as string)) {
             col.hidden = true;  // Ẩn các cột chỉ dành riêng cho CK
           }
+
+          // [FIX] Khôi phục columnGroup khi không phải "Phòng Cơ khí"
+          if (isEvaluation) {
+            if (['EmployeeEvaluation', 'EmployeeCoefficient'].includes(col.id as string)) {
+              col.columnGroup = 'Đánh giá của Nhân viên';
+            } else if (['TBPEvaluation', 'TBPTotalPoint'].includes(col.id as string)) {
+              col.columnGroup = 'Đánh giá của TBP/PBP';
+            } else if (['BGDEvaluation', 'BGDTotalPoint'].includes(col.id as string)) {
+              col.columnGroup = 'Đánh giá của BGĐ';
+            }
+          }
         }
       });
     };
 
-    updateColumnState(this.evaluationColumns, evalHiddenIds);
-    updateColumnState(this.evaluation2Columns, evalHiddenIds);
-    updateColumnState(this.evaluation4Columns, evalHiddenIds);
+    updateColumnState(this.evaluationColumns, evalHiddenIds, [], true);
+    updateColumnState(this.evaluation2Columns, evalHiddenIds, [], true);
+    updateColumnState(this.evaluation4Columns, evalHiddenIds, [], true);
     updateColumnState(this.masterColumns, masterHiddenIds, masterShowIds);
 
     // 4. Cho Angular cập nhật DOM trước (xóa/tạo tab theo showTabX flags)
@@ -2561,6 +2712,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
   btnSearch_Click(): void {
     this.loadEmployee();
+    this.loadDataDetails(); // Reload các bảng điểm
   }
 
   // Xử lý các nút bấm (Button handlers)
@@ -2610,12 +2762,11 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     modalRef.componentInstance.status = selectedExam.Status || 0;
     modalRef.componentInstance.departmentID = this.selectedDepartmentID;
 
-    // Xử lý kết quả sau khi đóng modal
-    modalRef.result.then((result: any) => {
-      if (result?.success) {
-        this.loadEmployee(); // Reload danh sách nhân viên
-      }
-    }, () => { });
+    // Subscribe to dataSaved event to reload data when save is successful
+    modalRef.componentInstance.dataSaved.subscribe(() => {
+      this.loadEmployee(); // Reload danh sách nhân viên
+      this.loadDataDetails(); // Reload các bảng điểm (Kỹ năng, Chung, Chuyên môn, Rule, Team)
+    });
   }
 
   /**
@@ -2650,11 +2801,11 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     modalRef.componentInstance.departmentID = this.selectedDepartmentID;
     modalRef.componentInstance.isAdminConfirm = selectedEmployee?.IsAdminConfirm || false;
 
-    modalRef.result.then((result: any) => {
-      if (result?.success) {
-        this.loadEmployee();
-      }
-    }, () => { });
+    // Subscribe to dataSaved event to reload data when save is successful
+    modalRef.componentInstance.dataSaved.subscribe(() => {
+      this.loadEmployee();
+      this.loadDataDetails(); // Reload các bảng điểm
+    });
   }
 
   /**
@@ -2688,11 +2839,11 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     modalRef.componentInstance.status = selectedEmployee?.ExamStatus || 0;
     modalRef.componentInstance.departmentID = this.selectedDepartmentID;
 
-    modalRef.result.then((result: any) => {
-      if (result?.success) {
-        this.loadEmployee();
-      }
-    }, () => { });
+    // Subscribe to dataSaved event to reload data when save is successful
+    modalRef.componentInstance.dataSaved.subscribe(() => {
+      this.loadEmployee();
+      this.loadDataDetails(); // Reload các bảng điểm
+    });
   }
 
   // Additional action handlers
@@ -2815,11 +2966,11 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     modalRef.componentInstance.departmentID = this.selectedDepartmentID;
     modalRef.componentInstance.isAdminConfirm = selectedEmployee?.IsAdminConfirm || false;
 
-    modalRef.result.then((result: any) => {
-      if (result?.success) {
-        this.loadEmployee();
-      }
-    }, () => { });
+    // Subscribe to dataSaved event to reload data when save is successful
+    modalRef.componentInstance.dataSaved.subscribe(() => {
+      this.loadEmployee();
+      this.loadDataDetails(); // Reload các bảng điểm
+    });
   }
 
   /**
@@ -3608,8 +3759,8 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       }
     });
 
-    // Apply updated columns to grid - sanitize for nulls
-    const cleanColumns = columns.filter((col: any) => col && col.id);
+    // Apply updated columns to grid - sanitize for nulls and filter hidden columns
+    const cleanColumns = columns.filter((col: any) => col && col.id && !col.hidden);
     grid.setColumns(cleanColumns);
     grid.invalidate();
     grid.render();
@@ -4045,9 +4196,9 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
           // ============ XỬ LÝ NODE LÁ (không có node con) ============
 
           // Tính tổng lỗi từ 3 tháng
-          const firstMonth = Number(row.FirstMonth) || 0;
-          const secondMonth = Number(row.SecondMonth) || 0;
-          const thirdMonth = Number(row.ThirdMonth) || 0;
+          const firstMonth = this.formatDecimalNumber(Number(row.FirstMonth) || 0, 2);
+          const secondMonth = this.formatDecimalNumber(Number(row.SecondMonth) || 0, 2);
+          const thirdMonth = this.formatDecimalNumber(Number(row.ThirdMonth) || 0, 2);
           let totalError = firstMonth + secondMonth + thirdMonth;
           row.TotalError = totalError;
 
@@ -4057,7 +4208,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
           }
 
           // Tính % trừ (cộng)
-          const totalPercentDeduction = percentageAdjustment * (Number(row.TotalError) || 0);
+          const totalPercentDeduction = this.formatDecimalNumber(percentageAdjustment * (Number(row.TotalError) || 0), 2);
           row.PercentBonus = maxPercentageAdjustment > 0
             ? (totalPercentDeduction > maxPercentageAdjustment ? maxPercentageAdjustment : totalPercentDeduction)
             : totalPercentDeduction;
@@ -4070,7 +4221,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
             console.log('bình chất', row.TotalError, row.PercentRemaining, thirdMonth, maxPercentBonus);
           } else if (ruleCode.startsWith('TEAMKPI')) {
             // Team KPI: PercentBonus = tổng lỗi * maxPercentageAdjustment / 5
-            row.PercentBonus = (Number(row.TotalError) || 0) * maxPercentageAdjustment / 5;
+            row.PercentBonus = this.formatDecimalNumber((Number(row.TotalError) || 0) * maxPercentageAdjustment / 5, 2);
           } else if (ruleCode === 'MA09') {
             // MA09: Không lỗi thì được thưởng, có lỗi thì trừ
             row.PercentBonus = totalPercentDeduction > maxPercentageAdjustment
@@ -4111,6 +4262,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
    * 3. Gán vào node MA09
    */
   private calculatorNoError(): void {
+    debugger;
     // Tìm các node có mã trong danh sách
     const filteredNodes = this.dataRule.filter((row: any) =>
       this.listCodesNoError.includes(row.EvaluationCode)
@@ -4130,6 +4282,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     // Tìm node MA09 và gán giá trị
     const ma09Node = this.dataRule.find((row: any) => row.EvaluationCode === 'MA09');
     if (ma09Node) {
+      debugger;
       ma09Node.FirstMonth = firstMonth;
       ma09Node.SecondMonth = secondMonth;
       ma09Node.ThirdMonth = thirdMonth;
@@ -4252,8 +4405,8 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
               // Hiển thị 2 dòng như WinForm: Điểm xếp loại + Điểm cuối cùng
               const rankFinal = this.getEvaluationRank(this.totalPercentActual);
               footerCol.innerHTML = `<div style="display: flex; flex-direction: column; line-height: 1.4; padding: 4px 8px;">
-                <span style="font-weight: bold; color: #333;">Điểm xếp loại: ${totalPercentRemaining.toFixed(2)} - ${rank}</span>
-                <span style="font-weight: bold; color: blue;">Điểm cuối cùng: ${this.totalPercentActual.toFixed(2)} - ${rankFinal}</span>
+                <span style="font-weight: bold; color: #333;">Điểm xếp loại: ${totalPercentRemaining.toFixed(2)} (${rank})</span>
+                <span style="font-weight: bold; color: blue;">Điểm cuối cùng: ${this.totalPercentActual.toFixed(2)} (${rankFinal})</span>
               </div>`;
               footerCol.style.textAlign = 'left';
               footerCol.style.padding = '0';
@@ -4409,18 +4562,18 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
    */
   private loadTeamSummaryAndAddTeamNodes(): void {
     // 1. Lấy summary từ grid Team
-    const timeWork = this.getGridSummary(this.angularGridTeam, 'TimeWork') || 0;
-    const fiveS = this.getGridSummary(this.angularGridTeam, 'FiveS') || 0;
-    const reportWork = this.getGridSummary(this.angularGridTeam, 'ReportWork') || 0;
-    const customerComplaint = this.getGridSummary(this.angularGridTeam, 'ComplaneAndMissing') || 0;
-    const deadlineDelay = this.getGridSummary(this.angularGridTeam, 'DeadlineDelay') || 0;
-    const teamKPIKyNang = this.getGridSummary(this.angularGridTeam, 'KPIKyNang') || 0;
-    const teanKPIChung = this.getGridSummary(this.angularGridTeam, 'KPIChung') || 0;
-    const teamKPIPLC = this.getGridSummary(this.angularGridTeam, 'KPIPLC') || 0;
-    const teamKPIVISION = this.getGridSummary(this.angularGridTeam, 'KPIVision') || 0;
-    const teamKPISOFTWARE = this.getGridSummary(this.angularGridTeam, 'KPISoftware') || 0;
-    const missingTool = this.getGridSummary(this.angularGridTeam, 'MissingTool') || 0;
-    const teamKPIChuyenMon = this.getGridSummary(this.angularGridTeam, 'KPIChuyenMon') || 0;
+    const timeWork = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'TimeWork') || 0, 2);
+    const fiveS = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'FiveS') || 0, 2);
+    const reportWork = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'ReportWork') || 0, 2);
+    const customerComplaint = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'ComplaneAndMissing') || 0, 2);
+    const deadlineDelay = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'DeadlineDelay') || 0, 2);
+    const teamKPIKyNang = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIKyNang') || 0, 2);
+    const teanKPIChung = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIChung') || 0, 2);
+    const teamKPIPLC = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIPLC') || 0, 2);
+    const teamKPIVISION = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIVision') || 0, 2);
+    const teamKPISOFTWARE = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPISoftware') || 0, 2);
+    const missingTool = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'MissingTool') || 0, 2);
+    const teamKPIChuyenMon = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIChuyenMon') || 0, 2);
 
     // 2. Tính toán totalErrorTBP từ các mã MA03, MA04, NotWorking, WorkLate
     const lstCodeTBP = ['MA03', 'MA04', 'NotWorking', 'WorkLate'];
@@ -4433,19 +4586,19 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
     // 3. Thêm các dòng TEAM vào dataRule
     const teamNodes = [
-      { EvaluationCode: 'TEAM01', ThirdMonth: timeWork },
-      { EvaluationCode: 'TEAM02', ThirdMonth: fiveS },
-      { EvaluationCode: 'TEAM03', ThirdMonth: reportWork },
-      { EvaluationCode: 'TEAM04', ThirdMonth: customerComplaint + missingTool + deadlineDelay },
-      { EvaluationCode: 'TEAM05', ThirdMonth: customerComplaint },
-      { EvaluationCode: 'TEAM06', ThirdMonth: deadlineDelay },
-      { EvaluationCode: 'TEAMKPIKYNANG', ThirdMonth: teamKPIKyNang },
-      { EvaluationCode: 'TEAMKPIChung', ThirdMonth: teanKPIChung },
-      { EvaluationCode: 'TEAMKPIPLC', ThirdMonth: teamKPIPLC },
-      { EvaluationCode: 'TEAMKPIVISION', ThirdMonth: teamKPIVISION },
-      { EvaluationCode: 'TEAMKPISOFTWARE', ThirdMonth: teamKPISOFTWARE },
-      { EvaluationCode: 'TEAMKPICHUYENMON', ThirdMonth: teamKPIChuyenMon },
-      { EvaluationCode: 'MA11', ThirdMonth: totalErrorTBP }
+      { EvaluationCode: 'TEAM01', ThirdMonth: this.formatDecimalNumber(timeWork, 2) },
+      { EvaluationCode: 'TEAM02', ThirdMonth: this.formatDecimalNumber(fiveS, 2) },
+      { EvaluationCode: 'TEAM03', ThirdMonth: this.formatDecimalNumber(reportWork, 2) },
+      { EvaluationCode: 'TEAM04', ThirdMonth: this.formatDecimalNumber(customerComplaint + missingTool + deadlineDelay, 2) },
+      { EvaluationCode: 'TEAM05', ThirdMonth: this.formatDecimalNumber(customerComplaint, 2) },
+      { EvaluationCode: 'TEAM06', ThirdMonth: this.formatDecimalNumber(deadlineDelay, 2) },
+      { EvaluationCode: 'TEAMKPIKYNANG', ThirdMonth: this.formatDecimalNumber(teamKPIKyNang, 2) },
+      { EvaluationCode: 'TEAMKPIChung', ThirdMonth: this.formatDecimalNumber(teanKPIChung, 2) },
+      { EvaluationCode: 'TEAMKPIPLC', ThirdMonth: this.formatDecimalNumber(teamKPIPLC, 2) },
+      { EvaluationCode: 'TEAMKPIVISION', ThirdMonth: this.formatDecimalNumber(teamKPIVISION, 2) },
+      { EvaluationCode: 'TEAMKPISOFTWARE', ThirdMonth: this.formatDecimalNumber(teamKPISOFTWARE, 2) },
+      { EvaluationCode: 'TEAMKPICHUYENMON', ThirdMonth: this.formatDecimalNumber(teamKPIChuyenMon, 2) },
+      { EvaluationCode: 'MA11', ThirdMonth: this.formatDecimalNumber(totalErrorTBP, 2) }
     ];
 
     // 4. Update các giá trị vào tree node dựa trên EvaluationCode

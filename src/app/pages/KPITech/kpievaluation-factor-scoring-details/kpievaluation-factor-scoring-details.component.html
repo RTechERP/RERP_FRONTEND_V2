@@ -112,7 +112,7 @@
             </nz-tab>
 
             <!-- Tab 5: Rule -->
-            <nz-tab nzTitle="Rule" *ngIf="showTabRule">
+            <nz-tab nzTitle="KPI Rule" *ngIf="showTabRule">
                 <div class="grid-rule-details-container" style="height: 100%; position: relative;">
                     <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 4" gridId="grid-rule-details"
                         [columns]="ruleColumns" [options]="ruleGridOptions" [dataset]="dataRule"
@@ -122,7 +122,7 @@
             </nz-tab>
 
             <!-- Tab 6: Team -->
-            <nz-tab nzTitle="Team" *ngIf="showTabTeam">
+            <nz-tab nzTitle="Team Rule" *ngIf="showTabTeam">
                 <div class="grid-team-details-container" style="height: 100%; position: relative;">
                     <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 5" gridId="grid-team-details"
                         [columns]="teamColumns" [options]="teamGridOptions" [dataset]="dataTeam"

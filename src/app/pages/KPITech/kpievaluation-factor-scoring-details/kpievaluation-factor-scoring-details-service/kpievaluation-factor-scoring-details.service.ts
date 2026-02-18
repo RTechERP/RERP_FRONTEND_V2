@@ -143,5 +143,36 @@ export class KPIEvaluationFactorScoringDetailsService {
     );
   }
   //#endregion
+
+  //#region Update điểm row KPI Rule
+  /**
+   * Cập nhật điểm cho 1 dòng KPI Rule
+   * Mapping: btnUpdateDataRow_Click trong WinForms
+   * API: GET api/KPIEvaluationFactorScoringDetails/update-row-rule
+   * @param kpiExamID - ID bài đánh giá KPI
+   * @param isAmdinConfirm - Trạng thái admin confirm
+   * @param employeeID - ID nhân viên
+   * @param sessionID - ID kỳ đánh giá
+   */
+  updateRowRule(kpiExamID: number, isAmdinConfirm: boolean, employeeID: number, sessionID: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}api/KPIEvaluationFactorScoringDetails/update-row-rule`, {
+      params: {
+        kpiExamID: kpiExamID.toString(),
+        isAmdinConfirm: isAmdinConfirm.toString(),
+        employeeID: employeeID.toString(),
+        sessionID: sessionID.toString()
+      }
+    });
+  }
+  //#endregion
+
+  /**
+ * Save KPI evaluation data (WinForm SaveDataKPI)
+ * API: POST api/KPIEvaluationFactorScoring/save-data-kpi
+ * @param data - SaveDataKPIRequestParam payload
+ */
+  saveDataKPI(data: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}api/KPIEvaluationFactorScoringDetails/` + 'save-data-kpi', data);
+  }
 }
 

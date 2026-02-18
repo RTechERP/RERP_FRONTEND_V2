@@ -215,15 +215,6 @@ export class KPIService {
   }
 
   /**
-   * Save KPI evaluation data (WinForm SaveDataKPI)
-   * API: POST api/KPIEvaluationFactorScoring/save-data-kpi
-   * @param data - SaveDataKPIRequestParam payload
-   */
-  saveDataKPI(data: any): Observable<any> {
-    return this.http.post<any>(this.apiUrlFactorScoring + 'save-data-kpi', data);
-  }
-
-  /**
    * Admin confirm KPI
    * API: POST api/KPIEvaluationFactorScoring/admin-confirm-kpi
    * @param kpiExamID - KPI Exam ID
@@ -457,8 +448,8 @@ export class KPIService {
    * @param positionID - Position ID to choose
    */
   choicePosition(positionID: number): Observable<any> {
-    const body = { positionID };
-    return this.http.post<any>(this.apiUrl + 'choice-position', body);
+    const params = new HttpParams().set('positionID', positionID.toString());
+    return this.http.post<any>(this.apiUrl + 'choice-position', null, { params });
   }
 
   // ==================== Load Data Team APIs ====================

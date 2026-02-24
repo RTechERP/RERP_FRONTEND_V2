@@ -2599,10 +2599,30 @@ export class BillImportDetailNewComponent
     modalRef.componentInstance.dataImport = dtDetails;
     modalRef.componentInstance.isAddNewToBillImport = true;
 
-    modalRef.result.finally(
-      () => {
-        this.getBillImportDetailID();
+    modalRef.result.then(
+      (qcId: number) => {
+        if (qcId > 0) {
+          const selectedRows =
+            this.angularGridDetail?.slickGrid?.getSelectedRows() || [];
+
+          selectedRows.forEach((rowIndex: number) => {
+            const item =
+              this.angularGridDetail.slickGrid.getDataItem(rowIndex);
+
+            if (item) {
+              item.BillImportQCID = qcId;
+              item.StatusQCText = 'Đã yêu cầu QC';
+
+              // cập nhật lại row trên grid
+              this.angularGridDetail.slickGrid.invalidateRow(rowIndex);
+            }
+          });
+          this.angularGridDetail.slickGrid.render();
+        }
       },
+      () => {
+
+      }
     );
   }
 
@@ -2626,7 +2646,7 @@ export class BillImportDetailNewComponent
         lsBillImportQCIds.push(billImportQCId);
       }
     }
-    console.log('lsBillImportQCIds',lsBillImportQCIds);
+    console.log('lsBillImportQCIds', lsBillImportQCIds);
 
     if (lsBillImportQCIds.length === 0) {
       this.notification.warning(

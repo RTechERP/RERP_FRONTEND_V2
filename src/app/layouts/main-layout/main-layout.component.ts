@@ -46,6 +46,10 @@ import { MenuAppService } from '../../pages/systems/menu-app/menu-app.service';
 import { NOTIFICATION_TITLE } from '../../app.config';
 import { environment } from '../../../environments/environment';
 import { CustomRouteReuseStrategy } from '../../custom-route-reuse.strategy';
+import { UpdateVersionService } from '../../pages/systems/update-version/update-version.service';
+import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
+import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { UpdateVersionDetailComponent } from '../../pages/systems/update-version/update-version-detail/update-version-detail.component';
 // import { LayoutEventService } from '../layout-event.service';
 import { take, filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
@@ -121,6 +125,8 @@ export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
         AppNotifycationDropdownComponent,
         AppUserDropdownComponent,
         NzGridModule,
+        NzModalModule,
+        NgbModalModule
     ],
     templateUrl: '../../app.component.html',
     styleUrl: '../../app.component.css',
@@ -142,13 +148,18 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // private layoutEvent: LayoutEventService,
         private cd: ChangeDetectorRef,
         private route: ActivatedRoute,
-        private tabService: TabServiceService
+        private tabService: TabServiceService,
+        private updateVersionService: UpdateVersionService,
+        private nzModal: NzModalService,
+        private modalService: NgbModal,
     ) {
 
         // this.menuComps = this.menuService.getMenus();
     }
     notificationComponent = AppNotifycationDropdownComponent;
     //#region Khai báo biến
+    userAppVersion: string = localStorage.getItem('currentAppVersion') || '0.0.0';
+
     isCollapsed = true;
     isMobile = window.innerHeight <= 768;
     isDatcom = false;
@@ -162,6 +173,11 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     menu: any = {};
     //#endregion
+
+    currentAppVersion: string = '';
+    hasNewVersion: boolean = false;
+    latestVersionDetails: any = null;
+    private eventSource: EventSource | null = null;
     notifItems: NotifyItem[] = [
         // {
         //   id: 1,
@@ -278,11 +294,18 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
 
+        // this.loadCurrentVersion();
+        // this.initSseConnection();
     }
 
     ngOnDestroy(): void {
         if (this.routerSubscription) {
             this.routerSubscription.unsubscribe();
+        }
+
+        if (this.eventSource) {
+            this.eventSource.close();
+            this.eventSource = null;
         }
     }
 
@@ -1195,6 +1218,125 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     //       }
     //     } catch (error) {
     //       console.error('Error restoring tabs:', error);
-    //     }
-    //   }
+    loadCurrentVersion() {
+        const localVersion = localStorage.getItem('currentAppVersion');
+        this.updateVersionService.getCurrentVersion().subscribe({
+            next: (res) => {
+                if (res?.status === 1) {
+                    this.currentAppVersion = res.data;
+                    console.log('Current App Version:', this.currentAppVersion);
+
+                    if (localVersion && localVersion !== this.currentAppVersion) {
+                        this.hasNewVersion = true;
+                        this.fetchVersionDetails(this.currentAppVersion);
+                    } else if (!localVersion) {
+                        localStorage.setItem('currentAppVersion', this.currentAppVersion);
+                        this.userAppVersion = this.currentAppVersion;
+                    }
+                }
+            },
+            error: (err) => console.error('Lỗi lấy phiên bản hiện tại:', err)
+        });
+    }
+
+    fetchVersionDetails(code: string) {
+        this.updateVersionService.getUpdateVersions().subscribe({
+            next: (res) => {
+                if (res?.status === 1) {
+                    const data = res.data?.data || [];
+                    this.latestVersionDetails = data.find((v: any) => v.Code === code);
+                }
+            }
+        });
+    }
+
+    initSseConnection() {
+        const sseUrl = this.updateVersionService.getSseUrl();
+        this.eventSource = new EventSource(sseUrl);
+
+        this.eventSource.addEventListener('contract-updated', (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log('SSE Event [contract-updated]:', data);
+
+                if (data.code && data.code !== this.currentAppVersion) {
+                    this.hasNewVersion = true;
+                    this.currentAppVersion = data.code;
+                    this.fetchVersionDetails(data.code);
+                    this.showUpdatePrompt(data.code);
+                }
+            } catch (e) {
+                console.error('Lỗi parse dữ liệu SSE:', e, event.data);
+            }
+        });
+
+        this.eventSource.onerror = (error) => {
+            console.error('SSE Connection error:', error);
+        };
+    }
+
+    showUpdatePrompt(newVersion: string) {
+        if (this.latestVersionDetails && this.latestVersionDetails.Code === newVersion) {
+            this.showUpdateModal();
+        } else {
+            this.updateVersionService.getUpdateVersions().subscribe({
+                next: (res) => {
+                    if (res?.status === 1) {
+                        const data = res.data?.data || [];
+                        this.latestVersionDetails = data.find((v: any) => v.Code === newVersion);
+
+                        if (this.latestVersionDetails) {
+                            this.showUpdateModal();
+                        } else {
+                            this.showConfirmFallback(newVersion);
+                        }
+                    } else {
+                        this.showConfirmFallback(newVersion);
+                    }
+                },
+                error: (err) => {
+                    console.error('Lỗi load chi tiết phiên bản:', err);
+                    this.showConfirmFallback(newVersion);
+                }
+            });
+        }
+    }
+
+    private showConfirmFallback(newVersion: string) {
+        this.nzModal.confirm({
+            nzTitle: 'Cập nhật phiên bản mới',
+            nzContent: `Hệ thống đã có phiên bản mới (<b>${newVersion}</b>). Bạn có muốn cập nhật ngay không?`,
+            nzOkText: 'Có (Tải lại trang)',
+            nzCancelText: 'Để sau',
+            nzOnOk: () => {
+                localStorage.setItem('currentAppVersion', newVersion);
+                window.location.reload();
+            }
+        });
+    }
+
+    showUpdateModal() {
+        if (!this.latestVersionDetails) {
+            this.showUpdatePrompt(this.currentAppVersion);
+            return;
+        }
+
+        const modalRef = this.modalService.open(UpdateVersionDetailComponent, {
+            centered: true,
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: true,
+            scrollable: true
+        });
+
+        modalRef.componentInstance.versionData = this.latestVersionDetails;
+
+        modalRef.result.then((result) => {
+            if (result === 'update') {
+                localStorage.setItem('currentAppVersion', this.currentAppVersion);
+                window.location.reload();
+            }
+        }).catch(() => {
+        });
+    }
 }

@@ -174,14 +174,14 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
    */
   private employeePointFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
     const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
-    
+
     // Tạo tooltip công thức
     const employeePoint = Number(dataContext.EmployeePoint) || 0;
     const coefficient = Number(dataContext.Coefficient) || 0;
     const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
-    
+
     const tooltipText = `Điểm hệ số = Điểm nhân viên × Hệ số\n= ${employeePoint.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
-    
+
     return `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>`;
   };
 
@@ -505,8 +505,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   }
 
   ngOnInit(): void {
-    this.applyVisibilityRules();
     this.initializeGrids();
+    this.applyVisibilityRules();
     this.loadKPISession(); // Load real data from API
   }
 
@@ -535,28 +535,26 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       this.showTabRule = false;
       this.showTabTeam = false;
 
-      // Cập nhật hiển thị cột trong Grid Đánh giá (Tab 0)
-      this.evaluationColumns.forEach(col => {
-        // Ẩn các cột hệ số và điểm đánh giá chi tiết
-        if (['Coefficient', 'EmployeeCoefficient', 'TBPCoefficient', 'BGDCoefficient', 'TBPPoint', 'BGDPoint'].includes(col.id as string)) {
-          col.hidden = true;
-        }
-        // Luôn hiển thị cột Điểm chuẩn
-        if (col.id === 'StandardPoint') {
-          col.hidden = false;
-        }
-      });
+      // Cập nhật bằng cách lọc mảng (loại bỏ hoàn toàn cột) để tránh lỗi lệch Group Header
+      const evalHiddenIds = ['Coefficient', 'EmployeeCoefficient', 'TBPCoefficient', 'BGDCoefficient', 'TBPPoint', 'BGDPoint'];
+      this.evaluationColumns = this.evaluationColumns.filter(col => !evalHiddenIds.includes(col.id as string));
+      this.evaluation2Columns = this.evaluation2Columns.filter(col => !evalHiddenIds.includes(col.id as string));
+      this.evaluation4Columns = this.evaluation4Columns.filter(col => !evalHiddenIds.includes(col.id as string));
 
-      // Cập nhật hiển thị cột trong Grid Master (Tab 3 - Tổng hợp)
-      this.masterColumns.forEach(col => {
-        // Ẩn các cột thuộc nhóm gridBand2 (PLC, Vision, Software, AVG) và cột Chung
-        if (['PLCPoint', 'VisionPoint', 'SoftWarePoint', 'AVGPoint', 'GeneralPoint'].includes(col.id as string)) {
-          col.hidden = true;
-        }
-        // Hiển thị các cột thuộc nhóm gridBand8 (Phần trăm đạt được, Xếp loại) và cột Tổng điểm chuẩn
-        if (['PercentageAchieved', 'EvaluationRank', 'StandartPoint'].includes(col.id as string)) {
+      const masterHiddenIds = ['PLCPoint', 'VisionPoint', 'SoftWarePoint', 'AVGPoint', 'GeneralPoint'];
+      const masterShowIds = ['PercentageAchieved', 'EvaluationRank', 'StandartPoint'];
+
+      this.masterColumns = this.masterColumns.filter(col => {
+        // Loại bỏ các cột trong danh sách ẩn
+        if (masterHiddenIds.includes(col.id as string)) return false;
+
+        // Ép hiển thị các cột cần thiết cho TKCK
+        if (masterShowIds.includes(col.id as string)) {
           col.hidden = false;
+          return true;
         }
+
+        return true;
       });
     } else {
       // Chế độ xem bình thường: Đảm bảo các Tab được hiển thị
@@ -779,7 +777,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'ExamCode',
         field: 'ExamCode',
         name: 'Mã bài đánh giá',
-        width: 140,
+        minWidth: 140,
         sortable: true,
         cssClass: 'cell-multiline',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -795,7 +793,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'ExamName',
         field: 'ExamName',
         name: 'Tên bài đánh giá',
-        width: 130,
+        minWidth: 130,
         sortable: true,
         cssClass: 'cell-multiline',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -811,7 +809,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'StatusText',
         field: 'StatusText',
         name: 'Trạng thái',
-        width: 90,
+        minWidth: 90,
         sortable: true,
         cssClass: 'cell-multiline',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -826,6 +824,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       {
         id: 'Deadline',
         field: 'Deadline',
+        minWidth: 120,
         name: 'Deadline',
         formatter: Formatters.dateIso,
         sortable: true
@@ -848,7 +847,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       },
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: false,
+      forceFitColumns: true,
     };
   }
 
@@ -2779,15 +2778,21 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         }
 
         // Cập nhật footer cho Rule - hiển thị xếp loại
-        // Theo luồng WinForm: LoadSummaryRuleNew → KHÔNG gọi CalculatorPoint (dòng 3290 bị comment)
+        // Theo luồng WinForm: LoadSummaryRuleNew → CalculatorPoint → update footer
         if (this.dataRule.length > 0 && this.departmentID !== this.departmentCK) {
           setTimeout(() => {
             // Gọi hàm lấy summary từ grid team và thêm các dòng TEAM
             this.loadTeamSummaryAndAddTeamNodes();
+
+            // Gọi calculatorPoint để tính toán lại TotalError
+            const isTBP = this.isTBPView; // Sử dụng isTBPView thay vì typeID
+            this.calculatorPoint(isTBP, this.isPublic);
+
             this.refreshGrid(this.angularGridRule, this.dataRule);
             this.updateRuleFooter();
           }, 200);
         }
+
 
         this.cdr.detectChanges();
       },
@@ -2975,7 +2980,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
    * Matches WinForm CalculatorAvgPointNew logic
    */
   private calculatorAvgPoint(dataTable: any[]): any[] {
-        if (!dataTable || dataTable.length === 0) return dataTable;
+    if (!dataTable || dataTable.length === 0) return dataTable;
 
     // Find list of parent STT values
     const listFatherID: string[] = [];
@@ -3544,7 +3549,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
               : maxPercentageAdjustment - totalPercentDeduction;
           } else {
             // Mặc định: PercentRemaining = TotalError * MaxPercent
-            row.PercentRemaining = (Number(row.TotalError) || 0) * maxPercentBonus;
+            row.PercentRemaining = this.formatDecimalNumber(row.TotalError || 0, 2) * maxPercentBonus;
           }
         }
 

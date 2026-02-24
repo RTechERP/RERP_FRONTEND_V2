@@ -200,6 +200,7 @@ export class PaymentOrderComponent implements OnInit {
 
     isPermisstion: boolean = false;
     isPermisstionDB: boolean = false;
+    isPermisstionHR: boolean = false;
 
     constructor(
         private modalService: NgbModal,
@@ -253,6 +254,9 @@ export class PaymentOrderComponent implements OnInit {
             this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
             this.appUserService.currentUser?.IsAdmin) || false;
 
+        this.isPermisstionHR = (
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR)) || false;
         // console.log('this.isPermisstion:', this.isPermisstion);
 
         // this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
@@ -671,14 +675,14 @@ export class PaymentOrderComponent implements OnInit {
 
                 }
             },
-            // {
-            //     label: 'In',
-            //     icon: 'fa-solid fa-print fa-lg text-primary',
-            //     command: () => {
-            //         // this.onPrint();
-
-            //     }
-            // }
+            {
+                label: 'Chuẩn hóa tổng tiền',
+                icon: 'fa-solid fa-wrench fa-lg',
+                visible: this.appUserService.currentUser?.IsAdmin && this.appUserService.currentUser?.EmployeeID <= 0,
+                command: () => {
+                    this.onUpdateTotalMoney();
+                }
+            },
         ]
     }
 
@@ -2526,6 +2530,8 @@ export class PaymentOrderComponent implements OnInit {
         this.angularGridSpecial = angularGrid;
         this.gridDataSpecial = angularGrid?.slickGrid || {};
         angularGrid.dataView.onRowCountChanged.subscribe(() => {
+
+            this.applyDistinctFilters(angularGrid);
             // const count = angularGrid.dataView.getLength();
             // console.log('Row count:', count);
             const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
@@ -2653,6 +2659,7 @@ export class PaymentOrderComponent implements OnInit {
         const p = {
             ...this.param,
             isSpecialOrder: 0,
+            // isIgnoreHR: this.isPermisstionHR ? 0 : -1,
         }
         // console.log(this.param);
         this.paymentService.get(p).subscribe({
@@ -2665,9 +2672,12 @@ export class PaymentOrderComponent implements OnInit {
                     id: x.ID   // dành riêng cho SlickGrid
                 }));
 
-                this.applyDistinctFilters(this.angularGrid);
+                // this.applyDistinctFilters(this.angularGrid);
+
                 setTimeout(() => {
-                }, 100);
+                    this.applyDistinctFilters(this.angularGrid);
+                });
+
                 this.rowStyle(this.angularGrid);
 
 
@@ -2708,9 +2718,10 @@ export class PaymentOrderComponent implements OnInit {
 
                 this.rowStyle(this.angularGridSpecial);
 
-                this.applyDistinctFilters(this.angularGridSpecial);
+                // this.applyDistinctFilters(this.angularGridSpecial);
                 setTimeout(() => {
-                }, 100);
+                    this.applyDistinctFilters(this.angularGridSpecial);
+                });
 
                 const columnElement = this.angularGridSpecial.slickGrid?.getFooterRowColumn('Code');
                 if (columnElement) {
@@ -2876,22 +2887,19 @@ export class PaymentOrderComponent implements OnInit {
         angularGrid.slickGrid.setColumns(updatedColumns);
         angularGrid.slickGrid.invalidate();
         angularGrid.slickGrid.render();
+
     }
     //#endregion
 
 
     rowStyle(angularGrid: AngularGridInstance) {
         angularGrid.dataView.getItemMetadata = this.rowStyleIsUrgent(angularGrid.dataView.getItemMetadata, angularGrid);
-
-        // this.gridData.invalidate();
-        // this.gridData.render();
-
-        // this.gridDataSpecial.invalidate();
-        // this.gridDataSpecial.render();
     }
 
     rowStyleIsUrgent(previousItemMetadata: any, angularGrid: AngularGridInstance) {
-        const newCssClass = 'bg-isurgent';
+        const isurgent = 'bg-isurgent';
+        const type2 = 'bg-type2';
+        const isApproved = 'bg-isapproved';
 
         return (rowNumber: number) => {
             const item = angularGrid.dataView.getItem(rowNumber);
@@ -2902,19 +2910,57 @@ export class PaymentOrderComponent implements OnInit {
                 meta = previousItemMetadata(rowNumber);
             }
 
-            if (meta && item && item.IsUrgent) {
-                meta.cssClasses = (meta.cssClasses || '') + '' + newCssClass;
+            if (meta && item) {
+                if (item.IsApproved != 1 && item.PaymentOrderTypeID == 2) {
+                    meta.cssClasses = (meta.cssClasses || '') + '' + type2;
+                } else if (item.IsApproved == 2) {
+                    meta.cssClasses = (meta.cssClasses || '') + '' + isApproved;
+                } else if (item.IsUrgent && this.isPermisstion) {
+                    meta.cssClasses = (meta.cssClasses || '') + '' + isurgent;
+                }
             }
 
             return meta;
         };
     }
 
+    isFiltering = false;
+
+
+    onBeforeSearchChange(event: any) {
+        console.log('event:', event);
+        console.log('event.target:', event.target);
+
+
+    }
+
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
         // this.updateTotal(5, this.angularGrid);
+
+        setTimeout(() => {
+            const inputs = document.querySelectorAll('.compound-input');
+
+            console.log('inputs:', inputs);
+
+            inputs.forEach(i => {
+                i.addEventListener('focus', () => this.isFiltering = true);
+                // i.addEventListener('blur', () => this.isFiltering = false);
+            });
+        });
+
         angularGrid.dataView.onRowCountChanged.subscribe(() => {
+
+            // console.log('this.isFiltering:', this.isFiltering);
+            if (!this.isFiltering) {
+                // this.applyDistinctFilters(angularGrid);
+            };
+
+            // setTimeout(() => {
+            //     this.applyDistinctFilters(angularGrid);
+            // }, 3);
+
             const count = angularGrid.dataView.getLength();
             // console.log('Row count:', count);
             const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
@@ -3795,9 +3841,6 @@ export class PaymentOrderComponent implements OnInit {
                             })
                     }
                 })
-
-
-
             }
         }
     }
@@ -3810,6 +3853,16 @@ export class PaymentOrderComponent implements OnInit {
         if (activeCell) {
             const rowIndex = activeCell.row;        // index trong grid
             const item = gridInstance.dataView.getItem(rowIndex) as PaymentOrder; // data object
+
+            if (item.IsApproved != 3) {
+                // this.notification.warning(NOTIFICATION_TITLE.warning,1)
+                this.notification.warning(NOTIFICATION_TITLE.warning, `Chưa yêu cầu bổ sung chứng từ\nBạn không thể bổ sung!`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
+
+                return;
+            }
 
             const { value: files } = await Swal.fire({
                 input: 'file',
@@ -3934,7 +3987,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -4661,5 +4714,48 @@ export class PaymentOrderComponent implements OnInit {
         this.activeTab = e;
         // console.log('this.activeTab:', this.activeTab);
         this.getSteps();
+    }
+
+    onUpdateTotalMoney() {
+        let gridInstance = this.angularGrid;
+        // let gridInstance = this.angularGridSpecial;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
+
+        const rowIndexes = grid.getSelectedRows();
+        let selectedItems = rowIndexes
+            .map(i => dataView.getItem(i));
+
+        selectedItems = selectedItems.map((x, i) => ({
+            ID: x.ID,
+            Code: x.Code,
+            TotalPayment: x.TotalPayment,
+            TotalPaymentActual: x.TotalPaymentActual,
+            TotalMoneyText: this.paymentService.readMoney(x.TotalPaymentActual != 0 ? x.TotalPaymentActual : x.TotalPayment, x.Unit),
+            TotalMoney: x.TotalPaymentActual != 0 ? x.TotalPaymentActual : x.TotalPayment
+        }));
+
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+            return;
+        }
+
+        // console.log('selectedItems:', selectedItems);
+
+        this.paymentService.updateTotalmoney(selectedItems).subscribe(({
+            next: (response) => {
+                this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                this.loadData();
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
+            },
+        }))
+
     }
 }

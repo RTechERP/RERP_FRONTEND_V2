@@ -1,11 +1,19 @@
+<!-- <nav class="navbar sticky-top p-0" style="background-image: url('assets/icon/—Pngtree—vietnamese new year apricot blossom_1995958.png'); 
+            background-size: 100% 100%; 
+            background-position: center; 
+            background-repeat: no-repeat;"> -->
 <nav class="navbar sticky-top p-0" style="background-color: #23458a;">
     <div class="container-fluid">
         <a class="navbar-brand p-0" href="#" style="width: 6%;" routerLink="/home">
             <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="" width="100%"
                 class="d-inline-block align-text-top">
-
         </a>
-
+        <span *ngIf="hasNewVersion" (click)="showUpdateModal()" class="text-white fw-bold cursor-pointer blink-text"
+            style="font-size: 14px; margin: 0 10px; vertical-align: right;">
+            <i nz-icon nzType="info-circle" nzTheme="outline"></i> Có phiên bản cập nhật mới!
+            <span style="text-decoration: underline; margin-left: 5px; font-weight: normal; font-size: 12px;">(Xem chi
+                tiết)</span>
+        </span>
         <div class="">
             <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
                 style="border: none !important; background-color:transparent;" nzTrigger="click">
@@ -17,9 +25,9 @@
                     <div class="app-launcher-inner">
                         @for (m of menus; track $index) {
 
-                        <a [href]="m.Router" (click)="openModule($event, m.Router, m.Code)" *ngIf="m.IsPermission">
-                            <img [src]="m.Icon" />
-                            <span class="mt-1">{{m.Title}}</span>
+                        <a [href]="m.router" (click)="openModule($event, m.router, m.key)" *ngIf="m.isPermission">
+                            <img [src]="m.icon" />
+                            <span class="mt-1">{{m.title}}</span>
                         </a>
                         }
                     </div>
@@ -35,6 +43,7 @@
                 </button>
             </app-app-notifycation-dropdown>
 
+
             <app-app-user-dropdown>
                 <button nz-button nzType="text" trigger style="border: none !important;background-color: transparent;">
                     <img src="assets/icon/user.svg">
@@ -43,7 +52,14 @@
         </div>
     </div>
 </nav>
-
+<!-- <div *ngIf="showLixiRain" class="lixi-container">
+    <div *ngFor="let lixi of lixis" class="lixi" [style.left.%]="lixi.left"
+        [style.animation-duration.s]="lixi.animationDuration" [style.animation-delay.s]="lixi.delay"
+        [style.--rotation.deg]="lixi.rotation">
+        {{ lixi.icon }}
+    </div>
+</div> -->
+<!-- <div class="row m-0" style="background-color: rgb(238, 220, 176);"> -->
 <div class="row m-0" style="background-color: rgb(230, 230, 230);">
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
         <div class="card">
@@ -53,22 +69,22 @@
 
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    @for (item of menuQickAcesss.Children; track $index) {
+                    @for (item of menuQickAcesss.children; track $index) {
                     <li class="list-group-item border-0 py-1"
-                        *ngIf="item.Code =='M79' || item.Code =='M136' || item.Code =='M137' || item.Code =='M139'">
-                        <a [attr.href]="item.Router ? item.Router : null"
-                            (click)="handleClickLink($event, item.Router, item.Title)">
-                            <img [src]="item.Icon" width="5%">
-                            <span> {{item.Title}}</span>
+                        *ngIf="item.key =='M79' || item.key =='M136' || item.key =='M137' || item.key =='M139'">
+                        <a [attr.href]="item.router ? item.router : null"
+                            (click)="handleClickLink($event, item.router, item.title)">
+                            <img [src]="item.icon" width="5%">
+                            <span> {{item.title}}</span>
                         </a>
                         <ul class="list-group">
-                            @for (c of item.Children; track $index) {
+                            @for (c of item.children; track $index) {
                             <li class="list-group-item border-0 py-1"
-                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
-                                <a [attr.href]="c.Router ? c.Router : null"
-                                    (click)="handleClickLink($event, c.Router, c.Title)">
-                                    <img [src]="c.Icon" width="5%">
-                                    <span> {{c.Title}}</span>
+                                [ngClass]="{'border-bottom':$index < item.children.length - 1,'':$index == item.children.length - 1}">
+                                <a [attr.href]="c.router ? c.router : null"
+                                    (click)="handleClickLink($event, c.router, c.title)">
+                                    <img [src]="c.icon" width="5%">
+                                    <span> {{c.title}}</span>
                                 </a>
                             </li>
                             }
@@ -87,12 +103,12 @@
                 <div class="gutter-example">
                     <div nz-row [nzGutter]="[16, 16]">
                         @for (m of menus; track $index) {
-                        <a nz-col class="gutter-row" [nzXs]="8" [nzMd]="6" [nzLg]="6" *ngIf="m.IsPermission"
-                            [href]="m.Router" (click)="openModule($event, m.Router, m.Code)">
+                        <a nz-col class="gutter-row" [nzXs]="8" [nzMd]="6" [nzLg]="6" *ngIf="m.isPermission"
+                            [href]="m.router" (click)="openModule($event, m.router, m.key)">
                             <div class="grid-config text-center py-1 shadow"
                                 style="display: flex; flex-flow: column;justify-content: center;align-items: center; height: 107px;">
-                                <img [style.width]="'70%'" [src]="m.Icon?.replace('24','64')" alt="">
-                                <p class="m-0 mt-2 fw-bold text-dark" style="line-height: normal;">{{m.Title}}</p>
+                                <img [style.width]="'70%'" [src]="m.icon?.replace('24','64')" alt="">
+                                <p class="m-0 mt-2 fw-bold text-dark" style="line-height: normal;">{{m.title}}</p>
 
                             </div>
 
@@ -106,6 +122,13 @@
 
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
 
+        <!-- <div class="card"
+            style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/Gemini_Generated_Image_ec1n9dec1n9dec1n.png'); background-size: auto 100%; background-repeat: repeat-x; background-position: center;">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">duyệt cá nhân</h5>
+            </div> -->
+
+
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">duyệt cá nhân</h5>
@@ -113,21 +136,21 @@
 
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    @for (item of menuApproves.Children; track $index) {
-                    <li class="list-group-item border-0 border-bottom py-1" *ngIf="item.IsPermission">
-                        <a class=" text-dark" [attr.href]="item.Router ? item.Router : null"
-                            (click)="handleClickLink($event, item.Router, item.Title,item.QueryParam)">
-                            <img [src]="item.Icon">
-                            <span>{{item.Title}}</span>
+                    @for (item of menuApproves.children; track $index) {
+                    <li class="list-group-item border-0 border-bottom py-1" *ngIf="item.isPermission">
+                        <a class=" text-dark" [attr.href]="item.router ? item.router : null"
+                            (click)="handleClickLink($event, item.router, item.Title,item.data)">
+                            <img [src]="item.icon">
+                            <span>{{item.title}}</span>
                         </a>
                         <ul class="list-group">
-                            @for (c of item.Children; track $index) {
-                            <li class="list-group-item border-0 py-1" *ngIf="item.IsPermission"
-                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
-                                <a [attr.href]="c.Router ? c.Router : null"
-                                    (click)="handleClickLink($event, c.Router, c.Title,c.QueryParam)">
-                                    <img [src]="c.Icon">
-                                    <span> {{c.Title}}</span>
+                            @for (c of item.children; track $index) {
+                            <li class="list-group-item border-0 py-1" *ngIf="item.isPermission"
+                                [ngClass]="{'border-bottom':$index < item.children.length - 1,'':$index == item.children.length - 1}">
+                                <a [attr.href]="c.router ? c.router : null"
+                                    (click)="handleClickLink($event, c.router, c.title,c.data)">
+                                    <img [src]="c.icon">
+                                    <span> {{c.title}}</span>
                                 </a>
                             </li>
                             }
@@ -228,24 +251,24 @@
 
                 <nz-tabset nzCentered>
                     @for (item of menuPersons; track $index){
-                    <nz-tab [nzTitle]="item.Title">
+                    <nz-tab [nzTitle]="item.title">
                         <ul class="list-group">
-                            @for (c1 of item.Children; track $index) {
+                            @for (c1 of item.children; track $index) {
 
-                            <li class="list-group-item border-0 border-bottom py-1" *ngIf="c1.IsPermission">
-                                <a class=" text-dark" [attr.href]="c1.Router ? c1.Router : null"
-                                    (click)="handleClickLink($event, c1.Router, c1.Title,c1.QueryParam)">
-                                    <img [src]="c1.Icon">
-                                    <span> {{c1.Title}}</span>
+                            <li class="list-group-item border-0 border-bottom py-1" *ngIf="c1.isPermission">
+                                <a class=" text-dark" [attr.href]="c1.router ? c1.router : null"
+                                    (click)="handleClickLink($event, c1.router, c1.title,c1.data)">
+                                    <img [src]="c1.icon">
+                                    <span> {{c1.title}}</span>
                                 </a>
                                 <ul class="list-group">
-                                    @for (c2 of c1.Children; track $index) {
-                                    <li class="list-group-item border-0 py-1" *ngIf="c2.IsPermission"
-                                        [ngClass]="{'border-bottom':$index < c1.Children.length - 1,'':$index == c1.Children.length - 1}">
-                                        <a [attr.href]="c2.Router ? c2.Router : null"
-                                            (click)="handleClickLink($event, c2.Router, c2.Title,c2.QueryParam)">
-                                            <img [src]="c2.Icon">
-                                            <span> {{c2.Title}}</span>
+                                    @for (c2 of c1.children; track $index) {
+                                    <li class="list-group-item border-0 py-1" *ngIf="c2.isPermission"
+                                        [ngClass]="{'border-bottom':$index < c1.children.length - 1,'':$index == c1.children.length - 1}">
+                                        <a [attr.href]="c2.router ? c2.router : null"
+                                            (click)="handleClickLink($event, c2.router, c2.title,c2.data)">
+                                            <img [src]="c2.icon">
+                                            <span> {{c2.title}}</span>
                                         </a>
                                     </li>
                                     }
@@ -266,12 +289,12 @@
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    @for (item of menuWeekplans.Children; track $index) {
+                    @for (item of menuWeekplans.children; track $index) {
                     <li class="list-group-item border-0 py-1">
-                        <a [href]="item.Router == '' ? '#' : item.Router"
-                            (click)="handleClickLink($event, item.Router, item.Title,item.QueryParam)">
-                            <img [src]="item.Icon">
-                            <span> {{item.Title}}</span>
+                        <a [href]="item.router == '' ? '#' : item.router"
+                            (click)="handleClickLink($event, item.router, item.Title,item.data)">
+                            <img [src]="item.icon">
+                            <span> {{item.title}}</span>
                         </a>
                     </li>
                     }
@@ -282,7 +305,73 @@
     </div>
 
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+        <!-- <div class="card">
+            <p-tabs value="0">
+                <p-tablist>
+                    <p-tab value="0" class="p-2">Nghỉ {{totalEmployeeOnleave == 0 ?'':`(${totalEmployeeOnleave}) -
+                        ${today | date:'dd/MM/yyyy'}`}}</p-tab>
+                    <p-tab value="1" class="p-2">WFH {{totalEmployeeWfh == 0 ?'':`(${totalEmployeeWfh}) - ${today |
+                        date:'dd/MM/yyyy'}`}}</p-tab>
+                </p-tablist>
+                <p-tabpanels class="p-0">
+                    <p-tabpanel value="0" style="display: block; height: 38vh; overflow: auto;">
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @for (item of employeeOnleaves; track $index) {
+                                <li class="list-group-item border-0 border-bottom py-1">
+                                    <details open>
+                                        <summary class="fw-bold" style="font-size: 12px;">{{item.DepartmentName}}
+                                            ({{item.Employees.length}})
+                                        </summary>
+                                        <ul class="list-group">
+                                            @for (e of item.Employees; track $index) {
+                                            <li class="list-group-item border-0 py-1" style="font-size: 12px;">
+                                                <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
+                                            </li>
+                                            }
+                                        </ul>
+                                    </details>
+
+                                </li>
+                                }
+                            </ul>
+                        </div>
+                    </p-tabpanel>
+                    <p-tabpanel value="1" style="display: block; height: 377px; overflow: auto;">
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @for (item of employeeWfhs; track $index) {
+                                <li class="list-group-item border-0 border-bottom py-1">
+                                    <details open>
+                                        <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
+                                        </summary>
+                                        <ul class="list-group">
+                                            @for (e of item.Employees; track $index) {
+                                            <li class="list-group-item border-0 py-1">
+                                                <span>{{$index + 1}}.{{e.EmployeeName}}
+                                                    {{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
+                                            </li>
+                                            }
+                                        </ul>
+                                    </details>
+
+                                </li>
+                                }
+                            </ul>
+                        </div>
+                    </p-tabpanel>
+
+                </p-tabpanels>
+            </p-tabs>
+
+        </div> -->
+
         <div class="card">
+            <!-- style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)),
+            url('assets/icon/1212121.jpg');
+            background-size: auto 100%;
+            background-repeat: repeat-x;
+            background-position: center;" -->
             <div class="card-header">
                 <nz-tabset nzCentered [(nzSelectedIndex)]="activeTab">
                     <nz-tab [nzTitle]="titleTemplateOnleave"></nz-tab>
@@ -348,7 +437,10 @@
                 </ng-container>
             </div>
         </div>
-        <div class="card">
+        <div class="card" style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/—Pngtree—in spring peach blossoms are_5618880.png');
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+  background-position: center;">
             <div class="card-header d-flex align-items-center">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Lịch làm việc
                 </h5>
@@ -370,7 +462,10 @@
     </div>
 
 </div>
-
+<nz-footer
+    style="padding: 0 10px !important; background-color: #ffffff; font-size: 11px; font-weight: bold; color: #000000; height: 30px; line-height: 30px; display: block; border-top: 1px solid #f0f0f0;">
+    Version: {{ userAppVersion }}
+</nz-footer>
 
 <!-- <nz-layout>
     <nz-header>
@@ -385,5 +480,5 @@
 
         <div class="inner-content">Content</div>
     </nz-content>
-    <nz-footer>Ant Design ©{{ date.getFullYear() }} Implement By Angular</nz-footer>
+  
 </nz-layout> -->

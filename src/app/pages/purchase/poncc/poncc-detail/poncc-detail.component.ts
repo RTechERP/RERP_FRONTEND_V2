@@ -1825,7 +1825,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
             console.log('🔵 [Existing BillImport] Opening modal for ID:', billImportId);
 
-            const modalRef = this.modalService.open(BillImportDetailComponent, {
+            const modalRef = this.modalService.open(BillImportDetailNewComponent, {
               backdrop: 'static',
               keyboard: false,
               centered: true,
@@ -2375,6 +2375,14 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
               ...items,
               //sum footer table
               [
+                {
+                  colSpan: 8,
+                  text: po.OriginItem ?? '',
+                  bold: true,
+                  border: [true, false, true, true],
+                },
+              ],
+              [
                 { colSpan: 2, text: '', border: [true, false, false, true] },
                 '',
                 {
@@ -2741,8 +2749,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
               [
                 {
                   colSpan: 8,
-                  text: '',
-                  style: 'header',
+                  text: po.OriginItem ?? '',
+                  bold: true,
                   border: [true, false, true, true],
                 },
               ],

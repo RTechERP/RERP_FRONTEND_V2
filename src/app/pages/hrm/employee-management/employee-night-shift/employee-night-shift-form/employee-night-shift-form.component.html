@@ -157,23 +157,21 @@
           </nz-col>
         </nz-row>
 
-        <!-- Lý do sửa (chỉ hiện khi sửa) - Row riêng -->
-        <ng-container *hasPermission="'N2,N1'">
-          <nz-row [nzGutter]="16" *ngIf="isEditMode">
-            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24">
-              <nz-form-item>
-                <nz-form-label [nzSpan]="24">
-                  Lý do sửa<span class="text-danger ps-1 me-1"> (*)</span>
-                </nz-form-label>
-                <nz-form-control [nzSpan]="24" [nzErrorTip]="getErrorMessage('ReasonHREdit')">
-                  <textarea nz-input formControlName="ReasonHREdit" nzPlaceHolder="Nhập lý do sửa"
-                    [nzAutosize]="{ minRows: 2, maxRows: 4 }" class="fs-12">
-                  </textarea>
-                </nz-form-control>
-              </nz-form-item>
-            </nz-col>
-          </nz-row>
-        </ng-container>
+        <!-- Lý do sửa (hiện khi sửa và có quyền N1/N2 hoặc người sửa khác người đăng ký) - Row riêng -->
+        <nz-row [nzGutter]="16" *ngIf="shouldShowReasonHREdit()">
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">
+                Lý do sửa<span class="text-danger ps-1 me-1"> (*)</span>
+              </nz-form-label>
+              <nz-form-control [nzSpan]="24" [nzErrorTip]="getErrorMessage('ReasonHREdit')">
+                <textarea nz-input formControlName="ReasonHREdit" nzPlaceHolder="Nhập lý do sửa"
+                  [nzAutosize]="{ minRows: 2, maxRows: 4 }" class="fs-12">
+                </textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
 
         <!-- Đăng ký bổ sung -->
         <nz-row [nzGutter]="16">

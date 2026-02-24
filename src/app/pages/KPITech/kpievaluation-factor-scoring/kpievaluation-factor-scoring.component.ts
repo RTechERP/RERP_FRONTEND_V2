@@ -163,14 +163,14 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
    */
   private employeePointFormatter = (row: number, cell: number, value: any, columnDef: any, dataContext: any) => {
     const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(2) : '';
-    
+
     // Tạo tooltip công thức
     const employeePoint = Number(dataContext.EmployeePoint) || 0;
     const coefficient = Number(dataContext.Coefficient) || 0;
     const employeeCoefficient = Number(dataContext.EmployeeCoefficient) || 0;
-    
+
     const tooltipText = `Điểm hệ số = Điểm nhân viên × Hệ số\n= ${employeePoint.toFixed(2)} × ${coefficient.toFixed(2)}\n= ${employeeCoefficient.toFixed(2)}`;
-    
+
     return `<span title="${this.escapeHtml(tooltipText)}" style="cursor: help;">${displayValue}</span>`;
   };
 
@@ -3861,7 +3861,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
               : maxPercentageAdjustment - totalPercentDeduction;
           } else {
             // Mặc định: PercentRemaining = TotalError * MaxPercent
-            row.PercentRemaining = (Number(row.TotalError) || 0) * maxPercentBonus;
+            row.PercentRemaining = this.formatDecimalNumber(row.TotalError || 0, 2) * maxPercentBonus;
           }
         }
 

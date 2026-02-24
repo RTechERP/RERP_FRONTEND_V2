@@ -294,8 +294,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
 
-        this.loadCurrentVersion();
-        this.initSseConnection();
+        // this.loadCurrentVersion();
+        // this.initSseConnection();
     }
 
     ngOnDestroy(): void {

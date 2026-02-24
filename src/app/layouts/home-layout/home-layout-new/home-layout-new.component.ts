@@ -197,8 +197,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         this.getQuantityApprove();
         this.getQuantityBorrow();
         this.loadNewsletters();
-        this.loadCurrentVersion();
-        this.initSseConnection();
+
+        // this.loadCurrentVersion();
+        // this.initSseConnection();
     }
     getQuantityApprove() {
         this.approveTpService.getQuantityApprove().subscribe({

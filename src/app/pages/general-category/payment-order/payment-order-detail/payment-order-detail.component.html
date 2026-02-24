@@ -3,7 +3,7 @@
         <h5 class="modal-title text-uppercase text-light" id="staticBackdropLabel">Chi tiết đề nghị thanh toán</h5>
         <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.close()"></button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body py-0">
         <form nz-form nzLayout="vertical" [formGroup]="validateForm">
             <div nz-row [nzGutter]="16">
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
@@ -11,10 +11,10 @@
                         <nz-form-label class="p-0">Loại đề nghị<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Chọn loại đề nghị">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.TypeOrder.field" nzSize="small">
-                                <nz-option nzLabel="Đề nghị tạm ứng" [nzValue]="1"></nz-option>
-                                <nz-option nzLabel="Đề nghị thanh toán / Quyết toán" [nzValue]="2"></nz-option>
-                                <nz-option nzLabel="Đề nghị thu tiền" [nzValue]="3"></nz-option>
+                                [formControlName]="'TypeOrder'" nzSize="small">
+                                <nz-option nzLabel="Đề nghị tạm ứng" nzValue="1"></nz-option>
+                                <nz-option nzLabel="Đề nghị thanh toán / Quyết toán" nzValue="2"></nz-option>
+                                <nz-option nzLabel="Đề nghị thu tiền" nzValue="3"></nz-option>
                             </nz-select>
                         </nz-form-control>
                     </nz-form-item>
@@ -319,27 +319,29 @@
             </div>
 
             <div nz-row [nzGutter]="16">
-                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="20">
-                    <nz-form-item>
-                        <nz-form-label>Số tiền đề nghị được ghi theo bảng kê dưới đây:</nz-form-label>
-                    </nz-form-item>
+                <div nz-col nzSpan="24">
+                    <div nz-form nzLayout="inline">
+                        <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="20">
+                            <nz-form-item>
+                                <nz-form-label>Số tiền đề nghị được ghi theo bảng kê dưới đây:</nz-form-label>
+                            </nz-form-item>
+                        </div>
+
+                        <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                            <nz-form-item class="d-flex align-items-center">
+                                <nz-form-label>Loại tiền<span class="text-danger px-1">(*)</span></nz-form-label>
+                                <nz-form-control nzErrorTip="Chọn loại tiền">
+                                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại tiền"
+                                        [formControlName]="paymentOrderField.Unit.field" nzSize="small">
+                                        @for (item of units; track item) {
+                                        <nz-option nzLabel="{{item.text}}" [nzValue]="item.id"></nz-option>
+                                        }
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </div>
+                    </div>
                 </div>
-
-                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
-                    <nz-form-item>
-                        <nz-form-label>Loại tiền<span class="text-danger ps-1">(*)</span></nz-form-label>
-                        <nz-form-control nzErrorTip="Chọn loại tiền">
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại tiền"
-                                [formControlName]="paymentOrderField.Unit.field" nzSize="small">
-                                @for (item of units; track item) {
-                                <nz-option nzLabel="{{item.text}}" [nzValue]="item.id"></nz-option>
-                                }
-                            </nz-select>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
-
-
             </div>
         </form>
 

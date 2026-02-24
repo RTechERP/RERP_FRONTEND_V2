@@ -2534,10 +2534,12 @@ export class PaymentOrderComponent implements OnInit {
             this.applyDistinctFilters(angularGrid);
             // const count = angularGrid.dataView.getLength();
             // console.log('Row count:', count);
-            const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
-            if (columnElement) {
-                columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
-            }
+            // const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
+            // if (columnElement) {
+            //     columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
+            // }
+
+            this.updateTotal(this.angularGridSpecial);
         });
     }
 
@@ -2676,15 +2678,12 @@ export class PaymentOrderComponent implements OnInit {
 
                 setTimeout(() => {
                     this.applyDistinctFilters(this.angularGrid);
+                    this.updateTotal(this.angularGrid);
                 });
 
                 this.rowStyle(this.angularGrid);
 
 
-                const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn('Code');
-                if (columnElement) {
-                    columnElement.textContent = `${this.formatNumber(this.dataset.length, 0)}`;
-                }
 
                 this.isLoading = false;
             },
@@ -2721,12 +2720,13 @@ export class PaymentOrderComponent implements OnInit {
                 // this.applyDistinctFilters(this.angularGridSpecial);
                 setTimeout(() => {
                     this.applyDistinctFilters(this.angularGridSpecial);
+                    this.updateTotal(this.angularGridSpecial);
                 });
 
-                const columnElement = this.angularGridSpecial.slickGrid?.getFooterRowColumn('Code');
-                if (columnElement) {
-                    columnElement.textContent = `${this.formatNumber(this.datasetSpecial.length, 0)}`;
-                }
+                // const columnElement = this.angularGridSpecial.slickGrid?.getFooterRowColumn('Code');
+                // if (columnElement) {
+                //     columnElement.textContent = `${this.formatNumber(this.datasetSpecial.length, 0)}`;
+                // }
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
@@ -2939,16 +2939,16 @@ export class PaymentOrderComponent implements OnInit {
         this.gridData = angularGrid?.slickGrid || {};
         // this.updateTotal(5, this.angularGrid);
 
-        setTimeout(() => {
-            const inputs = document.querySelectorAll('.compound-input');
+        // setTimeout(() => {
+        //     const inputs = document.querySelectorAll('.compound-input');
 
-            console.log('inputs:', inputs);
+        //     console.log('inputs:', inputs);
 
-            inputs.forEach(i => {
-                i.addEventListener('focus', () => this.isFiltering = true);
-                // i.addEventListener('blur', () => this.isFiltering = false);
-            });
-        });
+        //     inputs.forEach(i => {
+        //         i.addEventListener('focus', () => this.isFiltering = true);
+        //         // i.addEventListener('blur', () => this.isFiltering = false);
+        //     });
+        // });
 
         angularGrid.dataView.onRowCountChanged.subscribe(() => {
 
@@ -2961,12 +2961,14 @@ export class PaymentOrderComponent implements OnInit {
             //     this.applyDistinctFilters(angularGrid);
             // }, 3);
 
-            const count = angularGrid.dataView.getLength();
-            // console.log('Row count:', count);
-            const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
-            if (columnElement) {
-                columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
-            }
+            // const count = angularGrid.dataView.getLength();
+            // // console.log('Row count:', count);
+            // const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
+            // if (columnElement) {
+            //     columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
+            // }
+
+            this.updateTotal(this.angularGrid);
         });
 
 
@@ -3012,24 +3014,35 @@ export class PaymentOrderComponent implements OnInit {
         }
     }
 
-    // updateTotal(cell: number, angularGrid: AngularGridInstance) {
+    updateTotal(angularGrid: AngularGridInstance) {
 
-    //     if (cell <= 0) return;
+        // if (cell <= 0) return;
 
-    //     console.log('angularGrid.dataView:', angularGrid.dataView);
-    //     const columnId = angularGrid.slickGrid?.getColumns()[cell].id;
-    //     console.log('columnId:', columnId);
-    //     let data = angularGrid.dataView.getFilteredItems();
-    //     console.log('data:', angularGrid.dataView.getLength());
+        // console.log('angularGrid.dataView:', angularGrid.dataView);
+        // const columnId = angularGrid.slickGrid?.getColumns()[cell].id;
+        // console.log('columnId:', columnId);
+        // let data = angularGrid.dataView.getFilteredItems();
+        // console.log('data:', angularGrid.dataView.getLength());
 
-    //     const columnElement = angularGrid.slickGrid?.getFooterRowColumn(columnId);
-    //     if (columnElement) {
-    //         columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getFilteredItems().length, 0)}`;
-    //     }
-    // }
+        // const columnElement = angularGrid.slickGrid?.getFooterRowColumn(columnId);
+        // if (columnElement) {
+        //     columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getFilteredItems().length, 0)}`;
+        // }
+
+
+        const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
+        // console.log('columnElement:', columnElement);
+        if (columnElement) {
+            // console.log('columnElementqqq:', columnElement);
+            // columnElement.textContent = `${this.formatNumber(this.dataset.length, 0)}`;
+            columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
+        }
+    }
 
     initModal(paymentOrder: any = new PaymentOrder(), isCopy: boolean = false) {
         paymentOrder.IsSpecialOrder = this.activeTab == '1';
+
+        // console.log('paymentOrder.IsSpecialOrder:', paymentOrder.IsSpecialOrder);
         if (!paymentOrder.IsSpecialOrder) {
             const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
                 centered: true,
@@ -3090,7 +3103,7 @@ export class PaymentOrderComponent implements OnInit {
             const item = grid.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
             // console.log('Row index:', rowIndex);
-            console.log('Row data:', item);
+            // console.log('Row data:', item);
             this.initModal(item);
         }
     }

@@ -86,3 +86,6 @@
   word-wrap: break-word;
   white-space: normal;
 }
+::ng-deep .ant-tabs.ant-tabs-top.ant-tabs-default {
+  height: 58vh !important;
+}

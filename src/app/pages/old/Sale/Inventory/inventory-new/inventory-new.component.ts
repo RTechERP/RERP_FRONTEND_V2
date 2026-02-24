@@ -1230,8 +1230,10 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     'QuantityUse', 'MinQuantity', 'MinQuantityActual', 'TotalQuantityReturnNCC',
                     'ImportPT', 'ExportPM', 'StillBorrowed'];
                 numberCells.forEach(key => {
-                    row.getCell(key).alignment = { horizontal: 'right', vertical: 'middle' };
-                    row.getCell(key).numFmt = '#,##0';
+                    const cell = row.getCell(key);
+                    cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                    const v = cell.value as number;
+                    cell.numFmt = (typeof v === 'number' && !Number.isInteger(v)) ? '#,##0.##' : '#,##0';
                 });
 
                 // Accumulate sums for footer
@@ -1295,7 +1297,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 // Format number cells in footer
                 if (colNumber >= 11 && colNumber <= 17) {
                     cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                    cell.numFmt = '#,##0';
+                    const v = cell.value as number;
+                    cell.numFmt = (typeof v === 'number' && !Number.isInteger(v)) ? '#,##0.##' : '#,##0';
                 } else {
                     cell.alignment = { horizontal: 'center', vertical: 'middle' };
                 }

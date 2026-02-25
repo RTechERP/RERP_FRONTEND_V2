@@ -113,7 +113,6 @@ private detailResizeObserver!: ResizeObserver;
         private ClipboardService: ClipboardService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
-
     ngOnInit() {
         this.route.queryParams.subscribe(params => {
             // this.warehouseID = params['warehouseID'] || 1;

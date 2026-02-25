@@ -3411,8 +3411,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           this.ensureCheckboxSelector(angularGrid);
         }
       }
+    }
 
-      // Get the column info from the grid
+    // Get the column info from the grid
       const columns = angularGrid.slickGrid.getColumns();
       const changedColumn = columns[args.cell];
 
@@ -3481,7 +3482,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       angularGrid.slickGrid.invalidate();
       angularGrid.slickGrid.render();
       this.ensureCheckboxSelector(angularGrid);
-    }
   }
   handleRowSelection(
     typeId: number,

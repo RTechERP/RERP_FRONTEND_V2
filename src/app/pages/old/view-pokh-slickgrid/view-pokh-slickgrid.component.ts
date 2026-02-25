@@ -657,14 +657,24 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
 
   handleExportRowSelect(dataContext: any, parentId: number, isSelected: boolean): void {
     const code = dataContext.Code || '';
+    const qty = dataContext.Qty ?? dataContext.qty ?? null;
+    const totalQty = dataContext.TotalQty ?? dataContext.totalQty ?? null;
+
+    // Composite key: POKHDetailID + Code + Qty + TotalQty
+    const isSameKey = (x: any) =>
+      x.POKHDetailID === parentId &&
+      x.Code === code &&
+      x.Qty === qty &&
+      x.TotalQty === totalQty;
 
     if (isSelected) {
-      // Dùng Code + POKHDetailID làm composite key
-      if (!this.selectedExportRowsAll.some(x => x.POKHDetailID === parentId && x.Code === code)) {
+      if (!this.selectedExportRowsAll.some(isSameKey)) {
         this.selectedExportRowsAll.push({
           POKHDetailID: parentId,
           BillExportDetailID: dataContext.BillExportDetailID || dataContext.ID,
           Code: code,
+          Qty: qty,
+          TotalQty: totalQty,
         });
       }
       // Auto-select parent if not already selected
@@ -673,8 +683,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         this.selectedRowsAll.push({ ...parentData });
       }
     } else {
-      // Xóa dựa trên Code + POKHDetailID
-      this.selectedExportRowsAll = this.selectedExportRowsAll.filter(x => !(x.POKHDetailID === parentId && x.Code === code));
+      // Xóa dựa trên composite key: Code + POKHDetailID + Qty + TotalQty
+      this.selectedExportRowsAll = this.selectedExportRowsAll.filter(x => !isSameKey(x));
       // Deselect parent if no more exports selected
       const remainingExportsForParent = this.selectedExportRowsAll.filter(x => x.POKHDetailID === parentId);
       if (remainingExportsForParent.length === 0) {
@@ -689,12 +699,21 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     if (parentData.exportDetails && parentData.exportDetails.length > 0) {
       parentData.exportDetails.forEach((ex: any) => {
         const code = ex.Code || '';
-        // Dùng Code + POKHDetailID làm composite key
-        if (!this.selectedExportRowsAll.some(x => x.POKHDetailID === parentData.ID && x.Code === code)) {
+        const qty = ex.Qty ?? ex.qty ?? null;
+        const totalQty = ex.TotalQty ?? ex.totalQty ?? null;
+        // Composite key: POKHDetailID + Code + Qty + TotalQty
+        if (!this.selectedExportRowsAll.some(x =>
+          x.POKHDetailID === parentData.ID &&
+          x.Code === code &&
+          x.Qty === qty &&
+          x.TotalQty === totalQty
+        )) {
           this.selectedExportRowsAll.push({
             POKHDetailID: parentData.ID,
             BillExportDetailID: ex.BillExportDetailID || ex.ID,
             Code: code,
+            Qty: qty,
+            TotalQty: totalQty,
           });
         }
       });
@@ -893,9 +912,12 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       }
 
       const selectedExports = (row.exportDetails || []).filter((ex: any) => {
-        // Match dùng Code + POKHDetailID (vì BillExportDetailID có thể undefined)
+        // Match dùng Code + POKHDetailID + Qty + TotalQty để phân biệt các dòng trùng Code
         return selectedExportsForThisParent.some((selected: any) =>
-          selected.POKHDetailID === row.ID && selected.Code === ex.Code
+          selected.POKHDetailID === row.ID &&
+          selected.Code === ex.Code &&
+          selected.Qty === (ex.Qty ?? ex.qty ?? null) &&
+          selected.TotalQty === (ex.TotalQty ?? ex.totalQty ?? null)
         );
       });
 

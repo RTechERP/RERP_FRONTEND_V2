@@ -19,16 +19,16 @@
         <nz-form-item class="mb-0">
           <nz-form-label class="fs-12">Từ ngày</nz-form-label>
           <nz-form-control>
-            <nz-date-picker [(ngModel)]="filters.startDate" name="startDate" nzFormat="dd/MM/yyyy" style="width: 150px"
-              nzSize="small"></nz-date-picker>
+            <input type="date" class="ant-input" style="width: 150px; font-size: 12px; height: 24px;"
+              [(ngModel)]="filters.startDate" name="startDate" />
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="mb-0">
           <nz-form-label class="fs-12">Đến ngày</nz-form-label>
           <nz-form-control>
-            <nz-date-picker [(ngModel)]="filters.endDate" name="endDate" nzFormat="dd/MM/yyyy" style="width: 150px"
-              nzSize="small"></nz-date-picker>
+            <input type="date" class="ant-input" style="width: 150px; font-size: 12px; height: 24px;"
+              [(ngModel)]="filters.endDate" name="endDate" />
           </nz-form-control>
         </nz-form-item>
 

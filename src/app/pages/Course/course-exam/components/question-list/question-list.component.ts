@@ -61,6 +61,16 @@ export class QuestionListComponent implements OnInit, OnChanges, AfterViewInit, 
             icon: 'fa-solid fa-sync fa-lg text-danger',
             command: () => this.menuAction.emit('refresh'),
         },
+        {
+            label: 'Xuất excel',
+            icon: 'fa-solid fa-file-excel fa-lg text-success',
+            command: () => this.menuAction.emit('export-excel'),
+        },
+        {
+            label: 'Nhập excel',
+            icon: 'fa-solid fa-file-import fa-lg text-info',
+            command: () => this.menuAction.emit('import-excel'),
+        },
         { separator: true },
     ];
 

@@ -1,0 +1,188 @@
+<div class="layout-container h-100 d-flex flex-column">
+  <!-- Top Toolbar: Employee Selector + Actions -->
+  <div class="toolbar-container mb-1 d-flex align-items-center gap-3 flex-wrap">
+    <!-- Action Menubar -->
+    <div class="flex-grow-1">
+      <p-menubar [model]="menuItems" class="flex-shrink-0">
+        <ng-template pTemplate="item" let-item>
+          <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text ms-2">{{ item.label }}</span>
+          </a>
+        </ng-template>
+      </p-menubar>
+    </div>
+  </div>
+
+  <!-- Main Splitter -->
+  <div class="splitter-container">
+    <nz-splitter [nzLayout]="splitterLayout" class="full-size-splitter">
+
+      <!-- Left Panel: Course/Lesson Navigation -->
+      <nz-splitter-panel [nzDefaultSize]="'30%'" [nzMin]="'20%'" [nzMax]="'50%'">
+        <nz-splitter [nzLayout]="'vertical'" class="full-size-splitter">
+          <!-- Top Left: Courses -->
+          <nz-splitter-panel [nzDefaultSize]="'60%'" [nzMin]="'100px'">
+            <div class="h-100 d-flex flex-column">
+              <!-- Employee Selector header -->
+              <div class="card-header bg-white border-bottom d-flex align-items-center flex-shrink-0 p-2">
+                <h6 class="mb-0 me-3 text-nowrap">Nhân viên</h6>
+                <div class="flex-grow-1">
+                  <nz-select id="employeeSelect" [(ngModel)]="selectedEmployeeId" (ngModelChange)="onEmployeeChange()"
+                    [nzPlaceHolder]="'Chọn nhân viên'" class="w-100" [nzLoading]="isLoadingEmployees" nzShowSearch>
+                    <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                    <nz-option-group *ngFor="let group of groupedEmployees"
+                      [nzLabel]="'Phòng ban: ' + group.department">
+                      <nz-option *ngFor="let emp of group.employees" [nzValue]="emp.ID"
+                        [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                    </nz-option-group>
+                  </nz-select>
+                </div>
+              </div>
+              <!-- Course List (No Title) -->
+              <app-course-list [data]="courseData" [isLoading]="isLoadingCourses" [autoSelectFirst]="true"
+                (courseSelected)="onCourseSelected($event)" class="flex-grow-1" style="overflow: hidden;">
+              </app-course-list>
+            </div>
+          </nz-splitter-panel>
+
+          <!-- Bottom Left: Lessons -->
+          <nz-splitter-panel [nzDefaultSize]="'40%'" [nzMin]="'100px'" style="height: 100% !important">
+            <div class="h-100 d-flex flex-column">
+              <app-lesson-list [data]="lessons" [isLoading]="isLoadingLessons" [autoSelectFirst]="true"
+                (lessonSelected)="onLessonSelected($event)">
+              </app-lesson-list>
+            </div>
+          </nz-splitter-panel>
+
+        </nz-splitter>
+      </nz-splitter-panel>
+
+      <!-- Right Panel: Exam Results -->
+      <nz-splitter-panel>
+        <nz-splitter [nzLayout]="'vertical'" class="full-size-splitter">
+          <!-- Top Right: Course Exam Results -->
+          <nz-splitter-panel [nzDefaultSize]="'50%'" [nzMin]="'100px'">
+            <nz-card
+              [nzTitle]="selectedCourse ? 'KẾT QUẢ THI KHÓA HỌC - ' + selectedCourse.Code : 'KẾT QUẢ THI KHÓA HỌC'"
+              [nzBordered]="true" class="h-100 p-0 section-card" [class.active-panel]="mainTabIndex === 0"
+              (mousedown)="setMainTab(0)"
+              [nzBodyStyle]="{ padding: '0', display: 'flex', flexDirection: 'column', flex: '1 1 auto', overflow: 'hidden' }">
+              <div class="h-100 d-flex flex-column">
+                <div class="flex-grow-1 overflow-hidden">
+                  <nz-tabset *ngIf="hasAnyCourseData" [(nzSelectedIndex)]="courseSubTabIndex"
+                    (nzSelectedIndexChange)="onCourseSubTabChange($event)" class="h-100 result-tabset">
+
+                    <nz-tab nzTitle="Trắc nghiệm" *ngIf="showCourseTN">
+                      <app-exam-result-table [data]="courseExamResultTN" [type]="1"
+                        [isLoading]="isLoadingCourseExamResults"
+                        (selectionChange)="onCourseResultSelectionChange($event)" (viewDetails)="onViewDetails($event)"
+                        (viewPracticeDetails)="onViewPracticeDetails($event)"
+                        (rowRightClick)="onResultTableRightClick($event, menu)">
+                      </app-exam-result-table>
+                    </nz-tab>
+
+                    <nz-tab nzTitle="Thực hành" *ngIf="showCourseTH">
+                      <app-exam-result-table [data]="courseExamResultTH" [type]="2"
+                        [isLoading]="isLoadingCourseExamResults"
+                        (selectionChange)="onCourseResultSelectionChange($event)" (viewDetails)="onViewDetails($event)"
+                        (viewPracticeDetails)="onViewPracticeDetails($event)"
+                        (rowRightClick)="onResultTableRightClick($event, menu)">
+                      </app-exam-result-table>
+                    </nz-tab>
+
+                    <nz-tab nzTitle="Bài tập" *ngIf="showCourseBT">
+                      <app-exam-result-table [data]="courseExamResultBT" [type]="3"
+                        [isLoading]="isLoadingCourseExamResults"
+                        (selectionChange)="onCourseResultSelectionChange($event)" (viewDetails)="onViewDetails($event)"
+                        (viewPracticeDetails)="onViewPracticeDetails($event)"
+                        (rowRightClick)="onResultTableRightClick($event, menu)">
+                      </app-exam-result-table>
+                    </nz-tab>
+                  </nz-tabset>
+                  <nz-empty *ngIf="!hasAnyCourseData" [nzNotFoundContent]="'Không có dữ liệu bài thi'"
+                    class="d-flex flex-column justify-content-center align-items-center h-100">
+                  </nz-empty>
+                </div>
+              </div>
+            </nz-card>
+          </nz-splitter-panel>
+
+          <nz-splitter-panel [nzDefaultSize]="'50%'" [nzMin]="'100px'" style="width: 100%;">
+            <nz-card [nzTitle]="selectedLesson ? 'KẾT QUẢ THI BÀI HỌC - ' + selectedLesson.Code : 'KẾT QUẢ THI BÀI HỌC'"
+              [nzBordered]="true" class="h-100 p-0 section-card" [class.active-panel]="mainTabIndex === 1"
+              (mousedown)="setMainTab(1)"
+              [nzBodyStyle]="{ padding: '0', display: 'flex', flexDirection: 'column', flex: '1 1 auto', overflow: 'hidden' }">
+              <div class="h-100 d-flex flex-column">
+                <div class="flex-grow-1 overflow-hidden">
+                  <nz-tabset *ngIf="hasAnyLessonData" [(nzSelectedIndex)]="lessonSubTabIndex"
+                    (nzSelectedIndexChange)="onLessonSubTabChange($event)" class="h-100 result-tabset">
+
+                    <nz-tab nzTitle="Trắc nghiệm" *ngIf="showLessonTN">
+                      <app-exam-result-table [data]="lessonExamResultTN" [type]="1"
+                        [isLoading]="isLoadingLessonExamResults"
+                        (selectionChange)="onLessonResultSelectionChange($event)" (viewDetails)="onViewDetails($event)"
+                        (viewPracticeDetails)="onViewPracticeDetails($event)">
+                      </app-exam-result-table>
+                    </nz-tab>
+
+                    <nz-tab nzTitle="Thực hành" *ngIf="showLessonTH">
+                      <app-exam-result-table [data]="lessonExamResultTH" [type]="2"
+                        [isLoading]="isLoadingLessonExamResults"
+                        (selectionChange)="onLessonResultSelectionChange($event)" (viewDetails)="onViewDetails($event)"
+                        (viewPracticeDetails)="onViewPracticeDetails($event)">
+                      </app-exam-result-table>
+                    </nz-tab>
+
+                    <nz-tab nzTitle="Bài tập" *ngIf="showLessonBT">
+                      <app-exam-result-table [data]="lessonExamResultBT" [type]="3"
+                        [isLoading]="isLoadingLessonExamResults"
+                        (selectionChange)="onLessonResultSelectionChange($event)" (viewDetails)="onViewDetails($event)"
+                        (viewPracticeDetails)="onViewPracticeDetails($event)">
+                      </app-exam-result-table>
+                    </nz-tab>
+                  </nz-tabset>
+                  <nz-empty *ngIf="!hasAnyLessonData" [nzNotFoundContent]="'Không có dữ liệu bài thi'"
+                    class="d-flex flex-column justify-content-center align-items-center h-100">
+                  </nz-empty>
+                </div>
+              </div>
+            </nz-card>
+          </nz-splitter-panel>
+        </nz-splitter>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </div>
+</div>
+
+<nz-dropdown-menu #menu="nzDropdownMenu">
+  <ul nz-menu>
+    <li nz-menu-item (click)="handleEvaluate(true)">
+      <i class="fa-solid fa-circle-check fa-lg text-success me-2"></i> Đạt
+    </li>
+    <li nz-menu-item (click)="handleEvaluate(false)">
+      <i class="fa-solid fa-circle-xmark fa-lg text-danger me-2"></i> Không đạt
+    </li>
+  </ul>
+</nz-dropdown-menu>
+
+<app-exam-result-form [isVisible]="isExamResultModalVisible" [isEdit]="isExamResultEditMode"
+  [courseID]="selectedCourseId" [allCourseData]="allCourseNewData" [type]="operationType"
+  [examResult]="currentExamResult" [employeeData]="employees" (onCancel)="handleExamResultCancel()"
+  (onSave)="handleExamResultSave()">
+</app-exam-result-form>
+
+<!-- Exam Result Detail Modal -->
+<app-exam-result-detail-modal [isVisible]="isDetailModalVisible" [courseID]="selectedDetailParams.courseID"
+  [courseResultID]="selectedDetailParams.courseResultID" [employeeID]="selectedDetailParams.employeeID"
+  [courseExamID]="selectedDetailParams.courseExamID" [examCode]="selectedDetailParams.examCode"
+  [testTime]="selectedDetailParams.testTime" [employeeName]="selectedDetailParams.employeeName"
+  [employeeData]="employees" [courseData]="courseData" (onCancel)="isDetailModalVisible = false">
+</app-exam-result-detail-modal>
+
+<!-- Practice Details Modal -->
+<app-practice-details-modal [isVisible]="isPracticeDetailModalVisible"
+  [examResultID]="selectedPracticeDetailParams.examResultID" [employeeID]="selectedPracticeDetailParams.employeeID"
+  [courseExamID]="selectedPracticeDetailParams.courseExamID" [examType]="selectedPracticeDetailParams.examType"
+  [employeeData]="employees" [courseData]="allCourseNewData" (onClose)="handlePracticeDetailClose()">
+</app-practice-details-modal>

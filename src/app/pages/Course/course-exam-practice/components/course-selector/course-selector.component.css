@@ -1,0 +1,16 @@
+.course-selector-container {
+    width: 100%;
+}
+
+.course-dropdown-content {
+    min-width: 600px;
+    height: 400px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-dropdown {
+    width: auto !important;
+}

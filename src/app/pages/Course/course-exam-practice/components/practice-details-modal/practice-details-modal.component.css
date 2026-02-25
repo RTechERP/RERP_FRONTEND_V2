@@ -1,0 +1,164 @@
+:host {
+    display: block;
+}
+
+/* Full screen modal overrides */
+::ng-deep .full-screen-modal .ant-modal {
+    max-width: 100%;
+    margin: 0;
+    top: 0;
+}
+
+::ng-deep .full-screen-modal .ant-modal-content {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+::ng-deep .full-screen-modal .ant-modal-header {
+    flex-shrink: 0;
+}
+
+::ng-deep .full-screen-modal .ant-modal-body {
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+::ng-deep .full-screen-modal .ant-modal-footer {
+    flex-shrink: 0 !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.modal-content-spin {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+::ng-deep .modal-content-spin .ant-spin-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.main-splitter {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+.panel-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 12px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.panel-header {
+    font-size: 14px;
+    font-weight: bold;
+    color: #1a3353;
+    padding: 10px 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px 4px 0 0;
+    margin-bottom: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table-container {
+    flex: 1;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    background: #fff;
+    min-height: 0;
+    position: relative;
+}
+
+.tabulator-table {
+    height: 100%;
+    width: 100%;
+}
+
+.modal-footer-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* Override Tabulator styles for better appearance and alignment */
+::ng-deep .tabulator {
+    font-size: 13px;
+    border: none !important;
+}
+
+::ng-deep .tabulator .tabulator-header {
+    background-color: #f1f3f5 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    font-weight: 600;
+}
+
+
+::ng-deep .history-table-container .tabulator .tabulator-tableholder {
+    height: calc(100% - 99px) !important;
+    max-height: calc(100% - 99px) !important;
+}
+
+::ng-deep .evaluation-table-container .tabulator .tabulator-tableholder {
+    height: calc(100% - 79px) !important;
+    max-height: calc(100% - 79px) !important;
+}
+
+
+::ng-deep .tabulator .tabulator-header .tabulator-col {
+    background-color: #f1f3f5 !important;
+    border-right: 1px solid #dee2e6 !important;
+}
+
+::ng-deep .tabulator .tabulator-header .tabulator-col .tabulator-col-content {
+    padding: 10px 8px !important;
+}
+
+::ng-deep .tabulator .tabulator-tableholder .tabulator-table .tabulator-row {
+    min-height: 40px;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+::ng-deep .tabulator .tabulator-tableholder .tabulator-table .tabulator-row.tabulator-selectable:hover {
+    background-color: #e9ecef !important;
+}
+
+::ng-deep .tabulator .tabulator-footer {
+    background-color: #f8f9fa !important;
+    border-top: 1px solid #dee2e6 !important;
+    padding: 0 !important;
+    font-weight: 600;
+}
+
+::ng-deep .tabulator .tabulator-cell {
+    padding: 8px !important;
+    border-right: 1px solid #f1f3f5 !important;
+    display: flex;
+    align-items: center;
+}
+
+::ng-deep .tabulator .tabulator-cell.tabulator-editing {
+    padding: 0 !important;
+}

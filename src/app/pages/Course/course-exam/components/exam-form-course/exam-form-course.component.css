@@ -1,0 +1,35 @@
+.course-selector-container {
+    cursor: pointer;
+}
+
+.course-selector-container input {
+    cursor: pointer;
+    background-color: #fff !important;
+    color: rgba(0, 0, 0, 0.85) !important;
+}
+
+.course-dropdown-content {
+    background-color: #fff;
+    box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    width: 650px;
+    height: 450px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+}
+
+.course-list-table-wrapper {
+    flex: 1;
+    overflow: hidden;
+    padding: 8px;
+}
+
+:host ::ng-deep .course-dropdown-content app-course-list .card {
+    border: none !important;
+}
+
+.w-100 {
+    width: 100%;
+}

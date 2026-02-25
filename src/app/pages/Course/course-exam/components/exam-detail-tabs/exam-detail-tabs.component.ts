@@ -109,8 +109,8 @@ export class ExamDetailTabsComponent implements OnChanges, AfterViewInit, OnDest
                 (value: any) => `<strong>Mã bài học: ${value}</strong>`,
             ],
             columns: [
-                { title: 'Mã đề thi', field: 'CodeExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200 },
-                { title: 'Tên đề thi', field: 'NameExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200 },
+                { title: 'Mã đề thi', field: 'CodeExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200, formatter: 'textarea', resizable: true, },
+                { title: 'Tên đề thi', field: 'NameExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200, formatter: 'textarea', resizable: true, },
                 { title: 'Số điểm cần đạt (%)', field: 'Goal', hozAlign: 'center', headerHozAlign: 'center', width: 150 },
                 { title: 'Thời gian thi', field: 'TestTime', hozAlign: 'center', headerHozAlign: 'center', width: 120 },
                 { title: 'Loại đề thi', field: 'ExamTypeText', hozAlign: 'center', headerHozAlign: 'center', width: 120 },
@@ -176,8 +176,8 @@ export class ExamDetailTabsComponent implements OnChanges, AfterViewInit, OnDest
                 (value: any) => `<strong>Loại: ${value}</strong>`,
             ],
             columns: [
-                { title: 'Mã đề thi', field: 'CodeExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200 },
-                { title: 'Tên đề thi', field: 'NameExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200 },
+                { title: 'Mã đề thi', field: 'CodeExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200, formatter: 'textarea', resizable: true, },
+                { title: 'Tên đề thi', field: 'NameExam', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200, formatter: 'textarea', resizable: true, },
                 { title: 'Số điểm cần đạt (%)', field: 'Goal', hozAlign: 'center', headerHozAlign: 'center', width: 180 },
                 { title: 'Thời gian (Phút)', field: 'TestTime', hozAlign: 'center', headerHozAlign: 'center', width: 150 },
             ],

@@ -1,0 +1,42 @@
+<nz-modal [(nzVisible)]="isVisible" nzTitle="CHI TIẾT BÀI THI" [nzWidth]="'100%'" [nzFooter]="modalFooter"
+    (nzOnCancel)="handleClose()" [nzMaskClosable]="false" [nzClosable]="true" nzWrapClassName="full-screen-modal"
+    [nzStyle]="{ top: '0', padding: '0' }">
+    <ng-container *nzModalContent>
+        <nz-spin [nzSpinning]="isLoadingHistory || isLoadingEvaluation" class="modal-content-spin">
+            <nz-splitter [nzLayout]="'horizontal'" class="main-splitter">
+                <!-- Left Panel: History Table -->
+                <nz-splitter-panel [nzDefaultSize]="'40%'" [nzMin]="'100px'">
+                    <div class="panel-container">
+                        <div class="panel-header">Lịch sử thi</div>
+                        <div class="table-container history-table-container">
+                            <div #HistoryTable class="tabulator-table"></div>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+
+                <!-- Right Panel: Evaluation Details Table -->
+                <nz-splitter-panel [nzDefaultSize]="'60%'" [nzMin]="'100px'">
+                    <div class="panel-container">
+                        <div class="panel-header">Kết quả thi</div>
+                        <div class="table-container evaluation-table-container">
+                            <div #EvaluationTable class="tabulator-table"></div>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+            </nz-splitter>
+        </nz-spin>
+    </ng-container>
+
+    <ng-template #modalFooter>
+        <div class="modal-footer-buttons">
+            <button nz-button nzType="default" (click)="handleSaveClick()">
+                <i nz-icon nzType="save" nzTheme="outline"></i>
+                Cất
+            </button>
+            <button nz-button nzType="primary" (click)="handleSaveAndClose()">
+                <i nz-icon nzType="save" nzTheme="outline"></i>
+                Cất và đóng
+            </button>
+        </div>
+    </ng-template>
+</nz-modal>

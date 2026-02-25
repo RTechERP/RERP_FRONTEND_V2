@@ -1,0 +1,17 @@
+<div class="course-selector-container">
+    <nz-input-group [nzSuffix]="suffixIconSearch" nz-dropdown [nzDropdownMenu]="courseMenu" nzTrigger="click"
+        [(nzVisible)]="isCourseDropdownVisible" nzPlacement="bottomLeft">
+        <input type="text" nz-input [value]="selectedCourseName" readonly [placeholder]="placeholder" />
+    </nz-input-group>
+    <ng-template #suffixIconSearch>
+        <i nz-icon nzType="search"></i>
+    </ng-template>
+    <nz-dropdown-menu #courseMenu="nzDropdownMenu">
+        <div class="course-dropdown-content w-100">
+            <app-course-list [data]="allCourseData" [isLoading]="isLoading" [groupBy]="groupBy"
+                [groupStartOpen]="groupStartOpen" [groupHeader]="groupHeader"
+                (courseSelected)="onCourseSelectedFromTable($event)">
+            </app-course-list>
+        </div>
+    </nz-dropdown-menu>
+</div>

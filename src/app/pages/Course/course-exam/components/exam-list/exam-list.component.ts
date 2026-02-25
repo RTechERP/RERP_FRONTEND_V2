@@ -94,7 +94,7 @@ export class ExamListComponent implements OnInit, OnChanges, AfterViewInit, OnDe
             data: this.data,
             ...DEFAULT_TABLE_CONFIG,
             index: 'ID', // Ensure rows are indexed by ID
-            layout: 'fitData', // Allow horizontal scroll if needed
+            layout: 'fitColumns', // Allow horizontal scroll if needed
             height: '100%', // Adjust to container
             renderVerticalBuffer: 300, // Mitigation for blank space during fast scrolling
             pagination: false,
@@ -120,13 +120,14 @@ export class ExamListComponent implements OnInit, OnChanges, AfterViewInit, OnDe
                     minWidth: 100, // Flexible width
                     formatter: 'textarea', // Allow wrapping
                     resizable: true,
+                    widthGrow: 1,// Stretch this column
                 },
                 {
                     title: 'Khoá học',
                     field: 'NameCourse',
                     hozAlign: 'left',
                     headerHozAlign: 'center',
-                    widthGrow: 1, // Stretch this column
+                    formatter: 'textarea', resizable: true,
                 }
             ],
         });

@@ -9,6 +9,7 @@ import { ExamDetailTabsComponent } from './components/exam-detail-tabs/exam-deta
 // import { ExamFormComponent } from './components/exam-form/exam-form.component';
 import { ExamFormCourseComponent } from './components/exam-form-course/exam-form-course.component';
 import { ExamFormLessonComponent } from './components/exam-form-lesson/exam-form-lesson.component';
+import { ImportExcelModalComponent } from './components/import-excel-modal/import-excel-modal.component';
 import { CourseExamService } from './course-exam-service/course-exam.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -29,6 +30,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { MenubarModule } from 'primeng/menubar';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import * as ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 
 @Component({
@@ -53,7 +56,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     ExamDetailTabsComponent,
 
     ExamFormCourseComponent,
-    ExamFormLessonComponent
+    ExamFormLessonComponent,
+    ImportExcelModalComponent
   ],
   templateUrl: './course-exam.component.html',
   styleUrl: './course-exam.component.css'
@@ -83,6 +87,7 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
   // Question Modal State
   isQuestionModalVisible = false;
   isQuestionEditMode = false;
+  isImportExcelModalVisible = false;
   currentQuestionData: any = null;
   selectedQuestionIds: number[] = []; // Track multiple selected question IDs
 
@@ -93,6 +98,7 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
   isLoadingAnswers: boolean = false; // For answer list
 
   viewMode: 'courses' | 'lessons' | 'examResult' | 'practiceResult' = 'courses';
+  allCoursesData: CourseData[] = [];
 
   // activeTab = 0; // Moved to ExamDetailTabsComponent
   // mainTabIndex = 0; // Moved to ExamDetailTabsComponent
@@ -135,12 +141,23 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
         }
       });
 
+    this.loadAllCourses();
   }
 
   ngAfterViewInit(): void {
     // Avoid NG0100 by deferring the initial data load
     setTimeout(() => {
       this.getCourseData();
+    });
+  }
+
+  loadAllCourses() {
+    this.courseExamService.getCourseNew().subscribe((response: any) => {
+      if (response && response.status === 1) {
+        this.allCoursesData = response.data || [];
+      }
+    }, (error) => {
+      console.error('Error loading all courses:', error);
     });
   }
 
@@ -310,23 +327,8 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
   }
 
   loadLessonExams(courseId: number) {
-    // Note: We are using the same isLoadingExams for both tabs as they load concurrently usually
-    // Or we could have separate ones if needed.
     this.courseExamService.getLessonExamByCourseID(courseId).subscribe(
       (res: any) => {
-        // We don't turn off isLoadingExams here immediately if we want to wait for BOTH?
-        // But simplifies logic to let either of them turn it off if they finish last?
-        // Actually, since they run async, we might want to wait.
-        // But for UX, showing content as soon as it arrives is fine.
-        // Let's just not conflict. If we share the flag, we might have race conditions.
-        // But usually both are fast. Let's assume shared flag is 'loading any exams'.
-        // To be precise, let's just let the last one finish turn it off? No.
-        // We probably should have used forkJoin if we wanted unified loading.
-        // But for now, let's just set it false here too. It might flicker if one finishes way before other.
-        // A better way for shared spinner: check if other is also done.
-        // Or just use two spinners. But the UI has one area.
-        // Let's stick to simple:
-        // this.isLoadingExams = false; // Handled in subscribe
         if (res && res.status === 1) {
           this.lessonExamData = res.data;
           // Cascading load: If on Lesson tab and has data, auto-select first exam
@@ -436,6 +438,20 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
         if (this.selectedCourseDataID > 0) {
           this.loadQuestions(this.selectedCourseDataID);
         }
+        break;
+      case 'export-excel':
+        if (this.selectedExamID <= 0) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đề thi trước khi xuất Excel!');
+          return;
+        }
+        this.showExportExcelDialog();
+        break;
+      case 'import-excel':
+        if (this.selectedExamID <= 0) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đề thi trước khi nhập Excel!');
+          return;
+        }
+        this.openImportExcelModal();
         break;
     }
   }
@@ -663,5 +679,251 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
     if (this.selectedCourseDataID > 0) {
       this.loadQuestions(this.selectedCourseDataID);
     }
+  }
+
+  openImportExcelModal() {
+    this.isImportExcelModalVisible = true;
+  }
+
+  handleImportExcelCancel() {
+    this.isImportExcelModalVisible = false;
+  }
+
+  handleImportExcelSuccess() {
+    this.isImportExcelModalVisible = false;
+    this.refreshQuestions();
+  }
+
+  // =================== EXCEL EXPORT ===================
+
+  showExportExcelDialog(): void {
+    const examCode = this.currentCourse?.NameCourse || 'Export';
+    this.modal.create({
+      nzTitle: 'Xuất Excel - Danh sách câu hỏi',
+      nzContent: `
+        <p>Chọn kiểu xuất:</p>
+        <ul>
+          <li><b>Kiểu 1</b>: Lấy dữ liệu câu hỏi và đáp án đúng</li>
+          <li><b>Kiểu 2</b>: Xuất dữ liệu câu hỏi đang hiển</li>
+        </ul>
+      `,
+      nzFooter: [
+        {
+          label: 'Xuất Excel 1',
+          type: 'primary',
+          onClick: () => {
+            this.modal.closeAll();
+            this.exportExcel1(examCode);
+          }
+        },
+        {
+          label: 'Xuất Excel 2',
+          type: 'default',
+          onClick: () => {
+            this.modal.closeAll();
+            this.exportExcel2(examCode);
+          }
+        },
+        {
+          label: 'Hủy',
+          onClick: () => this.modal.closeAll()
+        }
+      ]
+    });
+  }
+
+  /**
+   * Xuất Excel 1: Lấy dữ liệu từ API get-course-question-export
+   */
+  exportExcel1(examCode: string): void {
+    this.notification.info('Thông báo', 'Đang tải dữ liệu...');
+    this.courseExamService.getCourseQuestionExport(this.selectedExamID).subscribe(
+      (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          const data = Array.isArray(res.data) ? res.data : [];
+          this.generateExcelVertical(data, examCode);
+        } else {
+          this.notification.warning(NOTIFICATION_TITLE.warning, res?.message || 'Không có dữ liệu để xuất!');
+        }
+      },
+      (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lấy dữ liệu từ server!');
+        console.error('exportExcel1 error:', err);
+      }
+    );
+  }
+
+  /**
+   * Xuất Excel 2: Dùng questionData đang hiển thị trên màn hình
+   */
+  exportExcel2(examCode: string): void {
+    if (!this.questionData || this.questionData.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu câu hỏi để xuất!');
+      return;
+    }
+    this.generateExcelHorizontal(this.questionData, examCode);
+  }
+
+  /**
+   * Tạo file Excel dạng dọc - Phục vụ Method 1 (API)
+   * Merge ô STT và Nội dung câu hỏi
+   */
+  async generateExcelVertical(data: any[], examCode: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Câu hỏi');
+
+    // Định nghĩa cột
+    worksheet.columns = [
+      { header: 'STT', key: 'STT', width: 6 },
+      { header: 'Nội dung câu hỏi', key: 'QuestionText', width: 50 },
+      { header: 'Nội dung đáp án', key: 'AnswerText', width: 50 },
+      { header: 'Đáp án đúng', key: 'RightAnswer', width: 15 },
+    ];
+
+    // Style header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } }; // Light gray as in image
+      cell.font = { bold: true, color: { argb: 'FF000000' }, size: 10 };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.border = {
+        top: { style: 'thin' }, left: { style: 'thin' },
+        bottom: { style: 'thin' }, right: { style: 'thin' }
+      };
+    });
+    headerRow.height = 24;
+
+    // Nhóm dữ liệu theo câu hỏi để merge (Giả sử STT hoặc nội dung câu hỏi xác định 1 cụm)
+    // Thực tế nến dùng QuestionID nếu có trong API data
+    let currentRowIndex = 2; // Rows starts from 1, header is 1
+
+    // Grouping by Question (checking if STT or Text changes)
+    let currentQuestionStartIndex = -1;
+    let lastQuestionValue = '';
+
+    data.forEach((item: any, index: number) => {
+      const isNewQuestion = index === 0 || (item.QuestionText !== lastQuestionValue);
+
+      const row = worksheet.addRow({
+        STT: item.STT ?? '',
+        QuestionText: item.QuestionText || '',
+        AnswerText: item.AnswerText || '',
+        RightAnswer: (item.IsRightAnswer === 1 || item.CheckInput === 1) ? 1 : 0
+      });
+
+      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        cell.alignment = { vertical: 'middle', wrapText: true, horizontal: 'left' };
+        if (colNumber === 1 || colNumber === 4) cell.alignment.horizontal = 'center';
+        cell.font = { size: 9 };
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+
+      if (isNewQuestion) {
+        // Nếu có câu hỏi trước đó đang chờ merge, merge nó
+        if (currentQuestionStartIndex !== -1 && currentRowIndex - 1 > currentQuestionStartIndex) {
+          worksheet.mergeCells(`A${currentQuestionStartIndex}:A${currentRowIndex - 1}`);
+          worksheet.mergeCells(`B${currentQuestionStartIndex}:B${currentRowIndex - 1}`);
+        }
+        currentQuestionStartIndex = currentRowIndex;
+        lastQuestionValue = item.QuestionText;
+      }
+
+      currentRowIndex++;
+
+      // Nếu là hàng cuối cùng, merge cho câu hỏi cuối
+      if (index === data.length - 1) {
+        if (currentQuestionStartIndex !== -1 && currentRowIndex - 1 > currentQuestionStartIndex) {
+          worksheet.mergeCells(`A${currentQuestionStartIndex}:A${currentRowIndex - 1}`);
+          worksheet.mergeCells(`B${currentQuestionStartIndex}:B${currentRowIndex - 1}`);
+        }
+      }
+    });
+
+    // Căn dọc cho các cột merge
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) {
+        row.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' };
+        row.getCell(2).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+      }
+    });
+
+    // Xuất file
+    const fileName = `DanhSachCauHoi_${examCode}.xlsx`;
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, fileName);
+    this.notification.success(NOTIFICATION_TITLE.success, `Xuất file thành công: ${fileName}`);
+  }
+
+  /**
+   * Tạo file Excel dạng ngang - Phục vụ Method 2 (Dữ liệu hiện tại)
+   */
+  async generateExcelHorizontal(data: any[], examCode: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Câu hỏi');
+
+    const showAnswers = this.selectedExamType === 1;
+    const columns: Partial<ExcelJS.Column>[] = [
+      { header: 'STT', key: 'STT', width: 6 },
+      { header: 'Nội dung câu hỏi', key: 'QuestionText', width: 50 },
+      { header: 'Ảnh', key: 'Image', width: 15 },
+    ];
+    if (showAnswers) {
+      columns.push(
+        { header: 'Đáp án A', key: '1', width: 22 },
+        { header: 'Đáp án B', key: '2', width: 22 },
+        { header: 'Đáp án C', key: '3', width: 22 },
+        { header: 'Đáp án D', key: '4', width: 22 },
+      );
+    }
+    worksheet.columns = columns;
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.border = {
+        top: { style: 'thin' }, left: { style: 'thin' },
+        bottom: { style: 'thin' }, right: { style: 'thin' }
+      };
+    });
+    headerRow.height = 24;
+
+    data.forEach((item: any, index: number) => {
+      const rowData: any = {
+        STT: item.STT ?? (index + 1),
+        QuestionText: item.QuestionText || '',
+        Image: item.Image ? 'Có ảnh' : '',
+      };
+      if (showAnswers) {
+        rowData['1'] = item['1'] || '';
+        rowData['2'] = item['2'] || '';
+        rowData['3'] = item['3'] || '';
+        rowData['4'] = item['4'] || '';
+      }
+      const row = worksheet.addRow(rowData);
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.alignment = { vertical: 'top', wrapText: true };
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+      if (index % 2 === 1) {
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE9EFF8' } };
+        });
+      }
+    });
+
+    const fileName = `DanhSachCauHoi_${examCode}.xlsx`;
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, fileName);
+    this.notification.success(NOTIFICATION_TITLE.success, `Xuất file thành công: ${fileName}`);
   }
 }

@@ -102,4 +102,10 @@ export class CourseExamService {
     return this.http.get<any>(this.apiUrl + 'get-course-question-no', { params });
   }
 
+  // Lấy dữ liệu câu hỏi để xuất Excel (từ stored procedure)
+  getCourseQuestionExport(examID: number): Observable<any> {
+    const params = new HttpParams().set('examID', examID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-course-question-export', { params });
+  }
+
 }

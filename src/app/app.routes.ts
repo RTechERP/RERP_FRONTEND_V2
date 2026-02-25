@@ -287,6 +287,7 @@ import { DevicesComponent } from './pages/ems/components/managers/devices/device
 import { CommunicationComponent } from './pages/ems/components/managers/communication/communication.component';
 import { DailyReportAccountingSlickgridComponent } from './pages/accounting/daily-report-accounting/daily-report-accounting-slickgrid/daily-report-accounting-slickgrid.component';
 import { CourseExamComponent } from './pages/Course/course-exam/course-exam.component';
+import { CourseExamPracticeComponent } from './pages/Course/course-exam-practice/course-exam-practice.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -1066,6 +1067,7 @@ export const routes: Routes = [
             { path: 'course-management', component: CourseManagementComponent, canActivate: [authGuard] },
             { path: 'course-practice', component: CoursePracticeComponent, canActivate: [authGuard] },
             { path: 'course-exam', component: CourseExamComponent, canActivate: [authGuard] },
+            { path: 'course-exam-practice', component: CourseExamPracticeComponent, canActivate: [authGuard] },
 
             { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
 

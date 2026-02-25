@@ -4,10 +4,28 @@
         <form nz-form [formGroup]="examForm">
             <!-- Course Mode: Display Course Name -->
             <nz-form-item>
-                <nz-form-label [nzSm]="6" [nzXs]="24">Khóa học</nz-form-label>
-                <div nz-col [nzSm]="14" [nzXs]="24" class="ant-form-text" style="padding-top: 5px;">
-                    <strong>{{ courseData?.NameCourse }}</strong>
-                </div>
+                <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired nzFor="CourseId">Khóa học</nz-form-label>
+                <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="Vui lòng chọn khóa học!">
+                    <div class="course-selector-container">
+                        <nz-input-group [nzSuffix]="suffixIconSearch" nz-dropdown [nzDropdownMenu]="courseMenu"
+                            nzTrigger="click" [(nzVisible)]="isCourseDropdownVisible" nzPlacement="bottomLeft">
+                            <input type="text" nz-input [value]="selectedCourseName" readonly
+                                placeholder="Chọn khoá học" />
+                        </nz-input-group>
+                        <ng-template #suffixIconSearch>
+                            <i nz-icon nzType="search"></i>
+                        </ng-template>
+                        <nz-dropdown-menu #courseMenu="nzDropdownMenu">
+                            <div class="course-dropdown-content">
+                                <div class="course-list-table-wrapper">
+                                    <app-course-list [data]="allCourses" [isLoading]="isLoadingCourses"
+                                        (courseSelected)="onCourseSelectedFromTable($event)">
+                                    </app-course-list>
+                                </div>
+                            </div>
+                        </nz-dropdown-menu>
+                    </div>
+                </nz-form-control>
             </nz-form-item>
 
             <nz-form-item>

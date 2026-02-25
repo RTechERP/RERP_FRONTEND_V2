@@ -82,6 +82,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     isMobile = window.innerHeight <= 768;
 
     notifItems: NotifyItem[] = [];
+    isAppMenuVisible = false;
+    selectedModuleKey = '';
     menus: any[] = [];
     menuApproves: any = {};
     menuPersons: any[] = [];
@@ -457,6 +459,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             // this.newTab(route, title);
 
             this.menuService.setMenuKey(key);
+            this.selectedModuleKey = key;
             this.router.navigate(['/app']); // hoặc route tới MainLayout
             localStorage.removeItem('tabOpeneds');
         }

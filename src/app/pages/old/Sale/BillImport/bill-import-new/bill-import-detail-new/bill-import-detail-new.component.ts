@@ -133,6 +133,8 @@ export class BillImportDetailNewComponent
   activePur: boolean = false;
   isEditPM: boolean = true;
   activeTabIndex: number = 0;
+  isViewReady: boolean = false;
+  gridDocumentInitialized: boolean = false;
 
   // Document Import
   dataDocumentImport: any[] = [];
@@ -299,7 +301,11 @@ export class BillImportDetailNewComponent
   }
 
   ngAfterViewInit(): void {
-    // Grid ready callback handles data loading
+    // Đợi sau khi nz-tabset animation (tabSwitchMotion) settle xong
+    // trước khi render SlickGrid để tránh lỗi "container does not exist in the DOM"
+    setTimeout(() => {
+      this.isViewReady = true;
+    }, 0);
   }
 
   ngOnDestroy(): void {
@@ -905,8 +911,8 @@ export class BillImportDetailNewComponent
           const found = this.projectGridCollection.find(
             (x: any) => x.value === Number(value)
           );
-          const code = found?.ProjectCode ?? '';
-          return this.formatTextWithTooltip(code);
+          const label = found?.label ?? '';
+          return this.formatTextWithTooltip(label);
         },
         editor: {
           model: Editors['singleSelect'],
@@ -1922,8 +1928,8 @@ export class BillImportDetailNewComponent
         Qty: item.BorrowQty || 0,
         IsNotKeep: false,
         ProjectID: item.ProjectID || 0,
-        ProjectCode: item.ProjectCode || '',
-        ProjectNameText: item.ProjectNameText || projectInfo.label || '',
+        ProjectCode: '',
+        ProjectNameText: item.ProjectNameText || projectInfo.ProjectName || '',
         CustomerFullName: '',
         BillCodePO: item.BillCodePO || '',
         PONumber: '',
@@ -1941,6 +1947,10 @@ export class BillImportDetailNewComponent
     });
 
     this.refreshGrid();
+    setTimeout(() => {
+      this.angularGridDetail?.resizerService?.resizeGrid();
+      this.updateDetailFooter();
+    }, 300);
   }
 
   getDataCbbProductGroup(): void {
@@ -2029,6 +2039,13 @@ export class BillImportDetailNewComponent
           );
           if (projectCol?.editor) {
             projectCol.editor.collection = this.projectGridCollection;
+          }
+
+          // Refresh grid để formatter ProjectID hiển thị label
+          // (projectGridCollection có thể load xong sau khi data đã map vào grid)
+          if (this.angularGridDetail?.slickGrid) {
+            this.angularGridDetail.slickGrid.invalidate();
+            this.angularGridDetail.slickGrid.render();
           }
         } else {
           this.projectOptions = [];
@@ -2460,6 +2477,7 @@ export class BillImportDetailNewComponent
 
   angularGridDocumentReady(angularGrid: AngularGridInstance): void {
     this.angularGridDocument = angularGrid;
+    this.gridDocumentInitialized = true;
     // Đảm bảo DataView dùng 'id' làm idPropertyName
     angularGrid.dataView.setItems([], 'id');
 

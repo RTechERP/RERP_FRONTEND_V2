@@ -177,6 +177,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     currentAppVersion: string = '';
     hasNewVersion: boolean = false;
     latestVersionDetails: any = null;
+    isAppMenuVisible = false;
     private eventSource: EventSource | null = null;
     notifItems: NotifyItem[] = [
         // {

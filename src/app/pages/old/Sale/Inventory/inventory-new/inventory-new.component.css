@@ -7,3 +7,24 @@
 ::ng-deep div[id^="grid-inventory-"] {
   min-height: 94vh !important;
 }
+
+/* Product Group grid - Selected row với màu mặc định */
+::ng-deep div[id^="grid-product-group-"] .slick-row.active {
+  background-color: #789CCE !important;
+  color: white !important;
+}
+
+/* Product Group grid - Hover row với màu khác */
+/* ::ng-deep div[id^="grid-product-group-"] .slick-row:hover { */
+  /* background-color: #2f9deb !important; Màu xanh nhạt khi hover/ */
+  /* color: white !important; */
+/* } */
+
+/* Đảm bảo các cell trong row cũng có màu tương ứng */
+::ng-deep div[id^="grid-product-group-"] .slick-row.active .slick-cell {
+  background-color: inherit !important;
+}
+
+/* ::ng-deep div[id^="grid-product-group-"] .slick-row:hover .slick-cell {
+  background-color: inherit !important;
+} */

@@ -16,6 +16,7 @@
         </span>
         <div class="">
             <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
+                [(nzVisible)]="isAppMenuVisible" [nzClickHide]="false"
                 style="border: none !important; background-color:transparent;" nzTrigger="click">
                 <img src="assets/icon/app_store.svg">
             </button>
@@ -25,11 +26,18 @@
                     <div class="app-launcher-inner">
                         @for (m of menus; track $index) {
 
-                        <a [href]="m.router" (click)="openModule($event, m.router, m.key)" *ngIf="m.isPermission">
+                        <a [href]="m.router" (click)="openModule($event, m.router, m.key)" *ngIf="m.isPermission"
+                            [class.active]="m.key === selectedModuleKey">
                             <img [src]="m.icon" />
                             <span class="mt-1">{{m.title}}</span>
                         </a>
                         }
+                    </div>
+                    <div class="app-launcher-footer">
+                        <button nz-button nzType="primary" (click)="isAppMenuVisible = false"
+                            style="font-size: 12px; height: 30px; border-radius: 4px; padding: 0 20px;">
+                            OK
+                        </button>
                     </div>
                 </div>
             </nz-dropdown-menu>

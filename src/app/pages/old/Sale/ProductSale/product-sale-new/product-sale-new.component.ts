@@ -340,6 +340,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             enableCellNavigation: true,
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: false,
+            forceFitColumns: true,
             enableAutoSizeColumns: false,
         };
     }

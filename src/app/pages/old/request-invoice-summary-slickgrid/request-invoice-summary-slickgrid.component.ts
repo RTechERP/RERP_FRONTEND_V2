@@ -155,8 +155,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
     selectedFile: any = null;
     selectedPOFile: any = null;
     selectedId: number = 0;
-    dateStart: Date = new Date();
-    dateEnd: Date = new Date();
+    dateStart: string = '';
+    dateEnd: string = '';
     customerId: number = 0;
     userId: number = 0;
     status: number = 0;
@@ -240,13 +240,10 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 ?? 0;
         });
 
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 1); // Lấy dữ liệu 1 ngày trước
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 0);
-        this.dateStart = startDate;
-        this.dateEnd = endDate;
+        const now = DateTime.local();
+        const startDate = now.minus({ days: 1 });
+        this.dateStart = startDate.toFormat('yyyy-MM-dd');
+        this.dateEnd = now.toFormat('yyyy-MM-dd');
 
         // Initialize SlickGrid
         this.initGrid();
@@ -266,10 +263,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
     }
 
     loadMainData() {
-        const start = new Date(this.dateStart);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(this.dateEnd);
-        end.setHours(23, 59, 59, 0);
+        const start = DateTime.fromISO(this.dateStart).startOf('day').toJSDate();
+        const end = DateTime.fromISO(this.dateEnd).endOf('day').toJSDate();
 
         this.isLoading = true;
         this.requestInvoiceService.getRequestInvoiceSummary(

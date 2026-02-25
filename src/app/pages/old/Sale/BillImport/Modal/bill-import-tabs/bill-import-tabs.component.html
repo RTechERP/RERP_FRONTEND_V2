@@ -27,7 +27,7 @@
         <!-- </div> -->
         <app-bill-import-detail-new
           #billDetail
-          [hidden]="selectedIndex !== i"
+          *ngIf="selectedIndex === i"
           [createImport]="createImport"
           [isCheckmode]="false"
           [groupID]="tab.groupID"

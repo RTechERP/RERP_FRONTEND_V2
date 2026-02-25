@@ -36,13 +36,13 @@ import { VehicleBookingManagementService } from '../vehicle-booking-management.s
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import * as ExcelJS from 'exceljs';
 import { DateTime } from 'luxon';
-  import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-export-vehicle-schedule-form',
   imports: [
-      CommonModule,
+    CommonModule,
     NzCardModule,
     FormsModule,
     NzButtonModule,
@@ -81,7 +81,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
   private vehicleBookingManagementService = inject(VehicleBookingManagementService);
   searchText: string = '';
   exportVehicleScheduleList: any[] = [];
-    groupedScheduleData: any[] = [];
+  groupedScheduleData: any[] = [];
   // Map để track trạng thái mở/đóng của các group (key: vehicleInfo, value: boolean)
   expandedGroups: Map<string, boolean> = new Map();
   dateStart: any = DateTime.local()
@@ -110,7 +110,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     } else if (typeof this.dateStart === 'string') {
       // Nếu là string, parse và set thời gian về 00:00:00
       const parsed = DateTime.fromISO(this.dateStart);
-      startDate = parsed.isValid 
+      startDate = parsed.isValid
         ? parsed.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
         : DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     } else {
@@ -126,7 +126,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       endDate = DateTime.fromJSDate(this.dateEnd).set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
     } else if (typeof this.dateEnd === 'string') {
       const parsed = DateTime.fromISO(this.dateEnd);
-      endDate = parsed.isValid 
+      endDate = parsed.isValid
         ? parsed.set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
         : DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
     } else {
@@ -152,7 +152,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       startDate = DateTime.fromJSDate(this.dateStart).set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     } else if (typeof this.dateStart === 'string') {
       const parsed = DateTime.fromISO(this.dateStart);
-      startDate = parsed.isValid 
+      startDate = parsed.isValid
         ? parsed.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
         : DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     } else {
@@ -166,7 +166,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     } else if (typeof this.dateEnd === 'string') {
       // Nếu là string, parse và set thời gian về 23:59:59
       const parsed = DateTime.fromISO(this.dateEnd);
-      endDate = parsed.isValid 
+      endDate = parsed.isValid
         ? parsed.set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
         : DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
     } else {
@@ -206,7 +206,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         startDate = DateTime.fromJSDate(this.dateStart).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || '';
       } else {
         const parsed = DateTime.fromISO(this.dateStart);
-        startDate = parsed.isValid 
+        startDate = parsed.isValid
           ? parsed.set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || ''
           : DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || '';
       }
@@ -216,7 +216,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         endDate = DateTime.fromJSDate(this.dateEnd).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || '';
       } else {
         const parsed = DateTime.fromISO(this.dateEnd);
-        endDate = parsed.isValid 
+        endDate = parsed.isValid
           ? parsed.set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || ''
           : DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || '';
       }
@@ -240,7 +240,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           this.exportVehicleScheduleList = Array.isArray(dataArray)
             ? dataArray.map((item, idx) => ({ ...item, __idx: idx }))
             : [];
-         
+
           this.exportVehicleScheduleList.sort((a: any, b: any) => {
             const aStt = Number(a?.STT ?? Infinity);
             const bStt = Number(b?.STT ?? Infinity);
@@ -250,9 +250,9 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           this.processGroupedData();
           console.log("exportVehicleScheduleList", this.exportVehicleScheduleList)
         },
-        error: (error:any) => {
+        error: (error: any) => {
           console.error('Lỗi:', error);
-          this.notification.error(NOTIFICATION_TITLE.error, error.error.message||error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, error.error.message || error.message);
         }
       });
     } catch (error: any) {
@@ -260,107 +260,107 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message || 'Lỗi khi xử lý ngày bắt đầu và ngày kết thúc!');
     }
   }
-    //#region Xử lý dữ liệu group theo xe và buổi
-    processGroupedData() {
-      // Group theo thông tin xe (VehicleInformation hoặc tên xe)
-      const vehicleGroups = new Map<string, any[]>();
-      
-      this.exportVehicleScheduleList.forEach((item: any) => {
-        // Lấy thông tin xe - có thể là VehicleInformation hoặc tên xe khác
-        const vehicleKey = item.VehicleInformation || item.VehicleName || item.VehicleInfo || 'Chưa có thông tin xe';
-        
-        if (!vehicleGroups.has(vehicleKey)) {
-          vehicleGroups.set(vehicleKey, []);
+  //#region Xử lý dữ liệu group theo xe và buổi
+  processGroupedData() {
+    // Group theo thông tin xe (VehicleInformation hoặc tên xe)
+    const vehicleGroups = new Map<string, any[]>();
+
+    this.exportVehicleScheduleList.forEach((item: any) => {
+      // Lấy thông tin xe - có thể là VehicleInformation hoặc tên xe khác
+      const vehicleKey = item.VehicleInformation || item.VehicleName || item.VehicleInfo || 'Chưa có thông tin xe';
+
+      if (!vehicleGroups.has(vehicleKey)) {
+        vehicleGroups.set(vehicleKey, []);
+      }
+      vehicleGroups.get(vehicleKey)!.push(item);
+    });
+
+    // Xử lý từng nhóm xe: group theo ngày và buổi
+    this.groupedScheduleData = Array.from(vehicleGroups.entries()).map(([vehicleInfo, items]) => {
+      // Group theo ngày và buổi
+      const dayGroups = new Map<string, any[]>();
+
+      items.forEach((item: any) => {
+        // giữ thứ tự gốc khi chia nhóm
+        const itemWithIdx = item.__idx !== undefined ? item : { ...item, __idx: items.indexOf(item) };
+
+        // Lấy ngày từ DepartureDateRegister (ngày đăng ký), nếu không có thì dùng DepartureDate
+        let dateKey = '';
+        const dateSource = itemWithIdx.DepartureDateRegister || itemWithIdx.DepartureDate;
+        if (dateSource) {
+          try {
+            const date = new Date(dateSource);
+            // Kiểm tra date hợp lệ
+            if (!isNaN(date.getTime())) {
+              dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            }
+          } catch (e) {
+            console.warn('Invalid date:', dateSource);
+          }
         }
-        vehicleGroups.get(vehicleKey)!.push(item);
+
+        // Kết hợp ngày và buổi
+        const daySessionKey = `${dateKey}_${itemWithIdx.TypeDate || ''}`;
+
+        if (!dayGroups.has(daySessionKey)) {
+          dayGroups.set(daySessionKey, []);
+        }
+        dayGroups.get(daySessionKey)!.push(itemWithIdx);
       });
 
-      // Xử lý từng nhóm xe: group theo ngày và buổi
-      this.groupedScheduleData = Array.from(vehicleGroups.entries()).map(([vehicleInfo, items]) => {
-        // Group theo ngày và buổi
-        const dayGroups = new Map<string, any[]>();
-        
-        items.forEach((item: any) => {
-          // giữ thứ tự gốc khi chia nhóm
-          const itemWithIdx = item.__idx !== undefined ? item : { ...item, __idx: items.indexOf(item) };
-
-          // Lấy ngày từ DepartureDateRegister (ngày đăng ký), nếu không có thì dùng DepartureDate
-          let dateKey = '';
-          const dateSource = itemWithIdx.DepartureDateRegister || itemWithIdx.DepartureDate;
-          if (dateSource) {
-            try {
-              const date = new Date(dateSource);
-              // Kiểm tra date hợp lệ
-              if (!isNaN(date.getTime())) {
-                dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-              }
-            } catch (e) {
-              console.warn('Invalid date:', dateSource);
-            }
-          }
-          
-          // Kết hợp ngày và buổi
-          const daySessionKey = `${dateKey}_${itemWithIdx.TypeDate || ''}`;
-          
-          if (!dayGroups.has(daySessionKey)) {
-            dayGroups.set(daySessionKey, []);
-          }
-          dayGroups.get(daySessionKey)!.push(itemWithIdx);
+      dayGroups.forEach((sessionItems, key) => {
+        const sorted = [...sessionItems].sort((a: any, b: any) => {
+          const aStt = Number(a?.STT ?? Infinity);
+          const bStt = Number(b?.STT ?? Infinity);
+          if (aStt !== bStt) return aStt - bStt;
+          return (a.__idx ?? Infinity) - (b.__idx ?? Infinity);
         });
-
-        dayGroups.forEach((sessionItems, key) => {
-          const sorted = [...sessionItems].sort((a: any, b: any) => {
-            const aStt = Number(a?.STT ?? Infinity);
-            const bStt = Number(b?.STT ?? Infinity);
-            if (aStt !== bStt) return aStt - bStt;
-            return (a.__idx ?? Infinity) - (b.__idx ?? Infinity); 
-          });
-          dayGroups.set(key, sorted);
-        });
-        const daySessions = Array.from(dayGroups.entries()).map(([daySessionKey, sessionItems]) => {
-          const [dateKey, session] = daySessionKey.split('_');
-          const minStt = Math.min(...sessionItems.map((x: any) => Number(x?.STT ?? Infinity)));
-          return {
-            date: dateKey,
-            session: session || '',
-            items: sessionItems,
-            minStt
-          };
-        });
-        daySessions.sort((a, b) => {
-          const diff = (a.minStt ?? Infinity) - (b.minStt ?? Infinity);
-          if (diff !== 0) return diff;
-          // fallback theo ngày nếu STT không có
-          if (a.date !== b.date) return a.date.localeCompare(b.date);
-          const sessionOrder: any = { 'Sáng': 1, 'Morning': 1, 'Chiều': 2, 'Afternoon': 2, '': 0 };
-          return (sessionOrder[a.session] || 0) - (sessionOrder[b.session] || 0);
-        });
-
-        const groupMinStt = Math.min(...items.map((x: any) => Number(x?.STT ?? Infinity)));
-
+        dayGroups.set(key, sorted);
+      });
+      const daySessions = Array.from(dayGroups.entries()).map(([daySessionKey, sessionItems]) => {
+        const [dateKey, session] = daySessionKey.split('_');
+        const minStt = Math.min(...sessionItems.map((x: any) => Number(x?.STT ?? Infinity)));
         return {
-          vehicleInfo: vehicleInfo,
-          daySessions: daySessions.map(ds => ({ date: ds.date, session: ds.session, items: ds.items })), // loại bỏ minStt khi trả về
-          totalItems: items.length,
-          __minStt: groupMinStt
+          date: dateKey,
+          session: session || '',
+          items: sessionItems,
+          minStt
         };
       });
-
-      // Sắp xếp các nhóm xe theo STT nhỏ nhất trong nhóm để giữ đúng thứ tự backend
-      this.groupedScheduleData.sort((a, b) => {
-        const diff = (a.__minStt ?? Infinity) - (b.__minStt ?? Infinity);
+      daySessions.sort((a, b) => {
+        const diff = (a.minStt ?? Infinity) - (b.minStt ?? Infinity);
         if (diff !== 0) return diff;
-        // Fallback giữ nguyên nếu không có STT
-        return 0;
+        // fallback theo ngày nếu STT không có
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        const sessionOrder: any = { 'Sáng': 1, 'Morning': 1, 'Chiều': 2, 'Afternoon': 2, '': 0 };
+        return (sessionOrder[a.session] || 0) - (sessionOrder[b.session] || 0);
       });
 
-      // Mặc định tất cả group đều mở
-      this.groupedScheduleData.forEach(group => {
-        if (!this.expandedGroups.has(group.vehicleInfo)) {
-          this.expandedGroups.set(group.vehicleInfo, true);
-        }
-      });
-    }
+      const groupMinStt = Math.min(...items.map((x: any) => Number(x?.STT ?? Infinity)));
+
+      return {
+        vehicleInfo: vehicleInfo,
+        daySessions: daySessions.map(ds => ({ date: ds.date, session: ds.session, items: ds.items })), // loại bỏ minStt khi trả về
+        totalItems: items.length,
+        __minStt: groupMinStt
+      };
+    });
+
+    // Sắp xếp các nhóm xe theo STT nhỏ nhất trong nhóm để giữ đúng thứ tự backend
+    this.groupedScheduleData.sort((a, b) => {
+      const diff = (a.__minStt ?? Infinity) - (b.__minStt ?? Infinity);
+      if (diff !== 0) return diff;
+      // Fallback giữ nguyên nếu không có STT
+      return 0;
+    });
+
+    // Mặc định tất cả group đều mở
+    this.groupedScheduleData.forEach(group => {
+      if (!this.expandedGroups.has(group.vehicleInfo)) {
+        this.expandedGroups.set(group.vehicleInfo, true);
+      }
+    });
+  }
 
   // Toggle trạng thái mở/đóng của group
   toggleGroup(vehicleInfo: string): void {
@@ -373,52 +373,52 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     return this.expandedGroups.get(vehicleInfo) ?? true;
   }
 
-    formatDate(dateString: string): string {
-      if (!dateString || dateString.trim() === '') return '';
-      
-      try {
-        let date: Date;
-        
-        // Xử lý format YYYY-MM-DD
-        if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-          const parts = dateString.split('-');
-          if (parts.length === 3) {
-            const year = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-            const day = parseInt(parts[2], 10);
-            
-            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-              date = new Date(year, month, day);
-            } else {
-              date = new Date(dateString);
-            }
+  formatDate(dateString: string): string {
+    if (!dateString || dateString.trim() === '') return '';
+
+    try {
+      let date: Date;
+
+      // Xử lý format YYYY-MM-DD
+      if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+          const day = parseInt(parts[2], 10);
+
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            date = new Date(year, month, day);
           } else {
             date = new Date(dateString);
           }
         } else {
           date = new Date(dateString);
         }
-        
-        // Kiểm tra date hợp lệ
-        if (isNaN(date.getTime())) {
-          return '';
-        }
-        
-        const dd = String(date.getDate()).padStart(2, '0');
-        const MM = String(date.getMonth() + 1).padStart(2, '0');
-        const yyyy = date.getFullYear();
-        
-        // Kiểm tra lại các giá trị
-        if (isNaN(parseInt(dd)) || isNaN(parseInt(MM)) || isNaN(yyyy)) {
-          return '';
-        }
-        
-        return `${dd}/${MM}/${yyyy}`;
-      } catch (e) {
-        console.warn('Error formatting date:', dateString, e);
+      } else {
+        date = new Date(dateString);
+      }
+
+      // Kiểm tra date hợp lệ
+      if (isNaN(date.getTime())) {
         return '';
       }
+
+      const dd = String(date.getDate()).padStart(2, '0');
+      const MM = String(date.getMonth() + 1).padStart(2, '0');
+      const yyyy = date.getFullYear();
+
+      // Kiểm tra lại các giá trị
+      if (isNaN(parseInt(dd)) || isNaN(parseInt(MM)) || isNaN(yyyy)) {
+        return '';
+      }
+
+      return `${dd}/${MM}/${yyyy}`;
+    } catch (e) {
+      console.warn('Error formatting date:', dateString, e);
+      return '';
     }
+  }
 
   private parseTimeToJsDateOrString(value: any): Date | string | '' {
     if (!value) return '';
@@ -461,15 +461,15 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
 
   formatDateTime(dateString: string | Date): string {
     if (!dateString) return '';
-    
+
     try {
       // Nếu là string dạng "08:00" thì trả về luôn
       if (typeof dateString === 'string' && /^\d{1,2}:\d{2}$/.test(dateString.trim())) {
         return dateString.trim();
       }
-      
+
       let date: Date;
-      
+
       if (dateString instanceof Date) {
         date = dateString;
       } else if (typeof dateString === 'string') {
@@ -487,24 +487,24 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       } else {
         return '';
       }
-      
+
       // Kiểm tra date hợp lệ
       if (isNaN(date.getTime())) {
         return '';
       }
-      
+
       const dd = String(date.getDate()).padStart(2, '0');
       const MM = String(date.getMonth() + 1).padStart(2, '0');
       const yyyy = date.getFullYear();
       const hh = String(date.getHours()).padStart(2, '0');
       const mm = String(date.getMinutes()).padStart(2, '0');
       const ss = String(date.getSeconds()).padStart(2, '0');
-      
+
       // Kiểm tra lại các giá trị
       if (isNaN(parseInt(dd)) || isNaN(parseInt(MM)) || isNaN(yyyy)) {
         return '';
       }
-      
+
       // Format: dd/MM/yyyy HH:mm:ss
       return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
     } catch (e) {
@@ -513,45 +513,45 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     }
   }
 
-    getCellBorderStyle(isFirstRow: boolean, isLastRow: boolean, isRowspanCell: boolean): any {
-      const style: any = {
-        'border-left': '1px solid #D3D3D3',
-        'border-right': '1px solid #D3D3D3'
-      };
-      
-      // Border top: mỏng cho tất cả các dòng
-      style['border-top'] = '1px solid #D3D3D3';
-      
-      // Border bottom: mỏng cho tất cả các dòng
-      style['border-bottom'] = '1px solid #D3D3D3';
-      
-      return style;
-    }
+  getCellBorderStyle(isFirstRow: boolean, isLastRow: boolean, isRowspanCell: boolean): any {
+    const style: any = {
+      'border-left': '1px solid #D3D3D3',
+      'border-right': '1px solid #D3D3D3'
+    };
 
-    // Hàm lấy màu cho dòng "Thông tin xe" dựa trên index
-    getVehicleHeaderColor(index: number): string {
-      const vehicleColors = [
-        '#ffcbee', // Hồng
-        '#cfe2f3', // Xanh nhạt
-        '#d9ead3', // Xanh lá nhạt
-        '#Fce5cd', // Cam nhạt
-        '#ead1dc', // Hồng đậm nhạt
-        '#d5e8d4', // Xanh lá đậm nhạt
-        '#fff2cc', // Vàng nhạt
-        '#e1d5e7', // Tím nhạt
-        '#dae8fc', // Xanh dương nhạt
-        '#f4cccc'  // Đỏ nhạt
-      ];
-      return vehicleColors[index % vehicleColors.length];
-    }
+    // Border top: mỏng cho tất cả các dòng
+    style['border-top'] = '1px solid #D3D3D3';
+
+    // Border bottom: mỏng cho tất cả các dòng
+    style['border-bottom'] = '1px solid #D3D3D3';
+
+    return style;
+  }
+
+  // Hàm lấy màu cho dòng "Thông tin xe" dựa trên index
+  getVehicleHeaderColor(index: number): string {
+    const vehicleColors = [
+      '#ffcbee', // Hồng
+      '#cfe2f3', // Xanh nhạt
+      '#d9ead3', // Xanh lá nhạt
+      '#Fce5cd', // Cam nhạt
+      '#ead1dc', // Hồng đậm nhạt
+      '#d5e8d4', // Xanh lá đậm nhạt
+      '#fff2cc', // Vàng nhạt
+      '#e1d5e7', // Tím nhạt
+      '#dae8fc', // Xanh dương nhạt
+      '#f4cccc'  // Đỏ nhạt
+    ];
+    return vehicleColors[index % vehicleColors.length];
+  }
 
   //#endregion
-  
+
   // Hàm lấy ngày cuối cùng từ groupedScheduleData
   getLastDateFromSchedule(): string {
     let lastDate = '';
     const allDates: string[] = [];
-    
+
     this.groupedScheduleData.forEach((vehicleGroup) => {
       vehicleGroup.daySessions.forEach((daySession: any) => {
         if (daySession.date && daySession.date.trim() !== '') {
@@ -559,18 +559,18 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         }
       });
     });
-    
+
     if (allDates.length > 0) {
       // Sắp xếp và lấy ngày cuối cùng
       allDates.sort();
       lastDate = allDates[allDates.length - 1];
     }
-    
+
     return lastDate;
   }
 
   async exportToExcel() {
-      if (!this.groupedScheduleData || this.groupedScheduleData.length === 0) {
+    if (!this.groupedScheduleData || this.groupedScheduleData.length === 0) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!', {
         nzStyle: { fontSize: '0.75rem' },
       });
@@ -578,32 +578,32 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     }
 
     const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Lịch trình xe');
+    const worksheet = workbook.addWorksheet('Lịch trình xe');
 
-      // Lấy ngày cuối cùng để hiển thị trong title
-      const lastDate = this.getLastDateFromSchedule();
-      const titleText = lastDate ? `Lịch Trình Xe ngày ${this.formatDate(lastDate)}` : 'Lịch Trình Xe';
-      
-      // Mảng màu cho các xe (mỗi xe một màu khác nhau)
-      const vehicleColors = [
-        'FFffcbee', // Hồng
-        'FFcfe2f3', // Xanh nhạt
-        'FFd9ead3', // Xanh lá nhạt
-        'FFFce5cd', // Cam nhạt
-        'FFead1dc', // Hồng đậm nhạt
-        'FFd5e8d4', // Xanh lá đậm nhạt
-        'FFfff2cc', // Vàng nhạt
-        'FFe1d5e7', // Tím nhạt
-        'FFdae8fc', // Xanh dương nhạt
-        'FFf4cccc'  // Đỏ nhạt
-      ];
+    // Lấy ngày cuối cùng để hiển thị trong title
+    const lastDate = this.getLastDateFromSchedule();
+    const titleText = lastDate ? `Lịch Trình Xe ngày ${this.formatDate(lastDate)}` : 'Lịch Trình Xe';
 
-      // Thêm dòng header "Lịch Trình Xe" bọc toàn bộ
+    // Mảng màu cho các xe (mỗi xe một màu khác nhau)
+    const vehicleColors = [
+      'FFffcbee', // Hồng
+      'FFcfe2f3', // Xanh nhạt
+      'FFd9ead3', // Xanh lá nhạt
+      'FFFce5cd', // Cam nhạt
+      'FFead1dc', // Hồng đậm nhạt
+      'FFd5e8d4', // Xanh lá đậm nhạt
+      'FFfff2cc', // Vàng nhạt
+      'FFe1d5e7', // Tím nhạt
+      'FFdae8fc', // Xanh dương nhạt
+      'FFf4cccc'  // Đỏ nhạt
+    ];
+
+    // Thêm dòng header "Lịch Trình Xe" bọc toàn bộ
     const titleRow = worksheet.addRow([titleText]);
-    
+
     // Merge tất cả các cột cho dòng title (merge trước khi set style) - bỏ cột Ngày nên còn 8 cột
     worksheet.mergeCells(1, 1, 1, 8);
-    
+
     // Set style cho merged cell - phải set sau khi merge
     const titleCell = titleRow.getCell(1);
     titleCell.fill = {
@@ -611,8 +611,8 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       pattern: 'solid',
       fgColor: { argb: 'FF00ba25' }, // Màu xanh lá (#00ba25) giống HTML
     };
-    titleCell.font = { 
-      bold: true, 
+    titleCell.font = {
+      bold: true,
       color: { argb: 'FFFFFFFF' }, // Màu trắng
       size: 12,
       name: 'Times New Roman'
@@ -624,8 +624,8 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       right: { style: 'thin', color: { argb: 'FF808080' } }
     };
     // Căn giữa cho merged cell - set lại sau khi đã set các style khác
-    titleCell.alignment = { 
-      vertical: 'middle', 
+    titleCell.alignment = {
+      vertical: 'middle',
       horizontal: 'center',
       wrapText: false
     };
@@ -640,7 +640,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     const headers = ['Buổi', 'Người đi', 'Điểm xuất phát', 'Điểm đến', 'Giờ xuất phát', 'Thời gian đến', 'Giờ về', 'Ghi chú'];
     const headerRow = worksheet.addRow(headers);
 
-      // Gán style màu cho header (màu xanh dương cho các cột thường, màu cam cho cột giờ)
+    // Gán style màu cho header (màu xanh dương cho các cột thường, màu cam cho cột giờ)
     headerRow.eachCell((cell, colNumber) => {
       // Cột 5, 6, 7 (Giờ xuất phát, Thời gian đến, Giờ về) dùng màu cam #e39540 (đã bỏ cột Ngày nên index giảm 1)
       // Các cột khác dùng màu xanh dương #4472C4
@@ -650,14 +650,14 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         pattern: 'solid',
         fgColor: { argb: isTimeColumn ? 'FFe39540' : 'FF4472C4' }, // Màu cam cho cột giờ, xanh dương cho cột khác
       };
-      cell.font = { 
-        bold: true, 
+      cell.font = {
+        bold: true,
         color: { argb: 'FFFFFFFF' }, // Màu trắng cho chữ
         size: 9,
         name: 'Times New Roman'
       };
-      cell.alignment = { 
-        vertical: 'middle', 
+      cell.alignment = {
+        vertical: 'middle',
         horizontal: 'center',
         wrapText: true
       };
@@ -669,140 +669,140 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       };
     });
 
-      // Đặt chiều cao cho header
-      headerRow.height = 25;
+    // Đặt chiều cao cho header
+    headerRow.height = 25;
 
-      // Set width cố định cho các cột (trước khi tự động tính) - giãn cột ra thêm nữa
-      worksheet.getColumn(1).width = 16; // Buổi
-      worksheet.getColumn(2).width = 30; // Người đi
-      worksheet.getColumn(3).width = 35; // Điểm xuất phát
-      worksheet.getColumn(4).width = 45; // Điểm đến
-      worksheet.getColumn(5).width = 20; // Giờ xuất phát
-      worksheet.getColumn(6).width = 20; // Thời gian đến
-      worksheet.getColumn(7).width = 20; // Giờ về
-      worksheet.getColumn(8).width = 65; // Ghi chú
+    // Set width cố định cho các cột (trước khi tự động tính) - giãn cột ra thêm nữa
+    worksheet.getColumn(1).width = 16; // Buổi
+    worksheet.getColumn(2).width = 30; // Người đi
+    worksheet.getColumn(3).width = 35; // Điểm xuất phát
+    worksheet.getColumn(4).width = 45; // Điểm đến
+    worksheet.getColumn(5).width = 20; // Giờ xuất phát
+    worksheet.getColumn(6).width = 20; // Thời gian đến
+    worksheet.getColumn(7).width = 20; // Giờ về
+    worksheet.getColumn(8).width = 65; // Ghi chú
 
-      let currentRow = 3; // Bắt đầu từ dòng 3 (dòng 1: title, dòng 2: header)
-      
-      // Duyệt qua từng nhóm xe
-      this.groupedScheduleData.forEach((vehicleGroup, vehicleIndex) => {
-        const vehicleInfo = vehicleGroup.vehicleInfo;
-        
-        // Lấy màu cho xe này (mỗi xe một màu khác nhau)
-        const colorIndex = vehicleIndex % vehicleColors.length;
-        const vehicleColor = vehicleColors[colorIndex];
-        
-        // Thêm dòng header cho thông tin xe
-        const vehicleHeaderRow = worksheet.addRow([`Thông tin xe: ${vehicleInfo}`]);
-        
-        // Merge tất cả các cột cho dòng header xe (phải merge trước khi set style)
-        worksheet.mergeCells(currentRow, 1, currentRow, headers.length);
-        
-        // Set style cho merged cell
-        const mergedCell = vehicleHeaderRow.getCell(1);
-        mergedCell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: vehicleColor }, // Màu custom cho mỗi xe
-        };
-        mergedCell.font = { 
-          bold: true, 
-          color: { argb: 'FF000000' }, // Màu đen
-          size: 9,
-          name: 'Times New Roman'
-        };
-        mergedCell.border = {
-          top: { style: 'thin', color: { argb: 'FF808080' } },
-          left: { style: 'thin', color: { argb: 'FF808080' } },
-          bottom: { style: 'thin', color: { argb: 'FF808080' } },
-          right: { style: 'thin', color: { argb: 'FF808080' } }
-        };
-        // Căn giữa cho merged cell - set sau khi đã set các style khác
-        mergedCell.alignment = { 
-          vertical: 'middle', 
-          horizontal: 'center',
-          wrapText: false
-        };
-        // Set alignment cho toàn bộ row để đảm bảo merged cell căn giữa
-        vehicleHeaderRow.alignment = {
-          vertical: 'middle',
-          horizontal: 'center'
-        };
-        // Không set height để Excel tự động dùng height mặc định (1 dòng bình thường)
-        
-        currentRow++;
-        
-        // Duyệt qua từng ngày/buổi
-        vehicleGroup.daySessions.forEach((daySession: any) => {
-          const date = daySession.date;
-          const session = daySession.session;
-          
-          // Ghi nhớ dòng bắt đầu của block này
-          const startRowForDaySession = currentRow;
-          
-          // Duyệt qua từng item trong buổi
-          daySession.items.forEach((item: any, itemIndex: number) => {
-            // Lấy ngày từ DepartureDateRegister nếu có, nếu không thì dùng date từ daySession
-            let displayDate = date ? this.formatDate(date) : '';
-            if (!displayDate && item.DepartureDateRegister) {
-              displayDate = this.formatDate(item.DepartureDateRegister);
-            }
-            
-            const rowData = [
-              // Bỏ cột Ngày, chỉ còn Buổi (chỉ set giá trị cho dòng đầu, các dòng sau để '' để merge cho đẹp)
-              itemIndex === 0 ? session : '',
-              item.PassengerNames || '',               // Người đi
-              item.DepartureAddress || '',             // Điểm xuất phát
-              item.CompanyNameArrives || '',           // Điểm đến
-              this.parseTimeToJsDateOrString(item.DepartureDate || item.TimeLeave),    // Giờ xuất phát
-              this.parseTimeToJsDateOrString(item.TimeNeedPresent || item.TimeArrive), // Thời gian đến
-              this.parseTimeToJsDateOrString(item.ReturnDate || item.TimeReturn),      // Giờ về
-              item.Notes || ''                         // Ghi chú
-            ];
-            
-            worksheet.addRow(rowData);
-            currentRow++;
-          });
-          
-          // Merge cột "Buổi" (col 1) để giống rowspan trên UI (đã bỏ cột Ngày)
-          const endRowForDaySession = currentRow - 1;
-          
-          if (endRowForDaySession > startRowForDaySession) {
-            // Merge cột Buổi
-            worksheet.mergeCells(startRowForDaySession, 1, endRowForDaySession, 1);
-            
-            // Căn giữa + giữa dọc cho cell đã merge
-            const sessionCell = worksheet.getCell(startRowForDaySession, 1);
-            sessionCell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    let currentRow = 3; // Bắt đầu từ dòng 3 (dòng 1: title, dòng 2: header)
+
+    // Duyệt qua từng nhóm xe
+    this.groupedScheduleData.forEach((vehicleGroup, vehicleIndex) => {
+      const vehicleInfo = vehicleGroup.vehicleInfo;
+
+      // Lấy màu cho xe này (mỗi xe một màu khác nhau)
+      const colorIndex = vehicleIndex % vehicleColors.length;
+      const vehicleColor = vehicleColors[colorIndex];
+
+      // Thêm dòng header cho thông tin xe
+      const vehicleHeaderRow = worksheet.addRow([`Thông tin xe: ${vehicleInfo}`]);
+
+      // Merge tất cả các cột cho dòng header xe (phải merge trước khi set style)
+      worksheet.mergeCells(currentRow, 1, currentRow, headers.length);
+
+      // Set style cho merged cell
+      const mergedCell = vehicleHeaderRow.getCell(1);
+      mergedCell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: vehicleColor }, // Màu custom cho mỗi xe
+      };
+      mergedCell.font = {
+        bold: true,
+        color: { argb: 'FF000000' }, // Màu đen
+        size: 9,
+        name: 'Times New Roman'
+      };
+      mergedCell.border = {
+        top: { style: 'thin', color: { argb: 'FF808080' } },
+        left: { style: 'thin', color: { argb: 'FF808080' } },
+        bottom: { style: 'thin', color: { argb: 'FF808080' } },
+        right: { style: 'thin', color: { argb: 'FF808080' } }
+      };
+      // Căn giữa cho merged cell - set sau khi đã set các style khác
+      mergedCell.alignment = {
+        vertical: 'middle',
+        horizontal: 'center',
+        wrapText: false
+      };
+      // Set alignment cho toàn bộ row để đảm bảo merged cell căn giữa
+      vehicleHeaderRow.alignment = {
+        vertical: 'middle',
+        horizontal: 'center'
+      };
+      // Không set height để Excel tự động dùng height mặc định (1 dòng bình thường)
+
+      currentRow++;
+
+      // Duyệt qua từng ngày/buổi
+      vehicleGroup.daySessions.forEach((daySession: any) => {
+        const date = daySession.date;
+        const session = daySession.session;
+
+        // Ghi nhớ dòng bắt đầu của block này
+        const startRowForDaySession = currentRow;
+
+        // Duyệt qua từng item trong buổi
+        daySession.items.forEach((item: any, itemIndex: number) => {
+          // Lấy ngày từ DepartureDateRegister nếu có, nếu không thì dùng date từ daySession
+          let displayDate = date ? this.formatDate(date) : '';
+          if (!displayDate && item.DepartureDateRegister) {
+            displayDate = this.formatDate(item.DepartureDateRegister);
           }
-        });
-      });
 
-      // Format cột có giá trị là Date và thêm border
-      worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber === 1 || rowNumber === 2) return; // bỏ qua dòng title và header
-        
-        // Xác định dòng đầu và cuối của nhóm xe
-        let isFirstDataRow = false;
-        let isLastDataRow = false;
-        
-        // Kiểm tra dòng tiếp theo có phải là header xe không
-        const nextRow = worksheet.getRow(rowNumber + 1);
-        const nextRowFirstCell = nextRow?.getCell(1)?.value;
-        const isNextRowVehicleHeader = typeof nextRowFirstCell === 'string' && nextRowFirstCell.includes('Thông tin xe:');
-        
-        // Kiểm tra dòng trước có phải là header xe không
-        const prevRow = worksheet.getRow(rowNumber - 1);
-        const prevRowFirstCell = prevRow?.getCell(1)?.value;
-        const isPrevRowVehicleHeader = typeof prevRowFirstCell === 'string' && prevRowFirstCell.includes('Thông tin xe:');
-        
-        isFirstDataRow = isPrevRowVehicleHeader;
-        isLastDataRow = isNextRowVehicleHeader || rowNumber === worksheet.rowCount;
-        
+          const rowData = [
+            // Bỏ cột Ngày, chỉ còn Buổi (chỉ set giá trị cho dòng đầu, các dòng sau để '' để merge cho đẹp)
+            itemIndex === 0 ? session : '',
+            item.PassengerNames || '',               // Người đi
+            item.DepartureAddress || '',             // Điểm xuất phát
+            item.CompanyNameArrives || '',           // Điểm đến
+            this.parseTimeToJsDateOrString(item.DepartureDate || item.TimeLeave),    // Giờ xuất phát
+            this.parseTimeToJsDateOrString(item.TimeNeedPresent || item.TimeArrive), // Thời gian đến
+            this.parseTimeToJsDateOrString(item.ReturnDate || item.TimeReturn),      // Giờ về
+            item.Notes || ''                         // Ghi chú
+          ];
+
+          worksheet.addRow(rowData);
+          currentRow++;
+        });
+
+        // Merge cột "Buổi" (col 1) để giống rowspan trên UI (đã bỏ cột Ngày)
+        const endRowForDaySession = currentRow - 1;
+
+        if (endRowForDaySession > startRowForDaySession) {
+          // Merge cột Buổi
+          worksheet.mergeCells(startRowForDaySession, 1, endRowForDaySession, 1);
+
+          // Căn giữa + giữa dọc cho cell đã merge
+          const sessionCell = worksheet.getCell(startRowForDaySession, 1);
+          sessionCell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        }
+      });
+    });
+
+    // Format cột có giá trị là Date và thêm border
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1 || rowNumber === 2) return; // bỏ qua dòng title và header
+
+      // Xác định dòng đầu và cuối của nhóm xe
+      let isFirstDataRow = false;
+      let isLastDataRow = false;
+
+      // Kiểm tra dòng tiếp theo có phải là header xe không
+      const nextRow = worksheet.getRow(rowNumber + 1);
+      const nextRowFirstCell = nextRow?.getCell(1)?.value;
+      const isNextRowVehicleHeader = typeof nextRowFirstCell === 'string' && nextRowFirstCell.includes('Thông tin xe:');
+
+      // Kiểm tra dòng trước có phải là header xe không
+      const prevRow = worksheet.getRow(rowNumber - 1);
+      const prevRowFirstCell = prevRow?.getCell(1)?.value;
+      const isPrevRowVehicleHeader = typeof prevRowFirstCell === 'string' && prevRowFirstCell.includes('Thông tin xe:');
+
+      isFirstDataRow = isPrevRowVehicleHeader;
+      isLastDataRow = isNextRowVehicleHeader || rowNumber === worksheet.rowCount;
+
       row.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
         // Set font Times New Roman và size 9px cho tất cả các cell
         cell.font = { ...cell.font, size: 9, name: 'Times New Roman' };
-        
+
         // Format cho các cột thời gian (cột 5, 6, 7: Giờ xuất phát, Thời gian đến, Giờ về - đã bỏ cột Ngày)
         if (cell.value instanceof Date) {
           // Nếu là Date thì format đầy đủ ngày giờ
@@ -811,7 +811,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           // Nếu là string dạng "08:00" thì giữ nguyên, không cần format
           // Excel sẽ hiển thị như text
         }
-        
+
         // Set alignment theo loại cột (đã bỏ cột Ngày)
         // Cột 1: Buổi - căn giữa
         // Cột 2: Người đi - căn trái, căn giữa dọc
@@ -824,11 +824,11 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         } else if (colNumber === 2) {
           // Người đi: căn trái, căn giữa dọc
           cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
-        } 
+        }
         else if (colNumber === 3) {
           // Điểm xuất phát: căn trái, căn giữa dọc
           cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
-        } 
+        }
         else if (colNumber === 5 || colNumber === 6 || colNumber === 7) {
           // Các cột giờ: căn giữa
           cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
@@ -839,7 +839,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           // Các cột khác
           cell.alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
         }
-        
+
         // Thêm border cho tất cả các cell dữ liệu
         cell.border = {
           top: { style: 'thin', color: { argb: 'FF808080' } },
@@ -850,77 +850,77 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       });
     });
 
-        // Tự động căn chỉnh độ rộng cột với tính toán tốt hơn (bỏ qua các cột đã set width cố định)
-      worksheet.columns.forEach((column: any, index: number) => {
-        // Bỏ qua các cột đã set width cố định: tất cả các cột đã được set width
-        // Không cần tự động tính nữa vì đã set width cố định cho tất cả
-        return;
+    // Tự động căn chỉnh độ rộng cột với tính toán tốt hơn (bỏ qua các cột đã set width cố định)
+    worksheet.columns.forEach((column: any, index: number) => {
+      // Bỏ qua các cột đã set width cố định: tất cả các cột đã được set width
+      // Không cần tự động tính nữa vì đã set width cố định cho tất cả
+      return;
+    });
+
+    // Áp dụng text wrapping và căn chỉnh cho tất cả các ô (bỏ qua row 1 - title, row 2 - header và các dòng "Thông tin xe")
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // Bỏ qua title row, đã set alignment riêng
+      if (rowNumber === 2) return; // Bỏ qua header row, đã set alignment riêng (căn giữa)
+
+      // Kiểm tra xem có phải dòng "Thông tin xe" không
+      const firstCellValue = row.getCell(1).value;
+      const isVehicleHeader = typeof firstCellValue === 'string' && firstCellValue.includes('Thông tin xe:');
+      if (isVehicleHeader) return; // Bỏ qua dòng "Thông tin xe", đã set alignment riêng (căn giữa)
+
+      row.eachCell((cell, colNumber) => {
+        // Cột Buổi (1) căn giữa, các cột giờ (5,6,7) căn giữa, Người đi (2) và Điểm xuất phát (3) căn trái nhưng căn giữa dọc, còn lại căn trái
+        // Đảm bảo các cột Người đi (2), Điểm xuất phát (3), Điểm đến (4) có wrapText: true
+        const isCenterColumn = colNumber === 1 || colNumber === 5 || colNumber === 6 || colNumber === 7;
+        const isMiddleVertical = isCenterColumn || colNumber === 2 || colNumber === 3; // Cột 2 (Người đi) và cột 3 (Điểm xuất phát) cũng căn giữa dọc
+        cell.alignment = {
+          ...cell.alignment,
+          wrapText: true,
+          vertical: isMiddleVertical ? 'middle' : 'top',
+          horizontal: isCenterColumn ? 'center' : 'left'
+        };
       });
 
-      // Áp dụng text wrapping và căn chỉnh cho tất cả các ô (bỏ qua row 1 - title, row 2 - header và các dòng "Thông tin xe")
-      worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber === 1) return; // Bỏ qua title row, đã set alignment riêng
-        if (rowNumber === 2) return; // Bỏ qua header row, đã set alignment riêng (căn giữa)
-        
+      // Tự động điều chỉnh chiều cao hàng dựa trên nội dung (bỏ qua row 1, 2 và các dòng "Thông tin xe")
+      if (rowNumber > 2) {
         // Kiểm tra xem có phải dòng "Thông tin xe" không
         const firstCellValue = row.getCell(1).value;
         const isVehicleHeader = typeof firstCellValue === 'string' && firstCellValue.includes('Thông tin xe:');
-        if (isVehicleHeader) return; // Bỏ qua dòng "Thông tin xe", đã set alignment riêng (căn giữa)
-        
-        row.eachCell((cell, colNumber) => {
-          // Cột Buổi (1) căn giữa, các cột giờ (5,6,7) căn giữa, Người đi (2) và Điểm xuất phát (3) căn trái nhưng căn giữa dọc, còn lại căn trái
-          // Đảm bảo các cột Người đi (2), Điểm xuất phát (3), Điểm đến (4) có wrapText: true
-          const isCenterColumn = colNumber === 1 || colNumber === 5 || colNumber === 6 || colNumber === 7;
-          const isMiddleVertical = isCenterColumn || colNumber === 2 || colNumber === 3; // Cột 2 (Người đi) và cột 3 (Điểm xuất phát) cũng căn giữa dọc
-          cell.alignment = {
-            ...cell.alignment,
-            wrapText: true,
-            vertical: isMiddleVertical ? 'middle' : 'top',
-            horizontal: isCenterColumn ? 'center' : 'left'
-          };
-        });
-        
-        // Tự động điều chỉnh chiều cao hàng dựa trên nội dung (bỏ qua row 1, 2 và các dòng "Thông tin xe")
-        if (rowNumber > 2) {
-          // Kiểm tra xem có phải dòng "Thông tin xe" không
-          const firstCellValue = row.getCell(1).value;
-          const isVehicleHeader = typeof firstCellValue === 'string' && firstCellValue.includes('Thông tin xe:');
-          
-          // Bỏ qua dòng "Thông tin xe" - giữ height mặc định (1 dòng bình thường)
-          if (isVehicleHeader) {
-            return;
-          }
-          
-          let maxLines = 1;
-          row.eachCell((cell, colNumber) => {
-            if (cell.value !== null && cell.value !== undefined && cell.value !== '') {
-              const cellValue = cell.value.toString().trim();
-              if (cellValue === '') return;
-              
-              // Đếm số dòng từ \n có sẵn
-              const explicitLines = cellValue.split('\n').length;
-              
-              // Tính toán số dòng dựa trên width cột và độ dài text
-              // Với font size 9 Times New Roman, mỗi ký tự chiếm khoảng 0.6-0.65 đơn vị width
-              const column = worksheet.getColumn(colNumber);
-              const columnWidth = column.width || 20; // Default width nếu chưa set
-              
-              // Ước tính số ký tự trên 1 dòng: width * 1.5 (vì font size 9, Times New Roman)
-              // Trừ đi 2 cho padding
-              const charsPerLine = Math.max(1, Math.floor((columnWidth - 2) * 1.5));
-              
-              // Tính số dòng cần thiết khi wrap text
-              const wrappedLines = Math.ceil(cellValue.length / charsPerLine);
-              
-              // Lấy số dòng lớn nhất giữa explicit lines và wrapped lines
-              const totalLines = Math.max(explicitLines, wrappedLines, 1);
-              maxLines = Math.max(maxLines, totalLines);
-            }
-          });
-          // Đặt chiều cao hàng (tối thiểu 20, mỗi dòng thêm 18 để đảm bảo đủ không gian)
-          // Tăng hệ số từ 15 lên 18 để đảm bảo không bị che
-          row.height = Math.max(20, maxLines * 18);
+
+        // Bỏ qua dòng "Thông tin xe" - giữ height mặc định (1 dòng bình thường)
+        if (isVehicleHeader) {
+          return;
         }
+
+        let maxLines = 1;
+        row.eachCell((cell, colNumber) => {
+          if (cell.value !== null && cell.value !== undefined && cell.value !== '') {
+            const cellValue = cell.value.toString().trim();
+            if (cellValue === '') return;
+
+            // Đếm số dòng từ \n có sẵn
+            const explicitLines = cellValue.split('\n').length;
+
+            // Tính toán số dòng dựa trên width cột và độ dài text
+            // Với font size 9 Times New Roman, mỗi ký tự chiếm khoảng 0.6-0.65 đơn vị width
+            const column = worksheet.getColumn(colNumber);
+            const columnWidth = column.width || 20; // Default width nếu chưa set
+
+            // Ước tính số ký tự trên 1 dòng: width * 1.5 (vì font size 9, Times New Roman)
+            // Trừ đi 2 cho padding
+            const charsPerLine = Math.max(1, Math.floor((columnWidth - 2) * 1.5));
+
+            // Tính số dòng cần thiết khi wrap text
+            const wrappedLines = Math.ceil(cellValue.length / charsPerLine);
+
+            // Lấy số dòng lớn nhất giữa explicit lines và wrapped lines
+            const totalLines = Math.max(explicitLines, wrappedLines, 1);
+            maxLines = Math.max(maxLines, totalLines);
+          }
+        });
+        // Đặt chiều cao hàng (tối thiểu 20, mỗi dòng thêm 18 để đảm bảo đủ không gian)
+        // Tăng hệ số từ 15 lên 18 để đảm bảo không bị che
+        row.height = Math.max(20, maxLines * 18);
+      }
     });
 
     // Set zoom level về 100%
@@ -936,13 +936,38 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
 
-    // Format ngày tháng hiện tại: dd-MM-yyyy
-    const now = DateTime.local();
-    const formattedDate = now.toFormat('dd-MM-yyyy');
+    // Format tên file theo ngày tìm kiếm
+    let startDt: DateTime;
+    if (this.dateStart instanceof Date) {
+      startDt = DateTime.fromJSDate(this.dateStart);
+    } else if (typeof this.dateStart === 'string') {
+      startDt = DateTime.fromISO(this.dateStart);
+    } else {
+      startDt = DateTime.local();
+    }
+    if (!startDt.isValid) startDt = DateTime.local();
+
+    let endDt: DateTime;
+    if (this.dateEnd instanceof Date) {
+      endDt = DateTime.fromJSDate(this.dateEnd);
+    } else if (typeof this.dateEnd === 'string') {
+      endDt = DateTime.fromISO(this.dateEnd);
+    } else {
+      endDt = DateTime.local();
+    }
+    if (!endDt.isValid) endDt = DateTime.local();
+
+    const formattedStart = startDt.toFormat('dd-MM-yyyy');
+    const formattedEnd = endDt.toFormat('dd-MM-yyyy');
+
+    // Nếu cùng ngày thì "ngày X", khác ngày thì "từ X đến Y"
+    const fileName = formattedStart === formattedEnd
+      ? `Lịch trình xe ngày ${formattedStart}`
+      : `Lịch trình xe từ ${formattedStart} đến ${formattedEnd}`;
 
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `Lịch trình xe - ${formattedDate}.xlsx`;
+    link.download = `${fileName}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -802,19 +802,12 @@ export class BillImportDetailNewComponent
               templateCallback: (item: any) => {
                 const code = item?.ProductCode || '';
                 const name = item?.ProductName || '';
-                const inventory = item?.TotalInventory ?? 0;
-                const formattedInventory = new Intl.NumberFormat('vi-VN', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }).format(inventory);
-                const inventoryColor = inventory < 0 ? '#ff4d4f' : '#52c41a';
-                const tooltipText = `Mã: ${code}\nTên: ${name}\nTồn kho: ${formattedInventory}`;
+                const tooltipText = `Mã: ${code}\nTên: ${name}`;
                 return `<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 4px 0; gap: 8px;" title="${tooltipText.replace(/"/g, '&quot;')}">
                   <div style="flex: 1; min-width: 0; overflow: hidden;">
                     <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${code}</div>
                     <div style="font-size: 12px; color: #666; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; max-height: 4.2em;">${name}</div>
                   </div>
-                  <div style="text-align: right; min-width: 70px; flex-shrink: 0; font-weight: 500; color: ${inventoryColor}; padding-top: 2px;">${formattedInventory}</div>
                 </div>`;
               },
             },
@@ -1555,38 +1548,38 @@ export class BillImportDetailNewComponent
   }
 
   private updateDetailFooter(): void {
-    const grid = this.angularGridDetail?.slickGrid;
-    if (!grid) return;
+    // const grid = this.angularGridDetail?.slickGrid;
+    // if (!grid) return;
 
-    const rows = this.dataDetail || [];
-    const countProduct = rows.filter(
-      (x: any) => Number(x?.ProductID || 0) > 0
-    ).length;
+    // const rows = this.dataDetail || [];
+    // const countProduct = rows.filter(
+    //   (x: any) => Number(x?.ProductID || 0) > 0
+    // ).length;
 
-    const sumQty = rows.reduce(
-      (acc: number, x: any) => acc + (Number(x?.Qty) || 0),
-      0
-    );
+    // const sumQty = rows.reduce(
+    //   (acc: number, x: any) => acc + (Number(x?.Qty) || 0),
+    //   0
+    // );
 
-    const formattedQty = new Intl.NumberFormat('vi-VN', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(sumQty);
+    // const formattedQty = new Intl.NumberFormat('vi-VN', {
+    //   minimumFractionDigits: 2,
+    //   maximumFractionDigits: 2,
+    // }).format(sumQty);
 
-    const footerData: any = {
-      ProductID: `<div style="text-align:right; font-weight:600;">${countProduct}</div>`,
-      Qty: `<div style="text-align:right; font-weight:600;">${formattedQty}</div>`,
-    };
+    // const footerData: any = {
+    //   ProductID: `<div style="text-align:right; font-weight:600;">${countProduct}</div>`,
+    //   Qty: `<div style="text-align:right; font-weight:600;">${formattedQty}</div>`,
+    // };
 
-    const columns = grid.getColumns();
-    columns.forEach((col: any) => {
-      if (footerData[col.id] !== undefined) {
-        const footerElm = grid.getFooterRowColumn(col.id);
-        if (footerElm) {
-          footerElm.innerHTML = footerData[col.id];
-        }
-      }
-    });
+    // const columns = grid.getColumns();
+    // columns.forEach((col: any) => {
+    //   if (footerData[col.id] !== undefined) {
+    //     const footerElm = grid.getFooterRowColumn(col.id);
+    //     if (footerElm) {
+    //       footerElm.innerHTML = footerData[col.id];
+    //     }
+    //   }
+    // });
   }
   //#endregion
 
@@ -1886,7 +1879,7 @@ export class BillImportDetailNewComponent
         Qty: item.QtyRequest || item.QuantityRemain || 0,
         IsNotKeep: false,
         ProjectID: item.ProjectID || 0,
-        ProjectCode: item.ProjectCode || '',
+        ProjectCode: item.ProductCodeOfSupplier || '',
         ProjectNameText: item.ProjectName || projectInfo.label || '',
         CustomerFullName: '',
         BillCodePO: item.BillCode || '',

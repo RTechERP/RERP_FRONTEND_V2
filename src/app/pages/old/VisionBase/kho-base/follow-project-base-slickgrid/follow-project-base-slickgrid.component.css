@@ -1,0 +1,151 @@
+.ant-advanced-search-form {
+    padding: 24px;
+    background: #fbfbfb;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+}
+
+:host ::ng-deep .ant-select-selection-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+:host ::ng-deep .ant-select-item-option-content {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item {
+    white-space: nowrap !important;
+    overflow: visible !important;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item-option-content {
+    white-space: nowrap !important;
+    overflow-x: auto !important;
+    text-overflow: initial !important;
+    max-width: none !important;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar {
+    height: 4px;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 2px;
+}
+
+.ant-splitter {
+    height: 81vh !important;
+}
+
+/* Đảm bảo các splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Đảm bảo các card trong splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel .card {
+    min-height: 0;
+}
+
+/* Đảm bảo các card-body có thể scroll */
+:host ::ng-deep .ant-splitter-panel .card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+.reset {
+    all: revert;
+}
+
+.ant-splitter-panel {
+    position: relative;
+}
+
+/* SlickGrid trong grid-container-follow-project chiếm 100% chiều cao */
+.grid-container-follow-project {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-follow-project nz-spin,
+:host ::ng-deep .grid-container-follow-project .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-follow-project .ant-spin-container,
+:host ::ng-deep .grid-container-follow-project angular-slickgrid,
+:host ::ng-deep .grid-container-follow-project .slickgrid-container,
+:host ::ng-deep .grid-container-follow-project .gridPane {
+    height: 100% !important;
+}
+
+/* SlickGrid trong grid-container-follow-project-sale chiếm 100% chiều cao */
+.grid-container-follow-project-sale {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-follow-project-sale nz-spin,
+:host ::ng-deep .grid-container-follow-project-sale .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-follow-project-sale .ant-spin-container,
+:host ::ng-deep .grid-container-follow-project-sale angular-slickgrid,
+:host ::ng-deep .grid-container-follow-project-sale .slickgrid-container,
+:host ::ng-deep .grid-container-follow-project-sale .gridPane {
+    height: 100% !important;
+}
+
+/* SlickGrid trong grid-container-follow-project-pm chiếm 100% chiều cao */
+.grid-container-follow-project-pm {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-follow-project-pm nz-spin,
+:host ::ng-deep .grid-container-follow-project-pm .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-follow-project-pm .ant-spin-container,
+:host ::ng-deep .grid-container-follow-project-pm angular-slickgrid,
+:host ::ng-deep .grid-container-follow-project-pm .slickgrid-container,
+:host ::ng-deep .grid-container-follow-project-pm .gridPane {
+    height: 100% !important;
+}
+
+/* ===== Column Group (Pre-Header Panel) Styles ===== */
+
+/* Pre-header panel cell styling */
+:host ::ng-deep .slick-preheader-panel .slick-header-column {
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    justify-content: center;
+    border-right: 2px solid #bbb !important;
+}
+
+/* Column group separator - right border on last column of each group */
+:host ::ng-deep .slick-header-column.column-group-border-right,
+:host ::ng-deep .slick-cell.column-group-border-right {
+    border-right: 2px solid #bbb !important;
+}
+
+/* Distinct background colors per group in pre-header */
+:host ::ng-deep .slick-preheader-panel .slick-header-column:nth-child(1) {
+    background-color: #e8f4fd;
+}
+
+:host ::ng-deep .slick-preheader-panel .slick-header-column:nth-child(2) {
+    background-color: #fff3e0;
+}
+
+:host ::ng-deep .slick-preheader-panel .slick-header-column:nth-child(3) {
+    background-color: #e8f5e9;
+}
+
+:host ::ng-deep .slick-preheader-panel .slick-header-column:nth-child(4) {
+    background-color: #f3e5f5;
+}

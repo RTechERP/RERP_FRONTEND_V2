@@ -143,8 +143,8 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     readonly pageSizeOptions: number[] = [10, 30, 50, 100, 200, 300, 500];
 
     filters: any = {
-        dateStart: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-        dateEnd: new Date(),
+        dateStart: DateTime.local().minus({ months: 1 }).toFormat('yyyy-MM-dd'),
+        dateEnd: DateTime.local().toFormat('yyyy-MM-dd'),
         projectId: 0,
         customerId: 0,
         groupTypeId: -1,
@@ -553,11 +553,8 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
         const isAdminOrAdminSale = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1);
         const userId = isAdminOrAdminSale ? (this.filters.employeeId || 0) : (this.appUserService.id || 0);
 
-        const dateStart = new Date(this.filters.dateStart || new Date());
-        dateStart.setHours(0, 0, 0, 0);
-
-        const dateEnd = new Date(this.filters.dateEnd || new Date());
-        dateEnd.setHours(23, 59, 59, 999);
+        const dateStart = DateTime.fromISO(this.filters.dateStart || DateTime.local().toFormat('yyyy-MM-dd')).startOf('day').toJSDate();
+        const dateEnd = DateTime.fromISO(this.filters.dateEnd || DateTime.local().toFormat('yyyy-MM-dd')).endOf('day').toJSDate();
 
         this.dailyReportSaleService.getDailyReportSale(
             this.filters.pageNumber || 1,

@@ -11,7 +11,7 @@
   border-top-right-radius: 0.25rem !important;
 }
 
-::ng-deep #gridFileDetail {
+:host ::ng-deep #gridFileDetail {
   height: 42vh !important;
 }
 

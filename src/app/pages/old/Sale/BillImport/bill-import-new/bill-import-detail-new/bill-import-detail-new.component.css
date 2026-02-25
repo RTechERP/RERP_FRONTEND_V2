@@ -1,81 +1,95 @@
-.modal-body {
+.bill-import-detail-new-modal-body {
   overflow-y: unset;
   height: 91vh !important;
 }
 
-.grid-container-detail {
+.bill-import-detail-new-grid-container-detail {
   min-height: 300px;
   height: 40vh;
 }
-::ng-deep .modal-footer{
+
+:host ::ng-deep .bill-import-detail-new-modal-footer{
   border-top: none !important;
   padding: 0 1rem 0 0 !important;
 }
-.fs-12 {
+.bill-import-detail-new-fs-12 {
   font-size: 12px;
 }
 
-/* SlickGrid styling */
-::ng-deep .slick-cell {
+/* SlickGrid styling — scoped to grid containers để không ghi đè component khác */
+.bill-import-detail-new-grid-container-detail ::ng-deep .slick-cell,
+.bill-import-detail-new-grid-container-document ::ng-deep .slick-cell {
   font-size: 12px;
   line-height: 1.4;
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-::ng-deep .slick-header-column {
+.bill-import-detail-new-grid-container-detail ::ng-deep .slick-header-column,
+.bill-import-detail-new-grid-container-document ::ng-deep .slick-header-column {
   font-size: 12px;
   font-weight: 600;
 }
 
-::ng-deep .slick-footerrow-columns .slick-footerrow-column {
+.bill-import-detail-new-grid-container-detail ::ng-deep .slick-footerrow-columns .slick-footerrow-column,
+.bill-import-detail-new-grid-container-document ::ng-deep .slick-footerrow-columns .slick-footerrow-column {
   font-size: 12px;
   background-color: #fafafa;
   border-top: 1px solid #e8e8e8;
 }
 
-::ng-deep .slick-row.odd {
+.bill-import-detail-new-grid-container-detail ::ng-deep .slick-row.odd,
+.bill-import-detail-new-grid-container-document ::ng-deep .slick-row.odd {
   background-color: #fafafa;
 }
 
-::ng-deep .slick-row:hover {
+.bill-import-detail-new-grid-container-detail ::ng-deep .slick-row:hover,
+.bill-import-detail-new-grid-container-document ::ng-deep .slick-row:hover {
   background-color: #e6f7ff;
 }
 
-::ng-deep .slick-cell.editable {
+.bill-import-detail-new-grid-container-detail ::ng-deep .slick-cell.editable,
+.bill-import-detail-new-grid-container-document ::ng-deep .slick-cell.editable {
   background-color: #fff8e6;
 }
 
-::ng-deep .slick-cell.selected {
+.bill-import-detail-new-grid-container-detail ::ng-deep .slick-cell.selected,
+.bill-import-detail-new-grid-container-document ::ng-deep .slick-cell.selected {
   background-color: #bae7ff;
 }
 
-::ng-deep .fa-trash {
+.bill-import-detail-new-grid-container-detail ::ng-deep .fa-trash,
+.bill-import-detail-new-grid-container-document ::ng-deep .fa-trash {
   cursor: pointer;
   color: #ff4d4f;
 }
 
-::ng-deep .fa-trash:hover {
+.bill-import-detail-new-grid-container-detail ::ng-deep .fa-trash:hover,
+.bill-import-detail-new-grid-container-document ::ng-deep .fa-trash:hover {
   color: #ff7875;
 }
 
-::ng-deep .fa-plus {
+.bill-import-detail-new-grid-container-detail ::ng-deep .fa-plus,
+.bill-import-detail-new-grid-container-document ::ng-deep .fa-plus {
   cursor: pointer;
   color: #1890ff;
 }
 
-::ng-deep .fa-plus:hover {
+.bill-import-detail-new-grid-container-detail ::ng-deep .fa-plus:hover,
+.bill-import-detail-new-grid-container-document ::ng-deep .fa-plus:hover {
   color: #40a9ff;
 }
 
-::ng-deep div[id^="billImportDetail_"] {
+:host ::ng-deep div[id^="billImportDetail_"] {
   height: 53vh !important;
 }
-::ng-deep div[id^="billImportDocDetail_"] {
+:host ::ng-deep div[id^="billImportDocDetail_"] {
   height: 53vh !important;
 }
+
 /* Multiline cell with max 3 lines and ellipsis */
-::ng-deep .cell-multiline {
+.bill-import-detail-new-grid-container-detail ::ng-deep .cell-multiline,
+.bill-import-detail-new-grid-container-document ::ng-deep .cell-multiline {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -86,6 +100,7 @@
   word-wrap: break-word;
   white-space: normal;
 }
-::ng-deep .ant-tabs.ant-tabs-top.ant-tabs-default {
+
+:host ::ng-deep .ant-tabs.ant-tabs-top.ant-tabs-default {
   height: 58vh !important;
 }

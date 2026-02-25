@@ -147,9 +147,15 @@
                     @for (item of menuApproves.children; track $index) {
                     <li class="list-group-item border-0 border-bottom py-1" *ngIf="item.isPermission">
                         <a class=" text-dark" [attr.href]="item.router ? item.router : null"
+                            *ngIf="(item.router || '') == '#' && (item.router || '') == ''"
                             (click)="handleClickLink($event, item.router, item.Title,item.data)">
                             <img [src]="item.icon">
                             <span>{{item.title}}</span>
+                        </a>
+
+                        <a class=" text-dark" *ngIf="(item.router || '') == '#' || (item.router || '') == ''">
+                            <img [src]="item.icon">
+                            <span> {{item.title}}</span>
                         </a>
                         <ul class="list-group">
                             @for (c of item.children; track $index) {
@@ -265,7 +271,13 @@
 
                             <li class="list-group-item border-0 border-bottom py-1" *ngIf="c1.isPermission">
                                 <a class=" text-dark" [attr.href]="c1.router ? c1.router : null"
+                                    *ngIf="(c1.router || '') != '#' && (c1.router || '') != ''"
                                     (click)="handleClickLink($event, c1.router, c1.title,c1.data)">
+                                    <img [src]="c1.icon">
+                                    <span> {{c1.title}}</span>
+                                </a>
+
+                                <a class=" text-dark" *ngIf="(c1.router || '') == '#' || (c1.router || '') == ''">
                                     <img [src]="c1.icon">
                                     <span> {{c1.title}}</span>
                                 </a>

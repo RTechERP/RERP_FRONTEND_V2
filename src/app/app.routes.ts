@@ -260,6 +260,7 @@ import { LuckyNumberComponent } from './pages/hrm/lucky-number/lucky-number.comp
 import { KpiSyntheticYearsComponent } from './pages/old/Technical/kpi-synthetic-years/kpi-synthetic-years.component';
 import { SummaryKpiEmployeePointComponent } from './pages/old/Technical/summary-kpi-employee-point/summary-kpi-employee-point.component';
 import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-base/follow-project-base-slickgrid/follow-project-base-slickgrid.component';
+import { DailyReportSaleAdminSlickgridComponent } from './pages/old/KPISale/daily-report-sale-admin-slickgrid/daily-report-sale-admin-slickgrid.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -426,7 +427,7 @@ export const routes: Routes = [
             { path: 'bonus-coefficient', component: BonusCoefficientComponent, canActivate: [authGuard] },
             { path: 'employee-sale-manager', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
-            { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
+            { path: 'daily-report-sale-admin', component: DailyReportSaleAdminSlickgridComponent, canActivate: [authGuard] },
             { path: 'request-invoice-old', component: RequestInvoiceComponent, canActivate: [authGuard] },
             { path: 'request-invoice', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
             { path: 'request-invoice-summary-old', component: RequestInvoiceSummaryComponent, canActivate: [authGuard] },
@@ -538,7 +539,7 @@ export const routes: Routes = [
 
             //Báo cáo công việc
             { path: 'daily-report-machine', component: DailyReportMachineComponent, canActivate: [authGuard] },
-            { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
+            { path: 'daily-report-sale-admin', component: DailyReportSaleAdminSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-tech', component: DailyReportTechComponent, canActivate: [authGuard] },
             { path: 'daily-report-thr', component: DailyReportThrComponent, canActivate: [authGuard] },
@@ -576,7 +577,7 @@ export const routes: Routes = [
             { path: 'bonus-coefficient-hn', component: BonusCoefficientComponent, canActivate: [authGuard] },
             { path: 'employee-sale-hn', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-hn', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
-            { path: 'daily-report-saleadmin-hn', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
+            { path: 'daily-report-saleadmin-hn', component: DailyReportSaleAdminSlickgridComponent, canActivate: [authGuard] },
             { path: 'request-invoice-hn', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
 
 

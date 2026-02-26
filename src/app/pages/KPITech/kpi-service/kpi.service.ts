@@ -481,14 +481,32 @@ export class KPIService {
   }
 
   /**
-   * Load dữ liệu KPI Rule mới
+   * Load dữ liệu KPI Rule mới (Factor Scoring)
    * API: GET api/KPIEvaluationFactorScoring/load-point-rule-new
-   * @param empPointMaster - ID của KPI Employee Point chính
    */
-  loadPointRuleNew(empPointMaster: number): Observable<any> {
+  loadPointRuleNew(kpiExamID: number, employeeID: number, sessionID: number): Observable<any> {
     const params = new HttpParams()
-      .set('empPointMaster', empPointMaster.toString());
+      .set('kpiExamID', kpiExamID.toString())
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
     return this.http.get<any>(this.apiUrlFactorScoring + 'load-point-rule-new', { params });
+  }
+  /**
+   * Load dữ liệu KPI Rule mới (spGetSumarizebyKPIEmpPointIDNew)
+   * API: GET api/KPIEvaluationEmployee/load-point-rule-new
+   * Controller tự tính empPointID từ sessionID + employeeID
+   * @param kpiExamID - ID bài đánh giá
+   * @param isPublic - Trạng thái công khai
+   * @param employeeID - ID nhân viên
+   * @param sessionID - ID kỳ đánh giá
+   */
+  loadPointRuleNew2(kpiExamID: number, isPublic: boolean, employeeID: number, sessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
+    return this.http.get<any>(this.apiUrl + 'load-point-rule-new2', { params });
   }
 
   /**

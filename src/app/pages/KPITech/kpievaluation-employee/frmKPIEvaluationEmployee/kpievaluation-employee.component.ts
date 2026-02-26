@@ -162,6 +162,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   // Cờ hiển thị công khai - khớp với logic WinForm: isTBPView || empPoint.IsPublish == true
   isPublic: boolean = true;
   isTBPView: boolean = true; // Chế độ xem dành cho TBP/Quản lý
+  empPointID: number = 0;    // KPIEmployeePointID - dùng cho LoadPointRuleNew
 
   // Subject for cleanup on destroy
   private destroy$ = new Subject<void>();
@@ -2839,6 +2840,13 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
               this.updateGrid(this.angularGridTeam, this.dataTeam);
             }
           }
+          // Lưu empPointID từ response để dùng cho loadPointRuleNew
+          console.log('[DEBUG] ruleTeam.data keys:', Object.keys(results.ruleTeam.data));
+          console.log('[DEBUG] ruleTeam.data.empPointID:', results.ruleTeam.data.empPointID);
+          if (results.ruleTeam.data.empPointID != null) {
+            this.empPointID = Number(results.ruleTeam.data.empPointID) || 0;
+            console.log('[DEBUG] empPointID stored:', this.empPointID);
+          }
           this.isTab5Loaded = true;
 
           // Lấy điểm cuối cùng từ API mới
@@ -2854,19 +2862,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         }
 
         // Cập nhật footer cho Rule - hiển thị xếp loại
-        // Theo luồng WinForm: LoadSummaryRuleNew → CalculatorPoint → update footer
+        // Theo luồng WinForm: LoadSummaryRuleNew → LoadPointRuleNew → CalculatorPoint → update footer
         if (this.dataRule.length > 0 && this.departmentID !== this.departmentCK) {
-          setTimeout(() => {
-            // Gọi hàm lấy summary từ grid team và thêm các dòng TEAM
-            this.loadTeamSummaryAndAddTeamNodes();
-
-            // Gọi calculatorPoint để tính toán lại TotalError
-            const isTBP = this.isTBPView; // Sử dụng isTBPView thay vì typeID
-            this.calculatorPoint(isTBP, this.isPublic);
-
-            this.refreshGrid(this.angularGridRule, this.dataRule);
-            this.updateRuleFooter();
-          }, 200);
+          this.loadPointRuleNewAndCalculate();
         }
 
 
@@ -3599,6 +3597,103 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   }
   //#endregion
 
+  //#region Load Point Rule New
+  /**
+   * Luồng chính: Gọi API load-point-rule-new → merge vào dataRule → override TEAM* từ grid Team → calculatorPoint
+   * Khớp với WinForm: LoadPointRuleNew
+   *
+   * Bước 1: Gọi API spGetSumarizebyKPIEmpPointIDNew để lấy FirstMonth/SecondMonth/ThirdMonth cho từng EvaluationCode
+   * Bước 2: Merge kết quả API vào dataRule
+   * Bước 3: Override các node TEAM* và MA11 bằng summary từ grid Team
+   * Bước 4: Gọi calculatorPoint
+   */
+  private loadPointRuleNewAndCalculate(): void {
+    console.log('[LoadPointRuleNew] Gọi API với examID:', this.selectedExamID, 'empID:', this.employeeID, 'sessionID:', this.selectedSessionID);
+    this.kpiService.loadPointRuleNew2(this.selectedExamID, this.isPublic, this.employeeID, this.selectedSessionID).subscribe({
+      next: (res: any) => {
+        // Bước 2: Merge kết quả API vào dataRule
+        if (res?.data && Array.isArray(res.data)) {
+          const lstResult: any[] = res.data;
+          for (const item of lstResult) {
+            const node = this.dataRule.find((row: any) =>
+              row.EvaluationCode === item.EvaluationCode
+            );
+            if (node) {
+              node.FirstMonth = Number(item.FirstMonth) || 0;
+              node.SecondMonth = Number(item.SecondMonth) || 0;
+              node.ThirdMonth = Number(item.ThirdMonth) || 0;
+            }
+          }
+          console.log('[LoadPointRuleNew] Merged', lstResult.length, 'records vào dataRule');
+        }
+        // Bước 3 & 4
+        this.applyTeamSummaryAndCalculate();
+      },
+      error: (err: any) => {
+        console.error('[LoadPointRuleNew] Lỗi gọi API:', err);
+        this.applyTeamSummaryAndCalculate();
+      }
+    });
+  }
+
+  /**
+   * Bước 3 & 4: Override TEAM* nodes từ grid Team summary, rồi gọi calculatorPoint
+   * Khớp với WinForm: phần lstResult.AddRange(TEAM01..MA11) + foreach node.SetValue
+   */
+  private applyTeamSummaryAndCalculate(): void {
+    const timeWork = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'TimeWork') || 0, 2);
+    const fiveS = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'FiveS') || 0, 2);
+    const reportWork = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'ReportWork') || 0, 2);
+    const customerComplaint = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'ComplaneAndMissing') || 0, 2);
+    const deadlineDelay = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'DeadlineDelay') || 0, 2);
+    const teamKPIKyNang = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIKyNang') || 0, 2);
+    const teanKPIChung = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIChung') || 0, 2);
+    const teamKPIPLC = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIPLC') || 0, 2);
+    const teamKPIVISION = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIVision') || 0, 2);
+    const teamKPISOFTWARE = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPISoftware') || 0, 2);
+    const teamKPIChuyenMon = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIChuyenMon') || 0, 2);
+
+    // Tính totalErrorTBP từ MA03, MA04, NotWorking, WorkLate (sau khi đã merge từ API)
+    const lstCodeTBP = ['MA03', 'MA04', 'NotWorking', 'WorkLate'];
+    const ltsMA11 = this.dataRule.filter((row: any) =>
+      lstCodeTBP.includes(row.EvaluationCode?.trim() || '')
+    );
+    const totalErrorTBP = ltsMA11.reduce((sum: number, row: any) =>
+      sum + (Number(row.FirstMonth) || 0) + (Number(row.SecondMonth) || 0) + (Number(row.ThirdMonth) || 0), 0
+    );
+
+    // Override TEAM* và MA11 nodes (giống WinForm lstResult.AddRange)
+    const teamOverrides = [
+      { EvaluationCode: 'TEAM01', ThirdMonth: timeWork },
+      { EvaluationCode: 'TEAM02', ThirdMonth: fiveS },
+      { EvaluationCode: 'TEAM03', ThirdMonth: reportWork },
+      { EvaluationCode: 'TEAM04', ThirdMonth: this.formatDecimalNumber(customerComplaint + deadlineDelay, 2) },
+      { EvaluationCode: 'TEAM05', ThirdMonth: customerComplaint },
+      { EvaluationCode: 'TEAM06', ThirdMonth: deadlineDelay },
+      { EvaluationCode: 'TEAMKPIKYNANG', ThirdMonth: teamKPIKyNang },
+      { EvaluationCode: 'TEAMKPIChung', ThirdMonth: teanKPIChung },
+      { EvaluationCode: 'TEAMKPIPLC', ThirdMonth: teamKPIPLC },
+      { EvaluationCode: 'TEAMKPIVISION', ThirdMonth: teamKPIVISION },
+      { EvaluationCode: 'TEAMKPISOFTWARE', ThirdMonth: teamKPISOFTWARE },
+      { EvaluationCode: 'TEAMKPICHUYENMON', ThirdMonth: teamKPIChuyenMon },
+      { EvaluationCode: 'MA11', ThirdMonth: this.formatDecimalNumber(totalErrorTBP, 2) }
+    ];
+
+    for (const item of teamOverrides) {
+      const node = this.dataRule.find((row: any) => row.EvaluationCode === item.EvaluationCode);
+      if (node) {
+        node.ThirdMonth = item.ThirdMonth || 0;
+      }
+    }
+
+    // Gọi calculatorPoint để tính TotalError, PercentBonus, PercentRemaining
+    const isTBP = this.isTBPView;
+    this.calculatorPoint(isTBP, this.isPublic);
+    this.refreshGrid(this.angularGridRule, this.dataRule);
+    this.updateRuleFooter();
+  }
+  //#endregion
+
   //#region Load Team Summary and Add Team Nodes
   /**
    * Lấy summary từ grid Team và thêm các dòng TEAM vào dataRule
@@ -3639,7 +3734,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       { EvaluationCode: 'TEAM01', ThirdMonth: this.formatDecimalNumber(timeWork, 2) },
       { EvaluationCode: 'TEAM02', ThirdMonth: this.formatDecimalNumber(fiveS, 2) },
       { EvaluationCode: 'TEAM03', ThirdMonth: this.formatDecimalNumber(reportWork, 2) },
-      { EvaluationCode: 'TEAM04', ThirdMonth: this.formatDecimalNumber(customerComplaint + missingTool + deadlineDelay, 2) },
+      { EvaluationCode: 'TEAM04', ThirdMonth: this.formatDecimalNumber(customerComplaint + deadlineDelay, 2) },
       { EvaluationCode: 'TEAM05', ThirdMonth: this.formatDecimalNumber(customerComplaint, 2) },
       { EvaluationCode: 'TEAM06', ThirdMonth: this.formatDecimalNumber(deadlineDelay, 2) },
       { EvaluationCode: 'TEAMKPIKYNANG', ThirdMonth: this.formatDecimalNumber(teamKPIKyNang, 2) },

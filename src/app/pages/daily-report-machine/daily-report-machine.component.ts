@@ -159,25 +159,6 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
       if (res && res.status === 1 && res.data) {
         const data = Array.isArray(res.data) ? res.data[0] : res.data;
         this.currentUser = data;
-        // Sau khi có currentUser, nếu users đã được load thì set userId
-        if (this.users.length > 0) {
-          // Thử tìm theo ID trước, nếu không có thì tìm theo EmployeeID
-          if (data.IsAdmin == true || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.userId = 0;
-          }
-          else if (data.ID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.setUserIdFromEmployeeID(data.ID);
-          } else if (data.EmployeeID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.setUserIdFromEmployeeID(data.EmployeeID);
-          } else {
-            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
-            this.userId = 0;
-          }
-        } else {
-          // Nếu users chưa được load, tạm thời set về "Tất cả"
-          // Khi loadUsers() được gọi sau đó, nó sẽ tự động tìm và set lại
-          this.userId = 0;
-        }
 
         // Sau khi có currentUser, load dữ liệu bảng nếu table đã được khởi tạo
         if (this.tb_daily_report_tech) {
@@ -186,7 +167,6 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
       } else {
         // Nếu không có currentUser, set về "Tất cả"
         this.userId = 0;
-        // Vẫn load dữ liệu với currentUser = null
         if (this.tb_daily_report_tech) {
           this.getDailyReportTechData();
         }
@@ -215,15 +195,22 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
             ...(response.data || [])
           ];
 
-          // Nếu có currentUser, kiểm tra LeaderID để tự động chọn team
+          // Nếu là Leader (IsLeader > 1): tự động chọn đúng team của mình
+          // Nếu là Admin/N1: giữ teamId = 0 (Tất cả)
           if (this.currentUser && this.currentUser.EmployeeID) {
-            const leaderTeam = (response.data || []).find(
-              (team: any) => team.LeaderID === this.currentUser.EmployeeID
-            );
-            if (leaderTeam && leaderTeam.ID) {
-              this.teamId = leaderTeam.ID;
-              // Reload users theo team vừa chọn
-              this.loadUsers();
+            const isAdminOrN1 = this.currentUser.IsAdmin == true
+              || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
+              || this.currentUser.Permissions?.includes('N1');
+
+            if (!isAdminOrN1) {
+              const leaderTeam = (response.data || []).find(
+                (team: any) => team.LeaderID === this.currentUser.EmployeeID
+              );
+              if (leaderTeam && leaderTeam.ID) {
+                this.teamId = leaderTeam.ID;
+                // Reload users theo team vừa chọn
+                this.loadUsers();
+              }
             }
           }
         },
@@ -264,27 +251,26 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
           this.users = [];
         }
 
-        // Sau khi load users, tìm và set userId từ currentUser
-        // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
+        // Sau khi load users, xác định userId theo 3 trường hợp:
+        // 1. Admin / N1 / USER_ALL_REPORT_TECH → userId = 0 (Tất cả)
+        // 2. IsLeader > 1 → userId = 0 (Leader xem tất cả người trong team)
+        // 3. Nhân viên thường → userId = ID của chính họ
         if (this.currentUser) {
-          if (
-            this.currentUser.ID &&
-            this.currentUser.IsAdmin != true &&
-            !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
-          ) {
+          const isAdminOrN1 = this.currentUser.IsAdmin == true
+            || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
+            || this.currentUser.Permissions?.includes('N1');
+
+          if (isAdminOrN1 || this.currentUser.IsLeader > 1) {
+            // Admin/N1/Leader: xem tất cả nhân viên (trong team nếu leader, tất cả nếu admin/N1)
+            this.userId = 0;
+          } else if (this.currentUser.ID) {
             this.setUserIdFromEmployeeID(this.currentUser.ID);
-          } else if (
-            this.currentUser.EmployeeID &&
-            this.currentUser.IsAdmin != true &&
-            !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
-          ) {
+          } else if (this.currentUser.EmployeeID) {
             this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
           } else {
-            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
             this.userId = 0;
           }
         } else {
-          // Nếu không có currentUser, set về "Tất cả"
           this.userId = 0;
         }
       },
@@ -448,7 +434,8 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
       if (
         this.currentUser.IsLeader > 1 ||
         this.currentUser.IsAdmin == true ||
-        USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
+        USER_ALL_REPORT_TECH.includes(this.currentUser.ID) ||
+        this.currentUser.Permissions?.includes('N1')
       ) {
         userID = this.userId || 0;
       } else {

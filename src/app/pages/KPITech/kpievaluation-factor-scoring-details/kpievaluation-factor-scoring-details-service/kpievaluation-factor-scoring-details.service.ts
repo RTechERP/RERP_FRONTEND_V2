@@ -174,5 +174,19 @@ export class KPIEvaluationFactorScoringDetailsService {
   saveDataKPI(data: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}api/KPIEvaluationFactorScoringDetails/` + 'save-data-kpi', data);
   }
+
+  /**
+   * Load dữ liệu KPI Rule mới (Factor Scoring Detail)
+   * API: GET api/KPIEvaluationFactorScoringDetails/load-point-rule-new-detail
+   */
+  loadPointRuleNewDetail(kpiExamID: number, isAmdinConfirm: boolean, employeeID: number, sessionID: number): Observable<any> {
+    const params = {
+      kpiExamID: kpiExamID.toString(),
+      isAmdinConfirm: isAmdinConfirm.toString(),
+      employeeID: employeeID.toString(),
+      sessionID: sessionID.toString()
+    };
+    return this.http.get<any>(`${this.baseUrl}api/KPIEvaluationFactorScoringDetails/load-point-rule-new-detail`, { params });
+  }
 }
 

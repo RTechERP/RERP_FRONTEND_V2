@@ -7,17 +7,17 @@
 }
 
 /* Mobile menubar z-index fix */
-::ng-deep .p-menubar {
+:host ::ng-deep .p-menubar {
   position: relative;
   z-index: 1050;
 }
 
-::ng-deep .p-menubar-mobile {
+:host ::ng-deep .p-menubar-mobile {
   position: relative;
   z-index: 1050;
 }
 
-::ng-deep .p-menubar-root-list {
+:host ::ng-deep .p-menubar-root-list {
   position: relative;
   z-index: 1051;
 }
@@ -40,34 +40,34 @@
   height: 100%;
 }
 
-::ng-deep .slickgrid-container {
+:host ::ng-deep .slickgrid-container {
   font-size: 0.75rem !important;
 }
 
-::ng-deep .slick-cell {
+:host ::ng-deep .slick-cell {
   font-size: 0.75rem !important;
   padding: 2px 4px !important;
 }
 
-::ng-deep .slick-header-column {
+:host ::ng-deep .slick-header-column {
   font-size: 0.75rem !important;
   font-weight: 600;
 }
 
-::ng-deep .slick-row {
+:host ::ng-deep .slick-row {
   cursor: pointer;
 }
 
-::ng-deep .slick-row:hover {
+:host ::ng-deep .slick-row:hover {
   background-color: #f5f5f5;
 }
 
-::ng-deep .slick-row.selected {
+:host ::ng-deep .slick-row.selected {
   background-color: #e6f7ff !important;
 }
 
 /* Cell wrap for long text */
-::ng-deep .cell-wrap {
+:host ::ng-deep .cell-wrap {
   white-space: normal !important;
   line-height: 1.4 !important;
   overflow: visible !important;
@@ -77,18 +77,18 @@
 }
 
 /* Đảm bảo row có thể mở rộng chiều cao khi wrap */
-::ng-deep .slick-row {
+:host ::ng-deep .slick-row {
   min-height: 35px !important;
 }
 
 /* Cho phép cell tự động mở rộng chiều cao */
-::ng-deep .slick-cell {
+:host ::ng-deep .slick-cell {
   overflow: visible !important;
   white-space: normal !important;
 }
 
 /* Cell wrap - tự động tăng chiều cao theo nội dung */
-::ng-deep .cell-wrap {
+:host ::ng-deep .cell-wrap {
   white-space: normal !important;
   line-height: 1.5 !important;
   overflow: visible !important;
@@ -102,17 +102,17 @@
 }
 
 /* Đảm bảo row height tự động điều chỉnh theo cell cao nhất */
-::ng-deep .slick-row .slick-cell.cell-wrap {
+:host ::ng-deep .slick-row .slick-cell.cell-wrap {
   display: table-cell !important;
   vertical-align: top !important;
 }
 
 /* Text alignment */
-::ng-deep .text-center {
+:host ::ng-deep .text-center {
   text-align: center !important;
 }
 
-::ng-deep .text-end {
+:host ::ng-deep .text-end {
   text-align: right !important;
 }
 
@@ -123,38 +123,38 @@
 }
 
 /* Dropdown menu styling */
-::ng-deep .ant-dropdown-menu {
+:host ::ng-deep .ant-dropdown-menu {
   font-size: 0.75rem;
 }
 
-::ng-deep .ant-dropdown-menu-item {
+:host ::ng-deep .ant-dropdown-menu-item {
   font-size: 0.75rem;
   padding: 5px 12px;
 }
 
-::ng-deep .ant-dropdown-menu-item img {
+:host ::ng-deep .ant-dropdown-menu-item img {
   width: 16px;
   height: 16px;
   vertical-align: middle;
 }
 
 /* Filter row styling */
-::ng-deep .slick-headerrow {
+:host ::ng-deep .slick-headerrow {
   background-color: #fafafa;
 }
 
-::ng-deep .slick-headerrow-column {
+:host ::ng-deep .slick-headerrow-column {
   padding: 2px !important;
 }
 
-::ng-deep .slick-headerrow-column input {
+:host ::ng-deep .slick-headerrow-column input {
   font-size: 0.7rem;
   padding: 2px 4px;
   width: 100%;
   box-sizing: border-box;
 }
 
-::ng-deep .slick-multiselect-dropdown .ms-drop ul > li label {
+:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul>li label {
   display: block;
   max-width: 100px;
   overflow: hidden;
@@ -162,7 +162,7 @@
   white-space: nowrap;
 }
 
-::ng-deep .slick-multiselect-dropdown .ms-drop ul > li label span {
+:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul>li label span {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -170,19 +170,19 @@
 }
 
 /* Dropdown multipleSelect - tập trung vào class thực tế từ F12 */
-::ng-deep .ms-drop.bottom {
+:host ::ng-deep .ms-drop.bottom {
   width: auto !important;
   min-width: 350px !important;
   max-width: 600px !important;
 }
 
 /* Ô tìm kiếm */
-::ng-deep .ms-drop.bottom .ms-search {
+:host ::ng-deep .ms-drop.bottom .ms-search {
   padding: 8px !important;
   border-bottom: 1px solid #e8e8e8 !important;
 }
 
-::ng-deep .ms-drop.bottom .ms-search input {
+:host ::ng-deep .ms-drop.bottom .ms-search input {
   width: 100% !important;
   padding: 6px 8px !important;
   border: 1px solid #d9d9d9 !important;
@@ -191,17 +191,17 @@
 }
 
 /* Danh sách options */
-::ng-deep .ms-drop.bottom .ms-list {
+:host ::ng-deep .ms-drop.bottom .ms-list {
   overflow-y: auto !important;
 }
 
-::ng-deep .ms-drop.bottom .ms-list li {
+:host ::ng-deep .ms-drop.bottom .ms-list li {
   padding: 0 !important;
   border-bottom: none !important;
 }
 
 /* Label và checkbox */
-::ng-deep .ms-drop.bottom .ms-list li label {
+:host ::ng-deep .ms-drop.bottom .ms-list li label {
   display: flex !important;
   align-items: center !important;
   padding: 8px 12px !important;
@@ -210,7 +210,7 @@
 }
 
 /* Text của option - ellipsis cho text dài */
-::ng-deep .ms-drop.bottom .ms-list li label span {
+:host ::ng-deep .ms-drop.bottom .ms-list li label span {
   flex: 1 !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -220,19 +220,19 @@
 }
 
 /* Checkbox container */
-::ng-deep .ms-drop.bottom .ms-list li label .icon-checkbox-container {
+:host ::ng-deep .ms-drop.bottom .ms-list li label .icon-checkbox-container {
   margin-right: 8px !important;
   flex-shrink: 0 !important;
 }
 
 /* Select All */
-::ng-deep .ms-drop.bottom .ms-select-all {
+:host ::ng-deep .ms-drop.bottom .ms-select-all {
   padding: 8px 12px !important;
   border-bottom: 1px solid #f0f0f0 !important;
   background-color: #fafafa !important;
 }
 
-::ng-deep .ms-drop.bottom .ms-select-all label {
+:host ::ng-deep .ms-drop.bottom .ms-select-all label {
   display: flex !important;
   align-items: center !important;
   width: 100% !important;
@@ -241,27 +241,27 @@
 
 
 /* Hide time picker in date filters */
-::ng-deep .vc-time {
+:host ::ng-deep .vc-time {
   display: none !important;
 }
 
 /* Row status colors for work reports */
-::ng-deep .row-late-1 {
+:host ::ng-deep .row-late-1 {
   background-color: Orange !important;
   color: white !important;
 }
 
-::ng-deep .row-late-2 {
+:host ::ng-deep .row-late-2 {
   background-color: Red !important;
   color: white !important;
 }
 
-::ng-deep .row-warning {
+:host ::ng-deep .row-warning {
   background-color: LightYellow !important;
 }
 
 /* Tree data styling */
-::ng-deep .slick-group-toggle {
+:host ::ng-deep .slick-group-toggle {
   display: inline-block;
   width: 9px;
   height: 9px;
@@ -269,23 +269,24 @@
   cursor: pointer;
   position: relative;
 }
-::ng-deep #grvProjects{
+
+:host ::ng-deep #grvProjects {
   height: 85vh !important;
 }
 
-::ng-deep .slick-group-toggle.collapsed::before {
+:host ::ng-deep .slick-group-toggle.collapsed::before {
   content: '▶';
   font-size: 8px;
   color: #666;
 }
 
-::ng-deep .slick-group-toggle.expanded::before {
+:host ::ng-deep .slick-group-toggle.expanded::before {
   content: '▼';
   font-size: 8px;
   color: #666;
 }
 
-::ng-deep .slick-group-toggle:not(.collapsed):not(.expanded)::before {
+:host ::ng-deep .slick-group-toggle:not(.collapsed):not(.expanded)::before {
   content: '';
   display: inline-block;
   width: 9px;
@@ -293,7 +294,7 @@
 }
 
 /* Folder icons */
-::ng-deep .mdi {
+:host ::ng-deep .mdi {
   font-family: 'Material Design Icons' !important;
   font-style: normal;
   font-weight: normal;
@@ -301,8 +302,8 @@
   vertical-align: middle;
 }
 
-::ng-deep .mdi-folder,
-::ng-deep .mdi-folder-open {
+:host ::ng-deep .mdi-folder,
+:host ::ng-deep .mdi-folder-open {
   color: #ffa500;
   margin-right: 4px;
 }
@@ -332,11 +333,15 @@
   background-color: inherit !important;
   color: inherit !important;
 }
-::ng-deep #grvWorkReport{
+
+:host ::ng-deep #grvWorkReport {
   height: 80vh !important;
 }
+
 /*fix height*/
-.grid-container-projects,.grid-container-workreport,.grid-container-typelink{
+.grid-container-projects,
+.grid-container-workreport,
+.grid-container-typelink {
   height: 100%;
   width: 100%;
 }
@@ -353,7 +358,7 @@ angular-slickgrid,
 }
 
 /* Context Menu Icons - Custom image icons */
-::ng-deep .ctx-icon {
+:host ::ng-deep .ctx-icon {
   display: inline-block;
   width: 16px;
   height: 16px;
@@ -363,42 +368,42 @@ angular-slickgrid,
   vertical-align: middle;
 }
 
-::ng-deep .ctx-icon-priority {
+:host ::ng-deep .ctx-icon-priority {
   background-image: url('/assets/icon/priority_level_16.png');
 }
 
-::ng-deep .ctx-icon-participants {
+:host ::ng-deep .ctx-icon-participants {
   background-image: url('/assets/icon/participants_16.png');
 }
 
-::ng-deep .ctx-icon-compare {
+:host ::ng-deep .ctx-icon-compare {
   background-image: url('/assets/icon/compare_project_16.png');
 }
 
-::ng-deep .ctx-icon-additional {
+:host ::ng-deep .ctx-icon-additional {
   background-image: url('/assets/icon/additional_goods_16.png');
 }
 
-::ng-deep .ctx-icon-solution {
+:host ::ng-deep .ctx-icon-solution {
   background-image: url('/assets/icon/solution_16.png');
 }
 
-::ng-deep .ctx-icon-leader {
+:host ::ng-deep .ctx-icon-leader {
   background-image: url('/assets/icon/update_leader_16.png');
 }
 
-::ng-deep .ctx-icon-history {
+:host ::ng-deep .ctx-icon-history {
   background-image: url('/assets/icon/problem_history_16.png');
 }
 
-::ng-deep .ctx-icon-status {
+:host ::ng-deep .ctx-icon-status {
   background-image: url('/assets/icon/project_status_16.png');
 }
 
-::ng-deep .ctx-icon-update {
+:host ::ng-deep .ctx-icon-update {
   background-image: url('/assets/icon/update_status_16.png');
 }
 
-::ng-deep .ctx-icon-sync {
+:host ::ng-deep .ctx-icon-sync {
   background-image: url('/assets/icon/update_status2_16.png');
 }

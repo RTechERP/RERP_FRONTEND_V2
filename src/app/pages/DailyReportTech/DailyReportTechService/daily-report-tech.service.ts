@@ -115,6 +115,29 @@ export class DailyReportTechService {
   }
 
   /**
+   * Gửi email báo cáo công việc Marketing
+   * @param body Nội dung email (HTML)
+   * @param dateReport Ngày báo cáo (optional)
+   * @returns Observable<any>
+   */
+  sendEmailMarketingReport(
+    body: string,
+    dateReport?: Date | string,
+    fileLinks?: { FileName: string; Url: string }[]
+  ): Observable<any> {
+    let dateStr: string | null = null;
+    if (dateReport) {
+      dateStr = dateReport instanceof Date ? dateReport.toISOString() : dateReport;
+    }
+    const request: any = {
+      Body: body,
+      DateReport: dateStr,
+      FileLinks: fileLinks ?? []
+    };
+    return this.http.post<any>(this.apiUrl + 'send-email-marketing-report', request);
+  }
+
+  /**
    * Xuất Excel báo cáo kỹ thuật
    * @param request ExportExcelDailyReportTechRequest
    * @returns Observable<Blob> - File Excel

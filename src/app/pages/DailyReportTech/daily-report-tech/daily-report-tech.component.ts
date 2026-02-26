@@ -30,6 +30,7 @@ import { Subject } from 'rxjs';
 import { DailyReportTechDetailComponent } from './daily-report-tech-detail/daily-report-tech-detail.component';
 import { DailyReportExcelComponent } from '../daily-report-excel/daily-report-excel.component';
 import { USER_ALL_REPORT_TECH } from '../../../app.config';
+import { USER_ALL_REPORT } from '../../../app.config';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { AppUserService } from '../../../services/app-user.service';
@@ -400,7 +401,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     let userID = 0;
     const currentUser = this.appUserService.currentUser;
     if (currentUser) {
-      if ((currentUser.IsLeader || 0) > 1 || this.appUserService.isAdmin || USER_ALL_REPORT_TECH.includes(currentUser.ID)) {
+      if ((currentUser.IsLeader || 0) > 1 || this.appUserService.isAdmin || USER_ALL_REPORT_TECH.includes(currentUser.ID) || currentUser.Permissions?.includes('N1')) {
         userID = this.userId || 0;
       } else {
         userID = currentUser.ID || 0;

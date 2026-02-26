@@ -1,5 +1,4 @@
-import { Component, OnInit, AfterViewInit, inject, ChangeDetectorRef, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, AfterViewInit, inject, ChangeDetectorRef, Input, OnChanges, SimpleChanges, Inject, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -178,6 +177,9 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
   @Input() typeID: number = 0; // 2: TBP, 3: BGĐ, 4: Admin
   isPublic: boolean = true; // Default true matching logic
+
+  // Prefix cho gridId để tránh trùng lặp khi mở nhiều typeID trên cùng một trang
+  gridIdPrefix: string = 'fs';    // factory-scoring, sẽ được cập nhật theo typeID
 
   // Visibility flags for toolbar
   showNVGroup: boolean = true;
@@ -507,14 +509,24 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
   private notification = inject(NzNotificationService);
   private modal = inject(NzModalService);
   private cdr = inject(ChangeDetectorRef);
-  private route = inject(ActivatedRoute);
   private ngbModal = inject(NgbModal);
 
-  constructor() {
+  constructor(@Optional() @Inject('tabData') private tabData: any) {
     // Get user context
     this.employeeID = this.appUserService.employeeID || 0;
     this.departmentID = this.appUserService.departmentID || 2;
     this.isAdmin = this.appUserService.isAdmin || false;
+
+    // Đọc typeID từ tabData (per-instance, isolate mỗi tab)
+    // Ưu tiên tabData > @Input() typeID
+    if (tabData?.typeID !== undefined && tabData?.typeID !== null) {
+      this.typeID = Number(tabData.typeID);
+    }
+
+    // Đặt gridIdPrefix ngay trong constructor dựa trên typeID để không bao giờ thay đổi
+    if (this.typeID) {
+      this.gridIdPrefix = `fs-type${this.typeID}`;
+    }
 
     // Default department - WinForm sets this via parameter
     this.selectedDepartmentID = this.departmentID;
@@ -522,7 +534,10 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['typeID']) {
+      this.gridIdPrefix = `fs-type${this.typeID}`;
       this.applyTypeIDLogic();
+      // Also re-initialize grids when typeID input changes (component used as child)
+      this.initializeGrids();
     }
   }
 
@@ -556,38 +571,30 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       // But WinForm logic only special-cases Admin (4).
     }
 
-    // 2. Grid Column Permissions
-    // Need to re-initialize columns or update their properties
-    this.initializeGrids();
+    // NOTE: Grid column re-initialization (initializeGrids) is intentionally NOT called here.
+    // It is called separately in ngOnInit after applyTypeIDLogic to avoid calling setColumns
+    // on grids that are being destroyed during route/prefix changes (causes Sortable null error).
   }
 
   ngOnInit(): void {
-    // Read typeID from query parameter - CHỜ typeID có giá trị TRƯỚC khi khởi tạo grids
-    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      if (params['typeID']) {
-        this.typeID = Number(params['typeID']);
+    // typeID đã được set trong constructor từ tabData (per-instance)
+    // gridIdPrefix đã được set trong constructor, không bao giờ thay đổi
+    this.applyTypeIDLogic();
+    this.initializeGrids();
+    this.updateTabVisibility();
+    this.loadDepartments();
+    setTimeout(() => {
+      if (this.selectedDepartmentID) {
+        this.loadKPISession();
       }
-      this.applyTypeIDLogic();
-      console.log('typeID', this.typeID);
-      console.log('showAdminConfirm', this.showAdminConfirm);
-      // Khởi tạo grids SAU khi có typeID để editor được config đúng
-      this.initializeGrids();
-      // Áp dụng logic ẩn/hiện tab và cột - PHẢI gọi TRƯỚC khi grid render
-      this.updateTabVisibility();
-      this.loadDepartments();
-      // Load initial data
-      setTimeout(() => {
-        if (this.selectedDepartmentID) {
-          this.loadKPISession();
-        }
-      }, 100);
-    });
+    }, 100);
   }
 
   ngAfterViewInit(): void {
-    // Delay grid initialization to ensure DOM is ready
+    // Delay để đảm bảo DOM sẵn sàng trước khi render grid
     setTimeout(() => {
       this.gridsInitialized = true;
+      this.cdr.detectChanges();
     }, 100);
   }
 
@@ -1086,7 +1093,11 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     };
 
     if (this.angularGridEvaluation?.slickGrid) {
-      this.angularGridEvaluation.slickGrid.setColumns(this.evaluationColumns);
+      try {
+        this.angularGridEvaluation.slickGrid.setColumns(this.evaluationColumns);
+      } catch (e) {
+        // Grid DOM may be destroyed during route/prefix change - safely ignore
+      }
     }
   }
 
@@ -1102,7 +1113,11 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       }
     };
     if (this.angularGridEvaluation2?.slickGrid) {
-      this.angularGridEvaluation2.slickGrid.setColumns(this.evaluation2Columns);
+      try {
+        this.angularGridEvaluation2.slickGrid.setColumns(this.evaluation2Columns);
+      } catch (e) {
+        // Grid DOM may be destroyed during route/prefix change - safely ignore
+      }
     }
   }
 
@@ -1118,7 +1133,11 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       }
     };
     if (this.angularGridEvaluation4?.slickGrid) {
-      this.angularGridEvaluation4.slickGrid.setColumns(this.evaluation4Columns);
+      try {
+        this.angularGridEvaluation4.slickGrid.setColumns(this.evaluation4Columns);
+      } catch (e) {
+        // Grid DOM may be destroyed during route/prefix change - safely ignore
+      }
     }
   }
   //#endregion
@@ -1798,6 +1817,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
   // Grid ready handlers
   onExamGridReady(angularGrid: any): void {
     this.angularGridExam = angularGrid.detail ?? angularGrid;
+    console.log('[KPIFactorScoring] onExamGridReady fired, gridIdPrefix:', this.gridIdPrefix, 'gridId:', this.angularGridExam?.slickGrid?.getContainerNode?.()?.id);
     // Reset column widths to enforce defined widths
     this.resetColumnWidths(this.angularGridExam, this.examColumns);
     setTimeout(() => this.angularGridExam?.resizerService?.resizeGrid(), 100);
@@ -1805,6 +1825,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
   onEmployeeGridReady(angularGrid: any): void {
     this.angularGridEmployee = angularGrid.detail ?? angularGrid;
+    console.log('[KPIFactorScoring] onEmployeeGridReady fired, gridIdPrefix:', this.gridIdPrefix);
     // Reset column widths to enforce defined widths
     this.resetColumnWidths(this.angularGridEmployee, this.employeeColumns);
     setTimeout(() => this.angularGridEmployee?.resizerService?.resizeGrid(), 100);
@@ -1812,6 +1833,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
   onEvaluationGridReady(angularGrid: any): void {
     this.angularGridEvaluation = angularGrid.detail ?? angularGrid;
+    console.log('[KPIFactorScoring] onEvaluationGridReady fired, gridIdPrefix:', this.gridIdPrefix, 'dataEvaluation.length:', this.dataEvaluation.length);
     this.applyEvaluationRowStyling(this.angularGridEvaluation);
     // Cập nhật columns với editor config dựa trên typeID hiện tại
     this.updateEvaluationGridColumns(this.angularGridEvaluation);
@@ -1860,11 +1882,13 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
 
   onMasterGridReady(angularGrid: any): void {
     this.angularGridMaster = angularGrid.detail ?? angularGrid;
+    console.log('[KPIFactorScoring] onMasterGridReady fired, gridIdPrefix:', this.gridIdPrefix);
     setTimeout(() => this.angularGridMaster?.resizerService?.resizeGrid(), 100);
   }
 
   onRuleGridReady(angularGrid: any): void {
     this.angularGridRule = angularGrid.detail ?? angularGrid;
+    console.log('[KPIFactorScoring] onRuleGridReady fired, gridIdPrefix:', this.gridIdPrefix);
     this.applyEvaluationRowStyling(this.angularGridRule);
     // Reset column widths to enforce defined widths
     this.resetColumnWidths(this.angularGridRule, this.ruleColumns);
@@ -2220,29 +2244,12 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
           }
           this.isTab5Loaded = true;
 
-          // Lấy điểm cuối cùng từ API mới
-          this.kpiService.getFinalPoint(this.selectedEmployeeID, sessionID).subscribe({
-            next: (finalRes: any) => {
-              if (finalRes.data) {
-                this.totalPercentActual = Number(finalRes.data.TotalPercentActual) || 0;
-                this.updateRuleFooter();
-              }
-            },
-            error: (err: any) => console.error('Lỗi load điểm cuối cùng:', err)
-          });
+          // BƯỚC 3: Đồng bộ logic LoadPointRuleNew và tính toán (WinForm logic)
+          console.log('[FactorScoring] DT Rule/Team loaded, calling loadPointRuleNewAndCalculate');
+          this.loadPointRuleNewAndCalculate();
         }
 
-        console.log('[FactorScoring] Rule data loaded, triggering calculation');
-        // Cập nhật footer cho Rule - hiển thị xếp loại
-        // Theo luồng WinForm: LoadSummaryRuleNew → CalculatorPoint → update footer
-        setTimeout(() => {
-          // Xác định isTBP dựa vào typeID (typeID = 2 là TBP)
-          const isTBP = this.typeID === 2;
-          this.calculatorPoint(isTBP, this.isPublic);
-          this.updateRuleFooter();
-        }, 200);
-
-        // Cập nhật grid nếu đã load (không bắt buộc để tính toán)
+        // Cập nhật grid nếu đã load
         this.updateGrid(this.angularGridRule, this.dataRule);
         this.updateGrid(this.angularGridTeam, this.dataTeam);
 
@@ -3069,7 +3076,8 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
                     }
 
                     // 8. Load lại KPI Rule mới với empPointMaster
-                    this.kpiService.loadPointRuleNew(empPointMaster)
+                    const sessionID = this.selectedKPISessionID || 0;
+                    this.kpiService.loadPointRuleNew(this.selectedExamID, this.selectedEmployeeID, sessionID)
                       .pipe(takeUntil(this.destroy$))
                       .subscribe({
                         next: (ruleResponse: any) => {
@@ -4090,24 +4098,155 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     ];
   }
 
-  // #region Tính toán điểm KPI Rule - Calculator Point
+  // #region Logic Load Rule New & Calculate (WinForm Sync)
   /**
-   * Tính toán điểm thưởng/phạt cho KPI Rule
-   * Khớp với logic hàm CalculatorPoint trong WinForm (lines 964-1088)
-   * 
-   * Luồng chạy:
-   * 1. Lấy thông tin empPoint và kiểm tra isTBP (vị trí = 5 là TBP)
-   * 2. Gọi calculatorNoError để tính tổng lỗi cho MA09
-   * 3. Duyệt từ node cuối lên đầu (để tính node con trước node cha)
-   * 4. Với mỗi node:
-   *    - Nếu có node con: tính tổng PercentBonus, PercentRemaining từ các node con
-   *    - Nếu không có node con: tính từ FirstMonth, SecondMonth, ThirdMonth
-   * 5. Áp dụng các quy tắc đặc biệt cho OT, KPI, TEAMKPI, MA09
-   * 6. Nếu chưa công bố (IsPublish = false) thì PercentRemaining = 0
-   * 
-   * @param isTBP - Có phải là vị trí TBP (Trưởng Bộ Phận) không
-   * @param isPublish - Đã công bố điểm chưa
+   * Load dữ liệu Point Rule mới và thực hiện tính toán
+   * Replicates WinForm LoadPointRuleNew flow
    */
+  private loadPointRuleNewAndCalculate(): void {
+    const sessionID = this.selectedKPISessionID || 0;
+    const isTBP = this.typeID === 2;
+
+    this.kpiService.loadPointRuleNew(this.selectedExamID, this.selectedEmployeeID, sessionID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          if (res.data && Array.isArray(res.data)) {
+            console.log('[FactorScoring] loadPointRuleNew response:', res.data);
+            // Cập nhật giá trị FirstMonth, SecondMonth, ThirdMonth vào dataRule hiện tại
+            this.dataRule = this.dataRule.map(rule => {
+              const newData = res.data.find((item: any) => item.EvaluationCode === rule.EvaluationCode);
+              if (newData) {
+                return {
+                  ...rule,
+                  FirstMonth: newData.FirstMonth,
+                  SecondMonth: newData.SecondMonth,
+                  ThirdMonth: newData.ThirdMonth
+                };
+              }
+              return rule;
+            });
+
+            // Sau khi merge dữ liệu từ API mới, thực hiện tính toán từ Team Rule
+            this.applyTeamSummaryAndCalculate();
+          } else {
+            // Nếu không có dữ liệu mới, vẫn thực hiện tính toán bình thường
+            this.applyTeamSummaryAndCalculate();
+          }
+        },
+        error: (err) => {
+          console.error('[FactorScoring] Error loading Point Rule New:', err);
+          // Vẫn thực hiện tính toán ngay cả khi lỗi load API mới
+          this.applyTeamSummaryAndCalculate();
+        }
+      });
+  }
+
+  /**
+   * Tính toán các giá trị TEAM* và MA11 từ summary data
+   * Khớp với logic WinForm frmKPIEvaluationFactorScoring LoadKPIRuleNew (line 3251+)
+   */
+  private applyTeamSummaryAndCalculate(): void {
+    const isTBP = this.typeID === 2;
+
+    // 1. Tính toán các giá trị tổng hợp (Summary) từ Team (dataTeam)
+    // WinForm: timeWork = TextUtils.ToDecimal(grvTeam.Columns["TimeWork"].SummaryItem.SummaryValue)
+    let sumTimeWork = 0;
+    let sumFiveS = 0;
+    let sumReportWork = 0;
+    let sumCustomerComplaint = 0; // ComplaneAndMissing
+    let sumDeadlineDelay = 0;
+    let sumKPIKyNang = 0;
+    let sumKPIChung = 0;
+    let sumKPIPLC = 0;
+    let sumKPIVision = 0;
+    let sumKPISoftware = 0;
+    let sumKPIChuyenMon = 0;
+    let sumMissingTool = 0;
+
+    if (this.dataTeam && this.dataTeam.length > 0) {
+      this.dataTeam.forEach(item => {
+        sumTimeWork += Number(item.TimeWork) || 0;
+        sumFiveS += Number(item.FiveS) || 0;
+        sumReportWork += Number(item.ReportWork) || 0;
+        sumCustomerComplaint += Number(item.ComplaneAndMissing) || 0;
+        sumDeadlineDelay += Number(item.DeadlineDelay) || 0;
+        sumKPIKyNang += Number(item.KPIKyNang) || 0;
+        sumKPIChung += Number(item.KPIChung) || 0;
+        sumKPIPLC += Number(item.KPIPLC) || 0;
+        sumKPIVision += Number(item.KPIVision) || 0;
+        sumKPISoftware += Number(item.KPISoftware) || 0;
+        sumKPIChuyenMon += Number(item.KPIChuyenMon) || 0;
+        sumMissingTool += Number(item.MissingTool) || 0;
+      });
+    }
+
+    // 2. Tính toán MA11 (Tổng lỗi chuyển từ các mã MA03, MA04, NotWorking, WorkLate)
+    // WinForm line 3252+: totalErrorTBP = ltsMA11.Sum(p => p.FirstMonth + p.SecondMonth + p.ThirdMonth)
+    const lstCodeTBP = ['MA03', 'MA04', 'NotWorking', 'WorkLate'];
+    let totalErrorTBP = 0;
+
+    this.dataRule.forEach(row => {
+      if (lstCodeTBP.includes(String(row.EvaluationCode || '').trim())) {
+        totalErrorTBP += (Number(row.FirstMonth) || 0) + (Number(row.SecondMonth) || 0) + (Number(row.ThirdMonth) || 0);
+      }
+    });
+
+    // 3. Cập nhật vào dataRule (Mapping WinForm line 3257+)
+    this.dataRule = this.dataRule.map(row => {
+      const code = String(row.EvaluationCode || '').trim().toUpperCase();
+      let newValue = -1;
+
+      switch (code) {
+        case 'TEAM01': newValue = sumTimeWork; break;
+        case 'TEAM02': newValue = sumFiveS; break;
+        case 'TEAM03': newValue = sumReportWork; break;
+        case 'TEAM04': newValue = sumCustomerComplaint + sumMissingTool + sumDeadlineDelay; break;
+        case 'TEAM05': newValue = sumCustomerComplaint; break;
+        case 'TEAM06': newValue = sumDeadlineDelay; break;
+        case 'TEAMKPIKYNANG': newValue = sumKPIKyNang; break;
+        case 'TEAMKPICHUNG': newValue = sumKPIChung; break;
+        case 'TEAMKPIPLC': newValue = sumKPIPLC; break;
+        case 'TEAMKPIVISION': newValue = sumKPIVision; break;
+        case 'TEAMKPISOFTWARE': newValue = sumKPISoftware; break;
+        case 'TEAMKPICHUYENMON': newValue = sumKPIChuyenMon; break;
+        case 'MA11': newValue = totalErrorTBP; break;
+      }
+
+      if (newValue !== -1) {
+        return { ...row, ThirdMonth: newValue };
+      }
+      return row;
+    });
+
+    // 4. Thực hiện tính toán điểm (CalculatorPoint)
+    console.log('[FactorScoring] Triggering calculatorPoint after team summary merge');
+    this.calculatorPoint(isTBP, this.isPublic);
+
+    // 5. Cập nhật Footer Rule
+    this.updateRuleFooter();
+
+    // 6. Cập nhật Grids
+    this.updateGrid(this.angularGridRule, this.dataRule);
+    this.updateGrid(this.angularGridTeam, this.dataTeam);
+
+    // 7. Lấy điểm cuối cùng từ API
+    this.kpiService.getFinalPoint(this.selectedEmployeeID, this.selectedKPISessionID || 0).subscribe({
+      next: (finalRes: any) => {
+        if (finalRes.data) {
+          this.totalPercentActual = Number(finalRes.data.TotalPercentActual) || 0;
+          this.updateRuleFooter();
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err: any) => console.error('[FactorScoring] Error loading Final Point:', err)
+    });
+
+    this.cdr.detectChanges();
+  }
+
+  // #endregion
+
   calculatorPoint(isTBP: boolean = false, isPublish: boolean = true): void {
     try {
       // Bước 1: Tính tổng lỗi cho MA09 trước

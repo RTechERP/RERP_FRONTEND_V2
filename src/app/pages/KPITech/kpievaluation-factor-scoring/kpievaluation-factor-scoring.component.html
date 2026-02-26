@@ -183,7 +183,7 @@
                             </div>
                             <div class="card-body p-0 flex-grow-1 overflow-hidden grid-exam-container"
                                 style="min-height: 0;">
-                                <angular-slickgrid gridId="grid-exam" [columns]="examColumns"
+                                <angular-slickgrid [gridId]="gridIdPrefix + '-exam'" [columns]="examColumns"
                                     [options]="examGridOptions" [dataset]="dataExam"
                                     (onAngularGridCreated)="onExamGridReady($event)"
                                     (onSelectedRowsChanged)="onExamRowSelectionChanged($event)">
@@ -201,7 +201,7 @@
                             </div>
                             <div class="card-body p-0 flex-grow-1 overflow-hidden grid-employee-container"
                                 style="min-height: 0; height: 100%;">
-                                <angular-slickgrid gridId="grid-employee" [columns]="employeeColumns"
+                                <angular-slickgrid [gridId]="gridIdPrefix + '-employee'" [columns]="employeeColumns"
                                     [options]="employeeGridOptions" [dataset]="dataEmployee"
                                     (onAngularGridCreated)="onEmployeeGridReady($event)"
                                     (onSelectedRowsChanged)="onEmployeeRowSelectionChanged($event)">
@@ -222,7 +222,7 @@
                             <nz-tab nzTitle="ĐÁNH GIÁ KỸ NĂNG">
                                 <div class="grid-evaluation-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && isEvaluationTabActive"
-                                        gridId="grid-evaluation" [columns]="evaluationColumns"
+                                        [gridId]="gridIdPrefix + '-evaluation'" [columns]="evaluationColumns"
                                         [options]="evaluationGridOptions" [dataset]="dataEvaluation"
                                         (onAngularGridCreated)="onEvaluationGridReady($event)"
                                         (onBeforeEditCell)="onBeforeEditCell($event)"
@@ -235,7 +235,7 @@
                             <nz-tab nzTitle="ĐÁNH GIÁ CHUNG" *ngIf="showTabGeneral">
                                 <div class="grid-evaluation4-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && isGeneralTabActive"
-                                        gridId="grid-evaluation4" [columns]="evaluation4Columns"
+                                        [gridId]="gridIdPrefix + '-evaluation4'" [columns]="evaluation4Columns"
                                         [options]="evaluation4GridOptions" [dataset]="dataEvaluation4"
                                         (onAngularGridCreated)="onEvaluation4GridReady($event)"
                                         (onBeforeEditCell)="onBeforeEditCell($event)"
@@ -248,7 +248,7 @@
                             <nz-tab nzTitle="ĐÁNH GIÁ CHUYÊN MÔN" *ngIf="showTabChuyenMon">
                                 <div class="grid-evaluation2-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && isChuyenMonTabActive"
-                                        gridId="grid-evaluation2" [columns]="evaluation2Columns"
+                                        [gridId]="gridIdPrefix + '-evaluation2'" [columns]="evaluation2Columns"
                                         [options]="evaluation2GridOptions" [dataset]="dataEvaluation2"
                                         (onAngularGridCreated)="onEvaluation2GridReady($event)"
                                         (onBeforeEditCell)="onBeforeEditCell($event)"
@@ -261,8 +261,9 @@
                             <nz-tab nzTitle="TỔNG HỢP ĐÁNH GIÁ">
                                 <div class="grid-master-container" style="height: 100%; position: relative;">
                                     <angular-slickgrid *ngIf="gridsInitialized && isMasterTabActive"
-                                        gridId="grid-master" [columns]="masterColumns" [options]="masterGridOptions"
-                                        [dataset]="dataMaster" (onAngularGridCreated)="onMasterGridReady($event)">
+                                        [gridId]="gridIdPrefix + '-master'" [columns]="masterColumns"
+                                        [options]="masterGridOptions" [dataset]="dataMaster"
+                                        (onAngularGridCreated)="onMasterGridReady($event)">
                                     </angular-slickgrid>
                                 </div>
                             </nz-tab>
@@ -270,8 +271,9 @@
                             <!-- Tab 5: KPI Rule (tlKPIRule) -->
                             <nz-tab nzTitle="KPI RULE" *ngIf="showTabRule">
                                 <div class="grid-rule-container" style="height: 100%; position: relative;">
-                                    <angular-slickgrid *ngIf="gridsInitialized && isRuleTabActive" gridId="grid-rule"
-                                        [columns]="ruleColumns" [options]="ruleGridOptions" [dataset]="dataRule"
+                                    <angular-slickgrid *ngIf="gridsInitialized && isRuleTabActive"
+                                        [gridId]="gridIdPrefix + '-rule'" [columns]="ruleColumns"
+                                        [options]="ruleGridOptions" [dataset]="dataRule"
                                         (onAngularGridCreated)="onRuleGridReady($event)"
                                         (onBeforeEditCell)="onRuleBeforeEditCell($event)"
                                         (onCellChange)="onRuleCellChange($event)">
@@ -282,8 +284,9 @@
                             <!-- Tab 6: Team Rule (grdTeam) -->
                             <nz-tab nzTitle="TEAM RULE" *ngIf="showTabTeam">
                                 <div class="grid-team-container" style="height: 100%; position: relative;">
-                                    <angular-slickgrid *ngIf="gridsInitialized && isTeamTabActive" gridId="grid-team"
-                                        [columns]="teamColumns" [options]="teamGridOptions" [dataset]="dataTeam"
+                                    <angular-slickgrid *ngIf="gridsInitialized && isTeamTabActive"
+                                        [gridId]="gridIdPrefix + '-team'" [columns]="teamColumns"
+                                        [options]="teamGridOptions" [dataset]="dataTeam"
                                         (onAngularGridCreated)="onTeamGridReady($event)">
                                     </angular-slickgrid>
                                 </div>

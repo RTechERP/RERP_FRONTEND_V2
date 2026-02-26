@@ -62,7 +62,7 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
 
   // Search panel state
   sizeSearch: string = '22%';
-  showSearchBar: boolean = false; // Mặc định ẩn, sẽ được set trong ngOnInit
+  showSearchBar: boolean = true; // Mặc định hiện, sẽ được set trong ngOnInit
   isMobile: boolean = false;
   menuBars: MenuItem[] = [];
   isLoading: boolean = false;
@@ -424,7 +424,7 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         rowHeader: false,
         selectableRows: 1,
-        height: '87vh',
+        height: '85vh',
         paginationMode: 'local',
         columns: [
           // {

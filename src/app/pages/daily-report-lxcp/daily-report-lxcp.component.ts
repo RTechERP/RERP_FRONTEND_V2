@@ -353,7 +353,7 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         // rowHeader: false,
         selectableRows: 1,
-        height: '87vh',
+        height: '85vh',
         paginationMode: 'local',
         columns: columns,
       });

@@ -33,7 +33,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import * as ExcelJS from 'exceljs';
 import { Menubar } from 'primeng/menubar';
 import { ActivatedRoute } from '@angular/router';
-import { SummaryKpiEmployeePointService, SummaryKPIEmployeePointRequest } from './summary-kpi-employee-point-service/summary-kpi-employee-point.service';
+import { SummaryKpiEmployeePointService, SummaryKPIEmployeePointRequest, SaveActualNewRequest } from './summary-kpi-employee-point-service/summary-kpi-employee-point.service';
 import { KPIEvaluationFactorScoringDetailsComponent } from '../../../KPITech/kpievaluation-factor-scoring-details/kpievaluation-factor-scoring-details.component';
 import { KpiRankingComponent } from '../kpi-ranking/kpi-ranking.component';
 
@@ -290,23 +290,27 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const idsToPublish: number[] = selectedRows.map((rowIndex: number) => {
+    const itemsToPublish: SaveActualNewRequest[] = selectedRows.map((rowIndex: number) => {
       const item = this.angularGrid.dataView.getItem(rowIndex);
-      return item?.KPIEmployeePointID;
-    }).filter((id: number) => id);
+      return {
+        Id: item?.KPIEmployeePointID,
+        TotalPercentActual: item?.TotalPercentActual ?? 0,
+        IsPublish: true
+      } as SaveActualNewRequest;
+    }).filter((req: SaveActualNewRequest) => req.Id);
 
-    if (idsToPublish.length === 0) {
+    if (itemsToPublish.length === 0) {
       this.notification.warning('Cảnh báo', 'Không tìm thấy ID để duyệt');
       return;
     }
 
     this.modal.confirm({
       nzTitle: 'Xác nhận duyệt',
-      nzContent: `Bạn có chắc chắn muốn duyệt ${idsToPublish.length} dòng đã chọn?`,
+      nzContent: `Bạn có chắc chắn muốn duyệt ${itemsToPublish.length} dòng đã chọn?`,
       nzOkText: 'Duyệt',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        this.summaryKpiService.publish(idsToPublish).subscribe({
+        this.summaryKpiService.saveActualNew(itemsToPublish).subscribe({
           next: (response: any) => {
             if (response.status === 1) {
               this.notification.success('Thành công', response.message || 'Duyệt thành công');
@@ -330,24 +334,28 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const idsToUnpublish: number[] = selectedRows.map((rowIndex: number) => {
+    const itemsToUnpublish: SaveActualNewRequest[] = selectedRows.map((rowIndex: number) => {
       const item = this.angularGrid.dataView.getItem(rowIndex);
-      return item?.KPIEmployeePointID;
-    }).filter((id: number) => id);
+      return {
+        Id: item?.KPIEmployeePointID,
+        TotalPercentActual: item?.TotalPercentActual ?? 0,
+        IsPublish: false
+      } as SaveActualNewRequest;
+    }).filter((req: SaveActualNewRequest) => req.Id);
 
-    if (idsToUnpublish.length === 0) {
+    if (itemsToUnpublish.length === 0) {
       this.notification.warning('Cảnh báo', 'Không tìm thấy ID để hủy duyệt');
       return;
     }
 
     this.modal.confirm({
       nzTitle: 'Xác nhận hủy duyệt',
-      nzContent: `Bạn có chắc chắn muốn hủy duyệt ${idsToUnpublish.length} dòng đã chọn?`,
+      nzContent: `Bạn có chắc chắn muốn hủy duyệt ${itemsToUnpublish.length} dòng đã chọn?`,
       nzOkText: 'Hủy duyệt',
       nzOkDanger: true,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        this.summaryKpiService.unpublish(idsToUnpublish).subscribe({
+        this.summaryKpiService.saveActualNew(itemsToUnpublish).subscribe({
           next: (response: any) => {
             if (response.status === 1) {
               this.notification.success('Thành công', response.message || 'Hủy duyệt thành công');
@@ -366,20 +374,24 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
 
   onSaveData(): void {
     // Collect modified TotalPercentActual values
-    const dataToSave: { [key: number]: number } = {};
+    const dataToSave: SaveActualNewRequest[] = [];
 
     this.dataset.forEach(item => {
       if (item.KPIEmployeePointID && item.TotalPercentActual !== undefined) {
-        dataToSave[item.KPIEmployeePointID] = item.TotalPercentActual;
+        dataToSave.push({
+          Id: item.KPIEmployeePointID,
+          TotalPercentActual: item.TotalPercentActual,
+          IsPublish: null // không thay đổi trạng thái publish
+        });
       }
     });
 
-    if (Object.keys(dataToSave).length === 0) {
+    if (dataToSave.length === 0) {
       this.notification.warning('Cảnh báo', 'Không có dữ liệu để lưu');
       return;
     }
 
-    this.summaryKpiService.saveActual(dataToSave).subscribe({
+    this.summaryKpiService.saveActualNew(dataToSave).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
           this.notification.success('Thành công', response.message || 'Lưu điểm thành công');

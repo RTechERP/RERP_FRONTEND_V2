@@ -57,6 +57,12 @@ export interface SaveCalculatedDetailsRequest {
   Details: KPIRuleDetailDTO[];
 }
 
+export interface SaveActualNewRequest {
+  Id: number;
+  TotalPercentActual: number;
+  IsPublish?: boolean | null; // null = không thay đổi
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -117,6 +123,11 @@ export class SummaryKpiEmployeePointService {
   // POST api/SummaryKPIEmployeePoint/save-actual
   saveActual(data: { [key: number]: number }): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.baseUrl}/save-actual`, data);
+  }
+
+  // POST api/SummaryKPIEmployeePoint/save-actual-new
+  saveActualNew(data: SaveActualNewRequest[]): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/save-actual-new`, data);
   }
 
   // POST api/SummaryKPIEmployeePoint/save-kpi-point-detail

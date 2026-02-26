@@ -23,7 +23,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -51,7 +50,6 @@ import { PermissionService } from '../../../services/permission.service';
     NzSelectModule,
     NzButtonModule,
     NzIconModule,
-    NzDatePickerModule,
     NzInputModule,
     NzSpinModule,
     NzModalModule,
@@ -73,12 +71,8 @@ export class ProjectPartlistPriceRequestOldComponent
   isLoading: boolean = false;
 
   // Biến tìm kiếm
-  dateStart: Date = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    1
-  );
-  dateEnd: Date = new Date();
+  dateStart: string = '';
+  dateEnd: string = '';
   employeeRequestId: any = 0;
   employeeRequests: any = [];
   keyword: any = '';
@@ -127,6 +121,12 @@ export class ProjectPartlistPriceRequestOldComponent
 
   //#region Lifecycle
   ngOnInit(): void {
+    // Khởi tạo giá trị date mặc định
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    this.dateStart = this.formatDateToInput(firstDayOfMonth);
+    this.dateEnd = this.formatDateToInput(today);
+
     this.loadMenu();
     this.initGridColumns();
     this.initGridOptions();
@@ -296,15 +296,9 @@ export class ProjectPartlistPriceRequestOldComponent
   }
 
   loadData() {
-    const dateStart =
-      typeof this.dateStart === 'string'
-        ? this.dateStart
-        : DateTime.fromJSDate(this.dateStart).toFormat('yyyy/MM/dd');
-
-    const dateEnd =
-      typeof this.dateEnd === 'string'
-        ? this.dateEnd
-        : DateTime.fromJSDate(this.dateEnd).toFormat('yyyy/MM/dd');
+    // Chuyển đổi từ yyyy-MM-dd (input date) sang yyyy/MM/dd (API format)
+    const dateStart = this.formatDateForAPI(this.dateStart);
+    const dateEnd = this.formatDateForAPI(this.dateEnd);
 
     this.isLoading = true;
 
@@ -776,6 +770,23 @@ export class ProjectPartlistPriceRequestOldComponent
             filter: true,
           } as MultipleSelectOption,
         },
+        formatter: (_row, _cell, value) => {
+          if (!value) return '';
+          return `<div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.2em; max-height: 3.6em;">${value}</div>`;
+        },
+      },
+      {
+        id: 'Model',
+        name: 'Thông số kỹ thuật',
+        field: 'Model',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row, _cell, value) => {
+          if (!value) return '';
+          return `<div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.2em; max-height: 3.6em;">${value}</div>`;
+        },
       },
       {
         id: 'Manufacturer',
@@ -1105,15 +1116,6 @@ export class ProjectPartlistPriceRequestOldComponent
         name: 'Ghi chú KT',
         field: 'NotePartlist',
         width: 150,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'Model',
-        name: 'Thông số kỹ thuật',
-        field: 'Model',
-        width: 200,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
@@ -2942,6 +2944,20 @@ export class ProjectPartlistPriceRequestOldComponent
     modalRef.result.finally(() => {
       this.onSearch();
     });
+  }
+
+  // Helper function để chuyển đổi Date sang format yyyy-MM-dd cho input date
+  formatDateToInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Helper function để chuyển đổi từ yyyy-MM-dd sang yyyy/MM/dd cho API
+  formatDateForAPI(dateString: string): string {
+    if (!dateString) return '';
+    return dateString.replace(/-/g, '/');
   }
   //#endregion
 }

@@ -1,4 +1,4 @@
-.horizontal-scroll-container {
+.bill-import-qc-horizontal-scroll-container {
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
@@ -8,24 +8,24 @@
     scrollbar-color: #c1c1c1 transparent;
 }
 
-.horizontal-scroll-container::-webkit-scrollbar {
+.bill-import-qc-horizontal-scroll-container::-webkit-scrollbar {
     height: 6px;
 }
 
-.horizontal-scroll-container::-webkit-scrollbar-track {
+.bill-import-qc-horizontal-scroll-container::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.horizontal-scroll-container::-webkit-scrollbar-thumb {
+.bill-import-qc-horizontal-scroll-container::-webkit-scrollbar-thumb {
     background-color: #c1c1c1;
     border-radius: 3px;
 }
 
-.horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
+.bill-import-qc-horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
     background-color: #a1a1a1;
 }
 
-.horizontal-scroll-container>* {
+.bill-import-qc-horizontal-scroll-container>* {
     flex-shrink: 0;
 }
 
@@ -37,7 +37,7 @@
     height: 86vh !important;
 }
 
-::ng-deep .filter-bar {
+:host ::ng-deep .bill-import-qc-filter-bar {
     nz-form-label {
         font-size: 12px !important;
     }
@@ -75,28 +75,28 @@
     }
 }
 
-.grid-container-master {
+.bill-import-qc-grid-container-master {
     height: 100%;
     width: 100%;
 }
 
-.grid-container-detail {
+.bill-import-qc-grid-container-detail {
     width: 100%;
 }
 
-::ng-deep div[id^="gridQC-"] {
+:host ::ng-deep div[id^="gridQC-"] {
     height: 42.8vh !important;
 }
 
-::ng-deep div[id^="gridQCDetail-"] {
+:host ::ng-deep div[id^="gridQCDetail-"] {
     height: 39.5vh !important;
 }
 
 /* Cell highlighting for status-based coloring */
-::ng-deep .cell-overdue {
+:host ::ng-deep .cell-overdue {
     background-color: orange !important;
 }
 
-::ng-deep .cell-completed {
+:host ::ng-deep .cell-completed {
     background-color: lime !important;
 }

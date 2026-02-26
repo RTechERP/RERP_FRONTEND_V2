@@ -912,7 +912,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         type: 'number',
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),
@@ -927,7 +927,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),
@@ -965,7 +965,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
       },
       // NameNCC - Nhà cung cấp
@@ -1346,15 +1346,15 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['compoundInputText'],
-          // model: Filters['multipleSelect'],
-          // collectionOptions: {
-          //   addBlankEntry: true
-          // },
-          // collection: [],
-          // filterOptions: {
-          //   filter: true,
-          // } as MultipleSelectOption,
+          // model: Filters['compoundInputText'],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
         editor: {
           model: Editors['singleSelect'],
@@ -1770,7 +1770,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
       },
       // UnitPrice (editable)
@@ -1785,10 +1785,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         cssClass: 'text-right',
         editor: {
           model: Editors['float'],
-          decimal: 0,
+          decimal: 4,
         },
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),
@@ -1820,7 +1820,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),
@@ -1835,7 +1835,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),
@@ -1868,7 +1868,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),
@@ -2069,7 +2069,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),
@@ -2243,7 +2243,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),
@@ -3411,8 +3411,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           this.ensureCheckboxSelector(angularGrid);
         }
       }
+    }
 
-      // Get the column info from the grid
+    // Get the column info from the grid
       const columns = angularGrid.slickGrid.getColumns();
       const changedColumn = columns[args.cell];
 
@@ -3481,7 +3482,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       angularGrid.slickGrid.invalidate();
       angularGrid.slickGrid.render();
       this.ensureCheckboxSelector(angularGrid);
-    }
   }
   handleRowSelection(
     typeId: number,

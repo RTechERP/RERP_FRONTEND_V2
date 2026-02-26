@@ -8,7 +8,7 @@ import { environment } from '../../../../../../environments/environment';
 })
 export class DailyReportSaleService {
   private _url = environment.host + 'api/DailyReportSale/';
-  
+
   constructor(private http: HttpClient) { }
 
   getEmployees(): Observable<any> {
@@ -43,6 +43,15 @@ export class DailyReportSaleService {
     });
   }
 
+  loadGroupSales(userId: number): Observable<any> {
+    return this.http.get(this._url + 'load-group-sales', {
+      params: {
+        userId: userId.toString(),
+      },
+    });
+  }
+
+
   getCustomers(): Observable<any> {
     return this.http.get(this._url + 'get-customers');
   }
@@ -59,15 +68,15 @@ export class DailyReportSaleService {
     return this.http.get(this._url + 'get-projectstatus');
   }
 
-  getCustomerContacts(customerId : number): Observable<any> {
+  getCustomerContacts(customerId: number): Observable<any> {
     return this.http.get(this._url + 'get-customercontact', {
       params: {
         customerId: customerId.toString(),
       },
     });
-  } 
+  }
 
-  getCustomerParts(customerId : number): Observable<any> {
+  getCustomerParts(customerId: number): Observable<any> {
     return this.http.get(this._url + 'get-customerpart', {
       params: {
         customerId: customerId.toString(),

@@ -18,8 +18,8 @@
                 <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">Từ
                     ngày</nz-form-label>
                 <nz-form-control>
-                    <nz-date-picker [(ngModel)]="dateStart" name="startDate" nzFormat="dd/MM/yyyy"
-                        style="width: 150px; font-size: 12px;" nzSize="small"></nz-date-picker>
+                    <input type="date" class="ant-input" style="width: 150px; font-size: 12px; height: 24px;"
+                        [(ngModel)]="dateStart" name="startDate" />
                 </nz-form-control>
             </nz-form-item>
 
@@ -27,8 +27,8 @@
                 <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">Đến
                     ngày</nz-form-label>
                 <nz-form-control>
-                    <nz-date-picker [(ngModel)]="dateEnd" name="endDate" nzFormat="dd/MM/yyyy"
-                        style="width: 150px; font-size: 12px;" nzSize="small"></nz-date-picker>
+                    <input type="date" class="ant-input" style="width: 150px; font-size: 12px; height: 24px;"
+                        [(ngModel)]="dateEnd" name="endDate" />
                 </nz-form-control>
             </nz-form-item>
 

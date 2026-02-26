@@ -1956,7 +1956,10 @@ export class BillImportDetailNewComponent
   getDataCbbProductGroup(): void {
     this.billExportService.getCbbProductGroup().subscribe({
       next: (res: any) => {
-        this.dataCbbProductGroup = res.data;
+        this.dataCbbProductGroup = res.data?.filter(
+          (x: any) => x.Isvisible != false && x.ParentID == 0
+            || x.ParentID == null || x.ParentID == undefined
+        );
       },
       error: (err: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');

@@ -264,6 +264,18 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     @HostListener('window:resize')
     onWindowResize(): void {
         this.updateResponsiveState();
+        // Resize all grids to fill the available width (e.g. after toggling F12 DevTools)
+        setTimeout(() => {
+            if (this.angularGrid?.resizerService) {
+                this.angularGrid.resizerService.resizeGrid();
+            }
+            if (this.angularGridWorkReport?.resizerService) {
+                this.angularGridWorkReport.resizerService.resizeGrid();
+            }
+            if (this.angularGridTypeLink?.resizerService) {
+                this.angularGridTypeLink.resizerService.resizeGrid();
+            }
+        }, 200);
     }
 
     //#region Excel Export

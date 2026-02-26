@@ -48,27 +48,29 @@ angular-slickgrid,
 }
 
 /* ==================== HEADER STYLES ==================== */
-/* :host ::ng-deep .slick-header-column {
+/* Scoped to Team Grid only */
+:host ::ng-deep .grid-team-container .slick-header-column {
     background-color: #fafafa;
     border-right: 1px solid #ddd !important;
     font-weight: 600;
-    height: 90px !important;
+    height: 100px !important;
     line-height: normal !important;
+    white-space: normal !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
 }
 
-:host ::ng-deep .slick-header-columns {
-    height: 90px !important;
+:host ::ng-deep .grid-team-container .slick-header-columns {
+    height: 100px !important;
 }
 
-:host ::ng-deep .slick-header-column .slick-column-name {
+:host ::ng-deep .grid-team-container .slick-header-column .slick-column-name {
     white-space: normal !important;
     line-height: 1.2 !important;
     padding: 0 4px !important;
-} */
+}
 
 /* ==================== COLUMN GROUP STYLES (Pre-Header Panel) ==================== */
 :host ::ng-deep .slick-preheader-panel {
@@ -80,8 +82,8 @@ angular-slickgrid,
     border-right: 1px solid #ddd !important;
     font-weight: bold !important;
     text-align: center !important;
-    line-height: 30px !important;
-    height: 30px !important;
+    line-height: 40px !important;
+    height: 40px !important;
     background-color: #fafafa !important;
 }
 
@@ -325,3 +327,15 @@ nz-tabset {
 ::ng-deep .type-select-dropdown {
     min-width: 35vh !important;
 }
+
+/* :host ::ng-deep .slick-header-column {
+    background-color: #fafafa;
+    border-right: 1px solid #ddd !important;
+    font-weight: 600;
+    height: 90px !important;
+    line-height: 90px !important;
+}
+
+:host ::ng-deep .slick-header-columns {
+    height: 90px !important;
+} */

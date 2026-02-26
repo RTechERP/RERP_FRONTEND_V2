@@ -228,6 +228,18 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   @HostListener('window:resize')
   onWindowResize(): void {
     this.updateResponsiveState();
+    // Resize all grids to fill the available width (e.g. after toggling F12 DevTools)
+    setTimeout(() => {
+      if (this.angularGrid?.resizerService) {
+        this.angularGrid.resizerService.resizeGrid();
+      }
+      if (this.angularGridWorkReport?.resizerService) {
+        this.angularGridWorkReport.resizerService.resizeGrid();
+      }
+      if (this.angularGridTypeLink?.resizerService) {
+        this.angularGridTypeLink.resizerService.resizeGrid();
+      }
+    }, 200);
   }
 
   private updateResponsiveState(): void {
@@ -282,7 +294,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'ProjectStatusName',
         name: 'Trạng thái',
         field: 'ProjectStatusName',
-        width: 100,
+        minWidth: 100,
         sortable: true,
         filterable: true,
         filter: {
@@ -323,7 +335,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'PriotityText',
         name: 'Mức ưu tiên',
         field: 'PriotityText',
-        width: 70,
+        minWidth: 70,
         sortable: true,
         filterable: true,
         cssClass: 'text-end',
@@ -333,7 +345,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'PersonalPriotity',
         name: 'Mức độ ưu tiên cá nhân',
         field: 'PersonalPriotity',
-        width: 90,
+        minWidth: 90,
         sortable: true,
         filterable: true,
         cssClass: 'text-end',
@@ -343,7 +355,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'ProjectCode',
         name: 'Mã dự án',
         field: 'ProjectCode',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         // filter: {
@@ -360,7 +372,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'ProjectName',
         name: 'Tên dự án',
         field: 'ProjectName',
-        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         // filter: {
@@ -402,7 +414,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'CurrentSituation',
         name: 'Hiện trạng',
         field: 'CurrentSituation',
-        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         // filter: {
@@ -444,7 +456,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'FullNameSale',
         name: 'Người phụ trách(sale)',
         field: 'FullNameSale',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: {
@@ -485,7 +497,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'FullNameTech',
         name: 'Người phụ trách(kỹ thuật)',
         field: 'FullNameTech',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: {
@@ -526,7 +538,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'FullNamePM',
         name: 'PM',
         field: 'FullNamePM',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: {
@@ -567,7 +579,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'CustomerName',
         name: 'Khách hàng',
         field: 'CustomerName',
-        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         // filter: {
@@ -608,7 +620,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'PlanDateStart',
         name: 'Dự kiến bắt đầu',
         field: 'PlanDateStart',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -620,7 +632,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'PlanDateEnd',
         name: 'Dự kiến kết thúc',
         field: 'PlanDateEnd',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -632,7 +644,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'ActualDateStart',
         name: 'Thực tế bắt đầu',
         field: 'ActualDateStart',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -644,7 +656,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'ActualDateEnd',
         name: 'Thực tế kết thúc',
         field: 'ActualDateEnd',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -656,7 +668,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'EndUserName',
         name: 'End User',
         field: 'EndUserName',
-        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         // filter: {
@@ -698,7 +710,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'PODate',
         name: 'Ngày PO',
         field: 'PODate',
-        width: 100,
+        minWidth: 100,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -710,7 +722,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'CreatedDate',
         name: 'Ngày tạo',
         field: 'CreatedDate',
-        width: 100,
+        minWidth: 100,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -722,7 +734,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'CreatedBy',
         name: 'Người tạo',
         field: 'CreatedBy',
-        width: 100,
+        minWidth: 100,
         sortable: true,
         filterable: true,
         filter: {
@@ -739,7 +751,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'UpdatedBy',
         name: 'Người sửa',
         field: 'UpdatedBy',
-        width: 100,
+        minWidth: 100,
         sortable: true,
         filterable: true,
         filter: {
@@ -756,7 +768,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'UpdatedDate',
         name: 'Ngày cập nhật',
         field: 'UpdatedDate',
-        width: 100,
+        minWidth: 100,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -774,7 +786,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      forceFitColumns: false,
+      forceFitColumns: true,
       enableRowSelection: true,
       enableFiltering: true, // THÊM enableFiltering cho tree data
       rowSelectionOptions: {
@@ -860,7 +872,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'STT',
         name: 'STT',
         field: 'STT',
-        width: 70,
+        minWidth: 70,
         sortable: true,
         cssClass: 'text-center',
         filterable: true,
@@ -870,7 +882,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'Code',
         name: 'Mã',
         field: 'Code',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         filter: {
@@ -886,7 +898,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'StatusText',
         name: 'Trạng thái',
         field: 'StatusText',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: {
@@ -926,7 +938,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'ProjectTypeName',
         name: 'Kiểu hạng mục',
         field: 'ProjectTypeName',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         cssClass: 'cell-wrap',
@@ -943,7 +955,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'FullName',
         name: 'Người phụ trách',
         field: 'FullName',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: {
@@ -959,7 +971,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'PercentItem',
         name: '%',
         field: 'PercentItem',
-        width: 50,
+        minWidth: 50,
         sortable: true,
         cssClass: 'text-end',
         filterable: true,
@@ -969,7 +981,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'Mission',
         name: 'Công việc',
         field: 'Mission',
-        width: 300,
+        minWidth: 300,
         sortable: true,
         filterable: true,
         cssClass: 'cell-wrap',
@@ -986,7 +998,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'EmployeeRequest',
         name: 'Người giao việc',
         field: 'EmployeeRequest',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: {
@@ -1002,7 +1014,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'PlanStartDate',
         name: 'Dự kiến bắt đầu',
         field: 'PlanStartDate',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -1014,7 +1026,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'TotalDayPlan',
         name: 'Số ngày',
         field: 'TotalDayPlan',
-        width: 80,
+        minWidth: 80,
         sortable: true,
         cssClass: 'text-end'
       },
@@ -1022,7 +1034,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'PlanEndDate',
         name: 'Dự kiến kết thúc',
         field: 'PlanEndDate',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -1034,7 +1046,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'ActualStartDate',
         name: 'Thực tế bắt đầu',
         field: 'ActualStartDate',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -1046,7 +1058,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'ActualEndDate',
         name: 'Thực tế kết thúc',
         field: 'ActualEndDate',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -1058,7 +1070,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'PercentageActual',
         name: '% Thực tế',
         field: 'PercentageActual',
-        width: 80,
+        minWidth: 80,
         sortable: true,
         cssClass: 'text-end',
         filterable: true,
@@ -1068,7 +1080,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'Note',
         name: 'Ghi chú',
         field: 'Note',
-        width: 300,
+        minWidth: 300,
         sortable: true,
         filterable: true,
         cssClass: 'cell-wrap',
@@ -1085,7 +1097,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         id: 'ProjectEmployeeName',
         name: 'Người tham gia',
         field: 'ProjectEmployeeName',
-        width: 300,
+        minWidth: 300,
         sortable: true,
         filterable: true,
         cssClass: 'cell-wrap',
@@ -1106,7 +1118,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         calculateAvailableSizeBy: 'container'
       },
       enableAutoResize: true,
-      forceFitColumns: false,
+      forceFitColumns: true,
       enableRowSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,

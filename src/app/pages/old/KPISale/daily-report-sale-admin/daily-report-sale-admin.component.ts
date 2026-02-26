@@ -425,6 +425,7 @@ export class DailyReportSaleAdminComponent implements OnInit, AfterViewInit {
         }
         this.tb_Master = new Tabulator(this.tb_MasterElement.nativeElement, {
             ...DEFAULT_TABLE_CONFIG,
+            pagination: false,
             layout: 'fitDataFill',
             selectableRows: 1,
             height: '100%',

@@ -3664,7 +3664,12 @@ export class MenuService {
             this.departmentHRs.includes(departmentID);
 
         const isAdmin =
-            this.appUserService.currentUser?.IsAdmin;
+            this.appUserService.currentUser?.IsAdmin ||
+            this.appUserService.currentUser?.Permissions.includes("N1");
+
+        const permissionAdmin = this.appUserService.currentUser?.Permissions.includes("N1");
+        // console.log("permissionAdmin:", permissionAdmin);
+        // console.log("isAdmin:", isAdmin);
 
         return this.menuAppService.getAll().pipe(
             map((response: any) => {

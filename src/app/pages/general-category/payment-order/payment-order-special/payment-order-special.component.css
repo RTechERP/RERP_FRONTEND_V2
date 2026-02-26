@@ -1,0 +1,4 @@
+:host ::ng-deep #grdData{
+    height: 42vh !important;
+}
+

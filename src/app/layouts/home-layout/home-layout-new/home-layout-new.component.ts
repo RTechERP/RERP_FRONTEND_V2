@@ -82,6 +82,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     isMobile = window.innerHeight <= 768;
 
     notifItems: NotifyItem[] = [];
+    isAppMenuVisible = false;
+    selectedModuleKey = '';
     menus: any[] = [];
     menuApproves: any = {};
     menuPersons: any[] = [];
@@ -136,28 +138,28 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
     newsletters: any[] = [];
 
-    departmentTechs: any[] = [2, 11, 12, 13];
-    departmentAgvCokhis = [9, 10];
-    departmentLapraps = [23];
-    departmentSales = [3, 12];
-    departmentHRs = [6, 22];
-    employeeHRs = [586];
+    // departmentTechs: any[] = [2, 11, 12, 13];
+    // departmentAgvCokhis = [9, 10];
+    // departmentLapraps = [23];
+    // departmentSales = [3, 12];
+    // departmentHRs = [6, 22];
+    // employeeHRs = [586];
 
-    positinLXs = [6]; //List chức vụ NV lái xe
-    positinCPs = [7, 72]; //List chức vụ NV cắt phim
-    marketings = [8];
+    // positinLXs = [6]; //List chức vụ NV lái xe
+    // positinCPs = [7, 72]; //List chức vụ NV cắt phim
+    // marketings = [8];
 
-    userAllReportTechs = [
-        1, 23, 24, 78, 88, 1221, 1313, 1434, 1431, 53, 51, 1534,
-    ];
+    // userAllReportTechs = [
+    //     1, 23, 24, 78, 88, 1221, 1313, 1434, 1431, 53, 51, 1534,
+    // ];
 
 
-    id = 0;
-    employeeID = 0;
-    departmentID = 0;
-    positionID = 0;
-    isHR = false;
-    isAdmin = false;
+    // id = 0;
+    // employeeID = 0;
+    // departmentID = 0;
+    // positionID = 0;
+    // isHR = false;
+    // isAdmin = false;
 
     constructor(
         private notification: NzNotificationService,
@@ -181,15 +183,16 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         this.appUserService.user$.subscribe(() => {
             this.permissionService.refreshPermissions();
             this.cdr.markForCheck?.();
-            this.id = this.appUserService.currentUser?.ID || 0;
-            this.employeeID = this.appUserService.currentUser?.EmployeeID || 0;
-            this.departmentID = this.appUserService.currentUser?.DepartmentID || 0;
-            this.positionID = this.appUserService.currentUser?.PositionID || 0;
-            this.isHR =
-                (this.employeeHRs.includes(this.employeeID) ||
-                    this.departmentHRs.includes(this.departmentID)) || false;
 
-            this.isAdmin = (this.appUserService.currentUser?.IsAdmin) || false;
+            // this.id = this.appUserService.currentUser?.ID || 0;
+            // this.employeeID = this.appUserService.currentUser?.EmployeeID || 0;
+            // this.departmentID = this.appUserService.currentUser?.DepartmentID || 0;
+            // this.positionID = this.appUserService.currentUser?.PositionID || 0;
+            // this.isHR =
+            //     (this.employeeHRs.includes(this.employeeID) ||
+            //         this.departmentHRs.includes(this.departmentID)) || false;
+
+            // this.isAdmin = (this.appUserService.currentUser?.IsAdmin) || false;
         });
         this.getMenus();
         this.getHoliday(this.today.getFullYear(), this.today.getMonth());
@@ -197,8 +200,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         this.getQuantityApprove();
         this.getQuantityBorrow();
         this.loadNewsletters();
-        this.loadCurrentVersion();
-        this.initSseConnection();
+
+        // this.loadCurrentVersion();
+        // this.initSseConnection();
     }
     getQuantityApprove() {
         this.approveTpService.getQuantityApprove().subscribe({
@@ -456,6 +460,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             // this.newTab(route, title);
 
             this.menuService.setMenuKey(key);
+            this.selectedModuleKey = key;
             this.router.navigate(['/app']); // hoặc route tới MainLayout
             localStorage.removeItem('tabOpeneds');
         }

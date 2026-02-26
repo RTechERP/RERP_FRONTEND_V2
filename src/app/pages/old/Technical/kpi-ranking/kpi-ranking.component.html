@@ -1,0 +1,88 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">BIỂU ĐỒ XẾP LOẠI KPI</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-0">
+    <div class="d-flex flex-column modal-content-container">
+        <!-- Filter Bar -->
+        <div class="filter-bar bg-light border-bottom p-2 d-flex align-items-center">
+            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Năm</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-number [(ngModel)]="year" name="year" [nzMin]="2024" [nzMax]="2100" nzSize="small"
+                            style="width: 80px;" (ngModelChange)="onFilterChange()"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Quý</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-number [(ngModel)]="quarter" name="quarter" [nzMin]="1" [nzMax]="4" nzSize="small"
+                            style="width: 65px;" (ngModelChange)="onFilterChange()"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Phòng ban</nz-form-label>
+                    <nz-form-control>
+                        <nz-select [(ngModel)]="departmentId" name="departmentId" nzSize="small"
+                            nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 200px;" nzShowSearch
+                            (ngModelChange)="onFilterChange()">
+                            <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
+                                [nzLabel]="item.Name"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-control>
+                        <button nz-button nzType="primary" nzSize="small" (click)="loadData()">
+                            <nz-icon nzType="search"></nz-icon> Tìm kiếm
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </div>
+
+        <!-- Content Split -->
+        <nz-splitter class="content-container">
+            <!-- Left: Chart -->
+            <nz-splitter-panel nzDefaultSize="65%" [nzMin]="'40%'" [nzMax]="'80%'">
+                <div class="chart-container p-3 d-flex flex-column h-100 w-100">
+                    <!-- Radio buttons overlay -->
+                    <div class="radio-group">
+                        <label class="radio-kpi">
+                            <input type="radio" name="chartType" value="TotalPoinKPI" [(ngModel)]="selectedChartType"
+                                (change)="onChartTypeChange()">
+                            Tổng điểm KPI
+                        </label>
+                        <label class="radio-kpi-last">
+                            <input type="radio" name="chartType" value="TotalPoinKPILast"
+                                [(ngModel)]="selectedChartType" (change)="onChartTypeChange()">
+                            Tổng điểm cuối cùng
+                        </label>
+                    </div>
+                    <p-chart type="bar" [data]="chartData" [options]="chartOptions" class="flex-grow-1" />
+                </div>
+            </nz-splitter-panel>
+
+            <!-- Right: Employee Grid -->
+            <nz-splitter-panel [nzMin]="'20%'">
+                <div class="d-flex flex-column h-100">
+                    <div class="group-header">DANH SÁCH NHÂN VIÊN</div>
+                    <div class="grid-container flex-grow-1">
+                        <angular-slickgrid gridId="gridEmployee" [columns]="colDef" [options]="gridOptions"
+                            [dataset]="dataset" (onAngularGridCreated)="onGridReady($event.detail)">
+                        </angular-slickgrid>
+                    </div>
+                </div>
+            </nz-splitter-panel>
+        </nz-splitter>
+    </div>
+</div>
+
+<div class="modal-footer py-1">
+    <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+</div>

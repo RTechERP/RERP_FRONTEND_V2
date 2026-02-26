@@ -552,6 +552,19 @@ body>.p-component {
 
 
 .slick-row.active {
-  background-color: #dae8f1 !important;
+  background-color: #d8dbcf !important;
   color: black !important;
 }
+/* 
+.slick-row.selected.active {
+  background-color: #fff3cd !important;
+}
+
+.slickgrid-container .slick-row.active {
+  background-color: #d8dbcf !important;
+  color: black !important;
+}
+
+.slickgrid-container .slick-row.selected.active {
+  background-color: #fff3cd !important;
+} */

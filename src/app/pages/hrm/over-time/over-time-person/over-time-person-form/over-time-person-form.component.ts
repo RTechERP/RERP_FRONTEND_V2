@@ -160,11 +160,10 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
   }
 
   locationList = [
-    { value: 0, label: '--Chọn địa điểm--' },
     { value: 1, label: 'Văn phòng' },
+    { value: 4, label: 'Nhà máy RTC' },
     { value: 2, label: 'Địa điểm công tác' },
     { value: 3, label: 'Tại nhà' },
-    { value: 4, label: 'Nhà máy RTC' },
   ];
 
   constructor(
@@ -339,7 +338,6 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
               TimeStart: newTimeStart
             }, { emitEvent: false });
           }
-
           const currentEndTime = tabForm.get('EndTime')?.value;
           if (currentEndTime) {
             // Nếu đã có EndTime, chỉ cập nhật ngày, giữ nguyên giờ/phút
@@ -349,14 +347,20 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
               EndTime: newEndTime
             }, { emitEvent: false });
           }
+
+          // Tính lại tổng giờ
+          this.calculateTotalHour(tabForm);
         });
 
         // Force update date picker validation
         this.datePickerKey++;
         this.cdr.detectChanges();
-
-        // Cập nhật min/max dates cho Flatpickr khi DateRegister thay đổi
         this.updateFlatpickrMinMaxDates();
+
+        // Cập nhật giá trị hiển thị trong Flatpickr SAU khi đã update min/max
+        this.formTabs.forEach((tab) => {
+          this.setFlatpickrValue(tab);
+        });
       }
     });
   }

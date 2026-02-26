@@ -76,8 +76,8 @@ export class KpiErrorFineAmountComponent implements OnInit {
                 sortable: false,
                 minWidth: 50,
                 maxWidth: 100,
-                cssClass: 'text-center',
-                headerCssClass: 'text-center',
+                cssClass: 'text-end',
+                headerCssClass: 'text-end',
             },
             {
                 id: 'TotalMoneyError',
@@ -90,8 +90,8 @@ export class KpiErrorFineAmountComponent implements OnInit {
                 },
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
-                cssClass: 'text-right',
-                headerCssClass: 'text-center',
+                cssClass: 'text-end',
+                headerCssClass: 'text-end',
             },
             {
                 id: 'Note',

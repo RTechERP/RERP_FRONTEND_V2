@@ -21,134 +21,135 @@ import { FormsModule } from '@angular/forms';
 import { DateTime } from 'luxon';
 
 @Component({
-  selector: 'app-newsletter-form-view-all',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    NzButtonModule,
-    NzIconModule,
-    NzCardModule,
-    NzGridModule,
-    NzSpinModule,
-    NzToolTipModule,
-    NzFormModule,
-    NzInputModule,
-    NzSelectModule,
-    NzDatePickerModule,
-    NzSplitterModule
-  ],
-  templateUrl: './newsletter-form-view-all.component.html',
-  styleUrl: './newsletter-form-view-all.component.css'
+    selector: 'app-newsletter-form-view-all',
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        NzButtonModule,
+        NzIconModule,
+        NzCardModule,
+        NzGridModule,
+        NzSpinModule,
+        NzToolTipModule,
+        NzFormModule,
+        NzInputModule,
+        NzSelectModule,
+        NzDatePickerModule,
+        NzSplitterModule
+    ],
+    templateUrl: './newsletter-form-view-all.component.html',
+    styleUrl: './newsletter-form-view-all.component.css'
 })
 export class NewsletterFormViewAllComponent implements OnInit {
-  newsletters: any[] = [];
-  isLoading = false;
-  isSearchVisible = true;
+    newsletters: any[] = [];
+    isLoading = false;
+    isSearchVisible = true;
 
-  // Filter params
-  dateStart: Date = new Date();
-  dateEnd: Date = new Date();
-  keyWord: string = '';
-  typeID: number = 0;
-  newsletterTypes: any[] = [];
+    // Filter params
+    dateStart: Date = new Date();
+    dateEnd: Date = new Date();
+    keyWord: string = '';
+    typeID: number = 0;
+    newsletterTypes: any[] = [];
 
-  constructor(
-    private newsletterService: NewsletterService,
-    private notification: NzNotificationService,
-    private modalService: NgbModal
-  ) {}
+    constructor(
+        private newsletterService: NewsletterService,
+        private notification: NzNotificationService,
+        private modalService: NgbModal
+    ) { }
 
-  ngOnInit(): void {
-    // Set default date range (this month)
-    this.dateStart = this.getFirstDayOfMonth();
-    this.dateEnd = this.getLastDayOfMonth();
-    
-    this.loadNewsletterTypes();
-    this.loadNewsletters();
-  }
+    ngOnInit(): void {
+        // Set default date range (this month)
+        this.dateStart = this.getFirstDayOfMonth();
+        this.dateEnd = this.getLastDayOfMonth();
 
-  private getFirstDayOfMonth(): Date {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  }
+        this.loadNewsletterTypes();
+        this.loadNewsletters();
+    }
 
-  private getLastDayOfMonth(): Date {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  }
+    private getFirstDayOfMonth(): Date {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), 1);
+    }
 
-  loadNewsletterTypes(): void {
-    this.newsletterService.getNewsletterType().subscribe({
-      next: (response: any) => {
-        this.newsletterTypes = response.data || [];
-      },
-      error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi tải danh sách loại bản tin');
-      }
-    });
-  }
+    private getLastDayOfMonth(): Date {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    }
 
-  loadNewsletters(): void {
-    this.isLoading = true;
-    const params = {
-      FromDate: this.dateStart ? DateTime.fromJSDate(this.dateStart).toFormat('yyyy-MM-dd') : null,
-      ToDate: this.dateEnd ? DateTime.fromJSDate(this.dateEnd).toFormat('yyyy-MM-dd') : null,
-      Keyword: this.keyWord || '',
-      TypeId: this.typeID || 0
-    };
-
-    this.newsletterService.getNewsletter(params).subscribe({
-      next: (response: any) => {
-        const data = response.data || [];
-        this.newsletters = data.sort((a: any, b: any) => {
-          const dateA = a.CreatedDate ? new Date(a.CreatedDate).getTime() : 0;
-          const dateB = b.CreatedDate ? new Date(b.CreatedDate).getTime() : 0;
-          return dateB - dateA;
+    loadNewsletterTypes(): void {
+        this.newsletterService.getNewsletterType().subscribe({
+            next: (response: any) => {
+                this.newsletterTypes = response.data || [];
+            },
+            error: (error: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi tải danh sách loại bản tin');
+            }
         });
-        this.isLoading = false;
-      },
-      error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi tải danh sách bản tin');
-        this.isLoading = false;
-      }
-    });
-  }
+    }
 
-  toggleSearchPanel(): void {
-    this.isSearchVisible = !this.isSearchVisible;
-  }
+    loadNewsletters(): void {
+        this.isLoading = true;
+        const params = {
+            FromDate: this.dateStart ? DateTime.fromJSDate(this.dateStart).toFormat('yyyy-MM-dd') : null,
+            ToDate: this.dateEnd ? DateTime.fromJSDate(this.dateEnd).toFormat('yyyy-MM-dd') : null,
+            Keyword: this.keyWord || '',
+            TypeId: this.typeID || 0,
+            IsPublish: 1
+        };
 
-  resetSearch(): void {
-    this.dateStart = this.getFirstDayOfMonth();
-    this.dateEnd = this.getLastDayOfMonth();
-    this.keyWord = '';
-    this.typeID = 0;
-    this.loadNewsletters();
-  }
+        this.newsletterService.getNewsletter(params).subscribe({
+            next: (response: any) => {
+                const data = response.data || [];
+                this.newsletters = data.sort((a: any, b: any) => {
+                    const dateA = a.CreatedDate ? new Date(a.CreatedDate).getTime() : 0;
+                    const dateB = b.CreatedDate ? new Date(b.CreatedDate).getTime() : 0;
+                    return dateB - dateA;
+                });
+                this.isLoading = false;
+            },
+            error: (error: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi tải danh sách bản tin');
+                this.isLoading = false;
+            }
+        });
+    }
 
-  openNewsletterDetail(newsletterId: number): void {
-    const modalRef = this.modalService.open(NewsletterDetailComponent, {
-      centered: true,
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: true,
-      scrollable: true
-    });
+    toggleSearchPanel(): void {
+        this.isSearchVisible = !this.isSearchVisible;
+    }
 
-    modalRef.componentInstance.newsletterId = newsletterId;
-  }
+    resetSearch(): void {
+        this.dateStart = this.getFirstDayOfMonth();
+        this.dateEnd = this.getLastDayOfMonth();
+        this.keyWord = '';
+        this.typeID = 0;
+        this.loadNewsletters();
+    }
 
-  getNewsletterImageUrl(item: any): string {
-    const serverPath = item?.ServerImgPath;
-    const imageName = item?.Image;
+    openNewsletterDetail(newsletterId: number): void {
+        const modalRef = this.modalService.open(NewsletterDetailComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: true,
+            scrollable: true
+        });
 
-    if (!serverPath && !imageName) return 'assets/images/no-image.png';
-    
-    const host = environment.host + 'api/share/';
-    let urlImage = (serverPath || imageName || '').replace("\\\\192.168.1.190\\", "");
-    urlImage = urlImage.replace(/\\/g, '/');
-    
-    return host + urlImage;
-  }
+        modalRef.componentInstance.newsletterId = newsletterId;
+    }
+
+    getNewsletterImageUrl(item: any): string {
+        const serverPath = item?.ServerImgPath;
+        const imageName = item?.Image;
+
+        if (!serverPath && !imageName) return 'assets/images/no-image.png';
+
+        const host = environment.host + 'api/share/';
+        let urlImage = (serverPath || imageName || '').replace("\\\\192.168.1.190\\", "");
+        urlImage = urlImage.replace(/\\/g, '/');
+
+        return host + urlImage;
+    }
 }

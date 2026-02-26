@@ -108,7 +108,7 @@
                     <nz-icon class="trigger text-light" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
                 </span>
                 <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomLeft" nzType="text"
-                    class=" text-light" nzTrigger="click">
+                    [(nzVisible)]="isAppMenuVisible" [nzClickHide]="false" class=" text-light" nzTrigger="click">
                     <img src="assets/icon/app_store.svg" width="24">
                 </button>
                 <div style="width: 100%; max-width: 100%; overflow: auto" class="app-header-tabs">
@@ -142,6 +142,12 @@
                                     <span class="mt-1">{{m.title}}</span>
                                 </a>
                                 }
+                            </div>
+                            <div class="app-launcher-footer">
+                                <button nz-button nzType="primary" (click)="isAppMenuVisible = false"
+                                    style="font-size: 12px; height: 30px; border-radius: 4px; padding: 0 20px;">
+                                    OK
+                                </button>
                             </div>
                         </div>
                     </nz-dropdown-menu>

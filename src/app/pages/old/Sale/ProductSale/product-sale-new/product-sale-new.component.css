@@ -157,3 +157,10 @@
 ::ng-deep div[id^="grvProductSale-"] {
     height: 88vh !important;
 }
+::ng-deep div[id^="grid-container-product-group-"] .slick-row.active {
+  background-color: #789CCE !important;
+  color: white !important;
+}
+::ng-deep div[id^="grid-container-product-group-"] .slick-row.active .slick-cell {
+  background-color: inherit !important;
+}

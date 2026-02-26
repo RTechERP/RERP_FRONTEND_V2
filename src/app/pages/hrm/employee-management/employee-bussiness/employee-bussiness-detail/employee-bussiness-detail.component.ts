@@ -30,6 +30,7 @@ import { AuthService } from '../../../../../auth/auth.service';
 import { EmployeeService } from '../../../employee/employee-service/employee.service';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { OnChangeType } from 'ng-zorro-antd/core/types';
 import { VehiceDetailComponent } from '../vehice-detail/vehice-detail.component';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -657,9 +658,12 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
     try {
       this.tabulator = new Tabulator('#tb_employee_bussiness_detail', {
-        data: this.employeeBussinessDetail, // Initialize with empty array
+        ...DEFAULT_TABLE_CONFIG, // Kế thừa config mặc định
+        rowHeader: false, // Không dùng row selection header mặc định của config
+        data: this.employeeBussinessDetail,
         layout: 'fitDataStretch',
         height: '82vh',
+        pagination: false, // Tắt phân trang cho bảng chi tiết
         columns: [
           {
             title: '',
@@ -669,7 +673,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             hozAlign: 'center',
             headerHozAlign: 'center',
             titleFormatter: () =>
-              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm dòng"></i></div>`,
             headerClick: (e: any, column: any) => {
               this.addRow();
             },
@@ -1007,6 +1011,45 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         this.hasDataChanges = true;
         this.resetSTT();
       });
+
+      // Set font-size 12px cho Tabulator
+      setTimeout(() => {
+        const tabulatorElement = document.getElementById('tb_employee_bussiness_detail');
+        if (tabulatorElement) {
+          tabulatorElement.style.fontSize = '12px';
+          const allElements = tabulatorElement.querySelectorAll('*');
+          allElements.forEach((el: any) => {
+            if (el.style) {
+              el.style.fontSize = '12px';
+            }
+          });
+
+          const style = document.createElement('style');
+          style.id = 'tabulator-employee-bussiness-detail-font-size-override';
+          style.textContent = `
+            #tb_employee_bussiness_detail,
+            #tb_employee_bussiness_detail.tabulator,
+            #tb_employee_bussiness_detail .tabulator,
+            #tb_employee_bussiness_detail .tabulator-table,
+            #tb_employee_bussiness_detail .tabulator-cell,
+            #tb_employee_bussiness_detail .tabulator-cell-content,
+            #tb_employee_bussiness_detail .tabulator-header,
+            #tb_employee_bussiness_detail .tabulator-col,
+            #tb_employee_bussiness_detail .tabulator-col-content,
+            #tb_employee_bussiness_detail .tabulator-col-title,
+            #tb_employee_bussiness_detail .tabulator-row,
+            #tb_employee_bussiness_detail .tabulator-row .tabulator-cell,
+            #tb_employee_bussiness_detail * {
+              font-size: 12px !important;
+            }
+          `;
+          const existingStyle = document.getElementById('tabulator-employee-bussiness-detail-font-size-override');
+          if (existingStyle) {
+            existingStyle.remove();
+          }
+          document.head.appendChild(style);
+        }
+      }, 200);
     }
   }
 
@@ -1259,17 +1302,78 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       next: (response: any) => {
         const savedIds = response?.data || [];
 
-        // Nếu có file mới hoặc file đã tồn tại, lưu file cho từng bản ghi
-        if (this.tempFileRecord || this.existingFileRecord) {
-          this.saveFilesForRecords(savedIds, data);
-        } else {
-          this.processAfterSave();
-        }
+        // Lưu phương tiện cho các bản ghi
+        this.saveVehiclesForRecords(savedIds, data);
       },
       error: (error: any) => {
         this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký công tác thất bại');
       }
+    });
+  }
+
+  // Lưu phương tiện cho các bản ghi
+  saveVehiclesForRecords(savedIds: any[], data: any[]): void {
+    // Lọc các bản ghi có chọn phương tiện
+    const recordsWithVehicle = data.filter((item, idx) => {
+      const savedItem = savedIds[idx];
+      const bussinessID = savedItem?.ID || savedItem || item.ID || 0;
+      return bussinessID > 0 && item.VehicleID > 0;
+    });
+
+    if (recordsWithVehicle.length === 0) {
+      if (this.tempFileRecord || this.existingFileRecord) {
+        this.saveFilesForRecords(savedIds, data);
+      } else {
+        this.processAfterSave();
+      }
+      return;
+    }
+
+    let completedCount = 0;
+    const totalToSave = recordsWithVehicle.length;
+
+    recordsWithVehicle.forEach((item) => {
+      const idx = data.indexOf(item);
+      const savedItem = savedIds[idx];
+      const bussinessID = savedItem?.ID || savedItem || item.ID || 0;
+
+      const vehicleDto: any = {
+        employeeBussiness: null,
+        employeeBussinessFiles: null,
+        employeeBussinessVehicle: {
+          ID: 0,
+          EmployeeBussinesID: bussinessID,
+          EmployeeVehicleBussinessID: item.VehicleID || 0,
+          Cost: item.CostVehicle || 0,
+          BillImage: '',
+          Note: item.Note || '',
+          VehicleName: item.VehicleName || ''
+        }
+      };
+
+      this.employeeBussinessService.saveDataEmployee(vehicleDto).subscribe({
+        next: () => {
+          completedCount++;
+          if (completedCount === totalToSave) {
+            if (this.tempFileRecord || this.existingFileRecord) {
+              this.saveFilesForRecords(savedIds, data);
+            } else {
+              this.processAfterSave();
+            }
+          }
+        },
+        error: () => {
+          completedCount++;
+          if (completedCount === totalToSave) {
+            if (this.tempFileRecord || this.existingFileRecord) {
+              this.saveFilesForRecords(savedIds, data);
+            } else {
+              this.processAfterSave();
+            }
+          }
+        }
+      });
     });
   }
 

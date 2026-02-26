@@ -152,8 +152,11 @@
                             </button>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="fs-12">Số dòng</span>
-                                <nz-select style="width: 80px;" nzSize="small" [ngModel]="filters.pageSize"
-                                    (ngModelChange)="onPageSizeChange($event)">
+                                <nz-input-number *ngIf="isMobile" nzSize="small" style="width: 70px;"
+                                    [ngModel]="filters.pageSize" [nzMin]="1" (ngModelChange)="onPageSizeChange($event)">
+                                </nz-input-number>
+                                <nz-select *ngIf="!isMobile" style="width: 80px;" nzSize="small"
+                                    [ngModel]="filters.pageSize" (ngModelChange)="onPageSizeChange($event)">
                                     <nz-option *ngFor="let s of pageSizeOptions" [nzValue]="s"
                                         [nzLabel]="s"></nz-option>
                                 </nz-select>

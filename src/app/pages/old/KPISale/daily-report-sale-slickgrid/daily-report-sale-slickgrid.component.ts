@@ -137,6 +137,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     isGridReady: boolean = false;
     isTeamLoaded: boolean = false;
     needLoadTeam: boolean = false;
+    isMobile: boolean = false;
 
     // Pagination
     totalPage: number = 1;
@@ -195,6 +196,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     ) { }
 
     ngOnInit(): void {
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         this.initMenuBar();
         this.initGrid();
 
@@ -427,12 +429,48 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     }
 
     exportExcel(): void {
-        const data = this.dataset || [];
-        if (data.length === 0) {
-            this.notification.warning('Cảnh báo', 'Không có dữ liệu để xuất!');
-            return;
-        }
+        const currentUser = this.appUserService.currentUser;
+        const isAdminOrAdminSale = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1) || this.appUserService.hasPermission('N1') || ID_ADMIN_SALE_LIST.includes(this.appUserService.id || 0);
+        const userId = isAdminOrAdminSale ? (this.filters.employeeId || 0) : (this.appUserService.id || 0);
 
+        const dateStart = DateTime.fromISO(this.filters.dateStart || DateTime.local().toFormat('yyyy-MM-dd')).startOf('day').toJSDate();
+        const dateEnd = DateTime.fromISO(this.filters.dateEnd || DateTime.local().toFormat('yyyy-MM-dd')).endOf('day').toJSDate();
+
+        this.notification.info('Thông báo', 'Đang tải dữ liệu để xuất Excel...');
+
+        // Gọi API lấy tất cả dữ liệu (pageSize lớn) thay vì chỉ lấy trang hiện tại
+        this.dailyReportSaleService.getDailyReportSale(
+            1,
+            999999,
+            dateStart,
+            dateEnd,
+            (this.filterTextSearch && this.filterTextSearch.trim()) ? this.filterTextSearch.trim() : '',
+            this.filters.customerId || 0,
+            userId,
+            this.filters.groupTypeId || -1,
+            this.filters.projectId || 0,
+            this.filters.teamId || 0,
+        ).subscribe({
+            next: (response) => {
+                if (response && response.status === 1) {
+                    const data = response.data.data || [];
+                    if (data.length === 0) {
+                        this.notification.warning('Cảnh báo', 'Không có dữ liệu để xuất!');
+                        return;
+                    }
+                    this.generateExcelFile(data);
+                } else {
+                    this.notification.error('Lỗi', 'Không thể tải dữ liệu để xuất Excel!');
+                }
+            },
+            error: (error) => {
+                console.error('Error loading data for export:', error);
+                this.notification.error('Lỗi', 'Lỗi kết nối khi tải dữ liệu để xuất Excel!');
+            }
+        });
+    }
+
+    private generateExcelFile(data: any[]): void {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Báo cáo hàng ngày');
 

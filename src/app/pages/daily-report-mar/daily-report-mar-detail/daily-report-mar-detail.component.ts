@@ -218,6 +218,8 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
         this.saving = false;
         if (response?.status === 1) {
           this.notification.success('Thông báo', response?.message || 'Lưu dữ liệu thành công');
+          // Gửi email sau khi lưu thành công
+          this.sendEmailAfterSave(valueRaw);
           this.closeModal();
         } else {
           this.notification.error('Thông báo', response?.message || 'Không thể lưu dữ liệu');
@@ -228,6 +230,57 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
         this.notification.error('Thông báo', error?.error?.message || error?.message || 'Lưu dữ liệu thất bại');
       },
     });
+  }
+
+  /**
+   * Gửi email báo cáo sau khi lưu thành công
+   */
+  private sendEmailAfterSave(valueRaw: any): void {
+    const emailBody = this.buildEmailBody(valueRaw);
+    const dateReport = valueRaw.DateReport ? new Date(valueRaw.DateReport) : new Date();
+
+    // Build danh sách file đính kèm theo model backend { FileName, Url }
+    const fileLinks = this.fileData
+      .filter(f => !f?.IsDeleted && f?.FileNameOrigin)
+      .map(f => ({
+        FileName: f.FileNameOrigin || f.FileName || '',
+        Url: f.ServerPath || f.PathServer || ''
+      }));
+
+    this.dailyReportTechService.sendEmailMarketingReport(emailBody, dateReport, fileLinks).subscribe({
+      next: (res: any) => {
+        if (res?.status !== 1) {
+          console.warn('Gửi email thất bại:', res?.message);
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi khi gửi email:', err);
+      }
+    });
+  }
+
+  /**
+   * Tạo nội dung HTML cho email báo cáo marketing
+   */
+  private buildEmailBody(valueRaw: any): string {
+    const dateReport = valueRaw.DateReport
+      ? DateTime.fromJSDate(new Date(valueRaw.DateReport)).toFormat('dd/MM/yyyy')
+      : DateTime.local().toFormat('dd/MM/yyyy');
+
+    const content = valueRaw.Content || '-';
+    const results = valueRaw.Results || '-';
+    const planNextDay = valueRaw.PlanNextDay || '-';
+    const note = valueRaw.Note || '-';
+
+    return `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h3 style="color: #2c3e50;">BÁO CÁO CÔNG VIỆC NGÀY ${dateReport}</h3>
+        <hr style="border: 1px solid #ddd;" />
+        <p><b>* Nội dung công việc:</b><br />${content}</p>
+        <p><b>* Kết quả công việc:</b><br />${results}</p>
+        <p><b>* Kế hoạch ngày tiếp theo:</b><br />${planNextDay}</p>
+        <p><b>* Đề xuất cải tiến:</b><br />${note}</p>
+      </div>`;
   }
 
   private prepareFileData(dailyId: number): any[] {

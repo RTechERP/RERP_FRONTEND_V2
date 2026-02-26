@@ -91,9 +91,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     menuQickAcesss: any = {};
     // menuKey: string = '';
 
-    // isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
-    // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-    // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+    hasMenuApprovePermission = true;
+
 
     date = new Date();
 
@@ -138,29 +137,6 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
     newsletters: any[] = [];
 
-    // departmentTechs: any[] = [2, 11, 12, 13];
-    // departmentAgvCokhis = [9, 10];
-    // departmentLapraps = [23];
-    // departmentSales = [3, 12];
-    // departmentHRs = [6, 22];
-    // employeeHRs = [586];
-
-    // positinLXs = [6]; //List chức vụ NV lái xe
-    // positinCPs = [7, 72]; //List chức vụ NV cắt phim
-    // marketings = [8];
-
-    // userAllReportTechs = [
-    //     1, 23, 24, 78, 88, 1221, 1313, 1434, 1431, 53, 51, 1534,
-    // ];
-
-
-    // id = 0;
-    // employeeID = 0;
-    // departmentID = 0;
-    // positionID = 0;
-    // isHR = false;
-    // isAdmin = false;
-
     constructor(
         private notification: NzNotificationService,
         private homepageService: HomeLayoutService,
@@ -203,6 +179,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
         // this.loadCurrentVersion();
         // this.initSseConnection();
+
     }
     getQuantityApprove() {
         this.approveTpService.getQuantityApprove().subscribe({
@@ -222,9 +199,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         this.borrowService.getQuantityBorrow().subscribe({
             next: (res: any) => {
                 this.quantityBorrow = res.data.QuantitySemiExpired;
-                console.log('Sắp hết hạn:', this.quantityBorrow);
+                // console.log('Sắp hết hạn:', this.quantityBorrow);
                 this.quantityBorrowExpried = res.data.QuantityExpired;
-                console.log('Hết hạn:', this.quantityBorrowExpried);
+                // console.log('Hết hạn:', this.quantityBorrowExpried);
             },
             error: (err: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
@@ -261,125 +238,6 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     }
     getMenus() {
 
-        // console.log('this.appUserService.currentUser:', this.appUserService.currentUser);
-        // this.menuAppService.getAll().subscribe({
-        //     next: (response) => {
-
-        //         const map = new Map<number, any>();
-        //         // this.nodes = [];
-        //         // Tạo map trước
-        //         response.data.menus.forEach((item: any) => {
-
-        //             let isPermission = item.IsPermission;
-
-        //             //Nếu là AGV-Cơ khí
-        //             if (item.Router == 'daily-report-machine') {
-        //                 isPermission = this.isAdmin ||
-        //                     this.departmentAgvCokhis.includes(this.departmentID) ||
-        //                     this.userAllReportTechs.includes(this.id);
-        //             }
-
-        //             //nếu là sale
-        //             if (item.Router == 'daily-report-sale-admin' || item.Router == 'daily-report-sale' || item.Code == 'M66') {
-        //                 isPermission = this.isAdmin || this.departmentSales.includes(this.departmentID);
-        //             }
-
-        //             //Nếu là Kỹ thuật
-        //             if (item.Router == 'daily-report-tech') {
-        //                 isPermission = this.isAdmin ||
-        //                     this.departmentTechs.includes(this.departmentID) ||
-        //                     this.userAllReportTechs.includes(this.id);
-        //             }
-
-        //             //Nếu là HR
-        //             if (item.Router == 'daily-report-thr' || item.Router == 'daily-report-lxcp' || item.Code == 'M70') {
-        //                 isPermission = this.isAdmin ||
-        //                     this.isHR ||
-        //                     this.positinCPs.includes(this.positionID) ||
-        //                     this.positinLXs.includes(this.positionID);
-        //             }
-
-        //             //Nếu là lắp rap
-        //             if (item.Router == 'daily-report-lr') {
-        //                 isPermission = this.isAdmin ||
-        //                     this.departmentLapraps.includes(this.departmentID) ||
-        //                     this.userAllReportTechs.includes(this.id);
-        //             }
-
-        //             //Nếu là MKT
-        //             if (item.Router == 'daily-report-mkt') {
-        //                 isPermission = this.isAdmin || this.marketings.includes(this.departmentID);
-        //             }
-
-        //             map.set(item.ID, {
-        //                 STT: item.STT,
-        //                 Code: item.Code,
-        //                 Title: item.Title,
-        //                 Router: item.Router == '' ? '' : `${environment.baseHref}/${item.Router}`,
-        //                 Icon: `${environment.host}api/share/software/icon/${item.Icon}`,
-        //                 IsPermission: isPermission,
-        //                 IsOpen: true,
-        //                 ParentID: item.ParentID,
-        //                 Children: [],
-        //                 ID: item.ID,
-        //                 QueryParam: item.QueryParam ?? ''
-        //             });
-        //         });
-
-        //         // Gắn cha – con
-        //         response.data.menus.forEach((item: any) => {
-        //             const node = map.get(item.ID);
-
-        //             if (item.ParentID && map.has(item.ParentID)) {
-        //                 const parent = map.get(item.ParentID);
-        //                 parent.Children.push(node);
-        //             } else {
-        //                 this.menus.push(node);
-        //             }
-        //         });
-
-        //         // console.log('this.menus:', this.menus);
-
-        //         this.menus = this.menuAppService.sortBySTTImmutable(this.menus, i => i.STT ?? i.stt ?? 0);
-
-        //         this.menuApproves = this.menus.find((x) => x.Code == 'appvovedperson');
-        //         // console.log('this.menuApproves:', this.menuApproves);
-
-        //         var pesons = this.menus.find((x) => x.Code == 'person');
-        //         this.menuPersons = pesons.Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');
-
-        //         // this.menuPersons = pesons.Children
-        //         //     .filter((x: any) =>
-        //         //         ['registerpayroll', 'dailyreport', 'registercommon'].includes(x.Code)
-        //         //     )
-        //         //     .map((item: any) => {
-        //         //         if (item.Code === 'dailyreport' && item.Children?.length) {
-        //         //             return {
-        //         //                 ...item,
-        //         //                 Children: item.Children.map((c: any) => ({
-        //         //                     ...c,
-        //         //                     IsPermission: false
-        //         //                 }))
-        //         //             };
-        //         //         }
-        //         //         return item;
-        //         //     });
-
-        //         // console.log('this.menuPersons', this.menuPersons);
-
-        //         this.menuWeekplans = pesons.Children.find((x: any) => x.Code == 'planweek');
-
-        //         this.menuQickAcesss = this.menus.find((x) => x.Code == 'M4');
-        //         // console.log('this.menuQickAcesss:', this.menuQickAcesss);
-        //         // console.log('this.menuWeekplans:', this.menuWeekplans);
-
-        //     },
-        //     error: (err) => {
-        //         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-        //     },
-        // })
-
-
         const menuPersonCodes: any[] = ['registerpayroll', 'dailyreport', 'registercommon'];
         this.menuService.getCompMenus('').subscribe(menus => {
 
@@ -389,6 +247,13 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             // console.log('this.menus:', this.menus);
 
             this.menuApproves = this.menus.find((x) => x.key == 'appvovedperson');
+            // console.log('this.menuApproves:', this.menuApproves);
+
+            this.hasMenuApprovePermission = this.menuApproves?.children?.every(
+                (item: any) => (item.isPermission || false) === false
+            );
+            // console.log('hasMenuApprovePermission', this.hasMenuApprovePermission);
+
             var pesons = this.menus.find((x) => x.key == 'person');
             this.menuPersons = pesons.children.filter((x: any) => menuPersonCodes.includes(x.key));
             this.menuWeekplans = pesons.children.find((x: any) => x.key == 'planweek');

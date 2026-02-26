@@ -3158,7 +3158,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   private getProductGroupCollection(
     isRTC: boolean
   ): Array<{ value: number; label: string }> {
-    const groups = isRTC ? this.dtproductGroupsRTC : this.dtproductGroups;
+    const groups = isRTC ? this.dtproductGroupsRTC : this.dtproductGroups?.filter((g: any) => g.ParentID === 0 || g.ParentID === null || g.ParentID === undefined);
+
     const collection = (groups || []).map((g: any) => ({
       value: g.ID,
       label: g.ProductGroupName || '',
@@ -3414,74 +3415,75 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     }
 
     // Get the column info from the grid
-      const columns = angularGrid.slickGrid.getColumns();
-      const changedColumn = columns[args.cell];
+    const columns = angularGrid.slickGrid.getColumns();
+    const changedColumn = columns[args.cell];
 
-      // Handle CurrencyID change - update CurrencyRate automatically
-      if (field === 'CurrencyID') {
-        const currencyId = Number(newValue) || 0;
-        let newCurrencyRate = 0;
+    // Handle CurrencyID change - update CurrencyRate automatically
+    if (field === 'CurrencyID') {
+      const currencyId = Number(newValue) || 0;
+      let newCurrencyRate = 0;
 
-        if (currencyId > 0) {
-          const currency = this.dtcurrency.find((c: any) => c.ID === currencyId);
-          if (currency) {
-            newCurrencyRate = currency.CurrencyRate || 0;
-          }
-        }
-
-        // Update CurrencyRate in item
-        item.CurrencyRate = newCurrencyRate;
-
-        // Recalculate totals after currency change
-        this.recalculateTotals(item);
-
-        // Update the CurrencyRate cell directly in the grid to ensure it displays immediately
-        const currencyRateColumn = columns.find(
-          (col: any) => col.field === 'CurrencyRate'
-        );
-        if (currencyRateColumn) {
-          const currencyRateColIndex = columns.indexOf(currencyRateColumn);
-          // Update item in dataView first
-          angularGrid.dataView.updateItem(item.id, item);
-          // Invalidate and update the specific cell
-          angularGrid.slickGrid.updateCell(rowIndex, currencyRateColIndex);
+      if (currencyId > 0) {
+        const currency = this.dtcurrency.find((c: any) => c.ID === currencyId);
+        if (currency) {
+          newCurrencyRate = currency.CurrencyRate || 0;
         }
       }
 
-      // Recalculate totals when prices change
-      if (
-        changedColumn &&
-        ['UnitPrice', 'Quantity', 'CurrencyRate', 'VAT'].includes(
-          changedColumn.field || ''
-        )
-      ) {
-        this.recalculateTotals(item);
+      // Update CurrencyRate in item
+      item.CurrencyRate = newCurrencyRate;
+
+      // Recalculate totals after currency change
+      this.recalculateTotals(item);
+
+      // Update the CurrencyRate cell directly in the grid to ensure it displays immediately
+      const currencyRateColumn = columns.find(
+        (col: any) => col.field === 'CurrencyRate'
+      );
+      if (currencyRateColumn) {
+        const currencyRateColIndex = columns.indexOf(currencyRateColumn);
+        // Update item in dataView first
+        angularGrid.dataView.updateItem(item.id, item);
+        // Invalidate and update the specific cell
+        angularGrid.slickGrid.updateCell(rowIndex, currencyRateColIndex);
       }
+    }
 
-      // Track changes: Add to changedRows array if not already exists
-      const rowId = Number(item.ID || 0);
-      if (rowId > 0) {
-        // Check if row already exists in changedRows
-        const existingIndex = this.changedRows.findIndex(
-          (r: any) => Number(r.ID) === rowId
-        );
+    // Recalculate totals when prices change
+    if (
+      changedColumn &&
+      ['UnitPrice', 'Quantity', 'CurrencyRate', 'VAT'].includes(
+        changedColumn.field || ''
+      )
+    ) {
+      this.recalculateTotals(item);
+    }
 
-        if (existingIndex >= 0) {
-          // Update existing row with latest data
-          this.changedRows[existingIndex] = { ...item };
-        } else {
-          // Add new changed row
-          this.changedRows.push({ ...item });
-        }
+    // Track changes: Add to changedRows array if not already exists
+    const rowId = Number(item.ID || 0);
+    if (rowId > 0) {
+      // Check if row already exists in changedRows
+      const existingIndex = this.changedRows.findIndex(
+        (r: any) => Number(r.ID) === rowId
+      );
+
+      if (existingIndex >= 0) {
+        // Update existing row with latest data
+        this.changedRows[existingIndex] = { ...item };
+      } else {
+        // Add new changed row
+        this.changedRows.push({ ...item });
       }
+    }
 
-      // Update item in dataView
-      angularGrid.dataView.updateItem(item.id, item);
+    // Update item in dataView
+    angularGrid.dataView.updateItem(item.id, item);
 
-      // Refresh grid
-      angularGrid.slickGrid.invalidate();
-      angularGrid.slickGrid.render();
-      this.ensureCheckboxSelector(angularGrid);
+    // Refresh grid
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
+    this.ensureCheckboxSelector(angularGrid);
+
   }
   handleRowSelection(
     typeId: number,

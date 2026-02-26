@@ -58,6 +58,7 @@ interface ProductGroup {
     IsVisible: boolean;
     EmployeeID: number;
     WareHouseID: number;
+    ParentID: number;
 }
 
 @Component({
@@ -86,7 +87,7 @@ interface ProductGroup {
 })
 export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     warehouseCode: string = 'HN';
-    readonly componentId: string = 'inventory-' + Math.random().toString(36).substring(2, 11);
+    componentId: string = '';
     productGroupID: number = 0;
 
     // Data
@@ -128,12 +129,15 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         checkedStock: false,
     };
 
+    isWareHouseDP: boolean = false;
+
     newProductGroup: ProductGroup = {
         ProductGroupID: '',
         ProductGroupName: '',
         EmployeeID: 0,
         IsVisible: false,
         WareHouseID: 0,
+        ParentID: 0
     };
 
     private subscriptions: Subscription[] = [];
@@ -157,8 +161,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
-        this.initGridColumns();
-
+        this.componentId = 'inventory-' + this.generateUUIDv4();
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
             // const newWarehouseCode = params['warehouseCode'] || 'HN';
@@ -174,9 +177,10 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
             // Cập nhật warehouseCode TRƯỚC khi init grid options
             this.warehouseCode = newWarehouseCode;
-
+            this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP' ? true : false;
+            console.log(this.isWareHouseDP);
             // Init grid options với ID selector unique dựa trên warehouseCode
-            this.initGridOptions();
+            //this.initGridOptions();
 
             // Nếu params thay đổi (và không phải lần đầu), reset và clear data trước
             if (paramsChanged && this.angularGridProductGroup) {
@@ -219,12 +223,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
 
                 // Re-initialize grids if warehouse code changed
-                this.initGridColumns();
-                this.initGridOptions();
-
-                // Trigger change detection
-                this.cdr.detectChanges();
             }
+            this.initGridColumns();
+            this.initGridOptions();
+
+            // Trigger change detection
+            this.cdr.detectChanges();
+
+            //this.initGridColumns();
 
             // Update parameters after clearing
             this.warehouseCode = newWarehouseCode;
@@ -296,6 +302,33 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         `;
     };
 
+    // Tree formatter for hierarchical display
+    treeFormatter: Formatter = (_row, _cell, value, _column, dataContext, grid) => {
+        if (!value || !dataContext) return '';
+
+        const gridOptions = grid?.getOptions();
+        const treeLevelPropName = gridOptions?.treeDataOptions?.levelPropName || '__treeLevel';
+        const treeLevel = dataContext[treeLevelPropName] || 0;
+
+        const dataView = grid?.getData();
+        const data = dataView?.getItems?.() || [];
+        const identifierPropName = dataView?.getIdPropertyName?.() || 'id';
+        const idx = dataView?.getIdxById?.(dataContext[identifierPropName]) ?? -1;
+
+        const spacer = `<span style="display:inline-block; width:${15 * treeLevel}px;"></span>`;
+
+        // Check if item has children
+        const hasChildren = idx >= 0 && idx < data.length - 1 &&
+            (data[idx + 1]?.[treeLevelPropName] > treeLevel || dataContext.__hasChildren);
+
+        if (hasChildren) {
+            const toggleClass = dataContext.__collapsed ? 'collapsed' : 'expanded';
+            return `${spacer}<span class="slick-group-toggle ${toggleClass}" level="${treeLevel}"></span> ${value}`;
+        } else {
+            return `${spacer}<span class="slick-group-toggle" level="${treeLevel}"></span> ${value}`;
+        }
+    };
+
     private initGridColumns(): void {
         // Product Group columns
         this.columnDefinitionsProductGroup = [
@@ -306,6 +339,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 50,
                 sortable: true,
                 filterable: true,
+                formatter: this.treeFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -374,6 +408,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             forceFitColumns: true,
             enableAutoSizeColumns: true,
             enableHeaderMenu: false,
+            enableTreeData: true,
+            multiColumnSort: false,
+            treeDataOptions: {
+                columnId: 'ProductGroupName',
+                parentPropName: 'parentId',
+                indentMarginLeft: 15,
+                initiallyCollapsed: false
+            },
         };
 
         // PG Warehouse grid options - Sử dụng ID selector unique
@@ -448,6 +490,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 sanitizeDataExport: true,
                 exportWithFormatter: true,
             },
+            enableGrouping: true,
         };
     }
 
@@ -455,6 +498,104 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     //#endregion
 
     //#region Grid Ready Events
+    updateMasterFooterRow() {
+        if (!this.angularGridInventory?.slickGrid) {
+            return;
+        }
+
+        // Lấy dữ liệu đã lọc
+        const items =
+            (this.angularGridInventory.dataView?.getFilteredItems?.() as any[]) ||
+            this.datasetInventory;
+
+        // Đếm số lượng ProductCode
+        const productCodeCount = items.length || 0;
+
+        // Tính tổng cho các cột số
+        const totals: { [key: string]: number } = {};
+        const numericFields = [
+            'TotalQuantityFirst',
+            'Import',
+            'Export',
+            'TotalQuantityLastActual',
+            'QuantityRequestExport',
+            'TotalQuantityKeep',
+            'TotalQuantityLast',
+            'QuantityUse',
+            'MinQuantity',
+            'MinQuantityActual',
+            'TotalQuantityReturnNCC',
+            'ImportPT',
+            'ExportPM',
+            'StillBorrowed'
+        ];
+
+        numericFields.forEach((field: string) => {
+            totals[field] = (items || []).reduce(
+                (sum, item) => sum + (Number(item[field]) || 0),
+                0
+            );
+        });
+
+        this.angularGridInventory.slickGrid.setFooterRowVisibility(true);
+
+        // Set footer values
+        const columns = this.angularGridInventory.slickGrid.getColumns();
+
+        columns.forEach((col: any) => {
+            const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn(
+                col.id
+            );
+            if (!footerCell) {
+                return;
+            }
+
+            if (col.id === 'ProductCode' + this.warehouseCode) {
+                footerCell.innerHTML = `<b>${productCodeCount}</b>`;
+            } else if (totals[col.field] !== undefined) {
+                const formattedValue = new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                }).format(totals[col.field]);
+                footerCell.innerHTML = `<b>${formattedValue}</b>`;
+            } else {
+                footerCell.innerHTML = '';
+            }
+        });
+    }
+    private applyGrouping(): void {
+        if (this.isWareHouseDP == false) return;
+        const angularGrid = this.angularGridInventory;
+        if (!angularGrid || !angularGrid.dataView) return;
+
+        angularGrid.dataView.setGrouping([
+            {
+                getter: 'ProductGroupName',
+                comparer: () => 0,
+                formatter: (g: any) => {
+                    const productGroupName = g.value || 'Không xác định';
+                    return `Nhóm: <strong>${productGroupName}</strong> <span style="color:#ed502f;">(${g.count})</span>`;
+                },
+                aggregateCollapsed: false,
+                lazyTotalsCalculation: true,
+                collapsed: false,
+            },
+            {
+                getter: 'ProductGroupType',
+                comparer: () => 0,
+                formatter: (g: any) => {
+                    const productGroupType = g.value || '<span class="text-danger">Không có</span>';
+                    return `Nhóm vật tư: <strong>${productGroupType}</strong> <span style="color:#2b4387;">(${g.count})</span>`;
+                },
+                aggregateCollapsed: false,
+                lazyTotalsCalculation: true,
+                collapsed: false,
+            },
+        ]);
+
+        angularGrid.dataView.refresh();
+        angularGrid.slickGrid?.render();
+    }
 
     resizeGrids(): void {
         try {
@@ -496,10 +637,11 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     angularGridReadyInventory(angularGrid: AngularGridInstance) {
         this.angularGridInventory = angularGrid;
+        this.applyGrouping();
         setTimeout(() => {
             this.resizeGrids();
             // Update footer row
-            this.updateInventoryFooterRow();
+            this.updateMasterFooterRow();
         }, 100);
 
         // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi (bao gồm filter)
@@ -507,6 +649,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         if (angularGrid.dataView) {
             angularGrid.dataView.onRowCountChanged.subscribe(() => {
                 this.updateInventoryFooterRow();
+
             });
         }
     }
@@ -571,18 +714,25 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     getProductGroup() {
         this.isLoadingProductGroup = true;
         const sub = this.productsaleSV
-            .getdataProductGroup(this.warehouseCode, false)
+            .getdataProductGroup(this.warehouseCode, true)
             .subscribe({
                 next: (res) => {
+                    
                     this.isLoadingProductGroup = false;
                     if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
                         this.dataProductGroup = res.data;
 
                         // Map data với id unique cho SlickGrid
-                        const mappedData = this.dataProductGroup.map((item: any, index: number) => ({
+                        let mappedData = this.dataProductGroup.map((item: any, index: number) => ({
                             ...item,
                             id: item.ID,
+                            parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
                         }));
+
+                        if(this.isWareHouseDP){
+                            mappedData = mappedData.filter(
+                                (item: any) => item.ID === 4 || item.ID === 13 || item.parentId === 4 || item.parentId === 13);
+                        }
 
                         this.datasetProductGroup = mappedData;
 
@@ -594,6 +744,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         // Resize grids after data is loaded
                         setTimeout(() => {
                             this.resizeGrids();
+
                         }, 50);
 
                         // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
@@ -611,7 +762,13 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                                     this.getDataProductGroupWareHouse(this.productGroupID);
                                 }
                             }
+
+                            this.applyGrouping();
+                            this.angularGridInventory?.slickGrid?.invalidate();
+                            this.angularGridInventory?.slickGrid?.render();
                         }, 100);
+
+
                     }
                 },
                 error: (err) => {
@@ -666,10 +823,15 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.dataInventory = res.data;
 
                         // Map data với id unique cho SlickGrid
-                        const mappedData = this.dataInventory.map((item: any, index: number) => ({
+                        let mappedData = this.dataInventory.map((item: any, index: number) => ({
                             ...item,
                             id: item.ID,
                         }));
+
+                        if(this.isWareHouseDP){
+                            mappedData = mappedData.filter(
+                                (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 || item.ParentID === 4 || item.ParentID === 13);
+                        }
 
                         this.datasetInventory = mappedData;
 
@@ -681,7 +843,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         setTimeout(() => {
                             this.resizeGrids();
                             // Update footer row sau khi dữ liệu được load
-                            this.updateInventoryFooterRow();
+                            this.updateMasterFooterRow();
                         }, 100);
                     }
 
@@ -875,6 +1037,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             EmployeeID: 0,
             IsVisible: false,
             WareHouseID: 0,
+            ParentID: 0
         };
 
         const sub = this.productsaleSV
@@ -883,6 +1046,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 next: (res) => {
                     if (res?.data && res.data.length > 0) {
                         this.newProductGroup.EmployeeID = res.data[0].EmployeeID ?? 0;
+                        this.newProductGroup.ParentID = res.data[0].ParentID ?? 0;
                     }
                     this.newProductGroup.WareHouseID = 1;
                     const modalRef = this.modalService.open(ProductGroupDetailComponent, {
@@ -1361,24 +1525,13 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     //#region Lt.anh mapping cột theo warehouse
     buildPGWarehouseColumns(warehouseCode: string): Column[] {
         // console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
-        return [
-            {
-                id: 'ProductGroupName' + warehouseCode,
-                field: 'ProductGroupName',
-                name: 'Tên nhóm',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
-            },
+        let columns: Column[] = [
             {
                 id: 'IsFix' + warehouseCode,
                 field: 'IsFix',
                 name: 'Tích xanh',
                 width: 80,
+                cssClass: 'text-center',
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.iconBoolean,
@@ -1486,6 +1639,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'TotalQuantityFirst' + warehouseCode,
                 field: 'TotalQuantityFirst',
                 name: 'Tồn đầu kỳ',
+                cssClass: 'text-end',
                 width: 100,
                 sortable: true,
                 filterable: true,
@@ -1498,6 +1652,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'Import' + warehouseCode,
                 field: 'Import',
                 name: 'Nhập',
+                cssClass: 'text-end',
                 width: 80,
                 sortable: true,
                 filterable: true,
@@ -1510,6 +1665,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'Export' + warehouseCode,
                 field: 'Export',
                 name: 'Xuất',
+                cssClass: 'text-end',
                 width: 80,
                 sortable: true,
                 filterable: true,
@@ -1522,6 +1678,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'TotalQuantityLastActual' + warehouseCode,
                 field: 'TotalQuantityLastActual',
                 name: 'SL tồn thực tế',
+                cssClass: 'text-end',
                 width: 120,
                 sortable: true,
                 filterable: true,
@@ -1534,6 +1691,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'QuantityRequestExport' + warehouseCode,
                 field: 'QuantityRequestExport',
                 name: 'SL yêu cầu xuất',
+                cssClass: 'text-end',
                 width: 120,
                 sortable: true,
                 filterable: true,
@@ -1546,6 +1704,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'TotalQuantityKeep' + warehouseCode,
                 field: 'TotalQuantityKeep',
                 name: 'SL giữ',
+                cssClass: 'text-end',
                 width: 80,
                 sortable: true,
                 filterable: true,
@@ -1558,6 +1717,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'TotalQuantityLast' + warehouseCode,
                 field: 'TotalQuantityLast',
                 name: 'Tồn CK(được sử dụng)',
+                cssClass: 'text-end',
                 width: 150,
                 sortable: true,
                 filterable: true,
@@ -1570,6 +1730,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'QuantityUse' + warehouseCode,
                 field: 'QuantityUse',
                 name: 'Tồn sử dụng',
+                cssClass: 'text-end',
                 width: 100,
                 sortable: true,
                 filterable: true,
@@ -1582,6 +1743,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'MinQuantity' + warehouseCode,
                 field: 'MinQuantity',
                 name: 'Tồn tối thiểu Y/c',
+                cssClass: 'text-end',
                 width: 130,
                 sortable: true,
                 filterable: true,
@@ -1594,6 +1756,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'MinQuantityActual' + warehouseCode,
                 field: 'MinQuantityActual',
                 name: 'Tồn tối thiểu thực tế',
+                cssClass: 'text-end',
                 width: 150,
                 sortable: true,
                 filterable: true,
@@ -1606,6 +1769,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'TotalQuantityReturnNCC' + warehouseCode,
                 field: 'TotalQuantityReturnNCC',
                 name: 'SL phải trả NCC',
+                cssClass: 'text-end',
                 width: 120,
                 sortable: true,
                 filterable: true,
@@ -1618,6 +1782,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'ImportPT' + warehouseCode,
                 field: 'ImportPT',
                 name: 'Tổng mượn',
+                cssClass: 'text-end',
                 width: 100,
                 sortable: true,
                 filterable: true,
@@ -1630,6 +1795,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'ExportPM' + warehouseCode,
                 field: 'ExportPM',
                 name: 'Tổng trả',
+                cssClass: 'text-end',
                 width: 90,
                 sortable: true,
                 filterable: true,
@@ -1642,6 +1808,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'StillBorrowed' + warehouseCode,
                 field: 'StillBorrowed',
                 name: 'Đang mượn',
+                cssClass: 'text-end',
                 width: 100,
                 sortable: true,
                 filterable: true,
@@ -1699,6 +1866,24 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
         ];
+        debugger;
+        if (this.isWareHouseDP == false) {
+            columns.unshift(
+                {
+                    id: 'ProductGroupName' + warehouseCode,
+                    field: 'ProductGroupName',
+                    name: 'Tên nhóm',
+                    width: 120,
+                    sortable: true,
+                    filterable: true,
+                    filter: {
+                        model: Filters['compoundInput'],
+                    },
+                    exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+                },
+            );
+        }
+        return columns;
     }
 
     //#endregion
@@ -1714,6 +1899,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             .replace(/\u00A0/g, ' ')
             // remove emoji (optional nhưng nên)
             .replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
+    }
+
+    generateUUIDv4(): string {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
     }
 
 }

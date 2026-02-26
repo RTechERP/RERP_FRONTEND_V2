@@ -624,6 +624,8 @@ export const routes: Routes = [
             { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
             { path: 'kpi-tech', component: KPIEvaluationEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-tech-factor-scoring-tbp', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-tech-factor-scoring-bgd', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
 
 

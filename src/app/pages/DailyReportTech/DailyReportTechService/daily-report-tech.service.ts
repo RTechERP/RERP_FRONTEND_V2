@@ -21,7 +21,7 @@ export class DailyReportTechService {
 
   getEmployees(userTeamID?: number, departmentid?: number, employeeID?: number): Observable<any> {
     let params = new HttpParams();
-    
+
     if (userTeamID !== undefined && userTeamID !== null) {
       params = params.set('userTeamID', userTeamID.toString());
     }
@@ -42,7 +42,7 @@ export class DailyReportTechService {
   saveReportHr(report: any): Observable<any> {
     return this.http.post<any>(this.apiUrlLXCP + 'save-report-hr', report);
   }
-   saveReportTHr(report: any): Observable<any> {
+  saveReportTHr(report: any): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'save-report-hr', report);
   }
 
@@ -102,12 +102,39 @@ export class DailyReportTechService {
    * @param dateReport Ngày báo cáo (optional)
    * @returns Observable<any>
    */
-  sendEmailReport(body: string, dateReport?: Date): Observable<any> {
+  sendEmailReport(body: string, dateReport?: Date | string): Observable<any> {
+    let dateStr: string | null = null;
+    if (dateReport) {
+      dateStr = dateReport instanceof Date ? dateReport.toISOString() : dateReport;
+    }
     const request = {
       Body: body,
-      DateReport: dateReport ? dateReport.toISOString() : null
+      DateReport: dateStr
     };
     return this.http.post<any>(this.apiUrl + 'send-email-report', request);
+  }
+
+  /**
+   * Gửi email báo cáo công việc Marketing
+   * @param body Nội dung email (HTML)
+   * @param dateReport Ngày báo cáo (optional)
+   * @returns Observable<any>
+   */
+  sendEmailMarketingReport(
+    body: string,
+    dateReport?: Date | string,
+    fileLinks?: { FileName: string; Url: string }[]
+  ): Observable<any> {
+    let dateStr: string | null = null;
+    if (dateReport) {
+      dateStr = dateReport instanceof Date ? dateReport.toISOString() : dateReport;
+    }
+    const request: any = {
+      Body: body,
+      DateReport: dateStr,
+      FileLinks: fileLinks ?? []
+    };
+    return this.http.post<any>(this.apiUrl + 'send-email-marketing-report', request);
   }
 
   /**
@@ -123,11 +150,11 @@ export class DailyReportTechService {
   }): Observable<Blob> {
     // Format dates to ISO string if they are Date objects
     const payload = {
-      DateStart: request.DateStart instanceof Date 
-        ? request.DateStart.toISOString() 
+      DateStart: request.DateStart instanceof Date
+        ? request.DateStart.toISOString()
         : request.DateStart,
-      DateEnd: request.DateEnd instanceof Date 
-        ? request.DateEnd.toISOString() 
+      DateEnd: request.DateEnd instanceof Date
+        ? request.DateEnd.toISOString()
         : request.DateEnd,
       TeamID: request.TeamID || '',
       TeamName: request.TeamName || ''
@@ -153,9 +180,8 @@ export class DailyReportTechService {
    * Lấy danh sách công việc cho dropdown
    */
   getFilmList(): Observable<any> {
-    const url = `${
-      this.apiUrlLXCP + `get-film-detail`
-    }`;
+    const url = `${this.apiUrlLXCP + `get-film-detail`
+      }`;
     return this.http.get<any>(url);
   }
 
@@ -170,16 +196,16 @@ export class DailyReportTechService {
     return this.http.post<any>(this.apiUrlLXCP + 'save-report-lxcp', report);
   }
   //#endregion
-   //ham upload file
-   uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+  //ham upload file
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('files', file);
     });
-    formData.append('key', 'PathDailyReportMarketing'); 
+    formData.append('key', 'PathDailyReportMarketing');
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
     }
-    return this.http.post<any>(this.api +`home/upload-multiple`, formData);
+    return this.http.post<any>(this.api + `home/upload-multiple`, formData);
   }
 }

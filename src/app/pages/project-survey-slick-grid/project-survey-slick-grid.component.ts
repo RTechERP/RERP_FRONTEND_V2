@@ -204,6 +204,12 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
   @HostListener('window:resize')
   onWindowResize(): void {
     this.updateResponsiveState();
+    // Resize grid to fill the available width (e.g. after toggling F12 DevTools)
+    setTimeout(() => {
+      if (this.angularGrid?.resizerService) {
+        this.angularGrid.resizerService.resizeGrid();
+      }
+    }, 200);
   }
   //#endregion
 

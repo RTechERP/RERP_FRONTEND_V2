@@ -375,8 +375,9 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             t => getTabKey(t) === currentTabKey
         );
 
-        // Nếu tab đã tồn tại → focus
+        // Nếu tab đã tồn tại → cập nhật title và focus
         if (idx >= 0) {
+            this.dynamicTabComps[idx].title = title;
             this.selectedCompIndex = idx;
             return;
         }

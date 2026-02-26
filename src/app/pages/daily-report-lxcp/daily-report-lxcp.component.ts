@@ -125,7 +125,9 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
         this.loadUsers(() => {
           // Set userId sau khi users đã load xong
           if (this.currentUser) {
-            if (this.currentUser.ID) {
+            if (this.currentUser.IsAdmin == true || this.currentUser.Permissions?.includes('N1')) {
+              this.userId = 0;
+            } else if (this.currentUser.ID) {
               this.setUserIdFromEmployeeID(this.currentUser.ID);
             } else if (this.currentUser.EmployeeID) {
               this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
@@ -316,11 +318,10 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
   }
 
   getSearchParams(): any {
-
     let userID = 0;
     if (this.currentUser) {
-      if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true) {
-        userID = this.userId || 0;
+      if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true || this.currentUser.Permissions?.includes('N1')) {
+        userID = 0;
       } else {
         userID = this.currentUser.ID || 0;
       }

@@ -91,6 +91,24 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     menuQickAcesss: any = {};
     // menuKey: string = '';
 
+    hasMenuApprovePermission = true;
+
+    // get hasMenuApprove(): boolean {
+    //     // console.log('this.menuApproves:', this.menuApproves);
+    //     // console.log('Object.keys(this.menuApproves):', Object.keys(this.menuApproves));
+
+
+    //     this.menuApproves?.children?.forEach((item: any) => {
+    //         item.isPermission = true
+    //     });
+
+    //     const allTrue: any = this.menuApproves?.children?.every(
+    //         (item: any) => item.isPermission === true
+    //     ) || false;
+    //     console.log('allTrue', allTrue);
+    //     return this.menuApproves && Object.keys(this.menuApproves).length > 0;
+    // }
+
     // isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
     // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
     // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
@@ -203,6 +221,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
         // this.loadCurrentVersion();
         // this.initSseConnection();
+
     }
     getQuantityApprove() {
         this.approveTpService.getQuantityApprove().subscribe({
@@ -222,9 +241,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         this.borrowService.getQuantityBorrow().subscribe({
             next: (res: any) => {
                 this.quantityBorrow = res.data.QuantitySemiExpired;
-                console.log('Sắp hết hạn:', this.quantityBorrow);
+                // console.log('Sắp hết hạn:', this.quantityBorrow);
                 this.quantityBorrowExpried = res.data.QuantityExpired;
-                console.log('Hết hạn:', this.quantityBorrowExpried);
+                // console.log('Hết hạn:', this.quantityBorrowExpried);
             },
             error: (err: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
@@ -389,6 +408,13 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             // console.log('this.menus:', this.menus);
 
             this.menuApproves = this.menus.find((x) => x.key == 'appvovedperson');
+            console.log('this.menuApproves:', this.menuApproves);
+
+            this.hasMenuApprovePermission = this.menuApproves?.children?.every(
+                (item: any) => item.isPermission === false
+            );
+            console.log('hasMenuApprovePermission', this.hasMenuApprovePermission);
+
             var pesons = this.menus.find((x) => x.key == 'person');
             this.menuPersons = pesons.children.filter((x: any) => menuPersonCodes.includes(x.key));
             this.menuWeekplans = pesons.children.find((x: any) => x.key == 'planweek');

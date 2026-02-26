@@ -147,7 +147,7 @@
                     @for (item of menuApproves.children; track $index) {
                     <li class="list-group-item border-0 border-bottom py-1" *ngIf="item.isPermission">
                         <a class=" text-dark" [attr.href]="item.router ? item.router : null"
-                            *ngIf="(item.router || '') == '#' && (item.router || '') == ''"
+                            *ngIf="(item.router || '') != '#' && (item.router || '') != ''"
                             (click)="handleClickLink($event, item.router, item.Title,item.data)">
                             <img [src]="item.icon">
                             <span>{{item.title}}</span>

@@ -126,8 +126,8 @@ export class DailyReportSaleAdminSlickgridComponent implements OnInit, AfterView
     rowSpanMetadata: Record<number, any> = {};
 
     filters: any = {
-        startDate: new Date(),
-        endDate: new Date(),
+        startDate: DateTime.local().minus({ months: 1 }).toFormat('yyyy-MM-dd'),
+        endDate: DateTime.local().toFormat('yyyy-MM-dd'),
         customerId: 0,
         employeeId: 0,
         filterText: '',
@@ -420,11 +420,8 @@ export class DailyReportSaleAdminSlickgridComponent implements OnInit, AfterView
     }
 
     loadData(): void {
-        const dateStart = new Date(this.filters.startDate);
-        dateStart.setHours(0, 0, 0, 0);
-
-        const dateEnd = new Date(this.filters.endDate);
-        dateEnd.setHours(23, 59, 59, 999);
+        const dateStart = DateTime.fromISO(this.filters.startDate || DateTime.local().toFormat('yyyy-MM-dd')).startOf('day').toJSDate();
+        const dateEnd = DateTime.fromISO(this.filters.endDate || DateTime.local().toFormat('yyyy-MM-dd')).endOf('day').toJSDate();
 
         const customerId = this.filters.customerId || 0;
         const userId = this.filters.employeeId || 0;

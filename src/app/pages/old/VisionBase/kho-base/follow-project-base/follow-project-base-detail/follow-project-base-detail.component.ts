@@ -122,7 +122,7 @@ export class FollowProjectBaseDetailComponent implements OnInit {
     projectStartDate: this.fb.control(null, [Validators.required]),
     workDone: this.fb.control(''),
     workWillDo: this.fb.control(''),
-    possibilityPO: this.fb.control('', [Validators.required]),
+    possibilityPO: this.fb.control(''),
 
     expectedPlanDate: this.fb.control(null),
     expectedQuotationDate: this.fb.control(null),

@@ -376,6 +376,9 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       frozenColumn: 4, // Freeze 6 cột đầu (EmployeeCode, FullName, DepartmentName, TeamName, DateReport, Content)
       rowHeight: 80,
       autoHeight: false,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 30,
     };
   }
   //#endregion
@@ -383,6 +386,26 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   //#region Grid Events
   angularGridReady(angularGrid: AngularGridInstance) {
     this.angularGrid = angularGrid;
+
+    // Lắng nghe khi filter thay đổi để tính lại footer
+    if (angularGrid.dataView) {
+      angularGrid.dataView.onRowCountChanged.subscribe(() => {
+        this.recalcFilteredTotals();
+      });
+    }
+  }
+
+  /** Tính lại tổng dựa trên dữ liệu đã lọc (sau khi filter) */
+  recalcFilteredTotals() {
+    if (!this.angularGrid?.dataView) return;
+
+    // Lấy dữ liệu đã lọc trên view
+    const filteredItems =
+      (this.angularGrid.dataView?.getFilteredItems?.() as any[]) ||
+      this.dataset;
+
+    this.calculateTotals(filteredItems);
+    this.updateFooterRow();
   }
   //#endregion
 
@@ -419,9 +442,11 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
 
           // Tính tổng
           this.calculateTotals(data);
+          setTimeout(() => this.updateFooterRow(), 100);
         } else {
           this.dataset = [];
           this.resetTotals();
+          setTimeout(() => this.updateFooterRow(), 100);
         }
       },
       error: (error) => {
@@ -430,6 +455,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         this.notification.error('Lỗi', error?.message || error?.error?.message || 'Không thể tải dữ liệu danh sách báo cáo công việc!');
         this.dataset = [];
         this.resetTotals();
+        setTimeout(() => this.updateFooterRow(), 100);
       },
     });
   }
@@ -459,6 +485,35 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       totalDays: 0,
     };
     this.totalTime = 0;
+  }
+
+  updateFooterRow() {
+    const grid = this.angularGrid?.slickGrid;
+    if (!grid) return;
+
+    const columns = grid.getColumns();
+    columns.forEach((col: any) => {
+      const footerCell = grid.getFooterRowColumn(col.id);
+      if (!footerCell) return;
+
+      switch (col.id) {
+        case 'Content':
+          footerCell.innerHTML = `<div style="text-align:right; width: 100%">${this.totalAllData.count}</div>`;
+          break;
+        case 'TimeReality':
+          footerCell.innerHTML = `<div style="text-align:right; width: 100%">${this.totalAllData.sumTimeReality.toFixed(2)}</div>`;
+          break;
+        case 'TotalHours':
+          footerCell.innerHTML = `<div style="text-align:right; width: 100%">${this.totalAllData.sumTotalHours.toFixed(2)}</div>`;
+          break;
+        case 'Results':
+          footerCell.innerHTML = `<div style="text-align:right; width: 100%">Tổng số ngày: ${this.totalAllData.totalDays.toFixed(1)}</div>`;
+          break;
+        default:
+          footerCell.innerHTML = '';
+          break;
+      }
+    });
   }
 
   getProject() {
@@ -568,7 +623,12 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
 
   //#region Export Excel
   async exportExcel() {
-    if (!this.dataset || this.dataset.length === 0) {
+    // Lấy dữ liệu đã lọc thay vì toàn bộ dataset
+    const exportData: any[] =
+      (this.angularGrid?.dataView?.getFilteredItems?.() as any[]) ||
+      this.dataset;
+
+    if (!exportData || exportData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
       return;
     }
@@ -581,8 +641,8 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       const headers = this.columnDefinitions.map((col) => col.name || col.id);
       worksheet.addRow(headers);
 
-      // Data rows
-      this.dataset.forEach((row: any) => {
+      // Data rows - dùng dữ liệu đã lọc
+      exportData.forEach((row: any) => {
         const rowData = this.columnDefinitions.map((col) => {
           const field = col.field as string;
           let value = row[field];
@@ -600,7 +660,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         worksheet.addRow(rowData);
       });
 
-      // Bottom row với tổng
+      // Bottom row với tổng (đã tính theo filter)
       const bottomRow: any[] = this.columnDefinitions.map((col) => {
         const field = col.field as string;
         if (field === 'Content') {
@@ -699,7 +759,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       document.body.removeChild(link);
       window.URL.revokeObjectURL(link.href);
 
-      this.notification.success('Thông báo', `Đã xuất Excel thành công với ${this.dataset.length} bản ghi!`);
+      this.notification.success('Thông báo', `Đã xuất Excel thành công với ${exportData.length} bản ghi!`);
     } catch (error: any) {
       console.error('Error exporting Excel:', error);
       this.notification.error('Lỗi', 'Không thể xuất Excel! ' + (error?.message || ''));

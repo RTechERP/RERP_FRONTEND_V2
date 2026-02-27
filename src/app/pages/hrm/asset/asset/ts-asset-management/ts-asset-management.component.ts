@@ -531,15 +531,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
                 width: 200,
                 sortable: true,
                 filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                },
+                filter: { model: Filters['compoundInputText'] },
                 cssClass: 'cell-wrap',
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';

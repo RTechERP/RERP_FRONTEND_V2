@@ -354,7 +354,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
     initFormGroup() {
 
-        console.log('this.paymentOrder edit:', this.paymentOrder);
+        // console.log('this.paymentOrder edit:', this.paymentOrder);
 
         // flatpickr('#dt', {
         //     enableTime: true,
@@ -510,7 +510,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 type: PaymentOrderDetailField.ID.type,
                 width: 50,
                 maxWidth: 50,
-                sortable: false, filterable: false,
+                // sortable: false, filterable: false,
                 formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer text-danger' },
                 // filter: { model: Filters['compoundDate'] }
                 onCellClick: (e: Event, args: OnEventArgs) => {
@@ -727,6 +727,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             gridWidth: '100%',
             frozenColumn: 0,
             autoFitColumnsOnFirstLoad: false,
+            // enableGridMenu: false,
+            enableHeaderMenu: false,
         }
 
         this.gridOptions = {
@@ -791,6 +793,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             },
 
             frozenColumn: 0,
+            // enableGridMenu: false,
+            enableHeaderMenu: false,
         };
 
         // console.log('init grid"');
@@ -898,8 +902,14 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
     submitForm() {
 
+
+        console.log('this.validateForm.valid:', this.validateForm.valid);
         if (!this.validateForm.valid) {
+
             Object.values(this.validateForm.controls).forEach(control => {
+
+                // console.log('control:', control);
+                // console.log('control.invalid:', control.invalid);
                 if (control.invalid) {
                     control.markAsDirty();
                     control.updateValueAndValidity({ onlySelf: true });
@@ -965,12 +975,16 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         let _id = data.length <= 0 ? 0 : Math.max(...data.map(x => x._id || 0));
         let stt = data.length <= 0 ? 0 : Math.max(...data.map((x: any) => Number(x.Stt) || 0));
         const parent2 = data.find(x => x.Stt == 'II');
-        const parent = gridInstance.dataView.getItemById(parent2._id);
+        let parent: any = {};
+        let isParent = false;
+        if (parent2) {
+            parent = gridInstance.dataView.getItemById(parent2._id);
 
-        const isParent = parent && parent.__hasChildren;
-        if (isParent) {
-            const detailPayment = data.filter(x => x.ParentId == parent2._id);
-            stt = detailPayment.length <= 0 ? 0 : Math.max(...detailPayment.map((x: any) => Number(x.Stt) || 0));
+            isParent = parent && parent.__hasChildren;
+            if (isParent) {
+                const detailPayment = data.filter(x => x.ParentID == parent2._id);
+                stt = detailPayment.length <= 0 ? 0 : Math.max(...detailPayment.map((x: any) => Number(x.Stt) || 0));
+            }
         }
 
         const newItem = {

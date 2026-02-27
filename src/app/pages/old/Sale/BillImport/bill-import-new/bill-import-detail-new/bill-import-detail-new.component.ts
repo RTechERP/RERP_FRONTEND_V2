@@ -133,6 +133,8 @@ export class BillImportDetailNewComponent
   activePur: boolean = false;
   isEditPM: boolean = true;
   activeTabIndex: number = 0;
+  isViewReady: boolean = false;
+  gridDocumentInitialized: boolean = false;
 
   // Document Import
   dataDocumentImport: any[] = [];
@@ -299,7 +301,11 @@ export class BillImportDetailNewComponent
   }
 
   ngAfterViewInit(): void {
-    // Grid ready callback handles data loading
+    // Đợi sau khi nz-tabset animation (tabSwitchMotion) settle xong
+    // trước khi render SlickGrid để tránh lỗi "container does not exist in the DOM"
+    setTimeout(() => {
+      this.isViewReady = true;
+    }, 0);
   }
 
   ngOnDestroy(): void {
@@ -802,19 +808,12 @@ export class BillImportDetailNewComponent
               templateCallback: (item: any) => {
                 const code = item?.ProductCode || '';
                 const name = item?.ProductName || '';
-                const inventory = item?.TotalInventory ?? 0;
-                const formattedInventory = new Intl.NumberFormat('vi-VN', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }).format(inventory);
-                const inventoryColor = inventory < 0 ? '#ff4d4f' : '#52c41a';
-                const tooltipText = `Mã: ${code}\nTên: ${name}\nTồn kho: ${formattedInventory}`;
+                const tooltipText = `Mã: ${code}\nTên: ${name}`;
                 return `<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 4px 0; gap: 8px;" title="${tooltipText.replace(/"/g, '&quot;')}">
                   <div style="flex: 1; min-width: 0; overflow: hidden;">
                     <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${code}</div>
                     <div style="font-size: 12px; color: #666; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; max-height: 4.2em;">${name}</div>
                   </div>
-                  <div style="text-align: right; min-width: 70px; flex-shrink: 0; font-weight: 500; color: ${inventoryColor}; padding-top: 2px;">${formattedInventory}</div>
                 </div>`;
               },
             },
@@ -912,8 +911,8 @@ export class BillImportDetailNewComponent
           const found = this.projectGridCollection.find(
             (x: any) => x.value === Number(value)
           );
-          const code = found?.ProjectCode ?? '';
-          return this.formatTextWithTooltip(code);
+          const label = found?.label ?? '';
+          return this.formatTextWithTooltip(label);
         },
         editor: {
           model: Editors['singleSelect'],
@@ -1555,38 +1554,38 @@ export class BillImportDetailNewComponent
   }
 
   private updateDetailFooter(): void {
-    const grid = this.angularGridDetail?.slickGrid;
-    if (!grid) return;
+    // const grid = this.angularGridDetail?.slickGrid;
+    // if (!grid) return;
 
-    const rows = this.dataDetail || [];
-    const countProduct = rows.filter(
-      (x: any) => Number(x?.ProductID || 0) > 0
-    ).length;
+    // const rows = this.dataDetail || [];
+    // const countProduct = rows.filter(
+    //   (x: any) => Number(x?.ProductID || 0) > 0
+    // ).length;
 
-    const sumQty = rows.reduce(
-      (acc: number, x: any) => acc + (Number(x?.Qty) || 0),
-      0
-    );
+    // const sumQty = rows.reduce(
+    //   (acc: number, x: any) => acc + (Number(x?.Qty) || 0),
+    //   0
+    // );
 
-    const formattedQty = new Intl.NumberFormat('vi-VN', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(sumQty);
+    // const formattedQty = new Intl.NumberFormat('vi-VN', {
+    //   minimumFractionDigits: 2,
+    //   maximumFractionDigits: 2,
+    // }).format(sumQty);
 
-    const footerData: any = {
-      ProductID: `<div style="text-align:right; font-weight:600;">${countProduct}</div>`,
-      Qty: `<div style="text-align:right; font-weight:600;">${formattedQty}</div>`,
-    };
+    // const footerData: any = {
+    //   ProductID: `<div style="text-align:right; font-weight:600;">${countProduct}</div>`,
+    //   Qty: `<div style="text-align:right; font-weight:600;">${formattedQty}</div>`,
+    // };
 
-    const columns = grid.getColumns();
-    columns.forEach((col: any) => {
-      if (footerData[col.id] !== undefined) {
-        const footerElm = grid.getFooterRowColumn(col.id);
-        if (footerElm) {
-          footerElm.innerHTML = footerData[col.id];
-        }
-      }
-    });
+    // const columns = grid.getColumns();
+    // columns.forEach((col: any) => {
+    //   if (footerData[col.id] !== undefined) {
+    //     const footerElm = grid.getFooterRowColumn(col.id);
+    //     if (footerElm) {
+    //       footerElm.innerHTML = footerData[col.id];
+    //     }
+    //   }
+    // });
   }
   //#endregion
 
@@ -1886,7 +1885,7 @@ export class BillImportDetailNewComponent
         Qty: item.QtyRequest || item.QuantityRemain || 0,
         IsNotKeep: false,
         ProjectID: item.ProjectID || 0,
-        ProjectCode: item.ProjectCode || '',
+        ProjectCode: item.ProductCodeOfSupplier || '',
         ProjectNameText: item.ProjectName || projectInfo.label || '',
         CustomerFullName: '',
         BillCodePO: item.BillCode || '',
@@ -1929,8 +1928,8 @@ export class BillImportDetailNewComponent
         Qty: item.BorrowQty || 0,
         IsNotKeep: false,
         ProjectID: item.ProjectID || 0,
-        ProjectCode: item.ProjectCode || '',
-        ProjectNameText: item.ProjectNameText || projectInfo.label || '',
+        ProjectCode: '',
+        ProjectNameText: item.ProjectNameText || projectInfo.ProjectName || '',
         CustomerFullName: '',
         BillCodePO: item.BillCodePO || '',
         PONumber: '',
@@ -1948,12 +1947,19 @@ export class BillImportDetailNewComponent
     });
 
     this.refreshGrid();
+    setTimeout(() => {
+      this.angularGridDetail?.resizerService?.resizeGrid();
+      this.updateDetailFooter();
+    }, 300);
   }
 
   getDataCbbProductGroup(): void {
     this.billExportService.getCbbProductGroup().subscribe({
       next: (res: any) => {
-        this.dataCbbProductGroup = res.data;
+        this.dataCbbProductGroup = res.data?.filter(
+          (x: any) => x.Isvisible != false && x.ParentID == 0
+            || x.ParentID == null || x.ParentID == undefined
+        );
       },
       error: (err: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
@@ -2036,6 +2042,13 @@ export class BillImportDetailNewComponent
           );
           if (projectCol?.editor) {
             projectCol.editor.collection = this.projectGridCollection;
+          }
+
+          // Refresh grid để formatter ProjectID hiển thị label
+          // (projectGridCollection có thể load xong sau khi data đã map vào grid)
+          if (this.angularGridDetail?.slickGrid) {
+            this.angularGridDetail.slickGrid.invalidate();
+            this.angularGridDetail.slickGrid.render();
           }
         } else {
           this.projectOptions = [];
@@ -2467,6 +2480,7 @@ export class BillImportDetailNewComponent
 
   angularGridDocumentReady(angularGrid: AngularGridInstance): void {
     this.angularGridDocument = angularGrid;
+    this.gridDocumentInitialized = true;
     // Đảm bảo DataView dùng 'id' làm idPropertyName
     angularGrid.dataView.setItems([], 'id');
 

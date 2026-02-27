@@ -16,6 +16,7 @@
         </span>
         <div class="">
             <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
+                [(nzVisible)]="isAppMenuVisible" [nzClickHide]="false"
                 style="border: none !important; background-color:transparent;" nzTrigger="click">
                 <img src="assets/icon/app_store.svg">
             </button>
@@ -25,11 +26,18 @@
                     <div class="app-launcher-inner">
                         @for (m of menus; track $index) {
 
-                        <a [href]="m.router" (click)="openModule($event, m.router, m.key)" *ngIf="m.isPermission">
+                        <a [href]="m.router" (click)="openModule($event, m.router, m.key)" *ngIf="m.isPermission"
+                            [class.active]="m.key === selectedModuleKey">
                             <img [src]="m.icon" />
                             <span class="mt-1">{{m.title}}</span>
                         </a>
                         }
+                    </div>
+                    <div class="app-launcher-footer">
+                        <button nz-button nzType="primary" (click)="isAppMenuVisible = false"
+                            style="font-size: 12px; height: 30px; border-radius: 4px; padding: 0 20px;">
+                            OK
+                        </button>
                     </div>
                 </div>
             </nz-dropdown-menu>
@@ -61,7 +69,7 @@
 </div> -->
 <!-- <div class="row m-0" style="background-color: rgb(238, 220, 176);"> -->
 <div class="row m-0" style="background-color: rgb(230, 230, 230);">
-    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">truy cập nhanh</h5>
@@ -106,7 +114,7 @@
                         <a nz-col class="gutter-row" [nzXs]="8" [nzMd]="6" [nzLg]="6" *ngIf="m.isPermission"
                             [href]="m.router" (click)="openModule($event, m.router, m.key)">
                             <div class="grid-config text-center py-1 shadow"
-                                style="display: flex; flex-flow: column;justify-content: center;align-items: center; height: 107px;">
+                                style="display: flex; flex-flow: column;justify-content: center;align-items: center; height: 103px;">
                                 <img [style.width]="'70%'" [src]="m.icon?.replace('24','64')" alt="">
                                 <p class="m-0 mt-2 fw-bold text-dark" style="line-height: normal;">{{m.title}}</p>
 
@@ -120,7 +128,7 @@
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
 
         <!-- <div class="card"
             style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/Gemini_Generated_Image_ec1n9dec1n9dec1n.png'); background-size: auto 100%; background-repeat: repeat-x; background-position: center;">
@@ -129,7 +137,7 @@
             </div> -->
 
 
-        <div class="card">
+        <div class="card" *ngIf="!hasMenuApprovePermission">
             <div class="card-header">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">duyệt cá nhân</h5>
             </div>
@@ -139,9 +147,15 @@
                     @for (item of menuApproves.children; track $index) {
                     <li class="list-group-item border-0 border-bottom py-1" *ngIf="item.isPermission">
                         <a class=" text-dark" [attr.href]="item.router ? item.router : null"
+                            *ngIf="(item.router || '') != '#' && (item.router || '') != ''"
                             (click)="handleClickLink($event, item.router, item.Title,item.data)">
                             <img [src]="item.icon">
                             <span>{{item.title}}</span>
+                        </a>
+
+                        <a class=" text-dark" *ngIf="(item.router || '') == '#' || (item.router || '') == ''">
+                            <img [src]="item.icon">
+                            <span> {{item.title}}</span>
                         </a>
                         <ul class="list-group">
                             @for (c of item.children; track $index) {
@@ -205,7 +219,7 @@
                 <ul class="list-group list-group-flush">
                     @for (item of newsletters; track item.ID) {
                     <li class="list-group-item py-3">
-                        <div class="d-flex w-100 gap-3">
+                        <div class="d-flex w-100 gap-3 align-items-center">
                             <!-- <img [src]="getNewsletterImageUrl(item)" alt="Newsletter thumb" -->
                             <img src="assets/icon/thongbao.jpg" alt="Newsletter thumb"
                                 class="flex-shrink-0 rounded shadow-sm"
@@ -241,7 +255,7 @@
 
     </div>
 
-    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Cá nhân</h5>
@@ -257,7 +271,13 @@
 
                             <li class="list-group-item border-0 border-bottom py-1" *ngIf="c1.isPermission">
                                 <a class=" text-dark" [attr.href]="c1.router ? c1.router : null"
+                                    *ngIf="(c1.router || '') != '#' && (c1.router || '') != ''"
                                     (click)="handleClickLink($event, c1.router, c1.title,c1.data)">
+                                    <img [src]="c1.icon">
+                                    <span> {{c1.title}}</span>
+                                </a>
+
+                                <a class=" text-dark" *ngIf="(c1.router || '') == '#' || (c1.router || '') == ''">
                                     <img [src]="c1.icon">
                                     <span> {{c1.title}}</span>
                                 </a>
@@ -304,67 +324,8 @@
 
     </div>
 
-    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
-        <!-- <div class="card">
-            <p-tabs value="0">
-                <p-tablist>
-                    <p-tab value="0" class="p-2">Nghỉ {{totalEmployeeOnleave == 0 ?'':`(${totalEmployeeOnleave}) -
-                        ${today | date:'dd/MM/yyyy'}`}}</p-tab>
-                    <p-tab value="1" class="p-2">WFH {{totalEmployeeWfh == 0 ?'':`(${totalEmployeeWfh}) - ${today |
-                        date:'dd/MM/yyyy'}`}}</p-tab>
-                </p-tablist>
-                <p-tabpanels class="p-0">
-                    <p-tabpanel value="0" style="display: block; height: 38vh; overflow: auto;">
-                        <div class="card-body p-0">
-                            <ul class="list-group list-group-flush">
-                                @for (item of employeeOnleaves; track $index) {
-                                <li class="list-group-item border-0 border-bottom py-1">
-                                    <details open>
-                                        <summary class="fw-bold" style="font-size: 12px;">{{item.DepartmentName}}
-                                            ({{item.Employees.length}})
-                                        </summary>
-                                        <ul class="list-group">
-                                            @for (e of item.Employees; track $index) {
-                                            <li class="list-group-item border-0 py-1" style="font-size: 12px;">
-                                                <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
-                                            </li>
-                                            }
-                                        </ul>
-                                    </details>
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
 
-                                </li>
-                                }
-                            </ul>
-                        </div>
-                    </p-tabpanel>
-                    <p-tabpanel value="1" style="display: block; height: 377px; overflow: auto;">
-                        <div class="card-body p-0">
-                            <ul class="list-group list-group-flush">
-                                @for (item of employeeWfhs; track $index) {
-                                <li class="list-group-item border-0 border-bottom py-1">
-                                    <details open>
-                                        <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
-                                        </summary>
-                                        <ul class="list-group">
-                                            @for (e of item.Employees; track $index) {
-                                            <li class="list-group-item border-0 py-1">
-                                                <span>{{$index + 1}}.{{e.EmployeeName}}
-                                                    {{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
-                                            </li>
-                                            }
-                                        </ul>
-                                    </details>
-
-                                </li>
-                                }
-                            </ul>
-                        </div>
-                    </p-tabpanel>
-
-                </p-tabpanels>
-            </p-tabs>
-
-        </div> -->
 
         <div class="card">
             <!-- style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)),
@@ -437,10 +398,11 @@
                 </ng-container>
             </div>
         </div>
-        <div class="card" style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/—Pngtree—in spring peach blossoms are_5618880.png');
+        <!-- <div class="card" style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/—Pngtree—in spring peach blossoms are_5618880.png');
   background-size: auto 100%;
   background-repeat: repeat-x;
-  background-position: center;">
+  background-position: center;"> -->
+        <div class="card">
             <div class="card-header d-flex align-items-center">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Lịch làm việc
                 </h5>

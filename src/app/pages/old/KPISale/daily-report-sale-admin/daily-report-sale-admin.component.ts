@@ -18,6 +18,7 @@ import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
 import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -79,6 +80,7 @@ import { ActivatedRoute } from '@angular/router';
         NzLayoutModule,
         NzFlexModule,
         NzDrawerModule,
+        NzDropDownModule,
         NzSplitterModule,
         NzGridModule,
         NzDatePickerModule,
@@ -106,10 +108,7 @@ export class DailyReportSaleAdminComponent implements OnInit, AfterViewInit {
     tb_Master!: Tabulator;
     selectedRowId: number = 0;
     selectedRowEmployeeId: number = 0;
-    sizeSearch: string = '0';
-    toggleSearchPanel() {
-        this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
-    }
+
 
     filters: any = {
         startDate: new Date(),
@@ -426,6 +425,7 @@ export class DailyReportSaleAdminComponent implements OnInit, AfterViewInit {
         }
         this.tb_Master = new Tabulator(this.tb_MasterElement.nativeElement, {
             ...DEFAULT_TABLE_CONFIG,
+            pagination: false,
             layout: 'fitDataFill',
             selectableRows: 1,
             height: '100%',

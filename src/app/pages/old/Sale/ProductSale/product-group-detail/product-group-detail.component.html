@@ -1,88 +1,200 @@
 <div class="modal-dialog-scrollable">
-    <div class="modal-header bg-primary text-uppercase py-2">
-        <!-- TN.Binh update 17/20/25 -->
-       <h6 class="modal-title text-white" id="addProductGroupModalLabel" >Thông tin nhóm</h6>
-        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <!-- TN.Binh update 17/20/25 -->
+    <h6 class="modal-title text-white" id="addProductGroupModalLabel">
+      Thông tin nhóm
+    </h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="closeModal()"
+      aria-label="Close"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <form
+      nz-form
+      [formGroup]="formGroup"
+      class="g-3 needs-validation was-validated"
+    >
+      <div class="row">
+        <div>
+          <div class="col md-12 pb-3">
+            <nz-form-label class="fs-12"
+              >Kho<span class="text-danger ps-1 me-1"> * </span></nz-form-label
+            >
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('WareHouseID')?.invalid &&
+                (formGroup.get('WareHouseID')?.dirty ||
+                  formGroup.get('WareHouseID')?.touched)
+                  ? 'Vui lòng chọn kho!'
+                  : undefined
+              "
+            >
+              <nz-input-group required nzSearch nzSize="default" class="w-100">
+                <nz-select
+                  formControlName="WareHouseID"
+                  [disabled]="isFromParent"
+                  nzPlaceHolder="Chọn kho"
+                  class="fs-12 w-100"
+                  required
+                  nzShowSearch
+                  nzAllowClear
+                >
+                  <nz-option
+                    *ngFor="let id of listWH"
+                    [nzValue]="id.ID"
+                    [nzLabel]="id.WarehouseName"
+                  ></nz-option>
+                </nz-select>
+              </nz-input-group>
+            </nz-form-control>
+          </div>
+        </div>
       </div>
-      <div class="modal-body">
-        <form  nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated" >
-          <div class="row">
-            <div>
-                <div class="col md-12 pb-3">
-                  <nz-form-label class="fs-12">Kho<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
-                <nz-form-control [nzSpan]="24"  [nzErrorTip]="formGroup.get('WareHouseID')?.invalid && (formGroup.get('WareHouseID')?.dirty || formGroup.get('WareHouseID')?.touched)
-                ? 'Vui lòng chọn kho!'
-                : undefined">
-                            <nz-input-group required nzSearch nzSize="default" class="w-100">
-                                <nz-select formControlName="WareHouseID" [disabled]="isFromParent"
-                                    nzPlaceHolder="Chọn kho" class="fs-12 w-100" required nzShowSearch nzAllowClear>
-                                    <nz-option *ngFor="let id of listWH" [nzValue]="id.ID"
-                                        [nzLabel]="id.WarehouseName"></nz-option>
-                                </nz-select>
-                            </nz-input-group>
-                        </nz-form-control>
-                    </div>
-                </div>
-            </div>            
-          <div class="row">
-            <div>
-                <div class="col md-12 pb-3">
-                  <nz-form-label class="fs-12">Ký hiệu<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
-                  <nz-form-control [nzSpan]="24"  [nzErrorTip]="formGroup.get('ProductGroupID')?.invalid && (formGroup.get('ProductGroupID')?.dirty || formGroup.get('ProductGroupID')?.touched)
+      <div class="row">
+        <div>
+          <div class="col md-12 pb-3">
+            <nz-form-label class="fs-12"
+              >Ký hiệu<span class="text-danger ps-1 me-1">
+                *
+              </span></nz-form-label
+            >
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('ProductGroupID')?.invalid &&
+                (formGroup.get('ProductGroupID')?.dirty ||
+                  formGroup.get('ProductGroupID')?.touched)
                   ? 'Vui lòng nhập mã nhóm!'
-                  : undefined">
-                            <input nz-input formControlName="ProductGroupID" placeholder="Nhập tên NCC" required />
-                        </nz-form-control>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12 pb-3">
-                    <nz-form-label class="fs-12">Tên nhóm<span class="text-danger ps-1 me-1"> (*)
-                        </span></nz-form-label>
-                    <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('ProductGroupName')?.invalid && (formGroup.get('ProductGroupName')?.dirty || formGroup.get('ProductGroupName')?.touched)
+                  : undefined
+              "
+            >
+              <input
+                nz-input
+                formControlName="ProductGroupID"
+                placeholder="Nhập tên NCC"
+                required
+              />
+            </nz-form-control>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12"
+            >Tên nhóm<span class="text-danger ps-1 me-1">
+              (*)
+            </span></nz-form-label
+          >
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="
+              formGroup.get('ProductGroupName')?.invalid &&
+              (formGroup.get('ProductGroupName')?.dirty ||
+                formGroup.get('ProductGroupName')?.touched)
                 ? 'Vui lòng nhập tên nhóm!'
-                : undefined">
-                        <input nz-input placeholder="Nhập tên nhóm" required formControlName="ProductGroupName" />
-                    </nz-form-control>
-                </div>
-            </div>
-            <!-- Nhân viên phụ trách -->
-            <div class="row">
-                <div>
-                    <div class="col md-12 pb-3">
-                        <nz-form-label class="fs-12">Nhân viên phụ trách<span class="text-danger ps-1 me-1"> (*) </span></nz-form-label>
-                        <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('EmployeeID')?.invalid && (formGroup.get('EmployeeID')?.dirty || formGroup.get('EmployeeID')?.touched)
-                            ? 'Vui lòng chọn nhân viên!'
-                            : undefined">
-                                <nz-input-group nzSearch nzSize="default" class="w-100">
-                                    <!-- Sửa phần options để dùng nhóm và truy cập opt.item.* -->
-                                    <nz-select formControlName="EmployeeID"
-                                               nzPlaceHolder="Chọn nhân viên"
-                                               class="fs-12 w-100"
-                                               required
-                                               nzShowSearch
-                                               nzAllowClear>
-                                        <!-- Duyệt nhóm -->
-                                        <nz-option-group *ngFor="let group of listEmployee" [nzLabel]="group.label">
-                                            <!-- Duyệt từng option trong nhóm -->
-                                            <nz-option *ngFor="let opt of group.options"
-                                                       [nzValue]="opt.item.ID"
-                                                       [nzLabel]="opt.item.Code + ' - ' + opt.item.FullName">
-                                            </nz-option>
-                                        </nz-option-group>
-                                    </nz-select>
-                                </nz-input-group>
-                            </nz-form-control>
-                        </div>
-                    </div>
-                </div>
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-        <button tclass="fs-12 btn" nz-button nzType="primary" (click)="saveDataProductGroup()"
-            *hasPermission="'N27,N1'">Lưu</button>
-        <!-- (click)="isCheckmode? updateProductGroup(): addProductGroup()" -->
-    </div>
+                : undefined
+            "
+          >
+            <input
+              nz-input
+              placeholder="Nhập tên nhóm"
+              required
+              formControlName="ProductGroupName"
+            />
+          </nz-form-control>
+        </div>
+      </div>
+      <!-- Nhân viên phụ trách -->
+      <div class="row">
+        <div>
+          <div class="col md-12 pb-3">
+            <nz-form-label class="fs-12"
+              >Nhân viên phụ trách<span class="text-danger ps-1 me-1">
+                (*)
+              </span></nz-form-label
+            >
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('EmployeeID')?.invalid &&
+                (formGroup.get('EmployeeID')?.dirty ||
+                  formGroup.get('EmployeeID')?.touched)
+                  ? 'Vui lòng chọn nhân viên!'
+                  : undefined
+              "
+            >
+              <nz-input-group nzSearch nzSize="default" class="w-100">
+                <!-- Sửa phần options để dùng nhóm và truy cập opt.item.* -->
+                <nz-select
+                  formControlName="EmployeeID"
+                  nzPlaceHolder="Chọn nhân viên"
+                  class="fs-12 w-100"
+                  required
+                  nzShowSearch
+                  nzAllowClear
+                >
+                  <!-- Duyệt nhóm -->
+                  <nz-option-group
+                    *ngFor="let group of listEmployee"
+                    [nzLabel]="group.label"
+                  >
+                    <!-- Duyệt từng option trong nhóm -->
+                    <nz-option
+                      *ngFor="let opt of group.options"
+                      [nzValue]="opt.item.ID"
+                      [nzLabel]="opt.item.Code + ' - ' + opt.item.FullName"
+                    >
+                    </nz-option>
+                  </nz-option-group>
+                </nz-select>
+              </nz-input-group>
+            </nz-form-control>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col md-12 pb-3">
+          <nz-form-label class="fs-12">Nhóm cha</nz-form-label>
+          <nz-form-control>
+            <nz-input-group nzSearch nzSize="default" class="w-100">
+              <!-- Sửa phần options để dùng nhóm và truy cập opt.item.* -->
+              <nz-select
+                formControlName="ProductGroupParentID"
+                nzPlaceHolder="Chọn nhóm cha"
+                class="fs-12 w-100"
+                nzShowSearch
+                nzAllowClear
+              >
+                <!-- Duyệt nhóm -->
+               <nz-option
+                  *ngFor="let ps of listProductGroup"
+                  [nzValue]="ps.ID"
+                  [nzLabel]="ps.ProductGroupID + ' - ' + ps.ProductGroupName"
+                ></nz-option>
+              </nz-select>
+            </nz-input-group>
+          </nz-form-control>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+      Đóng
+    </button>
+    <button
+      tclass="fs-12 btn"
+      nz-button
+      nzType="primary"
+      (click)="saveDataProductGroup()"
+      *hasPermission="'N27,N1'"
+    >
+      Lưu
+    </button>
+    <!-- (click)="isCheckmode? updateProductGroup(): addProductGroup()" -->
+  </div>
 </div>

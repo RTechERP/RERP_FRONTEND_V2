@@ -110,6 +110,13 @@ export class KhoBaseService {
   getAPIFollowProjectBase() {
     return this._url + `followprojectbase/getfollowprojectbase`
   };
+
+  getFollowProjectBaseData(params: any): Observable<any> {
+    return this.http.get<any>(
+      this._url + `followprojectbase/getfollowprojectbase`,
+      { params }
+    );
+  }
   getUpdateProject(ProjectStatusBaseID: number, ProjectID: number, LoginName: string): Observable<any> {
     return this.http.get<any>(
       this._url + `followprojectbase/getupdateproject?ProjectStatusBaseID=${ProjectStatusBaseID}&ProjectID=${ProjectID}&LoginName=${LoginName}`,

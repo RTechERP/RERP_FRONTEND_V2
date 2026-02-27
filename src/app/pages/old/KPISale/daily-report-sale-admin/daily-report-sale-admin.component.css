@@ -27,6 +27,9 @@
 .ant-tabs-tab-btn {
     font-size: 0.75rem;
 }
-.ant-splitter {
-    height: 89.5vh !important;
-  }
+
+:host {
+    display: block;
+    height: 92vh;
+    overflow: hidden;
+}

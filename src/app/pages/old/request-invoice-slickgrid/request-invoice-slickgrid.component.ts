@@ -265,13 +265,11 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 ?? this.tabData?.warehouseId
                 ?? 0;
         });
-        const now = new Date();
-        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
-        this.filters.startDate = startDate;
-        this.filters.endDate = endDate;
+        const now = DateTime.local();
+        const startDate = now.startOf('month');
+        const endDate = now.endOf('month');
+        this.filters.startDate = startDate.toFormat('yyyy-MM-dd');
+        this.filters.endDate = endDate.toFormat('yyyy-MM-dd');
 
         // Initialize SlickGrid tables
         this.initGridMain();
@@ -706,11 +704,9 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     }
 
     // Data Loading Functions
-    loadMainData(startDate: Date, endDate: Date, keywords: string): void {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+    loadMainData(startDateStr: string, endDateStr: string, keywords: string): void {
+        const start = DateTime.fromISO(startDateStr).startOf('day').toJSDate();
+        const end = DateTime.fromISO(endDateStr).endOf('day').toJSDate();
         this.isLoadingMain = true;
         this.RequestInvoiceSlickgridService.getRequestInvoice(
             start,

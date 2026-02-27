@@ -1,53 +1,53 @@
-<ng-container class="w-100">
+<ng-container class="w-100 history-borrow-sale-w-100">
     <nz-splitter>
         <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+            <div class="card h-100 border-0 rounded-0 history-borrow-sale-card history-borrow-sale-h-100 history-borrow-sale-border-0 history-borrow-sale-rounded-0">
+                <div class="card-header bg-white p-1 history-borrow-sale-card-header history-borrow-sale-bg-white history-borrow-sale-p-1">
+                    <div class="d-flex justify-content-between align-items-center history-borrow-sale-d-flex history-borrow-sale-justify-content-between history-borrow-sale-align-items-center">
+                        <h6 class="m-0 ms-2 history-borrow-sale-m-0 history-borrow-sale-ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2 history-borrow-sale-border-0 history-borrow-sale-me-2" nz-button nzSize="small" nzType="default" nzDanger
                             (click)="toggleSearchPanel()">
                             <nz-icon nzType="close" nzTheme="outline" />
                         </button>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body history-borrow-sale-card-body">
                     <form nz-form nzLayout="vertical">
                         <!-- Date range -->
                         <nz-form-item>
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                            <nz-form-label class="fs-12 history-borrow-sale-fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small"
+                                <nz-date-picker [nzFormat]="dateFormat" class="w-100 history-borrow-sale-w-100" nzSize="small"
                                     [(ngModel)]="searchParams.dateStart" name="dateStart"
                                     [nzDisabled]="checked"></nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                        <nz-form-item class="mt-2 history-borrow-sale-mt-2">
+                            <nz-form-label class="fs-12 history-borrow-sale-fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small"
+                                <nz-date-picker [nzFormat]="dateFormat" class="w-100 history-borrow-sale-w-100" nzSize="small"
                                     [(ngModel)]="searchParams.dateEnd" name="dateEnd"
                                     [nzDisabled]="checked"></nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
+                        <nz-form-item class="mt-2 history-borrow-sale-mt-2">
+                            <nz-form-label class="fs-12 history-borrow-sale-fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" nzShowSearch nzSize="small" [(ngModel)]="searchParams.status"
+                                <nz-select class="w-100 history-borrow-sale-w-100" nzShowSearch nzSize="small" [(ngModel)]="searchParams.status"
                                     name="status" (ngModelChange)="onStatusChange($event)">
                                     <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
-                                        <div class="d-flex align-items-center">
-                                            <span class="me-2">{{ item.ID }}</span>
+                                        <div class="d-flex align-items-center history-borrow-sale-d-flex history-borrow-sale-align-items-center">
+                                            <span class="me-2 history-borrow-sale-me-2">{{ item.ID }}</span>
                                             <span>{{ item.Name }}</span>
                                         </div>
                                     </nz-option>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Lọc kho</nz-form-label>
+                        <nz-form-item class="mt-2 history-borrow-sale-mt-2">
+                            <nz-form-label class="fs-12 history-borrow-sale-fs-12" [nzSpan]="24">Lọc kho</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" nzShowSearch nzSize="small"
+                                <nz-select class="w-100 history-borrow-sale-w-100" nzShowSearch nzSize="small"
                                     [(ngModel)]="searchParams.productGroupID" name="productGroupID"
                                     (ngModelChange)="onProductGroupChange($event)">
                                     <nz-option *ngFor="let item of cbbProductGroup" [nzValue]="item.ID"
@@ -56,10 +56,10 @@
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
+                        <nz-form-item class="mt-2 history-borrow-sale-mt-2">
+                            <nz-form-label class="fs-12 history-borrow-sale-fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" nzShowSearch nzSize="small"
+                                <nz-select class="w-100 history-borrow-sale-w-100" nzShowSearch nzSize="small"
                                     [(ngModel)]="searchParams.employeeID" name="employeeID"
                                     (ngModelChange)="onEmployeeChange($event)">
                                     <nz-option *ngFor="let item of cbbEmployee" [nzValue]="item.ID"
@@ -68,62 +68,62 @@
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                        <nz-form-item class="mt-2 history-borrow-sale-mt-2">
+                            <nz-form-label class="fs-12 history-borrow-sale-fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <input (keyup.enter)="searchData()" class="w-100" nz-input placeholder="Nhập từ khóa"
+                                <input (keyup.enter)="searchData()" class="w-100 history-borrow-sale-w-100" nz-input placeholder="Nhập từ khóa"
                                     [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
                             </nz-form-control>
                         </nz-form-item>
                     </form>
                 </div>
-                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end history-borrow-sale-card-footer history-borrow-sale-bg-white history-borrow-sale-p-1 history-borrow-sale-d-flex history-borrow-sale-gap-1 history-borrow-sale-justify-content-end">
                     <button nz-button nzType="default" nzSize="small" (click)="resetform()">Đặt lại</button>
                     <button nz-button nzType="primary" nzSize="small" (click)="searchData()">Tìm kiếm</button>
                 </div>
             </div>
         </nz-splitter-panel>
         <nz-splitter-panel nzDefaultSize="100%">
-            <div class="card h-100 border-0 rounded-0">
+            <div class="card h-100 border-0 rounded-0 history-borrow-sale-card history-borrow-sale-h-100 history-borrow-sale-border-0 history-borrow-sale-rounded-0">
                 <!-- Toolbar -->
-                <div class="card-header bg-white p-2" style="overflow-x: auto;">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <div class="d-flex gap-1 align-items-center">
+                <div class="card-header bg-white p-2 history-borrow-sale-card-header history-borrow-sale-bg-white history-borrow-sale-p-2" style="overflow-x: auto;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 history-borrow-sale-d-flex history-borrow-sale-justify-content-between history-borrow-sale-align-items-center history-borrow-sale-flex-wrap history-borrow-sale-gap-2">
+                        <div class="d-flex gap-1 align-items-center history-borrow-sale-d-flex history-borrow-sale-gap-1 history-borrow-sale-align-items-center">
                             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
                                 <nz-icon nzType="search" />
                             </button>
-                            <button class="fs-12 btn" nz-button nzType="default" *hasPermission="'N27,N1'"
+                            <button class="fs-12 btn history-borrow-sale-fs-12 history-borrow-sale-btn" nz-button nzType="default" *hasPermission="'N27,N1'"
                                 nzSize="small" (click)="createImport()">
-                                <img class="btn-action-icon" src="assets/icon/action_add_24.svg" /> Tạo phiếu trả
+                                <img class="btn-action-icon history-borrow-sale-btn-action-icon" src="assets/icon/action_add_24.svg" /> Tạo phiếu trả
                             </button>
-                            <button class="fs-12 btn" *hasPermission="'N27,N1'" nz-button nzType="default"
+                            <button class="fs-12 btn history-borrow-sale-fs-12 history-borrow-sale-btn" *hasPermission="'N27,N1'" nz-button nzType="default"
                                 nzSize="small" (click)="IsApprovedReturned(true)">
-                                <img class="btn-action-icon" src="assets/icon/action_check_24.svg" /> Đã trả
+                                <img class="btn-action-icon history-borrow-sale-btn-action-icon" src="assets/icon/action_check_24.svg" /> Đã trả
                             </button>
-                            <button class="fs-12 btn" *hasPermission="'N27,N1'" nz-button nzType="default"
+                            <button class="fs-12 btn history-borrow-sale-fs-12 history-borrow-sale-btn" *hasPermission="'N27,N1'" nz-button nzType="default"
                                 nzSize="small" (click)="IsApprovedReturned(false)">
-                                <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" /> Hủy trả
+                                <img class="btn-action-icon history-borrow-sale-btn-action-icon" src="assets/icon/action_cancle_24.svg" /> Hủy trả
                             </button>
-                            <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                                <img class="btn-action-icon" src="assets/icon/action_export_excel_24.svg" /> Xuất Excel
+                            <button class="fs-12 btn history-borrow-sale-fs-12 history-borrow-sale-btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                                <img class="btn-action-icon history-borrow-sale-btn-action-icon" src="assets/icon/action_export_excel_24.svg" /> Xuất Excel
                             </button>
                         </div>
 
                         <!-- Chú thích màu bên phải -->
-                        <div class="d-flex gap-2">
-                            <div class="color-legend">
-                                <span class="color-box color-dual"></span>
-                                <span class="fs-12">Sắp hết hạn</span>
+                        <div class="d-flex gap-2 history-borrow-sale-d-flex history-borrow-sale-gap-2">
+                            <div class="color-legend history-borrow-sale-color-legend">
+                                <span class="color-box color-dual history-borrow-sale-color-box history-borrow-sale-color-dual"></span>
+                                <span class="fs-12 history-borrow-sale-fs-12">Sắp hết hạn</span>
                             </div>
-                            <div class="color-legend">
-                                <span class="color-box color-overdue"></span>
-                                <span class="fs-12">Quá hạn</span>
+                            <div class="color-legend history-borrow-sale-color-legend">
+                                <span class="color-box color-overdue history-borrow-sale-color-box history-borrow-sale-color-overdue"></span>
+                                <span class="fs-12 history-borrow-sale-fs-12">Quá hạn</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- Body chứa 2 bảng -->
-                <div class="card-body p-0 w-100 position-relative">
+                <div class="card-body p-0 w-100 position-relative history-borrow-sale-card-body history-borrow-sale-p-0 history-borrow-sale-w-100 history-borrow-sale-position-relative">
                     <div #tableHistoryBorrowSaleRef></div>
                 </div>
 
@@ -132,7 +132,7 @@
     </nz-splitter>
 
     <!-- Context Menu -->
-    <div *ngIf="contextMenuVisible" class="context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY"
+    <div *ngIf="contextMenuVisible" class="context-menu history-borrow-sale-context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY"
         (click)="$event.stopPropagation()">
         <ul nz-menu nzMode="vertical">
             <li nz-menu-item (click)="copyCell()">
@@ -168,7 +168,7 @@
     </div>
 
     <!-- Backdrop to close context menu -->
-    <div *ngIf="contextMenuVisible" class="context-menu-backdrop" (click)="hideContextMenu()"
+    <div *ngIf="contextMenuVisible" class="context-menu-backdrop history-borrow-sale-context-menu-backdrop" (click)="hideContextMenu()"
         (contextmenu)="$event.preventDefault(); hideContextMenu()">
     </div>
 </ng-container>

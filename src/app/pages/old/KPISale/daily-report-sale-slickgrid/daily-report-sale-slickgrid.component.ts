@@ -230,11 +230,12 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
                             if (currentUserId) {
                                 this.filters.employeeId = currentUserId;
                             }
-                        } else if (currentUser?.IsAdminSale === 1) {
+                        } else if (ID_ADMIN_SALE_LIST.includes(currentUserId)) {
+                            // Admin Sale: gọi API lấy root team để tự động chọn combobox team
                             const currentEmployeeId = this.appUserService.employeeID;
                             if (currentEmployeeId) {
                                 this.needLoadTeam = true;
-                                this.loadTeamSaleByEmployee(currentEmployeeId);
+                                this.loadRootTeamByEmployee(currentEmployeeId);
                             }
                         }
                     }
@@ -243,11 +244,11 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
                     this.isEmployeeIdDisabled = !this.isAdmin;
                     if (!this.isAdmin && currentUserId) {
                         this.filters.employeeId = currentUserId;
-                    } else if (currentUser?.IsAdminSale === 1) {
+                    } else if (ID_ADMIN_SALE_LIST.includes(currentUserId)) {
                         const currentEmployeeId = this.appUserService.employeeID;
                         if (currentEmployeeId) {
                             this.needLoadTeam = true;
-                            this.loadTeamSaleByEmployee(currentEmployeeId);
+                            this.loadRootTeamByEmployee(currentEmployeeId);
                         }
                     }
                 }
@@ -257,11 +258,11 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
                 this.isEmployeeIdDisabled = !this.isAdmin;
                 if (!this.isAdmin && currentUserId) {
                     this.filters.employeeId = currentUserId;
-                } else if (currentUser?.IsAdminSale === 1) {
+                } else if (ID_ADMIN_SALE_LIST.includes(currentUserId)) {
                     const currentEmployeeId = this.appUserService.employeeID;
                     if (currentEmployeeId) {
                         this.needLoadTeam = true;
-                        this.loadTeamSaleByEmployee(currentEmployeeId);
+                        this.loadRootTeamByEmployee(currentEmployeeId);
                     }
                 }
             }
@@ -361,6 +362,27 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
             },
             (error) => {
                 console.error('Error loading team sale by employee:', error);
+                this.isTeamLoaded = true;
+                if (this.isGridReady) {
+                    this.loadData();
+                }
+            }
+        );
+    }
+
+    loadRootTeamByEmployee(employeeId: number): void {
+        this.dailyReportSaleService.getRootTeamByEmployee(employeeId).subscribe(
+            (response) => {
+                if (response.status === 1 && response.data) {
+                    this.filters.teamId = response.data.TeamID || 0;
+                }
+                this.isTeamLoaded = true;
+                if (this.isGridReady) {
+                    this.loadData();
+                }
+            },
+            (error) => {
+                console.error('Error loading root team by employee:', error);
                 this.isTeamLoaded = true;
                 if (this.isGridReady) {
                     this.loadData();
@@ -589,7 +611,6 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
                 resizeDetection: 'container',
             },
             gridWidth: '100%',
-            rowHeight: 80,
             enableCellNavigation: true,
             enableFiltering: true,
             enableRowSelection: true,
@@ -660,14 +681,13 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
                     }));
                     this.totalPage = response.data.totalPage?.[0]?.TotalPage || 1;
 
-                    // Apply distinct filters after data is loaded
-                    setTimeout(() => {
-                        this.applyDistinctFiltersToGrid(
-                            this.angularGrid,
-                            this.columnDefinitions,
-                            ['FirmName', 'ProjectTypeName', 'FullName', 'ContactName', 'MainIndex']
-                        );
-                    }, 0);
+                    // Apply distinct filters after data is loaded - truyền thẳng dataset
+                    this.applyDistinctFiltersToGrid(
+                        this.angularGrid,
+                        this.columnDefinitions,
+                        ['FirmName', 'ProjectTypeName', 'FullName', 'ContactName', 'MainIndex'],
+                        this.dataset
+                    );
                 } else {
                     this.dataset = [];
                     this.totalPage = 1;
@@ -711,11 +731,13 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     private applyDistinctFiltersToGrid(
         angularGrid: AngularGridInstance,
         columnDefinitions: Column[],
-        fieldsToFilter: string[]
+        fieldsToFilter: string[],
+        dataSource?: any[]
     ): void {
-        if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+        if (!angularGrid?.slickGrid) return;
 
-        const data = angularGrid.dataView.getItems();
+        // Dùng data truyền vào hoặc fallback lấy từ dataView
+        const data = dataSource || angularGrid?.dataView?.getItems() || [];
         if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {

@@ -32,7 +32,7 @@
                 <nz-tree-select style="width: 180px" nzShowSearch nzAllowClear [nzNodes]="groupSaleUser"
                     [(ngModel)]="filters.groupSaleID" name="groupSaleID" nzPlaceHolder="Chọn team"
                     [nzDefaultExpandAll]="true" nzSize="small" [nzDropdownStyle]="{ 'max-height': '500px' }"
-                    [nzDisabled]="isAdminSale !== 1">
+                    [nzDisabled]="isAdminSale !== 1 && !isAdmin">
                 </nz-tree-select>
             </nz-form-control>
         </nz-form-item>

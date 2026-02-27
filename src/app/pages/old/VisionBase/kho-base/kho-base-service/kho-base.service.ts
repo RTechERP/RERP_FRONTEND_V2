@@ -226,23 +226,37 @@ export class KhoBaseService {
     const map = new Map<number, any>();
     const tree: any[] = [];
 
-    // Bước 1: Map từng item theo ID
+    // Bước 1: Map từng item theo ID (ép kiểu Number để tránh mismatch string/number)
     flatData.forEach((item) => {
-      map.set(item[valueField], { ...item, _children: [] });
+      const key = Number(item[valueField]);
+      if (!map.has(key)) {
+        map.set(key, { ...item, _children: [] });
+      }
     });
 
     // Bước 2: Gắn item vào parent hoặc top-level
     flatData.forEach((item) => {
-      const current = map.get(item[valueField]);
-      if (item.ParentID && item.ParentID != 0) {
-        const parent = map.get(item.ParentID);
-        if (parent) {
-          parent._children.push(current);
+      const key = Number(item[valueField]);
+      const current = map.get(key);
+      if (!current) return;
+
+      const parentId = Number(item.ParentID);
+      if (parentId && parentId !== 0) {
+        const parent = map.get(parentId);
+        if (parent && parent !== current) {
+          // Tránh thêm trùng
+          if (!parent._children.some((c: any) => Number(c[valueField]) === key)) {
+            parent._children.push(current);
+          }
         } else {
-          tree.push(current);
+          if (!tree.includes(current)) {
+            tree.push(current);
+          }
         }
       } else {
-        tree.push(current);
+        if (!tree.includes(current)) {
+          tree.push(current);
+        }
       }
     });
 

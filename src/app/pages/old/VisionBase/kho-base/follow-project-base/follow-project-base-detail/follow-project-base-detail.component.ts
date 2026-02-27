@@ -1,4 +1,5 @@
 import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, AfterViewChecked, IterableDiffers, TemplateRef, input, Input, inject } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, NonNullableFormBuilder, AbstractControl } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -146,19 +147,38 @@ export class FollowProjectBaseDetailComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.getProjects();
-    this.getPM();
-    this.getCustomers();
-    this.getProjectStatus();
-    this.getFirmBase();
-    this.getProjectTypeBase();
-    this.getUsers();
-    if (this.FollowProject) {
-      this.loadData();
-    }
-
+    // Đăng ký onProjectChange TRƯỚC khi load data
     this.validateForm.get('projectID')?.valueChanges.subscribe(() => this.onProjectChange());
 
+    // Load tất cả dropdown data song song
+    forkJoin({
+      projects: this.khoBaseService.getProjects(),
+      pms: this.khoBaseService.getPM(),
+      customers: this.khoBaseService.getCustomers(),
+      projectStatus: this.khoBaseService.getProjectStatus(),
+      firmBase: this.khoBaseService.getFirmBase(),
+      projectTypeBase: this.khoBaseService.getProjectTypeBase(),
+      users: this.khoBaseService.getUsers(),
+    }).subscribe({
+      next: (res: any) => {
+        this.projects = res.projects.data;
+        this.pms = res.pms.data;
+        this.customers = res.customers.data;
+        this.projectStatus = res.projectStatus.data;
+        this.firmBase = res.firmBase.data;
+        this.projectTypeBase = res.projectTypeBase.data;
+        this.users = res.users.data;
+
+        // Chỉ load data EDIT sau khi tất cả dropdown đã sẵn sàng
+        if (this.FollowProject) {
+          this.loadData();
+          this.onProjectChange(); // Lấy lại đúng Sale phụ trách và PM từ bảng Project
+        }
+      },
+      error: () => {
+        this.notification.create('error', 'Thông báo', 'Lỗi load dữ liệu!');
+      }
+    });
   }
   ngAfterViewInit(): void {
     this.drawTbFollowProjectForSale(this.tb_followProjectForSaleContainer.nativeElement);
@@ -313,7 +333,7 @@ export class FollowProjectBaseDetailComponent implements OnInit {
       // sale
       dateDoneSale: this.FollowProject.DateDoneSale,
       dateWillDoSale: this.FollowProject.DateWillDoSale
-    }, { emitEvent: true });
+    }, { emitEvent: false }); // Không trigger onProjectChange khi loadData edit
     // this.onProjectChange();
 
   }
@@ -532,25 +552,25 @@ export class FollowProjectBaseDetailComponent implements OnInit {
     }
   }
   openProjectTypeBaseDetail() {
-     const modalRef = this.modalService.open(ProjectTypeBaseDetailComponent, {
-        backdrop: 'static',
-        keyboard: false,
-        scrollable: true,
-        size: 'lg'
-      });
-      modalRef.result.finally(() => {
-        this.getProjectTypeBase();
-      });
+    const modalRef = this.modalService.open(ProjectTypeBaseDetailComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      scrollable: true,
+      size: 'lg'
+    });
+    modalRef.result.finally(() => {
+      this.getProjectTypeBase();
+    });
   }
   openFirmBaseDetail() {
-        const modalRef = this.modalService.open(FirmBaseDetailComponent, {
-        backdrop: 'static',
-        keyboard: false,
-        scrollable: true,
-        size: 'lg'
-      });
-      modalRef.result.finally(() => {
-        this.getFirmBase();
-      });
+    const modalRef = this.modalService.open(FirmBaseDetailComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      scrollable: true,
+      size: 'lg'
+    });
+    modalRef.result.finally(() => {
+      this.getFirmBase();
+    });
   }
 }

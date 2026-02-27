@@ -158,6 +158,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
     dataDelete: any = {};
     selectedList: any[] = [];
 
+    isShowProductGroupDeleted: boolean = true;
+
     // Excel export service
     excelExportService = new ExcelExportService();
 
@@ -376,8 +378,29 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
         this.angularGridProductGroup = angularGrid;
         this.gridDataProductGroup = angularGrid?.slickGrid || {};
 
-        // Không subscribe onRowCountChanged để tránh mất focus khi filter
-        // Auto-select first row sẽ được xử lý trong getProductGroup() sau khi load data
+        // Override getItemMetadata để bôi đỏ dòng có IsVisible === true và con cháu
+        const dataView = angularGrid.dataView as any;
+        const originalGetItemMetadata = dataView.getItemMetadata?.bind(dataView);
+        dataView.getItemMetadata = (row: number) => {
+            const item = dataView.getItem(row);
+            const base = originalGetItemMetadata ? originalGetItemMetadata(row) : {};
+            if (item && this.isVisibleRow(item, dataView)) {
+                return {
+                    ...base,
+                    cssClasses: ((base?.cssClasses || '') + ' row-deleted').trim(),
+                };
+            }
+            return base;
+        };
+    }
+
+    private isVisibleRow(item: any, dataView: any): boolean {
+        if (item.IsVisible != true) return true;
+        if (item.parentId != null) {
+            const parent = dataView.getItemById(item.parentId);
+            if (parent) return this.isVisibleRow(parent, dataView);
+        }
+        return false;
     }
 
     findFirstVisibleRow(angularGrid: AngularGridInstance): number | null {
@@ -876,7 +899,6 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
     //#endregion
 
     //#region Data Management
-
     getProductGroup() {
         this.productsaleSV
             .getdataProductGroup(this.warehouseCode, false)
@@ -885,7 +907,11 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                     if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
                         this.listProductGroup = res.data;
 
-                        this.datasetProductGroup = res.data.map(
+                        if (!this.isShowProductGroupDeleted) {
+                            this.listProductGroup = res.data.filter((item: any) => item.IsVisible === true);
+                        }
+
+                        this.datasetProductGroup = this.listProductGroup.map(
                             (item: any, index: number) => ({
                                 ...item,
                                 id: item.ID || `group_${index}_${Date.now()}`,

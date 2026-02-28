@@ -40,6 +40,7 @@ import {
     AngularGridInstance,
     AngularSlickgridModule,
     Column,
+    EditCommand,
     Filters,
     Formatters,
     GridOption,
@@ -70,6 +71,7 @@ import { DailyReportSaleService } from '../daily-report-sale/daily-report-sale-s
 import { DailyReportSaleDetailComponent } from '../daily-report-sale/daily-report-sale-detail/daily-report-sale-detail.component';
 import { ImportExcelDailyReportComponent } from '../daily-report-sale/import-excel/import-excel.component';
 import { ActivatedRoute } from '@angular/router';
+import { ReadOnlyLongTextEditor } from '../../../KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
 
 @Component({
     selector: 'app-daily-report-sale-slickgrid',
@@ -113,6 +115,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     columnDefinitions: Column[] = [];
     gridOptions: GridOption = {};
     dataset: any[] = [];
+    editCommandQueue: EditCommand[] = [];
 
     // PrimeNG Menubar
     menuBars: any[] = [];
@@ -227,11 +230,12 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
                             if (currentUserId) {
                                 this.filters.employeeId = currentUserId;
                             }
-                        } else if (currentUser?.IsAdminSale === 1) {
+                        } else if (ID_ADMIN_SALE_LIST.includes(currentUserId)) {
+                            // Admin Sale: gọi API lấy root team để tự động chọn combobox team
                             const currentEmployeeId = this.appUserService.employeeID;
                             if (currentEmployeeId) {
                                 this.needLoadTeam = true;
-                                this.loadTeamSaleByEmployee(currentEmployeeId);
+                                this.loadRootTeamByEmployee(currentEmployeeId);
                             }
                         }
                     }
@@ -240,11 +244,11 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
                     this.isEmployeeIdDisabled = !this.isAdmin;
                     if (!this.isAdmin && currentUserId) {
                         this.filters.employeeId = currentUserId;
-                    } else if (currentUser?.IsAdminSale === 1) {
+                    } else if (ID_ADMIN_SALE_LIST.includes(currentUserId)) {
                         const currentEmployeeId = this.appUserService.employeeID;
                         if (currentEmployeeId) {
                             this.needLoadTeam = true;
-                            this.loadTeamSaleByEmployee(currentEmployeeId);
+                            this.loadRootTeamByEmployee(currentEmployeeId);
                         }
                     }
                 }
@@ -254,11 +258,11 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
                 this.isEmployeeIdDisabled = !this.isAdmin;
                 if (!this.isAdmin && currentUserId) {
                     this.filters.employeeId = currentUserId;
-                } else if (currentUser?.IsAdminSale === 1) {
+                } else if (ID_ADMIN_SALE_LIST.includes(currentUserId)) {
                     const currentEmployeeId = this.appUserService.employeeID;
                     if (currentEmployeeId) {
                         this.needLoadTeam = true;
-                        this.loadTeamSaleByEmployee(currentEmployeeId);
+                        this.loadRootTeamByEmployee(currentEmployeeId);
                     }
                 }
             }
@@ -358,6 +362,27 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
             },
             (error) => {
                 console.error('Error loading team sale by employee:', error);
+                this.isTeamLoaded = true;
+                if (this.isGridReady) {
+                    this.loadData();
+                }
+            }
+        );
+    }
+
+    loadRootTeamByEmployee(employeeId: number): void {
+        this.dailyReportSaleService.getRootTeamByEmployee(employeeId).subscribe(
+            (response) => {
+                if (response.status === 1 && response.data) {
+                    this.filters.teamId = response.data.TeamID || 0;
+                }
+                this.isTeamLoaded = true;
+                if (this.isGridReady) {
+                    this.loadData();
+                }
+            },
+            (error) => {
+                console.error('Error loading root team by employee:', error);
                 this.isTeamLoaded = true;
                 if (this.isGridReady) {
                     this.loadData();
@@ -569,10 +594,10 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
             { id: 'ProductOfCustomer', name: 'Sản phẩm của KH', field: 'ProductOfCustomer', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             { id: 'ContactName', name: 'Người liên hệ (Tên/Chức vụ)', field: 'ContactName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'MainIndex', name: 'Loại nhóm', field: 'MainIndex', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
-            { id: 'Content', name: 'Việc đã làm', field: 'Content', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'Result', name: 'Kết quả mong đợi', field: 'Result', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'ProblemBacklog', name: 'Vấn đề tồn đọng', field: 'ProblemBacklog', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'PlanNext', name: 'Kế hoạch tiếp theo', field: 'PlanNext', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Content', name: 'Việc đã làm', field: 'Content', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
+            { id: 'Result', name: 'Kết quả mong đợi', field: 'Result', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
+            { id: 'ProblemBacklog', name: 'Vấn đề tồn đọng', field: 'ProblemBacklog', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
+            { id: 'PlanNext', name: 'Kế hoạch tiếp theo', field: 'PlanNext', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
             { id: 'PartCode', name: 'End User', field: 'PartCode', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             { id: 'BigAccount', name: 'Big Account', field: 'BigAccount', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.checkboxFormatter, cssClass: 'text-center', filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] } },
             { id: 'SaleOpportunity', name: 'Cơ hội bán hàng', field: 'SaleOpportunity', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.checkboxFormatter, cssClass: 'text-center', filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] } },
@@ -594,6 +619,13 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
             },
             enableCheckboxSelector: false,
             multiColumnSort: true,
+            editable: true,
+            autoEdit: true,
+            autoCommitEdit: true,
+            editCommandHandler: (_item: any, _column: Column, editCommand: EditCommand) => {
+                this.editCommandQueue.push(editCommand);
+                editCommand.execute();
+            },
         };
     }
 
@@ -649,14 +681,13 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
                     }));
                     this.totalPage = response.data.totalPage?.[0]?.TotalPage || 1;
 
-                    // Apply distinct filters after data is loaded
-                    setTimeout(() => {
-                        this.applyDistinctFiltersToGrid(
-                            this.angularGrid,
-                            this.columnDefinitions,
-                            ['FirmName', 'ProjectTypeName', 'FullName', 'ContactName', 'MainIndex']
-                        );
-                    }, 0);
+                    // Apply distinct filters after data is loaded - truyền thẳng dataset
+                    this.applyDistinctFiltersToGrid(
+                        this.angularGrid,
+                        this.columnDefinitions,
+                        ['FirmName', 'ProjectTypeName', 'FullName', 'ContactName', 'MainIndex'],
+                        this.dataset
+                    );
                 } else {
                     this.dataset = [];
                     this.totalPage = 1;
@@ -700,11 +731,13 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     private applyDistinctFiltersToGrid(
         angularGrid: AngularGridInstance,
         columnDefinitions: Column[],
-        fieldsToFilter: string[]
+        fieldsToFilter: string[],
+        dataSource?: any[]
     ): void {
-        if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+        if (!angularGrid?.slickGrid) return;
 
-        const data = angularGrid.dataView.getItems();
+        // Dùng data truyền vào hoặc fallback lấy từ dataView
+        const data = dataSource || angularGrid?.dataView?.getItems() || [];
         if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {

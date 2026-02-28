@@ -282,9 +282,10 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
                   partId: partId
                 });
 
+                // Load projectStatus trực tiếp thay vì gọi onProjectChange
+                // vì onProjectChange sẽ re-patch customerId => trigger onCustomerChange => reset contactId về null
+                this.loadProjectStatusForEdit(data.ProjectID || null);
                 this.isLoading = false;
-                // Gọi onProjectChange sau khi isLoading = false để load projectStatusId
-                this.onProjectChange(data.ProjectID || null);
               },
               error: (error) => {
                 console.error('Error loading contacts/parts:', error);
@@ -293,15 +294,13 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
                   contactId: contactId,
                   partId: partId
                 });
+                this.loadProjectStatusForEdit(data.ProjectID || null);
                 this.isLoading = false;
-                // Gọi onProjectChange sau khi isLoading = false để load projectStatusId
-                this.onProjectChange(data.ProjectID || null);
               }
             });
           } else {
+            this.loadProjectStatusForEdit(data.ProjectID || null);
             this.isLoading = false;
-            // Gọi onProjectChange sau khi isLoading = false để load projectStatusId
-            this.onProjectChange(data.ProjectID || null);
           }
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể tải dữ liệu');
@@ -725,6 +724,30 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     } else {
       this.projectStatusOld = 0;
     }
+  }
+
+  /**
+   * Load projectStatusId khi đang edit mà không re-patch customerId.
+   * Khác với onProjectChange: KHÔNG gọi patchValue({customerId}) tránh trigger onCustomerChange reset contactId.
+   */
+  loadProjectStatusForEdit(projectId: number | null): void {
+    if (!projectId || projectId <= 0) {
+      return;
+    }
+    this.projectService.getProject(projectId).subscribe({
+      next: (response) => {
+        if (response.status === 1 && response.data) {
+          const project = response.data;
+          this.projectStatusOld = project.ProjectStatus || 0;
+          this.dailyReportSaleForm.patchValue({
+            projectStatusId: this.projectStatusOld
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error loading project for edit:', error);
+      }
+    });
   }
 
   onProjectStatusChange(projectStatusId: number | null): void {

@@ -175,4 +175,12 @@ export class DailyReportSaleService {
   importExcel(data: any[]): Observable<any> {
     return this.http.post(this._url + 'import-excel', data);
   }
+
+  getRootTeamByEmployee(employeeId: number): Observable<any> {
+    return this.http.get(this._url + 'get-root-team-by-employee', {
+      params: {
+        employeeId: employeeId.toString(),
+      },
+    });
+  }
 }

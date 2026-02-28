@@ -277,7 +277,7 @@
 <!-- Modal chọn ngày thay đổi trạng thái -->
 <nz-modal [(nzVisible)]="showDateStatusLogModal" nzTitle="Ngày thay đổi trạng thái"
     (nzOnCancel)="onDateStatusLogCancel()" [nzFooter]="null">
-    <div *nzModalContent>
+    <div *nzModalContent [formGroup]="dailyReportSaleForm">
         <div class="mb-3">
             <label class="mb-2 d-block">
                 <span>Ngày thay đổi trạng thái</span>

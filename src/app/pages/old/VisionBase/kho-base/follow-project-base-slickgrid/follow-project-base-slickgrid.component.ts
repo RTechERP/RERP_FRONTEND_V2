@@ -33,6 +33,7 @@ import {
     AngularGridInstance,
     AngularSlickgridModule,
     Column,
+    EditCommand,
     Filters,
     Formatters,
     GridOption,
@@ -43,7 +44,7 @@ import { OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { EnvironmentInjector } from '@angular/core';
 import { DateTime } from 'luxon';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -58,6 +59,7 @@ import { AppUserService } from '../../../../../services/app-user.service';
 import { IUser } from '../../../../../models/user.interface';
 import { ActivatedRoute } from '@angular/router';
 import { Menubar } from 'primeng/menubar';
+import { ReadOnlyLongTextEditor } from '../../../../KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
 
 @Component({
     selector: 'app-follow-project-base-slickgrid',
@@ -162,6 +164,8 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
     totalPage: number = 1;
     readonly pageSizeOptions: number[] = [20, 50, 100, 200, 500, 1000, 10000];
 
+    editCommandQueue: EditCommand[] = [];
+
     private queryParamsSubscription?: Subscription;
     private isInitialized: boolean = false;
 
@@ -224,10 +228,6 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
         this.isAdminSale = this.currentUser?.IsAdminSale || 0;
         this.currentUserId = this.currentUser?.ID || 0;
 
-        if (this.currentUserId > 0) {
-            this.getUserSale(this.currentUserId);
-        }
-
         const warehouseId =
             this.tabData?.warehouseID
             ?? this.route.snapshot.queryParams['warehouseId']
@@ -242,7 +242,24 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
         this.initGridForSale();
         this.initGridForPM();
 
-        // Subscribe to queryParams
+        // getUserSale phải hoàn thành TRƯỚC khi load data lần đầu
+        if (this.currentUserId > 0) {
+            this.khoBaseService.getUserSale(this.currentUserId, this.isAdmin, this.isAdminSale).subscribe({
+                next: (response: any) => {
+                    this.getUserSaleResult = response.data;
+                    this.subscribeQueryParams();
+                },
+                error: () => {
+                    this.notification.create('error', 'Thông báo', 'Lỗi load getUserSale!');
+                    this.subscribeQueryParams();
+                }
+            });
+        } else {
+            this.subscribeQueryParams();
+        }
+    }
+
+    private subscribeQueryParams(): void {
         this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
             const wId =
                 params['warehouseId']
@@ -258,11 +275,36 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
 
                 if (!this.isInitialized) {
                     this.getGroupSaleUser();
-                    this.getUsers();
-                    this.getEmployee();
                     this.getCustomerBase();
                     this.isInitialized = true;
-                    this.loadFollowProjectData();
+
+                    // Chờ getUsers và getEmployee hoàn thành để set filters.user & filters.pm
+                    // TRƯỚC KHI gọi loadFollowProjectData
+                    forkJoin({
+                        users: this.khoBaseService.getUsers(),
+                        employees: this.khoBaseService.getEmployee(-1)
+                    }).subscribe({
+                        next: ({ users, employees }: any) => {
+                            // Xử lý users
+                            this.users = users.data;
+                            if (this.getUserSaleResult == 3 || this.getUserSaleResult == 0) {
+                                this.filters.user = this.currentUserId;
+                            }
+
+                            // Xử lý employees
+                            this.employees = this.khoBaseService.createdDataGroup(employees.data, "DepartmentName");
+                            if (this.getUserSaleResult == 2 || this.getUserSaleResult == 0) {
+                                this.filters.pm = this.currentUser?.EmployeeID || 0;
+                            }
+
+                            // Giờ mới load data với filters đã đúng
+                            this.loadFollowProjectData();
+                        },
+                        error: () => {
+                            this.notification.create('error', 'Thông báo', 'Lỗi load users hoặc employees!');
+                            this.loadFollowProjectData();
+                        }
+                    });
                 } else {
                     this.loadFollowProjectData();
                 }
@@ -777,10 +819,10 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
             { id: 'FullName', name: 'Họ tên', field: 'FullName', width: 200, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
             { id: 'ImplementationDate', name: 'Ngày thực hiện gần nhất', field: 'ImplementationDate', width: 200, minWidth: 120, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
             { id: 'ExpectedDate', name: 'Ngày dự kiến thực hiện', field: 'ExpectedDate', width: 200, minWidth: 120, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
-            { id: 'WorkDone', name: 'Việc đã làm', field: 'WorkDone', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-            { id: 'Results', name: 'Kết quả mong đợi', field: 'Results', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-            { id: 'ProblemBacklog', name: 'Vấn đề tồn đọng', field: 'ProblemBacklog', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-            { id: 'WorkWillDo', name: 'Kế hoạch tiếp theo', field: 'WorkWillDo', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+            { id: 'WorkDone', name: 'Việc đã làm', field: 'WorkDone', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
+            { id: 'Results', name: 'Kết quả mong đợi', field: 'Results', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
+            { id: 'ProblemBacklog', name: 'Vấn đề tồn đọng', field: 'ProblemBacklog', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
+            { id: 'WorkWillDo', name: 'Kế hoạch tiếp theo', field: 'WorkWillDo', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
         ];
 
         this.gridOptionsForSale = {
@@ -798,6 +840,13 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,
+            editable: true,
+            autoEdit: true,
+            autoCommitEdit: true,
+            editCommandHandler: (_item: any, _column: Column, editCommand: EditCommand) => {
+                this.editCommandQueue.push(editCommand);
+                editCommand.execute();
+            },
         };
     }
 
@@ -806,10 +855,10 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
             { id: 'FullName', name: 'Họ tên', field: 'FullName', width: 200, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
             { id: 'ImplementationDate', name: 'Ngày thực hiện gần nhất', field: 'ImplementationDate', width: 200, minWidth: 120, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
             { id: 'ExpectedDate', name: 'Ngày dự kiến thực hiện', field: 'ExpectedDate', width: 200, minWidth: 120, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
-            { id: 'WorkDone', name: 'Việc đã làm', field: 'WorkDone', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-            { id: 'Results', name: 'Kết quả mong đợi', field: 'Results', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-            { id: 'ProblemBacklog', name: 'Vấn đề tồn đọng', field: 'ProblemBacklog', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-            { id: 'WorkWillDo', name: 'Kế hoạch tiếp theo', field: 'WorkWillDo', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+            { id: 'WorkDone', name: 'Việc đã làm', field: 'WorkDone', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
+            { id: 'Results', name: 'Kết quả mong đợi', field: 'Results', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
+            { id: 'ProblemBacklog', name: 'Vấn đề tồn đọng', field: 'ProblemBacklog', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
+            { id: 'WorkWillDo', name: 'Kế hoạch tiếp theo', field: 'WorkWillDo', width: 350, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
         ];
 
         this.gridOptionsForPM = {
@@ -827,6 +876,13 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
                 selectActiveRow: true
             },
             enableCheckboxSelector: false,
+            editable: true,
+            autoEdit: true,
+            autoCommitEdit: true,
+            editCommandHandler: (_item: any, _column: Column, editCommand: EditCommand) => {
+                this.editCommandQueue.push(editCommand);
+                editCommand.execute();
+            },
         };
     }
 

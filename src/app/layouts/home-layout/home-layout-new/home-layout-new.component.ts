@@ -43,6 +43,7 @@ interface LiXi {
 import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newsletter/newsletter-detail/newsletter-detail.component';
 import { DateTime } from 'luxon';
 import { UpdateVersionDetailComponent } from '../../../pages/systems/update-version/update-version-detail/update-version-detail.component';
+import { NzButtonModule } from "ng-zorro-antd/button";
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -62,7 +63,8 @@ import { UpdateVersionDetailComponent } from '../../../pages/systems/update-vers
         NgSwitchCase,
         HasPermissionDirective,
         NgbModalModule,
-        NzModalModule
+        NzModalModule,
+        NzButtonModule
     ],
     templateUrl: './home-layout-new.component.html',
     styleUrl: './home-layout-new.component.css'
@@ -177,9 +179,12 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         this.getQuantityBorrow();
         this.loadNewsletters();
 
-        // this.loadCurrentVersion();
-        // this.initSseConnection();
-
+        // Trì hoãn SSE và version check để các API quan trọng cho UI load trước
+        // (tránh SSE chiếm slot kết nối HTTP của trình duyệt)
+        // setTimeout(() => {
+        //     this.loadCurrentVersion();
+        //     this.initSseConnection();
+        // }, 3000);
     }
     getQuantityApprove() {
         this.approveTpService.getQuantityApprove().subscribe({

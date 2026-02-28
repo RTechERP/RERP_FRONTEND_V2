@@ -51,6 +51,8 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { PermissionService } from '../../../services/permission.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
+import { environment } from '../../../../environments/environment';
 interface DocumentType {
   Code: string;
   Name: string;
@@ -71,6 +73,7 @@ interface Document {
 interface DocumentFile {
   ID: number;
   FileName: string;
+  FilePath?: string;
 }
 @Component({
   selector: 'app-document',
@@ -540,16 +543,14 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Tạo subPath dùng tên văn bản để dễ hiểu
-    const safeName = this.selectedDocumentName.replace(/[\\/:*?"<>|]/g, '_'); // Loại bỏ ký tự không hợp lệ
-    const subPath = `Documents/${safeName}`;
+    const key = 'Document';
 
     // Hiển thị loading
     const loadingMsg = this.message.loading(`Đang tải lên ${file.name}...`, {
       nzDuration: 0,
     }).messageId;
 
-    this.documentService.uploadMultipleFiles([file], this.selectedDocumentTypeCode, subPath).subscribe({
+    this.documentService.uploadMultipleFiles([file], this.selectedDocumentTypeCode, undefined, key).subscribe({
       next: (res) => {
         this.message.remove(loadingMsg);
 
@@ -559,7 +560,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
           const fileRecord = {
             DocumentID: this.selectedDocumentId,
             FileName: uploadedFile.SavedFileName,
-            FilePath: uploadedFile.FilePath,
+            FilePath: `${key.toLowerCase()}/${uploadedFile.SavedFileName}`,
             FileNameOrigin: uploadedFile.OriginalFileName || file.name,
           };
 
@@ -630,26 +631,58 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     });
   }
 
-  downloadFile() {
-    if (!this.data || this.data.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+  // Xem file trong tab mới
+  viewFile(item: any): void {
+    if (!item?.FileName) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy tên file để xem!');
       return;
     }
 
-    const file = this.data[0];
+    const fileName = item.FileName;
+    const typeCode = this.selectedDocumentTypeCode || '';
 
-    if (!file.FileName) {
-      this.notification.warning('Thông báo', 'Không có file để tải!');
+    this.documentService.downloadFileByKey(fileName, typeCode).subscribe({
+      next: (blob: Blob) => {
+        const objectUrl = URL.createObjectURL(blob);
+        const newWindow = window.open(objectUrl, '_blank');
+
+        if (newWindow) {
+          newWindow.onload = () => {
+            newWindow.document.title = item.FileNameOrigin || fileName;
+          };
+        }
+      },
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xem file: ' + (err?.error?.message || err?.message || 'Không xác định'));
+      },
+    });
+  }
+
+  downloadFile(item: any): void {
+    if (!item?.FileName) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy tên file để tải!');
       return;
     }
 
-    const linkBase = 'http://113.190.234.64:8083/api/Upload/RTCDocument/';
-    const downloadUrl =
-      `http://113.190.234.64:8081/Document/GetBlobDownload` +
-      `?path=${encodeURIComponent(linkBase + file.FileName)}` +
-      `&file_name=${encodeURIComponent(file.FileName)}`;
+    const fileName = item.FileName;
+    const typeCode = this.selectedDocumentTypeCode || '';
 
-    window.open(downloadUrl, '_blank');
+    this.documentService.downloadFileByKey(fileName, typeCode).subscribe({
+      next: (blob: Blob) => {
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+
+        a.href = objectUrl;
+        a.download = item.FileNameOrigin || fileName;
+        a.click();
+
+        URL.revokeObjectURL(objectUrl);
+        this.notification.success(NOTIFICATION_TITLE.success, `Đã tải file: ${item.FileNameOrigin || fileName}`);
+      },
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải file: ' + (err?.error?.message || err?.message || 'Không xác định'));
+      },
+    });
   }
 
   onDeleteDocumentFile() {
@@ -939,9 +972,22 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       }
 
       contextMenuItems.push({
-        label: 'Tải xuống',
+        label: '👁️ Xem file',
         action: () => {
-          this.downloadFile();
+          const selectedData = this.documentFileTable!.getSelectedData();
+          if (selectedData.length > 0) {
+            this.viewFile(selectedData[0]);
+          }
+        }
+      });
+
+      contextMenuItems.push({
+        label: '⬇️ Tải xuống',
+        action: () => {
+          const selectedData = this.documentFileTable!.getSelectedData();
+          if (selectedData.length > 0) {
+            this.downloadFile(selectedData[0]);
+          }
         }
       });
 
@@ -991,12 +1037,10 @@ export class DocumentComponent implements OnInit, AfterViewInit {
         }
       });
 
-      // Double click vào tên file để tải xuống
+      // Double click vào tên file để xem file
       this.documentFileTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
         const rowData = row.getData();
-        // Set data để downloadFile() có thể sử dụng
-        this.data = [rowData];
-        this.downloadFile();
+        this.viewFile(rowData);
       });
     }
   }

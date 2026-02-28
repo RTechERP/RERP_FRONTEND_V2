@@ -193,7 +193,7 @@ nz-sider {
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 12px;
-  max-height: 350px;
+  /* max-height: 350px; */
   overflow-y: auto;
   /* chỉ lớp con scroll */
 }

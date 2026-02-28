@@ -550,7 +550,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   onTypeChange(typeId: any) {
     if (typeId) {
       const type = this.typeList.find(t => t.ID === typeId);
-      if (type && type.Cost) {
+      if (type && (type.Cost !== undefined && type.Cost !== null)) {
         this.bussinessForm.patchValue({ CostBussiness: type.Cost }, { emitEvent: false });
         this.calculateTotal();
       }

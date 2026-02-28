@@ -80,8 +80,7 @@
                         </div>
 
                         <label nz-checkbox [nzChecked]="lesson.Status == 1 || lesson.StatusText == 'Đã học'"
-                            (nzCheckedChange)="onLessonCompletionChange(lesson, $event)"
-                           class="lesson-checkbox">
+                            (nzCheckedChange)="onLessonCompletionChange(lesson, $event)" class="lesson-checkbox">
                         </label>
                     </div>
                 </div>
@@ -121,12 +120,22 @@
         <div class="section-subtitle mb-3">Nội dung</div>
         <div class="lesson-content-html" [innerHTML]="processHtmlContent(currentLesson?.LessonContent)">
         </div>
+        <!-- <object id="pdf" [data]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"></object> -->
     </div>
 
     <!-- PDF Section -->
-    <div *ngIf="true" class="pdf-section mb-4">
+    <div *ngIf="urlPDF" class="pdf-section mb-4">
         <div *ngIf="true">
-            <embed [src]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600">
+            <!-- <embed [src]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"> -->
+            <!-- <iframe src="{{getUrlPDFFile(currentLesson?.UrlPDF)}}" width="600" height="780" style="border: none;">
+            </iframe> -->
+            <!-- 
+            <object [data]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%"
+                height="600"></object> -->
+            <!-- <object data="{{getUrlPDFFile(currentLesson?.UrlPDF)}}"  type="application/pdf" width="100%"
+                height="600"></object> -->
+            <embed [src]="urlPDF" type="application/pdf" width="100%" height="800" frameborder="0"
+                sandbox="allow-same-origin allow-scripts" allowfullscreen>
         </div>
     </div>
 

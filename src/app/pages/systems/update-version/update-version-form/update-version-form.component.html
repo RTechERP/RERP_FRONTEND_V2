@@ -1,0 +1,169 @@
+<div class="modal-header bg-primary py-2">
+    <h5 class="modal-title " style="color: white;">{{ isEditMode ? 'Sửa phiên bản cập nhật' : 'Thêm phiên bản cập nhật'
+        }}</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+<div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
+    <form nz-form nzLayout="vertical">
+        <div nz-row [nzGutter]="[16, 16]">
+            <div nz-col [nzXs]="24" [nzMd]="12">
+                <nz-form-item>
+                    <nz-form-label>Mã phiên bản</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input [(ngModel)]="formData.Code" name="code" disabled placeholder="Tự động tạo" />
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div nz-col [nzXs]="24" [nzMd]="12">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Trạng thái</nz-form-label>
+                    <nz-form-control>
+                        <nz-select [(ngModel)]="formData.Status" name="status" (ngModelChange)="onStatusChange($event)">
+                            <nz-option *ngFor="let option of statusOptions" [nzLabel]="option.label"
+                                [nzValue]="option.value"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+
+        <div nz-row [nzGutter]="[16, 16]">
+            <div nz-col [nzXs]="24" [nzMd]="12">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Tên bản cập nhật</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input [(ngModel)]="formData.Name" name="name" placeholder="Nhập tên bản cập nhật" />
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div nz-col [nzXs]="24" [nzMd]="12">
+                <nz-form-item>
+                    <nz-form-label>Ngày public</nz-form-label>
+                    <nz-form-control>
+                        <nz-date-picker [(ngModel)]="formData.PublicDate" name="publicDate"
+                            [nzShowTime]="{ nzFormat: 'HH:mm' }" [nzFormat]="dateFormat" class="w-100"
+                            placeholder="Chọn ngày public">
+                        </nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+
+        <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24">
+                <nz-form-item>
+                    <nz-form-label>Nội dung chi tiết<span class="text-danger ps-1"> (*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng nhập nội dung'">
+                        <p-editor #editor [(ngModel)]="formData.Content" name="content"
+                            [style]="{'height': '300px', 'margin-bottom': '10px'}" [modules]="editorModules">
+                            <ng-template pTemplate="header">
+                                <span class="ql-formats">
+                                    <select class="ql-header">
+                                        <option value="1">Heading 1</option>
+                                        <option value="2">Heading 2</option>
+                                        <option selected>Normal</option>
+                                    </select>
+                                    <select class="ql-font">
+                                        <option value="arial" selected>Arial</option>
+                                        <option value="times-new-roman">Times New Roman</option>
+                                        <option value="courier-new">Courier New</option>
+                                        <option value="tahoma">Tahoma</option>
+                                        <option value="verdana">Verdana</option>
+                                        <option value="georgia">Georgia</option>
+                                        <option value="comic-sans-ms">Comic Sans MS</option>
+                                        <option value="impact">Impact</option>
+                                        <option value="arial-black">Arial Black</option>
+                                    </select>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-bold"></button>
+                                    <button class="ql-italic"></button>
+                                    <button class="ql-underline"></button>
+                                    <button class="ql-strike"></button>
+                                </span>
+                                <span class="ql-formats">
+                                    <select class="ql-color"></select>
+                                    <select class="ql-background"></select>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-list" value="ordered"></button>
+                                    <button class="ql-list" value="bullet"></button>
+                                    <button class="ql-indent" value="-1"></button>
+                                    <button class="ql-indent" value="+1"></button>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-link"></button>
+                                    <button class="ql-video"></button>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-clean"></button>
+                                </span>
+                            </ng-template>
+                        </p-editor>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+
+        <div nz-row [nzGutter]="[16, 16]">
+            <div nz-col [nzXs]="24" [nzMd]="12">
+                <nz-form-item>
+                    <nz-form-label>File FontEnd</nz-form-label>
+                    <nz-form-control>
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <nz-upload [nzFileList]="[]" [nzBeforeUpload]="beforeUploadFE" [nzShowUploadList]="false">
+                                <button nz-button nzBlock class="w-100 w-sm-auto">
+                                    <span nz-icon nzType="upload"></span>
+                                    Chọn file FE
+                                </button>
+                            </nz-upload>
+                            <input nz-input [value]="feFileName || ''" placeholder="Chưa chọn file" readonly
+                                style="flex: 1" />
+                            <button *ngIf="feFileName" nz-button nzType="default" nzSize="small"
+                                (click)="removeFEFile()">
+                                <span nz-icon nzType="delete" nzTheme="outline"></span>
+                            </button>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div nz-col [nzXs]="24" [nzMd]="12">
+                <nz-form-item>
+                    <nz-form-label>File Backend</nz-form-label>
+                    <nz-form-control>
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <nz-upload [nzFileList]="[]" [nzBeforeUpload]="beforeUploadBE" [nzShowUploadList]="false">
+                                <button nz-button nzBlock class="w-100 w-sm-auto">
+                                    <span nz-icon nzType="upload"></span>
+                                    Chọn file BE
+                                </button>
+                            </nz-upload>
+                            <input nz-input [value]="beFileName || ''" placeholder="Chưa chọn file" readonly
+                                style="flex: 1" />
+                            <button *ngIf="beFileName" nz-button nzType="default" nzSize="small"
+                                (click)="removeBEFile()">
+                                <span nz-icon nzType="delete" nzTheme="outline"></span>
+                            </button>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+
+        <div nz-row [nzGutter]="[16, 16]">
+            <div nz-col [nzXs]="24">
+                <nz-form-item>
+                    <nz-form-label>Ghi chú</nz-form-label>
+                    <nz-form-control>
+                        <textarea nz-input [(ngModel)]="formData.Note" name="note"
+                            [nzAutosize]="{ minRows: 2, maxRows: 4 }" placeholder="Nhập ghi chú (nếu có)..."></textarea>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button nz-button nzDanger nzType="default" (click)="onCancel()">Hủy</button>
+    <button nz-button nzType="primary" (click)="onSave()" [nzLoading]="loading">Lưu</button>
+</div>

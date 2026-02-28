@@ -35,6 +35,16 @@
                   </a>
                 </ng-template>
               </p-menubar>
+              <!-- Search Box for Category -->
+              <div class="px-2 py-1 bg-light border-bottom">
+                <div class="d-flex gap-2 align-items-center">
+                  <input nz-input placeholder="Tìm kiếm..." [(ngModel)]="searchCategoryText"
+                    (keyup.enter)="searchInTable('category')" nzSize="small">
+                  <button nz-button nzType="primary" nzSize="small" (click)="searchInTable('category')">
+                    <i nz-icon nzType="search"></i> Tìm
+                  </button>
+                </div>
+              </div>
               <div class="card-body p-0">
                 <div #CategoryTable style="width: 100%; height: 100%"></div>
               </div>
@@ -50,7 +60,7 @@
       <ng-container class="w-100">
         <nz-splitter>
           <nz-splitter-panel nzDefaultSize="100%">
-         
+
             <div class="card h-100 border-0 rounded-0">
               <!-- <div class="card-header bg-white p-1">
                 <div class="d-flex gap-1">
@@ -80,6 +90,16 @@
                   </a>
                 </ng-template>
               </p-menubar>
+              <!-- Search Box for Course -->
+              <div class="px-2 py-1 bg-light border-bottom">
+                <div class="d-flex gap-2 align-items-center">
+                  <input nz-input placeholder="Tìm kiếm..." [(ngModel)]="searchCourseText"
+                    (keyup.enter)="searchInTable('course')" nzSize="small">
+                  <button nz-button nzType="primary" nzSize="small" (click)="searchInTable('course')">
+                    <i nz-icon nzType="search"></i> Tìm
+                  </button>
+                </div>
+              </div>
               <div class="card-body p-0">
                 <div #CourseTable style="width: 100%; height: 100%"></div>
               </div>
@@ -125,9 +145,19 @@
                   </a>
                 </ng-template>
               </p-menubar>
+              <!-- Search Box for Lesson -->
+              <div class="px-2 py-1 bg-light border-bottom">
+                <div class="d-flex gap-2 align-items-center">
+                  <input nz-input placeholder="Tìm kiếm..." [(ngModel)]="searchLessonText"
+                    (keyup.enter)="searchInTable('lesson')" nzSize="small">
+                  <button nz-button nzType="primary" nzSize="small" (click)="searchInTable('lesson')">
+                    <i nz-icon nzType="search"></i> Tìm
+                  </button>
+                </div>
+              </div>
 
-              <div class="card-body p-0">
-                <div #LessonTable style="width: 100%; height: 100%"></div>
+              <div class=" p-0">
+                <div #LessonTable style="width: 100%; height: 85vh !important"></div>
               </div>
             </div>
           </nz-splitter-panel>

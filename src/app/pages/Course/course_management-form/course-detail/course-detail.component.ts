@@ -50,7 +50,8 @@ interface Course {
   TotalQuestions: number;
   RandomQuizQuestions: number;
   QuestionDuration: number;
-  IdeaID?: number[];
+  IdeaID?: number[] | null;
+  KPIID?: number[] | null;
 }
 
 @Component({
@@ -92,6 +93,7 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     RandomQuizQuestions: 0,
     QuestionDuration: 0,
     IdeaID: [],
+    KPIID: [],
   };
 
   @Input() courseID: number = 0;
@@ -100,6 +102,8 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
   @Input() dataCategory: any[] = [];
   @Input() maxSTT: number = 0;
   dataCourse: any[] = [];
+  employeeList: any[] = [];
+  kpiData: any[] = [];
   @Input() categoryID: number = 0;
 
   formGroup: FormGroup;
@@ -132,7 +136,10 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       StudyDays: [0, [Validators.min(0)]],
       TypeID: [null, [Validators.required]],
       IdeaID: [[], []],
+      KPIID: [[], []],
       // Fieldset 3: Thi quý
+      EmployeeID: [null, []],
+
       TotalQuestions: [0, [Validators.min(0)]],
       RandomQuizQuestions: [0, [Validators.min(0)]],
       QuestionDuration: [0, [Validators.min(0)]],
@@ -150,13 +157,13 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       StudyDays: 0,
       TypeID: 0,
       IdeaID: [],
+      KPIID: [],
       TotalQuestions: 0,
       RandomQuizQuestions: 0,
       QuestionDuration: 0,
     };
 
-    // Load dữ liệu dropdown
-    this.loadTypeData();
+
 
     // Set STT ban đầu = 1 cho add mode
     if (this.mode === 'add') {
@@ -181,27 +188,38 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
         StudyDays: this.dataInput.LeadTime || 0,
         TypeID: this.dataInput.CourseTypeID || null,
         IdeaID: this.dataInput.IdeaID || [],
+        KPIID: this.dataInput.KPIID || [],
+        EmployeeID: this.dataInput.EmployeeID || null,
         TotalQuestions: this.dataInput.MultiChoiceQuestions || 0,
         RandomQuizQuestions: this.dataInput.QuestionCount || 0,
         QuestionDuration: this.dataInput.QuestionDuration || 0,
       });
-      this.getIdeaByCourseID();
+      this.getIdeaByCourseID(this.dataInput.ID);
+      this.getKPIByCourseID(this.dataInput.ID);
     }
 
     // Listen to TypeID and CategoryID changes to fetch max STT
+    // Only in ADD mode - in EDIT mode we keep the current STT
     this.formGroup.get('TypeID')?.valueChanges.subscribe(() => {
-      this.updateSTTFromAPI();
+      if (this.mode === 'add') {
+        this.updateSTTFromAPI();
+      }
     });
 
     this.formGroup.get('CategoryID')?.valueChanges.subscribe(() => {
-      this.updateSTTFromAPI();
+      if (this.mode === 'add') {
+        this.updateSTTFromAPI();
+      }
     });
 
     // Nếu là add mode và đã có CategoryID sẵn, gọi API ngay để hiển thị STT
     // (TypeID sẽ được chọn sau nên sẽ trigger qua valueChanges)
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void {
+    // Load dữ liệu dropdown
+    this.loadTypeData();
+  }
 
   private trimAllStringControls() {
     Object.keys(this.formGroup.controls).forEach((k) => {
@@ -210,16 +228,39 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
     });
   }
-
+  loadEmployees(): void {
+    this.courseService.getDataEmployee().subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1) {
+          this.employeeList = response.data || [];
+          console.log('employeeList', this.employeeList);
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            response?.message || 'Không thể tải danh sách nhân viên!',
+          );
+        }
+      },
+      error: (error) => {
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi tải danh sách nhân viên!',
+        );
+        console.error('Error loading employees:', error);
+      },
+    });
+  }
   loadTypeData() {
     // Dữ liệu cố định cho dropdown Loại
     this.getCourseType();
     this.formGroup.patchValue({
       CopyCategoryID: this.categoryID || null,
-      CategoryID: this.categoryID || null,
+      CategoryID: this.categoryID || this.dataCourse[0].CatalogID,
     });
     this.getCourse();
     this.getDataIdea();
+    this.loadEmployees();
+    this.getDataKPI();
   }
 
   saveCourse() {
@@ -247,6 +288,8 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       LeadTime: formValue.StudyDays || 0,
       CourseTypeID: formValue.TypeID,
       IdeaIDs: formValue.IdeaID || [],
+      KPIIDs: formValue.KPIID || [],
+      EmployeeID: formValue.EmployeeID || 0,
       QuestionDuration: formValue.QuestionDuration || 0,
     };
 
@@ -289,7 +332,7 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
   }
 
   getCourse() {
-    if (this.categoryID === 0) {
+    if (!this.categoryID) {
       this.dataCourse = [];
       return;
     }
@@ -318,7 +361,34 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     );
   }
 
+  getDataKPI() {
+    this.courseService.getDataKPI().subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1) {
+          this.kpiData = response.data || [];
+          console.log('Data KPI:', this.kpiData);
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            response?.message || 'Không thể tải danh sách KPI!',
+          );
+        }
+      },
+      error: (error) => {
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi tải danh sách KPI!',
+        );
+        console.error('Error loading KPI data:', error);
+      },
+    });
+  }
+
   getDataIdea() {
+    if (!this.categoryID) {
+      this.tipTrickData = [];
+      return;
+    }
     this.courseService.getDataIdea(this.categoryID).subscribe(
       (response: any) => {
         if (response && response.status === 1) {
@@ -344,22 +414,30 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     );
   }
 
-  getIdeaByCourseID() {
-    if (this.courseID === 0) {
-      this.formGroup.patchValue({ IdeaID: 0 });
+  getIdeaByCourseID(courseID: number) {
+    if (courseID === 0) {
+      this.formGroup.patchValue({ IdeaID: [] });
       return;
     }
 
-    this.courseService.getIdeaByCourseID(this.courseID).subscribe(
+    this.courseService.getIdeaByCourseID(courseID).subscribe(
       (response: any) => {
         if (response && response.status === 1) {
-          this.formGroup.patchValue({ IdeaID: response.data?.ID || 0 });
+          // Get array of IDs
+          let ideaIDs: number[] = [];
+          if (Array.isArray(response.data)) {
+            ideaIDs = response.data.map((item: any) => item?.ID || item).filter((id: any) => id != null);
+          } else if (response.data?.ID) {
+            ideaIDs = [response.data.ID];
+          }
+          this.formGroup.patchValue({ IdeaID: ideaIDs });
           console.log('Data IdeaID:', this.formGroup.get('IdeaID')?.value);
         } else {
           this.notification.warning(
             'Thông báo',
             response?.message || 'Không thể tải danh sách tip trick!',
           );
+          this.formGroup.patchValue({ IdeaID: [] });
           this.tipTrickData = [];
         }
       },
@@ -369,7 +447,34 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
           'Có lỗi xảy ra khi tải danh sách tip trick!',
         );
         console.error('Error loading tip tricks:', error);
+        this.formGroup.patchValue({ IdeaID: [] });
         this.tipTrickData = [];
+      },
+    );
+  }
+
+  getKPIByCourseID(courseID: number) {
+    if (courseID === 0) {
+      this.formGroup.patchValue({ KPIID: [] });
+      return;
+    }
+
+    this.courseService.getKPIByCourseID(courseID).subscribe(
+      (response: any) => {
+        if (response && response.status === 1) {
+          let kpiIDs: number[] = [];
+          if (Array.isArray(response.data)) {
+            kpiIDs = response.data.map((item: any) => item?.KPIPositionTypeID);
+          }
+          this.formGroup.patchValue({ KPIID: kpiIDs });
+          console.log('Data KPIID:', this.formGroup.get('KPIID')?.value);
+        } else {
+          this.formGroup.patchValue({ KPIID: [] });
+        }
+      },
+      (error: any) => {
+        console.error('Error loading KPI IDs:', error);
+        this.formGroup.patchValue({ KPIID: [] });
       },
     );
   }
@@ -405,36 +510,33 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     this.formGroup.get('CopyCourseID')?.setValue(null);
     console.log('category ID:', this.categoryID);
     this.getCourse();
+    this.getDataIdea();
   }
   onCourseChange(): void {
-    // this.formGroup.get('CopyCourseID')?.setValue(null);
-    // this.formGroup.patchValue({
-    //   CopyCategoryID: this.categoryID || null,
-    //   CategoryID: this.categoryID || null,
-    // });
+    const courseID = this.formGroup.get('CopyCourseID')?.value;
 
-    const courseInfor = this.dataCourse.find(
-      (x) => x.ID === this.formGroup.get('CopyCourseID')?.value,
-    );
+    if (!courseID) {
+      return;
+    }
+
+    const courseInfor = this.dataCourse.find((x) => x.ID === courseID);
     console.log('courseInforData:', this.dataCourse);
-    console.log('courseID:', this.formGroup.get('CopyCourseID')?.value);
+    console.log('courseID:', courseID);
     console.log('courseInfor:', courseInfor);
-    // this.formGroup.patchValue({
-    //   CopyCategoryID: this.categoryID || null,
-    //   CategoryID: this.categoryID || null,
-    //   Code: courseInfor?.Code,
-    //   Name: courseInfor?.NameCourse,
-    //   STT: courseInfor?.STT,
-    //   IsActive: true,
-    //   StudyDays: courseInfor?.LeadTime,
-    //   TypeID: courseInfor?.CourseTypeID
-    // });
-    this.formGroup.get('Code')?.setValue(courseInfor?.Code);
-    this.formGroup.get('Name')?.setValue(courseInfor?.NameCourse);
-    this.formGroup.get('STT')?.setValue(courseInfor?.STT);
+
+    if (!courseInfor) {
+      return;
+    }
+
+    this.formGroup.get('Code')?.setValue(courseInfor.Code || '');
+    this.formGroup.get('Name')?.setValue(courseInfor.NameCourse || '');
+    this.formGroup.get('STT')?.setValue(courseInfor.STT || 1);
     this.formGroup.get('IsActive')?.setValue(true);
-    this.formGroup.get('StudyDays')?.setValue(courseInfor?.LeadTime);
-    this.formGroup.get('TypeID')?.setValue(courseInfor?.CourseTypeID);
+    this.formGroup.get('StudyDays')?.setValue(courseInfor.LeadTime || 0);
+    this.formGroup.get('TypeID')?.setValue(courseInfor.CourseTypeID || null);
+    this.formGroup.get('IdeaID')?.setValue(courseInfor.IdeaID || []);
+    this.formGroup.get('KPIID')?.setValue(courseInfor.KPIID || []);
+    this.formGroup.get('EmployeeID')?.setValue(courseInfor.EmployeeID || null);
   }
 
   onAddType() {

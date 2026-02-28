@@ -16,12 +16,12 @@
     </div>
   </ng-template>
 </p-menubar>
-<nz-splitter style="height: 100%; ">
+<nz-splitter>
   <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
     <div class="card  border-0 rounded-0">
-      <nz-splitter style="height: 100%;">
+      <nz-splitter>
         <nz-splitter-panel [nzCollapsible]="true" [nzResizable]="false" nzDefaultSize="20%">
-          <div class="grid-container-product-group" style="height: 100%;">
+          <div class="grid-container-product-group">
             <angular-slickgrid gridId="grid-container-product-group" [columns]="columnDefinitionsProductGroup"
               [options]="gridOptionsProductGroup" [dataset]="datasetProductGroup"
               (onAngularGridCreated)="angularGridProductGroupReady($event)"
@@ -30,7 +30,7 @@
           </div>
         </nz-splitter-panel>
         <nz-splitter-panel [nzCollapsible]="true" [nzResizable]="false">
-          <div class="grid-container-product-rtc" style="height: 100%;">
+          <div class="grid-container-product-rtc">
             <nz-spin [nzSpinning]="isDetailLoad">
               <angular-slickgrid gridId="grid-container-product-rtc" [columns]="columnDefinitionsProductRTC"
                 [options]="gridOptionsProductRTC" [dataset]="datasetProductRTC"

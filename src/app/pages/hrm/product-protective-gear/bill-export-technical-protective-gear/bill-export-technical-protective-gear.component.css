@@ -8,11 +8,35 @@
 /* Master grid - push down a bit */
 .grid-container-master-export {
     margin-top: 8px;
+    height: 40vh;
+}
+
+/* Detail grid height */
+.grid-container-detail-export {
+    height: 39vh;
+    /* height: 100%; */
 }
 
 /* Detail fieldset styling */
 .detail-fieldset {
     border: 1px solid #e8e8e8;
     border-radius: 4px;
-    padding: 12px;
+    /* padding: 12px; */
+}
+
+.grid-sparepartgroup-container,
+.grid-sparepart-container {
+    height: 100%;
+    width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
 }

@@ -92,8 +92,8 @@
                             <nz-form-item>
                                 <nz-form-label for="sttInput" class="fs-12 p-0">STT</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
-                                    <nz-input-number id="sttInput" formControlName="STT" [nzMin]="0" [nzStep]="1"
-                                        style="width: 100%" placeholder="STT"></nz-input-number>
+                                    <nz-input-number [nzDisabled]="true" id="sttInput" formControlName="STT" [nzMin]="0"
+                                        [nzStep]="1" style="width: 100%" placeholder="STT"></nz-input-number>
                                 </nz-form-control>
                             </nz-form-item>
                         </nz-col>
@@ -161,7 +161,7 @@
                                         </span>
 
                                         <!-- URL Input -->
-                                        <input id="videoUrlInput" nz-input name="VideoUrl"
+                                        <input id="videoUrlInput" [readonly]="true" nz-input name="VideoUrl"
                                             placeholder="Nhập URL video hoặc chọn file từ máy tính"
                                             formControlName="VideoUrl" style="flex: 1;" />
                                     </div>

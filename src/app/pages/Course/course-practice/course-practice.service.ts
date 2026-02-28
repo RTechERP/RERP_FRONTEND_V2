@@ -10,7 +10,7 @@ export class CoursePracticeService {
   public apiUrl = environment.host + 'api/coursepractice/';
   private _url = environment.host + 'api/'; //'https://localhost:7187/api/';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // getDataIdea(courseCatalogID: number): Observable<any> {
   //   const params = new HttpParams().set('courseCategoryID', courseCatalogID.toString());
@@ -52,10 +52,10 @@ export class CoursePracticeService {
   ): Observable<any> {
     return this.http.post<any>(
       this.apiUrl +
-        'change-status-lesson-history?lessonId=' +
-        LessonID +
-        '&completed=' +
-        completed,
+      'change-status-lesson-history?lessonId=' +
+      LessonID +
+      '&completed=' +
+      completed,
       {},
     );
   }
@@ -85,7 +85,7 @@ export class CoursePracticeService {
   ): Observable<any> {
     return this.http.get<any>(
       this.apiUrl +
-        `list-exam-question?courseId=${courseId}&courseExamResultID=${courseExamResultID}&examType=${examType}&lessonID=${lessonID}`,
+      `list-exam-question?courseId=${courseId}&courseExamResultID=${courseExamResultID}&examType=${examType}&lessonID=${lessonID}`,
     );
   }
 
@@ -106,7 +106,7 @@ export class CoursePracticeService {
   GetQuestionAnswerRight(courseExamResultId: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrl +
-        `get-question-answer-right?courseExamResultId=${courseExamResultId}`,
+      `get-question-answer-right?courseExamResultId=${courseExamResultId}`,
     );
   }
 
@@ -149,16 +149,15 @@ export class CoursePracticeService {
   GetQuestionDetails(questionId: number, courseId: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrl +
-        `question-details?questionId=${questionId}&courseId=${courseId}`,
+      `question-details?questionId=${questionId}&courseId=${courseId}`,
     );
   }
 
   // Lấy danh sách khóa học theo danh mục
-  getCourse(courseCatalogID: number): Observable<any> {
-    const params = new HttpParams().set(
-      'courseCatalogID',
-      courseCatalogID.toString(),
-    );
+  getCourse(courseCatalogID: number, catalogType: number = 0): Observable<any> {
+    const params = new HttpParams()
+      .set('courseCatalogID', courseCatalogID.toString())
+      .set('catalogType', catalogType.toString());
     return this.http.get<any>(this.apiUrl + 'load-data-course', { params });
   }
 

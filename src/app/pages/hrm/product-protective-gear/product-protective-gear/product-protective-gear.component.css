@@ -1,9 +1,12 @@
-::ng-deep #grid-container-product-rtc{
-    height: 84vh !important;
+::ng-deep #grid-container-product-rtc {
+    height: 89vh !important;
 }
-::ng-deep #grid-container-product-group{
-    height: 84vh !important;
+
+::ng-deep #grid-container-product-group {
+    height: 89vh !important;
 }
+
 .ant-splitter {
-    height: 85vh !important;
+    height: 89vh !important;
+    overflow: hidden !important;
 }

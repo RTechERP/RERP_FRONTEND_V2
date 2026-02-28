@@ -10,7 +10,7 @@ export class CourseManagementService {
   private apiUrl = environment.host + 'api/course/';
   private _url = environment.host + 'api/'; //'https://localhost:7187/api/';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getDataDepartment(): Observable<any> {
     return this.http.get<any>(
@@ -25,8 +25,12 @@ export class CourseManagementService {
   }
 
   // Lấy danh sách danh mục
-  getDataCategory(): Observable<any> {
-    return this.http.get<any>(this.apiUrl + 'load-danhmuc');
+  getDataCategory(catalogType: number): Observable<any> {
+     const params = new HttpParams().set(
+      'catalogType',
+      catalogType.toString(),
+    );
+    return this.http.get<any>(this.apiUrl + 'load-danhmuc', { params });
   }
 
   // Lấy danh sách team
@@ -66,6 +70,12 @@ export class CourseManagementService {
   getIdeaByCourseID(courseID: number): Observable<any> {
     const params = new HttpParams().set('courseID', courseID.toString());
     return this.http.get<any>(this.apiUrl + 'get-idea-by-courseid', { params });
+  }
+
+  // Lấy KPI theo khóa học
+  getKPIByCourseID(courseID: number): Observable<any> {
+    const params = new HttpParams().set('courseID', courseID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-kpi-by-courseid', { params });
   }
 
   // Lấy danh sách bài học theo khóa học
@@ -174,7 +184,7 @@ export class CourseManagementService {
   }
 
   // Lấy video getPathServer
-  getPathServer(): Observable<any> {
-    return this.http.get<any>(this.apiUrl + 'get-path-server');
+  getPathServer(subPath: string): Observable<any> {
+    return this.http.get<any>(this.apiUrl + 'get-path-server?subPath=' + subPath);
   }
 }

@@ -100,8 +100,7 @@ import { BorrowProductHistoryEditPersonComponent } from '../../../old/inventory-
   styleUrls: ['./history-product-rtc-protective-gear.component.css'],
 })
 export class HistoryProductRtcProtectiveGearComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   // INTEGRATION: Input/Output để hoạt động như modal
   menuBars: MenuItem[] = [];
   @Input() isModalMode: boolean = false;
@@ -155,7 +154,7 @@ export class HistoryProductRtcProtectiveGearComponent
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private ProductProtectiveGearService: ProductProtectiveGearService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
@@ -485,8 +484,8 @@ export class HistoryProductRtcProtectiveGearComponent
       {
         id: 'Note',
         field: 'Note',
-        name: 'Note',
-        width: 200,
+        name: 'Ghi chú',
+        width: 140,
         sortable: true,
         filterable: true,
       },
@@ -497,7 +496,7 @@ export class HistoryProductRtcProtectiveGearComponent
     this.gridOptions = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-container',
+        container: '.grid-container-history-product-rtc',
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container',
       },
@@ -658,13 +657,13 @@ export class HistoryProductRtcProtectiveGearComponent
       keyWords: this.keyWords?.trim() || '',
       dateStart: this.dateStart
         ? this.ProductProtectiveGearService.formatDateVN(
-            new Date(this.dateStart as any),
-          )
+          new Date(this.dateStart as any),
+        )
         : '',
       dateEnd: this.dateEnd
         ? this.ProductProtectiveGearService.formatDateVN(
-            new Date(this.dateEnd as any),
-          )
+          new Date(this.dateEnd as any),
+        )
         : '',
       warehouseID: this.warehouseID ?? 5,
       userID: this.userID ?? 0,
@@ -715,6 +714,21 @@ export class HistoryProductRtcProtectiveGearComponent
             this.angularGrid.resizerService.resizeGrid();
           }
         }, 100);
+
+        // Re-apply row metadata after data is set (dataset change resets DataView handler)
+        setTimeout(() => {
+          if (this.angularGrid?.dataView) {
+            const originalMetadata = this.angularGrid.dataView.getItemMetadata;
+            this.angularGrid.dataView.getItemMetadata = (row: number) => {
+              const item = this.angularGrid.dataView.getItem(row);
+              if (item && item._rowClass) {
+                return { cssClasses: item._rowClass };
+              }
+              return originalMetadata ? originalMetadata.call(this.angularGrid.dataView, row) : {};
+            };
+            this.angularGrid.slickGrid.invalidate();
+          }
+        }, 200);
       },
       error: (error: any) => {
         this.isLoading = false;

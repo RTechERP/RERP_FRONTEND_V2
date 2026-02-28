@@ -126,7 +126,7 @@
                   ? 'Thời gian học phải lớn hơn hoặc bằng 0!'
                   : undefined
               ">
-              <nz-input-number formControlName="StudyDays" [nzMin]="0" [nzStep]="0.1" [nzPrecision]="1"
+              <nz-input-number formControlName="StudyDays" [nzMin]="0" [nzStep]="0.01" [nzPrecision]="2"
                 style="width: 100%" placeholder="Nhập thời gian học"></nz-input-number>
             </nz-form-control>
           </nz-form-item>
@@ -165,37 +165,6 @@
       </nz-row>
       <nz-row [nzGutter]="24">
         <nz-col [nzSpan]="24">
-          <!-- <nz-form-item>
-            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Tip trick tương ứng</nz-form-label>
-            <nz-form-control [nzSpan]="24">
-              <nz-select formControlName="IdeaID" [nzPlaceHolder]="'Chọn tip trick'" style="width: 100%"
-                name="IdeaID" nzAllowClear nzShowSearch>
-                <nz-option *ngFor="let item of tipTrickData" [nzLabel]="item.Description" [nzValue]="item.ID"></nz-option>
-              </nz-select>
-            </nz-form-control>
-          </nz-form-item> -->
-          <nz-form-item>
-            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Tip trick tương ứng</nz-form-label>
-            <nz-form-control [nzSpan]="24">
-              <nz-select formControlName="IdeaID" [nzPlaceHolder]="'Chọn tip trick'" style="width: 100%" name="IdeaID"
-                nzMode="multiple" nzAllowClear nzShowSearch [nzMaxTagCount]="3" [nzMaxTagPlaceholder]="tagPlaceHolder">
-                <nz-option *ngFor="let item of tipTrickData" [nzLabel]="item.Description"
-                  [nzValue]="item.ID"></nz-option>
-              </nz-select>
-              <ng-template #tagPlaceHolder let-selectedList>
-                +{{ selectedList.length - 3 }} khác
-              </ng-template>
-            </nz-form-control>
-          </nz-form-item>
-        </nz-col>
-      </nz-row>
-    </fieldset>
-
-    <!-- Fieldset 3: Thi quý -->
-    <fieldset class="reset m-0 mb-3">
-      <legend class="reset fs-12 p-0 ">Thi quý</legend>
-      <nz-row [nzGutter]="24">
-        <nz-col [nzSpan]="24">
           <nz-form-item>
             <nz-form-label class="fs-12 p-0" [nzSpan]="24">Tổng số câu hỏi đã tạo</nz-form-label>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="
@@ -203,8 +172,8 @@
                   ? 'Tổng số câu hỏi phải lớn hơn hoặc bằng 0!'
                   : undefined
               ">
-              <nz-input-number [nzDisabled]="true" formControlName="TotalQuestions" [nzMin]="0" [nzStep]="1" [nzPrecision]="0"
-                style="width: 100%" placeholder="Nhập tổng số câu hỏi"></nz-input-number>
+              <nz-input-number [nzDisabled]="true" formControlName="TotalQuestions" [nzMin]="0" [nzStep]="1"
+                [nzPrecision]="0" style="width: 100%" placeholder="Nhập tổng số câu hỏi"></nz-input-number>
             </nz-form-control>
           </nz-form-item>
         </nz-col>
@@ -235,13 +204,60 @@
                   ? 'Thời lượng phải lớn hơn hoặc bằng 0!'
                   : undefined
               ">
-              <nz-input-number formControlName="QuestionDuration" [nzMin]="0" [nzStep]="0.1" [nzPrecision]="1"
+              <nz-input-number formControlName="QuestionDuration" [nzMin]="0" [nzStep]="0.1" [nzPrecision]="2"
                 style="width: 100%" placeholder="Nhập thời lượng 1 câu"></nz-input-number>
             </nz-form-control>
           </nz-form-item>
         </nz-col>
       </nz-row>
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="24">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Tip trick tương ứng</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-select formControlName="IdeaID" [nzPlaceHolder]="'Chọn tip trick'" style="width: 100%" name="IdeaID"
+                nzAllowClear nzShowSearch nzMode="multiple">
+                <nz-option *ngFor="let item of tipTrickData" [nzLabel]="item.Description"
+                  [nzValue]="item.ID"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="24">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Người phụ trách</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-select formControlName="EmployeeID" [nzPlaceHolder]="'Chọn người phụ trách'" style="width: 100%"
+                name="EmployeeID" nzAllowClear nzShowSearch>
+                <nz-option *ngFor="let item of employeeList" [nzLabel]="item.Code + ' - ' + item.FullName"
+                  [nzValue]="item.ID"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="24">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Loại vị trí</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-select formControlName="KPIID" [nzPlaceHolder]="'Chọn loại vị trí'" style="width: 100%" name="KPIID"
+                nzAllowClear nzShowSearch nzMode="multiple">
+                <nz-option *ngFor="let item of kpiData" [nzLabel]="item.TypeName" [nzValue]="item.ID"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
     </fieldset>
+
+    <!-- Fieldset 3: Thi quý -->
+    <!-- <fieldset class="reset m-0 mb-3">
+      <legend class="reset fs-12 p-0 ">Thi quý</legend>
+
+    </fieldset> -->
 
 
   </form>

@@ -175,7 +175,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
     private appUserService: AppUserService,
     private permissionService: PermissionService,
     private route: ActivatedRoute,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initMenuBar();
@@ -587,7 +587,7 @@ export class BillImportTechnicalProtectiveGearComponent implements OnInit {
       autoResize: {
         container: '.grid-container-detail-import',
         calculateAvailableSizeBy: 'container',
-        maxHeight: 200, // Limit detail grid height
+        // maxHeight: 300, // Limit detail grid height
       },
       enableFiltering: true,
       enableCellNavigation: true,

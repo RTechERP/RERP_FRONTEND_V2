@@ -187,17 +187,22 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
     ) {
       const typeID = this.ensureNumber(
         data.CatalogType ??
-          data.catalogType ??
-          data.TypeID ??
-          data.typeID ??
-          data.ID_CatalogType ??
-          data.IdCatalogType ??
-          data.idCatalogType ??
-          data.LoaiID ??
-          data.ID_Loai,
+        data.catalogType ??
+        data.TypeID ??
+        data.typeID ??
+        data.ID_CatalogType ??
+        data.IdCatalogType ??
+        data.idCatalogType ??
+        data.LoaiID ??
+        data.ID_Loai,
       );
-      const deptID = this.ensureNumber(data.DepartmentSTT);
+      console.log('🔍 data object:', data);
+      const deptID = this.ensureNumber(data.DepartmentID);
+      console.log('🔍 deptID result:', deptID, 'from data.DepartmentID:', data.DepartmentID);
       const teamIDs = this.ensureNumberArray(data.ProjectTypeID);
+      console.log('🔍 data.ProjectTypeID (raw):', data.ProjectTypeID);
+      console.log('🔍 teamIDs (parsed):', teamIDs);
+      console.log('🔍 dataTeam standardizedIDs:', this._dataTeam.map(t => t.standardizedID));
 
       // Track original values for edit mode
       this.originalTypeID = typeID;
@@ -211,7 +216,7 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
             TypeID: typeID,
             DepartmentID: deptID,
             Code: data.Code ?? data.code ?? data.MaDanhMuoc ?? '',
-            STT: data.STT ?? data.stt ?? 0, // Nếu edit thì giữ nguyên STT từ data
+            STT: data.STT ?? data.stt ?? 1, // Nếu edit thì giữ nguyên STT từ data
             IsActive: data.Status,
             Name: data.Name ?? data.name ?? data.TenDanhMuc ?? '',
             TeamIDs: teamIDs,
@@ -225,7 +230,7 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
       // Nếu thêm mới thì STT ban đầu = 0
       this.formGroup.patchValue(
         {
-          STT: 0,
+          STT: 1,
         },
         { emitEvent: false },
       );
@@ -233,7 +238,7 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   private trimAllStringControls() {
     Object.keys(this.formGroup.controls).forEach((k) => {
@@ -277,14 +282,14 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
           if (typeof item === 'object' && item !== null) {
             return Number(
               item.ID ??
-                item.Id ??
-                item.id ??
-                item.ProjectTypeID ??
-                item.projectTypeID ??
-                item.ProjectTypeId ??
-                item.ID_ProjectType ??
-                item.id_project_type ??
-                0,
+              item.Id ??
+              item.id ??
+              item.ProjectTypeID ??
+              item.projectTypeID ??
+              item.ProjectTypeId ??
+              item.ID_ProjectType ??
+              item.id_project_type ??
+              0,
             );
           }
           return Number(item);
@@ -306,9 +311,9 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
       this.mode === 'add'
         ? typeID && departmentID // Add mode: có đủ 2 giá trị
         : typeID &&
-          departmentID &&
-          (typeID !== this.originalTypeID ||
-            departmentID !== this.originalDepartmentID); // Edit mode: có thay đổi
+        departmentID &&
+        (typeID !== this.originalTypeID ||
+          departmentID !== this.originalDepartmentID); // Edit mode: có thay đổi
 
     if (shouldFetchSTT) {
       console.log('Fetching new STT from API...');
@@ -352,7 +357,7 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
       ID: this.dataInput?.ID || 0,
       Code: formValue.Code,
       Name: formValue.Name,
-      DepartmentSTT: formValue.DepartmentID,
+      DepartmentID: formValue.DepartmentID,
       DeleteFlag: formValue.IsActive,
       STT: formValue.STT,
       CatalogType: formValue.TypeID,

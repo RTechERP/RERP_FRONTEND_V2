@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -42,6 +42,12 @@ interface Course {
   DeleteFlag?: number;
 }
 
+interface CourseGroup {
+  typeName: string;
+  courses: Course[];
+  isCollapsed: boolean;
+}
+
 @Component({
   selector: 'app-course-list',
   standalone: true,
@@ -57,21 +63,57 @@ interface Course {
   templateUrl: './course-list.component.html',
   styleUrl: './course-list.component.css',
 })
-export class CourseListComponent implements OnInit {
+export class CourseListComponent implements OnInit, OnChanges {
   @Input() courseData: Course[] = [];
   @Input() splitterLayout: 'horizontal' | 'vertical' = 'horizontal';
   @Input() courseExamData: CourseExam[] = [];
   @Output() courseSelected = new EventEmitter<Course>();
 
+  groupedCourses: CourseGroup[] = [];
+
   constructor(
     private coursePracticeService: CoursePracticeService,
     private message: NzMessageService,
-  ) {}
-  // Lưu danh sách CourseExam
+  ) { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['courseData']) {
+      this.groupCoursesByType();
+    }
+  }
+
+  groupCoursesByType(): void {
+    const groups = new Map<string, Course[]>();
+    for (const course of this.courseData) {
+      const key = course.CourseTypeName || 'Khác';
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(course);
+    }
+    this.groupedCourses = Array.from(groups, ([typeName, courses]) => ({
+      typeName,
+      courses,
+      isCollapsed: false
+    })).sort((a, b) => {
+      if (a.typeName === 'Khác') return 1;
+      if (b.typeName === 'Khác') return -1;
+      return 0;
+    });
+  }
+
+  toggleGroup(group: CourseGroup): void {
+    group.isCollapsed = !group.isCollapsed;
+  }
 
   onViewCourseDetail(course: Course): void {
+    // Kiểm tra khóa học bị khóa do chưa hoàn thành khóa học bắt buộc
+    if (course.Status === -1) {
+      this.message.warning(
+        'Vui lòng hoàn thành khóa học bắt buộc để mở khóa khóa học này',
+      );
+      return;
+    }
     // Kiểm tra khóa học có bị khóa không
     if (course.Status === 0) {
       const previousCourse = this.getPreviousCourseName(course);
@@ -100,9 +142,9 @@ export class CourseListComponent implements OnInit {
     return null;
   }
 
-  // Kiểm tra khóa học có bị khóa không
+  // Kiểm tra khóa học có bị khóa không (0 = khóa tuần tự, -1 = khóa do bắt buộc)
   isCourseLocked(course: Course): boolean {
-    return course.Status === 0;
+    return course.Status === 0 || course.Status === -1;
   }
 
   formatDicimal(value: number | undefined): string {

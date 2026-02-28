@@ -131,7 +131,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
   private lastWatchedSecond: number = 0;
   private watchAccumulator: number = 0;
   private maxWatchedSecond: number = 0;
-
+  public urlPDF?: SafeResourceUrl;
   private readonly INTERVAL = 1; // 1 second
 
   // ViewChild for video player to force reload
@@ -142,7 +142,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
     private courseService: CourseManagementService,
     private sanitizer: DomSanitizer,
     private message: NzMessageService,
-  ) {}
+  ) { }
 
   /**
    * Process HTML content to add target="_blank" to all links
@@ -173,6 +173,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
     window.addEventListener('pagehide', this.onPageHide);
     window.addEventListener('unload', this.onUnload);
   }
+
   ngOnDestroy() {
     this.flush();
 
@@ -242,6 +243,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
     // this.videoUrl = this.getVideoUrl(lesson.VideoURL);
     this.videoUrl = this.getVideoUrl(lesson.ID);
     console.log('videoUrl', this.videoUrl);
+    this.urlPDF = this.getUrlPDFFile(lesson?.UrlPDF);
     // Force reload video when lesson changes
     this.reloadVideo();
   }
@@ -292,7 +294,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
           this.lastWatchedSecond = 0;
         }
       },
-      error: (error) => {},
+      error: (error) => { },
     });
   }
 
@@ -329,7 +331,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
     this.lastTime = currentTime;
 
     // Gửi tiến độ mỗi 30 giây
-    if (this.watchAccumulator >= 30) {
+    if (this.watchAccumulator >= 30 || currentTime == video.duration - 2) {
       // Cập nhật lastWatchedSecond tại vị trí hiện tại
       const newLastWatched = Math.floor(currentTime);
       console.log(
@@ -339,6 +341,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
       this.sendProgress(newLastWatched);
       this.watchAccumulator = 0;
     }
+
   }
   onPause(): void {
     this.flush();
@@ -560,7 +563,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
   onLessonCompletionChange(lesson: CourseLesson, completed: boolean): void {
     // Lưu status cũ để restore nếu validation fail
     const originalStatus = lesson.Status;
-  lesson.Status = completed ? 1 : 0;
+    lesson.Status = completed ? 1 : 0;
     // get bài học ( lesson)
     if (completed == true) {
       // nếu không có video hoặc video yêu cầu đạt 0% thì cho hoàn thành luôn
@@ -585,10 +588,12 @@ export class LessonViewComponent implements OnChanges, OnInit {
                   if (response && response.status == 1) {
                     const lessonHistory = response.data;
                     if (
-                      lessonHistory.WatchedPercent == null ||
-                      lessonHistory.WatchedPercent == 0 ||
-                      lessonHistory.WatchedPercent <
-                        lessonFromDb.RequiredWatchedPercent
+                      lessonFromDb.RequiredWatchedPercent != null &&
+                      (
+                        lessonHistory.WatchedPercent == null ||
+                        lessonHistory.WatchedPercent == 0 ||
+                        lessonHistory.WatchedPercent < lessonFromDb.RequiredWatchedPercent
+                      )
                     ) {
                       lesson.Status = originalStatus;
                       // this.loadChangeStatusLessonHistory(
@@ -666,6 +671,18 @@ export class LessonViewComponent implements OnChanges, OnInit {
     urlFile = host + urlFile;
     return this.sanitizer.bypassSecurityTrustResourceUrl(urlFile);
   }
+
+  // getUrlPDFFile(urlPDF: string | undefined): string {
+  //   if (!urlPDF) return '';
+
+  //   const host = environment.host + 'api/share/';
+  //   let urlFile = urlPDF.replace('\\\\192.168.1.190\\', '');
+  //   urlFile = urlFile.replace(/\\/g, '/');
+  //   urlFile = host + urlFile;
+  //   return urlFile;
+  // }
+
+
   // kiểm tra khi người dùng tua video
   onSeeking() {
     const video = this.videoPlayer.nativeElement;

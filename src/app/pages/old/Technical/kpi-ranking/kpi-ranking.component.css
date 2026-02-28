@@ -1,0 +1,149 @@
+/* Modal content container */
+.modal-content-container {
+    height: 80vh;
+    min-height: 600px;
+}
+
+/* Filter bar styling */
+.filter-bar {
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #d9d9d9;
+    flex-shrink: 0;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+/* Align labels and inputs in filter bar */
+:host ::ng-deep .filter-bar nz-form-item {
+    display: flex;
+    align-items: center;
+}
+
+:host ::ng-deep .filter-bar nz-form-label {
+    padding: 0 8px 0 0;
+    line-height: 24px;
+}
+
+:host ::ng-deep .filter-bar nz-form-control {
+    line-height: 24px;
+}
+
+/* Content container */
+.content-container {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* SlickGrid Container */
+.grid-container {
+    position: relative;
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container angular-slickgrid,
+:host ::ng-deep .grid-container .slickgrid-container,
+:host ::ng-deep .grid-container .gridPane {
+    height: 100% !important;
+}
+
+:host ::ng-deep .slick-cell {
+    display: flex;
+    align-items: center;
+}
+
+/* Chart Container */
+.chart-container {
+    background-color: white;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+/* PrimeNG Chart - fit container */
+:host ::ng-deep .chart-container p-chart {
+    display: block;
+    height: 100% !important;
+    max-height: 100%;
+}
+
+:host ::ng-deep .chart-container p-chart>div {
+    height: 100% !important;
+}
+
+:host ::ng-deep .chart-container canvas {
+    max-height: 100% !important;
+}
+
+/* Radio group positioning */
+.radio-group {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.radio-group label {
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.radio-kpi {
+    color: #60B5CC;
+}
+
+.radio-kpi-last {
+    color: #E66C7D;
+}
+
+/* NZ Splitter custom styles */
+:host ::ng-deep nz-splitter {
+    height: 100% !important;
+    flex: 1;
+    min-height: 0;
+}
+
+:host ::ng-deep nz-splitter-panel {
+    overflow: hidden;
+    height: 100% !important;
+}
+
+/* Group control styling */
+.group-header {
+    background-color: #f0f0f0;
+    padding: 8px 12px;
+    font-weight: bold;
+    border-bottom: 1px solid #d9d9d9;
+    font-size: 13px;
+}
+
+/* Gap utilities */
+.gap-1 {
+    gap: 0.25rem;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-3 {
+    gap: 1rem;
+}

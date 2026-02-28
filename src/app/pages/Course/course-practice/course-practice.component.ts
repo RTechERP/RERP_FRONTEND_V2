@@ -127,6 +127,7 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
   categoryTable: Tabulator | null = null;
   categoryData: Category[] = [];
   selectedCategoryID: number = 0;
+  selectedCatalogType: number = 0;
 
   courseData: Course[] = [];
   lessonData: Lesson[] = [];
@@ -172,12 +173,31 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
     this.draw_categoryTable();
     this.getDataCategory();
   }
+  private sortCategoryData(): void {
+    this.categoryData = this.categoryData
+      .map((x: any) => ({
+        ...x,
+        __catalogOrder:
+          x.CatalogTypeText === 'KHÓA HỌC BẮT BUỘC' ? 1 :
+            x.CatalogTypeText === 'CƠ BẢN' ? 2 :
+              x.CatalogTypeText === 'NÂNG CAO' ? 3 : 4,
+      }))
+      .sort((a: any, b: any) => {
+        if (a.__catalogOrder !== b.__catalogOrder) {
+          return a.__catalogOrder - b.__catalogOrder;
+        }
 
+        return (a.NameDepartment || '')
+          .localeCompare(b.NameDepartment || '');
+      });
+    console.log('categoryData', this.categoryData);
+  }
   getDataCategory() {
-    this.courseService.getDataCategory().subscribe(
+    this.courseService.getDataCategory(0).subscribe(
       (response: any) => {
         if (response && response.status === 1) {
           this.categoryData = response.data || [];
+          this.sortCategoryData();
           if (this.categoryTable) {
             this.categoryTable.replaceData(this.categoryData);
             setTimeout(() => {
@@ -230,14 +250,14 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getCoursesByCategory(categoryID: number) {
+  getCoursesByCategory(categoryID: number, catalogType: number = 0) {
     if (categoryID === 0) {
       this.courseData = [];
       return;
     }
     this.categoryCourseID = categoryID;
 
-    this.coursePracticeService.getCourse(categoryID).subscribe(
+    this.coursePracticeService.getCourse(categoryID, catalogType).subscribe(
       (response: any) => {
         if (response && response.status === 1) {
           // Map data and add mock completion status, rating for demo
@@ -306,13 +326,15 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
         selectableRows: 1,
         paginationMode: 'local',
         groupBy: [
-          (data: any) => data.CatalogTypeText || 'Chưa phân loại',
+          (data: any) => data.__catalogOrder,
           (data: any) => data.NameDepartment || 'Chưa có phòng ban',
         ],
         groupStartOpen: [true, true],
         groupHeader: [
           (value: any, count: number, data: any) => {
-            return `<strong>Loại: ${value}</strong> (${count} danh mục)`;
+            const labelMap: Record<number, string> = { 1: 'KHÓA HỌC BẮT BUỘC', 2: 'CƠ BẢN', 3: 'NÂNG CAO' };
+            const text = labelMap[value] || 'Chưa phân loại';
+            return `<strong>Loại: ${text}</strong> (${count} danh mục)`;
           },
           (value: any, count: number, data: any) => {
             return `<strong>Phòng ban: ${value}</strong>`;
@@ -336,16 +358,20 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
       });
 
       this.categoryTable.on('rowClick', (e: any, row: RowComponent) => {
-        const rowData = row.getData() as Category;
+        const rowData = row.getData() as any;
         this.selectedCategoryID = rowData.ID;
-        this.getCoursesByCategory(this.selectedCategoryID);
+        const catalogType = rowData.CatalogType || (rowData.__catalogOrder === 1 ? 3 : rowData.__catalogOrder === 2 ? 1 : 2);
+        this.selectedCatalogType = catalogType;
+        this.getCoursesByCategory(this.selectedCategoryID, catalogType);
         this.viewMode = 'courses';
       });
 
       this.categoryTable.on('rowSelected', (row: RowComponent) => {
-        const rowData = row.getData();
+        const rowData = row.getData() as any;
         this.selectedCategoryID = rowData['ID'];
-        this.getCoursesByCategory(this.selectedCategoryID);
+        const catalogType = rowData.CatalogType || (rowData.__catalogOrder === 1 ? 3 : rowData.__catalogOrder === 2 ? 1 : 2);
+        this.selectedCatalogType = catalogType;
+        this.getCoursesByCategory(this.selectedCategoryID, catalogType);
         this.viewMode = 'courses';
       });
 
@@ -396,7 +422,7 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
   }
 
   onBackToCourses(): void {
-    this.getCoursesByCategory(this.categoryCourseID);
+    this.getCoursesByCategory(this.categoryCourseID, this.selectedCatalogType);
     this.viewMode = 'courses';
     this.lessonData = [];
     this.selectedCourseID = 0;

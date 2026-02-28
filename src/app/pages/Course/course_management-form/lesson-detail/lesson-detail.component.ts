@@ -276,7 +276,7 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
 
   // Load Categories
   loadCategories(): void {
-    this.courseService.getDataCategory().subscribe({
+    this.courseService.getDataCategory(-1).subscribe({
       next: (response: any) => {
         if (response && response.status === 1) {
           this.dataCourseCatalog = response.data || [];
@@ -928,6 +928,25 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
       finalPDFUrl = this.existingPDFPath || ''; // Giữ nguyên PDF cũ
     }
 
+
+    this.courseService.getPathServer('files').subscribe({
+      next: (response: any) => {
+        let pathServer = response?.data || response;
+        if (pathServer) {
+          finalPDFUrl =
+            pathServer + finalPDFUrl;
+          this.formGroup.patchValue({ UrlPDF: finalPDFUrl });
+        } else {
+          this.message.error('Không thể lấy đường dẫn server!');
+          this.selectedVideoFile = null;
+        }
+      },
+      error: (error) => {
+        console.error('Error getting path server:', error);
+        this.message.error('Không thể lấy đường dẫn server!');
+        this.selectedVideoFile = null;
+      },
+    });
     const lessonData: Lesson = {
       ID: this.dataInput?.ID || 0,
       CourseID: formData.CourseID,
@@ -1192,7 +1211,7 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
     this.generatedVideoFileName = `${baseName}_${timestamp}${extension}`;
 
     // Gọi API lấy pathServer và tạo videoUrl
-    this.courseService.getPathServer().subscribe({
+    this.courseService.getPathServer('Videos').subscribe({
       next: (response: any) => {
         this.pathServer = response?.data || response;
         if (this.pathServer) {

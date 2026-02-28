@@ -207,6 +207,11 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   dataDepartment: any[] = [];
   dataTeam: any[] = [];
 
+  // Search text for each table
+  searchCategoryText: string = '';
+  searchCourseText: string = '';
+  searchLessonText: string = '';
+
   constructor(
     private notification: NzNotificationService,
     private courseService: CourseManagementService,
@@ -216,7 +221,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     private message: NzMessageService,
     private permissionService: PermissionService,
     private videoUploadService: VideoUploadStateService,
-  ) {}
+  ) { }
 
   // Cảnh báo khi user đóng tab trong lúc có video đang upload
   @HostListener('window:beforeunload', ['$event'])
@@ -246,10 +251,11 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   }
 
   getDataCategory() {
-    this.courseService.getDataCategory().subscribe(
+    this.courseService.getDataCategory(-1).subscribe(
       (response: any) => {
         if (response && response.status === 1) {
           this.categoryData = response.data || [];
+          this.sortCategoryData();
           if (this.categoryTable) {
             this.categoryTable.replaceData(this.categoryData);
             setTimeout(() => {
@@ -302,6 +308,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       this.courseData = [];
       if (this.courseTable) {
         this.courseTable.setData(this.courseData);
+        console.log('courseData', this.courseData);
       }
       return;
     }
@@ -468,6 +475,10 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.maxSTT = 0;
     modalRef.componentInstance.dataDepartment = [...this.dataDepartment];
     modalRef.componentInstance.dataTeam = [...this.dataTeam];
+    console.log('dataToEdit', dataToEdit);
+    console.log('dataDepartment', this.dataDepartment);
+    console.log('dataTeam', this.dataTeam);
+
     modalRef.result.then(
       (result) => {
         if (result == true) {
@@ -494,9 +505,9 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     const displayNames =
       dataSelect.length > 3
         ? `${dataSelect
-            .slice(0, 3)
-            .map((c) => c.Name)
-            .join(', ')} và ${dataSelect.length - 3} danh mục khác`
+          .slice(0, 3)
+          .map((c) => c.Name)
+          .join(', ')} và ${dataSelect.length - 3} danh mục khác`
         : categoryNames;
 
     this.modal.confirm({
@@ -764,9 +775,9 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     const displayNames =
       dataSelect.length > 3
         ? `${dataSelect
-            .slice(0, 3)
-            .map((l) => l.LessonTitle)
-            .join(', ')} và ${dataSelect.length - 3} bài học khác`
+          .slice(0, 3)
+          .map((l) => l.LessonTitle)
+          .join(', ')} và ${dataSelect.length - 3} bài học khác`
         : lessonNames;
 
     this.modal.confirm({
@@ -835,8 +846,26 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       },
     });
   }
+  private sortCategoryData(): void {
+    this.categoryData = this.categoryData
+      .map((x: any) => ({
+        ...x,
+        __catalogOrder:
+          x.CatalogTypeText === 'CƠ BẢN' ? 1 :
+            x.CatalogTypeText === 'NÂNG CAO' ? 2 : 3,
+      }))
+      .sort((a: any, b: any) => {
+        if (a.__catalogOrder !== b.__catalogOrder) {
+          return a.__catalogOrder - b.__catalogOrder;
+        }
 
+        return (a.NameDepartment || '')
+          .localeCompare(b.NameDepartment || '');
+      });
+    console.log('categoryData', this.categoryData);
+  }
   draw_categoryTable(): void {
+    this.sortCategoryData();
     if (this.categoryTable) {
       this.categoryTable.setData(this.categoryData);
     } else {
@@ -844,18 +873,23 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         data: this.categoryData,
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-        height: '87vh',
+        height: '83vh',
         selectableRows: 1,
+        sortMode: 'local',
+        initialSort: [],
         pagination: false,
         paginationMode: 'local',
+        reactiveData: false,
         groupBy: [
-          (data: any) => data.CatalogTypeText || 'Chưa phân loại',
+          (data: any) => data.__catalogOrder,
           (data: any) => data.NameDepartment || 'Chưa có phòng ban',
         ],
         groupStartOpen: [true, true],
         groupHeader: [
           (value: any, count: number, data: any) => {
-            return `<strong>Loại: ${value}</strong> (${count} danh mục)`;
+            const labelMap: Record<number, string> = { 1: 'CƠ BẢN', 2: 'NÂNG CAO' };
+            const text = labelMap[value] || 'Chưa phân loại';
+            return `<strong>Loại: ${text}</strong> (${count} danh mục)`;
           },
           (value: any, count: number, data: any) => {
             return `<strong>Phòng ban: ${value}</strong>`;
@@ -930,7 +964,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         data: this.courseData,
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-        height: '87vh',
+        height: '83vh',
         selectableRows: 1,
         pagination: false,
         paginationMode: 'local',
@@ -978,12 +1012,20 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             headerSort: false,
           },
           {
-            title: 'Người phụ trách training',
-            field: 'FullName',
+            title: 'Người tạo',
+            field: 'Instructor',
             hozAlign: 'left',
             headerHozAlign: 'center',
             headerSort: false,
           },
+          {
+            title: 'Danh sách loại vị trí',
+            field: 'KPIPositionTypeCodes',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            headerSort: false,
+          },
+
           {
             title: 'Người tạo',
             field: 'Instructor',
@@ -1014,6 +1056,14 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 headerHozAlign: 'center',
                 width: 100,
                 bottomCalc: 'sum',
+                bottomCalcFormatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (value != null && value > 0) {
+                    const num = parseFloat(value);
+                    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                  }
+                  return '0';
+                },
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   if (value != null && value > 0) {
@@ -1047,6 +1097,14 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 headerHozAlign: 'center',
                 width: 100,
                 bottomCalc: 'sum',
+                bottomCalcFormatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (value != null && value > 0) {
+                    const num = parseFloat(value);
+                    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                  }
+                  return '0';
+                },
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   if (value != null && value > 0) {
@@ -1080,6 +1138,14 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 headerHozAlign: 'center',
                 width: 100,
                 bottomCalc: 'sum',
+                bottomCalcFormatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (value != null && value > 0) {
+                    const num = parseFloat(value);
+                    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                  }
+                  return '0';
+                },
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   if (value != null && value > 0) {
@@ -1095,10 +1161,20 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                 hozAlign: 'right',
                 headerHozAlign: 'center',
                 width: 100,
+                bottomCalc: 'sum',
+                bottomCalcFormatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (value != null && value > 0) {
+                    const num = parseFloat(value);
+                    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                  }
+                  return '0';
+                },
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   if (value != null && value > 0) {
-                    return `${value}`;
+                    const num = parseFloat(value);
+                    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
                   }
                   return '0';
                 },
@@ -1106,17 +1182,25 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
               },
               {
                 title: 'Thời lượng',
-                field: 'TotalDuration',
+                field: 'QuestionDuration',
                 hozAlign: 'center',
                 headerHozAlign: 'center',
-                width: 100,
-                bottomCalc: 'sum',
+                width: 150,
+                bottomCalc: (values: any, data: any, calcParams: any) => {
+                  // Tính tổng: QuestionDuration × QuestionCount của mỗi khóa học
+                  let total = 0;
+                  data.forEach((row: any) => {
+                    const duration = parseFloat(row.QuestionDuration) || 0;
+                    const count = parseFloat(row.QuestionCount) || 0;
+                    total += duration * count;
+                  });
+                  return total;
+                },
                 bottomCalcFormatter: (cell: any) => {
                   const value = cell.getValue();
                   if (value != null) {
                     const num = parseFloat(value);
-                    const formatted =
-                      num % 1 === 0 ? num.toString() : num.toFixed(2);
+                    const formatted = num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
                     return `${formatted} (Phút)`;
                   }
                   return '0 (Phút)';
@@ -1125,7 +1209,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
                   const value = cell.getValue();
                   if (value != null && value > 0) {
                     const num = parseFloat(value);
-                    return num % 1 === 0 ? num.toString() : num.toFixed(2);
+                    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
                   }
                   return '0';
                 },
@@ -1175,7 +1259,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         selectableRows: 1,
         pagination: false,
         paginationMode: 'local',
-        height: '87vh',
+        height: '83vh',
         columns: [
           {
             title: 'STT',
@@ -1183,6 +1267,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             field: 'STT',
             width: 50,
+            bottomCalc: 'count',
           },
           {
             title: 'Mã bài học',
@@ -1199,7 +1284,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
           },
           {
             title: 'Người phụ trách training',
-            field: 'EmployeeID',
+            field: 'FullName',
             hozAlign: 'left',
             headerHozAlign: 'center',
             resizable: false,
@@ -1232,6 +1317,51 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         const selectedRows = this.lessonTable!.getSelectedRows();
         this.lessonID = 0;
       });
+    }
+  }
+
+  // Search functionality for tables
+  searchInTable(tableType: 'category' | 'course' | 'lesson'): void {
+    let table: Tabulator | null = null;
+    let searchText = '';
+
+    switch (tableType) {
+      case 'category':
+        table = this.categoryTable;
+        searchText = this.searchCategoryText;
+        break;
+      case 'course':
+        table = this.courseTable;
+        searchText = this.searchCourseText;
+        break;
+      case 'lesson':
+        table = this.lessonTable;
+        searchText = this.searchLessonText;
+        break;
+    }
+
+    if (table) {
+      if (searchText && searchText.trim()) {
+        // Lấy tất cả các cột từ bảng
+        const columns = table.getColumns();
+
+        // Tạo filter cho tất cả các cột (OR logic)
+        const filters: any[] = [];
+        columns.forEach((column: any) => {
+          const field = column.getField();
+          // Chỉ tìm kiếm các cột có field và không phải checkbox/button
+          if (field && field !== 'id' && !field.startsWith('_')) {
+            filters.push({ field: field, type: 'like', value: searchText });
+          }
+        });
+
+        if (filters.length > 0) {
+          table.setFilter([filters]);
+        }
+      } else {
+        // Clear filter if search text is empty
+        table.clearFilter(true);
+      }
     }
   }
 }

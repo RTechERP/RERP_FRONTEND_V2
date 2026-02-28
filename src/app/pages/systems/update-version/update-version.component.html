@@ -1,0 +1,16 @@
+<ng-container>
+    <div class="card card-primary rounded-0 border-0 h-100 d-flex flex-column" style="height: 90vh;">
+
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <p-menubar [model]="menuBars"></p-menubar>
+        </div>
+
+        <div class="card-body p-0 flex-grow-1 overflow-hidden" id="gridContainer">
+            <div id="grid-container-update-version" style="height: 100%; width: 100%;">
+                <angular-slickgrid gridId="gridUpdateVersion" [columns]="columnDefinitions" [options]="gridOptions"
+                    [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+                </angular-slickgrid>
+            </div>
+        </div>
+    </div>
+</ng-container>

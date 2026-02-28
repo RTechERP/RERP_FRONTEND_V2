@@ -13,94 +13,113 @@
 
                     </div>
 
-                    <!-- Course Cards Grid -->
-                    <div *ngIf="courseData.length > 0" class="course-grid">
-                        <div *ngFor="let course of courseData; let i = index" class="course-card"
-                            [class.locked]="isCourseLocked(course)">
-                            <!-- Lock Badge for locked courses -->
-                            <div *ngIf="isCourseLocked(course)" class="lock-badge" nz-tooltip
-                                nzTooltipTitle="Bạn cần hoàn thành khóa học trên để mở khóa khóa học này"
-                                nzTooltipPlacement="left">
-                                <span nz-icon nzType="lock" nzTheme="fill"></span>
-                                Chưa mở khóa
+                    <!-- Course Cards grouped by CourseTypeName -->
+                    <div *ngIf="courseData.length > 0">
+                        <div *ngFor="let group of groupedCourses; let gi = index" class="course-group">
+                            <!-- Group Header -->
+                            <div class="course-group-header" (click)="toggleGroup(group)">
+                                <div class="group-header-left">
+                                    <span class="group-toggle-icon" nz-icon
+                                        [nzType]="group.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
+                                    <h6 class="group-title">{{ group.typeName }}</h6>
+                                </div>
+                                <nz-tag nzColor="blue" class="group-count">{{ group.courses.length }} khóa học</nz-tag>
                             </div>
-                            <!-- Card Header -->
-                            <div class="course-card-header">
-                                <nz-tag [nzColor]="course.DeleteFlag ? 'success' : 'default'"
-                                    style="margin: 0; width: fit-content;">
-                                    {{ course.DeleteFlag ? 'Hoạt động' : 'Dừng hoạt động' }}
-                                </nz-tag>
-                                <h5 class="course-title" (click)="onViewCourseDetail(course)"
-                                    [title]="course.NameCourse">{{ course.NameCourse }}
-                                </h5>
-                                <div style="font-size: 13px; color: #8c8c8c;">
+
+                            <!-- Course Cards Grid -->
+                            <div class="course-grid" *ngIf="!group.isCollapsed">
+                                <div *ngFor="let course of group.courses; let i = index" class="course-card"
+                                    [class.locked]="isCourseLocked(course)">
+                                    <!-- Lock Badge for locked courses -->
+                                    <div *ngIf="isCourseLocked(course)" class="lock-badge" nz-tooltip
+                                        [nzTooltipTitle]="course.Status === -1 ? 'Vui lòng hoàn thành khóa học bắt buộc để mở khóa khóa học này' : 'Bạn cần hoàn thành khóa học trên để mở khóa khóa học này'"
+                                        nzTooltipPlacement="left">
+                                        <span nz-icon nzType="lock" nzTheme="fill"></span>
+                                        {{ course.Status === -1 ? 'Chưa hoàn thành bắt buộc' : 'Chưa mở khóa' }}
+                                    </div>
+                                    <!-- Card Header -->
+                                    <div class="course-card-header">
+                                        <nz-tag [nzColor]="course.DeleteFlag ? 'success' : 'default'"
+                                            style="margin: 0; width: fit-content;">
+                                            {{ course.DeleteFlag ? 'Hoạt động' : 'Dừng hoạt động' }}
+                                        </nz-tag>
+                                        <h5 class="course-title" (click)="onViewCourseDetail(course)"
+                                            [title]="course.NameCourse">{{ course.NameCourse }}
+                                        </h5>
+                                        <div style="font-size: 13px; color: #8c8c8c;">
                                     {{ course.Instructor || 'N/A' }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Card Body -->
+                                    <div class="course-card-body">
+                                        <div class="course-info-row">
+                                            <span class="info-label">Bài học:</span>
+                                            <span class="info-value">{{ course.TotalHistoryLession || 0 }} / {{
+                                                course.NumberLesson || 0 }}</span>
+                                        </div>
+
+                                        <div class="course-info-row">
+                                            <span class="info-label">Thời gian học (ngày):</span>
+                                            <span class="info-value">{{ formatDicimal(course.TotalTimeLearned)
+                                                }} / {{ formatDicimal(course.LeadTime)
+                                                }}</span>
+                                        </div>
+
+                                        <div class="course-info-row">
+                                            <span class="info-label">Điểm thi:</span>
+                                            <span class="info-value exam-buttons">
+                                                <ng-container *ngFor="let exam of courseExamData">
+                                                    <!-- Trắc nghiệm (ExamType = 1) -->
+                                                    <button *ngIf="exam.ExamType === 1 && exam.CourseId === course.ID"
+                                                        type="button" class="btn btn-primary btn-sm shadow-none ms-1"
+                                                        title="Trắc nghiệm" style="font-size: 11px; padding: 2px 6px;">
+                                                        {{ formatDicimal(course.QuizPoints) || 0.00 }} / {{
+                                                        formatDicimal(course.GoalMultiChoice) || 0.00 }}
+                                                    </button>
+                                                    <!-- Thực hành (ExamType = 2) -->
+                                                    <button *ngIf="exam.ExamType === 2 && exam.CourseId === course.ID"
+                                                        type="button"
+                                                        class="btn btn-warning btn-sm text-dark shadow-none ms-1"
+                                                        title="Thực hành" style="font-size: 11px; padding: 2px 6px;">
+                                                        {{ formatDicimal(course.PracticePoints) || 0.00 }} / {{
+                                                        formatDicimal(course.GoalPractice) || 0.00 }}
+                                                    </button>
+                                                    <!-- Bài tập (ExamType = 3 or else) -->
+                                                    <button *ngIf="exam.ExamType === 3 && exam.CourseId === course.ID"
+                                                        type="button"
+                                                        class="btn btn-info btn-sm text-dark shadow-none ms-1"
+                                                        title="Bài tập" style="font-size: 11px; padding: 2px 6px;">
+                                                        {{ formatDicimal(course.ExcercisePoints) || 0.00 }} / {{
+                                                        formatDicimal(course.GoalExercise) || 0.00 }}
+                                                    </button>
+
+                                                </ng-container>
+                                                <span *ngIf="!hasExamByCourse(course.ID)"
+                                                    style="color: #999; font-size: 12px;">
+                                                    Chưa có bài thi
+                                                </span>
+
+                                            </span>
+                                        </div>
+
+                                        <div class="course-info-row">
+                                            <span class="info-label">Đánh giá:</span>
+                                            <span class="info-value">{{course.EvaluateText}}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Card Footer -->
+                                    <div class="course-card-footer">
+                                        <button nz-button [nzType]="isCourseLocked(course) ? 'default' : 'primary'"
+                                            nzSize="default" class="detail-button" (click)="onViewCourseDetail(course)"
+                                            [disabled]="isCourseLocked(course)">
+                                            <span *ngIf="isCourseLocked(course)" nz-icon nzType="lock"
+                                                nzTheme="outline"></span>
+                                            {{ isCourseLocked(course) ? 'Chờ mở khóa' : 'Xem chi tiết' }}
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-
-                            <!-- Card Body -->
-                            <div class="course-card-body">
-                                <div class="course-info-row">
-                                    <span class="info-label">Bài học:</span>
-                                    <span class="info-value">{{ course.TotalHistoryLession || 0 }} / {{
-                                        course.NumberLesson || 0 }}</span>
-                                </div>
-
-                                <div class="course-info-row">
-                                    <span class="info-label">Thời gian học (ngày):</span>
-                                    <span class="info-value">{{ formatDicimal(course.TotalTimeLearned)
-                                        }} / {{ formatDicimal(course.LeadTime)
-                                        }}</span>
-                                </div>
-
-                                <div class="course-info-row">
-                                    <span class="info-label">Điểm thi:</span>
-                                    <span class="info-value exam-buttons">
-                                        <ng-container *ngFor="let exam of courseExamData">
-                                            <!-- Trắc nghiệm (ExamType = 1) -->
-                                            <button *ngIf="exam.ExamType === 1 && exam.CourseId === course.ID"
-                                                type="button" class="btn btn-primary btn-sm shadow-none ms-1"
-                                                title="Trắc nghiệm" style="font-size: 11px; padding: 2px 6px;">
-                                                {{ formatDicimal(course.QuizPoints) || 0.00 }} / {{
-                                                formatDicimal(course.GoalMultiChoice) || 0.00 }}
-                                            </button>
-                                            <!-- Thực hành (ExamType = 2) -->
-                                            <button *ngIf="exam.ExamType === 2 && exam.CourseId === course.ID"
-                                                type="button" class="btn btn-warning btn-sm text-dark shadow-none ms-1"
-                                                title="Thực hành" style="font-size: 11px; padding: 2px 6px;">
-                                                {{ formatDicimal(course.PracticePoints) || 0.00 }} / {{
-                                                formatDicimal(course.GoalPractice) || 0.00 }}
-                                            </button>
-                                            <!-- Bài tập (ExamType = 3 or else) -->
-                                            <button *ngIf="exam.ExamType === 3 && exam.CourseId === course.ID"
-                                                type="button" class="btn btn-info btn-sm text-dark shadow-none ms-1"
-                                                title="Bài tập" style="font-size: 11px; padding: 2px 6px;">
-                                                {{ formatDicimal(course.ExcercisePoints) || 0.00 }} / {{
-                                                formatDicimal(course.GoalExercise) || 0.00 }}
-                                            </button>
-
-                                        </ng-container>
-                                        <span *ngIf="!hasExamByCourse(course.ID)" style="color: #999; font-size: 12px;">
-                                            Chưa có bài thi
-                                        </span>
-
-                                    </span>
-                                </div>
-
-                                <div class="course-info-row">
-                                    <span class="info-label">Đánh giá:</span>
-                                    <span class="info-value">{{course.EvaluateText}}</span>
-                                </div>
-                            </div>
-
-                            <!-- Card Footer -->
-                            <div class="course-card-footer">
-                                <button nz-button [nzType]="isCourseLocked(course) ? 'default' : 'primary'"
-                                    nzSize="default" class="detail-button" (click)="onViewCourseDetail(course)"
-                                    [disabled]="isCourseLocked(course)">
-                                    <span *ngIf="isCourseLocked(course)" nz-icon nzType="lock" nzTheme="outline"></span>
-                                    {{ isCourseLocked(course) ? 'Chờ mở khóa' : 'Xem chi tiết' }}
-                                </button>
                             </div>
                         </div>
                     </div>

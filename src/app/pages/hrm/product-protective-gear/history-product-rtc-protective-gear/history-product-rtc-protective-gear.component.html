@@ -95,7 +95,7 @@
                         <nz-select [(ngModel)]="selectedStatus" nzAllowClear nzShowSearch
                             [ngModelOptions]="{ standalone: true }" nzSize="small"
                             (ngModelChange)="onStatusChange($event)" [nzMode]="'multiple'"
-                            [nzPlaceHolder]="'Chọn trạng thái'" [nzMaxTagCount]="2" class="w-100">
+                            [nzPlaceHolder]="'Chọn trạng thái'" [nzMaxTagCount]="3" class="w-100">
                             <nz-option nzLabel="Đã trả" nzValue="0"></nz-option>
                             <nz-option nzLabel="Đang mượn" nzValue="1"></nz-option>
                             <nz-option nzLabel="Thiết bị đã mất" nzValue="2"></nz-option>
@@ -130,7 +130,7 @@
             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.4); z-index: 999; display: flex; align-items: center; justify-content: center;">
             <nz-spin [nzSpinning]="isLoading"></nz-spin>
         </div>
-        <div class="grid-container" style="height: 100%;">
+        <div class="grid-container-history-product-rtc" style="height: 100%;">
             <angular-slickgrid [gridId]="'grid-container-history-product-rtc'" [columns]="columnDefinitions"
                 [options]="gridOptions" [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
                 (onSelectedRowsChanged)="onRowSelectionChanged($event.detail.eventData, $event.detail.args)"

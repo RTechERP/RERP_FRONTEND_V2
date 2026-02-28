@@ -1,12 +1,13 @@
 .fs-12 {
   font-size: 0.75rem;
 }
+
 :host {
   font-size: 12px !important;
 }
 
 .tabulator {
-    font-size: 12px;
+  font-size: 12px;
 }
 
 .box {
@@ -39,49 +40,57 @@
   width: 16px;
   height: 16px;
 }
+
 .ant-splitter-panel {
   position: relative;
 }
 
 .ant-splitter {
-    height: 100% !important;
+  height: 100% !important;
 }
 
 /* Make menubar more compact */
 ::ng-deep .p-menubar {
-    padding: 0.25rem 0.5rem !important;
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-top: none !important;
-    background: #f8f9fa !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  background: #f8f9fa !important;
 }
 
-::ng-deep .p-menubar .p-menubar-root-list > .p-menuitem > .p-menuitem-content .p-menuitem-link {
-    padding: 0.4rem 0.6rem !important;
+::ng-deep .p-menubar .p-menubar-root-list>.p-menuitem>.p-menuitem-content .p-menuitem-link {
+  padding: 0.4rem 0.6rem !important;
 }
 
 ::ng-deep .p-menubar .p-menuitem-text {
-    font-size: 12px !important;
+  font-size: 12px !important;
 }
 
 /* Tabulator Footer & Scrollbar Styling */
 ::ng-deep .tabulator-footer {
-    background-color: #f8f9fa !important;
-    border-top: 1px solid #dee2e6 !important;
+  background-color: #f8f9fa !important;
+  border-top: 1px solid #dee2e6 !important;
 }
 
 ::ng-deep .tabulator-footer .tabulator-calcs-holder {
-    background: #fdfdfd !important;
-    font-weight: bold;
-    color: #1890ff;
+  background: #fdfdfd !important;
+  font-weight: bold;
+  color: #1890ff;
 }
 
 /* Ensure horizontal scrollbar is at the bottom of the visible area */
 ::ng-deep .tabulator {
-    overflow: auto !important;
+  /* overflow: auto !important; */
 }
 
 ::ng-deep .tabulator-tableholder {
-    overflow: auto !important;
+  /* overflow: auto !important; */
+}
+
+::ng-deep .ant-splitter-panel {
+  box-sizing: border-box;
+  padding: 0 1px;
+  overflow-y: hidden !important;
+  scrollbar-width: thin;
 }

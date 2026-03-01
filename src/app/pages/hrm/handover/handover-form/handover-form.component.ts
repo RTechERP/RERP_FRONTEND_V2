@@ -135,6 +135,20 @@ interface HandoverApprove {
   ApproveStatus: number;
 }
 
+interface HandoverPersonalAsset {
+  ID: number;
+  STT: number;
+  Name: string;
+  Code: string;
+  Quantity: number;
+  Unit: string;
+  Status: string;
+  ReceiverID: number;
+  IsSign: boolean;
+  IsHandover: boolean;
+  HandoverID: number;
+}
+
 @Component({
   selector: 'app-handover-form',
   standalone: true,
@@ -284,11 +298,15 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
   HandoverApproveData: any[] = [];
   handoverApproveTable: Tabulator | null = null;
 
+  HandoverPersonalAssetData: any[] = [];
+  handoverPersonalAssetTable: Tabulator | null = null;
+
   DeletedHandoverReceiver: any[] = [];
   DeletedAsset: any[] = [];
   DeletedWork: any[] = [];
   DeletedFinance: any[] = [];
   DeletedWarehouseAsset: any[] = [];
+  DeletedPersonalAsset: any[] = [];
   cbbEmployeeGroup: any[] = [];
 
   height: string = '100%'
@@ -316,6 +334,17 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
     this.getdataDepartment();
     this.getdataEmployee();
     this.loadOptionEmployee();
+    // Initialize fixed data for personal assets
+    this.HandoverPersonalAssetData = [
+      { ID: 0, STT: 1, Name: 'Thẻ Bảo hiểm Y tế', Code: 'BHYT', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 2, Name: 'Thẻ Bảo hiểm sức khỏe', Code: 'BHST', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 3, Name: 'Bàn, ghế, hộc tủ cá nhân', Code: 'BGT', Quantity: 1, Unit: 'Bộ', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 4, Name: 'Thẻ nhân viên', Code: 'TNV', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 5, Name: 'Thẻ gửi xe', Code: 'TGX', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 6, Name: 'Dép đi văn phòng', Code: 'DVP', Quantity: 1, Unit: 'Đôi', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 7, Name: 'Áo bảo hộ', Code: 'ABH', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 8, Name: 'Mũ lưỡi chai', Code: 'MLC', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+    ];
     if (!this.isCheckmode) {
       // Trường hợp thêm mới (reset dữ liệu)
       this.newHandover = {
@@ -402,6 +431,11 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         EmployeeName: '',
         ApproveStatus: 0,
       };
+      this.HandoverApproveData = [
+        { STT: 1, RoleName: 'Người bàn giao', ApproveLevel: 1, EmployeeID: this.newHandover.EmployeeID, ApproveStatus: 0 },
+        { STT: 2, RoleName: 'Trưởng bộ phận', ApproveLevel: 2, EmployeeID: 0, ApproveStatus: 0 },
+        { STT: 3, RoleName: 'Trưởng phòng HCNS', ApproveLevel: 3, EmployeeID: 0, ApproveStatus: 0 },
+      ];
     }
   }
 
@@ -442,26 +476,31 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           this.draw_handoverWorkTable();
         }
       } else if (index === 2) {
+        if (shouldReinitTable(this.handoverPersonalAssetTable, 'handoverPersonalAsset')) {
+          this.handoverPersonalAssetTable = null;
+          this.draw_handoverPersonalAssetTable();
+        }
+      } else if (index === 3) {
         if (shouldReinitTable(this.handoverAssetManagementTable, 'handoverAsset')) {
           this.handoverAssetManagementTable = null;
           this.draw_handoverAssetManagementTable();
         }
-      } else if (index === 3) {
+      } else if (index === 4) {
         if (shouldReinitTable(this.handoverWarehouseAssetTable, 'handoverWarehouse')) {
           this.handoverWarehouseAssetTable = null;
           this.draw_handoverWarehouseAssetTable();
         }
-      } else if (index === 4) {
+      } else if (index === 5) {
         if (shouldReinitTable(this.handoverFinancesTable, 'handoverFinance')) {
           this.handoverFinancesTable = null;
           this.draw_handoverFinanceTable();
         }
-      } else if (index === 5) {
+      } else if (index === 6) {
         if (shouldReinitTable(this.handoverSubordinatesTable, 'handoverSubordinate')) {
           this.handoverSubordinatesTable = null;
           this.draw_handoverSubTable();
         }
-      } else if (index === 6) {
+      } else if (index === 7) {
         if (shouldReinitTable(this.handoverApproveTable, 'handoverApprove')) {
           this.handoverApproveTable = null;
           this.draw_handoverApproveTable();
@@ -646,6 +685,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         const handoverFinance = details?.data?.HandoverFinance || [];
         const handoverSubordinate = details?.data?.HandoverSubordinate || [];
         const handoverApprove = details?.data?.HandoverApprove || [];
+        const handoverPersonalAsset = details?.data?.handoverPersonalAsset || [];
 
         // --------- Master data ----------
         this.newHandover = {
@@ -781,6 +821,22 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           ApproveStatus: item.ApproveStatus || 0,
         }));
         this.handoverApproveTable?.setData(this.HandoverApproveData);
+
+        // --------- Handover Personal Asset ----------
+        this.HandoverPersonalAssetData = handoverPersonalAsset.map((item: any) => ({
+          ID: item.ID || 0,
+          STT: item.STT || 0,
+          Name: item.Name || '',
+          Code: item.Code || '',
+          Quantity: item.Quantity || 0,
+          Unit: item.Unit || '',
+          Status: item.Status === 1 ? 'Đang sử dụng' : (item.Status === 2 ? 'Chưa sử dụng' : item.Status),
+          ReceiverID: item.ReceiverID || 0,
+          IsSign: item.IsSign || false,
+          IsHandover: item.IsHandover || false,
+          HandoverID: item.HandoverID || 0,
+        }));
+        this.handoverPersonalAssetTable?.setData(this.HandoverPersonalAssetData);
       },
 
       error: (err) => {
@@ -1232,7 +1288,6 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             TSAssetName: item.TSAssetName || '',
             Quantity: item.Quantity || 1,
             UnitName: item.UnitName || '',
-            Status: item.Status || '',
             IsSigned: item.IsSigned || false,
             IsContinueUse: item.IsContinueUse || false,
             ReceiverName: item.ReceiverName || '',
@@ -1274,9 +1329,25 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             ApproveStatus: item.ApproveStatus || 0,
           })) || []),
         ],
+        HandoverPersonalAsset: [
+          ...(this.handoverPersonalAssetTable?.getData().map((item: any) => ({
+            ID: item.ID || 0,
+            STT: item.STT || 0,
+            Name: item.Name || '',
+            Code: item.Code || '',
+            Quantity: item.Quantity || 0,
+            Unit: item.Unit || '',
+            Status: item.Status === 'Đang sử dụng' ? 1 : (item.Status === 'Chưa sử dụng' ? 2 : 1),
+            ReceiverID: item.ReceiverID || 0,
+            IsSign: item.IsSign || false,
+            IsHandover: item.IsHandover || false,
+            HandoverID: item.HandoverID || 0,
+          })) || []),
+        ],
         DeletedHandoverReceiver: this.DeletedHandoverReceiver,
         DeletedWork: this.DeletedWork,
         DeletedFinance: this.DeletedFinance,
+        DeletedPersonalAsset: this.DeletedPersonalAsset,
       };
       this.handoverService.saveData(payload).subscribe({
         next: (res) => {
@@ -1363,7 +1434,6 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             TSAssetName: item.TSAssetName || '',
             Quantity: item.Quantity || 1,
             UnitName: item.UnitName || '',
-            Status: item.Status || '',
             IsSigned: item.IsSigned || false,
             IsContinueUse: item.IsContinueUse || false,
             ReceiverName: item.ReceiverName || '',
@@ -1402,8 +1472,24 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             ID: item.ID || 0,
             STT: item.STT || 0,
             EmployeeID: item.EmployeeID || 0,
+            RoleName: item.RoleName || '',
             ApproveLevel: item.ApproveLevel || 0,
             ApproveStatus: item.ApproveStatus || 0,
+          })) || []),
+        ],
+        HandoverPersonalAsset: [
+          ...(this.handoverPersonalAssetTable?.getData().map((item: any) => ({
+            ID: item.ID || 0,
+            STT: item.STT || 0,
+            Name: item.Name || '',
+            Code: item.Code || '',
+            Quantity: item.Quantity || 0,
+            Unit: item.Unit || '',
+            Status: item.Status === 'Đang sử dụng' ? 1 : (item.Status === 'Chưa sử dụng' ? 2 : 1),
+            ReceiverID: item.ReceiverID || 0,
+            IsSign: item.IsSign || false,
+            IsHandover: item.IsHandover || false,
+            HandoverID: item.HandoverID || 0,
           })) || []),
         ],
         DeletedHandoverReceiver: this.DeletedHandoverReceiver,
@@ -2353,6 +2439,149 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         DebtType: '',
         DebtAmount: 0,
         FullName: '',
+      });
+    }
+  }
+
+  draw_handoverPersonalAssetTable() {
+    if (this.handoverPersonalAssetTable) {
+      this.handoverPersonalAssetTable.replaceData(this.HandoverPersonalAssetData);
+    } else {
+      this.handoverPersonalAssetTable = new Tabulator('#handoverPersonalAsset', {
+        data: this.HandoverPersonalAssetData,
+        ...DEFAULT_TABLE_CONFIG,
+        layout: 'fitColumns',
+        height: '72vh',
+        selectableRows: false,
+        reactiveData: true,
+        rowHeader: false,
+        columns: [
+          {
+            title: '',
+            field: 'deleteRow',
+            hozAlign: 'center',
+            width: 40,
+            headerSort: false,
+            formatter: () =>
+              `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
+            cellClick: (e, cell) => {
+              if ((e.target as HTMLElement).classList.contains('fas')) {
+                this.modal.confirm({
+                  nzTitle: 'Xác nhận xóa',
+                  nzContent: 'Bạn có chắc chắn muốn xóa không?',
+                  nzOkText: 'Đồng ý',
+                  nzCancelText: 'Hủy',
+                  nzOnOk: () => {
+                    const row = cell.getRow();
+                    const rowData = row.getData();
+                    if (rowData['ID']) {
+                      this.DeletedPersonalAsset.push(rowData['ID']);
+                    }
+                    row.delete();
+                    this.HandoverPersonalAssetData = this.HandoverPersonalAssetData.filter(
+                      (x) => x !== rowData
+                    );
+                  },
+                });
+              }
+            },
+          },
+          {
+            title: 'ID',
+            field: 'ID',
+            visible: false,
+          },
+          {
+            title: 'Bàn giao',
+            field: 'IsHandover',
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+            minWidth: 80,
+            editor: 'tickCross',
+            formatter: 'tickCross',
+            editorParams: { tristate: false },
+          },
+          {
+            title: 'STT',
+            hozAlign: 'center',
+            formatter: 'rownum',
+            headerHozAlign: 'center',
+            field: 'STT',
+          },
+          {
+            title: 'Tên tài sản',
+            field: 'Name',
+            headerHozAlign: 'center',
+            minWidth: 200,
+          },
+          {
+            title: 'Mã',
+            field: 'Code',
+            headerHozAlign: 'center',
+            minWidth: 100,
+          },
+          {
+            title: 'Số lượng',
+            field: 'Quantity',
+            headerHozAlign: 'center',
+            minWidth: 100,
+            editor: 'input',
+          },
+          {
+            title: 'Đơn vị',
+            field: 'Unit',
+            headerHozAlign: 'center',
+            minWidth: 80,
+            editor: 'input',
+          },
+          {
+            title: 'Tình trạng',
+            field: 'Status',
+            headerHozAlign: 'center',
+            minWidth: 120,
+            editor: 'input',
+          },
+          {
+            title: 'Nhân viên nhận',
+            field: 'ReceiverID',
+            headerHozAlign: 'center',
+            minWidth: 180,
+            editor: this.createdControl(
+              SelectControlComponent,
+              this.injector,
+              this.appRef,
+              () => this.employeeOptions,
+              {
+                valueField: 'value',
+                labelField: 'label',
+              }
+            ),
+            formatter: (cell) => {
+              const val = cell.getValue();
+              if (!val) {
+                return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
+              }
+              if (!this.employeeOptions) {
+                return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
+              }
+              const employee = this.employeeOptions.find(
+                (p: any) => p.value === val
+              );
+              const employeeName = employee ? employee.FullName : val;
+              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${employeeName}</p> <i class="fas fa-angle-down"></i></div>`;
+            },
+          },
+          {
+            title: 'Ký nhận',
+            field: 'IsSign',
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+            minWidth: 80,
+            editor: 'tickCross',
+            formatter: 'tickCross',
+            editorParams: { tristate: false },
+          },
+        ],
       });
     }
   }

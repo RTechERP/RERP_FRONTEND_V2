@@ -490,6 +490,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
                     },
                 },
                 excelExportOptions: { width: 15 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductCode',
@@ -509,6 +510,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
                     },
                 },
                 excelExportOptions: { width: 18 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductNewCode',
@@ -528,6 +530,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
                     },
                 },
                 excelExportOptions: { width: 15 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductName',
@@ -540,6 +543,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
                     model: Filters['compoundInput'],
                 },
                 excelExportOptions: { width: 40 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'NumberInStoreDauky',
@@ -696,6 +700,18 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
                 totalItems: 0,
             },
         };
+    }
+
+    cleanXml(value: any): string {
+        if (value === null || value === undefined) return '';
+
+        return String(value)
+            // remove invalid XML chars
+            .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+            // remove nbsp
+            .replace(/\u00A0/g, ' ')
+            // remove emoji (optional nhưng nên)
+            .replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
     }
 
     exportExcel() {

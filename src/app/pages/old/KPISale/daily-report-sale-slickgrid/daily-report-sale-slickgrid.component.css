@@ -39,10 +39,16 @@ angular-slickgrid,
     flex-shrink: 0;
 }
 
-::ng-deep .slick-cell {
+/* :host ::ng-deep .slick-cell {
     font-size: 0.75rem;
-}
+    white-space: normal !important;
+    text-overflow: clip !important;
+    overflow: visible !important;
+    line-height: 1.4;
+    display: flex !important;
+    align-items: center;
+} */
 
-::ng-deep .slick-header-column {
+:host ::ng-deep .slick-header-column {
     font-size: 0.75rem;
 }

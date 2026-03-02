@@ -2897,6 +2897,22 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
   }
 
+  // Hàm flatten tree data giữ nguyên ID gốc (dùng cho append)
+  flattenTreeData(treeData: any[]): any[] {
+    const flatList: any[] = [];
+    const flatten = (items: any[]) => {
+      items.forEach((item) => {
+        const { _children, ...rest } = item;
+        flatList.push(rest);
+        if (_children && _children.length > 0) {
+          flatten(_children);
+        }
+      });
+    };
+    flatten(treeData);
+    return flatList;
+  }
+
   // Hàm flatten dữ liệu chi tiết sản phẩm (tree -> flat array)
   flattenDetails(details: any[], flatList: any[] = [], parentId: number = 0) {
     details.forEach((item) => {
@@ -2978,10 +2994,11 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // const dtTreeData = [...this.dataPOKHProduct]; // tb_ProductDetailTreeList
-    const dtTreeData = this.initialPOKHProductData;
-    const minLevel = Math.min(...dtTreeData.map(r => r.level));
-    const nodeMinLevelCount = dtTreeData.filter(r => r.level === minLevel).length;
+    // Lấy dữ liệu hiện tại trên bảng để truyền vào modal và để append
+    const currentTableData = this.tb_ProductDetailTreeList ? this.tb_ProductDetailTreeList.getData('active') : this.dataPOKHProduct;
+    const dtTreeData = currentTableData.length > 0 ? currentTableData : this.initialPOKHProductData;
+    const minLevel = dtTreeData.length > 0 ? Math.min(...dtTreeData.map(r => r.level ?? 0)) : 0;
+    const nodeMinLevelCount = dtTreeData.filter(r => (r.level ?? 0) === minLevel).length;
     const modalRef = this.modalService.open(ProjectPartListSlickGridComponent, {
       centered: true,
       backdrop: 'static',
@@ -3005,19 +3022,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         if (result && result.success && result.dtAddDetail) {
           console.log('Data nhận từ PartList:', result);
 
-          this.dataPOKHProduct = [];
-
-          // this.dataPOKHProduct = [...result.dtAddDetail];
-
           // Map ProductID sang ProductNewCode trước khi set data
           const mappedData = result.dtAddDetail.map((item: any) => {
-            // Kiểm tra xem cha của item này có trong danh sách không
-            const hasParentInList = result.dtAddDetail.some((parent: any) => parent.ID === item.ParentID);
-
-            // if (item.ParentID && item.ParentID !== 0 && !hasParentInList) {
-            //   item.ParentID = 0; // Chuyển thành dòng cha
-            // }
-
             if (item.ProductID && !item.ProductNewCode) {
               const product = this.dataProducts.find(p => p.ID === item.ProductID);
               if (product) {
@@ -3035,7 +3041,19 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             return item;
           });
 
-          this.dataPOKHProduct = this.convertToTreeData(mappedData);
+          // Lấy dữ liệu hiện tại trên bảng (flatten) để append
+          const existingData = this.tb_ProductDetailTreeList
+            ? this.flattenTreeData(this.tb_ProductDetailTreeList.getData('active'))
+            : [...this.dataPOKHProduct];
+
+          // Lọc ra các item mới chưa có trong dữ liệu hiện tại (dựa trên ID)
+          const existingIds = new Set(existingData.map((item: any) => item.ID));
+          const newItems = mappedData.filter((item: any) => !existingIds.has(item.ID));
+
+          // Gộp dữ liệu cũ + mới
+          const mergedData = [...existingData, ...newItems];
+
+          this.dataPOKHProduct = this.convertToTreeData(mergedData);
 
           console.log("dataPOKHProduct sau update:", this.dataPOKHProduct);
 
@@ -3046,7 +3064,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               const rows = this.tb_ProductDetailTreeList.getRows();
               rows.forEach((row: any) => {
                 row.treeExpand(true);
-
                 row.update(row.getData());
               });
 

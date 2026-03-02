@@ -12,6 +12,8 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { DateTime } from 'luxon';
 import { DocumentService } from '../document-service/document.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+import { saveAs } from 'file-saver';
 import { ActivatedRoute } from '@angular/router';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -45,7 +47,6 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     documentData: any[] = [];
     totalDocuments: number = 0;
 
-    private downloadBasePath = '\\\\113.190.234.64\\ftp\\Upload\\RTCDocument\\';
 
     constructor(
         private documentService: DocumentService,
@@ -223,16 +224,54 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
 
     downloadFile(file: any): void {
         if (!file?.FileName) {
-            this.notification.warning('Thông báo', 'Không có file để tải!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy file để tải!');
             return;
         }
 
-        const linkBase = 'http://113.190.234.64:8083/api/Upload/RTCDocument/';
-        const downloadUrl =
-            `http://113.190.234.64:8081/Document/GetBlobDownload` +
-            `?path=${encodeURIComponent(linkBase + file.FileName)}` +
-            `&file_name=${encodeURIComponent(file.FileName)}`;
+        const fileName = file.FileName;
+        const typeCode = file.CodeDocumentType || '';
 
-        window.open(downloadUrl, '_blank');
+        this.documentService.downloadFileByKey(fileName, typeCode).subscribe({
+            next: (blob: Blob) => {
+                const a = document.createElement('a');
+                const objectUrl = URL.createObjectURL(blob);
+
+                a.href = objectUrl;
+                a.download = file.FileNameOrigin || fileName;
+                a.click();
+
+                URL.revokeObjectURL(objectUrl);
+                this.notification.success(NOTIFICATION_TITLE.success, `Đã tải file: ${file.FileNameOrigin || fileName}`);
+            },
+            error: (err: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải file: ' + (err?.error?.message || err?.message || 'Không xác định'));
+            }
+        });
+    }
+
+    viewFile(file: any): void {
+        if (!file?.FileName) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy file để xem!');
+            return;
+        }
+
+        const fileName = file.FileName;
+        const typeCode = file.CodeDocumentType || '';
+
+        this.documentService.downloadFileByKey(fileName, typeCode).subscribe({
+            next: (blob: Blob) => {
+                const objectUrl = URL.createObjectURL(blob);
+                const newWindow = window.open(objectUrl, '_blank');
+
+                if (newWindow) {
+                    newWindow.onload = () => {
+                        newWindow.document.title = file.FileNameOrigin || fileName;
+                    };
+                }
+            },
+            error: (err: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xem file: ' + (err?.error?.message || err?.message || 'Không xác định'));
+            }
+        });
     }
 }

@@ -295,8 +295,12 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
 
-        // this.loadCurrentVersion();
-        // this.initSseConnection();
+        // Trì hoãn SSE và version check để các API quan trọng cho UI load trước
+        // (tránh SSE chiếm slot kết nối HTTP của trình duyệt)
+        // setTimeout(() => {
+        //     this.loadCurrentVersion();
+        //     this.initSseConnection();
+        // }, 3000);
     }
 
     ngOnDestroy(): void {

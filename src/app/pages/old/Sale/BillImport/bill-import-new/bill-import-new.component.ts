@@ -1086,7 +1086,10 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                         ...item,
                         id: item.ID
                     }));
-                    this.applyDistinctFiltersToMaster();
+                    // Defer filter update sau khi Angular change detection cập nhật dataView
+                    setTimeout(() => {
+                        this.applyDistinctFiltersToMaster();
+                    }, 100);
 
                     // Resize grids after data is loaded
                     setTimeout(() => {
@@ -2260,26 +2263,11 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     // DISTINCT FILTERS
     // =================================================================
 
-    private applyDistinctFiltersToMaster(useFilteredData: boolean = false): void {
+    private applyDistinctFiltersToMaster(): void {
         if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
 
-        // Get data based on whether we want filtered or all items
-        let data: any[];
-        if (useFilteredData) {
-            // Get only the filtered/visible rows
-            const dataView = this.angularGridMaster.dataView;
-            data = [];
-            for (let i = 0; i < dataView.getLength(); i++) {
-                const item = dataView.getItem(i);
-                if (item) {
-                    data.push(item);
-                }
-            }
-        } else {
-            // Get all items
-            data = this.angularGridMaster.dataView.getItems();
-        }
-
+        // Lấy toàn bộ data (không phải chỉ filtered view) - giống project-slick-grid2
+        const data = this.angularGridMaster.dataView.getItems() as any[];
         if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
@@ -2295,12 +2283,6 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 .sort((a, b) => a.label.localeCompare(b.label));
         };
 
-        const fieldsToFilter = [
-            'BillTypeText', 'BillImportCode', 'Suplier', 'DepartmentName', 'Code',
-            'Deliver', 'Reciver', 'KhoType', 'WarehouseName', 'IsSuccessText',
-            'CreatedBy', 'DoccumentReceiver'
-        ];
-
         const columns = this.angularGridMaster.slickGrid.getColumns();
         if (!columns) return;
 
@@ -2308,7 +2290,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         columns.forEach((column: any) => {
             if (column?.filter && column.filter.model === Filters['multipleSelect']) {
                 const field = column.field;
-                if (!field || !fieldsToFilter.includes(field)) return;
+                if (!field) return;
                 column.filter.collection = getUniqueValues(data, field);
             }
         });
@@ -2317,7 +2299,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         this.columnDefinitionsMaster.forEach((colDef: any) => {
             if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
                 const field = colDef.field;
-                if (!field || !fieldsToFilter.includes(field)) return;
+                if (!field) return;
                 colDef.filter.collection = getUniqueValues(data, field);
             }
         });

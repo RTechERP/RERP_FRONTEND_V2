@@ -33,6 +33,7 @@ import {
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -92,6 +93,7 @@ import { ActivatedRoute } from '@angular/router';
         NzSelectModule,
         NzTableModule,
         NzTabsModule,
+        NzSpinModule,
         NzModalModule,
         NzUploadModule,
         NzSwitchModule,
@@ -123,6 +125,7 @@ export class DailyReportSaleAdminSlickgridComponent implements OnInit, AfterView
     selectedRowEmployeeId: number = 0;
     selectedRow: any = null;
     isGridReady: boolean = false;
+    isLoadingData: boolean = false;
     rowSpanMetadata: Record<number, any> = {};
 
     filters: any = {
@@ -420,6 +423,7 @@ export class DailyReportSaleAdminSlickgridComponent implements OnInit, AfterView
     }
 
     loadData(): void {
+        this.isLoadingData = true;
         const dateStart = DateTime.fromISO(this.filters.startDate || DateTime.local().toFormat('yyyy-MM-dd')).startOf('day').toJSDate();
         const dateEnd = DateTime.fromISO(this.filters.endDate || DateTime.local().toFormat('yyyy-MM-dd')).endOf('day').toJSDate();
 
@@ -460,8 +464,10 @@ export class DailyReportSaleAdminSlickgridComponent implements OnInit, AfterView
                 } else {
                     this.dataset = [];
                 }
+                this.isLoadingData = false;
             },
             error: (error) => {
+                this.isLoadingData = false;
                 console.error('Error loading daily report sale admin data:', error);
                 this.notification.error('Lỗi', 'Không thể tải dữ liệu báo cáo hàng ngày!');
             }

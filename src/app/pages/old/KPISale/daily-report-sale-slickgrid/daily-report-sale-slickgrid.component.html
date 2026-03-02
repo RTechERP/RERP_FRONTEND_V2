@@ -101,7 +101,8 @@
                                             <nz-form-label class="fs-12">Team</nz-form-label>
                                             <nz-form-control class="w-100">
                                                 <nz-select name="teamId" nzShowSearch nzAllowClear nzSize="small"
-                                                    class="w-100" nzPlaceHolder="Team" [(ngModel)]="filters.teamId">
+                                                    class="w-100" nzPlaceHolder="Team" [(ngModel)]="filters.teamId"
+                                                    [nzDisabled]="isTeamIdDisabled">
                                                     <nz-option *ngFor="let item of teamSales" [nzValue]="item.ID"
                                                         [nzLabel]="item.Name"></nz-option>
                                                 </nz-select>
@@ -133,11 +134,14 @@
         <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
             <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-body p-0 flex-grow-1 grid-container-daily-report" style="overflow: hidden;">
-                    <angular-slickgrid gridId="gridDailyReport" [columns]="columnDefinitions" [options]="gridOptions"
-                        [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
-                        (onClick)="onRowClick($event.detail.eventData, $event.detail.args)"
-                        (onDblClick)="onRowDblClick($event.detail.eventData, $event.detail.args)">
-                    </angular-slickgrid>
+                    <nz-spin [nzSpinning]="isLoadingData" nzTip="Đang tải dữ liệu..." class="h-100 w-100">
+                        <angular-slickgrid gridId="gridDailyReport" [columns]="columnDefinitions"
+                            [options]="gridOptions" [dataset]="dataset"
+                            (onAngularGridCreated)="angularGridReady($event.detail)"
+                            (onClick)="onRowClick($event.detail.eventData, $event.detail.args)"
+                            (onDblClick)="onRowDblClick($event.detail.eventData, $event.detail.args)">
+                        </angular-slickgrid>
+                    </nz-spin>
                 </div>
                 <div class="card-footer bg-white p-1" style="flex-shrink: 0;">
                     <div class="d-flex align-items-center justify-content-between gap-2" style="flex-wrap: wrap;">

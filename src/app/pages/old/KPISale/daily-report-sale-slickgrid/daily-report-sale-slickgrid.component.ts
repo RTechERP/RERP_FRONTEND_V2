@@ -33,6 +33,7 @@ import {
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -96,6 +97,7 @@ import { ReadOnlyLongTextEditor } from '../../../KPITech/kpievaluation-employee/
         NzSelectModule,
         NzTableModule,
         NzTabsModule,
+        NzSpinModule,
         NzModalModule,
         NzUploadModule,
         NzSwitchModule,
@@ -135,9 +137,11 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     mainData: any[] = [];
     isAdmin: boolean = false;
     isEmployeeIdDisabled: boolean = false;
+    isTeamIdDisabled: boolean = false;
     selectedRowId: number = 0;
     selectedRow: any = null;
     isGridReady: boolean = false;
+    isLoadingData: boolean = false;
     isTeamLoaded: boolean = false;
     needLoadTeam: boolean = false;
     isMobile: boolean = false;
@@ -216,57 +220,20 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
         const currentUserId = this.appUserService.id || 0;
         this.isAdmin = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1) || this.appUserService.hasPermission('N1') || ID_ADMIN_SALE_LIST.includes(currentUserId);
 
-        // Gọi load-group-sales để kiểm tra nhóm BLESS
-        this.dailyReportSaleService.loadGroupSales(currentUserId).subscribe({
-            next: (res) => {
-                if (res && res.status === 1) {
-                    const groupSales = res.data ?? {};
-                    const groupCode = (groupSales.GroupSalesCode || '').toLowerCase();
-                    if (groupCode === 'bless') {
-                        this.isEmployeeIdDisabled = false;
-                    } else {
-                        this.isEmployeeIdDisabled = !this.isAdmin;
-                        if (!this.isAdmin) {
-                            if (currentUserId) {
-                                this.filters.employeeId = currentUserId;
-                            }
-                        } else if (ID_ADMIN_SALE_LIST.includes(currentUserId)) {
-                            // Admin Sale: gọi API lấy root team để tự động chọn combobox team
-                            const currentEmployeeId = this.appUserService.employeeID;
-                            if (currentEmployeeId) {
-                                this.needLoadTeam = true;
-                                this.loadRootTeamByEmployee(currentEmployeeId);
-                            }
-                        }
-                    }
-                } else {
-                    // API lỗi, fallback về logic cũ
-                    this.isEmployeeIdDisabled = !this.isAdmin;
-                    if (!this.isAdmin && currentUserId) {
-                        this.filters.employeeId = currentUserId;
-                    } else if (ID_ADMIN_SALE_LIST.includes(currentUserId)) {
-                        const currentEmployeeId = this.appUserService.employeeID;
-                        if (currentEmployeeId) {
-                            this.needLoadTeam = true;
-                            this.loadRootTeamByEmployee(currentEmployeeId);
-                        }
-                    }
-                }
-            },
-            error: () => {
-                // Lỗi kết nối, fallback về logic cũ
-                this.isEmployeeIdDisabled = !this.isAdmin;
-                if (!this.isAdmin && currentUserId) {
-                    this.filters.employeeId = currentUserId;
-                } else if (ID_ADMIN_SALE_LIST.includes(currentUserId)) {
-                    const currentEmployeeId = this.appUserService.employeeID;
-                    if (currentEmployeeId) {
-                        this.needLoadTeam = true;
-                        this.loadRootTeamByEmployee(currentEmployeeId);
-                    }
-                }
+        const isInAdminSaleList = ID_ADMIN_SALE_LIST.includes(currentUserId);
+        this.isTeamIdDisabled = !isInAdminSaleList;
+        this.isEmployeeIdDisabled = !isInAdminSaleList;
+
+        if (isInAdminSaleList) {
+            const currentEmployeeId = this.appUserService.employeeID;
+            if (currentEmployeeId) {
+                this.needLoadTeam = true;
+                this.loadRootTeamByEmployee(currentEmployeeId);
             }
-        });
+        } else {
+            this.filters.teamId = 0; // chọn tất cả team theo yêu cầu
+            this.filters.employeeId = currentUserId; // đổ đúng nhân viên đó lên
+        }
 
         this.loadProjects();
         this.loadCustomers();
@@ -591,7 +558,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
             { id: 'ProjectTypeName', name: 'Loại dự án', field: 'ProjectTypeName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             { id: 'CustomerCode', name: 'Mã khách hàng', field: 'CustomerCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'ProductOfCustomer', name: 'Sản phẩm của KH', field: 'ProductOfCustomer', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ProductOfCustomer', name: 'Sản phẩm của KH', field: 'ProductOfCustomer', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
             { id: 'ContactName', name: 'Người liên hệ (Tên/Chức vụ)', field: 'ContactName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'MainIndex', name: 'Loại nhóm', field: 'MainIndex', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'Content', name: 'Việc đã làm', field: 'Content', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
@@ -654,6 +621,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     }
 
     loadData(): void {
+        this.isLoadingData = true;
         const currentUser = this.appUserService.currentUser;
         const isAdminOrAdminSale = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1) || this.appUserService.hasPermission('N1') || ID_ADMIN_SALE_LIST.includes(this.appUserService.id || 0);
         const userId = isAdminOrAdminSale ? (this.filters.employeeId || 0) : (this.appUserService.id || 0);
@@ -692,8 +660,10 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
                     this.dataset = [];
                     this.totalPage = 1;
                 }
+                this.isLoadingData = false;
             },
             error: (error) => {
+                this.isLoadingData = false;
                 console.error('Error loading daily report sale data:', error);
                 this.notification.error('Lỗi', 'Không thể tải dữ liệu báo cáo hàng ngày!');
             }

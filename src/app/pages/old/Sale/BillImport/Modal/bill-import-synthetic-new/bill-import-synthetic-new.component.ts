@@ -1463,11 +1463,17 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
           this.isLoading = false;
           if (res.status === 1) {
             this.dataTable = res.data;
-            // Add id field for SlickGrid
-            this.dataset = this.dataTable.map((item, index) => ({
-              ...item,
-              id: index,
-            }));
+            // Add id field for SlickGrid and recalculate DueDate from DPO + DateSomeBill
+            this.dataset = this.dataTable.map((item, index) => {
+              const newItem = { ...item, id: index };
+              if (newItem.DateSomeBill && newItem.DPO) {
+                const dateSomeBill = DateTime.fromISO(newItem.DateSomeBill);
+                if (dateSomeBill.isValid) {
+                  newItem.DueDate = dateSomeBill.plus({ days: newItem.DPO || 0 }).toISO();
+                }
+              }
+              return newItem;
+            });
 
             if (!this.angularGrid) {
               this.getDataContextMenu();

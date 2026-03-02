@@ -767,7 +767,13 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       return;
     }
 
-    const dayBussiness = formValue.DayBussiness ? new Date(formValue.DayBussiness).toISOString() : null;
+    let dayBussiness = null;
+    if (formValue.DayBussiness) {
+      const date = new Date(formValue.DayBussiness);
+      // Bù trừ timezone offset để khi toISOString() trả về đúng ngày giờ địa phương
+      date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+      dayBussiness = date.toISOString();
+    }
     const vehicleID = formValue.VehicleID !== null && formValue.VehicleID !== undefined ? formValue.VehicleID : 0;
     const approvedId = formValue.ApprovedId !== null && formValue.ApprovedId !== undefined ? formValue.ApprovedId : 0;
     const projectID = formValue.ProjectID !== null && formValue.ProjectID !== undefined ? formValue.ProjectID : 0;

@@ -2661,7 +2661,7 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(data, followType);
 
                 this.steps = data.map((x: any) => ({
-                    value: x.ID,
+                    value: x.Step,
                     text: x.Step + '. ' + x.StepName
                 }));
             },

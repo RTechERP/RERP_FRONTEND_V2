@@ -1007,8 +1007,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.showCloseButton = true;
 
         modalRef.result.then(
-            () => {},
-            () => {}
+            () => { },
+            () => { }
         );
     }
 
@@ -1346,13 +1346,13 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             (item.IsApproved === 1 || item.IsApproved === '1')
         );
 
-        if (!bgdApproved) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                `Yêu cầu công việc [${numberRequest}] chưa được BGĐ duyệt nên không thể yêu cầu báo giá!`
-            );
-            return;
-        }
+        // if (!bgdApproved) {
+        //     this.notification.warning(
+        //         NOTIFICATION_TITLE.warning,
+        //         `Yêu cầu công việc [${numberRequest}] chưa được BGĐ duyệt nên không thể yêu cầu báo giá!`
+        //     );
+        //     return;
+        // }
 
         const modalRef = this.modalService.open(ProjectPartlistPriceRequestNewComponent, {
             centered: true,

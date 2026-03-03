@@ -1339,13 +1339,14 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // Kiểm tra BGĐ đã duyệt chưa (Step 5, IsApproved = 1)
-        const bgdApproved = this.JobrequirementApprovedData.find((item: any) =>
-            item.JobRequirementID === jobRequirementID &&
-            item.Step === 5 &&
-            (item.IsApproved === 1 || item.IsApproved === '1')
-        );
+        // // Kiểm tra BGĐ đã duyệt chưa (Step 5, IsApproved = 1)
+        // const bgdApproved = this.JobrequirementApprovedData.find((item: any) =>
+        //     item.JobRequirementID === jobRequirementID &&
+        //     item.Step === 5 &&
+        //     (item.IsApproved === 1 || item.IsApproved === '1')
+        // );
 
+        // Bỏ check điều kiện BGĐ duyệt
         // if (!bgdApproved) {
         //     this.notification.warning(
         //         NOTIFICATION_TITLE.warning,

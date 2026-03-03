@@ -35,7 +35,6 @@ import { OnChangeType } from 'ng-zorro-antd/core/types';
 import { VehiceDetailComponent } from '../vehice-detail/vehice-detail.component';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AppUserService } from '../../../../../services/app-user.service';
-import { WFHService } from '../../employee-wfh/WFH-service/WFH.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
 @Component({
   selector: 'app-employee-bussiness-detail',
@@ -110,7 +109,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     private modalService: NgbModal,
     public activeModal: NgbActiveModal,
     private appUserService: AppUserService,
-    private wfhService: WFHService,
     private message: NzMessageService,
     private authService: AuthService,
     private projectService: ProjectService,
@@ -448,17 +446,17 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   }
 
   loadEmployee() {
-    this.wfhService.getEmloyeeApprover().subscribe({
+    this.employeeService.getEmployees().subscribe({
       next: (res) => {
         if (res && res.status === 1 && res.data) {
           // Lưu danh sách employee gốc (để tương thích với code cũ nếu cần)
-          this.employeeList = res.data.employees || [];
+          this.employeeList = res.data || [];
           const empGroups: { [key: string]: any[] } = {};
-          (res.data.employees || []).forEach((emp: any) => {
+          (res.data || []).forEach((emp: any) => {
             const dept = emp.DepartmentName || 'Không xác định';
             if (!empGroups[dept]) empGroups[dept] = [];
             empGroups[dept].push({
-              ID: emp.EmployeeID || emp.ID,
+              ID: emp.ID || emp.EmployeeID,
               FullName: emp.FullName,
               DepartmentName: emp.DepartmentName,
               Code: emp.Code,
@@ -484,7 +482,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         }
       },
       error: (error: any) => {
-        this.notification.warning("Lỗi", "Lỗi khi lấy danh sách nhân viên");
+        this.notification.warning(NOTIFICATION_TITLE.error, "Lỗi khi lấy danh sách nhân viên");
         this.employeeList = [];
         this.employeeGroups = [];
       }

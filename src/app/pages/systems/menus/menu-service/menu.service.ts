@@ -210,6 +210,10 @@ export class MenuService {
         1, 23, 24, 78, 88, 1221, 1313, 1434, 1431, 53, 51, 1534,
     ];
 
+    employeeSaleHCMs = [
+        29, 42, 341, 641
+    ];
+
     getMenus(): MenuItem[] {
         let id = this.appUserService.currentUser?.ID || 0;
         let employeeID = this.appUserService.currentUser?.EmployeeID || 0;
@@ -3663,13 +3667,14 @@ export class MenuService {
             this.employeeHRs.includes(employeeID) ||
             this.departmentHRs.includes(departmentID);
 
+        const permissions: any[] = this.appUserService.currentUser?.Permissions.split(',') || [];
+
         const isAdmin =
             this.appUserService.currentUser?.IsAdmin ||
-            this.appUserService.currentUser?.Permissions.includes("N1");
+            permissions.includes("N1");
 
-        const permissionAdmin = this.appUserService.currentUser?.Permissions.includes("N1");
-        // console.log("permissionAdmin:", permissionAdmin);
-        // console.log("isAdmin:", isAdmin);
+        // console.log("this.appUserService.currentUser?.IsAdmin:", this.appUserService.currentUser?.IsAdmin);
+        // console.log("this.appUserService.currentUser?.Permissions:", permissions);
 
         return this.menuAppService.getAll().pipe(
             map((response: any) => {
@@ -3690,7 +3695,7 @@ export class MenuService {
 
                     //nếu là sale
                     if (item.Router == 'daily-report-sale-admin' || item.Router == 'daily-report-sale' || item.Code == 'M66') {
-                        isPermission = isAdmin || this.departmentSales.includes(departmentID);
+                        isPermission = isAdmin || this.departmentSales.includes(departmentID) || this.employeeSaleHCMs.includes(employeeID);
                     }
 
                     //Nếu là Kỹ thuật
@@ -3719,6 +3724,9 @@ export class MenuService {
                     if (item.Router == 'daily-report-mkt') {
                         isPermission = isAdmin || this.marketings.includes(departmentID);
                     }
+
+                    // console.log('isAdmin:', isAdmin);
+                    // console.log('this.marketings.includes(departmentID):', this.marketings.includes(departmentID));
 
                     const menu: MenuItem = {
                         id: item.ID,

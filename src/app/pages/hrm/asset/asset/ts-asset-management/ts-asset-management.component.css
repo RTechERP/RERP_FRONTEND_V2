@@ -111,7 +111,7 @@
 
 /* Ensure grid fills the container */
 ::ng-deep #grvAssetManagement {
-  min-height: 60vh !important;
+  min-height: 54vh !important;
 }
 
 /* SlickGrid styles */

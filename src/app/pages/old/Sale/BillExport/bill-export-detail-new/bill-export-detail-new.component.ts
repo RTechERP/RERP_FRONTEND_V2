@@ -595,7 +595,7 @@ export class BillExportDetailNewComponent
         ProjectCodeExport: item.ProjectCodeExport || '',
         ProjectNameText: item.ProjectNameText || item.ProjectName || '',
         Note: item.Note || '',
-        ProjectCode:item.ProjectCode || '',
+        ProjectCode: item.ProjectCode || '',
         ExpectReturnDate: item.ExpectReturnDate
           ? new Date(item.ExpectReturnDate)
           : new Date(),
@@ -833,7 +833,7 @@ export class BillExportDetailNewComponent
         id: 'ProductID',
         name: 'Mã sản phẩm',
         field: 'ProductID',
-        width: 200,
+        width: 300,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
@@ -926,7 +926,7 @@ export class BillExportDetailNewComponent
         id: 'ProductFullName',
         name: 'Mã sp theo dự án',
         field: 'ProductFullName',
-        width: 300,
+        width: 400,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
@@ -940,7 +940,7 @@ export class BillExportDetailNewComponent
         id: 'ProductName',
         name: 'Tên sản phẩm',
         field: 'ProductName',
-        width: 300,
+        width: 400,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
@@ -1753,8 +1753,8 @@ export class BillExportDetailNewComponent
             this.validateForm.patchValue({ SenderID: userId });
             this.newBillExport.SenderID = userId;
             if (userId <= 0) {
-            this.validateForm.patchValue({ SenderID: this.appUserService.id });
-            this.newBillExport.SenderID = this.appUserService.id || 0;
+              this.validateForm.patchValue({ SenderID: this.appUserService.id });
+              this.newBillExport.SenderID = this.appUserService.id || 0;
             }
           }
         },
@@ -1831,10 +1831,10 @@ export class BillExportDetailNewComponent
           this.projectGridCollection = projectData
             .filter((p) => p.ID !== null && p.ID !== undefined && p.ID !== 0)
             .map((project) => ({
-              label: project.ProjectCode+' | '+project.ProjectName,
+              label: project.ProjectCode + ' | ' + project.ProjectName,
               value: project.ID,
               ProjectCode: project.ProjectCode,
-              ProjectName:project.ProjectName,
+              ProjectName: project.ProjectName,
             }));
         } else {
           this.projectGridCollection = [];
@@ -2177,11 +2177,18 @@ export class BillExportDetailNewComponent
     this.billExportService.getCbbProductGroup().subscribe({
       next: (res: any) => {
         this.dataCbbProductGroup = Array.isArray(res?.data) ? res.data : [];
+
+        this.dataCbbProductGroup = this.dataCbbProductGroup?.filter(
+          (x: any) => x.Isvisible != false && x.ParentID == 0
+            || x.ParentID == null || x.ParentID == undefined
+        );
       },
       error: (err: any) => {
         console.error('Error getting product groups:', err);
       },
     });
+
+
   }
 
   getCustomerName(customerId: number): string {
@@ -2506,22 +2513,140 @@ export class BillExportDetailNewComponent
   }
 
   /** Nạp dữ liệu tồn kho (tồn dự án + hàng tự do) để validate trước khi lưu */
+  // private async loadInventoryForValidation(): Promise<void> {
+  //     const tableData = this.dataDetail || [];
+  //     const warehouseID = this.newBillExport.WarehouseID || 0;
+
+  //     // ✅ Nhóm theo ProductID + ProjectID + POKHDetailID
+  //     const groups = new Map<string, {
+  //         productID: number;
+  //         projectID: number;
+  //         pokhDetailID: number;
+  //         billExportDetailIDs: number[];
+  //     }>();
+
+  //     tableData.forEach((row: any) => {
+  //         const productID = Number(row.ProductID || 0);
+  //         const projectID = Number(row.ProjectID || 0);
+  //         const pokhDetailID = Number(row.POKHDetailIDActual || row.POKHDetailID || 0);
+
+  //         if (productID <= 0) return;
+
+  //         // ✅ Nếu có POKHDetailID thì ProjectID = 0
+  //         const finalProjectID = pokhDetailID > 0 ? 0 : projectID;
+  //         const key = `${productID}-${finalProjectID}-${pokhDetailID}`;
+
+  //         if (!groups.has(key)) {
+  //             groups.set(key, {
+  //                 productID,
+  //                 projectID: finalProjectID,
+  //                 pokhDetailID,
+  //                 billExportDetailIDs: []
+  //             });
+  //         }
+
+  //         // ✅ Chỉ thêm ID > 0 (detail đang sửa)
+  //         if (row.ID > 0) {
+  //             groups.get(key)!.billExportDetailIDs.push(row.ID);
+  //         }
+  //     });
+
+  //     // ✅ Gọi API cho từng nhóm
+  //     for (const [key, group] of groups) {
+  //         try {
+  //             // ✅ Chuyển array thành CSV: [123, 456] → "123,456"
+  //             const billExportDetailIDs = group.billExportDetailIDs.join(',');
+
+  //             const res: any = await firstValueFrom(
+  //                 this.billExportService.getInventoryProjectImportExport(
+  //                     warehouseID,
+  //                     group.productID,
+  //                     group.projectID,
+  //                     group.pokhDetailID,
+  //                     billExportDetailIDs  // ✅ Truyền CSV
+  //                 )
+  //             );
+
+  //             if (res && res.status === 1) {
+  //                 // ✅ Lấy 4 bảng từ API
+  //                 const inventoryProjects = res.inventoryProjects || []; // Bảng 0: Keep
+  //                 const dtImport = res.import || [];                     // Bảng 1: Import
+  //                 const dtExport = res.export || [];                     // Bảng 2: Export
+  //                 const dtStock = res.stock || [];                       // Bảng 3: Stock
+
+  //                 // ✅ Tính toán tồn kho
+  //                 const totalQuantityKeep = inventoryProjects.length > 0
+  //                     ? Number(inventoryProjects[0].TotalQuantity || 0)
+  //                     : 0;
+
+  //                 const totalImport = dtImport.length > 0
+  //                     ? Number(dtImport[0].TotalImport || 0)
+  //                     : 0;
+
+  //                 const totalExport = dtExport.length > 0
+  //                     ? Number(dtExport[0].TotalExport || 0)
+  //                     : 0;
+
+  //                 const totalQuantityLast = dtStock.length > 0
+  //                     ? Number(dtStock[0].TotalQuantityLast || 0)
+  //                     : 0;
+
+  //                 const totalQuantityRemain = Math.max(totalImport - totalExport, 0);
+
+  //                 // ✅ Lưu vào Map với key là string
+  //                 this.productInventoryDetailMap.set(key, {
+  //                     totalQuantityKeep: Math.max(totalQuantityKeep, 0),
+  //                     totalQuantityRemain,
+  //                     totalQuantityLast: Math.max(totalQuantityLast, 0)
+  //                 });
+
+  //                 console.log(`✅ Nạp tồn kho [${key}]:`, {
+  //                     Giữ: totalQuantityKeep,
+  //                     'Còn lại': totalQuantityRemain,
+  //                     'Tồn CK': totalQuantityLast,
+  //                     'Tổng': totalQuantityKeep + totalQuantityRemain + totalQuantityLast
+  //                 });
+  //             }
+  //         } catch (err) {
+  //             console.error(`❌ Lỗi API tồn kho [${key}]:`, err);
+  //             // ✅ Lưu giá trị 0 nếu lỗi
+  //             this.productInventoryDetailMap.set(key, {
+  //                 totalQuantityKeep: 0,
+  //                 totalQuantityRemain: 0,
+  //                 totalQuantityLast: 0
+  //             });
+  //         }
+  //     }
+  // }
+
   private async loadInventoryForValidation(): Promise<void> {
     const tableData = this.dataDetail || [];
     const warehouseID = this.newBillExport.WarehouseID || 0;
 
-    // ✅ Nhóm theo ProductID + ProjectID + POKHDetailID
+    // ✅ Bước 1: Gộp tất cả detail ID theo ProductID (không phân biệt ProjectID/POKHDetailID)
+    const productDetailIDsMap = new Map<number, number[]>();
+    tableData.forEach((row: any) => {
+      const productID = Number(row.ProductID || 0);
+      if (productID <= 0) return;
+      if (row.ID > 0) {
+        if (!productDetailIDsMap.has(productID)) {
+          productDetailIDsMap.set(productID, []);
+        }
+        productDetailIDsMap.get(productID)!.push(row.ID);
+      }
+    });
+
+    // ✅ Bước 2: Nhóm theo ProductID + ProjectID + POKHDetailID để gọi API
     const groups = new Map<string, {
       productID: number;
       projectID: number;
       pokhDetailID: number;
-      billExportDetailIDs: number[];
     }>();
 
     tableData.forEach((row: any) => {
       const productID = Number(row.ProductID || 0);
       const projectID = Number(row.ProjectID || 0);
-      const pokhDetailID = Number(row.POKHDetailIDActual || row.POKHDetailID || 0);
+      const pokhDetailID = Number(row.POKHDetailID || 0);
 
       if (productID <= 0) return;
 
@@ -2533,22 +2658,17 @@ export class BillExportDetailNewComponent
         groups.set(key, {
           productID,
           projectID: finalProjectID,
-          pokhDetailID,
-          billExportDetailIDs: []
+          pokhDetailID
         });
-      }
-
-      // ✅ Chỉ thêm ID > 0 (detail đang sửa)
-      if (row.ID > 0) {
-        groups.get(key)!.billExportDetailIDs.push(row.ID);
       }
     });
 
     // ✅ Gọi API cho từng nhóm
     for (const [key, group] of groups) {
       try {
-        // ✅ Chuyển array thành CSV: [123, 456] → "123,456"
-        const billExportDetailIDs = group.billExportDetailIDs.join(',');
+        // ✅ Lấy tất cả detail IDs cùng ProductID (gộp từ mọi group cùng sản phẩm)
+        const allDetailIDs = productDetailIDsMap.get(group.productID) || [];
+        const billExportDetailIDs = allDetailIDs.join(',');
 
         const res: any = await firstValueFrom(
           this.billExportService.getInventoryProjectImportExport(
@@ -2556,7 +2676,7 @@ export class BillExportDetailNewComponent
             group.productID,
             group.projectID,
             group.pokhDetailID,
-            billExportDetailIDs  // ✅ Truyền CSV
+            billExportDetailIDs  // ✅ Truyền CSV gộp theo ProductID
           )
         );
 
@@ -2597,11 +2717,13 @@ export class BillExportDetailNewComponent
             Giữ: totalQuantityKeep,
             'Còn lại': totalQuantityRemain,
             'Tồn CK': totalQuantityLast,
-            'Tổng': totalQuantityKeep + totalQuantityRemain + totalQuantityLast
+            'Tổng': totalQuantityKeep + totalQuantityRemain + totalQuantityLast,
+            'Detail IDs (theo ProductID)': billExportDetailIDs
           });
         }
       } catch (err) {
         console.error(`❌ Lỗi API tồn kho [${key}]:`, err);
+
         // ✅ Lưu giá trị 0 nếu lỗi
         this.productInventoryDetailMap.set(key, {
           totalQuantityKeep: 0,

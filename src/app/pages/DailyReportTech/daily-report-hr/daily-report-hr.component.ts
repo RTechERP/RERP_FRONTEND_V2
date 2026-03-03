@@ -43,7 +43,7 @@ import { DailyReportHrDetailComponent } from '../daily-report-hr-detail/daily-re
     NzModalModule,
   ],
   templateUrl: './daily-report-hr.component.html',
- // styleUrl: './daily-report-hr.component.css'
+  // styleUrl: './daily-report-hr.component.css'
 })
 export class DailyReportHrComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_daily_report_hr', { static: false })
@@ -53,7 +53,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
 
   // Search panel state
   sizeSearch: string = '22%';
-  
+
   // Search filters
   dateStart: string = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
   dateEnd: string = DateTime.local().toFormat('yyyy-MM-dd');
@@ -97,7 +97,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.drawTbDailyReportHr(this.tb_daily_report_hrContainer.nativeElement);
-    
+
     setTimeout(() => {
       if (this.currentUser) {
         this.getDailyReportHrData();
@@ -110,7 +110,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
       if (res && res.status === 1 && res.data) {
         const data = Array.isArray(res.data) ? res.data[0] : res.data;
         this.currentUser = data;
-        
+
         if (this.users.length > 0) {
           if (data.ID) {
             this.setUserIdFromEmployeeID(data.ID);
@@ -122,7 +122,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
         } else {
           this.userId = 0;
         }
-        
+
         if (this.tb_daily_report_hr) {
           this.getDailyReportHrData();
         }
@@ -169,12 +169,12 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
   loadUsers(): void {
     const userTeamID = this.teamId > 0 ? this.teamId : undefined;
     const departmentid = this.departmentId > 0 ? this.departmentId : undefined;
-    
+
     this.dailyReportTechService.getEmployees(userTeamID, departmentid).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
           const employees = Array.isArray(response.data) ? response.data : [];
-          
+
           if (employees.length > 0 && employees[0].DepartmentName) {
             this.users = this.groupEmployeesByDepartment(employees);
           } else {
@@ -188,7 +188,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
         } else {
           this.users = [];
         }
-        
+
         if (this.currentUser) {
           if (this.currentUser.ID) {
             this.setUserIdFromEmployeeID(this.currentUser.ID);
@@ -210,7 +210,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
 
   groupEmployeesByDepartment(employees: any[]): any[] {
     const grouped: { [key: string]: any[] } = {};
-    
+
     employees.forEach(emp => {
       const deptName = emp.DepartmentName || 'Khác';
       if (!grouped[deptName]) {
@@ -267,7 +267,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
 
   getDailyReportHrData(): void {
     const searchParams = this.getSearchParams();
-    
+
     this.dailyReportTechService.getDailyReportTech(searchParams).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
@@ -275,7 +275,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
         } else {
           this.dailyReportHrData = [];
         }
-        
+
         if (this.tb_daily_report_hr) {
           this.tb_daily_report_hr.replaceData(this.dailyReportHrData);
         }
@@ -332,7 +332,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         rowHeader: false,
         selectableRows: 1,
-        height: '87vh',
+        height: '85vh',
         paginationMode: 'local',
         columns: [
           {
@@ -353,7 +353,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
               const row = cell.getRow().getData();
               const id = row.ID || 0;
               const target = e.target as HTMLElement;
-              
+
               if (target.closest('.btn-edit-row')) {
                 this.editDailyReportById(id);
               } else if (target.closest('.btn-delete-row')) {
@@ -606,7 +606,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
 
   copyDailyReport(): void {
     const searchParams = this.getSearchParams();
-    
+
     let employeeID = 0;
     if (searchParams.userID && searchParams.userID > 0) {
       for (const group of this.users) {
@@ -619,7 +619,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
         }
       }
     }
-    
+
     const copyParams = {
       dateStart: searchParams.dateStart,
       dateEnd: searchParams.dateEnd,
@@ -628,7 +628,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
       userid: employeeID || 0,
       departmentid: searchParams.departmentID || 0
     };
-    
+
     this.dailyReportTechService.getForCopy(copyParams).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
@@ -652,7 +652,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
     }
 
     const uniqueDates = [...new Set(result.map(item => item.DateReport))];
-    
+
     if (uniqueDates.length === 1) {
       const contentSummary = this.formatSingleDayReport(result, uniqueDates[0]);
       this.copyToClipboard(contentSummary);
@@ -707,7 +707,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
+
       try {
         const successful = document.execCommand('copy');
         if (successful) {
@@ -722,7 +722,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
         document.body.removeChild(textArea);
       }
     };
-    
+
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         try {

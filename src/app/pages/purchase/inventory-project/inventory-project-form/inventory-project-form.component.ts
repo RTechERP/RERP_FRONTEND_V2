@@ -336,7 +336,7 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
         return control.errors?.['message'] || 'Số lượng nhả giữ không hợp lệ!';
       }
     }
-    return undefined;
+    return "Vui lòng chọn POKH đích";
   }
 
   getPOKHToError(): string | undefined {
@@ -359,6 +359,7 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
     });
 
     if (this.formGroup.invalid) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin số lượng nhả giữ và POHK đích!');
       return;
     }
 

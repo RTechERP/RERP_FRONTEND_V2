@@ -2,3 +2,11 @@
 ::ng-deep nz-form-label{
     padding: 0 !important;
 }
+
+:host ::ng-deep #grdData{
+    height: 42vh !important;
+}
+
+:host ::ng-deep #grdData2{
+    height: 42vh !important;
+}

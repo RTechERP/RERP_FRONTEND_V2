@@ -94,8 +94,9 @@
                   ? 'error'
                   : ''
               ">
-              <nz-time-picker formControlName="StartTime" nzFormat="HH:mm" style="width: 100%"
-                nzPlaceHolder="Chọn giờ bắt đầu"></nz-time-picker>
+              <nz-select formControlName="StartTime" nzPlaceHolder="Chọn giờ bắt đầu" nzAllowClear style="width: 100%">
+                <nz-option *ngFor="let time of timeSlots" [nzValue]="time.value" [nzLabel]="time.label"></nz-option>
+              </nz-select>
             </nz-form-control>
           </nz-form-item>
         </nz-col>
@@ -111,8 +112,9 @@
                   ? 'error'
                   : ''
               ">
-              <nz-time-picker formControlName="EndTime" nzFormat="HH:mm" style="width: 100%"
-                nzPlaceHolder="Chọn giờ kết thúc"></nz-time-picker>
+              <nz-select formControlName="EndTime" nzPlaceHolder="Chọn giờ kết thúc" nzAllowClear style="width: 100%">
+                <nz-option *ngFor="let time of timeSlots" [nzValue]="time.value" [nzLabel]="time.label"></nz-option>
+              </nz-select>
             </nz-form-control>
           </nz-form-item>
         </nz-col>

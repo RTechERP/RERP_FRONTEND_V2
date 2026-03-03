@@ -43,6 +43,9 @@ export class PaymentOrderService {
     save(payment: any): Observable<any> {
         return this.http.post<any>(`${this.url}/save-data`, payment);
     }
+    updateTotalmoney(payment: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/update-totalmoney`, payment);
+    }
 
     uploadFile(files: File[], paymentOrderID: number, paymentOrderFileID: string): Observable<any> {
         const formData = new FormData();

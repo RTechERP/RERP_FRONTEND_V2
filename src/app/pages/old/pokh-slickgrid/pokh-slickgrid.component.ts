@@ -370,15 +370,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         //     this.filters.warehouseId = this.tabData.warehouseId;
         // }
 
-        const endDate = new Date();
-        endDate.setHours(23, 59, 59, 999);
+        const endDate = DateTime.local();
+        const startDate = endDate.minus({ months: 3 });
 
-        const startDate = new Date();
-        startDate.setMonth(endDate.getMonth() - 3);
-        startDate.setHours(0, 0, 0, 0);
+        this.filters.startDate = startDate.toFormat('yyyy-MM-dd');
+        this.filters.endDate = endDate.toFormat('yyyy-MM-dd');
 
-        this.filters.startDate = startDate;
-        this.filters.endDate = endDate;
 
         const warehouseId =
             this.tabData?.warehouseID
@@ -482,20 +479,16 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     getPOKHAjaxParamsObject(): any {
-        const formatDateToLocalISO = (date: Date, isStartDate: boolean = true): string => {
-            const dateCopy = new Date(date);
-            if (isStartDate) {
-                dateCopy.setHours(0, 0, 0, 0);
-            } else {
-                dateCopy.setHours(23, 59, 59, 999);
-            }
-            const timezoneOffset = dateCopy.getTimezoneOffset();
-            const adjustedDate = new Date(dateCopy.getTime() - timezoneOffset * 60 * 1000);
-            return adjustedDate.toISOString();
+        const formatDateStr = (dateStr: string, isStartDate: boolean = true): string => {
+            const dt = DateTime.fromISO(dateStr);
+            const adjusted = isStartDate
+                ? dt.startOf('day')
+                : dt.endOf('day');
+            return adjusted.toISO() || '';
         };
 
-        const startDate = this.filters.startDate || new Date();
-        const endDate = this.filters.endDate || new Date();
+        const startDate = this.filters.startDate || DateTime.local().toFormat('yyyy-MM-dd');
+        const endDate = this.filters.endDate || DateTime.local().toFormat('yyyy-MM-dd');
 
         return {
             filterText: (this.filters.filterText || '').trim(),
@@ -506,8 +499,8 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             group: this.filters.group || 0,
             warehouseId: this.filters.warehouseId || 1,
             employeeTeamSaleId: this.filters.employeeTeamSaleId || 0,
-            startDate: formatDateToLocalISO(startDate, true),
-            endDate: formatDateToLocalISO(endDate, false),
+            startDate: formatDateStr(startDate, true),
+            endDate: formatDateStr(endDate, false),
             page: this.filters.pageNumber || 1,
             size: this.filters.pageSize || 50,
         };
@@ -517,42 +510,28 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         return (params: any) => {
             console.log('Params từ Tabulator:', params);
 
-            const formatDateToLocalISO = (
-                date: Date,
-                isStartDate: boolean = true
-            ): string => {
-                const dateCopy = new Date(date);
-
-                if (isStartDate) {
-                    dateCopy.setHours(0, 0, 0, 0);
-                } else {
-                    dateCopy.setHours(23, 59, 59, 999);
-                }
-
-                const timezoneOffset = dateCopy.getTimezoneOffset();
-
-                const adjustedDate = new Date(
-                    dateCopy.getTime() - timezoneOffset * 60 * 1000
-                );
-
-                return adjustedDate.toISOString();
+            const formatDateStr = (dateStr: string, isStartDate: boolean = true): string => {
+                const dt = DateTime.fromISO(dateStr);
+                const adjusted = isStartDate
+                    ? dt.startOf('day')
+                    : dt.endOf('day');
+                return adjusted.toISO() || '';
             };
 
-            const startDate = this.filters.startDate || new Date();
-            const endDate = this.filters.endDate || new Date();
+            const startDate = this.filters.startDate || DateTime.local().toFormat('yyyy-MM-dd');
+            const endDate = this.filters.endDate || DateTime.local().toFormat('yyyy-MM-dd');
 
             return {
                 filterText: (this.filters.filterText || '').trim(),
                 customerId: this.filters.customerId || 0,
                 userId: this.filters.userId || 0,
                 POType: this.filters.status || 0,
-                // status: this.filters.status || 0,
                 status: 0,
                 group: this.filters.group || 0,
                 warehouseId: this.filters.warehouseId || 1,
                 employeeTeamSaleId: this.filters.employeeTeamSaleId || 0,
-                startDate: formatDateToLocalISO(startDate, true),
-                endDate: formatDateToLocalISO(endDate, false),
+                startDate: formatDateStr(startDate, true),
+                endDate: formatDateStr(endDate, false),
             };
         };
     }
@@ -2037,6 +2016,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
 
         this.gridOptionsPOKHFile = {
             enableAutoResize: true,
+            forceFitColumns: true,
             autoResize: {
                 container: '.grid-container-pokh-file',
                 calculateAvailableSizeBy: 'container',

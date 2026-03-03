@@ -88,13 +88,13 @@ export class BorrowService {
   ): Observable<any> {
     return this.http.get<any>(
       this.apiUrl +
-        `borrow/get-productrtc-detail?productGroupID=${productGroupID}&keyword=${keyword}&checkAll=${checkAll}&filter=${filter}&warehouseID=${warehouseID}&warehouseType=${warehouseType}`
+      `borrow/get-productrtc-detail?productGroupID=${productGroupID}&keyword=${keyword}&checkAll=${checkAll}&filter=${filter}&warehouseID=${warehouseID}&warehouseType=${warehouseType}`
     );
   }
   getHistoryProductBorrowDetail(historyId: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrl +
-        `borrow/get-history-product-borrow-detail?historyId=${historyId}`
+      `borrow/get-history-product-borrow-detail?historyId=${historyId}`
     );
   }
   getHistoryProductRTCLog(historyId: number): Observable<any> {
@@ -105,13 +105,13 @@ export class BorrowService {
   getHistoryError(productHistoryID: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrl +
-        `borrow/get-history-error?productHistoryID=${productHistoryID}`
+      `borrow/get-history-error?productHistoryID=${productHistoryID}`
     );
   }
   getHistoryProductRTCByID(productHistoryID: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrl +
-        `borrow/get-history-product-rtc-by-id?productHistoryID=${productHistoryID}`
+      `borrow/get-history-product-rtc-by-id?productHistoryID=${productHistoryID}`
     );
   }
   getPersonalHistoryError(Id: number): Observable<any> {
@@ -221,7 +221,7 @@ export class BorrowService {
   getProductRTCByQR(qrCode: string, warehouseID: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrlQR +
-        `product-rtc-by-qr?qrCode=${qrCode}&warehouseID=${warehouseID}`
+      `product-rtc-by-qr?qrCode=${qrCode}&warehouseID=${warehouseID}`
     );
   }
 
@@ -238,7 +238,7 @@ export class BorrowService {
   ): Observable<any> {
     return this.http.get<any>(
       this.apiUrlQR +
-        `load-qr-code-return?qrCode=${qrCode}&userId=${userId}&warehouseID=${warehouseID}`
+      `load-qr-code-return?qrCode=${qrCode}&userId=${userId}&warehouseID=${warehouseID}`
     );
   }
 
@@ -246,4 +246,8 @@ export class BorrowService {
     return this.http.post<any>(this.apiUrlQR + `save-data-product-qr`, data);
   }
   //#endregion
+
+  getQuantityBorrow(): Observable<any> {
+    return this.http.get<any>(this.apiUrl + `borrow/get-quantity-product-borrow`);
+  }
 }

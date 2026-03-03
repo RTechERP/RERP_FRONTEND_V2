@@ -82,14 +82,26 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        // Get departmentId from route snapshot or tabData synchronously first
+        const queryDepartmentId = this.route.snapshot.queryParams['departmentId'];
+        this.departmentIdFromRoute = queryDepartmentId
+            ? Number(queryDepartmentId)
+            : (this.tabData?.departmentId ?? 0);
+        this.departmentId_TK = this.departmentIdFromRoute;
+        this.departmentId_BD = this.departmentIdFromRoute;
+
+        // Also subscribe for dynamic changes
         this.route.queryParams.subscribe(params => {
-            // this.departmentIdFromRoute = params['departmentId'] ? Number(params['departmentId']) : 0;
-            this.departmentIdFromRoute =
-                params['departmentId']
-                ?? this.tabData?.departmentId
-                ?? 0;
-            this.departmentId_TK = this.departmentIdFromRoute;
-            this.departmentId_BD = this.departmentIdFromRoute;
+            const newDepartmentId = params['departmentId']
+                ? Number(params['departmentId'])
+                : (this.tabData?.departmentId ?? 0);
+            if (newDepartmentId !== this.departmentIdFromRoute) {
+                this.departmentIdFromRoute = newDepartmentId;
+                this.departmentId_TK = newDepartmentId;
+                this.departmentId_BD = newDepartmentId;
+                this.search_TK();
+                this.search_BD();
+            }
         });
 
         const today = new Date();

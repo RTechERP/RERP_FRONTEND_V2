@@ -1,18 +1,18 @@
-<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
-  <h6 class="modal-title text-white">Chọn Phiếu Mượn</h6>
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0 bill-return-modal-header bill-return-bg-primary bill-return-text-uppercase bill-return-py-2 bill-return-flex-shrink-0">
+  <h6 class="modal-title text-white bill-return-modal-title bill-return-text-white">Chọn Phiếu Mượn</h6>
   <button
     type="button"
-    class="btn-close"
+    class="btn-close bill-return-btn-close"
     (click)="closeModal()"
     aria-label="Close">
   </button>
 </div>
 
-<div class="modal-body p-2 flex-grow-1 overflow-visible">
-  <div class="d-flex gap-2 pb-2 border-bottom">
+<div class="modal-body p-2 flex-grow-1 overflow-visible bill-return-modal-body bill-return-p-2 bill-return-flex-grow-1 bill-return-overflow-visible">
+  <div class="d-flex gap-2 pb-2 border-bottom bill-return-d-flex bill-return-gap-2 bill-return-pb-2 bill-return-border-bottom">
     <button
       type="button"
-      class="fs-12 btn"
+      class="fs-12 btn bill-return-fs-12 bill-return-btn"
       nz-button
       nzType="primary"
       nzSize="small"
@@ -23,14 +23,14 @@
     </button>
   </div>
 
-  <div #tableReturn class="bill-return-table"></div>
+  <div #tableReturn class="bill-return-table bill-return-bill-return-table"></div>
 </div>
 
-<div class="modal-footer flex-shrink-0">
-  <button type="button" class="fs-12 btn" nz-button (click)="closeModal()">Đóng</button>
+<div class="modal-footer flex-shrink-0 bill-return-modal-footer bill-return-flex-shrink-0">
+  <button type="button" class="fs-12 btn bill-return-fs-12 bill-return-btn" nz-button (click)="closeModal()">Đóng</button>
   <button
     type="button"
-    class="fs-12 btn"
+    class="fs-12 btn bill-return-fs-12 bill-return-btn"
     nz-button
     nzType="primary"
     (click)="selectPhieuTra(getSelectedRow())"

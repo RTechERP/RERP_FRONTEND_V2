@@ -436,6 +436,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0 },
                 filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end',
+                headerCssClass: 'text-end',
             },
             {
                 id: 'UnitText',
@@ -461,6 +463,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 minWidth: 120,
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
+                cssClass: 'text-end',
+                headerCssClass: 'text-end',
             },
             {
                 id: 'Note',
@@ -483,6 +487,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
                 filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end',
+                headerCssClass: 'text-end',
             },
             {
                 id: 'TotalMoney_2',
@@ -495,6 +501,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
                 filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end',
+                headerCssClass: 'text-end',
             },
             {
                 id: 'TotalMoney_3',
@@ -507,6 +515,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
                 filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end',
+                headerCssClass: 'text-end',
             },
             {
                 id: 'TotalMoney_4',
@@ -519,6 +529,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
                 filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end',
+                headerCssClass: 'text-end',
             },
             {
                 id: 'TotalMoney_5',
@@ -531,6 +543,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
                 filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end',
+                headerCssClass: 'text-end',
             },
             {
                 id: 'TotalMoney_6',
@@ -543,6 +557,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
                 filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end',
+                headerCssClass: 'text-end',
             },
         ];
 

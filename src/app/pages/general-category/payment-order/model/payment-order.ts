@@ -65,7 +65,7 @@ export class PaymentOrder {
     Step: number | null = null;
     StepName: string | null = '';
 
-    IsApproved: boolean | null = null;
+    IsApproved: number | null = null;
     ReasonCancel: string | null = '';
     ContentLog: string | null = '';
     ApproverName: string | null = '';

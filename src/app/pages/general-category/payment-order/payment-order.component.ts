@@ -136,6 +136,7 @@ export class PaymentOrderComponent implements OnInit {
     isShowModal = false;
 
     activeTab = '0';
+    isApprove = false;
     defaultSizeSplit = '100%';
 
     isAdvandShow = true;
@@ -200,6 +201,7 @@ export class PaymentOrderComponent implements OnInit {
 
     isPermisstion: boolean = false;
     isPermisstionDB: boolean = false;
+    isPermisstionHR: boolean = false;
 
     constructor(
         private modalService: NgbModal,
@@ -218,6 +220,8 @@ export class PaymentOrderComponent implements OnInit {
     ngOnInit(): void {
 
         // console.log('this.route.queryParams:', this.route.queryParams);
+
+        // let isApprove = false;
         this.route.queryParams.subscribe(params => {
             // this.activeTab = params['activeTab'] || '0';
             this.activeTab =
@@ -226,11 +230,13 @@ export class PaymentOrderComponent implements OnInit {
                 ?? '0';
 
             // console.log('this.activeTab:', this.activeTab)
+            this.isApprove = this.activeTab == '0';
         });
 
         this.loadDataCombo();
         this.initMenuBar();
 
+        // if (this.activeTab == '0') {
         const permissionCodeTBP = "N57";
         const permissionCodeHR = "N59";
         const permissionCodeTbpHR = "N56";
@@ -245,6 +251,7 @@ export class PaymentOrderComponent implements OnInit {
             this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
             this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
             this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
+
             this.appUserService.currentUser?.IsAdmin) || false;
 
         this.isPermisstionDB = (this.appUserService.currentUser?.Permissions.includes(permissionCodeSale) ||
@@ -253,15 +260,22 @@ export class PaymentOrderComponent implements OnInit {
             this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
             this.appUserService.currentUser?.IsAdmin) || false;
 
+        this.isPermisstionHR = (
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR)) || false;
         // console.log('this.isPermisstion:', this.isPermisstion);
 
         // this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
+
+
+
         if (!this.isPermisstion && !this.isPermisstionDB) {
             this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
-            // console.log('this.param:', this.param);
-        } else {
-            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP)) {
+        } else if (this.isApprove) {
+            console.log('isApprove:', this.isApprove);
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP) ||
+                this.appUserService.currentUser?.Permissions.includes(permissionCodeSale)) {
                 this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
                 this.param.approvedTBPID = this.appUserService.currentUser?.EmployeeID;
                 this.param.step = 2;
@@ -277,15 +291,29 @@ export class PaymentOrderComponent implements OnInit {
 
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
                 this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR) ||
-                this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
-                this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
+
                 // this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
                 this.appUserService.currentUser?.IsAdmin) {
                 this.param.departmentID = 0;
                 this.param.approvedTBPID = 0;
                 this.param.step = 0;
             }
+
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
+                this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
+                this.appUserService.currentUser?.IsAdmin) {
+                this.param.departmentID = 0;
+                this.param.approvedTBPID = 0;
+                this.param.step = 0;
+            }
+        } else {
+            console.log('isApprove else:', this.isApprove);
+            this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
+            this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
         }
+        // }
+
+
 
         this.initGrid();
         this.initGridSpecial();
@@ -671,14 +699,14 @@ export class PaymentOrderComponent implements OnInit {
 
                 }
             },
-            // {
-            //     label: 'In',
-            //     icon: 'fa-solid fa-print fa-lg text-primary',
-            //     command: () => {
-            //         // this.onPrint();
-
-            //     }
-            // }
+            {
+                label: 'Chuẩn hóa tổng tiền',
+                icon: 'fa-solid fa-wrench fa-lg',
+                visible: this.appUserService.currentUser?.IsAdmin && this.appUserService.currentUser?.EmployeeID <= 0,
+                command: () => {
+                    this.onUpdateTotalMoney();
+                }
+            },
         ]
     }
 
@@ -1583,7 +1611,7 @@ export class PaymentOrderComponent implements OnInit {
             formatterOptions: {
                 // dateSeparator: '.',
                 decimalSeparator: '.',
-                displayNegativeNumberWithParentheses: true,
+                displayNegativeNumberWithParentheses: false,
                 minDecimal: 0,
                 maxDecimal: 2,
                 thousandSeparator: ','
@@ -1688,7 +1716,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderDetailField.TotalMoney.type,
                 width: 150,
                 sortable: true, filterable: true,
-                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2, },
                 filter: { model: Filters['compoundInputNumber'] },
                 cssClass: 'text-end'
             },
@@ -1699,7 +1727,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderDetailField.PaymentPercentage.type,
                 width: 100,
                 sortable: true, filterable: true,
-                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2, },
                 filter: { model: Filters['compoundInputNumber'] },
                 cssClass: 'text-end'
             },
@@ -1757,10 +1785,10 @@ export class PaymentOrderComponent implements OnInit {
             formatterOptions: {
                 // dateSeparator: '.',
                 decimalSeparator: '.',
-                displayNegativeNumberWithParentheses: true,
+                displayNegativeNumberWithParentheses: false,
                 minDecimal: 0,
                 maxDecimal: 2,
-                thousandSeparator: ','
+                thousandSeparator: ',',
             },
 
 
@@ -2379,7 +2407,7 @@ export class PaymentOrderComponent implements OnInit {
             formatterOptions: {
                 // dateSeparator: '.',
                 decimalSeparator: '.',
-                displayNegativeNumberWithParentheses: true,
+                displayNegativeNumberWithParentheses: false,
                 minDecimal: 0,
                 maxDecimal: 2,
                 thousandSeparator: ','
@@ -2514,7 +2542,7 @@ export class PaymentOrderComponent implements OnInit {
             formatterOptions: {
                 // dateSeparator: '.',
                 decimalSeparator: '.',
-                displayNegativeNumberWithParentheses: true,
+                displayNegativeNumberWithParentheses: false,
                 minDecimal: 0,
                 maxDecimal: 2,
                 thousandSeparator: ','
@@ -2526,12 +2554,16 @@ export class PaymentOrderComponent implements OnInit {
         this.angularGridSpecial = angularGrid;
         this.gridDataSpecial = angularGrid?.slickGrid || {};
         angularGrid.dataView.onRowCountChanged.subscribe(() => {
+
+            this.applyDistinctFilters(angularGrid);
             // const count = angularGrid.dataView.getLength();
             // console.log('Row count:', count);
-            const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
-            if (columnElement) {
-                columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
-            }
+            // const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
+            // if (columnElement) {
+            //     columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
+            // }
+
+            this.updateTotal(this.angularGridSpecial);
         });
     }
 
@@ -2629,7 +2661,7 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(data, followType);
 
                 this.steps = data.map((x: any) => ({
-                    value: x.ID,
+                    value: x.Step,
                     text: x.Step + '. ' + x.StepName
                 }));
             },
@@ -2643,9 +2675,10 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadData() {
+
+        // console.log('this.activeTabqqq:', this.activeTab);
         this.loadDataNormal();
         this.loadDataSpecial();
-
     }
 
     loadDataNormal() {
@@ -2653,6 +2686,7 @@ export class PaymentOrderComponent implements OnInit {
         const p = {
             ...this.param,
             isSpecialOrder: 0,
+            // isIgnoreHR: this.isPermisstionHR ? 0 : -1,
         }
         // console.log(this.param);
         this.paymentService.get(p).subscribe({
@@ -2665,16 +2699,16 @@ export class PaymentOrderComponent implements OnInit {
                     id: x.ID   // dành riêng cho SlickGrid
                 }));
 
-                this.applyDistinctFilters(this.angularGrid);
+                // this.applyDistinctFilters(this.angularGrid);
+
                 setTimeout(() => {
-                }, 100);
+                    this.applyDistinctFilters(this.angularGrid);
+                    this.updateTotal(this.angularGrid);
+                });
+
                 this.rowStyle(this.angularGrid);
 
 
-                const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn('Code');
-                if (columnElement) {
-                    columnElement.textContent = `${this.formatNumber(this.dataset.length, 0)}`;
-                }
 
                 this.isLoading = false;
             },
@@ -2689,11 +2723,30 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadDataSpecial() {
+
+        // const permissionCodeHR = "N59";
+        // const permissionCodeTbpHR = "N56";
+
+        // if (this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
+        //         this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR) ||
+
+        //         // this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
+        //         this.appUserService.currentUser?.IsAdmin) {
+        //         this.param.departmentID = 0;
+        //         this.param.approvedTBPID = 0;
+        //         this.param.step = 0;
+        //     }
+
+        let emp = 0;
+        if (this.isPermisstionDB && this.isApprove) {
+            emp = 0;
+        } else emp = this.appUserService.currentUser?.EmployeeID || 0;
+
         const p = {
             ...this.param,
             isSpecialOrder: 1,
             typeOrder: 0,
-            employeeID: this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
+            employeeID: emp
         }
         this.paymentService.get(p).subscribe({
             next: (response) => {
@@ -2708,14 +2761,16 @@ export class PaymentOrderComponent implements OnInit {
 
                 this.rowStyle(this.angularGridSpecial);
 
-                this.applyDistinctFilters(this.angularGridSpecial);
+                // this.applyDistinctFilters(this.angularGridSpecial);
                 setTimeout(() => {
-                }, 100);
+                    this.applyDistinctFilters(this.angularGridSpecial);
+                    this.updateTotal(this.angularGridSpecial);
+                });
 
-                const columnElement = this.angularGridSpecial.slickGrid?.getFooterRowColumn('Code');
-                if (columnElement) {
-                    columnElement.textContent = `${this.formatNumber(this.datasetSpecial.length, 0)}`;
-                }
+                // const columnElement = this.angularGridSpecial.slickGrid?.getFooterRowColumn('Code');
+                // if (columnElement) {
+                //     columnElement.textContent = `${this.formatNumber(this.datasetSpecial.length, 0)}`;
+                // }
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
@@ -2876,22 +2931,19 @@ export class PaymentOrderComponent implements OnInit {
         angularGrid.slickGrid.setColumns(updatedColumns);
         angularGrid.slickGrid.invalidate();
         angularGrid.slickGrid.render();
+
     }
     //#endregion
 
 
     rowStyle(angularGrid: AngularGridInstance) {
         angularGrid.dataView.getItemMetadata = this.rowStyleIsUrgent(angularGrid.dataView.getItemMetadata, angularGrid);
-
-        // this.gridData.invalidate();
-        // this.gridData.render();
-
-        // this.gridDataSpecial.invalidate();
-        // this.gridDataSpecial.render();
     }
 
     rowStyleIsUrgent(previousItemMetadata: any, angularGrid: AngularGridInstance) {
-        const newCssClass = 'bg-isurgent';
+        const isurgent = 'bg-isurgent';
+        const type2 = 'bg-type2';
+        const isApproved = 'bg-isapproved';
 
         return (rowNumber: number) => {
             const item = angularGrid.dataView.getItem(rowNumber);
@@ -2902,25 +2954,65 @@ export class PaymentOrderComponent implements OnInit {
                 meta = previousItemMetadata(rowNumber);
             }
 
-            if (meta && item && item.IsUrgent) {
-                meta.cssClasses = (meta.cssClasses || '') + '' + newCssClass;
+            if (meta && item) {
+                if (item.IsApproved != 1 && item.PaymentOrderTypeID == 2) {
+                    meta.cssClasses = (meta.cssClasses || '') + '' + type2;
+                } else if (item.IsApproved == 2) {
+                    meta.cssClasses = (meta.cssClasses || '') + '' + isApproved;
+                } else if (item.IsUrgent && this.isPermisstion) {
+                    meta.cssClasses = (meta.cssClasses || '') + '' + isurgent;
+                }
             }
 
             return meta;
         };
     }
 
+    isFiltering = false;
+
+
+    onBeforeSearchChange(event: any) {
+        console.log('event:', event);
+        console.log('event.target:', event.target);
+
+
+    }
+
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
         // this.updateTotal(5, this.angularGrid);
+
+        // setTimeout(() => {
+        //     const inputs = document.querySelectorAll('.compound-input');
+
+        //     console.log('inputs:', inputs);
+
+        //     inputs.forEach(i => {
+        //         i.addEventListener('focus', () => this.isFiltering = true);
+        //         // i.addEventListener('blur', () => this.isFiltering = false);
+        //     });
+        // });
+
         angularGrid.dataView.onRowCountChanged.subscribe(() => {
-            const count = angularGrid.dataView.getLength();
-            // console.log('Row count:', count);
-            const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
-            if (columnElement) {
-                columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
-            }
+
+            // console.log('this.isFiltering:', this.isFiltering);
+            if (!this.isFiltering) {
+                // this.applyDistinctFilters(angularGrid);
+            };
+
+            // setTimeout(() => {
+            //     this.applyDistinctFilters(angularGrid);
+            // }, 3);
+
+            // const count = angularGrid.dataView.getLength();
+            // // console.log('Row count:', count);
+            // const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
+            // if (columnElement) {
+            //     columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
+            // }
+
+            this.updateTotal(this.angularGrid);
         });
 
 
@@ -2966,24 +3058,35 @@ export class PaymentOrderComponent implements OnInit {
         }
     }
 
-    // updateTotal(cell: number, angularGrid: AngularGridInstance) {
+    updateTotal(angularGrid: AngularGridInstance) {
 
-    //     if (cell <= 0) return;
+        // if (cell <= 0) return;
 
-    //     console.log('angularGrid.dataView:', angularGrid.dataView);
-    //     const columnId = angularGrid.slickGrid?.getColumns()[cell].id;
-    //     console.log('columnId:', columnId);
-    //     let data = angularGrid.dataView.getFilteredItems();
-    //     console.log('data:', angularGrid.dataView.getLength());
+        // console.log('angularGrid.dataView:', angularGrid.dataView);
+        // const columnId = angularGrid.slickGrid?.getColumns()[cell].id;
+        // console.log('columnId:', columnId);
+        // let data = angularGrid.dataView.getFilteredItems();
+        // console.log('data:', angularGrid.dataView.getLength());
 
-    //     const columnElement = angularGrid.slickGrid?.getFooterRowColumn(columnId);
-    //     if (columnElement) {
-    //         columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getFilteredItems().length, 0)}`;
-    //     }
-    // }
+        // const columnElement = angularGrid.slickGrid?.getFooterRowColumn(columnId);
+        // if (columnElement) {
+        //     columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getFilteredItems().length, 0)}`;
+        // }
+
+
+        const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
+        // console.log('columnElement:', columnElement);
+        if (columnElement) {
+            // console.log('columnElementqqq:', columnElement);
+            // columnElement.textContent = `${this.formatNumber(this.dataset.length, 0)}`;
+            columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
+        }
+    }
 
     initModal(paymentOrder: any = new PaymentOrder(), isCopy: boolean = false) {
         paymentOrder.IsSpecialOrder = this.activeTab == '1';
+
+        // console.log('paymentOrder.IsSpecialOrder:', paymentOrder.IsSpecialOrder);
         if (!paymentOrder.IsSpecialOrder) {
             const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
                 centered: true,
@@ -3044,7 +3147,7 @@ export class PaymentOrderComponent implements OnInit {
             const item = grid.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
             // console.log('Row index:', rowIndex);
-            console.log('Row data:', item);
+            // console.log('Row data:', item);
             this.initModal(item);
         }
     }
@@ -3795,9 +3898,6 @@ export class PaymentOrderComponent implements OnInit {
                             })
                     }
                 })
-
-
-
             }
         }
     }
@@ -3810,6 +3910,16 @@ export class PaymentOrderComponent implements OnInit {
         if (activeCell) {
             const rowIndex = activeCell.row;        // index trong grid
             const item = gridInstance.dataView.getItem(rowIndex) as PaymentOrder; // data object
+
+            if (item.IsApproved != 3) {
+                // this.notification.warning(NOTIFICATION_TITLE.warning,1)
+                this.notification.warning(NOTIFICATION_TITLE.warning, `Chưa yêu cầu bổ sung chứng từ\nBạn không thể bổ sung!`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
+
+                return;
+            }
 
             const { value: files } = await Swal.fire({
                 input: 'file',
@@ -3934,7 +4044,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reason
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -4043,13 +4153,13 @@ export class PaymentOrderComponent implements OnInit {
 
 
             let totalQuantity = details.reduce((sum: number, x: any) => sum + x.Quantity, 0);
-            totalQuantity = totalQuantity <= 0 ? '' : totalQuantity;
+            totalQuantity = totalQuantity == 0 ? '' : totalQuantity;
 
             let totalUnitPrice = details.reduce((sum: number, x: any) => sum + x.UnitPrice, 0);
-            totalUnitPrice = totalUnitPrice <= 0 ? '' : (isVND ? this.formatNumber(totalUnitPrice, 0) : this.formatNumber(totalUnitPrice));
+            totalUnitPrice = totalUnitPrice == 0 ? '' : (isVND ? this.formatNumber(totalUnitPrice, 0) : this.formatNumber(totalUnitPrice));
 
             let totalMoney = details.reduce((sum: number, x: any) => sum + x.TotalMoney, 0);
-            totalMoney = totalMoney <= 0 ? '' : (isVND ? this.formatNumber(totalMoney, 0) : this.formatNumber(totalMoney));
+            totalMoney = totalMoney == 0 ? '' : (isVND ? this.formatNumber(totalMoney, 0) : this.formatNumber(totalMoney));
 
             sumTotalFooter = [
                 [
@@ -4091,11 +4201,11 @@ export class PaymentOrderComponent implements OnInit {
         for (let i = 0; i < details.length; i++) {
 
             const detail = details[i];
-            const quantity = detail.Quantity <= 0 ? '' : this.formatNumber(detail.Quantity);
-            const unitPrice = detail.UnitPrice <= 0 ? '' : (isVND ? this.formatNumber(detail.UnitPrice, 0) : this.formatNumber(detail.UnitPrice));
-            const totalMoney = detail.TotalMoney <= 0 ? '' : (isVND ? this.formatNumber(detail.TotalMoney, 0) : this.formatNumber(detail.TotalMoney));
-            const paymentPercentage = detail.PaymentPercentage <= 0 ? '' : detail.PaymentPercentage;
-            const totalPaymentAmount = detail.TotalPaymentAmount <= 0 ? '' : (isVND ? this.formatNumber(detail.TotalPaymentAmount, 0) : this.formatNumber(detail.TotalPaymentAmount));
+            const quantity = detail.Quantity == 0 ? '' : this.formatNumber(detail.Quantity);
+            const unitPrice = detail.UnitPrice == 0 ? '' : (isVND ? this.formatNumber(detail.UnitPrice, 0) : this.formatNumber(detail.UnitPrice));
+            const totalMoney = detail.TotalMoney == 0 ? '' : (isVND ? this.formatNumber(detail.TotalMoney, 0) : this.formatNumber(detail.TotalMoney));
+            const paymentPercentage = detail.PaymentPercentage == 0 ? '' : detail.PaymentPercentage;
+            const totalPaymentAmount = detail.TotalPaymentAmount == 0 ? '' : (isVND ? this.formatNumber(detail.TotalPaymentAmount, 0) : this.formatNumber(detail.TotalPaymentAmount));
             let item = [
                 { text: detail.Stt, alignment: 'center' },
                 { text: detail.ContentPayment, alignment: '' },
@@ -4415,7 +4525,7 @@ export class PaymentOrderComponent implements OnInit {
 
         const isVND = (paymentOrder.Unit?.toUpperCase() ?? '') == 'VND';
         let totalMoneys = details.reduce((sum: number, x: any) => sum + x.TotalMoney, 0);
-        totalMoneys = totalMoneys <= 0 ? '' : (isVND ? this.formatNumber(totalMoneys, 0) : this.formatNumber(totalMoneys));
+        totalMoneys = totalMoneys == 0 ? '' : (isVND ? this.formatNumber(totalMoneys, 0) : this.formatNumber(totalMoneys));
 
         let items: any = [];
         for (let i = 0; i < details.length; i++) {
@@ -4448,8 +4558,8 @@ export class PaymentOrderComponent implements OnInit {
         const signEmp = signs.find((x: any) => x.Step == 1 && x.IsApproved == 1);
         const signTBP = signs.find((x: any) => x.Step == 2 && x.IsApproved == 1);
         // const signHR = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
-        const signKT = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
-        const signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
+        const signKT = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
+        const signBGD = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
 
         const dateApprovedEmp = signEmp?.DateApproved ? DateTime.fromISO(signEmp?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
         const dateApprovedTBP = (signTBP?.DateApproved || '') != '' ? DateTime.fromISO(signTBP?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
@@ -4659,7 +4769,51 @@ export class PaymentOrderComponent implements OnInit {
     tabValueChange(e: any) {
         // console.log('tabValueChange e:', e);
         this.activeTab = e;
-        // console.log('this.activeTab:', this.activeTab);
+        console.log('this.activeTab tabValueChange:', this.activeTab);
         this.getSteps();
+
+    }
+
+    onUpdateTotalMoney() {
+        let gridInstance = this.angularGrid;
+        // let gridInstance = this.angularGridSpecial;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
+
+        const rowIndexes = grid.getSelectedRows();
+        let selectedItems = rowIndexes
+            .map(i => dataView.getItem(i));
+
+        selectedItems = selectedItems.map((x, i) => ({
+            ID: x.ID,
+            Code: x.Code,
+            TotalPayment: x.TotalPayment,
+            TotalPaymentActual: x.TotalPaymentActual,
+            TotalMoneyText: this.paymentService.readMoney(x.TotalPaymentActual != 0 ? x.TotalPaymentActual : x.TotalPayment, x.Unit),
+            TotalMoney: x.TotalPaymentActual != 0 ? x.TotalPaymentActual : x.TotalPayment
+        }));
+
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+            return;
+        }
+
+        // console.log('selectedItems:', selectedItems);
+
+        this.paymentService.updateTotalmoney(selectedItems).subscribe(({
+            next: (response) => {
+                this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                this.loadData();
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
+            },
+        }))
+
     }
 }

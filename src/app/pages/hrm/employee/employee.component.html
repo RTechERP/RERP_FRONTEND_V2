@@ -378,7 +378,7 @@
                                 <nz-col nzSpan="12" class="p-0">
                                     <nz-row>
                                         <nz-col nzSpan="24">
-                                            <fieldset class="reset" style="height: 32vh;">
+                                            <fieldset class="reset">
                                                 <legend class="fs-12 reset fw-bold">CMND/CCCD</legend>
                                                 <nz-form-item class="mb-0">
                                                     <nz-form-label [nzSpan]="24">Số
@@ -407,10 +407,6 @@
                                                             placeholder="Nhập nơi cấp" />
                                                     </nz-form-control>
                                                 </nz-form-item>
-                                                <br>
-                                                <br>
-                                                <br>
-                                                <br>
                                             </fieldset>
                                         </nz-col>
                                     </nz-row>
@@ -454,33 +450,88 @@
                                                             placeholder="Nhập email công ty cấp" />
                                                     </nz-form-control>
                                                 </nz-form-item>
-                                                <nz-form-item class="mb-0">
-                                                    <nz-form-label [nzSpan]="24">Họ và tên người thân
-                                                        <span class="text-danger ps-1">*</span></nz-form-label>
-                                                    <nz-form-control [nzSpan]="24"
-                                                        nzErrorTip="Vui lòng nhập họ và tên người thân">
-                                                        <input nz-input formControlName="NguoiLienHeKhiCan"
-                                                            placeholder="Nhập họ và tên người thân" />
-                                                    </nz-form-control>
-                                                </nz-form-item>
-                                                <nz-form-item class="mb-0">
-                                                    <nz-form-label [nzSpan]="24">Mối quan hệ
-                                                        <span class="text-danger ps-1">*</span></nz-form-label>
-                                                    <nz-form-control [nzSpan]="24"
-                                                        nzErrorTip="Vui lòng nhập mối quan hệ">
-                                                        <input nz-input formControlName="MoiQuanHe"
-                                                            placeholder="Nhập mối quan hệ" />
-                                                    </nz-form-control>
-                                                </nz-form-item>
-                                                <nz-form-item class="mb-0" class="pb-3">
-                                                    <nz-form-label [nzSpan]="24">SĐT người thân
-                                                        <span class="text-danger ps-1">*</span></nz-form-label>
-                                                    <nz-form-control [nzSpan]="24"
-                                                        nzErrorTip="Vui lòng nhập SĐT người thân">
-                                                        <input nz-input formControlName="SDTNguoiThan"
-                                                            placeholder="Nhập SĐT người thân" />
-                                                    </nz-form-control>
-                                                </nz-form-item>
+                                                <!-- Thông tin người thân chia 2 cột -->
+                                                <nz-row [nzGutter]="16">
+                                                    <!-- Cột 1: Người thân 1 -->
+                                                    <nz-col nzSpan="12">
+                                                        <div class="rounded">
+                                                            <!-- <h6 class="fw-bold mb-2">Người thân 1</h6> -->
+
+                                                            <nz-form-item class="mb-2">
+                                                                <nz-form-label [nzSpan]="24">Họ và tên người thân 1
+                                                                    <span
+                                                                        class="text-danger ps-1">*</span></nz-form-label>
+                                                                <nz-form-control [nzSpan]="24"
+                                                                    nzErrorTip="Vui lòng nhập họ và tên người thân">
+                                                                    <input nz-input formControlName="NguoiLienHeKhiCan"
+                                                                        placeholder="Nhập họ và tên người thân 1" />
+                                                                </nz-form-control>
+                                                            </nz-form-item>
+
+                                                            <nz-form-item class="mb-2">
+                                                                <nz-form-label [nzSpan]="24">Mối quan hệ người thân 1
+                                                                    <span
+                                                                        class="text-danger ps-1">*</span></nz-form-label>
+                                                                <nz-form-control [nzSpan]="24"
+                                                                    nzErrorTip="Vui lòng nhập mối quan hệ">
+                                                                    <input nz-input formControlName="MoiQuanHe"
+                                                                        placeholder="Nhập mối quan hệ người thân 1" />
+                                                                </nz-form-control>
+                                                            </nz-form-item>
+
+                                                            <nz-form-item class="mb-0">
+                                                                <nz-form-label [nzSpan]="24">SĐT người thân 1
+                                                                    <span
+                                                                        class="text-danger ps-1">*</span></nz-form-label>
+                                                                <nz-form-control [nzSpan]="24"
+                                                                    nzErrorTip="Vui lòng nhập SĐT người thân">
+                                                                    <input nz-input formControlName="SDTNguoiThan"
+                                                                        placeholder="Nhập SĐT người thân 1" />
+                                                                </nz-form-control>
+                                                            </nz-form-item>
+                                                        </div>
+                                                    </nz-col>
+
+                                                    <!-- Cột 2: Người thân 2 -->
+                                                    <nz-col nzSpan="12">
+                                                        <div class="rounded">
+                                                            <!-- <h6 class="fw-bold mb-2">Người thân 2</h6> -->
+
+                                                            <nz-form-item class="mb-2">
+                                                                <nz-form-label [nzSpan]="24">Họ và tên người thân 2
+                                                                    <span
+                                                                        class="text-danger ps-1">*</span></nz-form-label>
+                                                                <nz-form-control [nzSpan]="24"
+                                                                    nzErrorTip="Vui lòng nhập họ và tên người thân">
+                                                                    <input nz-input formControlName="NguoiLienHeKhiCan2"
+                                                                        placeholder="Nhập họ và tên người thân 2" />
+                                                                </nz-form-control>
+                                                            </nz-form-item>
+
+                                                            <nz-form-item class="mb-2">
+                                                                <nz-form-label [nzSpan]="24">Mối quan hệ người thân 2
+                                                                    <span
+                                                                        class="text-danger ps-1">*</span></nz-form-label>
+                                                                <nz-form-control [nzSpan]="24"
+                                                                    nzErrorTip="Vui lòng nhập mối quan hệ">
+                                                                    <input nz-input formControlName="MoiQuanHe2"
+                                                                        placeholder="Nhập mối quan hệ người thân 2" />
+                                                                </nz-form-control>
+                                                            </nz-form-item>
+
+                                                            <nz-form-item class="mb-0">
+                                                                <nz-form-label [nzSpan]="24">SĐT người thân 2
+                                                                    <span
+                                                                        class="text-danger ps-1">*</span></nz-form-label>
+                                                                <nz-form-control [nzSpan]="24"
+                                                                    nzErrorTip="Vui lòng nhập SĐT người thân">
+                                                                    <input nz-input formControlName="SDTNguoiThan2"
+                                                                        placeholder="Nhập SĐT người thân 2" />
+                                                                </nz-form-control>
+                                                            </nz-form-item>
+                                                        </div>
+                                                    </nz-col>
+                                                </nz-row>
                                             </fieldset>
                                         </nz-col>
                                     </nz-row>

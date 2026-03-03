@@ -30,11 +30,12 @@ import { AuthService } from '../../../../../auth/auth.service';
 import { EmployeeService } from '../../../employee/employee-service/employee.service';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { OnChangeType } from 'ng-zorro-antd/core/types';
 import { VehiceDetailComponent } from '../vehice-detail/vehice-detail.component';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AppUserService } from '../../../../../services/app-user.service';
-import { WFHService } from '../../employee-wfh/WFH-service/WFH.service';
+import { ProjectService } from '../../../../project/project-service/project.service';
 @Component({
   selector: 'app-employee-bussiness-detail',
   templateUrl: './employee-bussiness-detail.component.html',
@@ -82,6 +83,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   employeeBussinessDetail: any[] = [];
   employeeTypeBussinessList: any[] = [];
   vehicleList: any[] = []; // Danh sách phương tiện
+  projectList: any[] = []; // Danh sách dự án
   listId: number[] = []; // Danh sách ID cần xóa
   hasDataChanges = false; // Flag để kiểm tra có thay đổi không
 
@@ -107,9 +109,9 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     private modalService: NgbModal,
     public activeModal: NgbActiveModal,
     private appUserService: AppUserService,
-    private wfhService: WFHService,
     private message: NzMessageService,
     private authService: AuthService,
+    private projectService: ProjectService,
   ) { }
 
   overNightTypeList = [
@@ -124,6 +126,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     this.loadApprover();
     this.loadEmployee();
     this.getCurrentUser();
+    this.loadProjects();
     // Load vehicleList trước để có dữ liệu khi map VehicleID
     this.loadVehicleList(() => {
       // Sau khi vehicleList load xong, mới load detailData
@@ -153,6 +156,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     this.initSearchForm();
     this.loadApprover();
     this.loadEmployee();
+    this.loadProjects();
     // Load vehicleList trước để có dữ liệu khi map VehicleID
     this.loadVehicleList(() => {
       // Sau khi vehicleList load xong, mới load detailData
@@ -215,8 +219,8 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       });
     }
 
-    // Map VehicleID và tính toán chi phí
-    this.mapVehicleIDAndCalculateCost();
+    // Map ProjectID, VehicleID và tính toán chi phí
+    this.mapDataAndCalculateCost();
 
     // Load data into tabulator
     if (this.tabulator && this.detailData.length > 0) {
@@ -227,10 +231,15 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     }
   }
 
-  // Hàm riêng để map VehicleID và tính toán chi phí
-  mapVehicleIDAndCalculateCost() {
-    if (this.detailData && this.detailData.length > 0 && this.vehicleList.length > 0) {
+  // Hàm riêng để map dữ liệu và tính toán chi phí
+  mapDataAndCalculateCost() {
+    if (this.detailData && this.detailData.length > 0) {
       this.detailData.forEach((item, idx) => {
+        // Map ProjectId -> ProjectID
+        if (item['ProjectId'] && !item['ProjectID']) {
+          item['ProjectID'] = item['ProjectId'];
+        }
+
         item.STT = idx + 1;
 
         let vehicle: any = null;
@@ -437,17 +446,17 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   }
 
   loadEmployee() {
-    this.wfhService.getEmloyeeApprover().subscribe({
+    this.employeeService.getEmployees().subscribe({
       next: (res) => {
         if (res && res.status === 1 && res.data) {
           // Lưu danh sách employee gốc (để tương thích với code cũ nếu cần)
-          this.employeeList = res.data.employees || [];
+          this.employeeList = res.data || [];
           const empGroups: { [key: string]: any[] } = {};
-          (res.data.employees || []).forEach((emp: any) => {
+          (res.data || []).forEach((emp: any) => {
             const dept = emp.DepartmentName || 'Không xác định';
             if (!empGroups[dept]) empGroups[dept] = [];
             empGroups[dept].push({
-              ID: emp.EmployeeID || emp.ID,
+              ID: emp.ID || emp.EmployeeID,
               FullName: emp.FullName,
               DepartmentName: emp.DepartmentName,
               Code: emp.Code,
@@ -473,7 +482,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         }
       },
       error: (error: any) => {
-        this.notification.warning("Lỗi", "Lỗi khi lấy danh sách nhân viên");
+        this.notification.warning(NOTIFICATION_TITLE.error, "Lỗi khi lấy danh sách nhân viên");
         this.employeeList = [];
         this.employeeGroups = [];
       }
@@ -551,6 +560,66 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     })
   }
 
+  loadProjects() {
+    this.projectService.getProjectModal().subscribe({
+      next: (data: any) => {
+        if (data && data.data) {
+          const dataArray = Array.isArray(data.data) ? data.data : [data.data];
+
+          this.projectList = [
+            { value: 0, label: '--Chọn dự án--' },
+            ...dataArray.map((item: any) => {
+              if (item.ID !== undefined) {
+                const projectText = item.ProjectCode
+                  ? `${item.ProjectCode} - ${item.ProjectName || ''}`
+                  : (item.ProjectName || '');
+                return {
+                  value: item.ID,
+                  label: projectText
+                };
+              }
+              if (item.id !== undefined && item.text !== undefined) {
+                return {
+                  value: item.id,
+                  label: item.text
+                };
+              }
+              return item;
+            })
+          ];
+
+          // Cập nhật tabulator nếu đã khởi tạo
+          if (this.tabulator) {
+            const projectColumn = this.tabulator.getColumn('ProjectID');
+            if (projectColumn) {
+              const currentDef = projectColumn.getDefinition();
+              projectColumn.updateDefinition({
+                ...currentDef,
+                editorParams: {
+                  values: this.projectList
+                }
+              } as any);
+            }
+            // Re-set data để formatter chạy lại với projectList mới
+            const currentData = this.tabulator.getData();
+            if (currentData && currentData.length > 0) {
+              this.tabulator.setData(currentData);
+            }
+          }
+        } else {
+          this.projectList = [{ value: 0, label: '--Chọn dự án--' }];
+        }
+      },
+      error: (error: any) => {
+        if (error.status !== 200) {
+          const errorMessage = error?.error?.Message || error?.error?.message || error?.message || 'Không thể tải danh sách dự án.';
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        }
+        this.projectList = [{ value: 0, label: '--Chọn dự án--' }];
+      }
+    });
+  }
+
   loadVehicleList(callback?: () => void) {
     this.employeeBussinessService.getEmployeeVehicleBussiness().subscribe({
       next: (data: any) => {
@@ -569,7 +638,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
           // Map lại VehicleID sau khi vehicleList đã được load
           if (this.detailData && this.detailData.length > 0) {
-            this.mapVehicleIDAndCalculateCost();
+            this.mapDataAndCalculateCost();
             // Reload data vào tabulator nếu đã khởi tạo
             if (this.tabulator) {
               this.tabulator.setData(this.detailData);
@@ -657,9 +726,12 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
     try {
       this.tabulator = new Tabulator('#tb_employee_bussiness_detail', {
-        data: this.employeeBussinessDetail, // Initialize with empty array
+        ...DEFAULT_TABLE_CONFIG, // Kế thừa config mặc định
+        rowHeader: false, // Không dùng row selection header mặc định của config
+        data: this.employeeBussinessDetail,
         layout: 'fitDataStretch',
         height: '82vh',
+        pagination: false, // Tắt phân trang cho bảng chi tiết
         columns: [
           {
             title: '',
@@ -669,7 +741,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             hozAlign: 'center',
             headerHozAlign: 'center',
             titleFormatter: () =>
-              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm dòng"></i></div>`,
             headerClick: (e: any, column: any) => {
               this.addRow();
             },
@@ -706,6 +778,23 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             headerSort: false,
             variableHeight: true,
             formatter: 'textarea'
+          },
+          {
+            title: 'Dự án',
+            field: 'ProjectID',
+            editor: 'list',
+            headerSort: false,
+            editorParams: {
+              values: this.projectList
+            },
+            formatter: (cell: any) => {
+              const value = parseInt(cell.getValue()) || 0;
+              const project = this.projectList.find((p: any) => p.value == value);
+              return project ? project.label : '--Chọn dự án--';
+            },
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 250
           },
           {
             title: 'Loại',
@@ -1007,6 +1096,45 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         this.hasDataChanges = true;
         this.resetSTT();
       });
+
+      // Set font-size 12px cho Tabulator
+      setTimeout(() => {
+        const tabulatorElement = document.getElementById('tb_employee_bussiness_detail');
+        if (tabulatorElement) {
+          tabulatorElement.style.fontSize = '12px';
+          const allElements = tabulatorElement.querySelectorAll('*');
+          allElements.forEach((el: any) => {
+            if (el.style) {
+              el.style.fontSize = '12px';
+            }
+          });
+
+          const style = document.createElement('style');
+          style.id = 'tabulator-employee-bussiness-detail-font-size-override';
+          style.textContent = `
+            #tb_employee_bussiness_detail,
+            #tb_employee_bussiness_detail.tabulator,
+            #tb_employee_bussiness_detail .tabulator,
+            #tb_employee_bussiness_detail .tabulator-table,
+            #tb_employee_bussiness_detail .tabulator-cell,
+            #tb_employee_bussiness_detail .tabulator-cell-content,
+            #tb_employee_bussiness_detail .tabulator-header,
+            #tb_employee_bussiness_detail .tabulator-col,
+            #tb_employee_bussiness_detail .tabulator-col-content,
+            #tb_employee_bussiness_detail .tabulator-col-title,
+            #tb_employee_bussiness_detail .tabulator-row,
+            #tb_employee_bussiness_detail .tabulator-row .tabulator-cell,
+            #tb_employee_bussiness_detail * {
+              font-size: 12px !important;
+            }
+          `;
+          const existingStyle = document.getElementById('tabulator-employee-bussiness-detail-font-size-override');
+          if (existingStyle) {
+            existingStyle.remove();
+          }
+          document.head.appendChild(style);
+        }
+      }, 200);
     }
   }
 
@@ -1069,6 +1197,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         TypeBusiness: -1,
         VehicleID: 0,
         VehicleName: '',
+        ProjectID: 0,
         TotalCostVehicle: 0,
         TotalCost: 0
       });
@@ -1174,6 +1303,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           OvernightType: item.OvernightType ?? 0,
           NotChekIn: item.NotChekIn ?? false,
           VehicleID: item.VehicleID ?? 0,
+          ProjectID: item.ProjectID ?? 0,
           VehicleName: item.VehicleName ?? '',
           CostVehicle: item.TotalCostVehicle ?? 0,
           ReasonHREdit: item.ReasonHREdit ?? '',
@@ -1259,17 +1389,78 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       next: (response: any) => {
         const savedIds = response?.data || [];
 
-        // Nếu có file mới hoặc file đã tồn tại, lưu file cho từng bản ghi
-        if (this.tempFileRecord || this.existingFileRecord) {
-          this.saveFilesForRecords(savedIds, data);
-        } else {
-          this.processAfterSave();
-        }
+        // Lưu phương tiện cho các bản ghi
+        this.saveVehiclesForRecords(savedIds, data);
       },
       error: (error: any) => {
         this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký công tác thất bại');
       }
+    });
+  }
+
+  // Lưu phương tiện cho các bản ghi
+  saveVehiclesForRecords(savedIds: any[], data: any[]): void {
+    // Lọc các bản ghi có chọn phương tiện
+    const recordsWithVehicle = data.filter((item, idx) => {
+      const savedItem = savedIds[idx];
+      const bussinessID = savedItem?.ID || savedItem || item.ID || 0;
+      return bussinessID > 0 && item.VehicleID > 0;
+    });
+
+    if (recordsWithVehicle.length === 0) {
+      if (this.tempFileRecord || this.existingFileRecord) {
+        this.saveFilesForRecords(savedIds, data);
+      } else {
+        this.processAfterSave();
+      }
+      return;
+    }
+
+    let completedCount = 0;
+    const totalToSave = recordsWithVehicle.length;
+
+    recordsWithVehicle.forEach((item) => {
+      const idx = data.indexOf(item);
+      const savedItem = savedIds[idx];
+      const bussinessID = savedItem?.ID || savedItem || item.ID || 0;
+
+      const vehicleDto: any = {
+        employeeBussiness: null,
+        employeeBussinessFiles: null,
+        employeeBussinessVehicle: {
+          ID: 0,
+          EmployeeBussinesID: bussinessID,
+          EmployeeVehicleBussinessID: item.VehicleID || 0,
+          Cost: item.CostVehicle || 0,
+          BillImage: '',
+          Note: item.Note || '',
+          VehicleName: item.VehicleName || ''
+        }
+      };
+
+      this.employeeBussinessService.saveDataEmployee(vehicleDto).subscribe({
+        next: () => {
+          completedCount++;
+          if (completedCount === totalToSave) {
+            if (this.tempFileRecord || this.existingFileRecord) {
+              this.saveFilesForRecords(savedIds, data);
+            } else {
+              this.processAfterSave();
+            }
+          }
+        },
+        error: () => {
+          completedCount++;
+          if (completedCount === totalToSave) {
+            if (this.tempFileRecord || this.existingFileRecord) {
+              this.saveFilesForRecords(savedIds, data);
+            } else {
+              this.processAfterSave();
+            }
+          }
+        }
+      });
     });
   }
 

@@ -37,4 +37,9 @@ export class InventoryProjectService {
   getEmployee(): Observable<any> {
     return this.http.get<any>(`${environment.host}api/employee`);
   }
+
+  // Lấy danh sách liên kết bán hàng
+  getInventorySaleLink(): Observable<any> {
+    return this.http.get<any>(`${this.url}get-inventory-sale-link`);
+  }
 }

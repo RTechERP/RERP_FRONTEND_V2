@@ -46,7 +46,7 @@
             <div class="panel-header bg-light p-1 border-bottom">
                 <h6 class="m-0 fs-12">Nhóm sản phẩm</h6>
             </div>
-            <div class="grid-container-productgroup-{{warehouseCode}}" style="height: calc(100% - 30px);">
+            <div [class]="containerClassProductGroup" style="height: calc(100% - 30px);">
                 <nz-spin [nzSpinning]="isLoadingProductGroup">
                     <angular-slickgrid [gridId]="gridIdProductGroup" [columns]="columnDefinitionsProductGroup"
                         [options]="gridOptionsProductGroup" [dataset]="datasetProductGroup"
@@ -60,7 +60,7 @@
 
         <!-- Report Grid (Right panel) -->
         <div class="report-panel flex-grow-1">
-            <div class="grid-container-report-{{warehouseCode}}" style="height: 100%;">
+            <div [class]="containerClassReport" style="height: 100%;">
                 <nz-spin [nzSpinning]="isLoading">
                     <angular-slickgrid [gridId]="gridIdReport" [columns]="columnDefinitionsReport"
                         [options]="gridOptionsReport" [dataset]="datasetReport"

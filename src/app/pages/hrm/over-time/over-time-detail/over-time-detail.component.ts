@@ -77,6 +77,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
     { value: 1, label: 'Văn phòng' },
     { value: 2, label: 'Địa điểm công tác' },
     { value: 3, label: 'Tại nhà' },
+    { value: 4, label: 'Nhà máy RTC' },
   ];
 
   constructor(

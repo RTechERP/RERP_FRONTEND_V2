@@ -427,7 +427,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       error: (error) => {
         this.isLoading = false;
         console.error('Error loading data:', error);
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách báo cáo công việc!');
+        this.notification.error('Lỗi', error?.message || error?.error?.message || 'Không thể tải dữ liệu danh sách báo cáo công việc!');
         this.dataset = [];
         this.resetTotals();
       },

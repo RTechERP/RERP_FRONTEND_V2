@@ -102,7 +102,7 @@
                             <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
                             <nz-form-control [nzSpan]="24">
                                 <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear
-                                    nzPlaceHolder="Chọn khách hàng" [(ngModel)]="customerId">
+                                    nzPlaceHolder="Chọn khách hàng" [(ngModel)]="customerId" nzDropdownClassName="select-dropdown">
                                     @for (item of customers; track $index) {
                                     <nz-option nzCustomContent="true"
                                         [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName" [nzValue]="item.ID">
@@ -209,9 +209,9 @@
                             Thông tin thêm
                         </button>
                         <!-- Context menu dropdown -->
-                        <button nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="contextMenu">
+                        <!-- <button nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="contextMenu">
                             <nz-icon nzType="more"></nz-icon>
-                        </button>
+                        </button> -->
                         <nz-dropdown-menu #contextMenu="nzDropdownMenu">
                             <ul nz-menu>
                                 <li nz-submenu nzTitle="Mức độ ưu tiên cá nhân">
@@ -273,7 +273,7 @@
 
                         <nz-form-label class="fs-12" style="font-size: 12px;">Khách hàng</nz-form-label>
                         <nz-select [(ngModel)]="customerId" [ngModelOptions]="{standalone: true}" nzShowSearch
-                            nzAllowClear nzSize="small" nzPlaceHolder="Khách hàng" style="width: 350px;">
+                            nzAllowClear nzSize="small" nzPlaceHolder="Khách hàng" style="width: 350px;" nzDropdownClassName="select-dropdown">
                             @for (item of customers; track $index) {
                             <nz-option nzCustomContent="true" [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"
                                 [nzValue]="item.ID">

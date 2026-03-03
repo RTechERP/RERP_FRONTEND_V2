@@ -1,22 +1,22 @@
-<div class="modal-header bg-primary">
-  <h5 class="modal-title text-white">Tạo phiếu trả - Nhiều kho</h5>
-  <button type="button" class="btn-close text-white" (click)="closeModal()" aria-label="Close" title="Đóng"></button>
+<div class="modal-header bg-primary bill-import-tabs-modal-header bill-import-tabs-bg-primary">
+  <h5 class="modal-title text-white bill-import-tabs-modal-title bill-import-tabs-text-white">Tạo phiếu trả - Nhiều kho</h5>
+  <button type="button" class="btn-close bill-import-tabs-btn-close" (click)="closeModal()" aria-label="Close" title="Đóng"></button>
 </div>
 
-<div class="modal-body-wrapper px-3">
+<div class="modal-body-wrapper px-3 bill-import-tabs-modal-body-wrapper bill-import-tabs-px-3">
   <nz-tabset
     [(nzSelectedIndex)]="selectedIndex"
     (nzSelectedIndexChange)="onTabChange($event)"
     [nzTabPosition]="'top'"
-    class="h-100 tabcontainer main-warehouse-tab">
+    class="h-100 tabcontainer main-warehouse-tab bill-import-tabs-h-100 bill-import-tabs-tabcontainer bill-import-tabs-main-warehouse-tab">
 
     <nz-tab *ngFor="let tab of tabs; let i = index" [nzTitle]="tab.groupName">
-      <div class="tab-content-wrapper ">
+      <div class="tab-content-wrapper bill-import-tabs-tab-content-wrapper">
         <!-- Form header của bill-import-detail -->
-        <!-- <div class="d-flex gap-2 pb-2 border-bottom mb-3"> -->
+        <!-- <div class="d-flex gap-2 pb-2 border-bottom mb-3 bill-import-tabs-d-flex bill-import-tabs-gap-2 bill-import-tabs-pb-2 bill-import-tabs-border-bottom bill-import-tabs-mb-3"> -->
           <!-- <button
             type="button"
-            class="fs-12 btn"
+            class="fs-12 btn bill-import-tabs-fs-12 bill-import-tabs-btn"
             nz-button
             nzType="default"
             nzSize="small"
@@ -27,7 +27,7 @@
         <!-- </div> -->
         <app-bill-import-detail-new
           #billDetail
-          [hidden]="selectedIndex !== i"
+          *ngIf="selectedIndex === i"
           [createImport]="createImport"
           [isCheckmode]="false"
           [groupID]="tab.groupID"
@@ -42,7 +42,7 @@
   </nz-tabset>
 </div>
 <!--
-<div class="modal-footer">
+<div class="modal-footer bill-import-tabs-modal-footer">
 <button nz-button nzType="default" (click)="closeModal()">Đóng tất cả
 </button>
 

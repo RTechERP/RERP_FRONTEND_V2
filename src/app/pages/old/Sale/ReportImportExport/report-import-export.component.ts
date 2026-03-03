@@ -383,7 +383,12 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
             .subscribe({
                 next: (res) => {
                     if (res?.data) {
-                        this.dataReport = Array.isArray(res.data) ? res.data : [];
+                        this.dataReport = Array.isArray(res.data)
+                        ? res.data.map((item: any, index: number) => ({
+                            ...item,
+                            id: index + 1
+                          }))
+                        : [];
 
                         // Vẽ bảng hoặc cập nhật
                         if (!this.tableReport) {

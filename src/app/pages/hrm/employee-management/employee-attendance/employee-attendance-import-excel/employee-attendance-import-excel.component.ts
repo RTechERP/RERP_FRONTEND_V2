@@ -82,6 +82,7 @@ export class EmployeeAttendanceImportExcelComponent
   progressTotal = 0;
   progressPercent = 0;
   progressText = '';
+  private progressInterval: any = null;
 
   @ViewChild('tb_excelPreview', { static: false }) tableElement!: ElementRef;
   @ViewChild('fileInput', { static: false })
@@ -96,7 +97,13 @@ export class EmployeeAttendanceImportExcelComponent
     private modalSvc: NzModalService, // Thêm để hiển thị modal chi tiết
     private svc: EmployeeAttendanceService
   ) {}
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    // Clear progress interval when component is destroyed
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
+    }
+  }
 
   ngOnInit(): void {
     if (this.dateStart) this.fromDate = new Date(this.dateStart);
@@ -686,23 +693,16 @@ export class EmployeeAttendanceImportExcelComponent
       console.log('📋 Sample rows (first 3):', cleanedRows.slice(0, 3));
       console.log('📋 Sample row keys:', cleanedRows[0] ? Object.keys(cleanedRows[0]) : []);
 
-      // Cập nhật progress: bắt đầu gửi dữ liệu
+      // Bắt đầu mô phỏng progress từ 0% → 70% (chạy dần)
       this.progressTotal = cleanedRows.length;
-      this.progressCurrent = 0;
-      this.progressPercent = 0;
-      this.progressText = `Đang chuẩn bị gửi ${cleanedRows.length} bản ghi...`;
-
-      // Mô phỏng progress khi đang gửi (vì API là một lần gọi)
-      setTimeout(() => {
-        if (this.saving) {
-          this.progressPercent = 30;
-          this.progressText = `Đang gửi dữ liệu...`;
-        }
-      }, 100);
+      this.startFakeProgress();
 
       // Gọi API import-excel (async - không block UI)
       // Backend sẽ xử lý từng dòng và trả về kết quả
       const res = await this.svc.importExcelWithPayload(payload).toPromise();
+      
+      // Dừng progress simulation khi API trả về
+      this.stopFakeProgress();
       
       // Log response để debug
       console.log('📥 Full API Response:', res);
@@ -710,10 +710,6 @@ export class EmployeeAttendanceImportExcelComponent
       console.log('📥 Response.status:', res?.status);
       console.log('📥 Response.success:', res?.success);
       console.log('📥 Response.data:', res?.data);
-      
-      // Cập nhật progress: đã nhận được response, đang xử lý
-      this.progressPercent = 80;
-      this.progressText = `Đang xử lý kết quả...`;
 
       // Backend trả về ApiResponseFactory.Success với ImportResult
       // ImportResult có: Created, Updated, Skipped, Errors
@@ -851,12 +847,62 @@ export class EmployeeAttendanceImportExcelComponent
       this.noti.error(NOTIFICATION_TITLE.error, errorMessage);
       this.progressText = 'Lỗi: ' + errorMessage;
       this.progressPercent = 0;
+      this.stopFakeProgress();
     } finally {
+      // Đảm bảo dừng progress interval
+      this.stopFakeProgress();
       // Đảm bảo saving = false sau khi hoàn tất (trừ khi đã đóng modal)
       if (this.saving) {
         // Nếu vẫn đang saving, có thể user chưa đóng modal
         // Giữ nguyên để user có thể thấy kết quả
       }
+    }
+  }
+
+  private startFakeProgress(): void {
+    // Clear existing interval if any
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+    }
+
+    // Start from 0% and gradually increase to 70%
+    this.progressPercent = 0;
+    this.progressCurrent = 0;
+    this.progressText = 'Đang xử lý...';
+
+    let currentProgress = 0;
+    this.progressInterval = setInterval(() => {
+      if (currentProgress < 70) {
+        // Increment by 0.4-0.8% randomly (4x faster than original)
+        const increment = Math.random() * 0.4 + 0.4; // 0.4% - 0.8% per update
+        currentProgress = Math.min(70, currentProgress + increment);
+        this.progressPercent = currentProgress;
+
+        // Calculate fake current records based on percentage
+        if (this.progressTotal > 0) {
+          const fakeCurrent = Math.floor((currentProgress / 100) * this.progressTotal);
+          this.progressCurrent = fakeCurrent;
+          this.progressText = `Đang xử lý... ${fakeCurrent}/${this.progressTotal} bản ghi`;
+        } else {
+          this.progressText = `Đang xử lý... ${currentProgress.toFixed(1)}%`;
+        }
+      } else {
+        // Stop at 70%
+        if (this.progressTotal > 0) {
+          const fakeCurrent = Math.floor((70 / 100) * this.progressTotal);
+          this.progressCurrent = fakeCurrent;
+          this.progressText = `Đang xử lý... ${fakeCurrent}/${this.progressTotal} bản ghi`;
+        } else {
+          this.progressText = 'Đang xử lý...';
+        }
+      }
+    }, 500); // Update every 0.5 seconds (4x faster)
+  }
+
+  private stopFakeProgress(): void {
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
     }
   }
 

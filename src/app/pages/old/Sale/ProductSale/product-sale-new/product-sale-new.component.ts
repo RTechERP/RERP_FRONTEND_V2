@@ -59,6 +59,7 @@ interface ProductGroup {
     IsVisible: boolean;
     EmployeeID: number;
     WareHouseID: number;
+    ParentID: number;
 }
 
 interface ProductSale {
@@ -157,6 +158,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
     dataDelete: any = {};
     selectedList: any[] = [];
 
+    isShowProductGroupDeleted: boolean = true;
+
     // Excel export service
     excelExportService = new ExcelExportService();
 
@@ -166,6 +169,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
         EmployeeID: 0,
         IsVisible: false,
         WareHouseID: 0,
+        ParentID: 0,
     };
 
     newProductSale: ProductSale = {
@@ -285,13 +289,9 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 width: 120,
                 sortable: true,
                 filterable: true,
+                formatter: this.treeFormatter,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
                 },
             },
             {
@@ -302,12 +302,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInputText'],
                 },
             },
             //   {
@@ -321,6 +316,32 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             //   },
         ];
     }
+
+    treeFormatter: Formatter = (_row, _cell, value, _column, dataContext, grid) => {
+        if (!value || !dataContext) return '';
+
+        const gridOptions = grid?.getOptions();
+        const treeLevelPropName = gridOptions?.treeDataOptions?.levelPropName || '__treeLevel';
+        const treeLevel = dataContext[treeLevelPropName] || 0;
+
+        const dataView = grid?.getData();
+        const data = dataView?.getItems?.() || [];
+        const identifierPropName = dataView?.getIdPropertyName?.() || 'id';
+        const idx = dataView?.getIdxById?.(dataContext[identifierPropName]) ?? -1;
+
+        const spacer = `<span style="display:inline-block; width:${15 * treeLevel}px;"></span>`;
+
+        // Check if item has children
+        const hasChildren = idx >= 0 && idx < data.length - 1 &&
+            (data[idx + 1]?.[treeLevelPropName] > treeLevel || dataContext.__hasChildren);
+
+        if (hasChildren) {
+            const toggleClass = dataContext.__collapsed ? 'collapsed' : 'expanded';
+            return `${spacer}<span class="slick-group-toggle ${toggleClass}" level="${treeLevel}"></span> ${value}`;
+        } else {
+            return `${spacer}<span class="slick-group-toggle" level="${treeLevel}"></span> ${value}`;
+        }
+    };
 
     initGridOptionsProductGroup() {
         this.gridOptionsProductGroup = {
@@ -340,7 +361,16 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             enableCellNavigation: true,
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: false,
+            forceFitColumns: true,
             enableAutoSizeColumns: false,
+            enableTreeData: true,
+            multiColumnSort: false,
+            treeDataOptions: {
+                columnId: 'ProductGroupName',
+                parentPropName: 'parentId',
+                indentMarginLeft: 15,
+                initiallyCollapsed: false
+            },
         };
     }
 
@@ -348,8 +378,29 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
         this.angularGridProductGroup = angularGrid;
         this.gridDataProductGroup = angularGrid?.slickGrid || {};
 
-        // Không subscribe onRowCountChanged để tránh mất focus khi filter
-        // Auto-select first row sẽ được xử lý trong getProductGroup() sau khi load data
+        // Override getItemMetadata để bôi đỏ dòng có IsVisible === true và con cháu
+        const dataView = angularGrid.dataView as any;
+        const originalGetItemMetadata = dataView.getItemMetadata?.bind(dataView);
+        dataView.getItemMetadata = (row: number) => {
+            const item = dataView.getItem(row);
+            const base = originalGetItemMetadata ? originalGetItemMetadata(row) : {};
+            if (item && this.isVisibleRow(item, dataView)) {
+                return {
+                    ...base,
+                    cssClasses: ((base?.cssClasses || '') + ' row-deleted').trim(),
+                };
+            }
+            return base;
+        };
+    }
+
+    private isVisibleRow(item: any, dataView: any): boolean {
+        if (item.IsVisible != true) return true;
+        if (item.parentId != null) {
+            const parent = dataView.getItemById(item.parentId);
+            if (parent) return this.isVisibleRow(parent, dataView);
+        }
+        return false;
     }
 
     findFirstVisibleRow(angularGrid: AngularGridInstance): number | null {
@@ -416,7 +467,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             enableFiltering: false,
             autoFitColumnsOnFirstLoad: true,
             enableAutoSizeColumns: true,
-            forceFitColumns:true
+            forceFitColumns: true
         };
     }
 
@@ -466,7 +517,25 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 id: 'ProductGroupName',
                 field: 'ProductGroupName',
                 name: 'Tên nhóm',
-                width: 200,
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+                formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+            },
+            {
+                id: 'ProductGroupType',
+                field: 'ProductGroupType',
+                name: 'Nhóm vật tư',
+                width: 100,
                 sortable: true,
                 filterable: true,
                 filter: {
@@ -484,7 +553,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 id: 'IsFix',
                 field: 'IsFix',
                 name: 'Tích xanh',
-                width: 100,
+                width: 80,
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.checkmarkMaterial,
@@ -670,7 +739,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
-            frozenColumn: this.isMobile ? 0 : 3,
+            frozenColumn: this.isMobile ? 0 : 4,
             rowHeight: 55, // Điều chỉnh row height cho 3 dòng text (khoảng 18px/dòng + padding)
 
             // Excel export configuration
@@ -830,7 +899,6 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
     //#endregion
 
     //#region Data Management
-
     getProductGroup() {
         this.productsaleSV
             .getdataProductGroup(this.warehouseCode, false)
@@ -839,10 +907,15 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                     if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
                         this.listProductGroup = res.data;
 
-                        this.datasetProductGroup = res.data.map(
+                        if (!this.isShowProductGroupDeleted) {
+                            this.listProductGroup = res.data.filter((item: any) => item.IsVisible === true);
+                        }
+
+                        this.datasetProductGroup = this.listProductGroup.map(
                             (item: any, index: number) => ({
                                 ...item,
                                 id: item.ID || `group_${index}_${Date.now()}`,
+                                parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
                             })
                         );
 
@@ -1251,6 +1324,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             backdrop: 'static',
             keyboard: false,
         });
+        debugger;
         modalRef.componentInstance.newProductGroup = this.newProductGroup;
         modalRef.componentInstance.isCheckmode = this.isCheckmode;
         modalRef.componentInstance.listWH = this.listWH;
@@ -1267,6 +1341,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
     }
 
     openModalProductSale() {
+        debugger;
         const modalRef = this.modalService.open(ProductSaleDetailComponent, {
             centered: true,
             size: 'lg',
@@ -1317,6 +1392,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
 
         modalRef.result.catch((result) => {
             if (result === true) {
+                this.getProductGroup();
                 this.getDataProductSaleByIDgroup(this.id);
             }
         });

@@ -1,59 +1,44 @@
-<div style="display: flex; flex-direction: column; height: 99.6vh; position: relative;">
-<div class="modal-header bg-primary text-uppercase py-2">
-    <h6 class="modal-title text-white">CHI TIẾT DAILY REPORT SALE ADMIN</h6>
-    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-</div>
-<div class="modal-body p-1 " style="max-height: 80vh; overflow-y: auto;">
-    <div #tb_DataTable id="tb_DataTable"></div>
-</div>
-<div class="modal-footer d-flex justify-content-between">
-    <button nz-button nzType="primary" nzSize="default" (click)="onAddReportType()">
-        Thêm loại báo cáo
-    </button>
-    <div class="d-flex gap-2">
-        <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">
-            Đóng
-        </button>
-        <button nz-button nzType="primary" nzSize="default" (click)="saveData()" [disabled]="!isSaveEnabled">
-            Lưu
-        </button>
+<div style="display: flex; flex-direction: column; height: 90vh; position: relative;">
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">CHI TIẾT DAILY REPORT SALE ADMIN</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
     </div>
-</div>
+    <div class="modal-body p-1 " style="max-height: 80vh; overflow-y: auto;">
+        <div #tb_DataTable id="tb_DataTable"></div>
+    </div>
+    <div class="modal-footer d-flex justify-content-between">
+        <button nz-button nzType="primary" nzSize="default" (click)="onAddReportType()">
+            Thêm loại báo cáo
+        </button>
+        <div class="d-flex gap-2">
+            <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">
+                Đóng
+            </button>
+            <button nz-button nzType="primary" nzSize="default" (click)="saveData()" [disabled]="!isSaveEnabled">
+                Lưu
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Modal thêm loại báo cáo -->
-<nz-modal 
-    [(nzVisible)]="showReportTypeModal" 
-    nzTitle="Thêm loại báo cáo mới" 
-    (nzOnCancel)="onReportTypeModalCancel()"
-    [nzWidth]="400"
-    [nzFooter]="null">
+<nz-modal [(nzVisible)]="showReportTypeModal" nzTitle="Thêm loại báo cáo mới" (nzOnCancel)="onReportTypeModalCancel()"
+    [nzWidth]="400" [nzFooter]="null">
     <div *nzModalContent>
         <form nz-form [formGroup]="reportTypeForm">
             <nz-form-item>
                 <nz-form-label nzRequired>Tên loại báo cáo</nz-form-label>
                 <nz-form-control nzErrorTip="Vui lòng nhập tên loại báo cáo!">
-                    <input 
-                        nz-input 
-                        formControlName="reportTypeName" 
-                        placeholder="Nhập tên loại báo cáo"
+                    <input nz-input formControlName="reportTypeName" placeholder="Nhập tên loại báo cáo"
                         [nzSize]="'default'">
                 </nz-form-control>
             </nz-form-item>
         </form>
         <div class="d-flex justify-content-end gap-2 mt-3">
-            <button 
-                nz-button 
-                nzType="default" 
-                (click)="onReportTypeModalCancel()"
-                [disabled]="isSavingReportType">
+            <button nz-button nzType="default" (click)="onReportTypeModalCancel()" [disabled]="isSavingReportType">
                 Hủy
             </button>
-            <button 
-                nz-button 
-                nzType="primary" 
-                (click)="saveAndCloseReportType()"
-                [disabled]="isSavingReportType"
+            <button nz-button nzType="primary" (click)="saveAndCloseReportType()" [disabled]="isSavingReportType"
                 [nzLoading]="isSavingReportType">
                 Lưu
             </button>

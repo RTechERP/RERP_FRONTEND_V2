@@ -541,3 +541,30 @@ body>.p-component {
     justify-content: center;
     align-items: center;
 }
+
+/* dropdown combobox tự động xuống dòng */
+.select-dropdown .ant-select-item-option-content {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.5;
+}
+/* end dropdown combobox tự động xuống dòng */
+
+
+.slick-row.active {
+  background-color: #d8dbcf !important;
+  color: black !important;
+}
+/* 
+.slick-row.selected.active {
+  background-color: #fff3cd !important;
+}
+
+.slickgrid-container .slick-row.active {
+  background-color: #d8dbcf !important;
+  color: black !important;
+}
+
+.slickgrid-container .slick-row.selected.active {
+  background-color: #fff3cd !important;
+} */

@@ -62,7 +62,7 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
 
   // Search panel state
   sizeSearch: string = '22%';
-  showSearchBar: boolean = false; // Mặc định ẩn, sẽ được set trong ngOnInit
+  showSearchBar: boolean = true; // Mặc định hiện, sẽ được set trong ngOnInit
   isMobile: boolean = false;
   menuBars: MenuItem[] = [];
   isLoading: boolean = false;
@@ -127,13 +127,13 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
         // Load departments trước, sau đó set departmentId và load các bộ lọc khác
         this.loadDepartments(() => {
           // Set departmentId từ currentUser.DepartmentID sau khi departments đã load xong
-          if (this.currentUser.IsAdmin == true) {
+          if (this.currentUser.IsAdmin == true || this.currentUser.Permissions?.includes('N1')) {
             this.departmentId = 6;
           }
-          else if (this.currentUser.DepartmentID && this.currentUser.IsAdmin != true) {
+          else if (this.currentUser.DepartmentID && this.currentUser.IsAdmin != true && !this.currentUser.Permissions?.includes('N1')) {
             this.departmentId = this.currentUser.DepartmentID;
           }
-          if (this.currentUser && this.currentUser.DepartmentID && this.currentUser.IsAdmin != true) {
+          if (this.currentUser && this.currentUser.DepartmentID && this.currentUser.IsAdmin != true && !this.currentUser.Permissions?.includes('N1')) {
             this.departmentId = this.currentUser.DepartmentID;
           }
 
@@ -142,12 +142,12 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
           this.loadUsers(() => {
             // Set userId sau khi users đã load xong
             if (this.currentUser) {
-              if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true) {
+              if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true || this.currentUser.Permissions?.includes('N1')) {
                 this.userId = 0
               }
-              else if (this.currentUser.ID && this.currentUser.IsAdmin != true) {
+              else if (this.currentUser.ID && this.currentUser.IsAdmin != true && !this.currentUser.Permissions?.includes('N1')) {
                 this.setUserIdFromEmployeeID(this.currentUser.ID);
-              } else if (this.currentUser.EmployeeID && this.currentUser.IsAdmin != true) {
+              } else if (this.currentUser.EmployeeID && this.currentUser.IsAdmin != true && !this.currentUser.Permissions?.includes('N1')) {
                 this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
               }
             } else {
@@ -397,7 +397,7 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
 
     let userID = 0;
     if (this.currentUser) {
-      if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true) {
+      if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true || this.currentUser.Permissions?.includes('N1')) {
         userID = this.userId || 0;
       } else {
         userID = this.currentUser.ID || 0;
@@ -424,7 +424,7 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         rowHeader: false,
         selectableRows: 1,
-        height: '87vh',
+        height: '85vh',
         paginationMode: 'local',
         columns: [
           // {

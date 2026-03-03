@@ -39,7 +39,8 @@ import { Subject, takeUntil } from 'rxjs';
         FormsModule,
         AngularSlickgridModule,
         NzIconModule,
-        NzInputNumberModule
+        NzInputNumberModule,
+
     ],
     templateUrl: './lucky-number-detail.component.html',
     styleUrl: './lucky-number-detail.component.css'
@@ -253,4 +254,7 @@ export class LuckyNumberDetailComponent implements OnInit {
             });
         }
     }
+
+
+
 }

@@ -55,8 +55,8 @@
 }
 
 /* Grid container styling */
-::ng-deep div[id^="productGroup-"],
-::ng-deep div[id^="report-"] {
+::ng-deep div[id^="gridreportimportexportproductgroup"],
+::ng-deep div[id^="gridreportimportexportreport"] {
     height: 91vh !important;
 }
 

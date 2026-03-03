@@ -282,7 +282,8 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
       data: this.foodOrderList,
       selectableRows: 1,
       layout: 'fitDataStretch',
-      height: '80vh',
+      height: '82vh',
+      columnCalcs: 'both',
       groupBy: 'DepartmentName',
       groupHeader(value, count, data, group) {
         let val = value ?? '';
@@ -298,7 +299,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           columns: dynamicColumns
         },
-        { title: 'Tổng', field: 'TotalOrder', hozAlign: 'left', headerHozAlign: 'center' }
+        { title: 'Tổng', field: 'TotalOrder', hozAlign: 'left', headerHozAlign: 'center', bottomCalc: "sum" }
       ],
     });
   }
@@ -486,6 +487,8 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
 
     // Ghi dữ liệu theo phòng ban
     const foodOrderGrouped = groupByDepartment(this.foodOrderList);
+    const foodOrderSums = new Array(daysInMonth + 1).fill(0); // D1...Dn + TotalOrder
+
     for (const deptName of Object.keys(foodOrderGrouped)) {
       // Dòng group (phòng ban)
       const groupRow = worksheetFoodOrder.addRow([`Phòng ban: ${deptName}`]);
@@ -502,18 +505,40 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
           safe(item.PositionName),
         ];
         for (let i = 1; i <= daysInMonth; i++) {
+          const val = Number(item[`D${i}`]) || 0;
           rowData.push(safe(item[`D${i}`]));
+          foodOrderSums[i - 1] += val;
         }
+        const totalOrder = Number(item.TotalOrder) || 0;
         rowData.push(safe(item.TotalOrder));
+        foodOrderSums[daysInMonth] += totalOrder;
 
         const dataRow = worksheetFoodOrder.addRow(rowData);
         dataRow.font = dataFont;
         // Căn giữa các cột ngày
         for (let c = 5; c <= foodOrderColumnDefs.length; c++) {
           dataRow.getCell(c).alignment = { horizontal: 'center', vertical: 'middle' };
+          dataRow.getCell(c).border = thinBorder;
+        }
+        for (let c = 1; c <= 4; c++) {
+          dataRow.getCell(c).border = thinBorder;
         }
       }
     }
+
+    // Dòng tổng cộng cho Sheet Đặt cơm
+    const foodTotalRowValues = ['', '', 'Tổng cộng', '', ...foodOrderSums];
+    const foodTotalRow = worksheetFoodOrder.addRow(foodTotalRowValues);
+    foodTotalRow.font = headerFont;
+    for (let c = 1; c <= foodOrderColumnDefs.length; c++) {
+      foodTotalRow.getCell(c).border = thinBorder;
+      foodTotalRow.getCell(c).fill = headerFill;
+      if (c >= 5) {
+        foodTotalRow.getCell(c).alignment = { horizontal: 'center', vertical: 'middle' };
+      }
+    }
+    worksheetFoodOrder.mergeCells(foodTotalRow.number, 3, foodTotalRow.number, 4);
+
 
     // ============= SHEET BÁO CÁO ĂN CA =============
     const worksheetMealReport = workbook.addWorksheet('Báo cáo ăn ca');
@@ -599,6 +624,8 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
 
     // Ghi dữ liệu theo phòng ban
     const mealReportGrouped = groupByDepartment(this.reportOrderList);
+    const mealReportSums = new Array(daysInMonth + 5).fill(0); // D1...Dn + 5 cột tổng (Note bỏ qua)
+
     for (const deptName of Object.keys(mealReportGrouped)) {
       // Dòng group (phòng ban)
       const groupRow = worksheetMealReport.addRow([`Phòng ban: ${deptName}`]);
@@ -614,26 +641,55 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
           safe(item.FullName),
           safe(item.PositionName),
         ];
+
+        // Ngày
         for (let i = 1; i <= daysInMonth; i++) {
+          const val = Number(item[`D${i}`]) || 0;
           rowData.push(safe(item[`D${i}`]));
+          mealReportSums[i - 1] += val;
         }
-        rowData.push(
-          safe(item.TotalLunch),
-          safe(item.TotalDinner),
-          safe(item.TotalMeal),
-          safe(item.TotalOrder),
-          safe(item.TotalMealGet),
-          safe(item.Note)
-        );
+
+        // Các cột tổng
+        const tLunch = Number(item.TotalLunch) || 0;
+        const tDinner = Number(item.TotalDinner) || 0;
+        const tMeal = Number(item.TotalMeal) || 0;
+        const tOrder = Number(item.TotalOrder) || 0;
+        const tMealGet = Number(item.TotalMealGet) || 0;
+
+        rowData.push(safe(item.TotalLunch), safe(item.TotalDinner), safe(item.TotalMeal), safe(item.TotalOrder), safe(item.TotalMealGet), safe(item.Note));
+
+        mealReportSums[daysInMonth] += tLunch;
+        mealReportSums[daysInMonth + 1] += tDinner;
+        mealReportSums[daysInMonth + 2] += tMeal;
+        mealReportSums[daysInMonth + 3] += tOrder;
+        mealReportSums[daysInMonth + 4] += tMealGet;
 
         const dataRow = worksheetMealReport.addRow(rowData);
         dataRow.font = dataFont;
         // Căn giữa các cột ngày và số
         for (let c = 5; c <= mealReportColumnDefs.length; c++) {
           dataRow.getCell(c).alignment = { horizontal: 'center', vertical: 'middle' };
+          dataRow.getCell(c).border = thinBorder;
+        }
+        for (let c = 1; c <= 4; c++) {
+          dataRow.getCell(c).border = thinBorder;
         }
       }
     }
+
+    // Dòng tổng cộng cho Sheet Ăn ca
+    const mealTotalRowValues = ['', '', 'Tổng cộng', '', ...mealReportSums, ''];
+    const mealTotalRow = worksheetMealReport.addRow(mealTotalRowValues);
+    mealTotalRow.font = headerFont;
+    for (let c = 1; c <= mealReportColumnDefs.length; c++) {
+      mealTotalRow.getCell(c).border = thinBorder;
+      mealTotalRow.getCell(c).fill = headerFill;
+      if (c >= 5) {
+        mealTotalRow.getCell(c).alignment = { horizontal: 'center', vertical: 'middle' };
+      }
+    }
+    worksheetMealReport.mergeCells(mealTotalRow.number, 3, mealTotalRow.number, 4);
+
 
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();

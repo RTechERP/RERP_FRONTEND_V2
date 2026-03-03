@@ -44,6 +44,7 @@ import { firstValueFrom } from 'rxjs';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { EmployeeService } from '../../hrm/employee/employee-service/employee.service';
 @Component({
   selector: 'app-project-item-late',
   imports: [
@@ -80,11 +81,12 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     private projectService: ProjectService,
+    private employeeService: EmployeeService,
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
     private router: Router
-  ) {}
+  ) { }
 
   @ViewChild('tb_projectItemlate', { static: false })
   tb_projectItemlateContainer!: ElementRef;
@@ -97,23 +99,26 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
   departments: any[] = [];
   employees: any[] = [];
   projects: any[] = [];
+  teams: any[] = [];
 
   dateStart: string = DateTime.local().set({ day: 1 }).toFormat('yyyy-MM-dd');
   dateEnd: string = DateTime.local().plus({ month: 1 }).set({ day: 1 }).toFormat('yyyy-MM-dd');
   departmentId: any;
   employeeId: any;
   projectId: any;
+  teamId: any;
   keyword: any;
   IsLateActual: number = 0;
   //#endregion
   //#region Chạy khi mở
-  ngOnInit(): void {}
+  ngOnInit(): void { }
   ngAfterViewInit(): void {
     this.drawTbProjectItemlate(this.tb_projectItemlateContainer.nativeElement);
     this.getProjects();
     this.getDepartment();
     this.getEmployees();
     this.getProjectItemLate();
+    this.getTeam();
   }
 
   toggleSearchPanel() {
@@ -162,12 +167,26 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
     });
   }
 
+  getTeam() {
+    this.employeeService.getEmployeeTeam().subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.teams = response.data;
+        }
+      },
+      error: () => {
+        this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách team!');
+      },
+    });
+  }
+
   resetSearch() {
     this.dateStart = DateTime.local().set({ day: 1 }).toFormat('yyyy-MM-dd');
     this.dateEnd = DateTime.local().plus({ month: 1 }).set({ day: 1 }).toFormat('yyyy-MM-dd');
     this.departmentId = 0;
     this.employeeId = 0;
     this.projectId = 0;
+    this.teamId = 0;
     this.keyword = '';
     this.IsLateActual = 0;
     if (this.tb_projectItemlate) {
@@ -368,6 +387,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
       userId: this.employeeId ? this.employeeId : 0,
       projectId: this.projectId ? this.projectId : 0,
       departmentId: this.departmentId ? this.departmentId : 0,
+      teamId: this.teamId ? this.teamId : 0,
       dateStart: this.dateStart
         ? DateTime.fromJSDate(new Date(this.dateStart)).toISO()
         : null,

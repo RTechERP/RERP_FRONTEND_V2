@@ -76,7 +76,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
   ) {
     const today = DateTime.now().toFormat('yyyy-MM-dd');
-    
+
     this.formGroup = this.fb.group({
       STT: 0,
       NameDocument: [null, [Validators.maxLength(100)]],
@@ -102,33 +102,33 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     this.getCurrentUser();
     this.setDefaultRows();
     if (!this.isCheckmode && this.JobRequirementID <= 0) {
-    this.authService.getCurrentUser().subscribe(res => {
-      this.currentUser = res.data;
-      this.formGroup.patchValue({
-        EmployeeID: this.currentUser.EmployeeID,
-        DepartmentID: this.currentUser.DepartmentID
+      this.authService.getCurrentUser().subscribe(res => {
+        this.currentUser = res.data;
+        this.formGroup.patchValue({
+          EmployeeID: this.currentUser.EmployeeID,
+          DepartmentID: this.currentUser.DepartmentID
+        });
       });
-    });
-  }
-    // Subscribe to DeadlineRequest changes to update Description of STT 7
+    }
+    // Subscribe to DeadlineRequest changes to update Description of STT 8
     this.formGroup.get('DeadlineRequest')?.valueChanges.subscribe((value) => {
       if (value) {
         const dt = DateTime.fromFormat(value, 'yyyy-MM-dd');
         if (dt.isValid) {
           const formattedDate = dt.toFormat('dd/MM/yyyy');
-          const row7 = this.jobRequirementDetailData.find((row: any) => row.STT === 7);
-          if (row7 && row7.Category === 'Thời gian hoàn thành đề nghị') {
-            row7.Description = formattedDate;
+          const row8 = this.jobRequirementDetailData.find((row: any) => row.STT === 8);
+          if (row8 && row8.Category === 'Thời gian hoàn thành đề nghị') {
+            row8.Description = formattedDate;
           }
         }
       }
     });
-    
+
     // Load danh sách nhân viên và phòng ban trước, sau đó mới load dữ liệu edit
     this.getdataDepartment();
     this.getdataEmployee();
     this.loadApprovers();
-    
+
     // Load dữ liệu khi ở chế độ edit (sau khi đã load danh sách nhân viên)
     if (this.isCheckmode && this.JobRequirementID > 0) {
       // Đợi một chút để đảm bảo danh sách nhân viên đã load
@@ -136,19 +136,19 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
         this.loadJobRequirementData();
       }, 300);
     } else {
-    
+
     }
   }
   private getCurrentUser(): void {
     this.authService.getCurrentUser().subscribe((res: any) => {
-      this.currentUser =res.data;
+      this.currentUser = res.data;
     });
   }
   private setDefaultEmployee(): void {
     if (!this.currentUser || !this.currentUser.EmployeeID) {
       return;
     }
-    
+
     // Đợi cho danh sách nhân viên load xong rồi mới set default
     const checkAndSetEmployee = () => {
       if (this.cbbEmployee && this.cbbEmployee.length > 0) {
@@ -161,7 +161,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
         setTimeout(checkAndSetEmployee, 100);
       }
     };
-    
+
     // Bắt đầu kiểm tra
     checkAndSetEmployee();
   }
@@ -198,7 +198,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
         EmployeeID: selected.ID,
         DepartmentID: selected.DepartmentID || null
       });
-      
+
       // Tự động bind FullName vào cột Diễn giải của "Người yêu cầu" (STT = 2)
       const row2 = this.jobRequirementDetailData.find((row: any) => row.STT === 2);
       if (row2 && row2.Category === 'Người yêu cầu') {
@@ -256,7 +256,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     if (!employeeID || !this.cbbEmployee || this.cbbEmployee.length === 0) {
       return;
     }
-    
+
     const selected = this.cbbEmployee.find((e: any) => e.ID === employeeID);
     if (selected) {
       const row2 = this.jobRequirementDetailData.find((row: any) => row.STT === 2);
@@ -275,20 +275,21 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   setDefaultRows() {
     const today = DateTime.now().toFormat('dd/MM/yyyy');
     const deadlineRequest = this.formGroup?.get('DeadlineRequest')?.value || today;
-    const deadlineFormatted = deadlineRequest 
-      ? (DateTime.fromFormat(deadlineRequest, 'yyyy-MM-dd').isValid 
-          ? DateTime.fromFormat(deadlineRequest, 'yyyy-MM-dd').toFormat('dd/MM/yyyy')
-          : today)
+    const deadlineFormatted = deadlineRequest
+      ? (DateTime.fromFormat(deadlineRequest, 'yyyy-MM-dd').isValid
+        ? DateTime.fromFormat(deadlineRequest, 'yyyy-MM-dd').toFormat('dd/MM/yyyy')
+        : today)
       : today;
-    
+
     this.jobRequirementDetailData = [
       { STT: 1, Category: 'Nội dung yêu cầu', Description: '', Target: '', Note: '' },
       { STT: 2, Category: 'Người yêu cầu', Description: '', Target: '', Note: '' },
       { STT: 3, Category: 'Lý do', Description: '', Target: '', Note: '' },
       { STT: 4, Category: 'Số lượng', Description: '', Target: '', Note: '' },
-      { STT: 5, Category: 'Chất lượng', Description: '', Target: '', Note: '' },
-      { STT: 6, Category: 'Địa điểm', Description: '', Target: '', Note: '' },
-      { STT: 7, Category: 'Thời gian hoàn thành đề nghị', Description: deadlineFormatted, Target: '', Note: '' },
+      { STT: 5, Category: 'Đơn vị tính', Description: '', Target: '', Note: '' },
+      { STT: 6, Category: 'Chất lượng', Description: '', Target: '', Note: '' },
+      { STT: 7, Category: 'Địa điểm', Description: '', Target: '', Note: '' },
+      { STT: 8, Category: 'Thời gian hoàn thành đề nghị', Description: deadlineFormatted, Target: '', Note: '' },
     ];
   }
 
@@ -299,10 +300,10 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
 
     // Sử dụng dataInput nếu có (từ row đã chọn)
     const mainData = this.dataInput || {};
-    
+
     // Load dữ liệu chính từ dataInput vào form
     if (mainData.DateRequest) {
-      const dateRequest = DateTime.fromISO(mainData.DateRequest).isValid 
+      const dateRequest = DateTime.fromISO(mainData.DateRequest).isValid
         ? DateTime.fromISO(mainData.DateRequest).toFormat('yyyy-MM-dd')
         : (DateTime.fromFormat(mainData.DateRequest, 'dd/MM/yyyy').isValid
           ? DateTime.fromFormat(mainData.DateRequest, 'dd/MM/yyyy').toFormat('yyyy-MM-dd')
@@ -311,16 +312,16 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
         this.formGroup.patchValue({ DateRequest: dateRequest });
       }
     }
-    
+
     // Load dữ liệu từ API để lấy details và files
     this.jobRequirementService.getJobrequirementbyID(this.JobRequirementID).subscribe({
       next: (response: any) => {
         if (response && response.data) {
           const data = response.data;
-          
+
           // Load dữ liệu chính từ response.data nếu có (hoặc dùng dataInput)
           const jobData = data.DateRequest ? data : mainData;
-          
+
           if (jobData.DeadlineRequest) {
             const deadlineRequest = DateTime.fromISO(jobData.DeadlineRequest).isValid
               ? DateTime.fromISO(jobData.DeadlineRequest).toFormat('yyyy-MM-dd')
@@ -331,7 +332,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
               this.formGroup.patchValue({ DeadlineRequest: deadlineRequest });
             }
           }
-          
+
           if (jobData.EmployeeID) {
             this.formGroup.patchValue({ EmployeeID: jobData.EmployeeID });
             // Bind FullName và Department
@@ -345,34 +346,34 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
               this.bindEmployeeFullName(jobData.EmployeeID);
             }
           }
-          
+
           if (jobData.RequiredDepartmentID || mainData.RequiredDepartmentID) {
-            this.formGroup.patchValue({ 
-              RequiredDepartment: jobData.RequiredDepartmentID || mainData.RequiredDepartmentID 
+            this.formGroup.patchValue({
+              RequiredDepartment: jobData.RequiredDepartmentID || mainData.RequiredDepartmentID
             });
           }
-          
+
           if (jobData.CoordinationDepartmentID || mainData.CoordinationDepartmentID) {
-            this.formGroup.patchValue({ 
-              CoordinationDepartment: jobData.CoordinationDepartmentID || mainData.CoordinationDepartmentID 
+            this.formGroup.patchValue({
+              CoordinationDepartment: jobData.CoordinationDepartmentID || mainData.CoordinationDepartmentID
             });
           }
-          
+
           if (jobData.ApprovedTBPID || mainData.ApprovedTBPID) {
-            this.formGroup.patchValue({ 
-              ApprovedTBPID: jobData.ApprovedTBPID || mainData.ApprovedTBPID 
+            this.formGroup.patchValue({
+              ApprovedTBPID: jobData.ApprovedTBPID || mainData.ApprovedTBPID
             });
           }
-          
+
           // Lưu NumberRequest để gửi khi save
           this.numberRequest = jobData.NumberRequest || mainData.NumberRequest || jobData.Code || mainData.Code || '';
-          
+
           if (jobData.Code || mainData.Code || mainData.NumberRequest) {
-            this.formGroup.patchValue({ 
-              Code: jobData.Code || mainData.Code || mainData.NumberRequest || '' 
+            this.formGroup.patchValue({
+              Code: jobData.Code || mainData.Code || mainData.NumberRequest || ''
             });
           }
-          
+
           // Load details vào bảng chi tiết
           if (data.details && Array.isArray(data.details) && data.details.length > 0) {
             // Merge với default rows, giữ lại dữ liệu từ API
@@ -398,7 +399,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
               }
             });
           }
-          
+
           // Load files vào danh sách file
           if (data.files && Array.isArray(data.files) && data.files.length > 0) {
             this.fileList = data.files.map((file: any) => ({
@@ -449,7 +450,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   getSubPath(): string {
     const dateRequest = this.formGroup.get('DateRequest')?.value;
     const code = this.formGroup.get('Code')?.value || '';
-    
+
     if (!dateRequest) {
       return '';
     }
@@ -458,12 +459,12 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     const year = date.year;
     const month = date.month;
     const day = date.day;
-    
+
     const yearStr = `NĂM ${year}`;
     const monthStr = `THÁNG ${month}.${year}`;
     const dayStr = `${day}.${month}.${year}`;
     const codeStr = code || 'NEW';
-    
+
     return `${yearStr}\\YÊU CẦU CÔNG VIỆC\\${monthStr}\\${dayStr}\\${codeStr}`;
   }
 
@@ -504,14 +505,14 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
 
   uploadFile(fileRecord: any): void {
     const file = fileRecord.File || fileRecord.originFile || fileRecord.file?.originFile;
-    
+
     if (!file) {
       this.notification.warning('Thông báo', 'File không tồn tại!');
       return;
     }
 
     const subPath = this.getSubPath();
-    
+
     if (!subPath) {
       this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin (Ngày yêu cầu và Mã) trước khi upload file!');
       return;
@@ -527,7 +528,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
 
         if (res?.status === 1 && res?.data?.length > 0) {
           const uploadedFile = res.data[0];
-          
+
           // Tìm và cập nhật file trong fileList
           const fileIndex = this.fileList.findIndex(f => f.uid === fileRecord.uid);
           if (fileIndex !== -1) {
@@ -551,7 +552,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
 
   uploadAllFiles(): void {
     const filesToUpload = this.fileList.filter(f => f.originFile && !f.IsUploaded && !f.isDeleted && !f.IsDeleted);
-    
+
     if (filesToUpload.length === 0) {
       this.notification.info('Thông báo', 'Không có file nào cần upload!');
       return;
@@ -615,7 +616,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
         this.fileList[fileIndex].IsDeleted = true;
       }
     }
-    
+
     this.notification.success('Thông báo', 'Đã xóa file!');
   }
 
@@ -632,10 +633,10 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
 
     // Upload tất cả file chưa upload
     const filesToUpload = this.fileList.filter(f => f.originFile && !f.IsUploaded && !f.isDeleted && !f.IsDeleted);
-    
+
     if (filesToUpload.length > 0) {
       const loadingMsg = this.message.loading('Đang upload files...', { nzDuration: 0 }).messageId;
-      
+
       try {
         // Upload từng file
         for (const fileRecord of filesToUpload) {
@@ -719,7 +720,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
 
     // Save data
     const savingMsg = this.message.loading('Đang lưu dữ liệu...', { nzDuration: 0 }).messageId;
-    
+
     this.jobRequirementService.saveDataJobRequirement(payload).subscribe({
       next: (response: any) => {
         this.message.remove(savingMsg);
@@ -752,14 +753,14 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   private uploadFileAsync(fileRecord: any): Promise<void> {
     return new Promise((resolve, reject) => {
       const file = fileRecord.File || fileRecord.originFile || fileRecord.file?.originFile;
-      
+
       if (!file) {
         reject(new Error('File không tồn tại!'));
         return;
       }
 
       const subPath = this.getSubPath();
-      
+
       if (!subPath) {
         reject(new Error('Vui lòng điền đầy đủ thông tin (Ngày yêu cầu và Mã) trước khi upload file!'));
         return;
@@ -769,7 +770,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res?.status === 1 && res?.data?.length > 0) {
             const uploadedFile = res.data[0];
-            
+
             // Tìm và cập nhật file trong fileList
             const fileIndex = this.fileList.findIndex(f => f.uid === fileRecord.uid);
             if (fileIndex !== -1) {

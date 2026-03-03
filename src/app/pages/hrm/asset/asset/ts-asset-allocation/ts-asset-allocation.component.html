@@ -110,7 +110,7 @@
       <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." style="height: 100%;">
         <nz-splitter nzLayout="vertical" style="height: 100%; flex: 1;">
           <!-- Bảng Master - Cấp phát (ở trên) - 60% -->
-          <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="60%">
+          <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="55%">
             <div class="grid-container" [id]="gridId + '_container'" style="height: 100%;">
               <angular-slickgrid [gridId]="gridId" [columns]="columnDefinitions" [options]="gridOptions"
                 [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
@@ -121,7 +121,7 @@
           </nz-splitter-panel>
 
           <!-- Bảng Detail - Chi tiết cấp phát (ở dưới) - 40% -->
-          <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="40%">
+          <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="45%">
             <div style="height: 100%; width: 100%; display: flex; flex-direction: column;">
               <nz-tabset
                 style="padding-left: 10px; flex: 1; display: flex; flex-direction: column; min-height: 0; width: 100%;">

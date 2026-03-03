@@ -354,6 +354,10 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
           formatter: 'textarea'
         },
         {
+          title: 'Dự án', field: 'ProjectText', width: 300, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
+          formatter: 'textarea'
+        },
+        {
           title: 'Lý do', field: 'Reason', width: 300, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
           formatter: 'textarea'
         },

@@ -9,10 +9,10 @@
 
 </p-menubar>
 <ng-container class="w-100">
-  <ng-container class="w-100">
-    <div class="card border-0 rounded-0 shadow-sm overflow-hidden">
-      <!-- Header: Action Bar -->
-      <!-- <div class="card-header bg-white p-2 action-bar">
+    <ng-container class="w-100">
+        <div class="card border-0 rounded-0 shadow-sm overflow-hidden">
+            <!-- Header: Action Bar -->
+            <!-- <div class="card-header bg-white p-2 action-bar">
         <div class="d-none d-md-flex h-40 gap-2 align-items-center">
           <div class="flex-grow-1" style="overflow-x: auto;">
             <div class="d-flex gap-2 flex-nowrap">
@@ -53,7 +53,7 @@
         </div>
       </div> -->
 
-      <!-- <div class="card-header bg-white p-2">
+            <!-- <div class="card-header bg-white p-2">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="food-order-actions-scroll">
                             <div class="d-flex gap-2 food-order-actions">
@@ -80,66 +80,71 @@
                     </div>
                 </div> -->
 
-      <!-- Integrated Search Section (Now Below Buttons) -->
-      <div class="search-panel-container px-4 py-3 bg-light border-bottom" *ngIf="isSearchVisible">
-        <form nz-form nzLayout="vertical" class="ant-advanced-search-form">
-          <div nz-row [nzGutter]="24">
-            <div nz-col [nzSpan]="4">
-              <nz-form-item class="m-0 w-100">
-                <nz-form-label nz-col [nzSpan]="8">Từ ngày</nz-form-label>
-                <nz-form-control nz-col [nzSpan]="16">
-                  <nz-date-picker class="w-100" [(ngModel)]="dateStart" (ngModelChange)="onDateRangeChange()"
-                    nzFormat="dd/MM/yyyy" name="dateStart" nzSize="small"></nz-date-picker>
-                </nz-form-control>
-              </nz-form-item>
+            <!-- Integrated Search Section (Now Below Buttons) -->
+            <div class="search-panel-container px-4 py-3 bg-light border-bottom" *ngIf="isSearchVisible">
+                <form nz-form nzLayout="vertical" class="ant-advanced-search-form">
+                    <div nz-row [nzGutter]="24">
+                        <div nz-col [nzSpan]="4">
+                            <nz-form-item class="m-0 w-100">
+                                <nz-form-label nz-col [nzSpan]="8">Từ ngày</nz-form-label>
+                                <nz-form-control nz-col [nzSpan]="16">
+                                    <nz-date-picker class="w-100" [(ngModel)]="dateStart"
+                                        (ngModelChange)="onDateRangeChange()" nzFormat="dd/MM/yyyy" name="dateStart"
+                                        nzSize="small"></nz-date-picker>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </div>
+
+                        <div nz-col [nzSpan]="4">
+                            <nz-form-item class="m-0">
+                                <nz-form-label nz-col [nzSpan]="8">Đến ngày</nz-form-label>
+                                <nz-form-control nz-col [nzSpan]="16">
+                                    <nz-date-picker class="w-100" [(ngModel)]="dateEnd"
+                                        (ngModelChange)="onDateRangeChange()" nzFormat="dd/MM/yyyy" name="dateEnd"
+                                        nzSize="small"></nz-date-picker>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </div>
+
+                        <div nz-col [nzSpan]="5">
+                            <nz-form-item class="m-0">
+                                <nz-form-label nz-col [nzSpan]="8">Loại bản tin</nz-form-label>
+                                <nz-form-control nz-col [nzSpan]="16">
+                                    <nz-select [(ngModel)]="typeID" (ngModelChange)="onTypeNewsletterChange()"
+                                        nzSize="small" class="w-100" name="typeID" nzAllowClear nzPlaceHolder="Tất cả">
+                                        <nz-option nzValue="0" nzLabel="Tất cả"></nz-option>
+                                        @for (type of newsletterTypes; track type.ID) {
+                                        <nz-option [nzValue]="type.ID" [nzLabel]="type.NewsletterTypeName"></nz-option>
+                                        }
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </div>
+
+                        <div nz-col [nzSpan]="11">
+                            <nz-form-item class="m-0">
+                                <nz-form-label nz-col [nzSpan]="2">Từ khóa</nz-form-label>
+                                <nz-form-control nz-col [nzSpan]="21">
+                                    <nz-input-group nzSearch [nzAddOnAfter]="suffixSearchButton" nzSize="small"
+                                        class="w-100">
+                                        <input type="text" [(ngModel)]="keyWord" nz-input
+                                            placeholder="Nhập tiêu đề, nội dung..." name="keyWord"
+                                            (ngModelChange)="onKeywordChange($event)" />
+                                    </nz-input-group>
+                                    <ng-template #suffixSearchButton>
+                                        <button nz-button nzType="primary" nzSearch nzSize="small"
+                                            (click)="getNewsletter()">
+                                            <span nz-icon nzType="search"></span>
+                                        </button>
+                                    </ng-template>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </div>
+                    </div>
+                </form>
             </div>
 
-            <div nz-col [nzSpan]="4">
-              <nz-form-item class="m-0">
-                <nz-form-label nz-col [nzSpan]="8">Đến ngày</nz-form-label>
-                <nz-form-control nz-col [nzSpan]="16">
-                  <nz-date-picker class="w-100" [(ngModel)]="dateEnd" (ngModelChange)="onDateRangeChange()"
-                    nzFormat="dd/MM/yyyy" name="dateEnd" nzSize="small"></nz-date-picker>
-                </nz-form-control>
-              </nz-form-item>
-            </div>
-
-            <div nz-col [nzSpan]="5">
-              <nz-form-item class="m-0">
-                <nz-form-label nz-col [nzSpan]="8">Loại bản tin</nz-form-label>
-                <nz-form-control nz-col [nzSpan]="16">
-                  <nz-select [(ngModel)]="typeID" (ngModelChange)="onTypeNewsletterChange()" nzSize="small"
-                    class="w-100" name="typeID" nzAllowClear nzPlaceHolder="Tất cả">
-                    <nz-option nzValue="0" nzLabel="Tất cả"></nz-option>
-                    @for (type of newsletterTypes; track type.ID) {
-                    <nz-option [nzValue]="type.ID" [nzLabel]="type.NewsletterTypeName"></nz-option>
-                    }
-                  </nz-select>
-                </nz-form-control>
-              </nz-form-item>
-            </div>
-
-            <div nz-col [nzSpan]="11">
-              <nz-form-item class="m-0">
-                <nz-form-label nz-col [nzSpan]="2">Từ khóa</nz-form-label>
-                <nz-form-control nz-col [nzSpan]="21">
-                  <nz-input-group nzSearch [nzAddOnAfter]="suffixSearchButton" nzSize="small" class="w-100">
-                    <input type="text" [(ngModel)]="keyWord" nz-input placeholder="Nhập tiêu đề, nội dung..."
-                      name="keyWord" (ngModelChange)="onKeywordChange($event)" />
-                  </nz-input-group>
-                  <ng-template #suffixSearchButton>
-                    <button nz-button nzType="primary" nzSearch nzSize="small" (click)="getNewsletter()">
-                      <span nz-icon nzType="search"></span>
-                    </button>
-                  </ng-template>
-                </nz-form-control>
-              </nz-form-item>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <!--
+            <!--
       <nz-card class="w-100 p-0">
         <form nz-form class="ant-advanced-search-form">
           <div nz-row [nzGutter]="16">
@@ -202,35 +207,36 @@
       </nz-card> -->
 
 
-      <!-- Card Body: Table -->
-      <div class="card-body p-0">
-        <div id="newsletter-table"></div>
-      </div>
-    </div>
-  </ng-container>
+            <!-- Card Body: Table -->
+            <div class="card-body p-0">
+                <div id="newsletter-table"></div>
+            </div>
+        </div>
+    </ng-container>
 </ng-container>
 
 <ng-template #fileListTemplate>
-  <div class="file-list-container" style="max-height: 400px; overflow-y: auto;">
-    <div *ngFor="let file of currentFileList" class="file-item d-flex align-items-center p-2 border-bottom">
-      <div class="file-icon me-3" style="font-size: 20px; color: #1890ff;">
-        <i nz-icon nzType="file-text" nzTheme="outline"></i>
-      </div>
-      <div class="file-info flex-grow-1 overflow-hidden" (click)="viewFileFromList(file)" style="cursor: pointer;">
-        <span class="file-name d-block text-truncate fw-bold" [title]="file.FileName">
-          {{ file.FileName }}
-        </span>
-      </div>
-      <div class="file-actions d-flex gap-2">
-        <button nz-button nzType="text" nzShape="circle" (click)="viewFileFromList(file)" nz-tooltip
-          nzTooltipTitle="Xem file" style="color: #52c41a;">
-          <i nz-icon nzType="eye" nzTheme="outline"></i>
-        </button>
-        <button nz-button nzType="text" nzShape="circle" (click)="downloadFileFromList(file)" nz-tooltip
-          nzTooltipTitle="Tải xuống" style="color: #1890ff;">
-          <i nz-icon nzType="download" nzTheme="outline"></i>
-        </button>
-      </div>
+    <div class="file-list-container" style="max-height: 400px; overflow-y: auto;">
+        <div *ngFor="let file of currentFileList" class="file-item d-flex align-items-center p-2 border-bottom">
+            <div class="file-icon me-3" style="font-size: 20px; color: #1890ff;">
+                <i nz-icon nzType="file-text" nzTheme="outline"></i>
+            </div>
+            <div class="file-info flex-grow-1 overflow-hidden" (click)="viewFileFromList(file)"
+                style="cursor: pointer;">
+                <span class="file-name d-block text-truncate fw-bold" [title]="file.FileName">
+                    {{ file.FileName }}
+                </span>
+            </div>
+            <div class="file-actions d-flex gap-2">
+                <button nz-button nzType="text" nzShape="circle" (click)="viewFileFromList(file)" nz-tooltip
+                    nzTooltipTitle="Xem file" style="color: #52c41a;">
+                    <i nz-icon nzType="eye" nzTheme="outline"></i>
+                </button>
+                <button nz-button nzType="text" nzShape="circle" (click)="downloadFileFromList(file)" nz-tooltip
+                    nzTooltipTitle="Tải xuống" style="color: #1890ff;">
+                    <i nz-icon nzType="download" nzTheme="outline"></i>
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 </ng-template>

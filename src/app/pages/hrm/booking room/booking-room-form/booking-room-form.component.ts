@@ -67,6 +67,8 @@ export class BookingRoomFormComponent implements OnInit {
     { value: 3, label: 'MEETING ROOM 3 (HỒ TRÚC BẠCH)' },
   ];
 
+  timeSlots: Array<{ value: string; label: string }> = [];
+
   constructor(
     private fb: FormBuilder,
     public activeModal: NgbActiveModal,
@@ -80,6 +82,7 @@ export class BookingRoomFormComponent implements OnInit {
   ) {
     this.currentEmployeeId = this.appUserService.employeeID || 0;
     this.currentDepartmentId = this.appUserService.departmentID || 0;
+    this.generateTimeSlots();
     this.initializeForm();
   }
 
@@ -97,12 +100,29 @@ export class BookingRoomFormComponent implements OnInit {
     }
   }
 
+  private generateTimeSlots(): void {
+    const startHour = 8;
+    const endHour = 17;
+    const endMinute = 30;
+
+    for (let hour = startHour; hour <= endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        if (hour === endHour && minute > endMinute) {
+          break;
+        }
+        const timeValue = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        this.timeSlots.push({
+          value: timeValue,
+          label: timeValue,
+        });
+      }
+    }
+  }
+
   private initializeForm(): void {
     const today = new Date();
-    const defaultStartTime = new Date();
-    defaultStartTime.setHours(8, 0, 0, 0);
-    const defaultEndTime = new Date();
-    defaultEndTime.setHours(10, 0, 0, 0);
+    const defaultStartTime = '08:00';
+    const defaultEndTime = '10:00';
 
     this.bookingForm = this.fb.group({
       ID: [0],
@@ -116,9 +136,8 @@ export class BookingRoomFormComponent implements OnInit {
     });
 
     this.bookingForm.get('StartTime')?.valueChanges.subscribe((value) => {
-      if (value instanceof Date) {
-        const endTime = new Date(value);
-        endTime.setHours(value.getHours() + 2, value.getMinutes(), 0, 0);
+      if (value && typeof value === 'string') {
+        const endTime = this.calculateEndTime(value);
         this.bookingForm.patchValue({ EndTime: endTime }, { emitEvent: false });
       }
     });
@@ -129,9 +148,17 @@ export class BookingRoomFormComponent implements OnInit {
       return '10:00';
     }
     const [hours, minutes] = startTime.split(':').map(Number);
-    const endTime = new Date();
-    endTime.setHours(hours + 2, minutes, 0, 0);
-    return `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`;
+    const endHours = hours + 2;
+    const endMinutes = minutes;
+
+    if (endHours > 17 || (endHours === 17 && endMinutes > 30)) {
+      return '17:30';
+    }
+
+    const calculatedEndTime = `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+
+    const nearestSlot = this.timeSlots.find(slot => slot.value >= calculatedEndTime);
+    return nearestSlot ? nearestSlot.value : '17:30';
   }
 
   trimRequiredValidator = (control: any) => {
@@ -145,8 +172,6 @@ export class BookingRoomFormComponent implements OnInit {
   };
 
   private loadBookingRoom(id: number): void {
-    // Load booking room data by ID if needed
-    // For now, we'll use the data passed via @Input
     if (this.data) {
       this.populateForm(this.data);
     }
@@ -157,28 +182,24 @@ export class BookingRoomFormComponent implements OnInit {
       ? DateTime.fromISO(data.DateRegister).toFormat('yyyy-MM-dd')
       : DateTime.now().toFormat('yyyy-MM-dd');
 
-    const startTime = new Date();
+    let startTimeStr = '08:00';
     if (data.StartTime) {
       const startDT = DateTime.fromISO(data.StartTime);
-      startTime.setHours(startDT.hour, startDT.minute, 0, 0);
-    } else {
-      startTime.setHours(8, 0, 0, 0);
+      startTimeStr = `${String(startDT.hour).padStart(2, '0')}:${String(startDT.minute).padStart(2, '0')}`;
     }
 
-    const endTime = new Date();
+    let endTimeStr = '17:30';
     if (data.EndTime) {
       const endDT = DateTime.fromISO(data.EndTime);
-      endTime.setHours(endDT.hour, endDT.minute, 0, 0);
-    } else {
-      endTime.setHours(17, 30, 0, 0);
+      endTimeStr = `${String(endDT.hour).padStart(2, '0')}:${String(endDT.minute).padStart(2, '0')}`;
     }
 
     this.bookingForm.patchValue({
       ID: data.ID || 0,
       MeetingRoomId: data.MeetingRoomId,
       DateRegister: new Date(dateStr),
-      StartTime: startTime,
-      EndTime: endTime,
+      StartTime: startTimeStr,
+      EndTime: endTimeStr,
       Content: data.Content || '',
       EmployeeId: data.EmployeeId || this.currentEmployeeId,
       DepartmentId: data.DepartmentId || this.currentDepartmentId,
@@ -187,10 +208,8 @@ export class BookingRoomFormComponent implements OnInit {
 
   private resetForm(): void {
     const today = new Date();
-    const defaultStartTime = new Date();
-    defaultStartTime.setHours(8, 0, 0, 0);
-    const defaultEndTime = new Date();
-    defaultEndTime.setHours(10, 0, 0, 0);
+    const defaultStartTime = '08:00';
+    const defaultEndTime = '10:00';
 
     this.bookingForm.patchValue({
       ID: 0,
@@ -250,13 +269,9 @@ export class BookingRoomFormComponent implements OnInit {
     const formValue = this.bookingForm.value;
     const dateStr = DateTime.fromJSDate(formValue.DateRegister).toFormat('yyyy-MM-dd');
 
-    const startTime = formValue.StartTime instanceof Date
-      ? `${String(formValue.StartTime.getHours()).padStart(2, '0')}:${String(formValue.StartTime.getMinutes()).padStart(2, '0')}`
-      : formValue.StartTime;
-
-    const endTime = formValue.EndTime instanceof Date
-      ? `${String(formValue.EndTime.getHours()).padStart(2, '0')}:${String(formValue.EndTime.getMinutes()).padStart(2, '0')}`
-      : formValue.EndTime;
+    // Time is already in HH:mm format from select
+    const startTime = formValue.StartTime;
+    const endTime = formValue.EndTime;
 
     const isApprovedValue = (formValue.ID && formValue.ID > 0 && this.data?.IsApproved !== undefined)
       ? this.data.IsApproved

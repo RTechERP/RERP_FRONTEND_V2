@@ -1,4 +1,4 @@
-.fs-12 {
+.bill-import-qc-detail-fs-12 {
   font-size: 0.75rem;
 }
 
@@ -37,7 +37,7 @@
   border-top-right-radius: 0 !important;
 }
 
-::ng-deep .full-screen-modal {
+:host ::ng-deep .full-screen-modal {
   height: auto !important;
 }
 
@@ -63,17 +63,17 @@
   margin-bottom: 12px;
 }
 
-::ng-deep #gridMaster {
+:host ::ng-deep #gridMaster {
     height: 49.6vh !important;
 }
-::ng-deep #gridFileCheck {
+:host ::ng-deep #gridFileCheck {
     height: 31vh !important;
     width: 49.5vw !important;
 }
-::ng-deep #gridFileReport { 
+:host ::ng-deep #gridFileReport {
     height: 31vh !important;
     width: 50vw !important;
 }
-::ng-deep .btn-xs { 
+:host ::ng-deep .btn-xs {
     font-size: 12px !important;
 }

@@ -36,8 +36,9 @@
             <nz-form-item class="mb-0">
               <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
               <nz-form-control>
-                <input type="date" [(ngModel)]="dateStart" (ngModelChange)="onDateRangeChange()" name="dateStart" 
-                    class="w-100" style="padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                <input type="date" [(ngModel)]="dateStart" (ngModelChange)="onDateRangeChange()" name="dateStart"
+                  class="w-100"
+                  style="padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
               </nz-form-control>
             </nz-form-item>
           </nz-col>
@@ -47,14 +48,15 @@
             <nz-form-item class="mb-0">
               <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
               <nz-form-control>
-                <input type="date" [(ngModel)]="dateEnd" (ngModelChange)="onDateRangeChange()" name="dateEnd" 
-                    class="w-100" style="padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                <input type="date" [(ngModel)]="dateEnd" (ngModelChange)="onDateRangeChange()" name="dateEnd"
+                  class="w-100"
+                  style="padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
               </nz-form-control>
             </nz-form-item>
           </nz-col>
 
           <!-- Phòng ban -->
-          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
             <nz-form-item class="mb-0">
               <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
               <nz-form-control>
@@ -103,7 +105,27 @@
     <!-- Content với bảng -->
     <div class="card-body p-0 position-relative" [class.with-search-bar]="shouldShowSearchBar"
       [class.without-search-bar]="!shouldShowSearchBar">
-      <div id="dataTableNightShift" style="height: 100%;"></div>
+      <div *ngIf="isLoading">
+        <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            background: 'rgba(255,255,255,0.4)',
+            zIndex: '999',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        }"></nz-spin>
+      </div>
+      <div id="grvNightShiftContainer" class="grid-container-nightshift" style="height: 100%;">
+        <angular-slickgrid gridId="grvNightShift" [columns]="columnDefinitions" [options]="gridOptions"
+          [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+          (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+          (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+        </angular-slickgrid>
+      </div>
     </div>
   </div>
 </ng-container>

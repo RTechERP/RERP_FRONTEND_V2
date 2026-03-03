@@ -113,12 +113,21 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
     ) { }
 
     ngOnInit(): void {
+        // Get departmentId from route snapshot or tabData synchronously first
+        const queryDepartmentId = this.route.snapshot.queryParams['departmentId'];
+        this.departmentId = queryDepartmentId
+            ? Number(queryDepartmentId)
+            : (this.tabData?.departmentId ?? 0);
+
+        // Also subscribe for dynamic changes
         this.route.queryParams.subscribe(params => {
-            // this.departmentId = params['departmentId'] ? Number(params['departmentId']) : 0;
-            this.departmentId =
-                params['departmentId']
-                ?? this.tabData?.departmentId
-                ?? 0;
+            const newDepartmentId = params['departmentId']
+                ? Number(params['departmentId'])
+                : (this.tabData?.departmentId ?? 0);
+            if (newDepartmentId !== this.departmentId) {
+                this.departmentId = newDepartmentId;
+                this.search();
+            }
         });
 
         const today = new Date();
@@ -422,7 +431,12 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             nzOkText: 'Đồng ý',
             nzCancelText: 'Hủy',
             nzOnOk: () => {
-                this.kpiErrorEmployeeService.autoAdd(this.startDate!, this.endDate!).subscribe({
+                const start = new Date(this.startDate!);
+                start.setHours(0, 0, 0, 0);
+                const end = new Date(this.endDate!);
+                end.setHours(23, 59, 59, 999);
+
+                this.kpiErrorEmployeeService.autoAdd(start, end).subscribe({
                     next: (response: any) => {
                         if (response.status === 1) {
                             const inserted = response.data?.Inserted || 0;
@@ -590,7 +604,13 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 minWidth: 120,
                 formatter: Formatters.dateEuro,
-                filter: { model: Filters['compoundDate'] },
+                filter: {
+                    model: Filters['compoundDate'],
+                    filterOptions: {
+                        enableTime: false,
+                        dateFormat: 'd/m/Y',
+                    },
+                },
             },
             {
                 id: 'ErrorNumber',
@@ -602,6 +622,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0 },
                 filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-center',
             },
             {
                 id: 'Note',
@@ -745,13 +766,13 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 this.angularGrid.dataView.setGrouping([
                     {
                         getter: 'TypeName',
-                        formatter: (g: any) => `Loại lỗi: <strong>${g.value}</strong> <span style="color:green">(${g.count} dòng)</span>`,
+                        formatter: (g: any) => `Loại lỗi: <strong>${g.value}</strong> <span style="color:red">(${g.count} lỗi)</span>`,
                         aggregateCollapsed: false,
                         lazyTotalsCalculation: true,
                     },
                     {
                         getter: 'Employee',
-                        formatter: (g: any) => `Nhân viên: <strong>${g.value}</strong> <span style="color:green">(${g.count} dòng)</span>`,
+                        formatter: (g: any) => `Nhân viên: <strong>${g.value}</strong> <span style="color:red">(${g.count} lỗi)</span>`,
                         aggregateCollapsed: false,
                         lazyTotalsCalculation: true,
                     },

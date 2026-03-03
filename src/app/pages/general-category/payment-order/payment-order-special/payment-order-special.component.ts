@@ -319,6 +319,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 maxDecimal: 2,
                 thousandSeparator: ','
             },
+            enableHeaderMenu: false,
         };
 
 
@@ -380,6 +381,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
             gridWidth: '100%',
             frozenColumn: 0,
             autoFitColumnsOnFirstLoad: false,
+            enableHeaderMenu: false,
         }
     }
 

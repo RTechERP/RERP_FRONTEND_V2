@@ -1,83 +1,56 @@
 :host {
-    font-size: 12px !important;
-}
-
-:host ::ng-deep *:not(p-menubar):not(p-menubar *) {
-    font-size: 12px !important;
+  font-size: 12px !important;
 }
 
 .box {
-    height: 100%;
-    width: 100%;
+  height: 100%;
+  width: 100%;
 }
 
 .card {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    max-height: 93vh;
-    overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 93vh;
+  overflow: hidden;
 }
 
 .card-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-body>div {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
-#grid-container-economic-contract {
-    height: 100%;
-    width: 100%;
+.ant-splitter-panel {
+  position: relative;
+}
+
+.ant-splitter {
+  height: 93vh !important;
 }
 
 .fs-12 {
-    font-size: 0.75rem;
+  font-size: 12px;
 }
 
 .btn {
-    font-size: 0.75rem;
-}
-
-/* SlickGrid styles */
-::ng-deep .slickgrid-container {
-    width: 100% !important;
-    height: 100% !important;
-}
-
-::ng-deep .slick-viewport {
-    width: 100% !important;
-}
-
-::ng-deep .slick-header {
-    width: 100% !important;
-}
-
-::ng-deep .slick-headerrow {
-    width: 100% !important;
-}
-
-angular-slickgrid,
-.angular-slickgrid-container {
-    height: 100% !important;
-    width: 100%;
-    display: flex;
+  font-size: 12px;
 }
 
 /* Search form positioning and z-index fixes */
 .filter-bar {
-    position: relative;
-    z-index: 10;
-    background: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+  position: relative;
+  z-index: 10;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
 }
 
 /* Ensure buttons stay above search form on desktop */
@@ -196,4 +169,52 @@ angular-slickgrid,
 :host ::ng-deep p-menubar .p-menuitem-icon,
 :host ::ng-deep p-menubar .fa-solid {
     font-size: 18px !important;
+}
+
+/* Grid container */
+#demo-container,
+.grid-container {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible !important;
+}
+
+/* Ensure grid fills the container */
+::ng-deep #grvAssetManagement {
+  min-height: 54vh !important;
+}
+
+/* SlickGrid styles */
+::ng-deep #demo-container .slickgrid-container {
+  font-size: 12px !important;
+  height: 100% !important;
+  min-height: 520px !important;
+  overflow: visible !important;
+}
+
+::ng-deep .slick-header-column {
+  font-size: 12px !important;
+  font-weight: bold;
+}
+
+::ng-deep .slick-cell {
+  font-size: 12px !important;
+}
+
+::ng-deep .slick-footerrow-cell {
+  font-size: 12px !important;
+  font-weight: bold;
+  background-color: #f0f0f0 !important;
+  border-top: 2px solid #1677ff !important;
+}
+
+::ng-deep .slick-footerrow {
+  background-color: #f0f0f0 !important;
+}
+
+/* Cell wrap class */
+::ng-deep .cell-wrap {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }

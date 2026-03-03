@@ -86,12 +86,21 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
     ) { }
 
     ngOnInit(): void {
+        // Get departmentId from route snapshot or tabData synchronously first
+        const queryDepartmentId = this.route.snapshot.queryParams['departmentId'];
+        this.departmentId = queryDepartmentId
+            ? Number(queryDepartmentId)
+            : (this.tabData?.departmentId ?? 0);
+
+        // Also subscribe for dynamic changes
         this.route.queryParams.subscribe(params => {
-            // this.departmentId = params['departmentId'] ? Number(params['departmentId']) : 0;
-            this.departmentId =
-                params['departmentId']
-                ?? this.tabData?.departmentId
-                ?? 0;
+            const newDepartmentId = params['departmentId']
+                ? Number(params['departmentId'])
+                : (this.tabData?.departmentId ?? 0);
+            if (newDepartmentId !== this.departmentId) {
+                this.departmentId = newDepartmentId;
+                this.search();
+            }
         });
 
         const today = new Date();
@@ -384,7 +393,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
             {
                 getter: 'DepartmentName',
                 formatter: (g: any) => {
-                    return `Phòng ban: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:green">(${g.count} dòng)</span>`;
+                    return `Phòng ban: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:red">(${g.count} lỗi)</span>`;
                 },
                 aggregators: [
                     ...dynamicAggregators
@@ -396,7 +405,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
             {
                 getter: 'FullName',
                 formatter: (g: any) => {
-                    return `Nhân viên: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:green">(${g.count} dòng)</span>`;
+                    return `Nhân viên: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:red">(${g.count} lỗi)</span>`;
                 },
                 aggregators: [
                     ...dynamicAggregators

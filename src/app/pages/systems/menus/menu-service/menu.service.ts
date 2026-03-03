@@ -116,7 +116,7 @@ import { PONCCComponent } from '../../../purchase/poncc/poncc.component';
 import { EmployeeSaleManagerComponent } from '../../../old/KPISale/employee-sale-manager/employee-sale-manager.component';
 import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
-import { RecommendSupplierComponent } from '../../../hrm/recommend-supplier/recommend-supplier.component';
+// import { RecommendSupplierComponent } from '../../../hrm/recommend-supplier/recommend-supplier.component';
 import { HrPurchaseProposalComponent } from '../../../hrm/hr-purchase-proposal/hr-purchase-proposal.component';
 import { PersonComponent } from '../../../person/person.component';
 import { InventoryProjectComponent } from '../../../purchase/inventory-project/inventory-project/inventory-project.component';
@@ -208,6 +208,10 @@ export class MenuService {
 
     userAllReportTechs = [
         1, 23, 24, 78, 88, 1221, 1313, 1434, 1431, 53, 51, 1534,
+    ];
+
+    employeeSaleHCMs = [
+        29, 42, 341, 641
     ];
 
     getMenus(): MenuItem[] {
@@ -3654,60 +3658,24 @@ export class MenuService {
     }
 
 
-    // getCompMenus(menukey: string): MenuItem[] {
-    //     let menus: MenuItem[] = [];
-    //     this.menuAppService.getAll().subscribe({
-    //         next: (response) => {
-    //             const map = new Map<number, any>();
-    //             // Tạo map trước
-    //             response.data.menus.forEach((item: any) => {
-
-    //                 const childrens = response.data.menus.filter((x: any) => x.ParentID == item.ID);
-    //                 // console.log(item.Router, this.componentRegistry[item.Router]);
-    //                 const menu: MenuItem = {
-    //                     id: item.ID,
-    //                     kind: childrens.length > 0 ? 'group' : 'leaf',
-    //                     key: item.Code,
-    //                     stt: item.STT,
-    //                     title: item.Title,
-    //                     isOpen: item.ParentID > 0 || item.Code == menukey,
-    //                     isPermission: item.IsPermission,
-    //                     icon: `${environment.host}api/share/software/icon/${item.Icon}`,
-    //                     children: [],
-    //                     router: item.Router == '' ? '#' : `${item.Router}`,
-    //                     data: (item.QueryParam || '') == '' ? {} : JSON.parse((item.QueryParam || '')),
-    //                     comp: this.componentRegistry[item.Router]
-    //                 }
-
-    //                 // Log để debug queryParams từ database
-    //                 if (item.QueryParam && item.QueryParam !== '') {
-    //                     // console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
-    //                 }
-
-    //                 map.set(item.ID, menu);
-    //             });
-
-    //             // Gắn cha – con
-    //             response.data.menus.forEach((item: any) => {
-    //                 const node = map.get(item.ID);
-
-    //                 if (item.ParentID && map.has(item.ParentID)) {
-    //                     const parent = map.get(item.ParentID);
-    //                     parent.children.push(node);
-    //                 } else {
-    //                     menus.push(node);
-    //                 }
-    //             });
-    //         },
-    //         error: (err) => {
-    //             this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-    //         },
-    //     })
-    //     // menus = ;
-    //     return menus
-    // }
-
     getCompMenus(menukey: string): Observable<MenuItem[]> {
+        let id = this.appUserService.currentUser?.ID || 0;
+        let employeeID = this.appUserService.currentUser?.EmployeeID || 0;
+        let departmentID = this.appUserService.currentUser?.DepartmentID || 0;
+        let positionID = this.appUserService.currentUser?.PositionID || 0;
+        let isHR =
+            this.employeeHRs.includes(employeeID) ||
+            this.departmentHRs.includes(departmentID);
+
+        const permissions: any[] = this.appUserService.currentUser?.Permissions.split(',') || [];
+
+        const isAdmin =
+            this.appUserService.currentUser?.IsAdmin ||
+            permissions.includes("N1");
+
+        // console.log("this.appUserService.currentUser?.IsAdmin:", this.appUserService.currentUser?.IsAdmin);
+        // console.log("this.appUserService.currentUser?.Permissions:", permissions);
+
         return this.menuAppService.getAll().pipe(
             map((response: any) => {
                 const mapMenu = new Map<number, MenuItem>();
@@ -3716,6 +3684,50 @@ export class MenuService {
                 response.data.menus.forEach((item: any) => {
                     const childrens = response.data.menus.filter((x: any) => x.ParentID == item.ID);
 
+                    let isPermission = item.IsPermission;
+
+                    //Nếu là AGV-Cơ khí
+                    if (item.Router == 'daily-report-machine') {
+                        isPermission = isAdmin ||
+                            this.departmentAgvCokhis.includes(departmentID) ||
+                            this.userAllReportTechs.includes(id);
+                    }
+
+                    //nếu là sale
+                    if (item.Router == 'daily-report-sale-admin' || item.Router == 'daily-report-sale' || item.Code == 'M66') {
+                        isPermission = isAdmin || this.departmentSales.includes(departmentID) || this.employeeSaleHCMs.includes(employeeID);
+                    }
+
+                    //Nếu là Kỹ thuật
+                    if (item.Router == 'daily-report-tech') {
+                        isPermission = isAdmin ||
+                            this.departmentTechs.includes(departmentID) ||
+                            this.userAllReportTechs.includes(id);
+                    }
+
+                    //Nếu là HR
+                    if (item.Router == 'daily-report-thr' || item.Router == 'daily-report-lxcp' || item.Code == 'M70') {
+                        isPermission = isAdmin ||
+                            isHR ||
+                            this.positinCPs.includes(positionID) ||
+                            this.positinLXs.includes(positionID);
+                    }
+
+                    //Nếu là lắp rap
+                    if (item.Router == 'daily-report-lr') {
+                        isPermission = isAdmin ||
+                            this.departmentLapraps.includes(departmentID) ||
+                            this.userAllReportTechs.includes(id);
+                    }
+
+                    //Nếu là MKT
+                    if (item.Router == 'daily-report-mkt') {
+                        isPermission = isAdmin || this.marketings.includes(departmentID);
+                    }
+
+                    // console.log('isAdmin:', isAdmin);
+                    // console.log('this.marketings.includes(departmentID):', this.marketings.includes(departmentID));
+
                     const menu: MenuItem = {
                         id: item.ID,
                         kind: childrens.length > 0 ? 'group' : 'leaf',
@@ -3723,7 +3735,7 @@ export class MenuService {
                         stt: item.STT,
                         title: item.Title,
                         isOpen: item.ParentID > 0 || item.Code == menukey,
-                        isPermission: item.IsPermission,
+                        isPermission: isPermission,
                         icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         children: [],
                         router: item.Router || '#',

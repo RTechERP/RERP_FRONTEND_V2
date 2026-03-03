@@ -1,7 +1,7 @@
-<div style="display: flex; flex-direction: column; height: 100vh">
+<div style="display: flex; flex-direction: column; height: 100vh" class="">
   <!-- Modal Header -->
   <div
-    class="bg-primary align-items-center ps-2 pe-2"
+    class="bg-primary align-items-center ps-2 pe-2 bill-import-qc-detail-bg-primary bill-import-qc-detail-align-items-center bill-import-qc-detail-ps-2 bill-import-qc-detail-pe-2"
     style="
       flex-shrink: 0;
       display: flex;
@@ -9,10 +9,10 @@
       padding: 0.5rem;
     "
   >
-    <h6 class="text-light text-uppercase m-0">Chi tiết yêu cầu QC</h6>
+    <h6 class="text-light text-uppercase m-0 bill-import-qc-detail-text-light bill-import-qc-detail-text-uppercase bill-import-qc-detail-m-0">Chi tiết yêu cầu QC</h6>
     <button
       type="button"
-      class="btn-close"
+      class="btn-close bill-import-qc-detail-btn-close"
       (click)="activeModal.dismiss()"
       aria-label="Close"
     ></button>
@@ -20,7 +20,7 @@
 
   <!-- Modal Body với Splitter -->
   <div
-    class="p-0"
+    class="p-0 bill-import-qc-detail-p-0"
     style="flex: 1; overflow: hidden; display: flex; flex-direction: column"
   >
     <div *ngIf="isLoading">
@@ -42,15 +42,15 @@
       ></nz-spin>
     </div>
     <div
-      class="card h-100 border-0 rounded-0"
+      class="card h-100 border-0 rounded-0 bill-import-qc-detail-card bill-import-qc-detail-h-100 bill-import-qc-detail-border-0 bill-import-qc-detail-rounded-0"
       style="display: flex; flex-direction: column; height: 100%"
     >
-      <div class="card-header bg-white p-1" style="flex-shrink: 0">
-        <div class="d-flex gap-2 ms-1 align-items-center">
-          <nz-form-item class="mb-0">
-            <nz-form-label class="fs-12" style="font-size: 12px"
+      <div class="card-header bg-white p-1 bill-import-qc-detail-card-header bill-import-qc-detail-bg-white bill-import-qc-detail-p-1" style="flex-shrink: 0">
+        <div class="d-flex gap-2 ms-1 align-items-center bill-import-qc-detail-d-flex bill-import-qc-detail-gap-2 bill-import-qc-detail-ms-1 bill-import-qc-detail-align-items-center">
+          <nz-form-item class="mb-0 bill-import-qc-detail-mb-0">
+            <nz-form-label class="fs-12 bill-import-qc-detail-fs-12" style="font-size: 12px"
               >Mã yêu cầu
-              <span style="color: red" class="ms-1">(*)</span></nz-form-label
+              <span style="color: red" class="ms-1 bill-import-qc-detail-ms-1">(*)</span></nz-form-label
             >
             <nz-form-control>
               <input
@@ -63,10 +63,10 @@
             </nz-form-control>
           </nz-form-item>
 
-          <nz-form-item class="mb-0">
-            <nz-form-label class="fs-12" style="font-size: 12px"
+          <nz-form-item class="mb-0 bill-import-qc-detail-mb-0">
+            <nz-form-label class="fs-12 bill-import-qc-detail-fs-12" style="font-size: 12px"
               >Ngày yêu cầu
-              <span style="color: red" class="ms-1">(*)</span></nz-form-label
+              <span style="color: red" class="ms-1 bill-import-qc-detail-ms-1">(*)</span></nz-form-label
             >
             <nz-form-control>
               <nz-date-picker
@@ -80,12 +80,12 @@
               ></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
-          <div class="d-flex align-items-center gap-1">
-            <nz-form-label class="fs-12 mb-0"
+          <div class="d-flex align-items-center gap-1 bill-import-qc-detail-d-flex bill-import-qc-detail-align-items-center bill-import-qc-detail-gap-1">
+            <nz-form-label class="fs-12 mb-0 bill-import-qc-detail-fs-12 bill-import-qc-detail-mb-0"
               >Người yêu cầu
-              <span style="color: red" class="ms-1">(*)</span></nz-form-label
+              <span style="color: red" class="ms-1 bill-import-qc-detail-ms-1">(*)</span></nz-form-label
             >
-            <nz-form-item class="mb-0">
+            <nz-form-item class="mb-0 bill-import-qc-detail-mb-0">
               <nz-form-control>
                 <nz-select
                   name="employeeId"
@@ -114,10 +114,10 @@
             </nz-form-item>
           </div>
 
-          <nz-form-item class="mb-0">
-            <nz-form-label class="fs-12" style="font-size: 12px"
+          <nz-form-item class="mb-0 bill-import-qc-detail-mb-0">
+            <nz-form-label class="fs-12 bill-import-qc-detail-fs-12" style="font-size: 12px"
               >Deadline
-              <span style="color: red" class="ms-1">(*)</span></nz-form-label
+              <span style="color: red" class="ms-1 bill-import-qc-detail-ms-1">(*)</span></nz-form-label
             >
             <nz-form-control>
               <nz-date-picker
@@ -134,7 +134,7 @@
         </div>
       </div>
       <div
-        class="card-body p-0"
+        class="card-body p-0 bill-import-qc-detail-card-body bill-import-qc-detail-p-0"
         style="
           flex: 1;
           overflow: auto;
@@ -145,7 +145,7 @@
       >
         <nz-splitter nzLayout="vertical">
           <nz-splitter-panel nzSize="60%">
-            <div class="grid-container-master">
+            <div class="grid-container-master bill-import-qc-detail-grid-container-master">
               <angular-slickgrid
                 gridId="gridMaster"
                 [columns]="columnDefinitionsMaster"
@@ -184,7 +184,7 @@
                 >
                   File check sheet
                 </div>
-                <div class="grid-container-detail">
+                <div class="grid-container-detail bill-import-qc-detail-grid-container-detail">
                   <angular-slickgrid
                     gridId="gridFileCheck"
                     [columns]="columnDefinitionsFileCheck"
@@ -199,7 +199,7 @@
               </nz-splitter-panel>
               <nz-splitter-panel nzSize="50.5%">
                 <div
-                  class="ms-1"
+                  class="ms-1 bill-import-qc-detail-ms-1"
                   style="
                     padding: 4px 2px;
                     background: #f5f5f5;
@@ -209,7 +209,7 @@
                 >
                   File report
                 </div>
-                <div class="grid-container-detail ms-1">
+                <div class="grid-container-detail ms-1 bill-import-qc-detail-grid-container-detail bill-import-qc-detail-ms-1">
                   <angular-slickgrid
                     gridId="gridFileReport"
                     [columns]="columnDefinitionsFileReport"
@@ -230,7 +230,7 @@
   </div>
 
   <!-- Modal Footer -->
-  <div class="modal-footer py-1">
+  <div class="modal-footer py-1 bill-import-qc-detail-modal-footer bill-import-qc-detail-py-1">
     <button
       nz-button
       nzType="default"
@@ -248,7 +248,7 @@
       [disabled]="isDisabledSaveButton"
       (click)="onSaveData()"
     >
-      <i class="fas fa-save me-1"></i> Lưu
+      <i class="fas fa-save me-1 bill-import-qc-detail-fas bill-import-qc-detail-fa-save bill-import-qc-detail-me-1"></i> Lưu
     </button>
   </div>
 </div>

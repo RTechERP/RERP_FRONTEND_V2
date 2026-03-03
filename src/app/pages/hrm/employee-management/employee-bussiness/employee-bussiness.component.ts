@@ -132,7 +132,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
 
     dateStart.setMonth(dateEnd.getMonth() - 1);
     dateEnd.setMonth(dateStart.getMonth() + 1);
-    
+
     // Convert Date to yyyy-MM-dd format for HTML date input
     const formatDateToString = (date: Date): string => {
       const year = date.getFullYear();
@@ -194,7 +194,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
       formValue.dateEnd = new Date(formValue.dateEnd);
     }
     formValue.departmentId = formValue.departmentId ?? 0;
-    
+
     this.employeeBussinessService.getEmployeeBussiness(formValue).subscribe({
       next: (data) => {
         this.employeeBussinessList = data.data;
@@ -425,8 +425,15 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
     this.employeeBussinessService.getEmployeeBussinessDetail(employeeId, day).subscribe({
       next: (response) => {
         if (response.status === 1 && response.data) {
+          const masterData = selectedRows[0].getData();
+          // Đảm bảo mỗi dòng chi tiết đều có ProjectID từ master record nếu bản thân nó chưa có
+          const detailData = response.data.map((item: any) => ({
+            ...item,
+            ProjectID: item['ProjectID'] || item['ProjectId'] || masterData['ProjectID'] || masterData['ProjectId'] || 0
+          }));
+
           // Store the detail data
-          this.employeeBussinessDetailData = response.data;
+          this.employeeBussinessDetailData = detailData;
           // Open modal
           const modalRef = this.modalService.open(EmployeeBussinessDetailComponent, {
             centered: false,
@@ -436,7 +443,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
             windowClass: 'modal-fullscreen',
             modalDialogClass: 'modal-fullscreen'
           });
-          modalRef.componentInstance.detailData = response.data;
+          modalRef.componentInstance.detailData = detailData;
 
           modalRef.result.then(
             (result) => {

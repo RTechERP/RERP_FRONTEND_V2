@@ -1346,6 +1346,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             (item.IsApproved === 1 || item.IsApproved === '1')
         );
 
+
         // if (!bgdApproved) {
         //     this.notification.warning(
         //         NOTIFICATION_TITLE.warning,

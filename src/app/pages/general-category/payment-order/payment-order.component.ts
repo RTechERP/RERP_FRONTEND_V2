@@ -136,6 +136,7 @@ export class PaymentOrderComponent implements OnInit {
     isShowModal = false;
 
     activeTab = '0';
+    isApprove = false;
     defaultSizeSplit = '100%';
 
     isAdvandShow = true;
@@ -219,6 +220,8 @@ export class PaymentOrderComponent implements OnInit {
     ngOnInit(): void {
 
         // console.log('this.route.queryParams:', this.route.queryParams);
+
+        // let isApprove = false;
         this.route.queryParams.subscribe(params => {
             // this.activeTab = params['activeTab'] || '0';
             this.activeTab =
@@ -227,11 +230,13 @@ export class PaymentOrderComponent implements OnInit {
                 ?? '0';
 
             // console.log('this.activeTab:', this.activeTab)
+            this.isApprove = this.activeTab == '0';
         });
 
         this.loadDataCombo();
         this.initMenuBar();
 
+        // if (this.activeTab == '0') {
         const permissionCodeTBP = "N57";
         const permissionCodeHR = "N59";
         const permissionCodeTbpHR = "N56";
@@ -246,6 +251,7 @@ export class PaymentOrderComponent implements OnInit {
             this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
             this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
             this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
+
             this.appUserService.currentUser?.IsAdmin) || false;
 
         this.isPermisstionDB = (this.appUserService.currentUser?.Permissions.includes(permissionCodeSale) ||
@@ -260,12 +266,16 @@ export class PaymentOrderComponent implements OnInit {
         // console.log('this.isPermisstion:', this.isPermisstion);
 
         // this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
+
+
+
         if (!this.isPermisstion && !this.isPermisstionDB) {
             this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
-            // console.log('this.param:', this.param);
-        } else {
-            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP)) {
+        } else if (this.isApprove) {
+            console.log('isApprove:', this.isApprove);
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP) ||
+                this.appUserService.currentUser?.Permissions.includes(permissionCodeSale)) {
                 this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
                 this.param.approvedTBPID = this.appUserService.currentUser?.EmployeeID;
                 this.param.step = 2;
@@ -281,15 +291,29 @@ export class PaymentOrderComponent implements OnInit {
 
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
                 this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR) ||
-                this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
-                this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
+
                 // this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
                 this.appUserService.currentUser?.IsAdmin) {
                 this.param.departmentID = 0;
                 this.param.approvedTBPID = 0;
                 this.param.step = 0;
             }
+
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
+                this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
+                this.appUserService.currentUser?.IsAdmin) {
+                this.param.departmentID = 0;
+                this.param.approvedTBPID = 0;
+                this.param.step = 0;
+            }
+        } else {
+            console.log('isApprove else:', this.isApprove);
+            this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
+            this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
         }
+        // }
+
+
 
         this.initGrid();
         this.initGridSpecial();
@@ -2651,9 +2675,10 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadData() {
+
+        // console.log('this.activeTabqqq:', this.activeTab);
         this.loadDataNormal();
         this.loadDataSpecial();
-
     }
 
     loadDataNormal() {
@@ -2698,11 +2723,30 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadDataSpecial() {
+
+        // const permissionCodeHR = "N59";
+        // const permissionCodeTbpHR = "N56";
+
+        // if (this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
+        //         this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR) ||
+
+        //         // this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
+        //         this.appUserService.currentUser?.IsAdmin) {
+        //         this.param.departmentID = 0;
+        //         this.param.approvedTBPID = 0;
+        //         this.param.step = 0;
+        //     }
+
+        let emp = 0;
+        if (this.isPermisstionDB && this.isApprove) {
+            emp = 0;
+        } else emp = this.appUserService.currentUser?.EmployeeID || 0;
+
         const p = {
             ...this.param,
             isSpecialOrder: 1,
             typeOrder: 0,
-            employeeID: this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
+            employeeID: emp
         }
         this.paymentService.get(p).subscribe({
             next: (response) => {
@@ -4725,8 +4769,9 @@ export class PaymentOrderComponent implements OnInit {
     tabValueChange(e: any) {
         // console.log('tabValueChange e:', e);
         this.activeTab = e;
-        // console.log('this.activeTab:', this.activeTab);
+        console.log('this.activeTab tabValueChange:', this.activeTab);
         this.getSteps();
+
     }
 
     onUpdateTotalMoney() {

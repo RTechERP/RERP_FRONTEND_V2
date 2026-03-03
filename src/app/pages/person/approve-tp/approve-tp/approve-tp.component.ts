@@ -746,7 +746,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                         }
 
                         // Return HTML string - Tabulator sẽ tự động render nó
-                        return `<div style="white-space: normal;">${value}</div>`;
+                        return `<div style="white-space: pre-line;">${value}</div>`;
                     }
                 },
                 {

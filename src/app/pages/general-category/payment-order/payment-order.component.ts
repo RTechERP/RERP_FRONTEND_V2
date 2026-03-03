@@ -1587,7 +1587,7 @@ export class PaymentOrderComponent implements OnInit {
             formatterOptions: {
                 // dateSeparator: '.',
                 decimalSeparator: '.',
-                displayNegativeNumberWithParentheses: true,
+                displayNegativeNumberWithParentheses: false,
                 minDecimal: 0,
                 maxDecimal: 2,
                 thousandSeparator: ','
@@ -1692,7 +1692,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderDetailField.TotalMoney.type,
                 width: 150,
                 sortable: true, filterable: true,
-                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2, },
                 filter: { model: Filters['compoundInputNumber'] },
                 cssClass: 'text-end'
             },
@@ -1703,7 +1703,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderDetailField.PaymentPercentage.type,
                 width: 100,
                 sortable: true, filterable: true,
-                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2, },
                 filter: { model: Filters['compoundInputNumber'] },
                 cssClass: 'text-end'
             },
@@ -1761,10 +1761,10 @@ export class PaymentOrderComponent implements OnInit {
             formatterOptions: {
                 // dateSeparator: '.',
                 decimalSeparator: '.',
-                displayNegativeNumberWithParentheses: true,
+                displayNegativeNumberWithParentheses: false,
                 minDecimal: 0,
                 maxDecimal: 2,
-                thousandSeparator: ','
+                thousandSeparator: ',',
             },
 
 
@@ -2383,7 +2383,7 @@ export class PaymentOrderComponent implements OnInit {
             formatterOptions: {
                 // dateSeparator: '.',
                 decimalSeparator: '.',
-                displayNegativeNumberWithParentheses: true,
+                displayNegativeNumberWithParentheses: false,
                 minDecimal: 0,
                 maxDecimal: 2,
                 thousandSeparator: ','
@@ -2518,7 +2518,7 @@ export class PaymentOrderComponent implements OnInit {
             formatterOptions: {
                 // dateSeparator: '.',
                 decimalSeparator: '.',
-                displayNegativeNumberWithParentheses: true,
+                displayNegativeNumberWithParentheses: false,
                 minDecimal: 0,
                 maxDecimal: 2,
                 thousandSeparator: ','
@@ -4109,13 +4109,13 @@ export class PaymentOrderComponent implements OnInit {
 
 
             let totalQuantity = details.reduce((sum: number, x: any) => sum + x.Quantity, 0);
-            totalQuantity = totalQuantity <= 0 ? '' : totalQuantity;
+            totalQuantity = totalQuantity == 0 ? '' : totalQuantity;
 
             let totalUnitPrice = details.reduce((sum: number, x: any) => sum + x.UnitPrice, 0);
-            totalUnitPrice = totalUnitPrice <= 0 ? '' : (isVND ? this.formatNumber(totalUnitPrice, 0) : this.formatNumber(totalUnitPrice));
+            totalUnitPrice = totalUnitPrice == 0 ? '' : (isVND ? this.formatNumber(totalUnitPrice, 0) : this.formatNumber(totalUnitPrice));
 
             let totalMoney = details.reduce((sum: number, x: any) => sum + x.TotalMoney, 0);
-            totalMoney = totalMoney <= 0 ? '' : (isVND ? this.formatNumber(totalMoney, 0) : this.formatNumber(totalMoney));
+            totalMoney = totalMoney == 0 ? '' : (isVND ? this.formatNumber(totalMoney, 0) : this.formatNumber(totalMoney));
 
             sumTotalFooter = [
                 [
@@ -4157,11 +4157,11 @@ export class PaymentOrderComponent implements OnInit {
         for (let i = 0; i < details.length; i++) {
 
             const detail = details[i];
-            const quantity = detail.Quantity <= 0 ? '' : this.formatNumber(detail.Quantity);
-            const unitPrice = detail.UnitPrice <= 0 ? '' : (isVND ? this.formatNumber(detail.UnitPrice, 0) : this.formatNumber(detail.UnitPrice));
-            const totalMoney = detail.TotalMoney <= 0 ? '' : (isVND ? this.formatNumber(detail.TotalMoney, 0) : this.formatNumber(detail.TotalMoney));
-            const paymentPercentage = detail.PaymentPercentage <= 0 ? '' : detail.PaymentPercentage;
-            const totalPaymentAmount = detail.TotalPaymentAmount <= 0 ? '' : (isVND ? this.formatNumber(detail.TotalPaymentAmount, 0) : this.formatNumber(detail.TotalPaymentAmount));
+            const quantity = detail.Quantity == 0 ? '' : this.formatNumber(detail.Quantity);
+            const unitPrice = detail.UnitPrice == 0 ? '' : (isVND ? this.formatNumber(detail.UnitPrice, 0) : this.formatNumber(detail.UnitPrice));
+            const totalMoney = detail.TotalMoney == 0 ? '' : (isVND ? this.formatNumber(detail.TotalMoney, 0) : this.formatNumber(detail.TotalMoney));
+            const paymentPercentage = detail.PaymentPercentage == 0 ? '' : detail.PaymentPercentage;
+            const totalPaymentAmount = detail.TotalPaymentAmount == 0 ? '' : (isVND ? this.formatNumber(detail.TotalPaymentAmount, 0) : this.formatNumber(detail.TotalPaymentAmount));
             let item = [
                 { text: detail.Stt, alignment: 'center' },
                 { text: detail.ContentPayment, alignment: '' },
@@ -4481,7 +4481,7 @@ export class PaymentOrderComponent implements OnInit {
 
         const isVND = (paymentOrder.Unit?.toUpperCase() ?? '') == 'VND';
         let totalMoneys = details.reduce((sum: number, x: any) => sum + x.TotalMoney, 0);
-        totalMoneys = totalMoneys <= 0 ? '' : (isVND ? this.formatNumber(totalMoneys, 0) : this.formatNumber(totalMoneys));
+        totalMoneys = totalMoneys == 0 ? '' : (isVND ? this.formatNumber(totalMoneys, 0) : this.formatNumber(totalMoneys));
 
         let items: any = [];
         for (let i = 0; i < details.length; i++) {

@@ -27,6 +27,16 @@ angular-slickgrid,
     height: 100% !important;
 }
 
+/* nz-spin height fix: đảm bảo nz-spin và các phần tử con chiếm 100% chiều cao */
+:host ::ng-deep .grid-container-daily-report nz-spin,
+:host ::ng-deep .grid-container-daily-report .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-daily-report .ant-spin-container,
+:host ::ng-deep .grid-container-daily-report angular-slickgrid,
+:host ::ng-deep .grid-container-daily-report .slickgrid-container,
+:host ::ng-deep .grid-container-daily-report .gridPane {
+    height: 100% !important;
+}
+
 .inner-content {
     padding: 0 !important;
 }

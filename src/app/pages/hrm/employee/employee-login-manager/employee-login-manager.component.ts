@@ -47,7 +47,8 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
   loginManagerForm!: FormGroup;
   employeeList: any[] = [];
   employeeNameList: any[] = [];
-  hasUser: boolean = true;  
+  hasUser: boolean = true;
+  isSubmitting: boolean = false;
 
 
   constructor(
@@ -197,24 +198,27 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
       formData.UserID = selectedEmployee.UserID
       formData.Status = formData.HasUser;
     }
-    
+
     // Nếu không chọn TeamID thì set = 0
     if (!formData.TeamID) {
       formData.TeamID = 0;
     }
-    
+
     // Nếu không có UserID thì set = 0
     if (!formData.UserID) {
       formData.UserID = 0;
     }
 
+    this.isSubmitting = true;
     this.employeeService.saveLoginInfo(formData).subscribe({
       next: () => {
+        this.isSubmitting = false;
         this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thông tin đăng nhập thành công');
         this.onSaveSuccess.emit();
         this.closeModal();
       },
       error: (err) => {
+        this.isSubmitting = false;
         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
       }
     })

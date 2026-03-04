@@ -101,6 +101,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
   isAdmin: boolean = false;
   currentUserID: number = 0;
   isLoading: boolean = false;
+  @Input() warehouseCode:string='HN';
   //
   selectedKhoTypes: number[] = [];
   cbbStatus: any = [
@@ -131,7 +132,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
   };
 
   dataContextMenu: any[] = [];
-  
+
   // Document columns (dynamic) - danh sách documents từ API
   documents: DocumentImport[] = [];
 
@@ -151,6 +152,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.isAdmin = this.appUserService.isAdmin;
     this.currentUserID = this.appUserService.id || 0;
+    this.loadDataBillImportSynthetic();
   }
   ngAfterViewInit(): void {
     // Đảm bảo load data trước khi vẽ bảng
@@ -629,6 +631,17 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
       selectableRows: true, // Cho phép chọn nhiều dòng
       rowContextMenu: rowMenu,
       columns: [
+        {
+          title: '',
+          formatter: 'rowSelection',
+          titleFormatter: 'rowSelection',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          headerSort: false,
+          frozen: true,
+          width: 40,
+          cssClass: 'row-select-column',
+        },
         {
           title: 'Nhận chứng từ',
           field: 'Status',

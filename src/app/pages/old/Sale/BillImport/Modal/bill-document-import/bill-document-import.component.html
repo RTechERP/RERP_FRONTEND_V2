@@ -9,7 +9,7 @@
                 <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
                     <!-- <div #tableBillDocumentImport style="height: 30vh;"></div> -->
                     <div id="grid-container" style="height: 35vh;">
-                        <angular-slickgrid gridId="gridBillDocumentImport" [columns]="columnDefinitionsMaster"
+                        <angular-slickgrid [gridId]="'gridBillDocumentImport-' + id" [columns]="columnDefinitionsMaster"
                             [options]="gridOptionsMaster" [dataset]="dataBillDocumentImport"
                             (onAngularGridCreated)="angularGridMasterReady($event.detail)"
                             (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)"
@@ -21,9 +21,9 @@
                 <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
                     <!-- <div #tableBillDocumentImportLog style="height: 30vh;"></div> -->
                     <div id="grid-container" style="height: 30vh;">
-                        <angular-slickgrid gridId="gridBillDocumentImportLog" 
+                        <angular-slickgrid [gridId]="'gridBillDocumentImportLog-' + id"
                             [columns]="columnDefinitionsLog"
-                            [options]="gridOptionsLog" 
+                            [options]="gridOptionsLog"
                             [dataset]="dataBillDocumentImportLog"
                             (onAngularGridCreated)="angularGridLogReady($event.detail)"
                             (onClick)="onCellLogClicked($event.detail.eventData, $event.detail.args)"

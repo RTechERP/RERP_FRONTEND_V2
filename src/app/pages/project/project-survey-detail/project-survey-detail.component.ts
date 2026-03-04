@@ -113,8 +113,8 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     customerName: this.fb.control('', [Validators.required, this.trimRequiredValidator]),
     customerPhoneNum: this.fb.control('', [this.phoneNumberValidator]),
     descripsion: this.fb.control('', [Validators.required, this.trimRequiredValidator]),
-    dateStart: this.fb.control(DateTime.local().plus({ day: 1 }).toISO()),
-    dateEnd: this.fb.control(DateTime.local().plus({ day: 1 }).toISO()),
+    dateStart: this.fb.control(DateTime.local().plus({ day: 1 }).toFormat('yyyy-MM-dd')),
+    dateEnd: this.fb.control(DateTime.local().plus({ day: 1 }).toFormat('yyyy-MM-dd')),
     note: this.fb.control(''),
     isUrgent: this.fb.control(false),
   });
@@ -797,17 +797,11 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           let data = response.data;
           if (data) {
             const dateStart = data.DateStart
-              ? DateTime.fromISO(data.DateStart)
-                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                .toUTC()
-                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-              : DateTime.local().plus({ day: 1 }).toISO();
+              ? DateTime.fromISO(data.DateStart).toFormat('yyyy-MM-dd')
+              : DateTime.local().plus({ day: 1 }).toFormat('yyyy-MM-dd');
             const dateEnd = data.DateEnd
-              ? DateTime.fromISO(data.DateEnd)
-                .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-                .toUTC()
-                .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-              : DateTime.local().plus({ day: 1 }).toISO();
+              ? DateTime.fromISO(data.DateEnd).toFormat('yyyy-MM-dd')
+              : DateTime.local().plus({ day: 1 }).toFormat('yyyy-MM-dd');
 
             this.validateForm.patchValue({
               projectId: this.projectId || '',
@@ -926,7 +920,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
     if (this.validateForm.valid) {
       const formValue = this.validateForm.getRawValue();
-      if (this.isEdit == 0) {
+      if(this.isEdit == 0){
         let dateNow = DateTime.local();
         let ds = DateTime.fromJSDate(new Date(formValue.dateStart));
         let de = DateTime.fromJSDate(new Date(formValue.dateEnd));

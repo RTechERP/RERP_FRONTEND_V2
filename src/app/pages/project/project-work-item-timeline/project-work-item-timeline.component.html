@@ -21,14 +21,9 @@
           <form nz-form nzLayout="vertical">
             <nz-form-item>
               <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24"
-                ><nz-date-picker
-                  name="dateStart"
-                  class="w-100"
-                  nzFormat="dd/MM/yyyy"
-                  [(ngModel)]="dateStart"
-                  nzAllowClear="false"
-                ></nz-date-picker>
+              <nz-form-control [nzSpan]="24">
+                <input nz-input type="date" name="dateStart" class="w-100"
+                  [(ngModel)]="dateStart" />
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mt-2">
@@ -36,13 +31,8 @@
                 >Đến ngày</nz-form-label
               >
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker
-                  name="dateEnd"
-                  class="w-100"
-                  nzFormat="dd/MM/yyyy"
-                  [(ngModel)]="dateEnd"
-                  nzAllowClear="false"
-                ></nz-date-picker>
+                <input nz-input type="date" name="dateEnd" class="w-100"
+                  [(ngModel)]="dateEnd" />
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mt-2">

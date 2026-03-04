@@ -26,7 +26,7 @@ export class MenuAppService {
         childrenKeys: string[] = ['children']
     ): any[] {
 
-        // console.log('sortBySTTImmutable:', items);
+        // console.log('items:', items);
         // console.log('getOrder:', getOrder);
         // console.log('childrenKeys:', childrenKeys);
 

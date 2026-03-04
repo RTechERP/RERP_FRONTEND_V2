@@ -90,14 +90,14 @@ export class FollowProjectBaseComponent implements OnInit {
     sizeTbDetail: any = '0';
 
     selectedFollowProject = new Set<any>();
-    dateStart: Date = new Date(new Date().getFullYear(), 0, 1);
+    dateStart: Date = new Date(2019, 0, 1);
     dateEnd: Date = new Date();
     filterText: string = '';
     user: number = 0;
     customerID: number = 0;
     pm: number = 0;
     warehouseID: number = 0;
-    groupSaleID: number = 0;
+    groupSaleID: any = 0;
 
     isAdmin: boolean = false;
     isAdminSale: number = 0;
@@ -150,7 +150,7 @@ export class FollowProjectBaseComponent implements OnInit {
         this.getCustomerBase();
     }
     ngAfterViewInit(): void {
-        this.drawTbFollowProject(this.tb_followProjectContainer.nativeElement);
+        // Chỉ draw detail tables, main table sẽ được draw sau khi load xong groupSaleUser
         this.drawTbFollowProjectForSale(this.tb_followProjectForSaleContainer.nativeElement);
         this.drawTbFollowProjectForPM(this.tb_followProjectForPMContainer.nativeElement);
     }
@@ -179,17 +179,80 @@ export class FollowProjectBaseComponent implements OnInit {
         }));
     }
 
+    // Logic từ WinForms LoadGroupSales()
     getGroupSaleUser() {
-        this.khoBaseService.getGroupSaleUser({ groupID: 0, teamID: 0 }).subscribe({
+        // Bước 1: Lấy thông tin GroupSalesUser của user đang đăng nhập
+        this.khoBaseService.getGroupSalesUserByUserId(this.currentUserId).subscribe({
             next: (response: any) => {
-                this.groupSaleUser = this.toNzTree(this.khoBaseService.setDataTree(response.data, "ID"));
+                const model = response.data || {};
+                let groupID = 0;
+                let teamID = 0;
+
+                if (model.ID > 0) {
+                    groupID = model.GroupSalesID || 0;
+                }
+
+                if (model.ParentID === 0) {
+                    teamID = model.ID || 0;
+                } else {
+                    teamID = model.ParentID || 0;
+                }
+
+                // Nếu là Admin hoặc AdminSale thì reset về 0
+                if (this.isAdminSale === 1 || this.isAdmin) {
+                    groupID = 0;
+                    teamID = 0;
+                }
+
+                // Bước 2: Load dữ liệu team/group với groupID và teamID đã tính
+                this.khoBaseService.getGroupSaleUser({ groupID, teamID }).subscribe({
+                    next: (res: any) => {
+                        this.groupSaleUser = this.toNzTree(this.khoBaseService.setDataTree(res.data, "ID"));
+
+                        // Bước 3: Set giá trị mặc định cho dropdown (key là string)
+                        if (model.ParentID === 0 && model.ID > 0) {
+                            this.groupSaleID = model.ID.toString();
+                        } else if (model.ParentID > 0) {
+                            // Tìm parent trong data
+                            const found = res.data?.find((x: any) => x.ID === model.ParentID);
+                            if (found) {
+                                this.groupSaleID = found.ID.toString();
+                            }
+                        }
+
+                        // Bước 4: Draw main table sau khi đã set groupSaleID
+                        if (this.tb_followProjectContainer?.nativeElement && !this.tb_followProjectBody) {
+                            this.drawTbFollowProject(this.tb_followProjectContainer.nativeElement);
+                        }
+                    },
+                    error: (err: any) => {
+                        this.notification.create(
+                            'error',
+                            'Thông báo',
+                            'Lỗi load nhóm groupSaleUser!'
+                        );
+                    }
+                });
             },
             error: (err: any) => {
-                this.notification.create(
-                    'error',
-                    'Thông báo',
-                    'Lỗi load nhóm groupSaleUser!'
-                );
+                // Fallback: load tất cả nếu không lấy được info
+                this.khoBaseService.getGroupSaleUser({ groupID: 0, teamID: 0 }).subscribe({
+                    next: (res: any) => {
+                        this.groupSaleUser = this.toNzTree(this.khoBaseService.setDataTree(res.data, "ID"));
+
+                        // Draw main table fallback
+                        if (this.tb_followProjectContainer?.nativeElement && !this.tb_followProjectBody) {
+                            this.drawTbFollowProject(this.tb_followProjectContainer.nativeElement);
+                        }
+                    },
+                    error: (e: any) => {
+                        this.notification.create(
+                            'error',
+                            'Thông báo',
+                            'Lỗi load nhóm groupSaleUser!'
+                        );
+                    }
+                });
             }
         });
     }
@@ -628,7 +691,7 @@ export class FollowProjectBaseComponent implements OnInit {
         });
     }
     refresh() {
-        this.dateStart = new Date(new Date().getFullYear(), 0, 1);
+        this.dateStart = new Date(2019, 0, 1);
         this.dateEnd = new Date();
         this.filterText = '';
         this.user = 0;

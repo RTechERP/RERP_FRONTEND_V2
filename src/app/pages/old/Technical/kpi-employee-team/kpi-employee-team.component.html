@@ -1,0 +1,105 @@
+<ng-container class="w-100">
+    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+        <!-- Header với p-menubar -->
+        <div class="card-header bg-white p-0" style="flex-shrink: 0;">
+            <p-menubar [model]="menuBars">
+                <ng-template pTemplate="item" let-item>
+                    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                        <i [class]="item.icon"></i>
+                        <span class="p-menuitem-text">{{ item.label }}</span>
+                    </a>
+                </ng-template>
+            </p-menubar>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar bg-light border-bottom p-2">
+            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Năm</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-number [(ngModel)]="filters.yearValue" name="yearValue" [nzMin]="2010" [nzMax]="3000"
+                            nzSize="small" style="width: 80px;"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Quý</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-number [(ngModel)]="filters.quarterValue" name="quarterValue" [nzMin]="1" [nzMax]="4"
+                            nzSize="small" style="width: 60px;"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Phòng ban</nz-form-label>
+                    <nz-form-control>
+                        <nz-select name="departmentID" nzShowSearch nzAllowClear nzSize="small"
+                            nzPlaceHolder="Chọn phòng ban" style="width: 200px;" [(ngModel)]="filters.departmentID">
+                            <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID"
+                                [nzLabel]="dept.Name"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-control>
+                        <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                            <i nz-icon nzType="search"></i> Tìm kiếm
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </div>
+
+        <!-- Content - Split Container -->
+        <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
+            <nz-splitter class="h-100">
+                <!-- Left Panel: Team Tree/Grid -->
+                <nz-splitter-panel nzDefaultSize="50%" [nzCollapsible]="true" nzResizable="true">
+                    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                        <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+                            <h6 class="m-0 ms-2">Danh sách Team</h6>
+                        </div>
+                        <div class="card-body p-0 flex-grow-1 grid-container-team" style="overflow: hidden;">
+                            <nz-spin [nzSpinning]="isLoadingTeam" nzTip="Đang tải..." class="h-100 w-100">
+                                <angular-slickgrid gridId="gridKPITeam" [columns]="columnDefinitionsTeam"
+                                    [options]="gridOptionsTeam" [dataset]="datasetTeam"
+                                    (onAngularGridCreated)="angularGridReadyTeam($event.detail)"
+                                    (onClick)="onTeamRowClick($event.detail.eventData, $event.detail.args)"
+                                    (onDblClick)="onTeamRowDblClick($event.detail.eventData, $event.detail.args)">
+                                </angular-slickgrid>
+                            </nz-spin>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+
+                <!-- Right Panel: Employee Grid -->
+                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                        <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center"
+                            style="flex-shrink: 0;">
+                            <h6 class="m-0 ms-2">Danh sách nhân viên trong Team</h6>
+                            <div class="d-flex gap-1 me-2">
+                                <button nz-button nzType="default" nzSize="small" (click)="onAddEmployee()">
+                                    <i nz-icon nzType="plus"></i> Thêm
+                                </button>
+                                <button nz-button nzType="default" nzDanger nzSize="small" (click)="onDeleteEmployee()">
+                                    <i nz-icon nzType="delete"></i> Xóa
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0 flex-grow-1 grid-container-employee" style="overflow: hidden;">
+                            <nz-spin [nzSpinning]="isLoadingEmployee" nzTip="Đang tải..." class="h-100 w-100">
+                                <angular-slickgrid gridId="gridKPIEmployee" [columns]="columnDefinitionsEmployee"
+                                    [options]="gridOptionsEmployee" [dataset]="datasetEmployee"
+                                    (onAngularGridCreated)="angularGridReadyEmployee($event.detail)">
+                                </angular-slickgrid>
+                            </nz-spin>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+            </nz-splitter>
+        </div>
+    </div>
+</ng-container>

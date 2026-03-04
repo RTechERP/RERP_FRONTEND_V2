@@ -48,6 +48,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
 import { ChiTietSanPhamSaleComponent } from '../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 import { ActivatedRoute } from '@angular/router';
+import { BillExportDetailNewComponent } from '../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 
 interface ProductGroup {
     ID?: number;
@@ -333,7 +334,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         warehouseID: number,
         khoTypeID: number
     ) {
-        const modalRef = this.modalService.open(BillExportDetailComponent, {
+        const modalRef = this.modalService.open(BillExportDetailNewComponent, {
             centered: true,
             size: 'xl',
             backdrop: 'static',

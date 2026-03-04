@@ -26,14 +26,14 @@ import { NzUploadModule } from 'ng-zorro-antd/upload'; (window as any).luxon = {
 declare var bootstrap: any;
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { VehicleRepairService } from './vehicle-repair-service/vehicle-repair.service';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { VehicleManagementService } from '../vehicle-management/vehicle-management.service';
 import { filter, last } from 'rxjs';
 import { debounce } from 'rxjs';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { VehicleRepairComponentFormComponent } from './vehicle-repair-component-form/vehicle-repair-component-form.component';
-import { HasPermissionDirective } from '../../../directives/has-permission.directive';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   standalone: true,
   imports: [

@@ -23,6 +23,7 @@ import { ReportImportExportService } from '../report-import-export-service/repor
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { BillImportDetailComponent } from '../../BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { BillImportDetailNewComponent } from '../../BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 
 @Component({
   selector: 'app-history-modal',
@@ -64,7 +65,7 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
 
   table_Export:any;
   dataExport:any=[];
-  
+
   product: any[]=[];
   productSale= {
     productCode:'',
@@ -83,7 +84,7 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
     this.drawTable_Import();
     this.drawTable_Export();
   }
-  
+
   getHistory() {
     this.reportImportExportService.getHistoryImportExport(this.productID, "HN")
       .subscribe({
@@ -93,9 +94,9 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
             const dtI = res.data[1] ?? [];     // Dữ liệu nhập
             const dtE = res.data[2] ?? [];
 
-            this.dataImport = dtI; 
+            this.dataImport = dtI;
             this.dataExport = dtE;
-          
+
             if (this.table_Import) {
               this.table_Import.replaceData(this.dataImport);
             } else {
@@ -106,7 +107,7 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
             } else {
               this.drawTable_Export();
             }
-  
+
             // Thông tin tổng quan sản phẩm
             if (row.length > 0) {
               this.productSale = {
@@ -126,12 +127,12 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
         }
       });
   }
-  
+
   closeModal() {
     this.activeModal.dismiss(true);
   }
   openModalBillExportDetail(ischeckmode: boolean) {
-  
+
     const modalRef = this.modalService.open(BillExportDetailNewComponent, {
       centered: true,
       // windowClass: 'full-screen-modal',
@@ -153,7 +154,7 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
     );
   }
   openModalBillImportDetail(ischeckmode: boolean) {
-    const modalRef = this.modalService.open(BillImportDetailComponent, {
+    const modalRef = this.modalService.open(BillImportDetailNewComponent, {
       centered: true,
       // windowClass: 'full-screen-modal',
       size: 'xl',
@@ -190,7 +191,7 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
         { title: 'Nhận chứng từ', field: 'Status', hozAlign: 'center', headerHozAlign: 'center', formatter: (cell) => {
           const value = cell.getValue();
           return `<input type="checkbox" ${value === true ? 'checked' : ''} disabled />`;
-        }, 
+        },
         frozen:true
       },
         { title: 'Ngày nhận', field: 'DateStatus', hozAlign: 'center', headerHozAlign: 'center', formatter: 'datetime', formatterParams: { outputFormat: 'yyyy-MM-dd' },frozen:true },
@@ -204,7 +205,7 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
       ]
     });
     this.table_Import.on("rowDblClick", (e: MouseEvent, row: any) => {
-      const rowData = row.getData(); 
+      const rowData = row.getData();
       this.ImportID = rowData['ID'];
       this.zone.run(() => {
         this.openModalBillImportDetail(true);
@@ -239,7 +240,7 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
       ]
     });
     this.table_Export.on("rowDblClick", (e: MouseEvent, row: any) => {
-      const rowData = row.getData(); 
+      const rowData = row.getData();
       this.ExportID = rowData['ID'];
       this.zone.run(() => {
         this.openModalBillExportDetail(true);

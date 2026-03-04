@@ -67,6 +67,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { PermissionService } from '../../../../../../services/permission.service';
 import { BillImportChoseSerialService } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.service';
 import { BillImportDetailComponent } from '../../../BillImport/Modal/bill-import-detail/bill-import-detail.component';
+import { BillImportDetailNewComponent } from '../../../BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 
 interface ProductSale {
   Id?: number;
@@ -1041,7 +1042,7 @@ private productInventoryDetailMap: Map<number, {
     }
 
     // Mở modal BillImportDetail
-    const modalRef = this.modalService.open(BillImportDetailComponent, {
+    const modalRef = this.modalService.open(BillImportDetailNewComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,

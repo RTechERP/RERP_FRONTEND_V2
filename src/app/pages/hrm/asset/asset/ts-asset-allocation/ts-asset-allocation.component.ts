@@ -100,6 +100,16 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   datasetDetail: any[] = [];
 
   public detailTabTitle: string = 'Thông tin biên bản cấp phát:';
+  gridId = this.generateUUIDv4();
+  gridIdDetail = this.generateUUIDv4();
+
+  generateUUIDv4(): string {
+    return 'g-' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
   constructor(private notification: NzNotificationService,
     private assetAllocationService: AssetAllocationService,
     private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
@@ -491,7 +501,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
 
     this.gridOptions = {
       autoResize: {
-        container: '#grid-container-allocation',
+        container: '#' + this.gridId + '_container',
         calculateAvailableSizeBy: 'container'
       },
       enableAutoResize: true,
@@ -579,7 +589,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
 
     this.gridOptionsDetail = {
       autoResize: {
-        container: '#grid-container-allocation-detail',
+        container: '#' + this.gridIdDetail + '_container',
         calculateAvailableSizeBy: 'container'
       },
       enableAutoResize: true,

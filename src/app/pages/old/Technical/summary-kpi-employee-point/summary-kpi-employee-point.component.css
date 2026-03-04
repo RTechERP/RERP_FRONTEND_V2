@@ -1,0 +1,100 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    width: 100%;
+}
+
+.card {
+    height: 100%;
+    min-height: 0;
+}
+
+.card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-bar {
+    flex-shrink: 0;
+}
+
+/* Grid container styles */
+.grid-container-main {
+    height: 100%;
+    position: relative;
+}
+
+:host ::ng-deep .grid-container-main angular-slickgrid,
+:host ::ng-deep .grid-container-main .slickgrid-container,
+:host ::ng-deep .grid-container-main .gridPane {
+    height: 100% !important;
+}
+
+/* Override slickgrid styles */
+:host ::ng-deep .slick-header-column {
+    font-weight: bold;
+    font-size: 12px;
+}
+
+:host ::ng-deep .slick-cell {
+    font-size: 12px;
+}
+
+:host ::ng-deep .slick-group {
+    background-color: #f5f5f5;
+}
+
+:host ::ng-deep .slick-group-title {
+    font-weight: bold;
+}
+
+/* Select dropdown styles */
+:host ::ng-deep .ant-select-selection-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* Font size */
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+/* Cell wrap */
+::ng-deep .cell-wrap {
+    white-space: normal !important;
+    word-wrap: break-word;
+    line-height: 1.4 !important;
+    display: flex !important;
+    align-items: center;
+}
+
+/* Row styling for publish status */
+:host ::ng-deep .slick-row.published {
+    background-color: #d4edda !important;
+}
+
+:host ::ng-deep .slick-row.unpublished {
+    background-color: #fff3cd !important;
+}
+
+/* Row styling for different rating (matching C# grvData_RowStyle LightBlue) */
+:host ::ng-deep .slick-row.row-rating-different {
+    background-color: #add8e6 !important;
+}
+
+/* Text alignment helpers */
+.text-end {
+    text-align: right !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.fw-bold {
+    font-weight: bold !important;
+}

@@ -291,6 +291,9 @@ export class DocumentSaleAdminFormComponent implements OnInit, AfterViewInit {
             IsPromulgated: false, // Luôn = false
             IsOnWeb: false, // Luôn = false
         };
+
+        console.log('>>> DocumentSaleAdminFormComponent.saveDocument payload:', payload);
+
         this.documentService.saveDocument(payload).subscribe({
             next: (res) => {
                 this.saving = false; // Kết thúc lưu

@@ -101,7 +101,7 @@ export class ProjectPartlistPurchaseRequestService {
   }
 
   getProductGroups(): Observable<any[]> {
-    return this.http.get<any>(`${this.productGroupUrl}?isvisible=true`).pipe(
+    return this.http.get<any>(`${this.productGroupUrl}/get-productgroup-purchase`).pipe(
       map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
     );
   }
@@ -174,7 +174,7 @@ export class ProjectPartlistPurchaseRequestService {
 
   // Get ProductGroupsRTC (same as getProductRTC for now, but can be separated if needed)
   getProductGroupsRTC(warehouseType: number): Observable<any[]> {
-    return this.http.get<any>(environment.host + 'api/ProductGroupRTC/get-all?warehouseType=' + warehouseType).pipe(
+    return this.http.get<any>(`${this.productGroupUrl}/get-productgroup-purchase`).pipe(
       map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
     );
   }

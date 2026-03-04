@@ -205,18 +205,14 @@
           <div nz-col [nzSpan]="6">
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Từ ngày</label>
-              <nz-date-picker name="dateStart" class="w-100" nzFormat="dd/MM/yyyy" nzAllowClear="false"
-                formControlName="dateStart">
-              </nz-date-picker>
+              <input nz-input type="date" name="dateStart" class="w-100" formControlName="dateStart" />
             </nz-form-item>
           </div>
 
           <div nz-col [nzSpan]="6">
             <nz-form-item class="m-0">
               <label class="fs-12 p-0">Tới ngày</label>
-              <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" nzAllowClear="false"
-                formControlName="dateEnd">
-              </nz-date-picker>
+              <input nz-input type="date" name="dateEnd" class="w-100" formControlName="dateEnd" />
             </nz-form-item>
           </div>
         </nz-row>

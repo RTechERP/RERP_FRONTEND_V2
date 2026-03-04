@@ -43,9 +43,8 @@
                 ? 'Vui lòng chọn ngày báo cáo!'
                 : undefined
             ">
-                        <nz-date-picker formControlName="DateReport" class="w-100" nzFormat="dd/MM/yyyy"
-                            nzPlaceHolder="Chọn ngày báo cáo" [nzDisabledDate]="disabledDate"
-                            (ngModelChange)="onDateReportChange()"></nz-date-picker>
+                        <input nz-input type="date" formControlName="DateReport" class="w-100"
+                            (change)="onDateReportChange()" />
                     </nz-form-control>
                 </nz-form-item>
             </nz-col>

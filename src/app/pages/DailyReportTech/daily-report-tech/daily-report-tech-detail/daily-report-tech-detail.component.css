@@ -166,15 +166,16 @@ legend.reset {
 /* --- BẮT ĐẦU: CSS CHO DROPDOWN NHIỀU DÒNG & CAO HƠN --- */
 
 /* 1. Tăng chiều cao của khung danh sách (quan trọng) */
-.multi-line-select-dropdown .cdk-virtual-scroll-viewport {
-  height: 300px !important;
-  /* Tăng chiều cao lên (Mặc định của Ant là 256px) */
-  max-height: 60vh !important;
-  /* Giới hạn tối đa 60% chiều cao màn hình để không bị trôi */
+::ng-deep .select-dropdown .cdk-virtual-scroll-viewport {
+  height: 200px !important;
+}
+
+::ng-deep .multi-line-select-dropdown .cdk-virtual-scroll-viewport {
+  height: 100px !important;
 }
 
 /* 2. Chỉnh item để tự động co giãn theo nội dung */
-.multi-line-select-dropdown .ant-select-item {
+::ng-deep .multi-line-select-dropdown .ant-select-item {
   height: auto !important;
   /* Cho phép chiều cao tự động, không cố định 32px */
   min-height: 32px;
@@ -185,10 +186,15 @@ legend.reset {
 }
 
 /* 3. Chỉnh nội dung text để xuống dòng */
-.multi-line-select-dropdown .ant-select-item-option-content {
+::ng-deep .multi-line-select-dropdown .ant-select-item-option-content {
   white-space: normal !important;
   word-break: break-word;
   line-height: 1.5;
 }
 
 /* --- KẾT THÚC --- */
+::ng-deep .select-dropdown .ant-select-item-option-content {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.5;
+}

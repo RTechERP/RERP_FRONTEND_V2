@@ -1,32 +1,29 @@
-<div class="card card-primary rounded-0 border-0 h-100 d-flex flex-column">
-    <div
-        class="card-header p-1 bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h6 class="text-uppercase m-0">
-            <span class="text-dark font-weight-bold">QUY ĐỊNH / THÔNG BÁO</span>
-        </h6>
-        <div class="d-flex gap-2 flex-wrap align-items-center">
-            <label>Phòng ban: </label>
-            <nz-select nzSize="default" style="min-width: 200px" [(ngModel)]="departmentId" name="departmentId"
-                nzPlaceHolder="Chọn phòng ban" (ngModelChange)="onDepartmentChange()">
-                <nz-option [nzLabel]="'Tất cả'" [nzValue]="-1"></nz-option>
-                <nz-option [nzLabel]="'Văn bản chung'" [nzValue]="0"></nz-option>
-                <nz-option *ngFor="let d of departments" [nzLabel]="d.Name" [nzValue]="d.ID"></nz-option>
-            </nz-select>
+<div class="card-header p-1 bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h6 class="text-uppercase m-0">
+        <span class="text-dark font-weight-bold">QUY ĐỊNH / THÔNG BÁO</span>
+    </h6>
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+        <label>Phòng ban: </label>
+        <nz-select nzSize="default" style="min-width: 200px" [(ngModel)]="departmentId" name="departmentId"
+            nzPlaceHolder="Chọn phòng ban" (ngModelChange)="onDepartmentChange()">
+            <nz-option [nzLabel]="'Tất cả'" [nzValue]="-1"></nz-option>
+            <nz-option [nzLabel]="'Văn bản chung'" [nzValue]="0"></nz-option>
+            <nz-option *ngFor="let d of departments" [nzLabel]="d.Name" [nzValue]="d.ID"></nz-option>
+        </nz-select>
 
-            <form class="card-header-form mt-0" (submit)="onSearch(); $event.preventDefault()">
-                <div class="input-group">
-                    <input type="text" class="form-control form-control-sm" [(ngModel)]="keyword" name="keyword"
-                        placeholder="Từ khóa..." (input)="onSearch()" />
-                    <button type="submit" class="btn btn-success btn-sm btn-icon">
-                        <i nz-icon nzType="search" nzTheme="outline"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+        <form class="card-header-form mt-0" (submit)="onSearch(); $event.preventDefault()">
+            <div class="input-group">
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="keyword" name="keyword"
+                    placeholder="Từ khóa..." (input)="onSearch()" />
+                <button type="submit" class="btn btn-success btn-sm btn-icon">
+                    <i nz-icon nzType="search" nzTheme="outline"></i>
+                </button>
+            </div>
+        </form>
     </div>
-    <div class="card-body p-0 flex-grow-1 overflow-hidden">
-        <div class="grid-wrapper">
-          <div #tb_document_common></div>
-        </div>
+</div>
+<div class="card-body p-0 flex-grow-1 overflow-hidden" style="height: 90vh !important;">
+    <div class="grid-wrapper">
+        <div #tb_document_common></div>
     </div>
 </div>

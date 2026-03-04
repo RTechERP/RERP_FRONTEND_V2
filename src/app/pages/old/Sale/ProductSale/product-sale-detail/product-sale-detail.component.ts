@@ -143,7 +143,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       NumberInStoreCuoiKy: [{ value: 0, disabled: true }],
       LocationID: [null],
       Maker: ['', [Validators.required, inStringListValidator(() => this.listFirm, 'FirmName')]],
-      Note: ['',[Validators.maxLength(500)]],
+      Note: ['', [Validators.maxLength(500)]],
       IsFix: [false]
     });
   }
@@ -184,18 +184,54 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       }
     });
   }
+  // getDataProductGroupcbb() {
+  //   this.productsaleService.getDataProductGroupcbb().subscribe({
+  //     next: (res) => {
+  //       if (res?.data) {
+  //         this.listProductGroupcbb = Array.isArray(res.data) ? res.data : [];
+
+  //       }
+  //     }, error: (err) => {
+  //       console.error('Lỗi khi lấy dữ liệu', err);
+  //     }
+  //   });
+
+
+  // }
+
   getDataProductGroupcbb() {
     this.productsaleService.getDataProductGroupcbb().subscribe({
       next: (res) => {
-        if (res?.data) {
-          this.listProductGroupcbb = Array.isArray(res.data) ? res.data : [];
 
-        }
+        const data = res.data || [];
+
+        this.listProductGroupcbb = data.filter((x: any) => x.Isvisible != false).map((x: any) => {
+          if (!x.ParentID || x.ParentID === 0) {
+            return {
+              ...x,
+              displayName: x.ProductGroupID + ' - ' + x.ProductGroupName
+            };
+          }
+
+          const parent = data.find((p: any) => p.ID === x.ParentID);
+
+          return {
+            ...x,
+            displayName: parent
+              ? `${parent.ProductGroupID} - ${x.ProductGroupName}`
+              : x.ProductGroupID + ' - ' + x.ProductGroupName
+          };
+        });
+
+        console.log('nhom', this.listProductGroupcbb);
       }, error: (err) => {
         console.error('Lỗi khi lấy dữ liệu', err);
       }
     });
+
+
   }
+
   getDataFirm() {
     //lấy dữ liệu hãng
     this.productsaleService.getDataFirm().subscribe({

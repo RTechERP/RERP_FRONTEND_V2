@@ -65,7 +65,7 @@ export class PaymentOrder {
     Step: number | null = null;
     StepName: string | null = '';
 
-    IsApproved: boolean | null = null;
+    IsApproved: number | null = null;
     ReasonCancel: string | null = '';
     ContentLog: string | null = '';
     ApproverName: string | null = '';
@@ -116,6 +116,8 @@ export class PaymentOrder {
     ApprovedBGDID: number | null = 0;
     PaymentOrderPOs: any[] = []
     PaymentOrderBillNumbers: any[] = []
+    PaymentOrderBillNumberss: string | null = ''
+    PaymentOrderPOss: string | null = ''
 
     // ===== Optional: constructor map từ object =====
     constructor(init?: Partial<PaymentOrder>) {

@@ -187,16 +187,16 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.dateRangeSubscription = this.bookingRoomStateService.dateRange$.subscribe(
       (range) => {
-        const isDateChanged = 
-          !this.dateStart || 
+        const isDateChanged =
+          !this.dateStart ||
           !this.dateEnd ||
           this.dateStart.getTime() !== range.dateStart.getTime() ||
           this.dateEnd.getTime() !== range.dateEnd.getTime();
-        
+
         if (!isDateChanged) {
           return;
         }
-        
+
         this.dateStart = range.dateStart;
         this.dateEnd = range.dateEnd;
         this.searchForm.patchValue(
@@ -206,11 +206,11 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           { emitEvent: false }
         );
-        
+
         if (this.isUpdatingFromStore) {
           this.isUpdatingFromStore = false;
         }
-        
+
         this.getAllBookingRoom();
       }
     );
@@ -255,8 +255,8 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
       refName === 'calendar1'
         ? this.calendar1Ref
         : refName === 'calendar2'
-        ? this.calendar2Ref
-        : this.calendar3Ref;
+          ? this.calendar2Ref
+          : this.calendar3Ref;
 
     if (!ref?.nativeElement) return;
 
@@ -297,7 +297,7 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
         );
         const startTime = info.event.startStr;
         const endTime = info.event.endStr;
-        const canDelete = info.event.extendedProps?.canDelete;    
+        const canDelete = info.event.extendedProps?.canDelete;
         this.onEditBookingRoom(id, date, roomId, startTime, endTime, !canDelete);
       },
       dateClick: (info: any) => {
@@ -308,6 +308,7 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       selectable: true,
       datesSet: (dateInfo: any) => {
+        // Tất cả calendars đều trigger khi navigate, nhưng chỉ cho calendar đầu tiên trigger API call
         if (refName === 'calendar1' && dateInfo.start && dateInfo.end) {
           const startDate = new Date(dateInfo.start);
           const endDate = new Date(dateInfo.end);
@@ -335,7 +336,7 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
         const icon = document.createElement('i');
         icon.className = 'fas fa-trash';
         deleteBtn.appendChild(icon);
-        
+
         deleteBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -359,44 +360,52 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
     calendar.render();
     this.roomCalendars.set(refName, calendar);
-    
-    if (refName === 'calendar1') {
-      setTimeout(() => {
-        const calendarEl = el;
-        const prevBtn = calendarEl.querySelector('.fc-prev-button');
-        const nextBtn = calendarEl.querySelector('.fc-next-button');
-        const todayBtn = calendarEl.querySelector('.fc-today-button');
-        
-        if (prevBtn) {
-          prevBtn.addEventListener('click', () => {
-            setTimeout(() => this.handleCalendarNavigation(), 100);
-          });
-        }
-        if (nextBtn) {
-          nextBtn.addEventListener('click', () => {
-            setTimeout(() => this.handleCalendarNavigation(), 100);
-          });
-        }
-        if (todayBtn) {
-          todayBtn.addEventListener('click', () => {
-            setTimeout(() => this.handleCalendarNavigation(), 100);
-          });
-        }
-      }, 200);
-    }
+
+    // Gắn event listener cho tất cả calendars để sync navigation
+    setTimeout(() => {
+      const calendarEl = ref.nativeElement;
+      const prevBtn = calendarEl.querySelector('.fc-prev-button');
+      const nextBtn = calendarEl.querySelector('.fc-next-button');
+      const todayBtn = calendarEl.querySelector('.fc-today-button');
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          setTimeout(() => this.syncCalendarNavigation(refName), 100);
+        });
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          setTimeout(() => this.syncCalendarNavigation(refName), 100);
+        });
+      }
+      if (todayBtn) {
+        todayBtn.addEventListener('click', () => {
+          setTimeout(() => this.syncCalendarNavigation(refName), 100);
+        });
+      }
+    }, 200);
   }
 
-  private handleCalendarNavigation(): void {
-    const calendar1 = this.roomCalendars.get('calendar1');
-    if (!calendar1) return;
+  // Sync navigation giữa các calendars và gọi API
+  private syncCalendarNavigation(sourceCalendar: string): void {
+    const sourceCalendarInstance = this.roomCalendars.get(sourceCalendar);
+    if (!sourceCalendarInstance) return;
 
-    const view = calendar1.view;
+    const view = sourceCalendarInstance.view;
     if (!view) return;
 
     const start = view.activeStart;
     const end = view.activeEnd;
 
     if (start && end) {
+      // Sync các calendar khác đến cùng date range
+      this.roomCalendars.forEach((calendar, key) => {
+        if (key !== sourceCalendar && calendar) {
+          calendar.gotoDate(start);
+        }
+      });
+
+      // Tính toán date range chuẩn
       const startDate = new Date(start);
       const endDate = new Date(end);
       const dayOfWeek = startDate.getDay();
@@ -405,10 +414,14 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
       startDate.setHours(0, 0, 0, 0);
       endDate.setDate(startDate.getDate() + 6);
       endDate.setHours(23, 59, 59, 999);
+
+      // Cập nhật state và gọi API
       this.isUpdatingFromStore = true;
       this.bookingRoomStateService.setDateRange(startDate, endDate);
     }
   }
+
+
 
   onSearchDateChange(): void {
     const dateStart = this.searchForm.get('dateStart')?.value;
@@ -510,7 +523,7 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
         const fieldName = this.TIME_SLOTS[i].field;
         const fieldValue = row[fieldName];
         const v = this.getValueBookingRoom(fieldValue);
-        
+
         if (!v.Id) {
           i++;
           continue;
@@ -518,16 +531,15 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const idStart = v.Id;
         const employeeId = v.EmployeeId || 0;
-        
+
         if (!colorMap.has(employeeId)) {
           const colorIndex = colorMap.size % this.colors.length;
           colorMap.set(employeeId, this.colors[colorIndex]);
         }
         const backgroundColor = colorMap.get(employeeId) || this.colors[0];
 
-        const title = `${row.DepartmentName ? `[${row.DepartmentName}] ` : ''}${
-          v.Value || 'Nội dung cuộc họp'
-        }`;
+        const title = `${row.DepartmentName ? `[${row.DepartmentName}] ` : ''}${v.Value || 'Nội dung cuộc họp'
+          }`;
 
         let j = i + 1;
         while (
@@ -542,8 +554,8 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
           j < this.TIME_SLOTS.length
             ? `${dateISO}T${this.TIME_SLOTS[j].time}:00`
             : DateTime.fromISO(`${dateISO}T${this.TIME_SLOTS[j - 1].time}:00`)
-                .plus({ minutes: 30 })
-                .toISO();
+              .plus({ minutes: 30 })
+              .toISO();
 
         const event = {
           id: String(idStart),
@@ -581,10 +593,10 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     if (!data) return obj;
-    
+
     const dataStr = typeof data === 'string' ? data : String(data || '');
     const s = dataStr.trim();
-    
+
     if (!s || s.indexOf('#') < 0) {
       return obj;
     }
@@ -627,7 +639,7 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     calendar.removeAllEvents();
-    
+
     if (events && events.length > 0) {
       events.forEach((event) => {
         try {
@@ -636,13 +648,13 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     }
-    
+
     if (initDate) {
       calendar.gotoDate(initDate);
     }
-    
+
     calendar.render();
-    
+
     setTimeout(() => {
       calendar.updateSize();
     }, 100);
@@ -711,7 +723,7 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
           const finalEndTime = endTime || booking.EndTime || `${date}T10:00:00`;
           const bookingEmployeeId = booking.EmployeeId || booking.EmployeeID || 0;
           const isViewOnlyMode = isViewOnly || (bookingEmployeeId !== this.currentEmployeeId);
-          
+
           const bookingData: BookingRoom = {
             ID: booking.ID || booking.Id || 0,
             MeetingRoomId: booking.MeetingRoomId || booking.MeetingRoomID,
@@ -786,7 +798,7 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
     while (
       endSlotIndex < this.TIME_SLOTS.length &&
       this.getValueBookingRoom(row[this.TIME_SLOTS[endSlotIndex].field]).Id ===
-        this.getValueBookingRoom(row[startSlot.field]).Id
+      this.getValueBookingRoom(row[startSlot.field]).Id
     ) {
       endSlotIndex++;
     }

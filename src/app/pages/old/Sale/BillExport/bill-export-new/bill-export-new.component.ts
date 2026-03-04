@@ -43,6 +43,7 @@ import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillExportDetailNewComponent } from '../bill-export-detail-new/bill-export-detail-new.component';
 import { ClipboardService } from '../../../../../services/clipboard.service';
+import { NzMessageService } from 'ng-zorro-antd/message';
 @Component({
     selector: 'app-bill-export-new',
     templateUrl: './bill-export-new.component.html',
@@ -110,8 +111,17 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     searchParams = {
         listproductgroupID: '',
         status: -1,
-        dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-        dateEnd: new Date(),
+        dateStart: (() => {
+            const date = new Date();
+            date.setMonth(date.getMonth() - 1);
+            date.setHours(0, 0, 0, 0);
+            return date;
+        })(),
+        dateEnd: (() => {
+            const date = new Date();
+            date.setHours(23, 59, 59, 999);
+            return date;
+        })(),
         keyword: '',
         warehousecode: '',
         checkAll: false,
@@ -135,6 +145,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         private route: ActivatedRoute,
         private appUserService: AppUserService,
         private clipboardService: ClipboardService,
+        private message: NzMessageService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -320,6 +331,11 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                     model: Filters['compoundInput'],
                 },
                 minWidth: 200,
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const text = String(value);
+                    return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
+                },
             },
             {
                 id: 'Address',
@@ -344,10 +360,23 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
-                params: { dateFormat: 'DD/MM/YYYY' },
+                params: { dateFormat: 'DD/MM/YYYY hh:mm:ss' },
                 filter: { model: Filters['compoundDate'] },
                 minWidth: 150,
             },
+            //             {
+            //     id: 'CreatedDate',
+            //     name: 'Ngày tạo',
+            //     field: 'CreatedDate',
+            //     sortable: true,
+            //     filterable: true,
+            //     formatter: Formatters.date,
+            //     exportCustomFormatter: Formatters.date,
+            //     type: 'date',
+            //     params: { dateFormat: 'DD/MM/YYYY hh:mm:ss' },
+            //     filter: { model: Filters['compoundDate'] },
+            //     minWidth: 150,
+            // },
             {
                 id: 'WarehouseType',
                 name: 'Loại vật tư',
@@ -434,6 +463,10 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                     },
                 ],
             },
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
 
     }
@@ -642,6 +675,18 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             );
             // Double click đã được xử lý qua (onDblClick) trong HTML template
         }
+
+        // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi
+        if (angularGrid.dataView) {
+            angularGrid.dataView.onRowCountChanged.subscribe(() => {
+                this.updateMasterFooterRow();
+            });
+        }
+
+        // Update footer row sau khi grid ready
+        setTimeout(() => {
+            this.updateMasterFooterRow();
+        }, 100);
     }
 
     angularGridDetailReady(angularGrid: AngularGridInstance) {
@@ -1018,9 +1063,9 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             keyboard: false,
             fullscreen: true,
         });
-        modalRef.componentInstance.newBillExport = this.newBillExport;
+        modalRef.componentInstance.newBillExport = !isCheckmode; // true khi thêm mới, false khi sửa
         modalRef.componentInstance.isCheckmode = this.isCheckmode;
-        modalRef.componentInstance.id = this.id;
+        modalRef.componentInstance.id = isCheckmode ? this.id : 0; // Chỉ truyền id khi sửa
         modalRef.componentInstance.wareHouseCode = this.warehouseCode;
         modalRef.result.then(() => {
             this.isModalOpening = false;
@@ -1790,37 +1835,37 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
 
     openModalBillExportSynthetic() {
         // OLD CODE - using BillExportSyntheticComponent
-        import('../Modal/bill-export-synthetic/bill-export-synthetic.component').then(m => {
-            const modalRef = this.modalService.open(m.BillExportSyntheticComponent, {
+        // import('../Modal/bill-export-synthetic/bill-export-synthetic.component').then(m => {
+        //     const modalRef = this.modalService.open(m.BillExportSyntheticComponent, {
+        //         centered: true,
+        //         size: 'xl',
+        //         backdrop: 'static',
+        //         keyboard: false,
+        //     });
+        //     modalRef.componentInstance.warehouseCode = this.warehouseCode;
+        //     modalRef.result.catch((result) => {
+        //         if (result == true) {
+        //             // this.id=0;
+        //             // this.loadDataBillExport();
+        //         }
+        //     });
+        // });
+
+        // NEW CODE - using BillExportSyntheticNewComponent
+        import('../Modal/bill-export-synthetic-new/bill-export-synthetic-new.component').then(m => {
+            const modalRef = this.modalService.open(m.BillExportSyntheticNewComponent, {
                 centered: true,
-                size: 'xl',
                 backdrop: 'static',
                 keyboard: false,
+                fullscreen: true,
             });
             modalRef.componentInstance.warehouseCode = this.warehouseCode;
             modalRef.result.catch((result) => {
                 if (result == true) {
-                    // this.id=0;
-                    // this.loadDataBillExport();
+                    this.loadDataBillExport();
                 }
             });
         });
-
-        // NEW CODE - using BillExportSyntheticNewComponent
-        // import('../Modal/bill-export-synthetic-new/bill-export-synthetic-new.component').then(m => {
-        //   const modalRef = this.modalService.open(m.BillExportSyntheticNewComponent, {
-        //     centered: true,
-        //     backdrop: 'static',
-        //     keyboard: false,
-        //     fullscreen: true,
-        //   });
-        //   modalRef.componentInstance.warehouseCode = this.warehouseCode;
-        //   modalRef.result.catch((result) => {
-        //     if (result == true) {
-        //       this.loadDataBillExport();
-        //     }
-        //   });
-        // });
     }
 
     openModalBillExportReportNCC() {
@@ -2000,12 +2045,17 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             icon: 'fa-solid fa-file-export fa-lg text-primary',
             items: [
                 {
-                    label: 'Xuất gộp',
+                    label: 'Xuất phiếu',
+                    icon: 'fa-solid fa-file-export fa-lg text-primary',
+                    command: () => this.onExportExcel()
+                },
+                {
+                    label: 'Xuất gộp (file zip)',
                     icon: 'fa-solid fa-layer-group fa-lg text-primary',
                     command: () => this.onExportExcelMultiple(1)
                 },
                 {
-                    label: 'Xuất tất cả các mã',
+                    label: 'Xuất tất cả mã (file zip)',
                     icon: 'fa-solid fa-list fa-lg text-primary',
                     command: () => this.onExportExcelMultiple(2)
                 },
@@ -2085,5 +2135,202 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         }
     }
 
+
+    //#region Xuất phiếu
+    exportProgress = { current: 0, total: 0, fileName: '' };
+    exportModalRef: any = null;
+    async onExportExcel() {
+        const angularGrid = this.angularGridMaster;
+        if (!angularGrid) return;
+
+        const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+        const selectedRows = selectedRowIndexes
+            .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+            .filter((item: any) => item);
+
+        if (selectedRows.length <= 0) {
+            this.notification.info('Thông báo', 'Vui lòng chọn phiếu cần xuất file!');
+            return;
+        }
+
+        const ids = selectedRows.filter((row: any) => row.ID > 0).map((row: any) => row.ID);
+        if (ids.length <= 0) {
+            this.notification.info(
+                'Thông báo',
+                'Không có phiếu hợp lệ để xuất file!'
+            );
+            return;
+        }
+
+        // Kiểm tra nếu trình duyệt hỗ trợ File System Access API
+        if (!('showDirectoryPicker' in window)) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Trình duyệt không hỗ trợ tính năng này!'
+            );
+            return;
+        }
+
+        try {
+            // Chỉ gọi showDirectoryPicker() một lần duy nhất
+            const dirHandle = await (window as any).showDirectoryPicker();
+
+            // Request permission ngay bằng cách tạo file test
+            try {
+                const testFileHandle = await dirHandle.getFileHandle('.export_test', { create: true });
+                const testWritable = await testFileHandle.createWritable();
+                await testWritable.write('test');
+                await testWritable.close();
+                // Xóa file test
+                await dirHandle.removeEntry('.export_test');
+            } catch (permErr: any) {
+                this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    'Không có quyền ghi vào thư mục này!'
+                );
+                return;
+            }
+
+            this.isLoadTable = true;
+
+            if (ids.length >= 10) {
+                this.notification.warning(
+                    NOTIFICATION_TITLE.warning,
+                    'Do lượng file lớn vui lòng chờ ít phút để hoàn tất tải file!'
+                );
+            }
+
+            await this.exportSequentiallyToFolder(ids, 0, dirHandle);
+
+        } catch (err: any) {
+            if (err.name === 'AbortError') {
+                this.notification.info('Thông báo', 'Bạn đã hủy chọn thư mục!');
+            } else {
+                this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    `Lỗi: ${err.message || 'Có lỗi xảy ra khi chọn thư mục'}`
+                );
+            }
+            this.isLoadTable = false;
+        }
+    }
+
+    private async exportSequentiallyToFolder(
+        ids: number[],
+        index: number,
+        dirHandle: any
+    ): Promise<void> {
+        // Tạo modal lần đầu
+        if (index === 0) {
+            this.exportProgress = { current: 0, total: ids.length, fileName: '' };
+            this.exportModalRef = this.modal.info({
+                nzTitle: 'Đang xuất file',
+                nzContent: `Đang xuất file 0/${ids.length}...`,
+                nzClosable: false,
+                nzMaskClosable: false,
+                nzKeyboard: false,
+                nzOkText: null,
+                nzCancelText: null,
+                nzMask: false
+            });
+        }
+
+        if (index >= ids.length) {
+            // Đóng modal và hiển thị thành công
+            if (this.exportModalRef) {
+                this.exportModalRef.close();
+                this.exportModalRef = null;
+            }
+            this.message.success(`Xuất thành công ${ids.length} file!`);
+            this.isLoadTable = false;
+            return;
+        }
+
+        const id = ids[index];
+        const selectedRows = this.datasetMaster.find((item) => item.ID === id);
+
+        // Cập nhật nội dung modal
+        this.exportProgress.current = index + 1;
+        this.exportProgress.fileName = selectedRows?.Code || `ID ${id}`;
+
+        if (this.exportModalRef) {
+            this.exportModalRef.updateConfig({
+                nzContent: `Đang xuất file ${index + 1}/${ids.length}: ${this.exportProgress.fileName}`
+            });
+        }
+
+        try {
+            const res = await this.billExportService.exportExcelFile(id).toPromise();
+            const now = new Date();
+
+            const dateString = `${now.getDate().toString().padStart(2, '0')}_${(now.getMonth() + 1).toString().padStart(2, '0')}_${now.getFullYear()}`;
+            const tick = Date.now().toString(36);
+
+            const fileName = `${selectedRows?.Code || 'PhieuXuat'}_${dateString}_${tick}.xlsx`;
+
+            const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(res);
+            await writable.close();
+
+            // Tiếp tục với file tiếp theo
+            await this.exportSequentiallyToFolder(ids, index + 1, dirHandle);
+
+        } catch (err: any) {
+            if (this.exportModalRef) {
+                this.exportModalRef.close();
+                this.exportModalRef = null;
+            }
+
+            let errorMessage = 'Có lỗi xảy ra';
+
+            if (err?.error instanceof Blob) {
+                try {
+                    const text = await err.error.text();
+                    const json = JSON.parse(text);
+                    errorMessage = json?.message || json?.Message || errorMessage;
+                } catch {
+                    // blob không parse được
+                }
+            } else {
+                errorMessage = err?.error?.message || err?.message || errorMessage;
+            }
+
+            this.message.error(
+                `Lỗi xuất file ${index + 1}/${ids.length} - ${selectedRows?.Code}: ${errorMessage}`
+            );
+
+            this.isLoadTable = false;
+        }
+    }
+    //#endregion
+
+    //#region Footer Row
+
+    /**
+     * Update footer row - hiển thị count số dòng
+     * Sử dụng textContent để tránh re-render gây mất focus
+     */
+    updateMasterFooterRow(): void {
+        if (!this.angularGridMaster || !this.angularGridMaster.slickGrid) return;
+
+        const count = this.angularGridMaster.dataView?.getFilteredItems()?.length || 0;
+
+        // Update footer cho cột Code
+        const footerCell = this.angularGridMaster.slickGrid.getFooterRowColumn('Code');
+        if (footerCell) {
+            footerCell.textContent = `${this.formatNumber(count, 0)}`;
+        }
+    }
+
+    formatNumber(num: number, digits: number = 0): string {
+        num = num || 0;
+        return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        });
+    }
+
+    //#endregion
 
 }

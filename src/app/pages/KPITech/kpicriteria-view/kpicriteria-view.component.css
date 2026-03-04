@@ -1,0 +1,98 @@
+/* Style cho modal KPI Criteria View */
+
+/* Header section */
+.criteria-modal-header {
+    background-color: #fafafa;
+}
+
+/* Section spacing */
+.evaluate-point-section,
+.criteria-tabs {
+    margin-bottom: 0;
+}
+
+/* Grid cell styles */
+::ng-deep .cell-multiline {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    line-height: 1.5 !important;
+    padding: 8px !important;
+}
+
+/* Grid header styling */
+::ng-deep .slick-header-column {
+    font-weight: 600 !important;
+    background-color: #f5f5f5 !important;
+    border-right: 1px solid #d9d9d9 !important;
+    text-align: center !important;
+}
+
+/* Small font size utility */
+.fs-12 {
+    font-size: 0.75rem !important;
+}
+
+/* Grid row styling */
+::ng-deep .slick-row {
+    border-bottom: 1px solid #f0f0f0 !important;
+}
+
+/* Hover effect cho rows */
+::ng-deep .slick-row:hover {
+    background-color: #fafafa !important;
+}
+
+/* Tab styling */
+/* ::ng-deep .ant-tabs-tab {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+} */
+
+::ng-deep .ant-tabs-tab-active {
+    color: #1890ff !important;
+}
+
+/* Input number styling */
+::ng-deep .ant-input-number {
+    border-radius: 4px !important;
+}
+
+::ng-deep .ant-input-number-disabled {
+    background-color: #f5f5f5 !important;
+    color: #666 !important;
+}
+
+/* Column group header styling */
+::ng-deep .slick-preheader-panel {
+    background-color: #e6f7ff !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid #1890ff !important;
+}
+
+::ng-deep .slick-preheader-panel .slick-header-column {
+    background-color: #e6f7ff !important;
+    color: #1890ff !important;
+    font-size: 13px !important;
+    text-align: center !important;
+}
+
+/* ==================== GRID CONTAINER STYLES ==================== */
+.grid-criteria-container,
+.grid-project-type-container,
+.grid-evaluation-container,
+.grid-evaluate-point-container {
+    width: 100%;
+    height: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}

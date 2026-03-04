@@ -162,11 +162,11 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
   selectedRow: any = '';
 
   // Filter params
-  dateStart: any = DateTime.local()
+  dateStart: string = DateTime.local()
     .minus({ month: 1 })
     .set({ hour: 0, minute: 0, second: 0 })
-    .toISO();
-  dateEnd: any = DateTime.local().plus({ month: 2 }).toISO();
+    .toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local().plus({ month: 2 }).toFormat('yyyy-MM-dd');
   projectId: any = 0;
   technicalId: any = 0;
   saleId: any = 0;
@@ -204,6 +204,12 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
   @HostListener('window:resize')
   onWindowResize(): void {
     this.updateResponsiveState();
+    // Resize grid to fill the available width (e.g. after toggling F12 DevTools)
+    setTimeout(() => {
+      if (this.angularGrid?.resizerService) {
+        this.angularGrid.resizerService.resizeGrid();
+      }
+    }, 200);
   }
   //#endregion
 
@@ -313,8 +319,8 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
     this.dateStart = DateTime.local()
       .minus({ month: 1 })
       .set({ hour: 0, minute: 0, second: 0 })
-      .toISO();
-    this.dateEnd = DateTime.local().plus({ month: 2 }).toISO();
+      .toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local().plus({ month: 2 }).toFormat('yyyy-MM-dd');
     this.projectId = 0;
     this.technicalId = 0;
     this.saleId = 0;
@@ -444,7 +450,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'IsUrgent',
         name: 'KS Gấp',
         field: 'IsUrgent',
-        width: 60,
+        minWidth: 60,
         sortable: true,
         filterable: true,
         cssClass: 'text-center',
@@ -465,7 +471,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'IsApprovedUrgent',
         name: 'Duyệt Gấp',
         field: 'IsApprovedUrgent',
-        width: 70,
+        minWidth: 70,
         sortable: true,
         filterable: true,
         cssClass: 'text-center',
@@ -486,7 +492,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'FullNameRequest',
         name: 'Người yêu cầu',
         field: 'FullNameRequest',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: {
@@ -507,7 +513,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'SDTCaNhan',
         name: 'SĐT người yêu cầu',
         field: 'SDTCaNhan',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         // filter: {
@@ -523,7 +529,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'DateStart',
         name: 'Từ ngày',
         field: 'DateStart',
-        width: 100,
+        minWidth: 100,
         sortable: true,
         filterable: true,
         cssClass: 'text-center',
@@ -537,7 +543,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'DateEnd',
         name: 'Đến ngày',
         field: 'DateEnd',
-        width: 100,
+        minWidth: 100,
         sortable: true,
         filterable: true,
         cssClass: 'text-center',
@@ -551,7 +557,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'CustomerName',
         name: 'Khách hàng',
         field: 'CustomerName',
-        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         // filter: {
@@ -572,7 +578,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'Address',
         name: 'Địa chỉ',
         field: 'Address',
-        width: 250,
+        minWidth: 250,
         sortable: true,
         filterable: true,
         // filter: {
@@ -593,7 +599,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'ProjectTypeName',
         name: 'Kiểu khảo sát',
         field: 'ProjectTypeName',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         filter: {
@@ -614,7 +620,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'FullNameLeaderTBP',
         name: 'Leader Kỹ thuật',
         field: 'FullNameLeaderTBP',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: {
@@ -635,7 +641,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'StatusText',
         name: 'Trạng thái',
         field: 'StatusText',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         filter: {
@@ -656,7 +662,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'PIC',
         name: 'PIC',
         field: 'PIC',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         // filter: {
@@ -677,7 +683,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'Description',
         name: 'Mô tả',
         field: 'Description',
-        width: 250,
+        minWidth: 250,
         sortable: true,
         filterable: true,
         cssClass: 'cell-wrap',
@@ -696,7 +702,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'FullNameApproved',
         name: 'Leader Sale',
         field: 'FullNameApproved',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: {
@@ -717,7 +723,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'ReasonUrgent',
         name: 'Lý do gấp',
         field: 'ReasonUrgent',
-        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         // filter: {
@@ -738,7 +744,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'FullNameTechnical',
         name: 'Kỹ thuật phụ trách',
         field: 'FullNameTechnical',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: {
@@ -759,7 +765,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'SDTCaNhanTechnical',
         name: 'SĐT Kỹ thuật',
         field: 'SDTCaNhanTechnical',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         // filter: {
@@ -775,7 +781,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'DateSurvey',
         name: 'Ngày khảo sát',
         field: 'DateSurvey',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         cssClass: 'text-center',
@@ -789,7 +795,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'SurveySessionText',
         name: 'Buổi khảo sát',
         field: 'SurveySessionText',
-        width: 100,
+        minWidth: 100,
         sortable: true,
         filterable: true,
         // filter: {
@@ -805,7 +811,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'Result',
         name: 'Kết quả khảo sát',
         field: 'Result',
-        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         // filter: {
@@ -826,7 +832,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'ReasonCancel',
         name: 'Lý do hủy',
         field: 'ReasonCancel',
-        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         // filter: {
@@ -847,7 +853,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         id: 'Note',
         name: 'Ghi chú',
         field: 'Note',
-        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         // filter: {
@@ -873,7 +879,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      forceFitColumns: false,
+      forceFitColumns: true,
       enableRowSelection: true,
       enableCellNavigation: true,
       enableExcelCopyBuffer: true,
@@ -885,6 +891,7 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
       headerRowHeight: 35,
       rowHeight: 35,
       frozenColumn: 5,
+      enableGrouping: true,
       explicitInitialization: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,

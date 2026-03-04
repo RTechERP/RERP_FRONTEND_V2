@@ -1,7 +1,7 @@
-<div style="display: flex; flex-direction: column; height: 50vh">
+<div style="display: flex; flex-direction: column; height: 50vh" class="">
   <!-- Modal Header -->
   <div
-    class="bg-primary align-items-center ps-2 pe-2"
+    class="bg-primary align-items-center ps-2 pe-2 bill-import-qc-file-bg-primary bill-import-qc-file-align-items-center bill-import-qc-file-ps-2 bill-import-qc-file-pe-2"
     style="
       flex-shrink: 0;
       display: flex;
@@ -11,10 +11,10 @@
       border-top-right-radius: 0.25rem !important;
     "
   >
-    <h6 class="text-light text-uppercase m-0">Chi tiết file {{ fileName }}</h6>
+    <h6 class="text-light text-uppercase m-0 bill-import-qc-file-text-light bill-import-qc-file-text-uppercase bill-import-qc-file-m-0">Chi tiết file {{ fileName }}</h6>
     <button
       type="button"
-      class="btn-close"
+      class="btn-close bill-import-qc-file-btn-close"
       (click)="activeModal.dismiss()"
       aria-label="Close"
     ></button>
@@ -22,15 +22,15 @@
 
   <!-- Modal Body với Splitter -->
   <div
-    class="p-0"
+    class="p-0 bill-import-qc-file-p-0"
     style="flex: 1; overflow: hidden; display: flex; flex-direction: column"
   >
     <div
-      class="card h-100 border-0 rounded-0"
+      class="card h-100 border-0 rounded-0 bill-import-qc-file-card bill-import-qc-file-h-100 bill-import-qc-file-border-0 bill-import-qc-file-rounded-0"
       style="display: flex; flex-direction: column"
     >
       <div
-        class="card-body p-0"
+        class="card-body p-0 bill-import-qc-file-card-body bill-import-qc-file-p-0"
         style="
           flex: 1;
           overflow: auto;
@@ -39,7 +39,7 @@
           min-height: 0;
         "
       >
-        <div class="grid-container-detail-file">
+        <div class="grid-container-detail-file bill-import-qc-file-grid-container-detail-file">
           <angular-slickgrid
             gridId="gridFileDetail"
             [columns]="columnDefinitionsMaster"
@@ -63,7 +63,7 @@
   </div>
 
   <!-- Modal Footer -->
-  <div class="modal-footer py-1">
+  <div class="modal-footer py-1 bill-import-qc-file-modal-footer bill-import-qc-file-py-1">
     <button
       nz-button
       nzType="default"
@@ -80,7 +80,7 @@
       [nzLoading]="false"
       (click)="saveFile()"
     >
-      <i class="fas fa-save me-1"></i> Lưu
+      <i class="fas fa-save me-1 bill-import-qc-file-fas bill-import-qc-file-fa-save bill-import-qc-file-me-1"></i> Lưu
     </button>
   </div>
 </div>

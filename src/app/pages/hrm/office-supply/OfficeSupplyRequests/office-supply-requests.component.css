@@ -1,75 +1,109 @@
-/* Đảm bảo phần thân đúng layout */
-.layout-wrapper {
-  height: 100%;
-  display: flex;
-  overflow: hidden;
-  position: relative;
-}
-
-/* Thẻ offcanvas */
-.custom-offcanvas {
-  width: 300px;
-  position: absolute;
-  height: 100%;
-  transform: translateX(-100%);
-  transition: transform 0.2s ease;
-  z-index: 1;
-}
-
-/* Khi show, trượt vào */
-.offcanvas-left.show {
-  transform: translateX(0);
-}
-
-.card {
-  height: 100%;
-}
-
-.row {
-  height: 100%;
-}
-
-.offcanvas-left.show + .project-container {
-  margin-left: 300px;
-  width: calc(100% - 300px);
-}
-
-::ng-deep ng-select .ng-value-container {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  white-space: nowrap !important;
+:host {
+  font-size: 12px !important;
 }
 
 .tabulator {
-  font-size: 0.75rem;
+  font-size: 12px;
 }
 
-.tabulator-cell {
-  padding: 0px;
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 93vh;
+  overflow: hidden;
+}
+
+.card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body>div {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .fs-12 {
   font-size: 0.75rem;
 }
 
-::ng-deep ng-select.form-control .ng-clear-wrapper {
-  display: flex;
-  align-items: center;
-  margin-left: 20px;
+.btn {
+  font-size: 0.75rem;
 }
 
-::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
-  color: #d9363e;
+:host ::ng-deep .tabulator-cell {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
 }
 
-::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
-    margin-top: 3px;
-    margin-right: 1px;
-    font-size: .75rem;
-    background-color: #fafafa;
-    border: none;
-    border-radius: 2px;
-    height: 24px;
-    line-height: 22px;
+/* Search form positioning and z-index fixes */
+.filter-bar {
+  position: relative;
+  z-index: 10;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Ensure buttons stay above search form on desktop */
+.card-header {
+  position: relative;
+  z-index: 20;
+  background: white;
+}
+
+/* Mobile modal styles */
+@media (max-width: 768px) {
+  .filter-bar.mobile-modal {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    max-height: 70vh;
+    overflow-y: auto;
+    margin: 16px;
+    border-radius: 8px;
+  }
+
+  .filter-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1040;
+  }
+}
+
+/* Desktop - keep search form always visible */
+@media (min-width: 769px) {
+  .filter-backdrop {
+    display: none !important;
+  }
+
+  .filter-bar {
+    position: static !important;
+    z-index: 1 !important;
+  }
+}
+
+/* Hide horizontal scrollbar in Tabulator */
+:host ::ng-deep .tabulator-tableholder {
+  overflow-x: hidden !important;
+}
+
+:host ::ng-deep .tabulator {
+  overflow-x: hidden !important;
 }

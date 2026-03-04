@@ -71,6 +71,12 @@ import { MenuService } from '../../../systems/menus/menu-service/menu.service';
 import { AuthService } from '../../../../auth/auth.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { OfficeSupplyRequestAdminDetailComponent } from './office-supply-request-admin-detail/office-supply-request-admin-detail.component';
+import { PermissionService } from '../../../../services/permission.service';
+
+// PrimeNG
+import { Menubar } from 'primeng/menubar';
+
+
 
 interface Unit {
   Code: string;
@@ -141,6 +147,7 @@ interface Product {
     NzFormSplitComponent,
     NzFormTextComponent,
     HasPermissionDirective,
+    Menubar
   ],
   templateUrl: './office-supply-requests.component.html',
   styleUrls: ['./office-supply-requests.component.css'],
@@ -156,10 +163,22 @@ export class OfficeSupplyRequestsComponent implements OnInit {
   listUnit: any[] = [];
   isLoading: boolean = false;
   selectedList: any[] = [];
-  sizeSearch = '0';
   isVisible = false;
   monthFormat = 'MM/yyyy';
   currentUser: any;
+
+  // Search panel toggle
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  menuBars: any[] = [];
 
   newUnit: Unit = {
     Code: '',
@@ -189,12 +208,14 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     private modal: NzModalService,
     private ngbModal: NgbModal,
     public menuService: MenuService,
-    private authService: AuthService
+    private authService: AuthService,
+    private permissionService: PermissionService
   ) {
     this.currentUser = this.authService.getCurrentUser();
   }
 
   ngOnInit(): void {
+    this.initMenuBar();
     this.getDataDeparment();
   }
 
@@ -204,8 +225,89 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     this.getOfficeSupplyRequest();
   }
 
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch === '0' ? '22%' : '0';
+  initMenuBar() {
+    this.menuBars = [
+      {
+        label: 'Đăng ký VPP Admin',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        visible: this.permissionService.hasPermission("N2") || this.permissionService.hasPermission("N34") ||
+          this.permissionService.hasPermission("N1") || this.permissionService.hasPermission("N54") ||
+          this.permissionService.hasPermission("N72"),
+        command: () => {
+          this.openAdminRegistrationModal();
+        }
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        visible: this.permissionService.hasPermission("N2") || this.permissionService.hasPermission("N34") ||
+          this.permissionService.hasPermission("N1") || this.permissionService.hasPermission("N54") ||
+          this.permissionService.hasPermission("N72"),
+        command: () => {
+          this.editRequest();
+        }
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: this.permissionService.hasPermission("N2") || this.permissionService.hasPermission("N34") ||
+          this.permissionService.hasPermission("N1") || this.permissionService.hasPermission("N54") ||
+          this.permissionService.hasPermission("N72"),
+        command: () => {
+          this.deleteRequests();
+        }
+      },
+      {
+        label: 'Admin xác nhận',
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        visible: this.permissionService.hasPermission("N72"),
+        items: [
+          {
+            label: 'Admin duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => {
+              this.IsAdminApproved();
+            }
+          },
+          {
+            label: 'Admin hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => {
+              this.UnAdminApproved();
+            }
+          }
+        ]
+      },
+      {
+        label: 'TBP xác nhận',
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        visible: this.permissionService.hasPermission("N2") || this.permissionService.hasPermission("N34") ||
+          this.permissionService.hasPermission("N1") || this.permissionService.hasPermission("N70"),
+        items: [
+          {
+            label: 'TBP duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => {
+              this.IsApproved();
+            }
+          },
+          {
+            label: 'TBP hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => {
+              this.UnIsApproved();
+            }
+          }
+        ]
+      }
+    ];
+  }
+
+  toggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
   }
 
   getDataDeparment(): void {
@@ -381,7 +483,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
   private initTable2(): void {
     this.table2 = new Tabulator('#datatable2', {
       data: this.dataTable2,
-
+      ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       height: '100%',
       pagination: true,
@@ -710,6 +812,8 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       }
     );
   }
+
+
 
   // Delete requests
   deleteRequests(): void {

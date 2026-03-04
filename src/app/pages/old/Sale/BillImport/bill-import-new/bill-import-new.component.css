@@ -1,8 +1,7 @@
-::ng-deep div[id^="gridMaster-"][id*="billimport"]{
-  max-height: 80vh !important;
-  min-height: 45vh !important;
+:host ::ng-deep div[id^="gridMaster-"][id*="billimport"]{
+  height: 45vh !important;
 }
 
-::ng-deep div[id^="gridDetail-"][id*="billimport"]{
+:host ::ng-deep div[id^="gridDetail-"][id*="billimport"]{
   height: 34vh !important;
 }

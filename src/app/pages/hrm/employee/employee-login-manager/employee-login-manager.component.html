@@ -69,7 +69,7 @@
     </button>
 
     <!-- Nút Lưu -->
-    <button nz-button nzType="primary" nzSize="default" (click)="onSubmit()">
+    <button nz-button nzType="primary" nzSize="default" (click)="onSubmit()" [nzLoading]="isSubmitting">
       Lưu
     </button>
 

@@ -11,6 +11,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -25,11 +26,11 @@ import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 import * as ExcelJS from 'exceljs';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { DailyReportExcelComponent } from '../DailyReportTech/daily-report-excel/daily-report-excel.component';
 import { DailyReportMachineDetailComponent } from './daily-report-machine-detail/daily-report-machine-detail.component';
 import { USER_ALL_REPORT_TECH } from '../../app.config';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { DailyReportExcelComponent } from '../DailyReportTech/daily-report-excel/daily-report-excel.component';
 
 @Component({
   selector: 'app-daily-report-machine',
@@ -49,6 +50,7 @@ import { Menubar } from 'primeng/menubar';
     NzNotificationModule,
     NzModalModule,
     NzDropDownModule,
+    NzSpinModule,
     Menubar,
   ],
   templateUrl: './daily-report-machine.component.html',
@@ -66,10 +68,11 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
   showSearchBar: boolean = true; // Mặc định ẩn, sẽ được set trong ngOnInit
   isMobile: boolean = false;
   menuBars: MenuItem[] = [];
-  
+  isLoading: boolean = false;
+
   // Search filters
-  dateStart: any = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
-  dateEnd: any = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
+  dateStart: string = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local().toFormat('yyyy-MM-dd');
   departmentId: number = 10; // phòng cơ khí
   teamId: number = 0;
   userId: number = 0;
@@ -114,7 +117,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.updateResponsiveState();
     this.initMenuBar();
-    
+
     this.getCurrentUser();
     this.loadDepartments();
     this.loadUsers();
@@ -137,7 +140,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     // Vẽ table trước với data rỗng (giống summary-of-exam-results)
     this.drawTbDailyReportTech(this.tb_daily_report_techContainer.nativeElement);
-    
+
     // Load dữ liệu sau khi table đã được khởi tạo
     // getCurrentUser() sẽ tự động gọi getDailyReportTechData() khi hoàn thành
     // Nếu getCurrentUser() đã hoàn thành trước đó, gọi getDailyReportTechData() ngay
@@ -156,26 +159,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
       if (res && res.status === 1 && res.data) {
         const data = Array.isArray(res.data) ? res.data[0] : res.data;
         this.currentUser = data;
-        // Sau khi có currentUser, nếu users đã được load thì set userId
-        if (this.users.length > 0) {
-          // Thử tìm theo ID trước, nếu không có thì tìm theo EmployeeID
-          if (data.IsAdmin == true || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.userId = 0;
-          }
-          else if (data.ID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.setUserIdFromEmployeeID(data.ID);
-          } else if (data.EmployeeID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.setUserIdFromEmployeeID(data.EmployeeID);
-          } else {
-            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
-            this.userId = 0;
-          }
-        } else {
-          // Nếu users chưa được load, tạm thời set về "Tất cả"
-          // Khi loadUsers() được gọi sau đó, nó sẽ tự động tìm và set lại
-          this.userId = 0;
-        }
-        
+
         // Sau khi có currentUser, load dữ liệu bảng nếu table đã được khởi tạo
         if (this.tb_daily_report_tech) {
           this.getDailyReportTechData();
@@ -183,7 +167,6 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
       } else {
         // Nếu không có currentUser, set về "Tất cả"
         this.userId = 0;
-        // Vẫn load dữ liệu với currentUser = null
         if (this.tb_daily_report_tech) {
           this.getDailyReportTechData();
         }
@@ -212,15 +195,22 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
             ...(response.data || [])
           ];
 
-          // Nếu có currentUser, kiểm tra LeaderID để tự động chọn team
+          // Nếu là Leader (IsLeader > 1): tự động chọn đúng team của mình
+          // Nếu là Admin/N1: giữ teamId = 0 (Tất cả)
           if (this.currentUser && this.currentUser.EmployeeID) {
-            const leaderTeam = (response.data || []).find(
-              (team: any) => team.LeaderID === this.currentUser.EmployeeID
-            );
-            if (leaderTeam && leaderTeam.ID) {
-              this.teamId = leaderTeam.ID;
-              // Reload users theo team vừa chọn
-              this.loadUsers();
+            const isAdminOrN1 = this.currentUser.IsAdmin == true
+              || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
+              || this.currentUser.Permissions?.includes('N1');
+
+            if (!isAdminOrN1) {
+              const leaderTeam = (response.data || []).find(
+                (team: any) => team.LeaderID === this.currentUser.EmployeeID
+              );
+              if (leaderTeam && leaderTeam.ID) {
+                this.teamId = leaderTeam.ID;
+                // Reload users theo team vừa chọn
+                this.loadUsers();
+              }
             }
           }
         },
@@ -239,12 +229,12 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
     // Load users dựa trên teamId nếu có, ngược lại load theo departmentId
     const userTeamID = this.teamId > 0 ? this.teamId : undefined;
     const departmentid = this.departmentId > 0 ? this.departmentId : undefined;
-    
+
     this.dailyReportTechService.getEmployees(userTeamID, departmentid).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
           const employees = Array.isArray(response.data) ? response.data : [];
-          
+
           // Group employees by DepartmentName nếu có
           if (employees.length > 0 && employees[0].DepartmentName) {
             this.users = this.groupEmployeesByDepartment(employees);
@@ -260,28 +250,27 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
         } else {
           this.users = [];
         }
-        
-        // Sau khi load users, tìm và set userId từ currentUser
-        // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
+
+        // Sau khi load users, xác định userId theo 3 trường hợp:
+        // 1. Admin / N1 / USER_ALL_REPORT_TECH → userId = 0 (Tất cả)
+        // 2. IsLeader > 1 → userId = 0 (Leader xem tất cả người trong team)
+        // 3. Nhân viên thường → userId = ID của chính họ
         if (this.currentUser) {
-          if (
-            this.currentUser.ID &&
-            this.currentUser.IsAdmin != true &&
-            !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
-          ) {
+          const isAdminOrN1 = this.currentUser.IsAdmin == true
+            || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
+            || this.currentUser.Permissions?.includes('N1');
+
+          if (isAdminOrN1 || this.currentUser.IsLeader > 1) {
+            // Admin/N1/Leader: xem tất cả nhân viên (trong team nếu leader, tất cả nếu admin/N1)
+            this.userId = 0;
+          } else if (this.currentUser.ID) {
             this.setUserIdFromEmployeeID(this.currentUser.ID);
-          } else if (
-            this.currentUser.EmployeeID &&
-            this.currentUser.IsAdmin != true &&
-            !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
-          ) {
+          } else if (this.currentUser.EmployeeID) {
             this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
           } else {
-            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
             this.userId = 0;
           }
         } else {
-          // Nếu không có currentUser, set về "Tất cả"
           this.userId = 0;
         }
       },
@@ -294,7 +283,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
 
   groupEmployeesByDepartment(employees: any[]): any[] {
     const grouped: { [key: string]: any[] } = {};
-    
+
     employees.forEach(emp => {
       const deptName = emp.DepartmentName || 'Khác';
       if (!grouped[deptName]) {
@@ -388,7 +377,8 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
 
   getDailyReportTechData(): void {
     const searchParams = this.getSearchParams();
-    
+    this.isLoading = true;
+
     this.dailyReportTechService.getDailyReportTech(searchParams).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
@@ -396,7 +386,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
         } else {
           this.dailyReportTechData = [];
         }
-        
+
         if (this.tb_daily_report_tech) {
           this.tb_daily_report_tech.replaceData(this.dailyReportTechData);
         }
@@ -411,6 +401,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
             this.showSearchBar = false;
           }, 100);
         }
+        this.isLoading = false;
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
@@ -420,13 +411,14 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
         if (this.tb_daily_report_tech) {
           this.tb_daily_report_tech.replaceData(this.dailyReportTechData);
         }
+        this.isLoading = false;
       }
     });
   }
 
   setDefaultSearch(): void {
-    this.dateStart = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
-    this.dateEnd = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
+    this.dateStart = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local().toFormat('yyyy-MM-dd');
     this.departmentId = 10;
     this.teamId = 0;
     this.userId = 0;
@@ -436,33 +428,14 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
   }
 
   getSearchParams(): any {
-    // Xử lý dateStart - có thể là Date object hoặc ISO string
-    let dateStart: DateTime;
-    if (this.dateStart instanceof Date) {
-      dateStart = DateTime.fromJSDate(this.dateStart);
-    } else if (typeof this.dateStart === 'string') {
-      dateStart = DateTime.fromISO(this.dateStart);
-    } else {
-      dateStart = DateTime.local().minus({ days: 1 });
-    }
-
-    // Xử lý dateEnd - có thể là Date object hoặc ISO string
-    let dateEnd: DateTime;
-    if (this.dateEnd instanceof Date) {
-      dateEnd = DateTime.fromJSDate(this.dateEnd);
-    } else if (typeof this.dateEnd === 'string') {
-      dateEnd = DateTime.fromISO(this.dateEnd);
-    } else {
-      dateEnd = DateTime.local();
-    }
-
     // Xử lý userID an toàn khi currentUser có thể là null
     let userID = 0;
     if (this.currentUser) {
       if (
         this.currentUser.IsLeader > 1 ||
         this.currentUser.IsAdmin == true ||
-        USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
+        USER_ALL_REPORT_TECH.includes(this.currentUser.ID) ||
+        this.currentUser.Permissions?.includes('N1')
       ) {
         userID = this.userId || 0;
       } else {
@@ -471,8 +444,8 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
     }
 
     return {
-      dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
-      dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
+      dateStart: this.dateStart || DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd'),
+      dateEnd: this.dateEnd || DateTime.local().toFormat('yyyy-MM-dd'),
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
       userID: userID,
@@ -490,7 +463,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         rowHeader: false,
         selectableRows: 1,
-        height: '87vh',
+        height: '84vh',
         paginationMode: 'local',
         columns: [
           {
@@ -727,7 +700,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
 
     // Lấy danh sách ngày duy nhất và sắp xếp
     const uniqueDates = [...new Set(result.map(item => item.DateReport))].sort();
-    
+
     // Format và copy nhiều ngày
     const contentSummary = this.formatMultipleDaysReport(result, uniqueDates);
     // Copy vào clipboard
@@ -741,11 +714,11 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
     dates.forEach((dateReport, index) => {
       // Lọc dữ liệu theo ngày
       const dayData = allData.filter(item => item.DateReport === dateReport);
-      
+
       // Format từng ngày
       const dayContent = this.formatSingleDayReport(dayData, dateReport, departmentId);
       fullContent += dayContent;
-      
+
       // Thêm khoảng cách giữa các ngày (trừ ngày cuối)
       if (index < dates.length - 1) {
         fullContent += '\n\n';
@@ -759,7 +732,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
     // Sử dụng Set để tránh trùng lặp
     const projectSet = new Set<string>();
     const projectItemCodeSet = new Set<string>();
-    
+
     let content = '';
     let resultReport = '';
     let backlog = '';
@@ -782,7 +755,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
           // Nếu không có ProjectItemCode, thêm trực tiếp
           content += (item.Mission || item.Content || '') + '\n';
         }
-        
+
         // Tránh trùng lặp ProjectCode trong project
         if (item.ProjectCode && !projectSet.has(item.ProjectCode)) {
           projectSet.add(item.ProjectCode);
@@ -807,20 +780,20 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
           projectList += `- ${projectItem.ProjectCode}\n`;
         }
       });
-      
+
       if (projectList.trim()) {
         contentSummary += `\n* Mã dự án:\n${projectList.trim()}\n`;
       }
     }
-    
+
     contentSummary += `\n* Nội dung công việc:\n${content.trim()}\n`;
     contentSummary += `\n* Kết quả công việc:\n${resultReport.trim()}\n`;
     contentSummary += `\n* Tồn đọng:\n${backlog.trim() === '' ? '- Không có' : backlog.trim()}\n`;
-    
+
     if (departmentId === 6) {
       contentSummary += `\n* Lý do tồn đọng:\n${note.trim() === '' ? '- Không có' : note.trim()}\n`;
     }
-    
+
     contentSummary += `\n* Vấn đề phát sinh:\n${problem.trim() === '' ? '- Không có' : problem.trim()}\n`;
     contentSummary += `\n* Giải pháp cho vấn đề phát sinh:\n${problemSolve.trim() === '' ? '- Không có' : problemSolve.trim()}\n`;
     contentSummary += `\n* Kế hoạch ngày tiếp theo:\n${planNextDay.trim() === '' ? '- Không có' : planNextDay.trim()}\n`;
@@ -839,7 +812,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
+
       try {
         const successful = document.execCommand('copy');
         if (successful) {
@@ -854,7 +827,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
         document.body.removeChild(textArea);
       }
     };
-    
+
     try {
       // Thử sử dụng Clipboard API nếu có
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -898,12 +871,12 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
     // Lấy columns từ bảng
     const columns = table.getColumns();
     const columnDefinitions = columns.map((col: any) => col.getDefinition());
-    
+
     // Lọc bỏ các columns không có field hoặc là nested columns (chỉ lấy columns cấp 1)
     const visibleColumns = columnDefinitions.filter((col: any) => {
       return col.field && col.visible !== false && !col.columns; // Loại bỏ nested columns
     });
-    
+
     // Tạo header
     const headers = visibleColumns.map((col: any) => col.title || col.field);
     worksheet.addRow(headers);
@@ -973,7 +946,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
 
         return value || '';
       });
-      
+
       const excelRow = worksheet.addRow(rowData);
       excelRow.alignment = { vertical: 'top', wrapText: true };
     });
@@ -988,10 +961,10 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
         const cellValue = cell.value ? cell.value.toString() : '';
         maxLength = Math.max(maxLength, cellValue.length + 2);
       });
-      
+
       // Set width với giới hạn
       column.width = Math.min(Math.max(maxLength, 10), 50);
-      
+
       // Alignment
       if (colDef.hozAlign === 'right') {
         column.alignment = { horizontal: 'right' };
@@ -1051,12 +1024,12 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
     // Lấy columns từ bảng
     const columns = table.getColumns();
     const columnDefinitions = columns.map((col: any) => col.getDefinition());
-    
+
     // Lọc bỏ các columns không có field hoặc là nested columns (chỉ lấy columns cấp 1)
     const visibleColumns = columnDefinitions.filter((col: any) => {
       return col.field && col.visible !== false && !col.columns; // Loại bỏ nested columns
     });
-    
+
     // Tạo header
     const headers = visibleColumns.map((col: any) => col.title || col.field);
     worksheet.addRow(headers);
@@ -1126,7 +1099,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
 
         return value || '';
       });
-      
+
       const excelRow = worksheet.addRow(rowData);
       excelRow.alignment = { vertical: 'top', wrapText: true };
     });
@@ -1141,10 +1114,10 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
         const cellValue = cell.value ? cell.value.toString() : '';
         maxLength = Math.max(maxLength, cellValue.length + 2);
       });
-      
+
       // Set width với giới hạn
       column.width = Math.min(Math.max(maxLength, 10), 50);
-      
+
       // Alignment
       if (colDef.hozAlign === 'right') {
         column.alignment = { horizontal: 'right' };
@@ -1191,6 +1164,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
       centered: false,
     });
     modalRef.componentInstance.teams = this.teams;
+    modalRef.componentInstance.selectedTeamId = this.teamId; // Truyền teamId đã chọn vào modal
     modalRef.componentInstance.currentUser = this.currentUser;
     modalRef.componentInstance.projects = this.projects;
     modalRef.componentInstance.projectItems = [];

@@ -74,18 +74,18 @@
 }
 
 /* Form styles */
-::ng-deep .ant-form-item {
+/* ::ng-deep .ant-form-item {
   margin-bottom: 12px !important;
-}
+} */
 
-::ng-deep .ant-form-item-label {
+/* ::ng-deep .ant-form-item-label {
   padding-bottom: 2px !important;
 }
 
 ::ng-deep .ant-form-item-label > label {
   font-weight: 500;
   color: rgba(0, 0, 0, 0.85);
-}
+} */
 
 ::ng-deep .ant-input-number {
   width: 100%;

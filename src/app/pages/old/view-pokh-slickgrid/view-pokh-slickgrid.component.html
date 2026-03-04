@@ -141,9 +141,11 @@
 
         <!-- Main SlickGrid with Row Detail View -->
         <div class="grid-container-viewpokh flex-grow-1" style="min-height: 0;">
-            <angular-slickgrid gridId="viewPokhGrid" [columns]="columnDefinitions" [options]="gridOptions"
-                [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
-            </angular-slickgrid>
+            <nz-spin [nzSpinning]="isLoadingData" nzTip="Đang tải dữ liệu..." class="h-100 w-100">
+                <angular-slickgrid gridId="viewPokhGrid" [columns]="columnDefinitions" [options]="gridOptions"
+                    [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+                </angular-slickgrid>
+            </nz-spin>
         </div>
         <!-- Note: Nested tables (Export/Invoice) are now displayed inline using Row Detail View -->
     </div>

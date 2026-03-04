@@ -12,6 +12,8 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { DateTime } from 'luxon';
 import { DocumentService } from '../document-service/document.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+import { saveAs } from 'file-saver';
 import { ActivatedRoute } from '@angular/router';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -40,12 +42,11 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
 
     keyword: string = '';
     departmentId: number = -1;
-    groupType: number = 1;
+    groupType: number = 2;
     departments: any[] = [];
     documentData: any[] = [];
     totalDocuments: number = 0;
 
-    private downloadBasePath = '\\\\192.168.1.2\\ftp\\Upload\\RTCDocument\\';
 
     constructor(
         private documentService: DocumentService,
@@ -58,9 +59,22 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     ngOnInit(): void {
         this.loadDepartments();
 
+        // Check route to set groupType
+        const currentPath = window.location.pathname;
+        console.log('Current path:', currentPath);
+        // Check if the path ends with 'document-common' (not 'document-common-kt', etc.)
+        // Use regex to ensure exact match at the end, with optional trailing slash
+        const isDocumentCommonRoute = /\/document-common\/?$/.test(currentPath);
+        console.log('Is document-common route:', isDocumentCommonRoute);
+        if (isDocumentCommonRoute) {
+            this.groupType = 1;
+        } else {
+            this.groupType = 2;
+        }
+        console.log('Group type set to:', this.groupType);
+
         // Subscribe to query params và set departmentId
         this.route.queryParams.subscribe(params => {
-            // const deptId = params['departmentID'];
             const deptId =
                 params['departmentID']
                 ?? this.tabData?.departmentID
@@ -152,10 +166,11 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
         this.tabulator = new Tabulator(this.tbDocumentCommonRef.nativeElement, {
             ...DEFAULT_TABLE_CONFIG,
             layout: 'fitDataStretch',
-            height: '89vh',
+            height: '87vh',
             paginationMode: 'local',
             rowHeader: false,
             paginationSize: 100,
+            pagination: false,
             groupBy: ["DepartmentName", "NameDocumentType"],
             columns: [
                 { title: 'STT', field: 'STT', width: 60, hozAlign: 'center', headerHozAlign: 'center', headerSort: false, visible: false },
@@ -164,16 +179,15 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
                     title: 'Mã văn bản', field: 'Code', width: 250, headerSort: true,
                     formatter: (cell: any) => {
                         const rowData = cell.getRow().getData();
-                        const value = cell.getValue();
                         if (!rowData.FileName) {
-                            return value || '';
+                            return cell.getValue() || '';
                         }
-                        return `<a href="javascript:void(0)" class="download-link" style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value || rowData.FileName}</a>`;
+                        return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${cell.getValue()}</span>`;
                     },
                     cellClick: (e: any, cell: any) => {
                         const rowData = cell.getRow().getData();
                         if (rowData.FileName) {
-                            self.downloadFile(rowData.FileName);
+                            this.downloadFile(rowData);
                         }
                     }
                 },
@@ -208,56 +222,56 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
         });
     }
 
-    downloadFile(fileName: string): void {
-        if (!fileName) {
-            this.notification.warning('Thông báo', 'Không có file để tải xuống!');
+    downloadFile(file: any): void {
+        if (!file?.FileName) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy file để tải!');
             return;
         }
 
-        const filePath = `${this.downloadBasePath}${fileName}`;
+        const fileName = file.FileName;
+        const typeCode = file.CodeDocumentType || '';
 
-        const loadingMsg = this.message.loading('Đang tải xuống file...', {
-            nzDuration: 0,
-        }).messageId;
-
-        this.documentService.downloadFile(filePath).subscribe({
+        this.documentService.downloadFileByKey(fileName, typeCode).subscribe({
             next: (blob: Blob) => {
-                this.message.remove(loadingMsg);
+                const a = document.createElement('a');
+                const objectUrl = URL.createObjectURL(blob);
 
-                if (blob && blob.size > 0) {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = fileName;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                    this.notification.success('Thông báo', 'Tải xuống thành công!');
-                } else {
-                    this.notification.error('Thông báo', 'File tải về không hợp lệ!');
-                }
+                a.href = objectUrl;
+                a.download = file.FileNameOrigin || fileName;
+                a.click();
+
+                URL.revokeObjectURL(objectUrl);
+                this.notification.success(NOTIFICATION_TITLE.success, `Đã tải file: ${file.FileNameOrigin || fileName}`);
             },
-            error: (res: any) => {
-                this.message.remove(loadingMsg);
-                console.error('Lỗi khi tải file:', res);
+            error: (err: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải file: ' + (err?.error?.message || err?.message || 'Không xác định'));
+            }
+        });
+    }
 
-                if (res.error instanceof Blob) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        try {
-                            const errorText = JSON.parse(reader.result as string);
-                            this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
-                        } catch {
-                            this.notification.error('Thông báo', 'Tải xuống thất bại!');
-                        }
+    viewFile(file: any): void {
+        if (!file?.FileName) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy file để xem!');
+            return;
+        }
+
+        const fileName = file.FileName;
+        const typeCode = file.CodeDocumentType || '';
+
+        this.documentService.downloadFileByKey(fileName, typeCode).subscribe({
+            next: (blob: Blob) => {
+                const objectUrl = URL.createObjectURL(blob);
+                const newWindow = window.open(objectUrl, '_blank');
+
+                if (newWindow) {
+                    newWindow.onload = () => {
+                        newWindow.document.title = file.FileNameOrigin || fileName;
                     };
-                    reader.readAsText(res.error);
-                } else {
-                    const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
-                    this.notification.error('Thông báo', errorMsg);
                 }
             },
+            error: (err: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xem file: ' + (err?.error?.message || err?.message || 'Không xác định'));
+            }
         });
     }
 }

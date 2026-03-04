@@ -1,3 +1,15 @@
+/* Host element với chiều cao cố định */
+:host {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
+}
+
+/* Card chiếm full height của host */
+:host>ng-container>.card {
+    height: 100%;
+}
+
 /* Grid container chiếm full height */
 .grid-container {
     height: 100%;

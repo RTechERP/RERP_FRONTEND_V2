@@ -1,9 +1,64 @@
+/* ========== COURSE GROUP ========== */
+.course-group {
+    margin-bottom: 20px;
+}
+
+.course-group:last-child {
+    margin-bottom: 0;
+}
+
+.course-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #e6f4ff 0%, #f0f7ff 100%);
+    border: 1px solid #bae0ff;
+    border-left: 4px solid #1890ff;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.course-group-header:hover {
+    background: linear-gradient(135deg, #d6eaff 0%, #e6f4ff 100%);
+    border-color: #91caff;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.12);
+}
+
+.group-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.group-toggle-icon {
+    font-size: 12px;
+    color: #1890ff;
+    transition: transform 0.2s ease;
+}
+
+.group-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a3353;
+    letter-spacing: 0.2px;
+}
+
+.group-count {
+    font-size: 12px;
+    margin: 0;
+}
+
 /* Course Cards List */
 .course-grid {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 4px;
+    padding: 0 0 0 8px;
 }
 
 /* Individual Course Card - Horizontal Bar */

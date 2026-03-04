@@ -101,7 +101,8 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
     isLoading: boolean = false;
     private subscriptions: Subscription[] = [];
     private ngbModal = inject(NgbModal);
-
+private gridResizeObserver!: ResizeObserver;
+private detailResizeObserver!: ResizeObserver;
     constructor(
         private notification: NzNotificationService,
         private billImportTechnicalService: BillImportTechnicalService,
@@ -112,7 +113,6 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
         private ClipboardService: ClipboardService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
-
     ngOnInit() {
         this.route.queryParams.subscribe(params => {
             // this.warehouseID = params['warehouseID'] || 1;
@@ -139,15 +139,36 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
         this.initDetailGridColumns();
         this.initDetailGridOptions();
     }
+    private initResizeObserver(): void {
+      const masterEl = document.querySelector('.grid-container') as HTMLElement;
+      const detailEl = document.querySelector('.grid-container-detail') as HTMLElement;
 
+      if (masterEl) {
+        this.gridResizeObserver = new ResizeObserver(() => {
+          this.angularGrid?.slickGrid?.resizeCanvas();
+        });
+        this.gridResizeObserver.observe(masterEl);
+      }
+
+      if (detailEl) {
+        this.detailResizeObserver = new ResizeObserver(() => {
+          this.angularGridDetail?.slickGrid?.resizeCanvas();
+        });
+        this.detailResizeObserver.observe(detailEl);
+      }
+    }
     ngAfterViewInit(): void {
+        this.initResizeObserver();
         setTimeout(() => {
             this.loadData();
         }, 100);
+
     }
 
     ngOnDestroy(): void {
         this.subscriptions.forEach(sub => sub.unsubscribe());
+          this.gridResizeObserver?.disconnect();
+  this.detailResizeObserver?.disconnect();
     }
 
     // Helper method to format date to yyyy-MM-dd
@@ -353,12 +374,14 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
 
     private initGridOptions(): void {
         this.gridOptions = {
-            enableAutoResize: true,
-            autoResize: {
-                container: '.grid-container',
-                calculateAvailableSizeBy: 'container',
-                resizeDetection: 'container',
-            },
+            // enableAutoResize: true,
+            // autoResize: {
+            //     container: '.grid-container',
+            //     calculateAvailableSizeBy: 'container',
+            //     resizeDetection: 'container',
+            // },
+              enableAutoResize: false,
+  // gridWidth: '100%',
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
             enableRowSelection: true,
@@ -526,12 +549,12 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
 
     private initDetailGridOptions(): void {
         this.gridOptionsDetail = {
-            enableAutoResize: true,
-            autoResize: {
-                container: '.grid-container-detail',
-                calculateAvailableSizeBy: 'container',
-                resizeDetection: 'container',
-            },
+            enableAutoResize: false,
+            // autoResize: {
+            //     container: '.grid-container-detail',
+            //     calculateAvailableSizeBy: 'container',
+            //     resizeDetection: 'container',
+            // },
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
             enableCellNavigation: true,
@@ -567,7 +590,8 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 // Map data với id unique cho SlickGrid
                 const mappedData = data.map((item: any, index: number) => ({
                     ...item,
-                    id: item.ID || `bill_${index}_${Date.now()}`,
+                    // id: item.ID || `bill_${index}_${Date.now()}`,
+                    id: index + 1,
                 }));
 
                 this.dataset = mappedData;
@@ -703,7 +727,8 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 // Map data với id unique cho SlickGrid
                 const mappedDetailData = details.map((item: any, index: number) => ({
                     ...item,
-                    id: item.ID || `detail_${index}_${Date.now()}`,
+                    // id: item.ID || `detail_${index}_${Date.now()}`,
+                    id: index + 1,
                 }));
 
                 this.datasetDetail = mappedDetailData;

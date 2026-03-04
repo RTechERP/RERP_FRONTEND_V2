@@ -1,0 +1,14 @@
+:host ::ng-deep .ant-form-item-label>label.ant-form-item-required {
+    position: relative;
+    padding-right: 12px;
+}
+
+:host ::ng-deep .ant-form-item-label>label.ant-form-item-required::before {
+    content: '*';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ff4d4f;
+    margin: 0 !important;
+}

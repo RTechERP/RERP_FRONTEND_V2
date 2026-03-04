@@ -43,6 +43,7 @@ import { forkJoin } from 'rxjs';
 import { HandoverService } from '../handover-service/handover.service';
 import { SelectControlComponent } from '../../../old/select-control/select-control.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 interface Handover {
   STT: number;
@@ -93,12 +94,14 @@ interface HandoverWarehouseAsset {
 interface HandoverAssetManagement {
   STT: number;
   EmployeeID: number;
+  TSAssetManagementID: number;
   TSAssetCode: string;
   TSAssetName: string;
   Quantity: number;
   UnitName: string;
   Status: string;
   IsSigned: boolean;
+  IsContinueUse: boolean;
   ReceiverName: string;
   Note: string;
 }
@@ -130,6 +133,20 @@ interface HandoverApprove {
   RoleName: string;
   EmployeeName: string;
   ApproveStatus: number;
+}
+
+interface HandoverPersonalAsset {
+  ID: number;
+  STT: number;
+  Name: string;
+  Code: string;
+  Quantity: number;
+  Unit: string;
+  Status: string;
+  ReceiverID: number;
+  IsSign: boolean;
+  IsHandover: boolean;
+  HandoverID: number;
 }
 
 @Component({
@@ -207,12 +224,14 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
   newHandoverAssetManagement: HandoverAssetManagement = {
     STT: 0,
     EmployeeID: 0,
+    TSAssetManagementID: 0,
     TSAssetCode: '',
     TSAssetName: '',
-    Quantity: 0,
+    Quantity: 1,
     UnitName: '',
     Status: '',
     IsSigned: false,
+    IsContinueUse: false,
     ReceiverName: '',
     Note: '',
   };
@@ -279,16 +298,20 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
   HandoverApproveData: any[] = [];
   handoverApproveTable: Tabulator | null = null;
 
+  HandoverPersonalAssetData: any[] = [];
+  handoverPersonalAssetTable: Tabulator | null = null;
+
   DeletedHandoverReceiver: any[] = [];
   DeletedAsset: any[] = [];
   DeletedWork: any[] = [];
   DeletedFinance: any[] = [];
   DeletedWarehouseAsset: any[] = [];
+  DeletedPersonalAsset: any[] = [];
   cbbEmployeeGroup: any[] = [];
 
-  height:string = '100%'
+  height: string = '100%'
 
-  employeeCode:string = '';
+  employeeCode: string = '';
 
   constructor(
     private notification: NzNotificationService,
@@ -311,6 +334,17 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
     this.getdataDepartment();
     this.getdataEmployee();
     this.loadOptionEmployee();
+    // Initialize fixed data for personal assets
+    this.HandoverPersonalAssetData = [
+      { ID: 0, STT: 1, Name: 'Thẻ Bảo hiểm Y tế', Code: 'BHYT', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 2, Name: 'Thẻ Bảo hiểm sức khỏe', Code: 'BHST', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 3, Name: 'Bàn, ghế, hộc tủ cá nhân', Code: 'BGT', Quantity: 1, Unit: 'Bộ', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 4, Name: 'Thẻ nhân viên', Code: 'TNV', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 5, Name: 'Thẻ gửi xe', Code: 'TGX', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 6, Name: 'Dép đi văn phòng', Code: 'DVP', Quantity: 1, Unit: 'Đôi', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 7, Name: 'Áo bảo hộ', Code: 'ABH', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+      { ID: 0, STT: 8, Name: 'Mũ lưỡi chai', Code: 'MLC', Quantity: 1, Unit: 'Cái', Status: 'Đang sử dụng', ReceiverID: 0, IsSign: false, IsHandover: false, HandoverID: 0 },
+    ];
     if (!this.isCheckmode) {
       // Trường hợp thêm mới (reset dữ liệu)
       this.newHandover = {
@@ -360,12 +394,14 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.newHandoverAssetManagement = {
         STT: 0,
         EmployeeID: 0,
+        TSAssetManagementID: 0,
         TSAssetCode: '',
         TSAssetName: '',
         Quantity: 0,
         UnitName: '',
         Status: '',
         IsSigned: false,
+        IsContinueUse: false,
         ReceiverName: '',
         Note: '',
       };
@@ -395,6 +431,11 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         EmployeeName: '',
         ApproveStatus: 0,
       };
+      this.HandoverApproveData = [
+        { STT: 1, RoleName: 'Người bàn giao', ApproveLevel: 1, EmployeeID: this.newHandover.EmployeeID, ApproveStatus: 0 },
+        { STT: 2, RoleName: 'Trưởng bộ phận', ApproveLevel: 2, EmployeeID: 0, ApproveStatus: 0 },
+        { STT: 3, RoleName: 'Trưởng phòng HCNS', ApproveLevel: 3, EmployeeID: 0, ApproveStatus: 0 },
+      ];
     }
   }
 
@@ -411,20 +452,59 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
     this.activeTab = index;
     // Initialize tables when tabs become active
     setTimeout(() => {
-      if (index === 0 && !this.handoverReceiverTable) {
-        this.draw_handoverReceiverTable();
-      } else if (index === 1 && !this.handoverWorkTable) {
-        this.draw_handoverWorkTable();
-      } else if (index === 2 && !this.handoverAssetManagementTable) {
-        this.draw_handoverAssetManagementTable();
-      } else if (index === 3 && !this.handoverWarehouseAssetTable) {
-        this.draw_handoverWarehouseAssetTable();
-      } else if (index === 4 && !this.handoverFinancesTable) {
-        this.draw_handoverFinanceTable();
-      } else if (index === 5 && !this.handoverSubordinatesTable) {
-        this.draw_handoverSubTable();
-      } else if (index === 6 && !this.handoverApproveTable) {
-        this.draw_handoverApproveTable();
+      // Helper function to check if table needs re-initialization
+      const shouldReinitTable = (table: Tabulator | null, elementId: string): boolean => {
+        if (!table) return true; // No table exists, need to create
+        const element = document.getElementById(elementId);
+        if (!element) return false; // Element doesn't exist yet, skip
+        // Check if table's element is still in DOM
+        const tableElement = table.element;
+        if (!tableElement || !document.body.contains(tableElement)) {
+          return true; // Table element is no longer in DOM, need to recreate
+        }
+        return false; // Table is valid, no need to recreate
+      };
+
+      if (index === 0) {
+        if (shouldReinitTable(this.handoverReceiverTable, 'handoverReceiver')) {
+          this.handoverReceiverTable = null;
+          this.draw_handoverReceiverTable();
+        }
+      } else if (index === 1) {
+        if (shouldReinitTable(this.handoverWorkTable, 'handoverWork')) {
+          this.handoverWorkTable = null;
+          this.draw_handoverWorkTable();
+        }
+      } else if (index === 2) {
+        if (shouldReinitTable(this.handoverPersonalAssetTable, 'handoverPersonalAsset')) {
+          this.handoverPersonalAssetTable = null;
+          this.draw_handoverPersonalAssetTable();
+        }
+      } else if (index === 3) {
+        if (shouldReinitTable(this.handoverAssetManagementTable, 'handoverAsset')) {
+          this.handoverAssetManagementTable = null;
+          this.draw_handoverAssetManagementTable();
+        }
+      } else if (index === 4) {
+        if (shouldReinitTable(this.handoverWarehouseAssetTable, 'handoverWarehouse')) {
+          this.handoverWarehouseAssetTable = null;
+          this.draw_handoverWarehouseAssetTable();
+        }
+      } else if (index === 5) {
+        if (shouldReinitTable(this.handoverFinancesTable, 'handoverFinance')) {
+          this.handoverFinancesTable = null;
+          this.draw_handoverFinanceTable();
+        }
+      } else if (index === 6) {
+        if (shouldReinitTable(this.handoverSubordinatesTable, 'handoverSubordinate')) {
+          this.handoverSubordinatesTable = null;
+          this.draw_handoverSubTable();
+        }
+      } else if (index === 7) {
+        if (shouldReinitTable(this.handoverApproveTable, 'handoverApprove')) {
+          this.handoverApproveTable = null;
+          this.draw_handoverApproveTable();
+        }
       }
       this.cdr.detectChanges();
     }, 100); // Small delay to ensure DOM is ready
@@ -432,16 +512,16 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
 
   onSelectEmployee(employeeID: number, leaderID: number): void {
     if (!employeeID) return;
-const selectedEmployee = this.cbbEmployeeGroup
-    .flatMap((x: any) => x.employees)
-    .find((emp: any) => emp.ID === employeeID);
+    const selectedEmployee = this.cbbEmployeeGroup
+      .flatMap((x: any) => x.employees)
+      .find((emp: any) => emp.ID === employeeID);
 
-  if (selectedEmployee) {
-    this.employeeCode = selectedEmployee.Code;
+    if (selectedEmployee) {
+      this.employeeCode = selectedEmployee.Code;
 
-  } else {
-    this.employeeCode = ''; // trường hợp clear selection
-  }
+    } else {
+      this.employeeCode = ''; // trường hợp clear selection
+    }
     // Tìm object nhân viên trong danh sách
     const employee = this.cbbEmployee.find((e: any) => e.ID === employeeID);
 
@@ -506,12 +586,14 @@ const selectedEmployee = this.cbbEmployeeGroup
           (item: any, index: number) => ({
             STT: index + 1,
             EmployeeID: 0,
-            TSAssetCode: item.TSAssetCode || '',
+            TSAssetManagementID: item.ASID || 0,
+            TSAssetCode: item.TSCodeNCC || '',
             TSAssetName: item.TSAssetName || '',
-            Quantity: item.Quantity || '',
+            Quantity: item.Quantity || 1,
             UnitName: item.UnitName || '',
             Status: item.Status || '',
             IsSigned: false,
+            IsContinueUse: false,
             ReceiverName: '',
             Note: '',
           })
@@ -521,6 +603,7 @@ const selectedEmployee = this.cbbEmployeeGroup
           this.handoverAssetManagementTable.setData(
             this.HandoverAssetManagementData
           );
+          console.log("hehe: ", this.HandoverAssetManagementData)
         }
 
         this.HandoverSubordinatesData = HandoverSubordinate.map(
@@ -547,7 +630,7 @@ const selectedEmployee = this.cbbEmployeeGroup
               ID: item.ID,
               STT: index + 1,
               HandoverID: item.HandoverID,
-              EmployeeID: item.EmployeeID,
+              EmployeeID: index === 0 ? employeeID : item.EmployeeID,
               RoleName: item.RoleName || '',
               ApproveLevel: item.ApproveLevel,
               ApproveStatus: 0,
@@ -556,6 +639,13 @@ const selectedEmployee = this.cbbEmployeeGroup
 
           if (this.handoverApproveTable) {
             this.handoverApproveTable.setData(this.HandoverApproveData);
+          }
+        } else {
+          if (this.HandoverApproveData && this.HandoverApproveData.length > 0) {
+            this.HandoverApproveData[0].EmployeeID = employeeID;
+            if (this.handoverApproveTable) {
+              this.handoverApproveTable.setData(this.HandoverApproveData);
+            }
           }
         }
       },
@@ -595,6 +685,7 @@ const selectedEmployee = this.cbbEmployeeGroup
         const handoverFinance = details?.data?.HandoverFinance || [];
         const handoverSubordinate = details?.data?.HandoverSubordinate || [];
         const handoverApprove = details?.data?.HandoverApprove || [];
+        const handoverPersonalAsset = details?.data?.handoverPersonalAsset || [];
 
         // --------- Master data ----------
         this.newHandover = {
@@ -671,12 +762,14 @@ const selectedEmployee = this.cbbEmployeeGroup
             STT: item.STT || 0,
             EmployeeID: item.EmployeeID || 0,
             HandoverID: item.HandoverID || 0,
-            TSAssetCode: item.TSAssetCode || '',
+            TSAssetManagementID: item.TSAssetManagementID || 0,
+            TSAssetCode: item.TSCodeNCC || '',
             TSAssetName: item.TSAssetName || '',
-            Quantity: item.Quantity || 0,
+            Quantity: item.Quantity || 1,
             UnitName: item.UnitName || '',
             Status: item.Status || '',
             IsSigned: item.IsSigned || false,
+            IsContinueUse: item.IsContinueUse || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
           })
@@ -728,6 +821,22 @@ const selectedEmployee = this.cbbEmployeeGroup
           ApproveStatus: item.ApproveStatus || 0,
         }));
         this.handoverApproveTable?.setData(this.HandoverApproveData);
+
+        // --------- Handover Personal Asset ----------
+        this.HandoverPersonalAssetData = handoverPersonalAsset.map((item: any) => ({
+          ID: item.ID || 0,
+          STT: item.STT || 0,
+          Name: item.Name || '',
+          Code: item.Code || '',
+          Quantity: item.Quantity || 0,
+          Unit: item.Unit || '',
+          Status: item.Status === 1 ? 'Đang sử dụng' : (item.Status === 2 ? 'Chưa sử dụng' : item.Status),
+          ReceiverID: item.ReceiverID || 0,
+          IsSign: item.IsSign || false,
+          IsHandover: item.IsHandover || false,
+          HandoverID: item.HandoverID || 0,
+        }));
+        this.handoverPersonalAssetTable?.setData(this.HandoverPersonalAssetData);
       },
 
       error: (err) => {
@@ -785,29 +894,29 @@ const selectedEmployee = this.cbbEmployeeGroup
     });
   }
 
-//   handleChange(info: any): void {
-//     if (info.file.status === 'uploading') {
-//     }
-//     if (info.file.status === 'done') {
-//       this.notification.success(NOTIFICATION_TITLE.success, 'Upload file thành công!');
+  //   handleChange(info: any): void {
+  //     if (info.file.status === 'uploading') {
+  //     }
+  //     if (info.file.status === 'done') {
+  //       this.notification.success(NOTIFICATION_TITLE.success, 'Upload file thành công!');
 
-//       const res = info.file.response;
+  //       const res = info.file.response;
 
-//       const uploadedFile = {
-//         FileName: res.FileName,
-//         HandoverID: res.HandoverID,
-//       };
-//       this.handoverWorkTable?.addRow(uploadedFile);
-//     }
-//     if (info.file.status === 'error') {
-//       this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi upload!');
-//     }
-//   }
+  //       const uploadedFile = {
+  //         FileName: res.FileName,
+  //         HandoverID: res.HandoverID,
+  //       };
+  //       this.handoverWorkTable?.addRow(uploadedFile);
+  //     }
+  //     if (info.file.status === 'error') {
+  //       this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi upload!');
+  //     }
+  //   }
 
 
-uploadFileForRow(rowData: any) {
+  uploadFileForRow(rowData: any) {
     const input = document.createElement('input');
-    
+
     input.type = 'file';
     input.accept = '*/*';
 
@@ -964,8 +1073,7 @@ uploadFileForRow(rowData: any) {
         const work = this.HandoverWorkData[invalidIndex];
         this.notification.warning(
           'Thông báo',
-          `Dòng số ${invalidIndex + 1}${
-            work?.ContentWork ? ` nội dung công việc ${work.ContentWork}` : ''
+          `Dòng số ${invalidIndex + 1}${work?.ContentWork ? ` nội dung công việc ${work.ContentWork}` : ''
           } thiếu người nhận bàn giao.`
         );
         return;
@@ -982,8 +1090,7 @@ uploadFileForRow(rowData: any) {
       if (invalidIndex !== -1) {
         this.notification.warning(
           'Thông báo',
-          `Dòng số ${
-            invalidIndex + 1
+          `Dòng số ${invalidIndex + 1
           } chưa điền thông tin kế toán trong Công nợ!`
         );
         return;
@@ -1000,8 +1107,7 @@ uploadFileForRow(rowData: any) {
       if (invalidIndex !== -1) {
         this.notification.warning(
           'Thông báo',
-          `Dòng số ${
-            invalidIndex + 1
+          `Dòng số ${invalidIndex + 1
           } chưa điền thông tin người duyệt biên bản trong Duyệt !`
         );
         return;
@@ -1079,8 +1185,7 @@ uploadFileForRow(rowData: any) {
           if (!item.AssigneeID) {
             this.notification.warning(
               'Thông báo',
-              `Dòng số ${
-                i + 1
+              `Dòng số ${i + 1
               } chưa điền đầy đủ thông tin Người đảm nhận trong Nhân viên trực thuộc!`
             );
             return;
@@ -1088,8 +1193,7 @@ uploadFileForRow(rowData: any) {
           if (!item.ReceiverID) {
             this.notification.warning(
               'Thông báo',
-              `Dòng số ${
-                i + 1
+              `Dòng số ${i + 1
               } chưa điền đầy đủ thông tin Người nhận bàn giao trong Nhân viên trực thuộc!`
             );
             return;
@@ -1179,12 +1283,13 @@ uploadFileForRow(rowData: any) {
             ID: item.ID || 0,
             STT: item.STT || 0,
             EmployeeID: item.EmployeeID || 0,
-            TSAssetCode: item.TSAssetCode || '',
+            TSAssetManagementID: item.TSAssetManagementID || 0,
+            TSAssetCode: item.TSCodeNCC || '',
             TSAssetName: item.TSAssetName || '',
-            Quantity: item.Quantity || '',
+            Quantity: item.Quantity || 1,
             UnitName: item.UnitName || '',
-            Status: item.Status || '',
             IsSigned: item.IsSigned || false,
+            IsContinueUse: item.IsContinueUse || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
           })) || []),
@@ -1224,9 +1329,25 @@ uploadFileForRow(rowData: any) {
             ApproveStatus: item.ApproveStatus || 0,
           })) || []),
         ],
+        HandoverPersonalAsset: [
+          ...(this.handoverPersonalAssetTable?.getData().map((item: any) => ({
+            ID: item.ID || 0,
+            STT: item.STT || 0,
+            Name: item.Name || '',
+            Code: item.Code || '',
+            Quantity: item.Quantity || 0,
+            Unit: item.Unit || '',
+            Status: item.Status === 'Đang sử dụng' ? 1 : (item.Status === 'Chưa sử dụng' ? 2 : 1),
+            ReceiverID: item.ReceiverID || 0,
+            IsSign: item.IsSign || false,
+            IsHandover: item.IsHandover || false,
+            HandoverID: item.HandoverID || 0,
+          })) || []),
+        ],
         DeletedHandoverReceiver: this.DeletedHandoverReceiver,
         DeletedWork: this.DeletedWork,
         DeletedFinance: this.DeletedFinance,
+        DeletedPersonalAsset: this.DeletedPersonalAsset,
       };
       this.handoverService.saveData(payload).subscribe({
         next: (res) => {
@@ -1308,12 +1429,13 @@ uploadFileForRow(rowData: any) {
             STT: item.STT || 0,
             EmployeeID: item.EmployeeID || 0,
             HandoverID: item.HandoverID || 0,
-            TSAssetCode: item.TSAssetCode || '',
+            TSAssetManagementID: item.TSAssetManagementID || 0,
+            TSAssetCode: item.TSCodeNCC || '',
             TSAssetName: item.TSAssetName || '',
-            Quantity: item.Quantity || '',
+            Quantity: item.Quantity || 1,
             UnitName: item.UnitName || '',
-            Status: item.Status || '',
             IsSigned: item.IsSigned || false,
+            IsContinueUse: item.IsContinueUse || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
           })) || []),
@@ -1350,8 +1472,24 @@ uploadFileForRow(rowData: any) {
             ID: item.ID || 0,
             STT: item.STT || 0,
             EmployeeID: item.EmployeeID || 0,
+            RoleName: item.RoleName || '',
             ApproveLevel: item.ApproveLevel || 0,
             ApproveStatus: item.ApproveStatus || 0,
+          })) || []),
+        ],
+        HandoverPersonalAsset: [
+          ...(this.handoverPersonalAssetTable?.getData().map((item: any) => ({
+            ID: item.ID || 0,
+            STT: item.STT || 0,
+            Name: item.Name || '',
+            Code: item.Code || '',
+            Quantity: item.Quantity || 0,
+            Unit: item.Unit || '',
+            Status: item.Status === 'Đang sử dụng' ? 1 : (item.Status === 'Chưa sử dụng' ? 2 : 1),
+            ReceiverID: item.ReceiverID || 0,
+            IsSign: item.IsSign || false,
+            IsHandover: item.IsHandover || false,
+            HandoverID: item.HandoverID || 0,
           })) || []),
         ],
         DeletedHandoverReceiver: this.DeletedHandoverReceiver,
@@ -1393,6 +1531,7 @@ uploadFileForRow(rowData: any) {
             .map((employee) => ({
               label: employee.FullName, // Label gốc
               value: employee.ID,
+              Code: employee.Code || '',
               FullName: employee.FullName,
               DepartmentName:
                 employee.DepartmentName || 'Không thuộc phòng ban',
@@ -1406,8 +1545,8 @@ uploadFileForRow(rowData: any) {
               return a.FullName.localeCompare(b.FullName);
             })
             .map((employee: any) => {
-              // Thêm prefix để rõ nhóm
-              employee.label = `${employee.DepartmentName} - ${employee.FullName}`;
+              // Thêm prefix để rõ nhóm (Sửa thành Mã - Tên theo yêu cầu)
+              employee.label = `${employee.Code} - ${employee.FullName}`;
               return employee;
             });
         } else {
@@ -1436,6 +1575,13 @@ uploadFileForRow(rowData: any) {
   ) {
     return (cell: any, onRendered: any, success: any, cancel: any) => {
       const container = document.createElement('div');
+      container.style.width = '100%';
+      container.style.height = '100%';
+
+      // Xoá padding của ô khi ở chế độ edit để select box lấp đầy ô
+      const cellEl = cell.getElement();
+      cellEl.style.padding = '0';
+
       const componentRef = createComponent(component, {
         environmentInjector: injector,
       });
@@ -1456,7 +1602,7 @@ uploadFileForRow(rowData: any) {
 
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => {});
+      onRendered(() => { });
 
       return container;
     };
@@ -1648,9 +1794,8 @@ uploadFileForRow(rowData: any) {
             title: 'Nội dung công việc',
             field: 'ContentWork',
             headerHozAlign: 'center',
-            editor: 'textarea',
-            minWidth: 400,
-            widthGrow: 2,
+            editor: 'input',
+            formatter: 'textarea'
           },
           {
             title: 'Trạng thái',
@@ -1778,13 +1923,20 @@ uploadFileForRow(rowData: any) {
     } else {
       this.handoverWarehouseAssetTable = new Tabulator('#handoverWarehouse', {
         data: this.HandoverWarehouseAssetData,
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitColumns',
         height: this.height,
-        movableColumns: true,
-        placeholder: 'Không có dữ liệu',
-        resizableRows: true,
-        reactiveData: true,
-        selectableRows: 1,
+        selectableRows: true, // Cho phép chọn nhiều dòng
+        selectableRowsRangeMode: "click",
+        rowHeader: {
+          formatter: "rowSelection",
+          titleFormatter: "rowSelection",
+          headerSort: false,
+          width: 30,
+          frozen: true,
+          headerHozAlign: "center",
+          hozAlign: "center"
+        },
         columns: [
           {
             title: 'STT',
@@ -1850,14 +2002,27 @@ uploadFileForRow(rowData: any) {
             },
             cellEdited: (cell) => {
               const row = cell.getRow();
+              const field = cell.getField();
               const newValue = cell.getValue();
+              const table = cell.getTable();
+
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
+                    r.update({ [field]: newValue });
+                  }
+                });
+              }
+
               const selectedProject = this.employeeOptions.find(
                 (p: any) => p.value === newValue
               );
-              this.newHandoverWarehouseAsset.EmployeeID = selectedProject.value;
+              if (selectedProject) {
+                this.newHandoverWarehouseAsset.EmployeeID = selectedProject.value;
+              }
             },
           },
-            {
+          {
             title: 'Ký nhận',
             field: 'IsSigned',
             headerHozAlign: 'center',
@@ -1865,6 +2030,20 @@ uploadFileForRow(rowData: any) {
             editor: 'tickCross',
             formatter: 'tickCross',
             editorParams: { tristate: false },
+            cellEdited: (cell) => {
+              const row = cell.getRow();
+              const field = cell.getField();
+              const newValue = cell.getValue();
+              const table = cell.getTable();
+
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
+                    r.update({ [field]: newValue });
+                  }
+                });
+              }
+            },
           },
 
           {
@@ -1872,6 +2051,20 @@ uploadFileForRow(rowData: any) {
             field: 'Note',
             headerHozAlign: 'center',
             editor: 'input',
+            cellEdited: (cell) => {
+              const row = cell.getRow();
+              const field = cell.getField();
+              const newValue = cell.getValue();
+              const table = cell.getTable();
+
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
+                    r.update({ [field]: newValue });
+                  }
+                });
+              }
+            },
           },
           {
             title: 'BorrowID',
@@ -1892,14 +2085,28 @@ uploadFileForRow(rowData: any) {
     } else {
       this.handoverAssetManagementTable = new Tabulator('#handoverAsset', {
         data: this.HandoverAssetManagementData,
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitColumns',
         height: this.height,
-        movableColumns: true,
-        placeholder: 'Không có dữ liệu',
-        resizableRows: true,
+        selectableRows: false, // Cho phép chọn nhiều dòng
+        selectableRowsRangeMode: "click",
+        rowHeader: {
+          formatter: "rowSelection",
+          titleFormatter: "rowSelection",
+          headerSort: false,
+          width: 30,
+          frozen: true,
+          headerHozAlign: "center",
+          hozAlign: "center"
+        },
         reactiveData: true,
-        selectableRows: 1,
         columns: [
+
+          {
+            title: 'TSAssetManagementID',
+            field: 'TSAssetManagementID',
+            visible: false,
+          },
           {
             title: 'STT',
             hozAlign: 'center',
@@ -1911,12 +2118,14 @@ uploadFileForRow(rowData: any) {
             title: 'Mã tài sản',
             field: 'TSAssetCode',
             headerHozAlign: 'center',
+            minWidth: 120,
             editor: 'input',
           },
           {
             title: 'Tên tài sản',
             field: 'TSAssetName',
             headerHozAlign: 'center',
+            minWidth: 200,
             editor: 'input',
           },
           {
@@ -1924,23 +2133,27 @@ uploadFileForRow(rowData: any) {
             field: 'Quantity',
             headerHozAlign: 'center',
             editor: 'input',
+            mutator: (value) => value || 1,
           },
           {
             title: 'Đơn vị tính',
             field: 'UnitName',
             headerHozAlign: 'center',
+            minWidth: 100,
             editor: 'input',
           },
           {
             title: 'Tình trạng',
             field: 'Status',
             headerHozAlign: 'center',
+            minWidth: 120,
             editor: 'input',
           },
           {
             title: 'Nhân viên nhận bàn giao',
             field: 'EmployeeID',
             headerHozAlign: 'center',
+            minWidth: 180,
             editor: this.createdControl(
               SelectControlComponent,
               this.injector,
@@ -1964,31 +2177,95 @@ uploadFileForRow(rowData: any) {
             },
             cellEdited: (cell) => {
               const row = cell.getRow();
+              const field = cell.getField();
               const newValue = cell.getValue();
+              const table = cell.getTable();
+
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
+                    r.update({ [field]: newValue });
+                  }
+                });
+              }
+
               const selectedProject = this.employeeOptions.find(
                 (p: any) => p.value === newValue
               );
               if (selectedProject) {
                 this.newHandoverAssetManagement.EmployeeID =
                   selectedProject.value;
-                // this.newHandoverAssetManagement.STT = selectedProject.value;
               }
             },
           },
-           {
+          {
+            title: 'Sử dụng tiếp',
+            field: 'IsContinueUse',
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+            minWidth: 100,
+            editor: 'tickCross',
+            formatter: 'tickCross',
+            editorParams: { tristate: false },
+            cellEdited: (cell) => {
+              const row = cell.getRow();
+              const field = cell.getField();
+              const newValue = cell.getValue();
+              const table = cell.getTable();
+
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
+                    r.update({ [field]: newValue });
+                  }
+                });
+              }
+            },
+          },
+          {
             title: 'Ký nhận',
             field: 'IsSigned',
             headerHozAlign: 'center',
             hozAlign: 'center',
+            minWidth: 80,
             editor: 'tickCross',
             formatter: 'tickCross',
             editorParams: { tristate: false },
+            cellEdited: (cell) => {
+              const row = cell.getRow();
+              const field = cell.getField();
+              const newValue = cell.getValue();
+              const table = cell.getTable();
+
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
+                    r.update({ [field]: newValue });
+                  }
+                });
+              }
+            },
           },
           {
             title: 'Ghi chú',
             field: 'Note',
             headerHozAlign: 'center',
+            minWidth: 150,
             editor: 'input',
+            cellEdited: (cell) => {
+              const row = cell.getRow();
+              const field = cell.getField();
+              const newValue = cell.getValue();
+              const table = cell.getTable();
+
+              if (row.isSelected()) {
+                table.getSelectedRows().forEach((r: any) => {
+                  if (r !== row) {
+                    r.update({ [field]: newValue });
+                  }
+                });
+              }
+            },
           },
         ],
       });
@@ -2056,7 +2333,8 @@ uploadFileForRow(rowData: any) {
             title: 'Vấn đề tồn tại',
             field: 'DebtType',
             headerHozAlign: 'center',
-            editor: 'textarea',
+            editor: 'input',
+            formatter: 'textarea',
           },
           {
             title: 'Số tiền',
@@ -2161,6 +2439,149 @@ uploadFileForRow(rowData: any) {
         DebtType: '',
         DebtAmount: 0,
         FullName: '',
+      });
+    }
+  }
+
+  draw_handoverPersonalAssetTable() {
+    if (this.handoverPersonalAssetTable) {
+      this.handoverPersonalAssetTable.replaceData(this.HandoverPersonalAssetData);
+    } else {
+      this.handoverPersonalAssetTable = new Tabulator('#handoverPersonalAsset', {
+        data: this.HandoverPersonalAssetData,
+        ...DEFAULT_TABLE_CONFIG,
+        layout: 'fitColumns',
+        height: '72vh',
+        selectableRows: false,
+        reactiveData: true,
+        rowHeader: false,
+        columns: [
+          {
+            title: '',
+            field: 'deleteRow',
+            hozAlign: 'center',
+            width: 40,
+            headerSort: false,
+            formatter: () =>
+              `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
+            cellClick: (e, cell) => {
+              if ((e.target as HTMLElement).classList.contains('fas')) {
+                this.modal.confirm({
+                  nzTitle: 'Xác nhận xóa',
+                  nzContent: 'Bạn có chắc chắn muốn xóa không?',
+                  nzOkText: 'Đồng ý',
+                  nzCancelText: 'Hủy',
+                  nzOnOk: () => {
+                    const row = cell.getRow();
+                    const rowData = row.getData();
+                    if (rowData['ID']) {
+                      this.DeletedPersonalAsset.push(rowData['ID']);
+                    }
+                    row.delete();
+                    this.HandoverPersonalAssetData = this.HandoverPersonalAssetData.filter(
+                      (x) => x !== rowData
+                    );
+                  },
+                });
+              }
+            },
+          },
+          {
+            title: 'ID',
+            field: 'ID',
+            visible: false,
+          },
+          {
+            title: 'Bàn giao',
+            field: 'IsHandover',
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+            minWidth: 80,
+            editor: 'tickCross',
+            formatter: 'tickCross',
+            editorParams: { tristate: false },
+          },
+          {
+            title: 'STT',
+            hozAlign: 'center',
+            formatter: 'rownum',
+            headerHozAlign: 'center',
+            field: 'STT',
+          },
+          {
+            title: 'Tên tài sản',
+            field: 'Name',
+            headerHozAlign: 'center',
+            minWidth: 200,
+          },
+          {
+            title: 'Mã',
+            field: 'Code',
+            headerHozAlign: 'center',
+            minWidth: 100,
+          },
+          {
+            title: 'Số lượng',
+            field: 'Quantity',
+            headerHozAlign: 'center',
+            minWidth: 100,
+            editor: 'input',
+          },
+          {
+            title: 'Đơn vị',
+            field: 'Unit',
+            headerHozAlign: 'center',
+            minWidth: 80,
+            editor: 'input',
+          },
+          {
+            title: 'Tình trạng',
+            field: 'Status',
+            headerHozAlign: 'center',
+            minWidth: 120,
+            editor: 'input',
+          },
+          {
+            title: 'Nhân viên nhận',
+            field: 'ReceiverID',
+            headerHozAlign: 'center',
+            minWidth: 180,
+            editor: this.createdControl(
+              SelectControlComponent,
+              this.injector,
+              this.appRef,
+              () => this.employeeOptions,
+              {
+                valueField: 'value',
+                labelField: 'label',
+              }
+            ),
+            formatter: (cell) => {
+              const val = cell.getValue();
+              if (!val) {
+                return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
+              }
+              if (!this.employeeOptions) {
+                return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
+              }
+              const employee = this.employeeOptions.find(
+                (p: any) => p.value === val
+              );
+              const employeeName = employee ? employee.FullName : val;
+              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${employeeName}</p> <i class="fas fa-angle-down"></i></div>`;
+            },
+          },
+          {
+            title: 'Ký nhận',
+            field: 'IsSign',
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+            minWidth: 80,
+            editor: 'tickCross',
+            formatter: 'tickCross',
+            editorParams: { tristate: false },
+          },
+        ],
       });
     }
   }

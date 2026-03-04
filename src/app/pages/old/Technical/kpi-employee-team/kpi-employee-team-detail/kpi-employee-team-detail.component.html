@@ -1,0 +1,83 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">{{ mode === 'add' ? 'THÊM MỚI' : 'CẬP NHẬT' }} TEAM</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-3">
+    <form nz-form nzLayout="vertical">
+        <!-- Năm -->
+        <nz-form-item>
+            <nz-form-label [nzSpan]="24">Năm</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+                <nz-input-number [(ngModel)]="model.YearValue" name="yearValue" [nzMin]="2010" [nzMax]="3000"
+                    nzSize="default" style="width: 100%;"></nz-input-number>
+            </nz-form-control>
+        </nz-form-item>
+
+        <!-- Quý -->
+        <nz-form-item>
+            <nz-form-label [nzSpan]="24">Quý</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+                <nz-input-number [(ngModel)]="model.QuarterValue" name="quarterValue" [nzMin]="1" [nzMax]="4"
+                    nzSize="default" style="width: 100%;"></nz-input-number>
+            </nz-form-control>
+        </nz-form-item>
+
+        <!-- Phòng ban -->
+        <nz-form-item>
+            <nz-form-label [nzSpan]="24" nzRequired>Phòng ban</nz-form-label>
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="errors.department">
+                <nz-select [(ngModel)]="model.DepartmentID" name="departmentId" nzShowSearch nzAllowClear
+                    nzPlaceHolder="Chọn phòng ban" (ngModelChange)="onDepartmentChange()"
+                    [nzStatus]="errors.department ? 'error' : ''">
+                    <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
+                </nz-select>
+            </nz-form-control>
+        </nz-form-item>
+
+        <!-- Nhóm cha (Tree Select) -->
+        <nz-form-item>
+            <nz-form-label [nzSpan]="24">Nhóm cha</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+                <nz-tree-select [(ngModel)]="selectedParentKey" name="parentId" [nzNodes]="parentTeamNodes" nzShowSearch
+                    nzAllowClear nzPlaceHolder="Chọn nhóm cha" nzDefaultExpandAll
+                    [nzDropdownStyle]="{ 'max-height': '250px', 'overflow-y': 'auto' }"
+                    (ngModelChange)="onParentChange($event)" style="width: 100%;">
+                </nz-tree-select>
+            </nz-form-control>
+        </nz-form-item>
+
+        <!-- Tên Team -->
+        <nz-form-item>
+            <nz-form-label [nzSpan]="24" nzRequired>Tên Team</nz-form-label>
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="errors.name">
+                <input nz-input [(ngModel)]="model.Name" name="name" placeholder="Nhập tên team"
+                    [nzStatus]="errors.name ? 'error' : ''" (blur)="errors.name = ''" />
+            </nz-form-control>
+        </nz-form-item>
+
+        <!-- Leader (Grouped by Department) -->
+        <nz-form-item>
+            <nz-form-label [nzSpan]="24" nzRequired>Leader</nz-form-label>
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="errors.leader">
+                <nz-select [(ngModel)]="model.LeaderID" name="leaderId" nzShowSearch nzAllowClear
+                    nzPlaceHolder="Chọn leader" [nzStatus]="errors.leader ? 'error' : ''"
+                    [nzDropdownStyle]="{ 'max-height': '300px' }">
+                    <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.departmentName">
+                        <nz-option *ngFor="let emp of group.employees" [nzValue]="emp.ID"
+                            [nzLabel]="emp.FullName"></nz-option>
+                    </nz-option-group>
+                </nz-select>
+            </nz-form-control>
+        </nz-form-item>
+    </form>
+</div>
+
+<div class="modal-footer p-2">
+    <button nz-button nzType="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="save()">
+        <i class="fas fa-save"></i> Lưu
+    </button>
+</div>

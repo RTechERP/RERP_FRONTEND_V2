@@ -1,56 +1,55 @@
 <div class="modal-dialog-scrollable">
-  <div class="modal-header bg-primary text-uppercase py-2">
-    <h6 class="modal-title text-white">Báo cáo công việc Marketing</h6>
-    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-  </div>
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">Báo cáo công việc Marketing</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
 
-  <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
-     <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7">
-        <!-- Dòng 1: Họ tên, Chức vụ, Ngày báo cáo -->
-        <nz-row [nzGutter]="16">
-            <!-- Họ tên: Mobile 12, Tablet 12, Desktop 6 -->
-            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
-                <nz-form-item>
-                    <nz-form-label class="fs-12 p-0">Họ tên</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                        <input nz-input [value]="currentUser?.FullName || ''" disabled class="w-100" />
-                    </nz-form-control>
-                </nz-form-item>
-            </nz-col>
-            <!-- Chức vụ: Mobile 12, Tablet 12, Desktop 6 -->
-            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
-                <nz-form-item>
-                    <nz-form-label class="fs-12 p-0">Chức vụ</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                        <input nz-input [value]="currentUser?.PositionName || ''" disabled class="w-100" />
-                    </nz-form-control>
-                </nz-form-item>
-            </nz-col>
-            <!-- Ngày báo cáo: Mobile 12, Tablet 12, Desktop 6 -->
-            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
-                <nz-form-item>
-                    <nz-form-label class="fs-12 p-0">Ngày báo cáo<span class="text-danger ps-1">*
-                        </span></nz-form-label>
-                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+    <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
+        <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7">
+            <!-- Dòng 1: Họ tên, Chức vụ, Ngày báo cáo -->
+            <nz-row [nzGutter]="16">
+                <!-- Họ tên: Mobile 12, Tablet 12, Desktop 6 -->
+                <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Họ tên</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input [value]="currentUser?.FullName || ''" disabled class="w-100" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <!-- Chức vụ: Mobile 12, Tablet 12, Desktop 6 -->
+                <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Chức vụ</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input [value]="currentUser?.PositionName || ''" disabled class="w-100" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <!-- Ngày báo cáo: Mobile 12, Tablet 12, Desktop 6 -->
+                <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Ngày báo cáo<span class="text-danger ps-1">*
+                            </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzErrorTip]="
               formGroup.get('DateReport')?.hasError('required') &&
               (formGroup.get('DateReport')?.dirty || formGroup.get('DateReport')?.touched)
                 ? 'Vui lòng chọn ngày báo cáo!'
                 : undefined
             ">
-                        <nz-date-picker formControlName="DateReport" class="w-100" nzFormat="dd/MM/yyyy"
-                            nzPlaceHolder="Chọn ngày báo cáo" [nzDisabledDate]="disabledDate"></nz-date-picker>
-                    </nz-form-control>
-                </nz-form-item>
-            </nz-col>
-        </nz-row>
+                            <input nz-input type="date" formControlName="DateReport" class="w-100" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
 
-        <!-- Dòng 2: Nội dung công việc, Kết quả -->
-        <nz-row [nzGutter]="16" class="mt-2">
-            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
-                <nz-form-item>
-                    <nz-form-label class="fs-12 p-0">Nội dung công việc<span class="text-danger ps-1">*
-                        </span></nz-form-label>
-                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+            <!-- Dòng 2: Nội dung công việc, Kết quả -->
+            <nz-row [nzGutter]="16" class="mt-2">
+                <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Nội dung công việc<span class="text-danger ps-1">*
+                            </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzErrorTip]="
                         formGroup.get('Content')?.hasError('required') &&
                         (formGroup.get('Content')?.dirty || formGroup.get('Content')?.touched)
                             ? 'Vui lòng nhập nội dung công việc!'
@@ -58,14 +57,14 @@
                     ">
                         <textarea nz-input formControlName="Content" rows="3"
                             class="w-100" placeholder="Nhập nội dung công việc"></textarea>
-                    </nz-form-control>
-                </nz-form-item>
-            </nz-col>
-            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
-                <nz-form-item>
-                    <nz-form-label class="fs-12 p-0">Kết quả<span class="text-danger ps-1">*
-                        </span></nz-form-label>
-                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0">Kết quả<span class="text-danger ps-1">*
+                            </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzErrorTip]="
                         formGroup.get('Results')?.hasError('required') &&
                         (formGroup.get('Results')?.dirty || formGroup.get('Results')?.touched)
                             ? 'Vui lòng nhập kết quả!'
@@ -73,14 +72,14 @@
                     ">
                         <textarea nz-input formControlName="Results" rows="3"
                             class="w-100" placeholder="Nhập kết quả"></textarea>
-                    </nz-form-control>
-                </nz-form-item>
-            </nz-col>
-        </nz-row>
-        <nz-form-item class="mt-2">
-            <nz-form-label class="fs-12 p-0">Kế hoạch ngày tiếp theo<span class="text-danger ps-1">*
-                </span></nz-form-label>
-            <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+            <nz-form-item class="mt-2">
+                <nz-form-label class="fs-12 p-0">Kế hoạch ngày tiếp theo<span class="text-danger ps-1">*
+                    </span></nz-form-label>
+                <nz-form-control [nzSpan]="24" [nzErrorTip]="
                 formGroup.get('PlanNextDay')?.hasError('required') &&
                 (formGroup.get('PlanNextDay')?.dirty || formGroup.get('PlanNextDay')?.touched)
                     ? 'Vui lòng nhập kế hoạch ngày tiếp theo!'
@@ -88,31 +87,31 @@
             ">
                 <textarea nz-input formControlName="PlanNextDay" rows="3"
                     class="w-100" placeholder="Nhập kế hoạch ngày tiếp theo"></textarea>
-            </nz-form-control>
-        </nz-form-item>
+                </nz-form-control>
+            </nz-form-item>
 
-        <nz-form-item class="mt-2">
-            <nz-form-label class="fs-12 p-0">Đề xuất cải tiến phòng Marketing</nz-form-label>
-            <nz-form-control [nzSpan]="24">
+            <nz-form-item class="mt-2">
+                <nz-form-label class="fs-12 p-0">Đề xuất cải tiến phòng Marketing</nz-form-label>
+                <nz-form-control [nzSpan]="24">
                 <textarea nz-input formControlName="Note" rows="3"
                     class="w-100" placeholder="Nhập đề xuất cải tiến"></textarea>
-            </nz-form-control>
-        </nz-form-item>
+                </nz-form-control>
+            </nz-form-item>
 
-        <nz-form-item class="mt-2">
-            <nz-form-label class="fs-12 p-0">Bảng đính kèm file</nz-form-label>
-            <nz-form-control [nzSpan]="24">
-                <div #tb_FileMar id="tb_FileMar" style="height: 100%; min-height: 280px;"></div>
-            </nz-form-control>
-        </nz-form-item>
-    </form>
-  </div>
+            <nz-form-item class="mt-2">
+                <nz-form-label class="fs-12 p-0">Bảng đính kèm file</nz-form-label>
+                <nz-form-control [nzSpan]="24">
+                    <div #tb_FileMar id="tb_FileMar" style="height: 100%; min-height: 280px;"></div>
+                </nz-form-control>
+            </nz-form-item>
+        </form>
+    </div>
 
-  <div class="modal-footer">
-    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-    <!-- <button class="fs-12 btn" nz-button nzType="default" (click)="sendEmailMarketing()" [disabled]="saving || sendingEmail">
+    <div class="modal-footer">
+        <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+        <!-- <button class="fs-12 btn" nz-button nzType="default" (click)="sendEmailMarketing()" [disabled]="saving || sendingEmail">
       Gửi email
     </button> -->
-    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()" [disabled]="saving">Lưu</button>
-  </div>
+        <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()" [disabled]="saving">Lưu</button>
+    </div>
 </div>

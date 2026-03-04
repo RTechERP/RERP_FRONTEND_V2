@@ -13,9 +13,9 @@
         placeholder="Tìm theo mã, tên tài sản, phòng ban, người quản lý..." />
     </div>
 
-    <div id="grid-container-transfer-asset" style="height: 55vh; width: 100%;">
-      <angular-slickgrid gridId="transferAssetChooseGrid" [columns]="columnDefinitions" [options]="gridOptions"
-        [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+    <div [id]="gridId + '_container'" style="height: 55vh; width: 100%;">
+      <angular-slickgrid [gridId]="gridId" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
+        (onAngularGridCreated)="angularGridReady($event.detail)">
       </angular-slickgrid>
     </div>
   </div>

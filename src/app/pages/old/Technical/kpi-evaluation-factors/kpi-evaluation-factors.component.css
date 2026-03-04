@@ -1,0 +1,176 @@
+/* Splitter height */
+.ant-splitter {
+    height: 86.5vh !important;
+}
+
+/* Ensure splitter panels have height 100% */
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-splitter-panel .card {
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel .card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+/* Grid container - Session */
+.grid-container-session {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-session nz-spin,
+:host ::ng-deep .grid-container-session .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-session .ant-spin-container,
+:host ::ng-deep .grid-container-session angular-slickgrid,
+:host ::ng-deep .grid-container-session .slickgrid-container,
+:host ::ng-deep .grid-container-session .gridPane {
+    height: 100% !important;
+}
+
+/* Grid container - Exam */
+.grid-container-exam {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-exam nz-spin,
+:host ::ng-deep .grid-container-exam .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-exam .ant-spin-container,
+:host ::ng-deep .grid-container-exam angular-slickgrid,
+:host ::ng-deep .grid-container-exam .slickgrid-container,
+:host ::ng-deep .grid-container-exam .gridPane {
+    height: 100% !important;
+}
+
+/* Grid container - Skill (Tab 1) */
+.grid-container-skill {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-skill nz-spin,
+:host ::ng-deep .grid-container-skill .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-skill .ant-spin-container,
+:host ::ng-deep .grid-container-skill angular-slickgrid,
+:host ::ng-deep .grid-container-skill .slickgrid-container,
+:host ::ng-deep .grid-container-skill .gridPane {
+    height: 100% !important;
+}
+
+/* Grid container - General (Tab 2) */
+.grid-container-general {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-general nz-spin,
+:host ::ng-deep .grid-container-general .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-general .ant-spin-container,
+:host ::ng-deep .grid-container-general angular-slickgrid,
+:host ::ng-deep .grid-container-general .slickgrid-container,
+:host ::ng-deep .grid-container-general .gridPane {
+    height: 100% !important;
+}
+
+/* Grid container - Specialty (Tab 3) */
+.grid-container-specialty {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-specialty nz-spin,
+:host ::ng-deep .grid-container-specialty .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-specialty .ant-spin-container,
+:host ::ng-deep .grid-container-specialty angular-slickgrid,
+:host ::ng-deep .grid-container-specialty .slickgrid-container,
+:host ::ng-deep .grid-container-specialty .gridPane {
+    height: 100% !important;
+}
+
+/* NZ TabSet styling */
+:host ::ng-deep .evaluation-tabs {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .evaluation-tabs .ant-tabs-content-holder {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+:host ::ng-deep .evaluation-tabs .ant-tabs-content {
+    height: 100%;
+}
+
+:host ::ng-deep .evaluation-tabs .ant-tabs-tabpane {
+    height: 100%;
+    padding: 0 !important;
+}
+
+:host ::ng-deep .evaluation-tabs .ant-tabs-nav {
+    margin-bottom: 0;
+}
+
+:host ::ng-deep .evaluation-tabs .ant-tabs-tab {
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+/* Card headers styling */
+.card-header {
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.card-header h6 {
+    font-size: 0.85rem;
+    color: #333;
+}
+
+/* SlickGrid row hover */
+:host ::ng-deep .slick-row:hover {
+    background-color: #f0f7ff;
+}
+
+/* Selected row styling */
+:host ::ng-deep .slick-row.active {
+    background-color: #e6f4ff !important;
+}
+
+/* Tree node parent rows */
+:host ::ng-deep .slick-row.parent-row {
+    background-color: #f5f5f5;
+}
+
+/* Parent row highlight - similar to C# treeData_CustomDrawNodeCell (Color.LightGray) */
+:host ::ng-deep .slick-row.parent-row-highlight {
+    background-color: #D3D3D3 !important;
+}
+
+/* Filter bar */
+.filter-bar {
+    background-color: #fafafa;
+}
+
+/* Scrollbar styling */
+:host ::ng-deep .slick-viewport::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+:host ::ng-deep .slick-viewport::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+:host ::ng-deep .slick-viewport::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}

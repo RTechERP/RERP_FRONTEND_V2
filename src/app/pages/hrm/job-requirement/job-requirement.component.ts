@@ -68,7 +68,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HrPurchaseProposalComponent } from '../hr-purchase-proposal/hr-purchase-proposal.component';
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
-import { RecommendSupplierFormComponent } from './recommend-supplier-form/recommend-supplier-form.component';
+import { RecommendSupplierFormComponent } from './recommend-supplier/recommend-supplier-form/recommend-supplier-form.component';
 import { JobRequirementFormComponent } from './job-requirement-form/job-requirement-form.component';
 import { CancelApproveReasonFormComponent } from './cancel-approve-reason-form/cancel-approve-reason-form.component';
 import { AuthService } from '../../../auth/auth.service';
@@ -76,6 +76,7 @@ import { NoteFormComponent } from './note-form/note-form.component';
 import { ProjectPartlistPriceRequestFormComponent } from '../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { JobRequirementPurchaseRequestViewComponent } from './job-requirement-purchase-request-view/job-requirement-purchase-request-view.component';
+import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { JobRequirementSummaryComponent } from './job-requirement-summary/job-requirement-summary.component';
 import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
@@ -83,6 +84,7 @@ import { environment } from '../../../../environments/environment';
 import { ActivatedRoute } from '@angular/router';
 import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../services/permission.service';
+import { TabServiceService } from '../../../layouts/tab-service.service';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -408,10 +410,15 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
         // View buttons - always available
         this.menuBars.push(
+            // {
+            //     label: 'Xem yêu cầu mua',
+            //     icon: 'fa-solid fa-eye fa-lg text-info',
+            //     command: () => this.onViewPurchaseRequest()
+            // },
             {
                 label: 'Xem yêu cầu mua',
                 icon: 'fa-solid fa-eye fa-lg text-info',
-                command: () => this.onViewPurchaseRequest()
+                command: () => this.onViewPurchaseRequestNew()
             },
             {
                 label: 'Tổng hợp',
@@ -442,6 +449,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         private authService: AuthService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
+        private tabService: TabServiceService,
         @Optional() @Inject('tabData') private tabData: any
     ) {
     }
@@ -489,6 +497,10 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
     getJobrequirement(): void {
         this.isLoading = true;
+
+        // Lưu lại ID đang chọn trước khi refresh
+        const currentSelectedID = this.JobrequirementID;
+
         this.JobRequirementService.getJobrequirement(
             this.searchParams.DepartmentID,
             this.searchParams.EmployeeID,
@@ -512,12 +524,25 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 setTimeout(() => {
                     this.applyDistinctFilters();
 
-                    // Select first row if data exists
                     if (this.dataset.length > 0 && this.angularGrid?.slickGrid) {
-                        this.JobrequirementID = this.dataset[0].ID;
-                        this.angularGrid.slickGrid.setSelectedRows([0]);
+                        let rowIndexToSelect = 0;
+
+                        // Nếu có ID đang chọn từ trước, tìm index của nó trong data mới
+                        if (currentSelectedID > 0) {
+                            const foundIndex = this.dataset.findIndex(x => x.ID === currentSelectedID);
+                            if (foundIndex !== -1) {
+                                rowIndexToSelect = foundIndex;
+                            }
+                        }
+
+                        this.JobrequirementID = this.dataset[rowIndexToSelect].ID;
+                        this.angularGrid.slickGrid.setSelectedRows([rowIndexToSelect]);
+
+                        // Scroll tới dòng được chọn nếu cần
+                        this.angularGrid.slickGrid.scrollRowIntoView(rowIndexToSelect);
+
                         this.getJobrequirementDetails(this.JobrequirementID);
-                        this.getHCNSData(this.JobrequirementID);
+                        //   this.getHCNSData(this.JobrequirementID);
                     } else {
                         this.JobrequirementID = 0;
                     }
@@ -532,6 +557,25 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 );
             }
         });
+    }
+
+    // Handle row selection changed - đồng bộ JobrequirementID và load detail
+    onSelectedRowsChanged(e: Event, args: OnSelectedRowsChangedEventArgs): void {
+        if (!args.rows || args.rows.length === 0) return;
+
+        // Lấy dòng cuối cùng vừa được chọn (thường là dòng người dùng click)
+        const lastSelectedIndex = args.rows[args.rows.length - 1];
+        const item = this.angularGrid.dataView.getItem(lastSelectedIndex);
+
+        if (item && item.ID !== this.JobrequirementID) {
+            this.JobrequirementID = item.ID;
+            this.data = [item];
+
+            if (this.JobrequirementID) {
+                this.getJobrequirementDetails(this.JobrequirementID);
+                this.getHCNSData(this.JobrequirementID);
+            }
+        }
     }
 
 
@@ -628,14 +672,6 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // Kiểm tra nếu đã duyệt thì không cho phép thêm mới hoặc sửa
-        if (this.isHCNSApproved) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                'Không thể thêm mới hoặc chỉnh sửa bản ghi đã được duyệt!'
-            );
-            return;
-        }
 
         const selected = this.getSelectedData() || [];
         const rowData = { ...selected[0] };
@@ -861,23 +897,24 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
     onOpenDepartmentRequired() {
         const selected = this.getSelectedData() || [];
+        if (selected.length !== 1) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 bản ghi!');
+            return;
+        }
+
         const rowData = { ...selected[0] };
-
-        // Lấy JobrequirementID từ row đã chọn hoặc từ biến
         const jobRequirementID = rowData?.ID || this.JobrequirementID || 0;
+        const numberRequest = rowData?.NumberRequest || '';
 
-        const title = 'Đề xuất mua hàng';
-        const data = {
-            JobrequirementID: jobRequirementID,
-            isCheckmode: this.isCheckmode,
-            dataInput: rowData
-        };
-
-        this.menuEventService.openNewTab(
-            HrPurchaseProposalComponent,
-            title,
-            data
-        );
+        this.tabService.openTabComp({
+            comp: HrPurchaseProposalComponent,
+            title: `Đề xuất mua hàng - ${numberRequest}`,
+            key: `hr-purchase-proposal-${jobRequirementID}`,
+            data: {
+                JobrequirementID: jobRequirementID,
+                isCheckmode: true
+            }
+        });
     }
 
     /**
@@ -951,6 +988,27 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             () => {
                 // Modal dismissed
             }
+        );
+    }
+
+    /**
+     * Xem yêu cầu mua hàng (new) - mở modal ProjectPartListPurchaseRequestSlickGridComponent với isFromHr
+     */
+    onViewPurchaseRequestNew(): void {
+        const modalRef = this.modalService.open(ProjectPartListPurchaseRequestSlickGridComponent, {
+            fullscreen: true,
+            backdrop: 'static',
+            keyboard: false,
+        });
+
+        modalRef.componentInstance.isFromHr = true;
+        modalRef.componentInstance.showHeader = true;
+        modalRef.componentInstance.headerText = 'YÊU CẦU MUA HÀNG HR';
+        modalRef.componentInstance.showCloseButton = true;
+
+        modalRef.result.then(
+            () => { },
+            () => { }
         );
     }
 
@@ -1075,7 +1133,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
         // Get approval info for each step
         const tbpApproval = extractApprovalInfo(2); // TBP duyệt
-        const hrApproval = extractApprovalInfo(4);  // TBP HCNS duyệt  
+        const hrApproval = extractApprovalInfo(4);  // TBP HCNS duyệt
         const bgdApproval = extractApprovalInfo(5); // BGĐ duyệt
 
         // Tạo danh sách chi tiết cho bảng "Nội dung yêu cầu"
@@ -1281,20 +1339,21 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // Kiểm tra BGĐ đã duyệt chưa (Step 5, IsApproved = 1)
-        const bgdApproved = this.JobrequirementApprovedData.find((item: any) =>
-            item.JobRequirementID === jobRequirementID &&
-            item.Step === 5 &&
-            (item.IsApproved === 1 || item.IsApproved === '1')
-        );
+        // // Kiểm tra BGĐ đã duyệt chưa (Step 5, IsApproved = 1)
+        // const bgdApproved = this.JobrequirementApprovedData.find((item: any) =>
+        //     item.JobRequirementID === jobRequirementID &&
+        //     item.Step === 5 &&
+        //     (item.IsApproved === 1 || item.IsApproved === '1')
+        // );
 
-        if (!bgdApproved) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                `Yêu cầu công việc [${numberRequest}] chưa được BGĐ duyệt nên không thể yêu cầu báo giá!`
-            );
-            return;
-        }
+        // Bỏ check điều kiện BGĐ duyệt
+        // if (!bgdApproved) {
+        //     this.notification.warning(
+        //         NOTIFICATION_TITLE.warning,
+        //         `Yêu cầu công việc [${numberRequest}] chưa được BGĐ duyệt nên không thể yêu cầu báo giá!`
+        //     );
+        //     return;
+        // }
 
         const modalRef = this.modalService.open(ProjectPartlistPriceRequestNewComponent, {
             centered: true,
@@ -1560,9 +1619,9 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     nzTitle: fileName,
                     nzContent: `
             <div style="text-align: center; padding: 10px;">
-              <img 
-                src="${url}" 
-                style="max-width: 100%; max-height: 80vh; height: auto; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" 
+              <img
+                src="${url}"
+                style="max-width: 100%; max-height: 80vh; height: auto; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"
                 alt="${fileName}"
                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'300\\'%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dominant-baseline=\\'middle\\' font-family=\\'Arial\\' font-size=\\'16\\' fill=\\'%23999\\'%3EKhông thể tải ảnh%3C/text%3E%3C/svg%3E';"
               />
@@ -2546,19 +2605,16 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             if (item) {
                 this.JobrequirementID = item.ID || 0;
                 this.data = [item];
+
+                // Đồng bộ selection với dòng được click
+                args.grid.setSelectedRows([args.row]);
+
                 if (this.JobrequirementID) {
                     this.getJobrequirementDetails(this.JobrequirementID);
                     this.getHCNSData(this.JobrequirementID);
                 }
             }
         }
-    }
-
-    // Handle row selection changed - chỉ đồng bộ trạng thái selected, không load detail
-    // Việc load detail sẽ do onCellClicked xử lý khi click vào dòng
-    onSelectedRowsChanged(e: Event, args: OnSelectedRowsChangedEventArgs): void {
-        // Không cần làm gì ở đây vì onCellClicked đã xử lý việc load detail
-        // Method này chỉ được giữ lại để đồng bộ với HTML template
     }
 
     // Get selected data from grid

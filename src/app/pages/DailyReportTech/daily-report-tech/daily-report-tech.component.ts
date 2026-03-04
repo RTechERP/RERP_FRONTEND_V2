@@ -12,6 +12,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -31,6 +32,7 @@ import { DailyReportExcelComponent } from '../daily-report-excel/daily-report-ex
 import { USER_ALL_REPORT_TECH } from '../../../app.config';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { AppUserService } from '../../../services/app-user.service';
 
 @Component({
   selector: 'app-daily-report-tech',
@@ -51,6 +53,7 @@ import { Menubar } from 'primeng/menubar';
     NzNotificationModule,
     NzModalModule,
     NzDropDownModule,
+    NzSpinModule,
     Menubar,
   ],
   templateUrl: './daily-report-tech.component.html',
@@ -68,10 +71,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   showSearchBar: boolean = true; // Mặc định ẩn, sẽ được set trong ngOnInit
   isMobile: boolean = false;
   menuBars: MenuItem[] = [];
+  isLoading: boolean = false;
 
   // Search filters
-  dateStart: any = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
-  dateEnd: any = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
+  dateStart: string = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local().toFormat('yyyy-MM-dd');
   departmentId: number = 2;
   teamId: number = 0;
   userId: number = 0;
@@ -81,7 +85,6 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   departments: any[] = [];
   teams: any[] = [];
   users: any[] = [];
-  currentUser: any = null;
   dailyReportTechData: any[] = [];
   projects: any[] = [];
 
@@ -100,6 +103,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private nzModal: NzModalService,
+    private appUserService: AppUserService,
   ) {
     this.searchSubject
       .pipe(debounceTime(800))
@@ -117,7 +121,6 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     this.updateResponsiveState();
     this.initMenuBar();
 
-    this.getCurrentUser();
     this.loadDepartments();
     this.loadUsers();
     this.loadTeams(); // Load teams khi departmentId = 2
@@ -141,57 +144,14 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     this.drawTbDailyReportTech(this.tb_daily_report_techContainer.nativeElement);
 
     // Load dữ liệu sau khi table đã được khởi tạo
-    // getCurrentUser() sẽ tự động gọi getDailyReportTechData() khi hoàn thành
-    // Nếu getCurrentUser() đã hoàn thành trước đó, gọi getDailyReportTechData() ngay
     setTimeout(() => {
-      // Nếu currentUser đã có sẵn (từ ngOnInit), load ngay
-      // Nếu chưa có, getCurrentUser() sẽ tự động gọi getDailyReportTechData() khi xong
-      if (this.currentUser) {
+      // Sử dụng AppUserService để kiểm tra user hiện tại
+      if (this.appUserService.currentUser) {
         this.getDailyReportTechData();
       }
-      // Nếu chưa có currentUser, đợi getCurrentUser() callback gọi getDailyReportTechData()
     }, 100);
   }
 
-  getCurrentUser(): void {
-    this.authService.getCurrentUser().subscribe((res: any) => {
-      if (res && res.status === 1 && res.data) {
-        const data = Array.isArray(res.data) ? res.data[0] : res.data;
-        this.currentUser = data;
-        // Sau khi có currentUser, nếu users đã được load thì set userId
-        if (this.users.length > 0) {
-          // Thử tìm theo ID trước, nếu không có thì tìm theo EmployeeID
-          if (data.IsAdmin == true || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.userId = 0;
-          }
-          else if (data.ID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.setUserIdFromEmployeeID(data.ID);
-          } else if (data.EmployeeID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.setUserIdFromEmployeeID(data.EmployeeID);
-          } else {
-            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
-            this.userId = 0;
-          }
-        } else {
-          // Nếu users chưa được load, tạm thời set về "Tất cả"
-          // Khi loadUsers() được gọi sau đó, nó sẽ tự động tìm và set lại
-          this.userId = 0;
-        }
-
-        // Sau khi có currentUser, load dữ liệu bảng nếu table đã được khởi tạo
-        if (this.tb_daily_report_tech) {
-          this.getDailyReportTechData();
-        }
-      } else {
-        // Nếu không có currentUser, set về "Tất cả"
-        this.userId = 0;
-        // Vẫn load dữ liệu với currentUser = null
-        if (this.tb_daily_report_tech) {
-          this.getDailyReportTechData();
-        }
-      }
-    });
-  }
 
   loadDepartments(): void {
     this.departmentService.getDepartments().subscribe({
@@ -215,9 +175,10 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
           ];
 
           // Nếu có currentUser, kiểm tra LeaderID để tự động chọn team
-          if (this.currentUser && this.currentUser.EmployeeID) {
+          const employeeID = this.appUserService.employeeID;
+          if (employeeID) {
             const leaderTeam = (response.data || []).find(
-              (team: any) => team.LeaderID === this.currentUser.EmployeeID
+              (team: any) => team.LeaderID === employeeID
             );
             if (leaderTeam && leaderTeam.ID) {
               this.teamId = leaderTeam.ID;
@@ -265,11 +226,12 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
         // Sau khi load users, tìm và set userId từ currentUser
         // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
-        if (this.currentUser) {
-          if (this.currentUser.ID && this.currentUser.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.setUserIdFromEmployeeID(this.currentUser.ID);
-          } else if (this.currentUser.EmployeeID && this.currentUser.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
-            this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
+        const currentUser = this.appUserService.currentUser;
+        if (currentUser) {
+          if (currentUser.ID && !this.appUserService.isAdmin && !USER_ALL_REPORT_TECH.includes(currentUser.ID)) {
+            this.setUserIdFromEmployeeID(currentUser.ID);
+          } else if (currentUser.EmployeeID && !this.appUserService.isAdmin && !USER_ALL_REPORT_TECH.includes(currentUser.EmployeeID)) {
+            this.setUserIdFromEmployeeID(currentUser.EmployeeID);
           } else {
             // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
             this.userId = 0;
@@ -382,6 +344,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
   getDailyReportTechData(): void {
     const searchParams = this.getSearchParams();
+    this.isLoading = true;
 
     this.dailyReportTechService.getDailyReportTech(searchParams).subscribe({
       next: (response: any) => {
@@ -405,6 +368,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             this.showSearchBar = false;
           }, 100);
         }
+        this.isLoading = false;
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
@@ -414,13 +378,14 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         if (this.tb_daily_report_tech) {
           this.tb_daily_report_tech.replaceData(this.dailyReportTechData);
         }
+        this.isLoading = false;
       }
     });
   }
 
   setDefaultSearch(): void {
-    this.dateStart = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
-    this.dateEnd = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
+    this.dateStart = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local().toFormat('yyyy-MM-dd');
     this.departmentId = 2;
     this.teamId = 0;
     this.userId = 0;
@@ -430,39 +395,21 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   getSearchParams(): any {
-    // Xử lý dateStart - có thể là Date object hoặc ISO string
-    let dateStart: DateTime;
-    if (this.dateStart instanceof Date) {
-      dateStart = DateTime.fromJSDate(this.dateStart);
-    } else if (typeof this.dateStart === 'string') {
-      dateStart = DateTime.fromISO(this.dateStart);
-    } else {
-      dateStart = DateTime.local().minus({ days: 1 });
-    }
-
-    // Xử lý dateEnd - có thể là Date object hoặc ISO string
-    let dateEnd: DateTime;
-    if (this.dateEnd instanceof Date) {
-      dateEnd = DateTime.fromJSDate(this.dateEnd);
-    } else if (typeof this.dateEnd === 'string') {
-      dateEnd = DateTime.fromISO(this.dateEnd);
-    } else {
-      dateEnd = DateTime.local();
-    }
-
-    // Xử lý userID an toàn khi currentUser có thể là null
+    // dateStart và dateEnd giờ là string format yyyy-MM-dd từ native date input
+    // Xử lý userID an toàn thông qua appUserService
     let userID = 0;
-    if (this.currentUser) {
-      if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
+    const currentUser = this.appUserService.currentUser;
+    if (currentUser) {
+      if ((currentUser.IsLeader || 0) > 1 || this.appUserService.isAdmin || USER_ALL_REPORT_TECH.includes(currentUser.ID) || currentUser.Permissions?.includes('N1')) {
         userID = this.userId || 0;
       } else {
-        userID = this.currentUser.ID || 0;
+        userID = currentUser.ID || 0;
       }
     }
 
     return {
-      dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
-      dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
+      dateStart: this.dateStart || DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd'),
+      dateEnd: this.dateEnd || DateTime.local().toFormat('yyyy-MM-dd'),
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
       userID: userID,
@@ -480,7 +427,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         rowHeader: false,
         selectableRows: 1,
-        height: '87vh',
+        height: '85vh',
         paginationMode: 'local',
         columns: [
           {
@@ -678,7 +625,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
     // Truyền dữ liệu vào modal
     modalRef.componentInstance.mode = 'add';
-    modalRef.componentInstance.currentUser = this.currentUser;
+    modalRef.componentInstance.currentUser = this.appUserService.currentUser;
     modalRef.componentInstance.projects = this.projects || [];
     modalRef.componentInstance.projectItems = []; // TODO: Load project items khi cần
 
@@ -723,7 +670,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     // Truyền dữ liệu vào modal
     modalRef.componentInstance.mode = 'edit';
     modalRef.componentInstance.dataInput = dailyID; // Truyền ID để load dữ liệu
-    modalRef.componentInstance.currentUser = this.currentUser;
+    modalRef.componentInstance.currentUser = this.appUserService.currentUser;
     modalRef.componentInstance.projects = this.projects || [];
     modalRef.componentInstance.projectItems = [];
 
@@ -894,7 +841,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
     // Format theo departmentId (nếu departmentId == 6 thì không hiển thị Mã dự án)
     // Lấy departmentId từ currentUser hoặc từ filter
-    const departmentId = this.departmentId || this.currentUser?.DepartmentID || 0;
+    const departmentId = this.departmentId || this.appUserService.departmentID || 0;
 
     // Format giống RTCWeb
     if (departmentId !== 6) {
@@ -1279,7 +1226,8 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       centered: false,
     });
     modalRef.componentInstance.teams = this.teams;
-    modalRef.componentInstance.currentUser = this.currentUser;
+    modalRef.componentInstance.currentUser = this.appUserService.currentUser;
+    modalRef.componentInstance.selectedTeamId = this.teamId;
     modalRef.componentInstance.projects = this.projects;
     modalRef.componentInstance.projectItems = [];
     modalRef.componentInstance.projectItems = [];

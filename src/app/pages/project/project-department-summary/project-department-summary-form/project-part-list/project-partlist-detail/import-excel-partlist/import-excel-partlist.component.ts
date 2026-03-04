@@ -680,49 +680,14 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   // Tiếp tục với import-check
   proceedWithImportCheck(validDataToSave: any[]): void {
     // Reset tiến trình
-    debugger;
+    
     this.processedRowsForSave = 0;
     const totalRowsToSave = validDataToSave.length;
     this.displayText = `Đang kiểm tra: 0/${totalRowsToSave} bản ghi`;
     this.displayProgress = 0;
 
     // Chuẩn bị payload cho import-check 
-    this.checkPayload = {
-      projectID: this.projectId,
-      projectPartListVersionID: this.selectedVersion,
-      projectTypeID: this.projectTypeId,
-      projectCode: this.projectCode.trim(), // Đảm bảo không có khoảng trắng thừa
-      isProblem: this.isProblemRow,
-      checkIsStock: null,
-      items: validDataToSave.map((row: any) => ({
-        TT: row.TT?.toString()?.trim() || "",
-        GroupMaterial: row.GroupMaterial?.toString()?.trim() || "",
-        ProductCode: row.ProductCode?.toString()?.trim() || "",
-        OrderCode: row.OrderCode?.toString()?.trim() || "",
-        Manufacturer: row.Manufacturer?.toString()?.trim() || "",
-        SpecialCode: row.SpecialCode?.toString()?.trim() || "",
-        Model: row.Model?.toString()?.trim() || "",
-        QtyMin: row.QtyMin || 0,
-        QtyFull: row.QtyFull || 0,
-        Unit: row.Unit?.toString()?.trim() || "",
-        Price: row.Price || 0,
-        Amount: row.Amount || 0,
-        LeadTime: row.LeadTime?.toString()?.trim() || "",
-        NCC: row.NCC?.toString()?.trim() || "",
-        RequestDate: this.parseDate(row.RequestDate),
-        LeadTimeRequest: row.LeadTimeRequest?.toString()?.trim() || "",
-        QuantityReturn: row.QuantityReturn || 0,
-        NCCFinal: row.NCCFinal?.toString()?.trim() || "",
-        PriceOrder: row.PriceOrder || 0,
-        OrderDate: this.parseDate(row.OrderDate),
-        ExpectedReturnDate: this.parseDate(row.ExpectedReturnDate),
-        Status: (isNaN(row.Status)) ? 0 : Number(row.Status),
-        Quality: row.Quality?.toString()?.trim() || "",
-        Note: row.Note?.toString()?.trim() || "",
-        ReasonProblem: row.ReasonProblem?.toString()?.trim() || "",
-      })),
-      diffs: null // Chưa có diffs ở bước check
-    };
+    this.checkPayload = this.setupPayload(validDataToSave, []);
 
     // Bước 1: Gọi API import-check để validate
     this.partlistService.importCheck(this.checkPayload).subscribe({
@@ -828,7 +793,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
     this.partlistService.applyDiff(payload).subscribe({
       next: (res: any) => {
         console.log('Response từ apply-diff API:', res);
-        debugger;
+        
 
         if (res.status === 1 || res.success) {
           this.displayProgress = 100;
@@ -863,7 +828,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   }
   // checkExistData() {
   //   const hasDiff = this.diffs && this.diffs.length > 0;
-  //   debugger;
+  //   
   // if( this.isProblemRow == true || this.isUpdate == true) {
   //   if(hasDiff){
   //     this.onConfirmDiff();
@@ -931,14 +896,15 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
     this.displayText = `Đã lưu: 0/${totalRowsToSave} bản ghi`;
     this.displayProgress = 0;
 
-    // Chuẩn bị payload theo PartlistImportRequestDTO structure (match với user đã sửa)
+    // Chuẩn bị payload theo PartlistImportRequestDTO structure
     const payload = {
       projectID: this.projectId,
       projectPartListVersionID: this.selectedVersion,
       projectTypeID: this.projectTypeId,
       projectCode: this.projectCode.trim(),
       isProblem: this.isProblemRow,
-      checkIsStock: null, // Có thể set nếu cần
+      checkIsStock: this.isStock,
+      warehouseID: 1, // Default warehouse
       items: validDataToSave.map((row: any) => ({
         TT: row.TT?.toString()?.trim() || "",
         GroupMaterial: row.GroupMaterial?.toString()?.trim() || "",
@@ -969,43 +935,11 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       diffs: diffsWithChoose && diffsWithChoose.length > 0 ? diffsWithChoose : null
     };
 
-    console.log('Dữ liệu gửi đi để apply-diff:', payload);
+    console.log('Dữ liệu gửi đi:', payload);
     return payload;
   }
   checkExistData() {
     const hasDiff = this.diffs && this.diffs.length > 0;
-
-    // Xử lý riêng cho Update Stock - gọi API update-stock
-    if (this.isStock) {
-      this.displayText = 'Đang cập nhật tồn kho...';
-      this.displayProgress = 50;
-
-      this.partlistService.updateStock(this.checkPayload).subscribe({
-        next: (res: any) => {
-          if (res.status === 1) {
-            this.notification.success('Thành công', res.message || 'Cập nhật tồn kho thành công!');
-            this.displayProgress = 100;
-            this.displayText = 'Cập nhật tồn kho hoàn tất';
-            setTimeout(() => {
-              this.activeModal.close({ success: true });
-            }, 500);
-          } else {
-            this.notification.error('Lỗi', res.message || 'Lỗi khi cập nhật tồn kho!');
-            this.displayProgress = 0;
-            this.displayText = 'Cập nhật thất bại';
-          }
-          this.isSaving = false;
-        },
-        error: (err: any) => {
-          const msg = err.error?.message || err.message || 'Lỗi kết nối server khi cập nhật tồn kho!';
-          this.notification.error('Lỗi', msg);
-          this.displayProgress = 0;
-          this.displayText = 'Cập nhật thất bại';
-          this.isSaving = false;
-        }
-      });
-      return;
-    }
 
     if (this.isProblemRow == true || this.isUpdate == true) {
       if (hasDiff) {
@@ -1023,7 +957,6 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
 
         // Lấy message cảnh báo
         if (importRes.status === 1 && (importRes.data.firmIssues?.length > 0 || importRes.data.unitIssues?.length > 0)) {
-          debugger;
           warningMessage = importRes.message;
         }
 
@@ -1052,21 +985,9 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
                 nzOnOk: () => {
                   this.partlistService.overwriteData(this.checkPayload).subscribe({
                     next: () => {
-                      //TNBinh update 13/01/2026
-                      // if (this.isStock) {
-                      //   this.partlistService.updateStock(this.checkPayload).subscribe({
-                      //     next: () => {
-                      //       this.closeExcelModal();
-                      //     },
-                      //     error: (err: any) => {
-                      //       const msg = err.error?.message || err.message || 'Lỗi khi ghi đè dữ liệu!';
-                      //       this.notification.error('Thông báo', msg);
-                      //       this.isSaving = false;
-                      //     }
-                      //   });
-                      // }
-                      //end update stock
-                      if (hasDiff) {
+                      if (this.isStock) {
+                        this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
+                      } else if (hasDiff) {
                         this.onConfirmDiff();
                       } else {
                         this.applyDiff(this.validDataToSaveForDiff, []);
@@ -1107,7 +1028,11 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
                   nzCancelText: 'Hủy',
                   nzOkDanger: true,
                   nzOnOk: () => {
-                    this.applyDiff(this.validDataToSaveForDiff, []);
+                    if (this.isStock) {
+                      this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
+                    } else {
+                      this.applyDiff(this.validDataToSaveForDiff, []);
+                    }
                   },
                   nzOnCancel: () => {
                     this.displayText = 'Đã hủy';
@@ -1117,7 +1042,11 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
                 });
               } else {
                 // Không có warning -> lưu trực tiếp
-                this.applyDiff(this.validDataToSaveForDiff, []);
+                if (this.isStock) {
+                  this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
+                } else {
+                  this.applyDiff(this.validDataToSaveForDiff, []);
+                }
               }
             }
           },
@@ -1143,7 +1072,45 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   // BƯỚC 2: Xử lý khi user confirm diff chi tiết (chọn Excel hoặc Stock cho từng dòng)
   onConfirmDiff() {
     const diffsWithChoose = this.diffs.map(x => ({ ...x }));
-    this.applyDiff(this.validDataToSaveForDiff, diffsWithChoose);
+    const payload = this.setupPayload(this.validDataToSaveForDiff, diffsWithChoose);
+
+    if (this.isStock) {
+      this.executeStockUpdate(payload);
+    } else {
+      this.applyDiff(this.validDataToSaveForDiff, diffsWithChoose);
+    }
+  }
+
+  // Thực hiện cập nhật tồn kho (Stock Update)
+  executeStockUpdate(payload: any) {
+    this.displayText = 'Đang cập nhật tồn kho...';
+    this.displayProgress = 50;
+    this.isSaving = true;
+
+    this.partlistService.updateStock(payload).subscribe({
+      next: (res: any) => {
+        if (res.status === 1) {
+          this.notification.success('Thành công', res.message || 'Cập nhật tồn kho thành công!');
+          this.displayProgress = 100;
+          this.displayText = 'Cập nhật tồn kho hoàn tất';
+          setTimeout(() => {
+            this.activeModal.close({ success: true });
+          }, 500);
+        } else {
+          this.notification.error('Lỗi', res.message || 'Lỗi khi cập nhật tồn kho!');
+          this.displayProgress = 0;
+          this.displayText = 'Cập nhật thất bại';
+        }
+        this.isSaving = false;
+      },
+      error: (err: any) => {
+        const msg = err.error?.message || err.message || 'Lỗi kết nối server khi cập nhật tồn kho!';
+        this.notification.error('Lỗi', msg);
+        this.displayProgress = 0;
+        this.displayText = 'Cập nhật thất bại';
+        this.isSaving = false;
+      }
+    });
   }
   // BƯỚC 2: Hủy diff modal chi tiết
   onCancelDiff() {

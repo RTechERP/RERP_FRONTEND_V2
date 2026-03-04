@@ -86,12 +86,21 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
     ) { }
 
     ngOnInit(): void {
+        // Get departmentId from route snapshot or tabData synchronously first
+        const queryDepartmentId = this.route.snapshot.queryParams['departmentId'];
+        this.departmentId = queryDepartmentId
+            ? Number(queryDepartmentId)
+            : (this.tabData?.departmentId ?? 0);
+
+        // Also subscribe for dynamic changes
         this.route.queryParams.subscribe(params => {
-            // this.departmentId = params['departmentId'] ? Number(params['departmentId']) : 0;
-            this.departmentId =
-                params['departmentId']
-                ?? this.tabData?.departmentId
-                ?? 0;
+            const newDepartmentId = params['departmentId']
+                ? Number(params['departmentId'])
+                : (this.tabData?.departmentId ?? 0);
+            if (newDepartmentId !== this.departmentId) {
+                this.departmentId = newDepartmentId;
+                this.search();
+            }
         });
 
         const today = new Date();
@@ -219,6 +228,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                 sortable: true,
                 filterable: true,
                 minWidth: 200,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -234,6 +244,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                 filterable: true,
                 minWidth: 100,
                 hidden: true,
+                formatter: this.commonTooltipFormatter,
             },
             {
                 id: 'FullName',
@@ -242,6 +253,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                 sortable: true,
                 filterable: true,
                 minWidth: 200,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -256,6 +268,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                 sortable: true,
                 filterable: true,
                 minWidth: 300,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -280,6 +293,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                 sortable: true,
                 filterable: true,
                 minWidth: 200,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -295,6 +309,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                 filterable: true,
                 minWidth: 100,
                 hidden: true,
+                formatter: this.commonTooltipFormatter,
             },
             {
                 id: 'FullName',
@@ -303,6 +318,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                 sortable: true,
                 filterable: true,
                 minWidth: 200,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -317,6 +333,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
                 sortable: true,
                 filterable: true,
                 minWidth: 300,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -376,7 +393,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
             {
                 getter: 'DepartmentName',
                 formatter: (g: any) => {
-                    return `Phòng ban: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:green">(${g.count} dòng)</span>`;
+                    return `Phòng ban: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:red">(${g.count} lỗi)</span>`;
                 },
                 aggregators: [
                     ...dynamicAggregators
@@ -388,7 +405,7 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
             {
                 getter: 'FullName',
                 formatter: (g: any) => {
-                    return `Nhân viên: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:green">(${g.count} dòng)</span>`;
+                    return `Nhân viên: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:red">(${g.count} lỗi)</span>`;
                 },
                 aggregators: [
                     ...dynamicAggregators
@@ -491,4 +508,37 @@ export class KpiErrorEmployeeSummaryMaxComponent implements OnInit, AfterViewIni
         // Re-apply grouping with new dynamic aggregators if they exist
         this.groupByDepartment();
     }
+
+    // Helper function to escape HTML special characters for title attributes
+    private escapeHtml(text: string | null | undefined): string {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+        if (!value) return '';
+        const escaped = this.escapeHtml(value);
+        return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
+    };
 }

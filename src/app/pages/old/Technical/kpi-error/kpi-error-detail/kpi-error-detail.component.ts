@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -9,6 +9,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { KpiErrorService } from '../kpi-error-service/kpi-error.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { KpiErrorTypeDetailComponent } from '../kpi-error-type/kpi-error-type-detail/kpi-error-type-detail.component';
 
 @Component({
     selector: 'app-kpi-error-detail',
@@ -57,7 +58,8 @@ export class KpiErrorDetailComponent implements OnInit {
     constructor(
         public activeModal: NgbActiveModal,
         private notification: NzNotificationService,
-        private kpiErrorService: KpiErrorService
+        private kpiErrorService: KpiErrorService,
+        private modalService: NgbModal,
     ) { }
 
     ngOnInit(): void {
@@ -137,6 +139,27 @@ export class KpiErrorDetailComponent implements OnInit {
         }
 
         return isValid;
+    }
+
+    openTypeDetailModal(): void {
+        const modalRef = this.modalService.open(KpiErrorTypeDetailComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            windowClass: 'modal-custom',
+            size: 'md'
+        });
+
+        modalRef.componentInstance.id = 0;
+        modalRef.componentInstance.mode = 'add';
+
+        modalRef.result.then((result: any) => {
+            if (result) {
+                this.loadErrorTypes();
+            }
+        }).catch((error: any) => {
+            console.error('Modal closed with error:', error);
+        });
     }
 
     save(): void {

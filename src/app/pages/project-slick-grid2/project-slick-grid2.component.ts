@@ -205,12 +205,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     currentUser: any = null;
     savedPage: number = 1;
     selectedStatusDate: Date | null = null;
-    dateStart: any = DateTime.local()
+    dateStart: string = DateTime.local()
         .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
-        .toISO();
-    dateEnd: any = DateTime.local()
+        .toFormat('yyyy-MM-dd');
+    dateEnd: string = DateTime.local()
         .set({ hour: 0, minute: 0, second: 0 })
-        .toISO();
+        .toFormat('yyyy-MM-dd');
     //#endregion
 
     // Helper function to escape HTML special characters for title attributes
@@ -264,6 +264,18 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     @HostListener('window:resize')
     onWindowResize(): void {
         this.updateResponsiveState();
+        // Resize all grids to fill the available width (e.g. after toggling F12 DevTools)
+        setTimeout(() => {
+            if (this.angularGrid?.resizerService) {
+                this.angularGrid.resizerService.resizeGrid();
+            }
+            if (this.angularGridWorkReport?.resizerService) {
+                this.angularGridWorkReport.resizerService.resizeGrid();
+            }
+            if (this.angularGridTypeLink?.resizerService) {
+                this.angularGridTypeLink.resizerService.resizeGrid();
+            }
+        }, 200);
     }
 
     //#region Excel Export
@@ -568,7 +580,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     initGridProjects() {
         // Đảm bảo column definitions không có null values
         this.columnDefinitions = [
-            { id: 'ID', name: 'ID', field: 'ID', hidden: true },
             {
                 id: 'ProjectStatusName',
                 name: 'Trạng thái',
@@ -587,10 +598,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.ProjectStatusName);
                     return `
             <span
-              title="${dataContext.ProjectStatusName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -598,7 +619,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 customTooltip: {
                     useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
                 },
             },
             {
@@ -637,10 +657,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 cssClass: 'cell-wrap',
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.ProjectName);
                     return `
             <span
-              title="${dataContext.ProjectName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -648,7 +678,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 customTooltip: {
                     useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
                 },
             },
             {
@@ -670,10 +699,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 cssClass: 'cell-wrap',
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.EndUserName);
                     return `
             <span
-              title="${dataContext.EndUserName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -681,7 +720,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 },
                 customTooltip: {
                     useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
                 },
             },
             {
@@ -854,10 +892,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 // filter: { model: Filters['compoundInputText'] },
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.CustomerName);
                     return `
             <span
-              title="${dataContext.CustomerName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -1010,11 +1058,13 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 selectActiveRow: true
             },
             enableCellNavigation: true,
+            enableSorting: true,
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
-            frozenColumn: 3,
-            rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
+            frozenColumn: 2,
+            syncColumnCellResize: true, // Sửa lỗi sort nhầm cột khi có frozen columns
+            rowHeight: 43, // Base height - sẽ tự động tăng theo nội dung qua CSS
             // Thêm Excel Export Service
             externalResources: [this.excelExportService],
             enableExcelExport: true,
@@ -1022,7 +1072,88 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 filename: 'Danh_sach_du_an',
                 sanitizeDataExport: true,
                 sheetName: 'Danh sách dự án'
-            }
+            },
+            // Context Menu - Menu khi click chuột phải trên grid
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: [
+                    {
+                        command: 'priority',
+                        title: 'Mức độ ưu tiên cá nhân',
+                        iconCssClass: 'ctx-icon ctx-icon-priority',
+                        commandItems: [
+                            { command: 'priority1', title: '1', action: () => this.setPersionalPriority(1) },
+                            { command: 'priority2', title: '2', action: () => this.setPersionalPriority(2) },
+                            { command: 'priority3', title: '3', action: () => this.setPersionalPriority(3) },
+                            { command: 'priority4', title: '4', action: () => this.setPersionalPriority(4) },
+                            { command: 'priority5', title: '5', action: () => this.setPersionalPriority(5) },
+                        ],
+                    },
+                    {
+                        command: 'openProjectEmployee',
+                        title: 'Người tham gia',
+                        iconCssClass: 'ctx-icon ctx-icon-participants',
+                        action: () => this.openProjectEmployee(),
+                    },
+                    {
+                        command: 'changeProject',
+                        title: 'Chuyển báo cáo công việc',
+                        iconCssClass: 'ctx-icon ctx-icon-compare',
+                        action: () => this.changeProject(),
+                    },
+                    {
+                        command: 'openProjectPartListProblemModal',
+                        title: 'Hàng phát sinh',
+                        iconCssClass: 'ctx-icon ctx-icon-additional',
+                        action: () => this.openProjectPartListProblemModal(),
+                    },
+                    {
+                        command: 'openProjectRequest',
+                        title: 'Yêu cầu - Giải pháp',
+                        iconCssClass: 'ctx-icon ctx-icon-solution',
+                        action: () => this.openProjectRequest(),
+                    },
+                    {
+                        command: 'openProjectTypeLinkDetail',
+                        title: 'Cập nhật Leader',
+                        iconCssClass: 'ctx-icon ctx-icon-leader',
+                        action: () => this.openProjectTypeLinkDetail(),
+                    },
+                    {
+                        command: 'openProjectHistoryProblemModal',
+                        title: 'Lịch sử phát sinh',
+                        iconCssClass: 'ctx-icon ctx-icon-history',
+                        action: () => this.openProjectHistoryProblemModal(),
+                    },
+                    {
+                        command: 'openProjectStatus',
+                        title: 'Trạng thái dự án',
+                        iconCssClass: 'ctx-icon ctx-icon-status',
+                        itemVisibilityOverride: () => this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
+                        action: () => this.openProjectStatus(),
+                    },
+                    {
+                        command: 'openUpdateCurrentSituation',
+                        title: 'Cập nhật hiện trạng',
+                        iconCssClass: 'ctx-icon ctx-icon-update',
+                        itemVisibilityOverride: () => this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
+                        action: () => this.openUpdateCurrentSituation(),
+                    },
+                    {
+                        command: 'updateStatus',
+                        title: 'Cập nhật trạng thái',
+                        iconCssClass: 'ctx-icon ctx-icon-sync',
+                        // Ẩn menu nếu không có quyền hoặc chưa load xong projectStatuses
+                        itemVisibilityOverride: () => this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']) && this.projectStatuses.length > 0,
+                        // Sử dụng getter function để lấy danh sách trạng thái động
+                        commandItems: this.projectStatuses.map(status => ({
+                            command: `status_${status.ID}`,
+                            title: status.StatusName,
+                            action: () => this.selectProjectStatus(status.ID),
+                        })),
+                    },
+                ],
+            },
         };
     }
 
@@ -2071,6 +2202,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             next: (response: any) => {
                 this.projecStatuses = response.data;
                 this.projectStatuses = response.data || [];
+                // Cập nhật context menu sau khi load xong projectStatuses
+                this.updateContextMenuStatusItems();
             },
             error: (error) => {
                 console.error('Lỗi:', error);
@@ -2078,12 +2211,37 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         });
     }
 
+    // Cập nhật submenu "Cập nhật trạng thái" trong context menu
+    private updateContextMenuStatusItems() {
+        if (!this.gridOptions?.contextMenu?.commandItems) return;
+
+        const commandItems = this.gridOptions.contextMenu.commandItems as any[];
+        const updateStatusItem = commandItems.find(
+            (item: any) => item.command === 'updateStatus'
+        );
+
+        if (updateStatusItem && this.projectStatuses.length > 0) {
+            updateStatusItem.commandItems = this.projectStatuses.map(status => ({
+                command: `status_${status.ID}`,
+                title: status.StatusName,
+                action: () => this.selectProjectStatus(status.ID),
+            }));
+
+            // Cập nhật lại options cho SlickGrid để áp dụng thay đổi
+            if (this.angularGrid?.slickGrid) {
+                this.angularGrid.slickGrid.setOptions({
+                    contextMenu: this.gridOptions.contextMenu
+                }, false, true);
+            }
+        }
+    }
+
     getDay() {
         console.log(
             DateTime.fromJSDate(new Date(this.dateStart))
                 .set({ hour: 23, minute: 59, second: 59 })
                 .toFormat('yyyy-MM-dd HH:mm:ss'),
-            DateTime.fromJSDate(this.dateStart)
+            DateTime.fromJSDate(new Date(this.dateStart))
                 .set({ hour: 23, minute: 59, second: 59 })
                 .toFormat('yyyy-MM-dd HH:mm:ss')
         );
@@ -2093,10 +2251,10 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         this.dateStart = DateTime.local()
             .minus({ years: 1 })
             .set({ hour: 0, minute: 0, second: 0 })
-            .toISO();
+            .toFormat('yyyy-MM-dd');
         this.dateEnd = DateTime.local()
             .set({ hour: 0, minute: 0, second: 0 })
-            .toISO();
+            .toFormat('yyyy-MM-dd');
         this.projectTypeIds = [];
         this.projecStatusIds = [];
         this.userId = 0;

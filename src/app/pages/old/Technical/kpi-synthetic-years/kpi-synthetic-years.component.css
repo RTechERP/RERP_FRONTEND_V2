@@ -1,0 +1,64 @@
+.grid-container {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.grid-container ::ng-deep angular-slickgrid,
+.grid-container ::ng-deep .slickgrid-container,
+.grid-container ::ng-deep .gridPane {
+    height: 80.5vh !important;
+}
+
+:host {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    width: 100%;
+}
+
+.grid-container ::ng-deep .slick-header-column {
+    text-align: center;
+}
+
+.grid-container ::ng-deep .slick-preheader-panel .slick-header-column {
+    background-color: #4472c4 !important;
+    color: white !important;
+    font-weight: bold !important;
+    text-align: center;
+    border-right: 1px solid #2f5496;
+}
+
+.grid-container ::ng-deep .slick-header-columns {
+    background-color: #d9e1f2 !important;
+}
+
+.grid-container ::ng-deep .slick-row.odd {
+    background-color: #f9f9f9;
+}
+
+.grid-container ::ng-deep .slick-row:hover {
+    background-color: #e8f4fc;
+}
+
+.grid-container ::ng-deep .slick-cell {
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    padding: 4px 6px;
+}
+
+/* Fixed columns styling */
+.grid-container ::ng-deep .slick-pane-left .slick-header-column {
+    background-color: #e2efda !important;
+}
+
+/* Filter bar styling */
+.filter-bar {
+    background-color: #f8f9fa;
+}
+
+/* Center text in cells */
+.text-center {
+    text-align: center;
+}

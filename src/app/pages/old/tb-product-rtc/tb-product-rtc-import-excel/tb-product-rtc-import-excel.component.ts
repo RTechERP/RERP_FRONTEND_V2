@@ -124,7 +124,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           NumberInStore: { title: 'SL tồn kho', field: 'NumberInStore' },
           SLKiemKe: { title: 'SL kiểm kê', field: 'SLKiemKe' },
           BorrowCustomer: {
-            title: 'Mượn KH?',
+            title: 'Đồ mượn khách',
             field: 'BorrowCustomer',
             formatter: 'tickCross',
           },
@@ -379,6 +379,11 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     'ten nhom': 'ProductGroupName',
     'ma nhom': 'ProductGroupNo',
     'vi tri': 'LocationName',
+    'vi tri (hop)': 'LocationName',
+    'ma vi tri': 'LocationCode',
+    'ma vi tri (hop)': 'LocationCode',
+    locationcode: 'LocationCode',
+    locationname: 'LocationName',
     kho: 'WarehouseID',
     // Đơn vị / Hãng
     // 'unitname': 'UnitName',
@@ -402,6 +407,9 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     'sl kiem ke': 'SLKiemKe',
     'muon kh?': 'BorrowCustomer',
     'muon kh': 'BorrowCustomer',
+    'do muon khach': 'BorrowCustomer',
+    'đo muon khach': 'BorrowCustomer',
+    borrowcustomer: 'BorrowCustomer',
     'trang thai': 'StatusProduct',
     'trang thai thiet bi': 'Status',
     'ghi chu': 'Note',
@@ -490,14 +498,14 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           const col = fieldToCol[field];
           if (!col) return '';
           const cell = row.getCell(col);
-          
+
           // Kiểm tra text trước - nếu text rỗng hoặc null/undefined thì trả về rỗng
           // Không lấy formula nếu text rỗng
           const cellText = cell.text;
           if (cellText === null || cellText === undefined || cellText.trim() === '') {
             return '';
           }
-          
+
           // Nếu có text thì trả về text (đây là giá trị hiển thị thực tế trong Excel)
           return cellText.trim();
         };
@@ -554,7 +562,8 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         };
         const getBoolByField = (field: string) => {
           const v = getValueByField(field).toLowerCase();
-          return (
+          // Trả về true nếu là các giá trị positive
+          if (
             v === 'true' ||
             v === '1' ||
             v === 'x' ||
@@ -562,7 +571,12 @@ export class TbProductRtcImportExcelComponent implements OnInit {
             v === 'y' ||
             v === 'co' ||
             v === 'có'
-          );
+          ) {
+            return true;
+          }
+          // Trả về false nếu là các giá trị negative hoặc rỗng
+          // 'khong', 'không', 'no', 'n', 'false', '0', ''
+          return false;
         };
 
         const rowData = {
@@ -571,6 +585,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           ProductGroupName: getValueByField('ProductGroupName'),
           ProductGroupNo: getValueByField('ProductGroupNo'),
           ProductCodeRTC: getValueByField('ProductCodeRTC'),
+          LocationCode: getValueByField('LocationCode'),
           LocationName: getValueByField('LocationName'),
           FirmName: getValueByField('FirmName'),
           Serial: getValueByField('Serial'),
@@ -667,6 +682,31 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     return isNaN(num) ? 0 : num;
   }
 
+  /**
+   * Helper function to convert value to boolean
+   * Supports: true, false, 1, 0, 'có', 'không', 'co', 'khong', 'yes', 'no', 'x'
+   */
+  private toBoolean(value: any): boolean {
+    if (value === true || value === false) {
+      return value;
+    }
+    if (value === 1) return true;
+    if (value === 0) return false;
+    if (typeof value === 'string') {
+      const v = value.trim().toLowerCase();
+      return (
+        v === 'true' ||
+        v === '1' ||
+        v === 'x' ||
+        v === 'yes' ||
+        v === 'y' ||
+        v === 'co' ||
+        v === 'có'
+      );
+    }
+    return false;
+  }
+
   async saveExcelData() {
     if (this.isSaving) return;
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
@@ -705,7 +745,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         Maker: row.FirmName?.trim() || '', // Backend dùng để tìm/tạo Firm
         AddressBox: row.AddressBox?.trim() || '', // Backend dùng để tìm/tạo ProductLocation
         Note: row.Note || '',
-        StatusProduct: row.StatusProduct === true || row.StatusProduct === '1',
+        StatusProduct: this.toBoolean(row.StatusProduct),
         CreateDate: formatDate(row.CreateDate),
         NumberInStore: this.toNumber(row.NumberInStore),
         Serial: row.Serial || '',
@@ -713,8 +753,8 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         PartNumber: row.PartNumber || '',
         CreatedBy: row.CreatedBy || '',
         LocationImg: row.LocationImg || '',
-        ProductCodeRTC: row.ProductCodeRTC || '',
-        BorrowCustomer: row.BorrowCustomer === true || row.BorrowCustomer === '1',
+        ProductCodeRTC: null, // Không lấy từ Excel
+        BorrowCustomer: this.toBoolean(row.BorrowCustomer),
         SLKiemKe: this.toNumber(row.SLKiemKe),
         ProductLocationID: 0, // Backend sẽ tự gán sau khi tìm/tạo ProductLocation
           WarehouseID: this.warehouseID,
@@ -743,7 +783,6 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         Status: 0,
         Size: row.Size || '',
         CodeHCM: row.CodeHCM || '',
-        IsDeleted: false,
         IsDelete: false,
         LocationName: row.LocationName || '',
         LocationCode: row.LocationCode || '',
@@ -759,10 +798,17 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     console.log('payload:', payload);
     this.saveSubscription = this.tbProductRtcService.saveDataExcel(payload).subscribe({
       next: (res: any) => {
+        // Lưu lại ID notification trước khi reset
+        const notificationIdToRemove = this.savingNotificationId;
+
+        // Reset state trước
+        this.isSaving = false;
+        this.saveSubscription = null;
+        this.savingNotificationId = null;
+
         // Đóng notification đang lưu nếu có
-        if (this.savingNotificationId) {
-          this.notification.remove(this.savingNotificationId);
-          this.savingNotificationId = null;
+        if (notificationIdToRemove) {
+          this.notification.remove(notificationIdToRemove);
         }
 
         // Hiển thị chính xác message từ API
@@ -772,10 +818,8 @@ export class TbProductRtcImportExcelComponent implements OnInit {
             'Thông báo',
             successMessage
           );
-          // Chỉ đóng modal nếu modal vẫn còn mở (chưa đóng trong lúc đang lưu)
-          if (!this.savingNotificationId) {
-            this.closeExcelModal();
-          }
+          // Đóng modal sau khi lưu thành công
+          this.modalService.dismissAll(true);
         } else {
           this.notification.warning(
             'Thông báo',
@@ -789,14 +833,19 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         } else {
           this.displayText = 'Hoàn tất';
         }
-        this.isSaving = false;
-        this.saveSubscription = null;
       },
       error: (err) => {
+        // Lưu lại ID notification trước khi reset
+        const notificationIdToRemove = this.savingNotificationId;
+
+        // Reset state trước
+        this.isSaving = false;
+        this.saveSubscription = null;
+        this.savingNotificationId = null;
+
         // Đóng notification đang lưu nếu có
-        if (this.savingNotificationId) {
-          this.notification.remove(this.savingNotificationId);
-          this.savingNotificationId = null;
+        if (notificationIdToRemove) {
+          this.notification.remove(notificationIdToRemove);
         }
 
         const errorMessage = err.error?.message || 'Không thể lưu dữ liệu Excel!';
@@ -807,12 +856,6 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         console.error('Lỗi API save-data-excel:', err);
         this.displayProgress = 0;
         this.displayText = `0/${validDataToSave.length} bản ghi`;
-        this.isSaving = false;
-        this.saveSubscription = null;
-      },
-      complete: () => {
-        this.isSaving = false;
-        this.saveSubscription = null;
       },
     });
   }

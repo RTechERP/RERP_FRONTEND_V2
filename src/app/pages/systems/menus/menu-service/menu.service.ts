@@ -1,7 +1,7 @@
 import { ProjectPartListPurchaseRequestSlickGridComponent } from './../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { Injectable, Type } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { FactoryVisitRegistrationComponent } from '../../../general-category/visit-factory-registation/factory-visit-registration.component';
 import { TsAssetRecoveryPersonalNewComponent } from '../../../hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
@@ -116,7 +116,7 @@ import { PONCCComponent } from '../../../purchase/poncc/poncc.component';
 import { EmployeeSaleManagerComponent } from '../../../old/KPISale/employee-sale-manager/employee-sale-manager.component';
 import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
-import { RecommendSupplierComponent } from '../../../hrm/recommend-supplier/recommend-supplier.component';
+// import { RecommendSupplierComponent } from '../../../hrm/recommend-supplier/recommend-supplier.component';
 import { HrPurchaseProposalComponent } from '../../../hrm/hr-purchase-proposal/hr-purchase-proposal.component';
 import { PersonComponent } from '../../../person/person.component';
 import { InventoryProjectComponent } from '../../../purchase/inventory-project/inventory-project/inventory-project.component';
@@ -208,6 +208,10 @@ export class MenuService {
 
     userAllReportTechs = [
         1, 23, 24, 78, 88, 1221, 1313, 1434, 1431, 53, 51, 1534,
+    ];
+
+    employeeSaleHCMs = [
+        29, 42, 341, 641
     ];
 
     getMenus(): MenuItem[] {
@@ -3654,34 +3658,76 @@ export class MenuService {
     }
 
 
-    getCompMenus(menukey: string): MenuItem[] {
-        let menus: MenuItem[] = [];
-        this.menuAppService.getAll().subscribe({
-            next: (response) => {
+    getCompMenus(menukey: string): Observable<MenuItem[]> {
+        let id = this.appUserService.currentUser?.ID || 0;
+        let employeeID = this.appUserService.currentUser?.EmployeeID || 0;
+        let departmentID = this.appUserService.currentUser?.DepartmentID || 0;
+        let positionID = this.appUserService.currentUser?.PositionID || 0;
+        let isHR =
+            this.employeeHRs.includes(employeeID) ||
+            this.departmentHRs.includes(departmentID);
 
-                // console.log(response);
+        const permissions: any[] = this.appUserService.currentUser?.Permissions.split(',') || [];
 
-                const map = new Map<number, any>();
-                // this.nodes = [];
-                // Tạo map trước
+        const isAdmin =
+            this.appUserService.currentUser?.IsAdmin ||
+            permissions.includes("N1");
+
+        // console.log("this.appUserService.currentUser?.IsAdmin:", this.appUserService.currentUser?.IsAdmin);
+        // console.log("this.appUserService.currentUser?.Permissions:", permissions);
+
+        return this.menuAppService.getAll().pipe(
+            map((response: any) => {
+                const mapMenu = new Map<number, MenuItem>();
+                let menus: MenuItem[] = [];
+
                 response.data.menus.forEach((item: any) => {
-                    // const menuItem = {
-                    //     id: item.ID,
-                    //     stt: item.STT,
-                    //     key: item.Code,
-                    //     title: item.Title,
-                    //     router: item.Router == '' ? '#' : `${item.Router}`,
-                    //     icon: `${environment.host}api/share/software/icon/${item.Icon}`,
-                    //     isPermission: item.IsPermission,
-                    //     ParentID: item.ParentID,
-                    //     children: [],
-                    //     isOpen: item.ParentID > 0,
-                    //     queryParams: (item.QueryParam || ''),
-                    // };
-
-
                     const childrens = response.data.menus.filter((x: any) => x.ParentID == item.ID);
-                    // console.log(item.Router, this.componentRegistry[item.Router]);
+
+                    let isPermission = item.IsPermission;
+
+                    //Nếu là AGV-Cơ khí
+                    if (item.Router == 'daily-report-machine') {
+                        isPermission = isAdmin ||
+                            this.departmentAgvCokhis.includes(departmentID) ||
+                            this.userAllReportTechs.includes(id);
+                    }
+
+                    //nếu là sale
+                    if (item.Router == 'daily-report-sale-admin' || item.Router == 'daily-report-sale' || item.Code == 'M66') {
+                        isPermission = isAdmin || this.departmentSales.includes(departmentID) || this.employeeSaleHCMs.includes(employeeID);
+                    }
+
+                    //Nếu là Kỹ thuật
+                    if (item.Router == 'daily-report-tech') {
+                        isPermission = isAdmin ||
+                            this.departmentTechs.includes(departmentID) ||
+                            this.userAllReportTechs.includes(id);
+                    }
+
+                    //Nếu là HR
+                    if (item.Router == 'daily-report-thr' || item.Router == 'daily-report-lxcp' || item.Code == 'M70') {
+                        isPermission = isAdmin ||
+                            isHR ||
+                            this.positinCPs.includes(positionID) ||
+                            this.positinLXs.includes(positionID);
+                    }
+
+                    //Nếu là lắp rap
+                    if (item.Router == 'daily-report-lr') {
+                        isPermission = isAdmin ||
+                            this.departmentLapraps.includes(departmentID) ||
+                            this.userAllReportTechs.includes(id);
+                    }
+
+                    //Nếu là MKT
+                    if (item.Router == 'daily-report-mkt') {
+                        isPermission = isAdmin || this.marketings.includes(departmentID);
+                    }
+
+                    // console.log('isAdmin:', isAdmin);
+                    // console.log('this.marketings.includes(departmentID):', this.marketings.includes(departmentID));
+
                     const menu: MenuItem = {
                         id: item.ID,
                         kind: childrens.length > 0 ? 'group' : 'leaf',
@@ -3689,102 +3735,84 @@ export class MenuService {
                         stt: item.STT,
                         title: item.Title,
                         isOpen: item.ParentID > 0 || item.Code == menukey,
-                        isPermission: item.IsPermission,
+                        isPermission: isPermission,
                         icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         children: [],
-                        router: item.Router == '' ? '#' : `${item.Router}`,
-                        data: (item.QueryParam || '') == '' ? {} : JSON.parse((item.QueryParam || '')),
+                        router: item.Router || '#',
+                        data: item.QueryParam ? JSON.parse(item.QueryParam) : {},
                         comp: this.componentRegistry[item.Router]
-                    }
+                    };
 
-                    // Log để debug queryParams từ database
-                    if (item.QueryParam && item.QueryParam !== '') {
-                        // console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
-                    }
-
-                    map.set(item.ID, menu);
+                    mapMenu.set(item.ID, menu);
                 });
 
-                // Gắn cha – con
+                // build tree
                 response.data.menus.forEach((item: any) => {
-                    const node = map.get(item.ID);
+                    const node = mapMenu.get(item.ID)!;
 
-                    if (item.ParentID && map.has(item.ParentID)) {
-                        const parent = map.get(item.ParentID);
-                        parent.children.push(node);
+                    if (item.ParentID && mapMenu.has(item.ParentID)) {
+                        const parent = mapMenu.get(item.ParentID)!;
+
+                        if (parent.kind === 'group') {
+                            parent.children.push(node);
+                        }
                     } else {
                         menus.push(node);
                     }
+
                 });
 
-                // console.log(this.menus);
+                // sort theo stt
+                menus = this.sortBySTTImmutable(menus);
+                // console.log('this.sortBySTTImmutable(menus):', this.sortBySTTImmutable(menus));
+                // console.log('menus', menus);
 
-                // const updateKind = (items: MenuItem[]) => {
-                //     items.forEach(item => {
-                //         if (this.isGroupItem(item)) {
-                //             if (item.children.length === 0) {
-                //                 // không có con → chuyển thành leaf
-                //                 item.kind = 'leaf';
-                //                 delete (item as any).children;
-                //             }
-                //         } else {
-                //             // leaf thì không làm gì
-                //         }
-
-                //         if (this.isGroupItem(item)) {
-                //             updateKind(item.children);
-                //         }
-                //     });
-                // };
-
-                // return 
-
-
-                // console.log('menus sortBySTTImmutable:', menus);
-
-                // const router = this.router.url.split('?')[0].replace('/', '');
-                // this.rootMenuKey = this.findRootKeyByRouter(this.menus, router) || '';
-                // if (this.rootMenuKey) {
-                //     this.menus.forEach(item => {
-                //         item.isOpen = item.key === this.rootMenuKey
-                //     });
-                // }
-
-                // Sau khi menus đã load, check current route và tự động tạo tab nếu cần
-                // (khi paste URL trực tiếp)
-                // setTimeout(() => {
-                //     this.checkAndCreateTabFromCurrentRoute();
-                // }, 0);
-
-                // Subscribe vào router events để tự động tạo tab khi navigate trực tiếp
-                // if (!this.routerSubscription) {
-                //     this.routerSubscription = this.router.events
-                //         .pipe(filter(event => event instanceof NavigationEnd))
-                //         .subscribe((event: any) => {
-                //             if (event instanceof NavigationEnd) {
-                //                 // Delay một chút để đảm bảo menus đã load
-                //                 setTimeout(() => {
-                //                     this.handleDirectNavigation(event.url);
-                //                 }, 100);
-                //             }
-                //         });
-                // }
-
-
-            },
-            error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-            },
-        })
-
-
-        menus = this.menuAppService.sortBySTTImmutable(menus, i => i.STT ?? i.stt ?? 0);
-        // console.log('menus:', menus);
-        return menus;
+                return menus;
+            })
+        );
     }
+
 
     isGroupItem(item: MenuItem): item is GroupItem {
         return item.kind === 'group';
+    }
+
+    sortBySTTImmutable(items: MenuItem[]): MenuItem[] {
+        if (!Array.isArray(items)) {
+            return [];
+        }
+
+
+        // console.log('items sort:', items);
+        const menus: MenuItem[] = [...items]
+            .sort((a, b) => (a.stt ?? 0) - (b.stt ?? 0))
+            .map(item => {
+                if (item.kind !== 'group') {
+                    return { ...item };
+                }
+
+                return {
+                    ...item,
+                    children: this.sortBySTTImmutable(item.children)
+                };
+            });
+
+        // const a = [...items]
+        //     .sort((a, b) => (a.stt ?? 0) - (b.stt ?? 0))
+        //     .map(item => {
+        //         if (item.kind !== 'group') {
+        //             return { ...item };
+        //         }
+
+        //         return {
+        //             ...item,
+        //             children: this.sortBySTTImmutable(item.children)
+        //         };
+        //     });
+
+        // console.log('menus a:', a);
+        // console.log('menus sort:', menus);
+        return menus;
     }
 
 }

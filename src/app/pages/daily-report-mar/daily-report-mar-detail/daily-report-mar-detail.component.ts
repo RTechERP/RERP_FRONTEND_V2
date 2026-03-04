@@ -74,9 +74,9 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
         this.loadDataForEdit(dailyID);
       }
     } else {
-      // mặc định ngày báo cáo = hôm nay
+      // mặc định ngày báo cáo = hôm nay (format yyyy-MM-dd cho input type="date")
       this.formGroup.patchValue({
-        DateReport: DateTime.local().toJSDate(),
+        DateReport: DateTime.local().toFormat('yyyy-MM-dd'),
       });
     }
   }
@@ -115,7 +115,8 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
   }
 
   private populateForm(data: any, fileData?: any[]): void {
-    const dateReport = data?.DateReport ? DateTime.fromISO(data.DateReport).toJSDate() : null;
+    // Format yyyy-MM-dd cho input type="date"
+    const dateReport = data?.DateReport ? DateTime.fromISO(data.DateReport).toFormat('yyyy-MM-dd') : null;
     this.formGroup.patchValue({
       DateReport: dateReport,
       Content: data?.Content || '',
@@ -217,6 +218,8 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
         this.saving = false;
         if (response?.status === 1) {
           this.notification.success('Thông báo', response?.message || 'Lưu dữ liệu thành công');
+          // Gửi email sau khi lưu thành công
+          this.sendEmailAfterSave(valueRaw);
           this.closeModal();
         } else {
           this.notification.error('Thông báo', response?.message || 'Không thể lưu dữ liệu');
@@ -229,13 +232,64 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /**
+   * Gửi email báo cáo sau khi lưu thành công
+   */
+  private sendEmailAfterSave(valueRaw: any): void {
+    const emailBody = this.buildEmailBody(valueRaw);
+    const dateReport = valueRaw.DateReport ? new Date(valueRaw.DateReport) : new Date();
+
+    // Build danh sách file đính kèm theo model backend { FileName, Url }
+    const fileLinks = this.fileData
+      .filter(f => !f?.IsDeleted && f?.FileNameOrigin)
+      .map(f => ({
+        FileName: f.FileNameOrigin || f.FileName || '',
+        Url: f.ServerPath || f.PathServer || ''
+      }));
+
+    this.dailyReportTechService.sendEmailMarketingReport(emailBody, dateReport, fileLinks).subscribe({
+      next: (res: any) => {
+        if (res?.status !== 1) {
+          console.warn('Gửi email thất bại:', res?.message);
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi khi gửi email:', err);
+      }
+    });
+  }
+
+  /**
+   * Tạo nội dung HTML cho email báo cáo marketing
+   */
+  private buildEmailBody(valueRaw: any): string {
+    const dateReport = valueRaw.DateReport
+      ? DateTime.fromJSDate(new Date(valueRaw.DateReport)).toFormat('dd/MM/yyyy')
+      : DateTime.local().toFormat('dd/MM/yyyy');
+
+    const content = valueRaw.Content || '-';
+    const results = valueRaw.Results || '-';
+    const planNextDay = valueRaw.PlanNextDay || '-';
+    const note = valueRaw.Note || '-';
+
+    return `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h3 style="color: #2c3e50;">BÁO CÁO CÔNG VIỆC NGÀY ${dateReport}</h3>
+        <hr style="border: 1px solid #ddd;" />
+        <p><b>* Nội dung công việc:</b><br />${content}</p>
+        <p><b>* Kết quả công việc:</b><br />${results}</p>
+        <p><b>* Kế hoạch ngày tiếp theo:</b><br />${planNextDay}</p>
+        <p><b>* Đề xuất cải tiến:</b><br />${note}</p>
+      </div>`;
+  }
+
   private prepareFileData(dailyId: number): any[] {
     const fileData: any[] = [];
     const activeFiles = this.fileData.filter((f: any) => !f?.IsDeleted);
-  
+
     activeFiles.forEach((file: any) => {
       if (!file) return;
-  
+
       let extension = '';
       const fileName = file.FileNameOrigin || file.FileName || file.OriginName || '';
       if (fileName) {
@@ -244,7 +298,7 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
           extension = '.' + parts.pop();
         }
       }
-  
+
       if (file.ID && file.ID > 0) {
         fileData.push({
           ID: file.ID,
@@ -267,7 +321,7 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
         });
       }
     });
-  
+
     return fileData;
   }
 

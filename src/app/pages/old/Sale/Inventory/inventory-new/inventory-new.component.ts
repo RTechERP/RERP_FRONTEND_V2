@@ -39,6 +39,7 @@ import {
     MenuCommandItemCallbackArgs
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import * as ExcelJS from 'exceljs';
 import { Subscription } from 'rxjs';
 
 import { ProductsaleServiceService } from '../../ProductSale/product-sale-service/product-sale-service.service';
@@ -46,8 +47,9 @@ import { InventoryService } from '../inventory-service/inventory.service';
 import { ProductGroupDetailComponent } from '../../ProductSale/product-group-detail/product-group-detail.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-import { environment } from '../../../../../../environments/environment';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { ChiTietSanPhamSaleComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 
 interface ProductGroup {
     ID?: number;
@@ -56,6 +58,7 @@ interface ProductGroup {
     IsVisible: boolean;
     EmployeeID: number;
     WareHouseID: number;
+    ParentID: number;
 }
 
 @Component({
@@ -84,7 +87,7 @@ interface ProductGroup {
 })
 export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     warehouseCode: string = 'HN';
-    readonly componentId: string = 'inventory-' + Math.random().toString(36).substring(2, 11);
+    componentId: string = '';
     productGroupID: number = 0;
 
     // Data
@@ -126,15 +129,22 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         checkedStock: false,
     };
 
+    isWareHouseDP: boolean = false;
+
     newProductGroup: ProductGroup = {
         ProductGroupID: '',
         ProductGroupName: '',
         EmployeeID: 0,
         IsVisible: false,
         WareHouseID: 0,
+        ParentID: 0
     };
 
     private subscriptions: Subscription[] = [];
+
+    // ResizeObserver để detect khi tab được hiển thị lại
+    private resizeObserver: ResizeObserver | null = null;
+    private lastVisibleWidth: number = 0;
 
     constructor(
         private productsaleSV: ProductsaleServiceService,
@@ -145,12 +155,13 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         private zone: NgZone,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        @Optional() @Inject('tabData') private tabData: any
+        @Optional() @Inject('tabData') private tabData: any,
+        private elementRef: ElementRef,
+        private tabService: TabServiceService,
     ) { }
 
     ngOnInit(): void {
-        this.initGridColumns();
-
+        this.componentId = 'inventory-' + this.generateUUIDv4();
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
             // const newWarehouseCode = params['warehouseCode'] || 'HN';
@@ -166,9 +177,10 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
             // Cập nhật warehouseCode TRƯỚC khi init grid options
             this.warehouseCode = newWarehouseCode;
-
+            this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP' ? true : false;
+            console.log(this.isWareHouseDP);
             // Init grid options với ID selector unique dựa trên warehouseCode
-            this.initGridOptions();
+            //this.initGridOptions();
 
             // Nếu params thay đổi (và không phải lần đầu), reset và clear data trước
             if (paramsChanged && this.angularGridProductGroup) {
@@ -211,12 +223,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
 
                 // Re-initialize grids if warehouse code changed
-                this.initGridColumns();
-                this.initGridOptions();
-
-                // Trigger change detection
-                this.cdr.detectChanges();
             }
+            this.initGridColumns();
+            this.initGridOptions();
+
+            // Trigger change detection
+            this.cdr.detectChanges();
+
+            //this.initGridColumns();
 
             // Update parameters after clearing
             this.warehouseCode = newWarehouseCode;
@@ -230,10 +244,47 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit(): void {
         // Data đã được load trong ngOnInit qua queryParams subscribe
+        // Sử dụng ResizeObserver để detect khi component được hiển thị lại (tab switch)
+        this.setupResizeObserver();
     }
 
     ngOnDestroy(): void {
         this.subscriptions.forEach((sub) => sub.unsubscribe());
+
+        // Cleanup ResizeObserver khi component bị destroy
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+    }
+
+    /**
+     * Setup ResizeObserver để detect khi tab được hiển thị lại
+     * Khi tab bị ẩn (hidden), width = 0. Khi hiện lại, width > 0
+     * Lúc đó cần trigger resize grid để SlickGrid tính toán lại kích thước
+     */
+    private setupResizeObserver(): void {
+        const element = this.elementRef.nativeElement;
+
+        this.resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const currentWidth = entry.contentRect.width;
+
+                // Detect khi chuyển từ hidden (width = 0) sang visible (width > 0)
+                if (this.lastVisibleWidth === 0 && currentWidth > 0) {
+                    // Tab vừa được hiển thị lại, cần resize grids
+                    this.zone.run(() => {
+                        setTimeout(() => {
+                            this.resizeGrids();
+                        }, 50);
+                    });
+                }
+
+                this.lastVisibleWidth = currentWidth;
+            }
+        });
+
+        this.resizeObserver.observe(element);
     }
 
     //#region Grid Initialization
@@ -251,6 +302,33 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         `;
     };
 
+    // Tree formatter for hierarchical display
+    treeFormatter: Formatter = (_row, _cell, value, _column, dataContext, grid) => {
+        if (!value || !dataContext) return '';
+
+        const gridOptions = grid?.getOptions();
+        const treeLevelPropName = gridOptions?.treeDataOptions?.levelPropName || '__treeLevel';
+        const treeLevel = dataContext[treeLevelPropName] || 0;
+
+        const dataView = grid?.getData();
+        const data = dataView?.getItems?.() || [];
+        const identifierPropName = dataView?.getIdPropertyName?.() || 'id';
+        const idx = dataView?.getIdxById?.(dataContext[identifierPropName]) ?? -1;
+
+        const spacer = `<span style="display:inline-block; width:${15 * treeLevel}px;"></span>`;
+
+        // Check if item has children
+        const hasChildren = idx >= 0 && idx < data.length - 1 &&
+            (data[idx + 1]?.[treeLevelPropName] > treeLevel || dataContext.__hasChildren);
+
+        if (hasChildren) {
+            const toggleClass = dataContext.__collapsed ? 'collapsed' : 'expanded';
+            return `${spacer}<span class="slick-group-toggle ${toggleClass}" level="${treeLevel}"></span> ${value}`;
+        } else {
+            return `${spacer}<span class="slick-group-toggle" level="${treeLevel}"></span> ${value}`;
+        }
+    };
+
     private initGridColumns(): void {
         // Product Group columns
         this.columnDefinitionsProductGroup = [
@@ -261,6 +339,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 50,
                 sortable: true,
                 filterable: true,
+                formatter: this.treeFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -329,6 +408,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             forceFitColumns: true,
             enableAutoSizeColumns: true,
             enableHeaderMenu: false,
+            enableTreeData: true,
+            multiColumnSort: false,
+            treeDataOptions: {
+                columnId: 'ProductGroupName',
+                parentPropName: 'parentId',
+                indentMarginLeft: 15,
+                initiallyCollapsed: false
+            },
         };
 
         // PG Warehouse grid options - Sử dụng ID selector unique
@@ -403,6 +490,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 sanitizeDataExport: true,
                 exportWithFormatter: true,
             },
+            enableGrouping: true,
         };
     }
 
@@ -410,16 +498,126 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     //#endregion
 
     //#region Grid Ready Events
+    updateMasterFooterRow() {
+        if (!this.angularGridInventory?.slickGrid) {
+            return;
+        }
+
+        // Lấy dữ liệu đã lọc
+        const items =
+            (this.angularGridInventory.dataView?.getFilteredItems?.() as any[]) ||
+            this.datasetInventory;
+
+        // Đếm số lượng ProductCode
+        const productCodeCount = items.length || 0;
+
+        // Tính tổng cho các cột số
+        const totals: { [key: string]: number } = {};
+        const numericFields = [
+            'TotalQuantityFirst',
+            'Import',
+            'Export',
+            'TotalQuantityLastActual',
+            'QuantityRequestExport',
+            'TotalQuantityKeep',
+            'TotalQuantityLast',
+            'QuantityUse',
+            'MinQuantity',
+            'MinQuantityActual',
+            'TotalQuantityReturnNCC',
+            'ImportPT',
+            'ExportPM',
+            'StillBorrowed'
+        ];
+
+        numericFields.forEach((field: string) => {
+            totals[field] = (items || []).reduce(
+                (sum, item) => sum + (Number(item[field]) || 0),
+                0
+            );
+        });
+
+        this.angularGridInventory.slickGrid.setFooterRowVisibility(true);
+
+        // Set footer values
+        const columns = this.angularGridInventory.slickGrid.getColumns();
+
+        columns.forEach((col: any) => {
+            const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn(
+                col.id
+            );
+            if (!footerCell) {
+                return;
+            }
+
+            if (col.id === 'ProductCode' + this.warehouseCode) {
+                footerCell.innerHTML = `<b>${productCodeCount}</b>`;
+            } else if (totals[col.field] !== undefined) {
+                const formattedValue = new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                }).format(totals[col.field]);
+                footerCell.innerHTML = `<b>${formattedValue}</b>`;
+            } else {
+                footerCell.innerHTML = '';
+            }
+        });
+    }
+    private applyGrouping(): void {
+        if (this.isWareHouseDP == false) return;
+        const angularGrid = this.angularGridInventory;
+        if (!angularGrid || !angularGrid.dataView) return;
+
+        angularGrid.dataView.setGrouping([
+            {
+                getter: 'ProductGroupName',
+                comparer: () => 0,
+                formatter: (g: any) => {
+                    const productGroupName = g.value || 'Không xác định';
+                    return `Nhóm: <strong>${productGroupName}</strong> <span style="color:#ed502f;">(${g.count})</span>`;
+                },
+                aggregateCollapsed: false,
+                lazyTotalsCalculation: true,
+                collapsed: false,
+            },
+            {
+                getter: 'ProductGroupType',
+                comparer: () => 0,
+                formatter: (g: any) => {
+                    const productGroupType = g.value || '<span class="text-danger">Không có</span>';
+                    return `Nhóm vật tư: <strong>${productGroupType}</strong> <span style="color:#2b4387;">(${g.count})</span>`;
+                },
+                aggregateCollapsed: false,
+                lazyTotalsCalculation: true,
+                collapsed: false,
+            },
+        ]);
+
+        angularGrid.dataView.refresh();
+        angularGrid.slickGrid?.render();
+    }
 
     resizeGrids(): void {
-        if (this.angularGridProductGroup?.resizerService) {
-            this.angularGridProductGroup.resizerService.resizeGrid();
+        try {
+            if (this.angularGridProductGroup?.resizerService) {
+                this.angularGridProductGroup.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
-        if (this.angularGridPGWarehouse?.resizerService) {
-            this.angularGridPGWarehouse.resizerService.resizeGrid();
+        try {
+            if (this.angularGridPGWarehouse?.resizerService) {
+                this.angularGridPGWarehouse.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
-        if (this.angularGridInventory?.resizerService) {
-            this.angularGridInventory.resizerService.resizeGrid();
+        try {
+            if (this.angularGridInventory?.resizerService) {
+                this.angularGridInventory.resizerService.resizeGrid();
+            }
+        } catch (e) {
+            // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
     }
 
@@ -439,23 +637,19 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     angularGridReadyInventory(angularGrid: AngularGridInstance) {
         this.angularGridInventory = angularGrid;
+        this.applyGrouping();
         setTimeout(() => {
             this.resizeGrids();
             // Update footer row
-            this.updateInventoryFooterRow();
+            this.updateMasterFooterRow();
         }, 100);
 
         // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi (bao gồm filter)
+        // Không dùng setTimeout và onRendered để tránh re-render gây mất focus khỏi ô filter
         if (angularGrid.dataView) {
             angularGrid.dataView.onRowCountChanged.subscribe(() => {
-                setTimeout(() => this.updateInventoryFooterRow(), 100);
-            });
-        }
+                this.updateInventoryFooterRow();
 
-        // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
-        if (angularGrid.slickGrid) {
-            angularGrid.slickGrid.onRendered.subscribe(() => {
-                setTimeout(() => this.updateInventoryFooterRow(), 50);
             });
         }
     }
@@ -520,18 +714,25 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     getProductGroup() {
         this.isLoadingProductGroup = true;
         const sub = this.productsaleSV
-            .getdataProductGroup(this.warehouseCode, false)
+            .getdataProductGroup(this.warehouseCode, true)
             .subscribe({
                 next: (res) => {
+                    
                     this.isLoadingProductGroup = false;
                     if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
                         this.dataProductGroup = res.data;
 
                         // Map data với id unique cho SlickGrid
-                        const mappedData = this.dataProductGroup.map((item: any, index: number) => ({
+                        let mappedData = this.dataProductGroup.map((item: any, index: number) => ({
                             ...item,
                             id: item.ID,
+                            parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
                         }));
+
+                        if(this.isWareHouseDP){
+                            mappedData = mappedData.filter(
+                                (item: any) => item.ID === 4 || item.ID === 13 || item.parentId === 4 || item.parentId === 13);
+                        }
 
                         this.datasetProductGroup = mappedData;
 
@@ -543,6 +744,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         // Resize grids after data is loaded
                         setTimeout(() => {
                             this.resizeGrids();
+
                         }, 50);
 
                         // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
@@ -560,7 +762,13 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                                     this.getDataProductGroupWareHouse(this.productGroupID);
                                 }
                             }
+
+                            this.applyGrouping();
+                            this.angularGridInventory?.slickGrid?.invalidate();
+                            this.angularGridInventory?.slickGrid?.render();
                         }, 100);
+
+
                     }
                 },
                 error: (err) => {
@@ -615,10 +823,15 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.dataInventory = res.data;
 
                         // Map data với id unique cho SlickGrid
-                        const mappedData = this.dataInventory.map((item: any, index: number) => ({
+                        let mappedData = this.dataInventory.map((item: any, index: number) => ({
                             ...item,
                             id: item.ID,
                         }));
+
+                        if(this.isWareHouseDP){
+                            mappedData = mappedData.filter(
+                                (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 || item.ParentID === 4 || item.ParentID === 13);
+                        }
 
                         this.datasetInventory = mappedData;
 
@@ -630,7 +843,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         setTimeout(() => {
                             this.resizeGrids();
                             // Update footer row sau khi dữ liệu được load
-                            this.updateInventoryFooterRow();
+                            this.updateMasterFooterRow();
                         }, 100);
                     }
 
@@ -699,6 +912,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     /**
      * Update footer row cho inventory grid
      * Các cột: ProductName:count, và sum cho các cột số
+     * Sử dụng textContent thay vì innerHTML để tránh re-render gây mất focus
      */
     updateInventoryFooterRow(): void {
         // Kiểm tra tất cả các điều kiện cần thiết trước khi tiếp tục
@@ -751,30 +965,21 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         try {
-            this.angularGridInventory.slickGrid.setFooterRowVisibility(true);
+            // Update footer trực tiếp bằng textContent thay vì innerHTML để tránh re-render
+            const productNameFooter = this.angularGridInventory.slickGrid.getFooterRowColumn('ProductName' + this.warehouseCode);
+            if (productNameFooter) {
+                productNameFooter.textContent = `${productCount}`;
+            }
 
-            // Set footer values cho từng column
-            const columns = this.angularGridInventory.slickGrid.getColumns();
-
-            // console.log('columns:', columns);
-
-            columns.forEach((col: any) => {
-                const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn('ProductName' + this.warehouseCode);
-                if (!footerCell) return;
-
-                // Count cho cột ProductName (Tên sản phẩm)
-                if (col.id === 'ProductName') {
-                    footerCell.innerHTML = `<b style="display:block;text-align:right;">${productCount}</b>`;
-                }
-                // Sum cho các cột số
-                else if (sumFields.includes(col.id)) {
+            // Update sum cho các cột số
+            sumFields.forEach(field => {
+                const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn(field + this.warehouseCode);
+                if (footerCell) {
                     const formattedValue = new Intl.NumberFormat('en-US', {
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0,
-                    }).format(sums[col.id] || 0);
-                    footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
-                } else {
-                    footerCell.innerHTML = '';
+                    }).format(sums[field] || 0);
+                    footerCell.textContent = formattedValue;
                 }
             });
         } catch (e) {
@@ -832,6 +1037,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             EmployeeID: 0,
             IsVisible: false,
             WareHouseID: 0,
+            ParentID: 0
         };
 
         const sub = this.productsaleSV
@@ -840,6 +1046,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 next: (res) => {
                     if (res?.data && res.data.length > 0) {
                         this.newProductGroup.EmployeeID = res.data[0].EmployeeID ?? 0;
+                        this.newProductGroup.ParentID = res.data[0].ParentID ?? 0;
                     }
                     this.newProductGroup.WareHouseID = 1;
                     const modalRef = this.modalService.open(ProductGroupDetailComponent, {
@@ -1062,14 +1269,223 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         try {
-            this.excelExportService.exportToExcel({
-                filename: `DanhSachTonKhoHN_${formattedDatee}`,
-                format: 'xlsx',
+            // Get filtered data from grid
+            const items = this.angularGridInventory.dataView?.getFilteredItems?.() || this.datasetInventory;
+
+            // Create workbook
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Tồn Kho');
+
+            // Define columns with headers
+            const columns = [
+                { header: 'STT', key: 'stt', width: 8 },
+                { header: 'Tên nhóm', key: 'ProductGroupName', width: 20 },
+                { header: 'Tích xanh', key: 'IsFix', width: 10 },
+                { header: 'Mã sản phẩm', key: 'ProductCode', width: 15 },
+                { header: 'Tên sản phẩm', key: 'ProductName', width: 30 },
+                { header: 'Mã nội bộ', key: 'ProductNewCode', width: 15 },
+                { header: 'NCC', key: 'NameNCC', width: 20 },
+                { header: 'Người nhập', key: 'Deliver', width: 15 },
+                { header: 'Hãng', key: 'Maker', width: 15 },
+                { header: 'ĐVT', key: 'Unit', width: 10 },
+                { header: 'Tồn đầu kỳ', key: 'TotalQuantityFirst', width: 12 },
+                { header: 'Nhập', key: 'Import', width: 10 },
+                { header: 'Xuất', key: 'Export', width: 10 },
+                { header: 'SL tồn thực tế', key: 'TotalQuantityLastActual', width: 15 },
+                { header: 'SL yêu cầu xuất', key: 'QuantityRequestExport', width: 15 },
+                { header: 'SL giữ', key: 'TotalQuantityKeep', width: 10 },
+                { header: 'Tồn CK (được sử dụng)', key: 'TotalQuantityLast', width: 18 },
+                { header: 'Tồn sử dụng', key: 'QuantityUse', width: 12 },
+                { header: 'Tồn tối thiểu Y/c', key: 'MinQuantity', width: 15 },
+                { header: 'Tồn tối thiểu thực tế', key: 'MinQuantityActual', width: 18 },
+                { header: 'SL phải trả NCC', key: 'TotalQuantityReturnNCC', width: 15 },
+                { header: 'Tổng mượn', key: 'ImportPT', width: 12 },
+                { header: 'Tổng trả', key: 'ExportPM', width: 10 },
+                { header: 'Đang mượn', key: 'StillBorrowed', width: 12 },
+                { header: 'Vị trí', key: 'AddressBox', width: 20 },
+                { header: 'Chi tiết nhập', key: 'Detail', width: 25 },
+                { header: 'Ghi chú', key: 'Note', width: 25 },
+            ];
+
+            worksheet.columns = columns;
+
+            // Style header row
+            const headerRow = worksheet.getRow(1);
+            headerRow.font = { bold: true, size: 11 };
+            headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            headerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFD9E1F2' }
+            };
+            headerRow.height = 25;
+
+            // Add border to header
+            headerRow.eachCell((cell: any) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
             });
-            this.notification.success(
-                NOTIFICATION_TITLE.success,
-                'Xuất file Excel thành công!'
-            );
+
+            // Initialize sum variables for footer
+            const sums = {
+                TotalQuantityFirst: 0,
+                Import: 0,
+                Export: 0,
+                TotalQuantityLastActual: 0,
+                QuantityRequestExport: 0,
+                TotalQuantityKeep: 0,
+                TotalQuantityLast: 0,
+            };
+
+            // Add data rows
+            items.forEach((item: any, index: number) => {
+                const row = worksheet.addRow({
+                    stt: index + 1,
+                    ProductGroupName: item.ProductGroupName || '',
+                    IsFix: item.IsFix ? 'Có' : 'Không',
+                    ProductCode: item.ProductCode || '',
+                    ProductName: item.ProductName || '',
+                    ProductNewCode: item.ProductNewCode || '',
+                    NameNCC: item.NameNCC || '',
+                    Deliver: item.Deliver || '',
+                    Maker: item.Maker || '',
+                    Unit: item.Unit || '',
+                    TotalQuantityFirst: item.TotalQuantityFirst || 0,
+                    Import: item.Import || 0,
+                    Export: item.Export || 0,
+                    TotalQuantityLastActual: item.TotalQuantityLastActual || 0,
+                    QuantityRequestExport: item.QuantityRequestExport || 0,
+                    TotalQuantityKeep: item.TotalQuantityKeep || 0,
+                    TotalQuantityLast: item.TotalQuantityLast || 0,
+                    QuantityUse: item.QuantityUse || 0,
+                    MinQuantity: item.MinQuantity || 0,
+                    MinQuantityActual: item.MinQuantityActual || 0,
+                    TotalQuantityReturnNCC: item.TotalQuantityReturnNCC || 0,
+                    ImportPT: item.ImportPT || 0,
+                    ExportPM: item.ExportPM || 0,
+                    StillBorrowed: item.StillBorrowed || 0,
+                    AddressBox: item.AddressBox || '',
+                    Detail: item.Detail || '',
+                    Note: item.Note || '',
+                });
+
+                // Add borders to data cells
+                row.eachCell((cell: any) => {
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                });
+
+                // Center align specific columns
+                row.getCell('stt').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('IsFix').alignment = { horizontal: 'center', vertical: 'middle' };
+                row.getCell('Unit').alignment = { horizontal: 'center', vertical: 'middle' };
+
+                // Number columns alignment
+                const numberCells = ['TotalQuantityFirst', 'Import', 'Export', 'TotalQuantityLastActual',
+                    'QuantityRequestExport', 'TotalQuantityKeep', 'TotalQuantityLast',
+                    'QuantityUse', 'MinQuantity', 'MinQuantityActual', 'TotalQuantityReturnNCC',
+                    'ImportPT', 'ExportPM', 'StillBorrowed'];
+                numberCells.forEach(key => {
+                    const cell = row.getCell(key);
+                    cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                    const v = cell.value as number;
+                    cell.numFmt = (typeof v === 'number' && !Number.isInteger(v)) ? '#,##0.##' : '#,##0';
+                });
+
+                // Accumulate sums for footer
+                sums.TotalQuantityFirst += item.TotalQuantityFirst || 0;
+                sums.Import += item.Import || 0;
+                sums.Export += item.Export || 0;
+                sums.TotalQuantityLastActual += item.TotalQuantityLastActual || 0;
+                sums.QuantityRequestExport += item.QuantityRequestExport || 0;
+                sums.TotalQuantityKeep += item.TotalQuantityKeep || 0;
+                sums.TotalQuantityLast += item.TotalQuantityLast || 0;
+            });
+
+            // Add footer row with totals
+            const footerRow = worksheet.addRow({
+                stt: '',
+                ProductGroupName: '',
+                IsFix: '',
+                ProductCode: '',
+                ProductName: 'TỔNG',
+                ProductNewCode: '',
+                NameNCC: '',
+                Deliver: '',
+                Maker: '',
+                Unit: '',
+                TotalQuantityFirst: sums.TotalQuantityFirst,
+                Import: sums.Import,
+                Export: sums.Export,
+                TotalQuantityLastActual: sums.TotalQuantityLastActual,
+                QuantityRequestExport: sums.QuantityRequestExport,
+                TotalQuantityKeep: sums.TotalQuantityKeep,
+                TotalQuantityLast: sums.TotalQuantityLast,
+                QuantityUse: '',
+                MinQuantity: '',
+                MinQuantityActual: '',
+                TotalQuantityReturnNCC: '',
+                ImportPT: '',
+                ExportPM: '',
+                StillBorrowed: '',
+                AddressBox: '',
+                Detail: '',
+                Note: '',
+            });
+
+            // Style footer row
+            footerRow.font = { bold: true, size: 11 };
+            footerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFD966' }
+            };
+
+            // Add borders and alignment to footer
+            footerRow.eachCell((cell: any, colNumber: any) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+
+                // Format number cells in footer
+                if (colNumber >= 11 && colNumber <= 17) {
+                    cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                    const v = cell.value as number;
+                    cell.numFmt = (typeof v === 'number' && !Number.isInteger(v)) ? '#,##0.##' : '#,##0';
+                } else {
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                }
+            });
+
+            // Save workbook
+            workbook.xlsx.writeBuffer().then((buffer: any) => {
+                const blob = new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = `DanhSachTonKho_${this.warehouseCode}_${formattedDatee}.xlsx`;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+
+                this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    'Xuất file Excel thành công!',
+                    { nzDuration: 1000 }
+                );
+            });
         } catch (error) {
             console.error('Lỗi khi xuất Excel:', error);
             this.notification.error(
@@ -1084,47 +1500,38 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     //#region Context Menu
 
     openChiTietSanPhamSale(productData: any) {
-        const params = new URLSearchParams({
-            code: productData.ProductCode || '',
-            suplier: productData.Supplier || '',
-            productName: productData.ProductName || '',
-            numberDauKy: productData.NumberInStoreDauky?.toString() || '0',
-            numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
-            import: productData.Import?.toString() || '0',
-            export: productData.Export?.toString() || '0',
-            productSaleID: (productData.ProductSaleID || 0).toString(),
-            wareHouseCode: this.warehouseCode || 'HN',
-        });
+        const productCode = productData.ProductCode || '';
 
-        window.open(
-            `${environment.baseHref}/chi-tiet-san-pham-sale?${params.toString()}`,
-            '_blank',
-            'width=1400,height=900,scrollbars=yes,resizable=yes'
-        );
+        this.tabService.openTabComp({
+            comp: ChiTietSanPhamSaleComponent,
+            title: `Chi tiết SP - ${productCode}`,
+            key: `chi-tiet-san-pham-sale-${productData.ProductSaleID || 0}`,
+            data: {
+                code: productCode,
+                suplier: productData.Supplier || '',
+                productName: productData.ProductName || '',
+                numberDauKy: productData.NumberInStoreDauky?.toString() || '0',
+                numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
+                import: productData.Import?.toString() || '0',
+                export: productData.Export?.toString() || '0',
+                productSaleID: productData.ProductSaleID || 0,
+                wareHouseCode: this.warehouseCode || 'HN',
+            }
+        });
     }
 
     //#endregion
 
     //#region Lt.anh mapping cột theo warehouse
     buildPGWarehouseColumns(warehouseCode: string): Column[] {
-        console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
-        return [
-            {
-                id: 'ProductGroupName' + warehouseCode,
-                field: 'ProductGroupName',
-                name: 'Tên nhóm',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['compoundInput'],
-                },
-            },
+        // console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
+        let columns: Column[] = [
             {
                 id: 'IsFix' + warehouseCode,
                 field: 'IsFix',
                 name: 'Tích xanh',
                 width: 80,
+                cssClass: 'text-center',
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.iconBoolean,
@@ -1150,6 +1557,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductName' + warehouseCode,
@@ -1165,6 +1573,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductNewCode' + warehouseCode,
@@ -1191,6 +1600,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Deliver' + warehouseCode,
@@ -1229,6 +1639,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'TotalQuantityFirst' + warehouseCode,
                 field: 'TotalQuantityFirst',
                 name: 'Tồn đầu kỳ',
+                cssClass: 'text-end',
                 width: 100,
                 sortable: true,
                 filterable: true,
@@ -1241,6 +1652,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'Import' + warehouseCode,
                 field: 'Import',
                 name: 'Nhập',
+                cssClass: 'text-end',
                 width: 80,
                 sortable: true,
                 filterable: true,
@@ -1253,6 +1665,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'Export' + warehouseCode,
                 field: 'Export',
                 name: 'Xuất',
+                cssClass: 'text-end',
                 width: 80,
                 sortable: true,
                 filterable: true,
@@ -1265,6 +1678,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'TotalQuantityLastActual' + warehouseCode,
                 field: 'TotalQuantityLastActual',
                 name: 'SL tồn thực tế',
+                cssClass: 'text-end',
                 width: 120,
                 sortable: true,
                 filterable: true,
@@ -1277,6 +1691,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'QuantityRequestExport' + warehouseCode,
                 field: 'QuantityRequestExport',
                 name: 'SL yêu cầu xuất',
+                cssClass: 'text-end',
                 width: 120,
                 sortable: true,
                 filterable: true,
@@ -1289,6 +1704,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'TotalQuantityKeep' + warehouseCode,
                 field: 'TotalQuantityKeep',
                 name: 'SL giữ',
+                cssClass: 'text-end',
                 width: 80,
                 sortable: true,
                 filterable: true,
@@ -1301,6 +1717,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'TotalQuantityLast' + warehouseCode,
                 field: 'TotalQuantityLast',
                 name: 'Tồn CK(được sử dụng)',
+                cssClass: 'text-end',
                 width: 150,
                 sortable: true,
                 filterable: true,
@@ -1313,6 +1730,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'QuantityUse' + warehouseCode,
                 field: 'QuantityUse',
                 name: 'Tồn sử dụng',
+                cssClass: 'text-end',
                 width: 100,
                 sortable: true,
                 filterable: true,
@@ -1325,6 +1743,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'MinQuantity' + warehouseCode,
                 field: 'MinQuantity',
                 name: 'Tồn tối thiểu Y/c',
+                cssClass: 'text-end',
                 width: 130,
                 sortable: true,
                 filterable: true,
@@ -1337,6 +1756,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'MinQuantityActual' + warehouseCode,
                 field: 'MinQuantityActual',
                 name: 'Tồn tối thiểu thực tế',
+                cssClass: 'text-end',
                 width: 150,
                 sortable: true,
                 filterable: true,
@@ -1349,6 +1769,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'TotalQuantityReturnNCC' + warehouseCode,
                 field: 'TotalQuantityReturnNCC',
                 name: 'SL phải trả NCC',
+                cssClass: 'text-end',
                 width: 120,
                 sortable: true,
                 filterable: true,
@@ -1361,6 +1782,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'ImportPT' + warehouseCode,
                 field: 'ImportPT',
                 name: 'Tổng mượn',
+                cssClass: 'text-end',
                 width: 100,
                 sortable: true,
                 filterable: true,
@@ -1373,6 +1795,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'ExportPM' + warehouseCode,
                 field: 'ExportPM',
                 name: 'Tổng trả',
+                cssClass: 'text-end',
                 width: 90,
                 sortable: true,
                 filterable: true,
@@ -1385,6 +1808,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'StillBorrowed' + warehouseCode,
                 field: 'StillBorrowed',
                 name: 'Đang mượn',
+                cssClass: 'text-end',
                 width: 100,
                 sortable: true,
                 filterable: true,
@@ -1407,6 +1831,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Detail' + warehouseCode,
@@ -1422,6 +1847,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Note' + warehouseCode,
@@ -1437,9 +1863,50 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 filter: {
                     model: Filters['compoundInput'],
                 },
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
         ];
+        debugger;
+        if (this.isWareHouseDP == false) {
+            columns.unshift(
+                {
+                    id: 'ProductGroupName' + warehouseCode,
+                    field: 'ProductGroupName',
+                    name: 'Tên nhóm',
+                    width: 120,
+                    sortable: true,
+                    filterable: true,
+                    filter: {
+                        model: Filters['compoundInput'],
+                    },
+                    exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+                },
+            );
+        }
+        return columns;
     }
 
     //#endregion
+
+
+    cleanXml(value: any): string {
+        if (value === null || value === undefined) return '';
+
+        return String(value)
+            // remove invalid XML chars
+            .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+            // remove nbsp
+            .replace(/\u00A0/g, ' ')
+            // remove emoji (optional nhưng nên)
+            .replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
+    }
+
+    generateUUIDv4(): string {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
 }

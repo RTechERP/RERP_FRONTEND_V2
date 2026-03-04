@@ -39,6 +39,10 @@
                     <label class="m-0">
                         Loại vi phạm
                         <span class="text-danger">(*)</span>
+                        <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
+                            title="Thêm dự án" (click)="openTypeDetailModal()">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </label>
                     <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại vi phạm"
                         [(ngModel)]="typeId" name="typeId" (ngModelChange)="errors.typeId = ''" class="w-100">

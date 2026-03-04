@@ -54,6 +54,7 @@ import { HttpClient } from '@angular/common/http';
 import { ProjectService } from '../../project/project-service/project.service';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { AuthService } from '../../../auth/auth.service';
+import { UserService } from '../../../services/user.service';
 import { SummaryProjectJoinService } from './summary-project-join-service/summary-project-join.service';
 @Component({
   selector: 'app-summary-project-join',
@@ -110,8 +111,9 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
     private route: ActivatedRoute,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    private userService: UserService
+  ) { }
   //Ga
   //#region Khai báo biến
   // SlickGrid instances
@@ -119,33 +121,40 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
   angularGridProjectEmployee!: AngularGridInstance;
   angularGridProjectWorkReports!: AngularGridInstance;
   angularGridProjectTypeLinks!: AngularGridInstance;
+  angularGridCurrentSituation!: AngularGridInstance;
   gridDataProjects: any;
   gridDataProjectEmployee: any;
   gridDataProjectWorkReports: any;
   gridDataProjectTypeLinks: any;
+  gridDataCurrentSituation: any;
 
   // Column definitions
   columnDefinitionsProjects: Column[] = [];
   columnDefinitionsProjectEmployee: Column[] = [];
   columnDefinitionsProjectWorkReports: Column[] = [];
   columnDefinitionsProjectTypeLinks: Column[] = [];
+  columnDefinitionsCurrentSituation: Column[] = [];
 
   // Grid options
   gridOptionsProjects: GridOption = {};
   gridOptionsProjectEmployee: GridOption = {};
   gridOptionsProjectWorkReports: GridOption = {};
   gridOptionsProjectTypeLinks: GridOption = {};
+  gridOptionsCurrentSituation: GridOption = {};
 
   // Datasets
   datasetProjects: any[] = [];
   datasetProjectEmployee: any[] = [];
   datasetProjectWorkReports: any[] = [];
   datasetProjectTypeLinks: any[] = [];
+  datasetCurrentSituation: any[] = [];
 
 
   isHide: any = false;
   showProjectDetail: boolean = false; // Điều khiển hiển thị tab bên dưới - mặc định false để tránh lỗi khởi tạo
   detailGridsReady: boolean = false; // Chỉ render detail grids khi container đã sẵn sàng
+  splitterKey: boolean = true; // Dùng để force re-render splitter khi toggle
+  showSearchBar: boolean = true; // Điều khiển hiển thị filter bar ngang
 
   sizeSearch: string = '0';
   sizeTbDetail: any = '0';
@@ -168,12 +177,12 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
   projectId: any = 0;
   currentUser: any = null;
   pageId: number = 2;
-  dateStart: any = DateTime.local()
+  dateStart: string = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
-    .toISO();
-  dateEnd: any = DateTime.local()
+    .toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
-    .toISO();
+    .toFormat('yyyy-MM-dd');
   globalID: number = 0;
   private resizeTimeout: any;
   //#endregion
@@ -190,6 +199,7 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
     this.initGridProjectEmployee();
     this.initGridProjectWorkReports();
     this.initGridProjectTypeLinks();
+    this.initGridCurrentSituation();
   }
 
   getCurrent() {
@@ -220,14 +230,17 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
     this.getCurrent();
     this.getProjectTypes();
 
+    // Tự động fill nhân viên đang đăng nhập
+    const currentUser = this.userService.getUser();
+    if (currentUser?.EmployeeID) {
+      this.technicalId = currentUser.EmployeeID;
+    }
+
     // Đợi DOM render xong và resize grids
     setTimeout(() => {
       this.resizeAllGrids();
       // Force trigger resize event để SlickGrid tính toán lại kích thước
       window.dispatchEvent(new Event('resize'));
-      
-      // Load data mẫu để test
-      this.loadSampleData();
     }, 1000);
   }
 
@@ -239,13 +252,27 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
 
+  // Getter for horizontal filter bar visibility
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  // Toggle horizontal search bar
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
+
   clearAllFilters() {
     this.dateStart = DateTime.local()
       .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
-      .toISO();
+      .toFormat('yyyy-MM-dd');
     this.dateEnd = DateTime.local()
       .set({ hour: 0, minute: 0, second: 0 })
-      .toISO();
+      .toFormat('yyyy-MM-dd');
     this.technicalId = null;
     this.keyword = '';
   }
@@ -255,6 +282,16 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
   }
   //#endregion
 
+  // Helper function to escape HTML special characters for title attributes
+  private escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
   //#region xử lý bảng danh sách dự án với SlickGrid
   initGridProjects() {
     // Format date helper
@@ -267,41 +304,221 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
         }
         return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
       } catch (e) {
-            return value;
+        return value;
       }
     };
 
     this.columnDefinitionsProjects = [
       { id: 'ID', name: 'ID', field: 'ID', type: 'number', width: 70, sortable: true, excludeFromExport: true, hidden: true },
-      { id: 'ProjectStatusName', name: 'Trạng thái', field: 'ProjectStatusName', type: 'string', width: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'CreatedDate', name: 'Ngày tạo', field: 'CreatedDate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
-      { id: 'PriotityText', name: 'Ưu tiên dự án', field: 'PriotityText', type: 'number', width: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-right' },
-      { id: 'PersonalPriotity', name: 'Ưu tiên cá nhân', field: 'PersonalPriotity', type: 'number', width: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-right' },
+      {
+        id: 'ProjectStatusName', name: 'Trạng thái', field: 'ProjectStatusName', type: 'string', width: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProjectName);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      { id: 'PersonalPriotity', name: 'Ưu tiên cá nhân', field: 'PersonalPriotity', type: 'number', width: 90, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-end' },
       { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'ProjectProcessType', name: 'Trạng thái dự án', field: 'ProjectProcessType', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'UserMission', name: 'Nội dung công việc', field: 'UserMission', type: 'string', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'EndUserName', name: 'End User', field: 'EndUserName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'PO', name: 'PO', field: 'PO', type: 'string', width: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'text-center' },
-      { id: 'PODate', name: 'Ngày PO', field: 'PODate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
-      { id: 'FullNameSale', name: 'Người phụ trách(sale)', field: 'FullNameSale', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'FullNameTech', name: 'Người phụ trách(kỹ thuật)', field: 'FullNameTech', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'FullNamePM', name: 'PM', field: 'FullNamePM', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'BussinessField', name: 'Lĩnh vực dự án', field: 'BussinessField', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'CurrentSituation', name: 'Hiện trạng', field: 'CurrentSituation', type: 'string', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+      {
+        id: 'ProjectName', name: 'Tên dự án', field: 'ProjectName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProjectName);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'FullNameSale', name: 'Người phụ trách(sale)', field: 'FullNameSale', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNameSale);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'FullNameTech', name: 'Người phụ trách(kỹ thuật)', field: 'FullNameTech', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNameTech);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'FullNamePM', name: 'PM', field: 'FullNamePM', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullNamePM);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.CustomerName);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
       { id: 'PlanDateStart', name: 'Ngày bắt đầu (dự kiến)', field: 'PlanDateStart', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'PlanDateEndSummary', name: 'Ngày kết thúc (dự kiến)', field: 'PlanDateEndSummary', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'ActualDateStart', name: 'Ngày bắt đầu (thực tế)', field: 'ActualDateStart', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'ActualDateEnd', name: 'Ngày kết thúc (thực tế)', field: 'ActualDateEnd', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
+      {
+        id: 'EndUserName', name: 'End User', field: 'EndUserName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.EndUserName);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      { id: 'PODate', name: 'Ngày PO', field: 'PODate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
+      { id: 'CreatedDate', name: 'Ngày tạo', field: 'CreatedDate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'CreatedBy', name: 'Người tạo', field: 'CreatedBy', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'UpdatedBy', name: 'Người sửa', field: 'UpdatedBy', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'UpdatedDate', name: 'Ngày cập nhật', field: 'UpdatedDate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
+      { id: 'UpdatedBy', name: 'Người cập nhật', field: 'UpdatedBy', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
     ];
 
     this.gridOptionsProjects = {
       enableAutoResize: true,
+      frozenColumn: 3,
       autoResize: {
         container: '#grid-container-projects',
-        calculateAvailableSizeBy: 'container'
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container'
       },
       gridWidth: '100%',
       gridHeight: '100%',
@@ -312,10 +529,12 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
       },
       enableCellNavigation: true,
       enableFiltering: true,
-      createPreHeaderPanel: true,
-      showPreHeaderPanel: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 25,
+      rowHeight: 43
     };
   }
 
@@ -331,55 +550,64 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
         }
         return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
       } catch (e) {
-            return value;
+        return value;
       }
     };
 
     this.columnDefinitionsProjectEmployee = [
-      { id: 'ID', name: 'ID', field: 'ID', type: 'number', width: 70, sortable: true, excludeFromExport: true, hidden: true },
-      { id: 'ProjectStatusName', name: 'Trạng thái', field: 'ProjectStatusName', type: 'string', width: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'CreatedDate', name: 'Ngày tạo', field: 'CreatedDate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
-      { id: 'PriotityText', name: 'Ưu tiên dự án', field: 'PriotityText', type: 'number', width: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-right' },
-      { id: 'PersonalPriotity', name: 'Ưu tiên cá nhân', field: 'PersonalPriotity', type: 'number', width: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-right' },
-      { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'ProjectProcessType', name: 'Trạng thái dự án', field: 'ProjectProcessType', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'UserMission', name: 'Nội dung công việc', field: 'UserMission', type: 'string', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'EndUserName', name: 'End User', field: 'EndUserName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'PO', name: 'PO', field: 'PO', type: 'string', width: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'text-center' },
-      { id: 'PODate', name: 'Ngày PO', field: 'PODate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
-      { id: 'FullNameSale', name: 'Người phụ trách(sale)', field: 'FullNameSale', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'FullNameTech', name: 'Người phụ trách(kỹ thuật)', field: 'FullNameTech', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'FullNamePM', name: 'PM', field: 'FullNamePM', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'BussinessField', name: 'Lĩnh vực dự án', field: 'BussinessField', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'CurrentSituation', name: 'Hiện trạng', field: 'CurrentSituation', type: 'string', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'PlanDateStart', name: 'Ngày bắt đầu (dự kiến)', field: 'PlanDateStart', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
-      { id: 'PlanDateEndSummary', name: 'Ngày kết thúc (dự kiến)', field: 'PlanDateEndSummary', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
-      { id: 'ActualDateStart', name: 'Ngày bắt đầu (thực tế)', field: 'ActualDateStart', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
-      { id: 'ActualDateEnd', name: 'Ngày kết thúc (thực tế)', field: 'ActualDateEnd', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
-      { id: 'CreatedBy', name: 'Người tạo', field: 'CreatedBy', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'UpdatedBy', name: 'Người sửa', field: 'UpdatedBy', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'ID', name: 'ID', field: 'ID', type: 'number', sortable: true, excludeFromExport: true, hidden: true },
+      { id: 'StatusName', name: 'Trạng thái', field: 'StatusName', type: 'string', sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'UpdatedDate', name: 'Ngày cập nhật', field: 'UpdatedDate', type: 'date', sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
+      { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', type: 'string', sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      {
+        id: 'ProjectName', name: 'Tên dự án', field: 'ProjectName', type: 'string', sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap', formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProjectName);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
     ];
 
     this.gridOptionsProjectEmployee = {
       enableAutoResize: true,
       autoResize: {
         container: '#grid-container-project-employee',
-        calculateAvailableSizeBy: 'container'
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container'
       },
       gridWidth: '100%',
       gridHeight: '100%',
-      forceFitColumns: false,
+      forceFitColumns: true,
       enableRowSelection: true,
       rowSelectionOptions: {
         selectActiveRow: false
       },
       enableCellNavigation: true,
       enableFiltering: true,
-      createPreHeaderPanel: true,
-      showPreHeaderPanel: true,
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false,
+      autoFitColumnsOnFirstLoad: true,
+      enableAutoSizeColumns: true,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 25,
     };
   }
 
@@ -387,25 +615,84 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
   angularGridProjectsReady(angularGrid: AngularGridInstance) {
     this.angularGridProjects = angularGrid;
     this.gridDataProjects = angularGrid?.slickGrid || {};
-    
-    // Đợi grid render xong rồi mới resize
+
+    // Subscribe để update footer khi data thay đổi
+    if (this.angularGridProjects?.dataView) {
+      this.angularGridProjects.dataView.onRowCountChanged.subscribe(() => {
+        this.updateProjectsFooterRow();
+      });
+    }
+
+    // Đợi grid render xong rồi mới resize và update footer
     setTimeout(() => {
       this.angularGridProjects?.resizerService?.resizeGrid();
       this.angularGridProjects?.slickGrid?.invalidate();
       this.angularGridProjects?.slickGrid?.render();
+      this.updateProjectsFooterRow();
     }, 200);
+  }
+
+  // Cập nhật footer row với tổng số dự án
+  updateProjectsFooterRow(): void {
+    if (!this.gridDataProjects || !this.angularGridProjects?.dataView) return;
+
+    const grid = this.gridDataProjects;
+    const columnId = 'ProjectCode'; // Cột Mã dự án
+    const totalCount = this.datasetProjects.length;
+
+    // Thử lấy footer element thông qua getFooterRowColumn (works for non-frozen)
+    let footerColumnElement = grid.getFooterRowColumn(columnId);
+
+    // Nếu không tìm thấy (do frozen columns), tìm trực tiếp trong DOM
+    if (!footerColumnElement) {
+      // Tìm bằng id của column trong footer row - slickgrid tạo id theo pattern
+      const selector = `#grvProjects .slick-footerrow-column[id$="${columnId}"]`;
+      footerColumnElement = document.querySelector(selector);
+
+      // Nếu vẫn không tìm thấy, thử selector với class column index (l3 = column thứ 4)
+      if (!footerColumnElement) {
+        footerColumnElement = document.querySelector(`#grvProjects .slick-footerrow-column.l3`);
+      }
+    }
+
+    if (footerColumnElement) {
+      footerColumnElement.innerHTML = `<span class="fw-bold">${totalCount}</span>`;
+    }
   }
 
   angularGridProjectEmployeeReady(angularGrid: AngularGridInstance) {
     this.angularGridProjectEmployee = angularGrid;
     this.gridDataProjectEmployee = angularGrid?.slickGrid || {};
-    
-    // Đợi grid render xong rồi mới resize
+
+    // Subscribe để update footer khi data thay đổi
+    if (this.angularGridProjectEmployee?.dataView) {
+      this.angularGridProjectEmployee.dataView.onRowCountChanged.subscribe(() => {
+        this.updateProjectEmployeeFooterRow();
+      });
+    }
+
+    // Đợi grid render xong rồi mới resize và update footer
     setTimeout(() => {
       this.angularGridProjectEmployee?.resizerService?.resizeGrid();
       this.angularGridProjectEmployee?.slickGrid?.invalidate();
       this.angularGridProjectEmployee?.slickGrid?.render();
+      this.updateProjectEmployeeFooterRow();
     }, 200);
+  }
+
+  // Cập nhật footer row với tổng số dự án thực tế
+  updateProjectEmployeeFooterRow(): void {
+    if (!this.gridDataProjectEmployee || !this.angularGridProjectEmployee?.dataView) return;
+
+    const grid = this.gridDataProjectEmployee;
+    const columnId = 'ProjectCode'; // Cột Mã dự án
+    const totalCount = this.datasetProjectEmployee.length;
+
+    // Lấy footer row column element và cập nhật nội dung
+    const footerColumnElement = grid.getFooterRowColumn(columnId);
+    if (footerColumnElement) {
+      footerColumnElement.innerHTML = `<span class="fw-bold">${totalCount}</span>`;
+    }
   }
 
   handleRowSelectionProjects(e: any, args: OnSelectedRowsChangedEventArgs) {
@@ -420,6 +707,7 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
           // Nếu panel đã mở và grids đã sẵn sàng, load data ngay
           this.getProjectWorkReports();
           this.getProjectTypeLinks();
+          this.getProjectCurrentSituation();
         }
       }
     }
@@ -437,6 +725,7 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
           // Nếu panel đã mở và grids đã sẵn sàng, load data ngay
           this.getProjectWorkReports();
           this.getProjectTypeLinks();
+          this.getProjectCurrentSituation();
         }
       }
     }
@@ -451,8 +740,9 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
         this.toggleProjectDetail();
       } else if (this.detailGridsReady && this.projectId > 0) {
         // Nếu panel đã mở và grids đã sẵn sàng, load data ngay
-      this.getProjectWorkReports();
-      this.getProjectTypeLinks();
+        this.getProjectWorkReports();
+        this.getProjectTypeLinks();
+        this.getProjectCurrentSituation();
       }
     }
   }
@@ -496,43 +786,23 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
     let dateEndValue: string;
 
     try {
-      // Xử lý dateStart
-      if (this.dateStart instanceof Date) {
-        dateStartValue = DateTime.fromJSDate(this.dateStart)
-          .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-          .toISO() || '';
-      } else if (typeof this.dateStart === 'string') {
-        const dtStart = DateTime.fromISO(this.dateStart);
-        dateStartValue = dtStart.isValid
-          ? dtStart.set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || ''
-          : '';
-      } else {
-        dateStartValue = DateTime.local()
-          .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-          .toISO() || '';
-      }
+      // Xử lý dateStart - giờ luôn là string yyyy-MM-dd
+      const dtStart = DateTime.fromFormat(this.dateStart, 'yyyy-MM-dd');
+      dateStartValue = dtStart.isValid
+        ? dtStart.set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || ''
+        : DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || '';
 
-      // Xử lý dateEnd
-      if (this.dateEnd instanceof Date) {
-        dateEndValue = DateTime.fromJSDate(this.dateEnd)
-          .set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
-          .toISO() || '';
-      } else if (typeof this.dateEnd === 'string') {
-        const dtEnd = DateTime.fromISO(this.dateEnd);
-        dateEndValue = dtEnd.isValid
-          ? dtEnd.set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || ''
-          : '';
-      } else {
-        dateEndValue = DateTime.local()
-          .set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
-          .toISO() || '';
-      }
+      // Xử lý dateEnd - giờ luôn là string yyyy-MM-dd
+      const dtEnd = DateTime.fromFormat(this.dateEnd, 'yyyy-MM-dd');
+      dateEndValue = dtEnd.isValid
+        ? dtEnd.set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || ''
+        : DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || '';
 
       // Tạo payload với structure { request: { ... } }
       const payload = {
-          employeeID: this.technicalId || 0,
-          dateStart: dateStartValue,
-          dateEnd: dateEndValue,
+        employeeID: this.technicalId || 0,
+        dateStart: dateStartValue,
+        dateEnd: dateEndValue,
       };
 
       this.summaryProjectJoinService.getSummaryProjectJoin(payload).subscribe({
@@ -541,18 +811,18 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
             // rs cho bảng trái, rs2 cho bảng phải
             const rs = response.data.rs || [];
             const rs2 = response.data.rs2 || [];
-            
-            // Set data cho SlickGrid
+
+            // Set data cho SlickGrid - dùng index làm id để đảm bảo unique
             this.datasetProjects = rs.map((item: any, index: number) => ({
               ...item,
-              id: item.ID || index
+              id: index + 1
             }));
-            
+
             this.datasetProjectEmployee = rs2.map((item: any, index: number) => ({
               ...item,
-              id: item.ID || index
+              id: index + 1
             }));
-            
+
             // Refresh grids sau khi load data
             this.refreshMainGrids();
           }
@@ -574,19 +844,23 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       // Refresh main grids
       if (this.angularGridProjects?.dataView) {
-        this.angularGridProjects.dataView.refresh();
+        console.log('Setting items for Projects grid:', this.datasetProjects.length);
+        this.angularGridProjects.dataView.setItems(this.datasetProjects);
         this.angularGridProjects.slickGrid?.invalidate();
         this.angularGridProjects.slickGrid?.render();
         this.angularGridProjects.resizerService?.resizeGrid();
+        this.updateProjectsFooterRow();
       }
-      
+
       if (this.angularGridProjectEmployee?.dataView) {
-        this.angularGridProjectEmployee.dataView.refresh();
+        console.log('Setting items for ProjectEmployee grid:', this.datasetProjectEmployee.length);
+        this.angularGridProjectEmployee.dataView.setItems(this.datasetProjectEmployee);
         this.angularGridProjectEmployee.slickGrid?.invalidate();
         this.angularGridProjectEmployee.slickGrid?.render();
         this.angularGridProjectEmployee.resizerService?.resizeGrid();
+        this.updateProjectEmployeeFooterRow();
       }
-      
+
       // Refresh detail grids if showing
       if (this.showProjectDetail) {
         if (this.angularGridProjectWorkReports?.dataView) {
@@ -595,7 +869,7 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
           this.angularGridProjectWorkReports.slickGrid?.render();
           this.angularGridProjectWorkReports.resizerService?.resizeGrid();
         }
-        
+
         if (this.angularGridProjectTypeLinks?.dataView) {
           this.angularGridProjectTypeLinks.dataView.refresh();
           this.angularGridProjectTypeLinks.slickGrid?.invalidate();
@@ -603,7 +877,7 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
           this.angularGridProjectTypeLinks.resizerService?.resizeGrid();
         }
       }
-      
+
       // Force trigger window resize để đảm bảo SlickGrid tính toán lại
       window.dispatchEvent(new Event('resize'));
     }, 100);
@@ -612,32 +886,42 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
   // Toggle hiển thị tab thông tin dự án
   toggleProjectDetail(): void {
     this.showProjectDetail = !this.showProjectDetail;
-    
-    if (this.showProjectDetail) {
-      // Khi mở panel: đợi panel có kích thước, render grids, load data
-      setTimeout(() => {
-        this.detailGridsReady = true;
-        this.cdr.detectChanges();
-        
-        // Sau khi render, resize grids và load data
-        setTimeout(() => {
-          if (this.projectId > 0) {
-            this.getProjectWorkReports();
-            this.getProjectTypeLinks();
-          }
-          this.resizeAllGrids();
-        }, 200); // Đợi grids render và có kích thước
-      }, 300); // Đợi panel animation hoàn thành
-    } else {
-      // Khi đóng panel: ẩn grids để tránh render lỗi
-      this.detailGridsReady = false;
-    }
-    
-    // Resize grids chính
+
+    // Force re-render splitter để áp dụng nzDefaultSize mới
+    this.splitterKey = false;
+    this.cdr.detectChanges();
+
     setTimeout(() => {
-      this.resizeAllGrids();
-      window.dispatchEvent(new Event('resize'));
-    }, 150);
+      this.splitterKey = true;
+      this.cdr.detectChanges();
+
+      if (this.showProjectDetail) {
+        // Khi mở panel: đợi panel có kích thước, render grids, load data
+        setTimeout(() => {
+          this.detailGridsReady = true;
+          this.cdr.detectChanges();
+
+          // Sau khi render, resize grids và load data
+          setTimeout(() => {
+            if (this.projectId > 0) {
+              this.getProjectWorkReports();
+              this.getProjectTypeLinks();
+              this.getProjectCurrentSituation();
+            }
+            this.resizeAllGrids();
+          }, 200); // Đợi grids render và có kích thước
+        }, 300); // Đợi panel animation hoàn thành
+      } else {
+        // Khi đóng panel: ẩn grids để tránh render lỗi
+        this.detailGridsReady = false;
+      }
+
+      // Resize grids chính
+      setTimeout(() => {
+        this.resizeAllGrids();
+        window.dispatchEvent(new Event('resize'));
+      }, 150);
+    }, 50);
   }
 
   // Resize tất cả SlickGrids
@@ -649,13 +933,13 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
         this.angularGridProjects.slickGrid?.invalidate();
         this.angularGridProjects.slickGrid?.render();
       }
-      
+
       if (this.angularGridProjectEmployee?.resizerService) {
         this.angularGridProjectEmployee.resizerService.resizeGrid();
         this.angularGridProjectEmployee.slickGrid?.invalidate();
         this.angularGridProjectEmployee.slickGrid?.render();
       }
-      
+
       // Resize detail grids nếu đang hiển thị
       if (this.showProjectDetail) {
         if (this.angularGridProjectWorkReports?.resizerService) {
@@ -663,11 +947,17 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
           this.angularGridProjectWorkReports.slickGrid?.invalidate();
           this.angularGridProjectWorkReports.slickGrid?.render();
         }
-        
+
         if (this.angularGridProjectTypeLinks?.resizerService) {
           this.angularGridProjectTypeLinks.resizerService.resizeGrid();
           this.angularGridProjectTypeLinks.slickGrid?.invalidate();
           this.angularGridProjectTypeLinks.slickGrid?.render();
+        }
+
+        if (this.angularGridCurrentSituation?.resizerService) {
+          this.angularGridCurrentSituation.resizerService.resizeGrid();
+          this.angularGridCurrentSituation.slickGrid?.invalidate();
+          this.angularGridCurrentSituation.slickGrid?.render();
         }
       }
     }, 100);
@@ -686,7 +976,7 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
         }
         return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
       } catch (e) {
-                return value;
+        return value;
       }
     };
 
@@ -697,7 +987,32 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
       { id: 'ProjectTypeName', name: 'Kiểu hạng mục', field: 'ProjectTypeName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'FullName', name: 'Người phụ trách', field: 'FullName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
       { id: 'PercentItem', name: '%', field: 'PercentItem', type: 'number', width: 50, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-right' },
-      { id: 'Mission', name: 'Công việc', field: 'Mission', type: 'string', width: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+      {
+        id: 'Mission', name: 'Công việc', field: 'Mission', type: 'string', width: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap', formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Mission);
+          return `
+            <span
+              title="${escaped}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
       { id: 'EmployeeRequest', name: 'Người giao việc', field: 'EmployeeRequest', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
       { id: 'PlanStartDate', name: 'Ngày bắt đầu (dự kiến)', field: 'PlanStartDate', type: 'date', width: 120, sortable: true, filterable: true, formatter: formatDate, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
       { id: 'TotalDayPlan', name: 'Số ngày (dự kiến)', field: 'TotalDayPlan', type: 'number', width: 80, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-right' },
@@ -713,7 +1028,8 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
       enableAutoResize: true,
       autoResize: {
         container: '#grid-container-project-work-reports',
-        calculateAvailableSizeBy: 'container'
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container'
       },
       gridWidth: '100%',
       gridHeight: '100%',
@@ -724,44 +1040,68 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
       },
       enableCellNavigation: true,
       enableFiltering: true,
-      createPreHeaderPanel: true,
-      showPreHeaderPanel: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 25,
     };
   }
 
   angularGridProjectWorkReportsReady(angularGrid: AngularGridInstance) {
     this.angularGridProjectWorkReports = angularGrid;
     this.gridDataProjectWorkReports = angularGrid?.slickGrid || {};
-    
+
     // Apply row colors after grid is ready
     if (this.gridDataProjectWorkReports) {
       this.gridDataProjectWorkReports.onViewportChanged.subscribe(() => {
         this.applyRowColorsProjectWorkReports();
       });
     }
-    
-    // Đợi grid render xong rồi mới resize
+
+    // Subscribe để update footer khi data thay đổi
+    if (this.angularGridProjectWorkReports?.dataView) {
+      this.angularGridProjectWorkReports.dataView.onRowCountChanged.subscribe(() => {
+        this.updateProjectWorkReportsFooterRow();
+      });
+    }
+
+    // Đợi grid render xong rồi mới resize và update footer
     setTimeout(() => {
       this.angularGridProjectWorkReports?.resizerService?.resizeGrid();
       this.angularGridProjectWorkReports?.slickGrid?.invalidate();
       this.angularGridProjectWorkReports?.slickGrid?.render();
+      this.updateProjectWorkReportsFooterRow();
     }, 200);
+  }
+
+  // Cập nhật footer row với tổng số hạng mục công việc
+  updateProjectWorkReportsFooterRow(): void {
+    if (!this.gridDataProjectWorkReports || !this.angularGridProjectWorkReports?.dataView) return;
+
+    const grid = this.gridDataProjectWorkReports;
+    const columnId = 'Code'; // Cột Mã
+    const totalCount = this.datasetProjectWorkReports.length;
+
+    // Lấy footer row column element và cập nhật nội dung
+    const footerColumnElement = grid.getFooterRowColumn(columnId);
+    if (footerColumnElement) {
+      footerColumnElement.innerHTML = `<span class="fw-bold">${totalCount}</span>`;
+    }
   }
 
   applyRowColorsProjectWorkReports() {
     if (!this.gridDataProjectWorkReports) return;
-    
+
     const data = this.gridDataProjectWorkReports.getData();
     data.forEach((item: any, index: number) => {
       const itemLate = parseInt(item['ItemLateActual'] || '0');
       const totalDayExpridSoon = parseInt(item['TotalDayExpridSoon'] || '0');
-      const dateEndActual = item['ActualEndDate'] 
-        ? DateTime.fromISO(item['ActualEndDate']).isValid 
+      const dateEndActual = item['ActualEndDate']
+        ? DateTime.fromISO(item['ActualEndDate']).isValid
           ? DateTime.fromISO(item['ActualEndDate']).toFormat('dd/MM/yyyy')
           : null
-          : null;
+        : null;
 
       const rowNode = this.gridDataProjectWorkReports.getRowNode(index);
       if (rowNode) {
@@ -802,7 +1142,7 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
           ...item,
           id: item.ID || index
         }));
-        
+
         // Refresh DataView và invalidate grid (chỉ khi grid đã được khởi tạo)
         setTimeout(() => {
           if (this.angularGridProjectWorkReports?.slickGrid) {
@@ -831,39 +1171,34 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
     };
 
     this.columnDefinitionsProjectTypeLinks = [
-      { id: 'Selected', name: 'Chọn', field: 'Selected', type: 'boolean', width: 60, sortable: true, formatter: checkboxFormatter, cssClass: 'text-center' },
-      { id: 'ProjectTypeName', name: 'Kiểu dự án', field: 'ProjectTypeName', type: 'string', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'FullName', name: 'Leader', field: 'FullName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, hidden: this.isHide },
+      { id: 'Selected', name: 'Chọn', field: 'Selected', type: 'boolean', sortable: true, formatter: checkboxFormatter, cssClass: 'text-center' },
+      { id: 'ProjectTypeName', name: 'Kiểu dự án', field: 'ProjectTypeName', type: 'string', sortable: true, filterable: true, formatter: Formatters.tree, filter: { model: Filters['compoundInputText'] } },
+      { id: 'FullName', name: 'Leader', field: 'FullName', type: 'string', sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
     ];
 
     this.gridOptionsProjectTypeLinks = {
       enableAutoResize: true,
       autoResize: {
         container: '#grid-container-project-type-links',
-        calculateAvailableSizeBy: 'container'
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container'
+
       },
-      gridWidth: '100%',
-      gridHeight: '100%',
-      forceFitColumns: false,
+      forceFitColumns: true,  // Tự động fit columns theo chiều rộng container
       enableRowSelection: true,
       rowSelectionOptions: {
         selectActiveRow: false
       },
       enableCellNavigation: true,
       enableFiltering: true,
-      createPreHeaderPanel: true,
-      showPreHeaderPanel: true,
       multiColumnSort: false, // Tree Data không hỗ trợ multi-column sort
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false,
+      enableAutoSizeColumns: true,
       enableTreeData: true,
       treeDataOptions: {
-        columnId: 'ProjectTypeName',
-        parentPropName: 'ParentID',
+        columnId: 'ProjectTypeName', // Column để hiển thị tree expand/collapse
+        parentPropName: 'ParentID',  // Field chứa ID của parent
         identifierPropName: 'ID',
-        levelPropName: 'treeLevel',
-        indentMarginLeft: 15,
-        exportIndentMarginLeft: 4,
+        levelPropName: '__treeLevel',
       },
     };
   }
@@ -871,7 +1206,7 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
   angularGridProjectTypeLinksReady(angularGrid: AngularGridInstance) {
     this.angularGridProjectTypeLinks = angularGrid;
     this.gridDataProjectTypeLinks = angularGrid?.slickGrid || {};
-    
+
     // Đợi grid render xong rồi mới resize
     setTimeout(() => {
       this.angularGridProjectTypeLinks?.resizerService?.resizeGrid();
@@ -881,38 +1216,154 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
   }
 
   getProjectTypeLinks() {
+
     if (!this.projectId || this.projectId <= 0) {
       this.datasetProjectTypeLinks = [];
       return;
     }
 
     // Chỉ load data nếu grid đã sẵn sàng
-    if (!this.detailGridsReady || !this.angularGridProjectTypeLinks) {
+    if (!this.detailGridsReady) {
       return;
     }
 
     this.projectService.getProjectTypeLinks(this.projectId).subscribe({
       next: (response: any) => {
-        // Convert flat data to tree structure
-        const treeData = this.projectService.setDataTree(response.data, 'ID');
-        this.datasetProjectTypeLinks = (treeData || []).map((item: any, index: number) => ({
+
+        // Map data - dùng ID làm id và ParentID=0 thành null
+        let rawData = (response.data || []).map((item: any) => ({
           ...item,
-          id: item.ID || index
+          id: item.ID,
+          ParentID: item.ParentID === 0 || !item.ParentID ? null : item.ParentID, // Quan trọng: ParentID=0 phải là null
+          __treeLevel: 0
         }));
-        
-        // Refresh DataView và invalidate grid (chỉ khi grid đã được khởi tạo)
+
+        // Lấy tất cả IDs để kiểm tra parent tồn tại
+        const allIds = new Set(rawData.map((x: any) => x.ID));
+
+        // Lọc bỏ orphan nodes (ParentID không tồn tại trong danh sách)
+        rawData = rawData.filter((item: any) => {
+          if (item.ParentID === null) return true; // Root nodes
+          return allIds.has(item.ParentID);
+        });
+
+        // Sắp xếp: parents trước, children sau
+        const sortedData: any[] = [];
+        const processed = new Set<number>();
+
+        const addNodeAndChildren = (parentId: number | null) => {
+          rawData
+            .filter((item: any) => item.ParentID === parentId) // ParentID đã là null cho root nodes
+            .forEach((item: any) => {
+              if (!processed.has(item.ID)) {
+                processed.add(item.ID);
+                sortedData.push(item);
+                addNodeAndChildren(item.ID);
+              }
+            });
+        };
+
+        addNodeAndChildren(null);
+        this.datasetProjectTypeLinks = sortedData;
+
+        // Không dùng setItems - để Angular binding xử lý
+        // Chỉ resize grid sau khi data được render
         setTimeout(() => {
-          if (this.angularGridProjectTypeLinks?.slickGrid) {
-            this.angularGridProjectTypeLinks.dataView?.refresh();
-            this.angularGridProjectTypeLinks.slickGrid.invalidate();
-            this.angularGridProjectTypeLinks.slickGrid.render();
-            this.angularGridProjectTypeLinks.resizerService?.resizeGrid();
+          this.angularGridProjectTypeLinks?.resizerService?.resizeGrid();
+        }, 200);
+      },
+      error: (error) => {
+        console.error('getProjectTypeLinks error:', error);
+        this.datasetProjectTypeLinks = [];
+      },
+    });
+  }
+  //#endregion
+
+  //#region xử lý bảng hiện trạng với SlickGrid
+  initGridCurrentSituation() {
+    // Format date helper
+    const formatDateTime = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        let dateValue = DateTime.fromISO(value);
+        if (!dateValue.isValid) {
+          dateValue = DateTime.fromFormat(value, 'yyyy-MM-dd HH:mm:ss');
+        }
+        return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy HH:mm') : value;
+      } catch (e) {
+        return value;
+      }
+    };
+
+    this.columnDefinitionsCurrentSituation = [
+      { id: 'FullName', name: 'Người cập nhật', field: 'FullName', type: 'string', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'DateSituation', name: 'Ngày cập nhật', field: 'DateSituation', type: 'date', width: 150, sortable: true, filterable: true, formatter: formatDateTime, filter: { model: Filters['compoundDate'] }, cssClass: 'text-center' },
+      { id: 'ContentSituation', name: 'Nội dung', field: 'ContentSituation', type: 'string', width: 400, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+    ];
+
+    this.gridOptionsCurrentSituation = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '#grid-container-current-situation',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container'
+      },
+      forceFitColumns: true,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false
+      },
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: true,
+      enableAutoSizeColumns: true,
+    };
+  }
+
+  angularGridCurrentSituationReady(angularGrid: AngularGridInstance) {
+    this.angularGridCurrentSituation = angularGrid;
+    this.gridDataCurrentSituation = angularGrid?.slickGrid || {};
+
+    // Đợi grid render xong rồi mới resize
+    setTimeout(() => {
+      this.angularGridCurrentSituation?.resizerService?.resizeGrid();
+      this.angularGridCurrentSituation?.slickGrid?.invalidate();
+      this.angularGridCurrentSituation?.slickGrid?.render();
+    }, 200);
+  }
+
+  getProjectCurrentSituation() {
+    if (!this.projectId || this.projectId <= 0) {
+      this.datasetCurrentSituation = [];
+      return;
+    }
+
+    // Chỉ load data nếu grid đã sẵn sàng
+    if (!this.detailGridsReady) {
+      return;
+    }
+
+    this.projectService.getProjectSituation(this.projectId).subscribe({
+      next: (response: any) => {
+        this.datasetCurrentSituation = (response.data || []).map((item: any, index: number) => ({
+          ...item,
+          id: item.ID || index + 1
+        }));
+
+        // Refresh DataView và invalidate grid
+        setTimeout(() => {
+          if (this.angularGridCurrentSituation?.slickGrid) {
+            this.angularGridCurrentSituation.dataView?.refresh();
+            this.angularGridCurrentSituation.slickGrid.invalidate();
+            this.angularGridCurrentSituation.slickGrid.render();
+            this.angularGridCurrentSituation.resizerService?.resizeGrid();
           }
         }, 100);
       },
       error: (error) => {
-        console.error('Lỗi:', error);
-        this.datasetProjectTypeLinks = [];
+        console.error('getProjectCurrentSituation error:', error);
+        this.datasetCurrentSituation = [];
       },
     });
   }
@@ -1212,159 +1663,6 @@ export class SummaryProjectJoinComponent implements OnInit, AfterViewInit {
     this.sizeTbDetail = '0';
   }
 
-  //#region Load sample data for testing
-  loadSampleData(): void {
-    // Sample data cho bảng Projects
-    this.datasetProjects = [
-      {
-        id: 1,
-        ID: 1,
-        ProjectStatusName: 'Đang thực hiện',
-        CreatedDate: '2024-01-15T00:00:00',
-        PriotityText: 1,
-        PersonalPriotity: 2,
-        ProjectCode: 'PRJ001',
-        ProjectProcessType: 'Phát triển',
-        UserMission: 'Phát triển module quản lý người dùng',
-        EndUserName: 'Công ty ABC',
-        PO: 'PO001',
-        PODate: '2024-01-10T00:00:00',
-        FullNameSale: 'Nguyễn Văn A',
-        FullNameTech: 'Trần Văn B',
-        FullNamePM: 'Lê Thị C',
-        BussinessField: 'Công nghệ thông tin',
-        CurrentSituation: 'Đang phát triển 70%',
-        CustomerName: 'Công ty ABC',
-        PlanDateStart: '2024-01-01T00:00:00',
-        PlanDateEndSummary: '2024-03-31T00:00:00',
-        ActualDateStart: '2024-01-05T00:00:00',
-        ActualDateEnd: null,
-        CreatedBy: 'Admin',
-        UpdatedBy: 'Admin'
-      },
-      {
-        id: 2,
-        ID: 2,
-        ProjectStatusName: 'Hoàn thành',
-        CreatedDate: '2024-02-01T00:00:00',
-        PriotityText: 2,
-        PersonalPriotity: 1,
-        ProjectCode: 'PRJ002',
-        ProjectProcessType: 'Bảo trì',
-        UserMission: 'Bảo trì hệ thống báo cáo',
-        EndUserName: 'Công ty XYZ',
-        PO: 'PO002',
-        PODate: '2024-01-25T00:00:00',
-        FullNameSale: 'Phạm Văn D',
-        FullNameTech: 'Hoàng Thị E',
-        FullNamePM: 'Vũ Văn F',
-        BussinessField: 'Tài chính',
-        CurrentSituation: 'Hoàn thành 100%',
-        CustomerName: 'Công ty XYZ',
-        PlanDateStart: '2024-02-01T00:00:00',
-        PlanDateEndSummary: '2024-02-28T00:00:00',
-        ActualDateStart: '2024-02-01T00:00:00',
-        ActualDateEnd: '2024-02-25T00:00:00',
-        CreatedBy: 'Admin',
-        UpdatedBy: 'Admin'
-      }
-    ];
-
-    // Sample data cho bảng Project Employee
-    this.datasetProjectEmployee = [
-      {
-        id: 1,
-        ID: 1,
-        ProjectStatusName: 'Đã tham gia',
-        CreatedDate: '2023-12-01T00:00:00',
-        PriotityText: 1,
-        PersonalPriotity: 1,
-        ProjectCode: 'PRJ_OLD001',
-        ProjectProcessType: 'Hoàn thành',
-        UserMission: 'Phát triển website bán hàng',
-        EndUserName: 'Công ty DEF',
-        PO: 'PO_OLD001',
-        PODate: '2023-11-20T00:00:00',
-        FullNameSale: 'Nguyễn Thị G',
-        FullNameTech: 'Trần Văn H',
-        FullNamePM: 'Lê Văn I',
-        BussinessField: 'Thương mại điện tử',
-        CurrentSituation: 'Đã hoàn thành',
-        CustomerName: 'Công ty DEF',
-        PlanDateStart: '2023-12-01T00:00:00',
-        PlanDateEndSummary: '2024-01-31T00:00:00',
-        ActualDateStart: '2023-12-01T00:00:00',
-        ActualDateEnd: '2024-01-28T00:00:00',
-        CreatedBy: 'Admin',
-        UpdatedBy: 'Admin'
-      }
-    ];
-
-    // Sample data cho Work Reports
-    this.datasetProjectWorkReports = [
-      {
-        id: 1,
-        STT: 1,
-        Code: 'WR001',
-        StatusText: 'Đang thực hiện',
-        ProjectTypeName: 'Phát triển',
-        FullName: 'Nguyễn Văn A',
-        PercentItem: 70,
-        Mission: 'Thiết kế giao diện người dùng',
-        EmployeeRequest: 'Trần Văn B',
-        PlanStartDate: '2024-01-15T00:00:00',
-        TotalDayPlan: 10,
-        PlanEndDate: '2024-01-25T00:00:00',
-        ActualStartDate: '2024-01-15T00:00:00',
-        ActualEndDate: null,
-        PercentageActual: 70,
-        Note: 'Đang thực hiện theo kế hoạch',
-        ProjectEmployeeName: 'Nguyễn Văn A, Trần Văn B'
-      }
-    ];
-
-    // Sample data cho Project Type Links
-    this.datasetProjectTypeLinks = [
-      {
-        id: 1,
-        ID: 1,
-        Selected: true,
-        ProjectTypeName: 'Phát triển Web',
-        FullName: 'Trần Văn B',
-        ParentID: null,
-        treeLevel: 0
-      },
-      {
-        id: 2,
-        ID: 2,
-        Selected: false,
-        ProjectTypeName: 'Frontend',
-        FullName: 'Nguyễn Văn A',
-        ParentID: 1,
-        treeLevel: 1
-      },
-      {
-        id: 3,
-        ID: 3,
-        Selected: true,
-        ProjectTypeName: 'Backend',
-        FullName: 'Lê Thị C',
-        ParentID: 1,
-        treeLevel: 1
-      }
-    ];
-
-    // Refresh tất cả grids
-    setTimeout(() => {
-      this.refreshMainGrids();
-      console.log('Sample data loaded:', {
-        projects: this.datasetProjects.length,
-        employee: this.datasetProjectEmployee.length,
-        workReports: this.datasetProjectWorkReports.length,
-        typeLinks: this.datasetProjectTypeLinks.length
-      });
-    }, 100);
-  }
   //#endregion
   //#endregion
 }

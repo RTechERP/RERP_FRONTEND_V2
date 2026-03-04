@@ -161,12 +161,12 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   currentUser: any = null;
   pageId: number = 2;
   globalID: number = 0;
-  dateStart: any = DateTime.local()
+  dateStart: string = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
-    .toISO();
-  dateEnd: any = DateTime.local()
+    .toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
-    .toISO();
+    .toFormat('yyyy-MM-dd');
   //#endregion
 
 
@@ -267,7 +267,6 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   //#region SlickGrid initialization
   initGridProjects() {
     this.columnDefinitions = [
-      { id: 'ID', name: 'ID', field: 'ID', hidden: true },
       {
         id: 'ProjectStatusName',
         name: 'Trạng thái',
@@ -719,10 +718,12 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         selectActiveRow: true,
       },
       enableCellNavigation: true,
+      enableSorting: true,
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      frozenColumn: 5,
+      frozenColumn: 4,
+      syncColumnCellResize: true, // Sửa lỗi sort nhầm cột khi có frozen columns
       rowHeight: 33,
     };
   }

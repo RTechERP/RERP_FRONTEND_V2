@@ -1,50 +1,99 @@
 <ng-container class="w-100">
-    <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-            <div class="d-flex gap-1 align-items-center w-100">
+  <div class="card h-100 border-0 rounded-0">
+    <div class="card-header bg-white p-0">
+      <p-toolbar class="p-1">
+        <ng-template #start>
+          <p-menubar
+            [model]="supplierSaleMenu"
+            class="p-0 border-0"
+          ></p-menubar>
+        </ng-template>
 
-                <!-- Nhóm nút bên trái -->
-                <button nz-button nzType="default" nzSize="small" (click)="onAddSupplierSale()" *hasPermission="'N27,N33,N52,N53,N35,N1'" >
-                    <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Thêm
-                </button>
-
-                <button nz-button nzType="default" nzSize="small" (click)="onEditSupplierSale()" *hasPermission="'N27,N33,N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_edit_24.svg" />Sửa
-                </button>
-
-                <button nz-button nzType="default" nzSize="small" (click)="onDeleteSupplierSale()" *hasPermission="'N27,N33,N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_delete_24.svg" />Xóa
-                </button>
-
-                <button nz-button nzType="default" nzSize="small" (click)="onImportExcel()" *hasPermission="'N27,N33,N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_import_excel_24.svg" />Nhập excel
-                </button>
-
-                <button nz-button nzType="default" nzSize="small" *hasPermission="'N27,N33,N35,N1'"
-                    (click)="exportExcel()">
-                    <img class="btn-action-icon" src="assets/icon/action_export_excel_24.svg" />Xuất excel
-                </button>
-
-                <!-- Input nằm cuối, đẩy qua phải -->
-                <input nz-input placeholder="Tìm kiếm..." class="ms-auto" style="width: 20vw;" nzSize="small"
-                    name="keyword" [(ngModel)]="keyword" (keyup.enter)="onSearch()" />
-                <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">Tìm kiếm
-                </button>
-                <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
-                    <img class="btn-action-icon" src="assets/icon/action_reset_24.svg" />
-                </button>
-            </div>
-        </div>
-
-        <div class="card-body p-0">
-            <nz-splitter>
-                <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
-                    <div #tb_supplier></div>
-                </nz-splitter-panel>
-                <nz-splitter-panel [nzSize]="sizeTbDetail" [nzCollapsible]="true" nzResizable="true">
-                    <div #tb_supplierSaleContact></div>
-                </nz-splitter-panel>
-            </nz-splitter>
-        </div>
+        <ng-template #end>
+          <div class="d-flex align-items-center justify-content-end gap-2">
+            <input
+              type="text"
+              pInputText
+              placeholder="Tìm kiếm"
+              pSize="small"
+              [(ngModel)]="keyword"
+              style="width: 350px; padding: 3px"
+              (keyup.enter)="onSearch()"
+            />
+            <p-menubar
+              [model]="supplierSaleMenuSearch"
+              class="p-0 border-0"
+            ></p-menubar>
+          </div>
+        </ng-template>
+      </p-toolbar>
     </div>
+
+    <div class="card-body p-0">
+      <div
+        *ngIf="isLoading"
+        style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.4);
+          z-index: 999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        <nz-spin [nzSpinning]="isLoading"></nz-spin>
+      </div>
+      <nz-splitter>
+        <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+          <div [class]="'grid-container-' + idMaster" style="height: 100%">
+            <angular-slickgrid
+              [gridId]="'gridSupplierSale-' + idMaster"
+              [columns]="columnDefinitions"
+              [options]="gridOptions"
+              [dataset]="dataset"
+              (onAngularGridCreated)="angularGridReady($event.detail)"
+              (onClick)="onActiveRowChanged($event.detail.args?.row)"
+              (onPaginationChanged)="closeDetail()"
+              (onDblClick)="onMasterDblClick($event.detail)"
+            >
+            </angular-slickgrid>
+          </div>
+        </nz-splitter-panel>
+        <nz-splitter-panel
+          [nzSize]="sizeTbDetail"
+          [nzCollapsible]="true"
+          nzResizable="true"
+        >
+          <nz-spin [nzSpinning]="isLoadingDetail">
+            <div class="d-flex align-items-center justify-content-between p-1">
+              <span class="text-primary">NCC: {{ nameNcc }}</span>
+              <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                style="background-color: red; color: white"
+                (click)="closeDetail()"
+              >
+                X
+              </button>
+            </div>
+            <div [class]="'grid-container-' + idDetail" style="height: 100%">
+              <angular-slickgrid
+                [gridId]="'gridSupplierSaleDetail-' + idDetail"
+                [columns]="columnDefinitionsDetail"
+                [options]="gridOptionsDetail"
+                [dataset]="datasetDetail"
+                (onAngularGridCreated)="angularGridDetailReady($event.detail)"
+              >
+              </angular-slickgrid>
+            </div>
+          </nz-spin>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </div>
+  </div>
 </ng-container>

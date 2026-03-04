@@ -48,6 +48,7 @@ import { DateTime } from 'luxon';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { HandoverService } from './handover-service/handover.service';
+import { AssetsRecoveryService } from '../asset/asset/ts-asset-recovery/ts-asset-recovery-service/ts-asset-recovery.service';
 import { HandoverFormComponent } from './handover-form/handover-form.component';
 import * as ExcelJS from 'exceljs';
 import { format, isValid, parseISO } from 'date-fns';
@@ -58,6 +59,7 @@ import { saveAs } from 'file-saver';
 import { HandoverRejectreasonFormComponent } from './handover-rejectreason-form/handover-rejectreason-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { AppUserService } from '../../../services/app-user.service';
 
 interface Handover {
   ID: number;
@@ -111,12 +113,15 @@ interface HandoverWarehouseAsset {
 interface HandoverAssetManagement {
   STT: number;
   EmployeeID: number;
-  TSAssetCode: string;
+  TSAssetManagementID: number;
+  TSCodeNCC: string;
   TSAssetName: string;
   Quantity: number;
   UnitName: string;
   Status: string;
+  StatusID?: number;
   IsSigned: boolean;
+  IsContinueUse: boolean;
   ReceiverName: string;
   Note: string;
 }
@@ -131,13 +136,19 @@ interface HandoverFinance {
 }
 
 interface HandoverSubordinate {
+  ID?: number;
   STT: number;
   EmployeeID: number;
+  SubordinateID?: number;
+  AssigneeID?: number;
+  ReceiverID?: number;
   FullName: string;
   PositionName: string;
   SubordinateFullName: string;
+  AssigneeFullName?: string;
   Undertaker: string;
   ReceiverFullName: string;
+  IsSigned: boolean;
 }
 
 interface HandoverApprove {
@@ -145,6 +156,20 @@ interface HandoverApprove {
   RoleName: string;
   EmployeeName: string;
   ApproveStatus: number;
+}
+
+interface HandoverPersonalAsset {
+  ID: number;
+  STT: number;
+  Name: string;
+  Code: string;
+  Quantity: number;
+  Unit: string;
+  Status: string;
+  ReceiverID: number;
+  IsSign: boolean;
+  IsHandover: boolean;
+  HandoverID: number;
 }
 
 @Component({
@@ -233,12 +258,14 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   newHandoverAssetManagement: HandoverAssetManagement = {
     STT: 0,
     EmployeeID: 0,
-    TSAssetCode: '',
+    TSAssetManagementID: 0,
+    TSCodeNCC: '',
     TSAssetName: '',
     Quantity: 0,
     UnitName: '',
     Status: '',
     IsSigned: false,
+    IsContinueUse: false,
     ReceiverName: '',
     Note: '',
   };
@@ -260,6 +287,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     SubordinateFullName: '',
     Undertaker: '',
     ReceiverFullName: '',
+    IsSigned: false,
   };
 
   newHandoverApprove: HandoverApprove = {
@@ -278,8 +306,8 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     EmployeeID: 0,
     LeaderID: 0,
     Keyword: '',
-    DateStart: new Date(),
-    DateEnd: new Date(),
+    DateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    DateEnd: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
   };
 
   handoverList: any[] = [];
@@ -309,6 +337,9 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   HandoverApproveData: any[] = [];
   handoverApproveTable: Tabulator | null = null;
 
+  HandoverPersonalAssetData: any[] = [];
+  handoverPersonalAssetTable: Tabulator | null = null;
+
   dataDepartment: any[] = [];
   // cbbEmployee: any[] = [];
   cbbEmployee: Array<{ department: string; items: any[] }> = [];
@@ -321,10 +352,12 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   constructor(
     private notification: NzNotificationService,
     private HandoverService: HandoverService,
+    private AssetsRecoveryService: AssetsRecoveryService,
     private modalService: NgbModal,
     private modal: NzModalService,
     private cdr: ChangeDetectorRef,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private appUserService: AppUserService
   ) { }
 
   ngOnInit(): void {
@@ -394,20 +427,18 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     this.activeTab = index;
     // Initialize tables when tabs become active
     setTimeout(() => {
-      if (index === 0 && !this.handoverWorkTable) {
+      if (index === 0) {
         this.draw_handoverWorkTable();
-      } else if (
-        index === 1 &&
-        !this.handoverWarehouseAssetTable &&
-        !this.handoverAssetManagementTable
-      ) {
+      } else if (index === 1) {
         this.draw_handoverAssetTable();
         this.draw_handoverAssetManagementTable();
-      } else if (index === 2 && !this.handoverFinancesTable) {
+      } else if (index === 2) {
+        this.draw_handoverPersonalAssetTable();
+      } else if (index === 3) {
         this.draw_handoverFinancesTable();
-      } else if (index === 3 && !this.handoverSubordinatesTable) {
+      } else if (index === 4) {
         this.draw_handoverSubordinatesTable();
-      } else if (index === 4 && !this.handoverApproveTable) {
+      } else if (index === 5) {
         this.draw_handoverApproveTable();
       }
       this.cdr.detectChanges();
@@ -430,6 +461,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
       this.HandoverData = response.data?.asset || [];
       if (this.handoverTable) {
         this.handoverTable.setData(this.HandoverData || []);
+        console.log("data: ", this.HandoverData)
       } else {
         this.draw_handoverTable();
       }
@@ -487,7 +519,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         );
       } else {
         if (this.activeTab === 1) {
-          this.draw_handoverAssetManagementTable();
+          this.draw_handoverAssetTable();
         }
       }
 
@@ -496,7 +528,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
       if (this.handoverFinancesTable) {
         this.handoverFinancesTable.setData(this.HandoverFinancesData || []);
       } else {
-        if (this.activeTab === 2) {
+        if (this.activeTab === 3) {
           this.draw_handoverFinancesTable();
         }
       }
@@ -508,7 +540,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
           this.HandoverSubordinatesData || []
         );
       } else {
-        if (this.activeTab === 3) {
+        if (this.activeTab === 4) {
           this.draw_handoverSubordinatesTable();
         }
       }
@@ -516,13 +548,23 @@ export class HandoverComponent implements OnInit, AfterViewInit {
       // Dữ liệu duyệt quản lý bàn giao
       this.HandoverApproveData = response.data?.HandoverApprove || [];
 
+      // Dữ liệu tài sản cá nhân bàn giao
+      this.HandoverPersonalAssetData = response.data?.handoverPersonalAsset || [];
+      if (this.handoverPersonalAssetTable) {
+        this.handoverPersonalAssetTable.setData(this.HandoverPersonalAssetData || []);
+      } else {
+        if (this.activeTab === 2) {
+          this.draw_handoverPersonalAssetTable();
+        }
+      }
+
       const giverApprove = this.HandoverApproveData.find((x) => x.STT === 1);
       this.handoverStatusGiver = giverApprove?.ApproveStatus ?? 0;
 
       if (this.handoverApproveTable) {
         this.handoverApproveTable.setData(this.HandoverApproveData || []);
       } else {
-        if (this.activeTab === 4) {
+        if (this.activeTab === 5) {
           this.draw_handoverApproveTable();
         }
       }
@@ -555,6 +597,39 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   }
 
   approveHandover(handoverId: number, stt: number, status: number) {
+    // Lấy EmployeeID của user đang đăng nhập
+    const currentEmployeeID = this.appUserService.employeeID || 0;
+
+    // Rule: Khi STT = 1 (Nhân viên xác nhận), chỉ người bàn giao mới được xác nhận cho biên bản của bản thân
+    if (stt === 1) {
+      // Kiểm tra biên bản bàn giao đang được chọn có phải của người đăng nhập không
+      const selectedHandoverEmployeeID = this.data.length > 0 ? this.data[0].LeaderID : 0;
+      if (currentEmployeeID !== selectedHandoverEmployeeID) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn chỉ được xác nhận cho biên bản bàn giao của bản thân!');
+        return;
+      }
+    }
+
+    // Rule: Khi nhân sự duyệt (STT = 3), kiểm tra tất cả tài sản có người nhận bàn giao đều đã ký nhận
+    if (status === 1 && stt === 3) {
+      // Kiểm tra bảng duyệt - những người nhận bàn giao phải duyệt hết
+      const unsignedSteps = this.HandoverApproveData.filter(x => x.STT < 3 && x.ApproveStatus !== 1);
+      if (unsignedSteps.length > 0) {
+        this.notification.warning('Thông báo', 'Những người nhận bàn giao chưa duyệt hết trong phiếu bàn giao, nhân sự chưa được phép duyệt!');
+        return;
+      }
+
+      // Kiểm tra tất cả tài sản có người nhận bàn giao (EmployeeID > 0) đều đã ký nhận (IsSigned = true)
+      const assetsWithReceiver = this.HandoverAssetManagement.filter(
+        (item) => item.TSAssetManagementID > 0 && item.EmployeeID > 0
+      );
+      const unsignedAssets = assetsWithReceiver.filter((item) => !item.IsSigned);
+      if (unsignedAssets.length > 0) {
+        this.notification.warning('Thông báo', 'Còn tài sản chưa được ký nhận bởi người nhận bàn giao, nhân sự chưa được phép duyệt!');
+        return;
+      }
+    }
+
     if (status === 2) {
       const modalRef = this.modal.create({
         nzTitle: 'Nhập lý do hủy duyệt',
@@ -616,6 +691,11 @@ export class HandoverComponent implements OnInit, AfterViewInit {
 
           if (status === 1) {
             this.notification.success('Thông báo', 'Đã duyệt thành công!');
+
+            // Rule: Khi nhân sự duyệt (bước 3), thực hiện sang tên tài sản
+            if (stt === 3) {
+              this.updateOnApproveAsset();
+            }
           } else if (status === 2) {
             this.notification.warning('Thông báo', 'Đã hủy duyệt thành công!');
           }
@@ -631,6 +711,181 @@ export class HandoverComponent implements OnInit, AfterViewInit {
       },
     });
   }
+
+  updateOnApproveAsset() {
+    if (!this.HandoverAssetManagement || this.HandoverAssetManagement.length === 0) {
+      return;
+    }
+
+    // Lọc ra các tài sản hợp lệ để cập nhật
+    const assetsToUpdate = this.HandoverAssetManagement.filter(
+      (item) => item.TSAssetManagementID > 0
+    );
+
+    if (assetsToUpdate.length === 0) {
+      return;
+    }
+
+    const giverID = this.data.length > 0 ? this.data[0].LeaderID : 0;
+
+    const payload = {
+      tSAssetManagements: assetsToUpdate.map((item) => {
+        const hasReceiver = item.EmployeeID > 0;
+        const isContinueUse = item.IsContinueUse === true;
+
+        // Logic cập nhật trạng thái tài sản:
+        let statusID: number;
+        let status: string;
+        let employeeID: number;
+
+        const currentStatusID = item.StatusID;
+        const currentStatus = item.Status;
+
+        if (currentStatusID === 5 || currentStatusID === 6 || currentStatusID === 7) {
+          statusID = currentStatusID;
+          status = currentStatus;
+        } else {
+          // Trạng thái: Nếu có người nhận và chọn tiếp tục sử dụng thì "Đang sử dụng", còn lại là "Chưa sử dụng"
+          statusID = (hasReceiver && isContinueUse) ? 2 : 1;
+          status = (hasReceiver && isContinueUse) ? 'Đang sử dụng' : 'Chưa sử dụng';
+        }
+
+        // Tên người sử dụng: Luôn sang tên cho người nhận nếu có. 
+        // Nếu không có người nhận thì giữ tên người cũ (Giver) thay vì set về 0.
+        const updateObj: any = {
+          ID: item.TSAssetManagementID,
+          StatusID: statusID,
+          Status: status,
+        };
+
+        // Nếu có người nhận thì mới truyền EmployeeID (sang tên), 
+        // Nếu không có người nhận thì không truyền EmployeeID để BE giữ nguyên người cũ
+        if (hasReceiver) {
+          updateObj.EmployeeID = item.EmployeeID;
+        }
+
+        return updateObj;
+      }),
+    };
+
+    this.AssetsRecoveryService.saveAssetRecovery(payload).subscribe({
+      next: () => {
+        this.notification.success('Thông báo', 'Đã cập nhật trạng thái tài sản thành công!');
+      },
+      error: (err) => {
+        console.error('Lỗi cập nhật tài sản:', err);
+        this.notification.error('Lỗi', 'Không thể cập nhật trạng thái tài sản!');
+      }
+    });
+  }
+
+  // Xác nhận ký nhận bàn giao - dành cho người được chọn làm người nhận
+  // Logic: Người nào nhận bàn giao thì chỉ update được trạng thái ký nhận của các mục mà người đó là người nhận
+  confirmHandoverSign() {
+    if (this.HandoverID === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một bản ghi để xác nhận!');
+      return;
+    }
+
+    // Lấy EmployeeID của user đang đăng nhập
+    const currentEmployeeID = this.appUserService.employeeID || 0;
+    if (currentEmployeeID === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể xác định người dùng hiện tại!');
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận ký nhận bàn giao',
+      nzContent: 'Bạn có chắc chắn muốn xác nhận đã nhận bàn giao không?',
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        // 1. Lọc tài sản cấp phát mà người đang đăng nhập là người nhận và chưa ký nhận
+        const myAssetsToSign = this.HandoverAssetManagement.filter(
+          (item) => item.TSAssetManagementID > 0 &&
+            item.EmployeeID === currentEmployeeID &&
+            !item.IsSigned
+        );
+
+        // 2. Lọc công việc bàn giao mà người đang đăng nhập là người nhận và chưa ký nhận
+        const myWorkToSign = this.HandoverWorkData.filter(
+          (item) => item.EmployeeID === currentEmployeeID && !item.IsSigned
+        );
+
+        // Kiểm tra nếu không có gì để ký nhận
+        if (myAssetsToSign.length === 0 && myWorkToSign.length === 0) {
+          this.notification.info(NOTIFICATION_TITLE.warning, 'Không có mục nào của bạn cần xác nhận ký nhận!');
+          return;
+        }
+
+        // Chuẩn bị payload - update IsSigned = true cho các mục của người đang đăng nhập
+        const payload = {
+          Handover: {
+            ID: this.HandoverID
+          },
+          HandoverReceiver: [],
+          HandoverWork: myWorkToSign.map(item => ({
+            ID: item.ID || 0,
+            STT: item.STT || 0,
+            HandoverID: item.HandoverID || 0,
+            EmployeeID: item.EmployeeID || 0,
+            ContentWork: item.ContentWork || '',
+            Status: item.Status || 0,
+            Frequency: item.Frequency || '',
+            FileName: item.FileName || '',
+            IsSigned: true, // Đánh dấu đã ký nhận
+            Note: item.Note || '',
+          })),
+          HandoverWarehouseAsset: [],
+          HandoverAssetManagement: myAssetsToSign.map(item => ({
+            ID: item.ID || 0,
+            STT: item.STT || 0,
+            EmployeeID: item.EmployeeID || 0,
+            TSAssetManagementID: item.TSAssetManagementID || 0,
+            TSCodeNCC: item.TSCodeNCC || '',
+            TSAssetName: item.TSAssetName || '',
+            Quantity: item.Quantity || 0,
+            UnitName: item.UnitName || '',
+            Status: item.Status || '',
+            IsSigned: true, // Đánh dấu đã ký nhận
+            IsContinueUse: item.IsContinueUse || false,
+            ReceiverName: item.ReceiverName || '',
+            Note: item.Note || '',
+          })),
+          HandoverFinance: [],
+          HandoverSubordinate: [],
+          HandoverApprove: [],
+          DeletedHandoverReceiver: [],
+          DeletedAsset: [],
+          DeletedWork: [],
+          DeletedFinance: [],
+        };
+
+        this.HandoverService.saveData(payload).subscribe({
+          next: (res: any) => {
+            if (res?.status === 1) {
+              // Thông báo chi tiết
+              const signedItems = [];
+              if (myAssetsToSign.length > 0) signedItems.push(`${myAssetsToSign.length} tài sản`);
+              if (myWorkToSign.length > 0) signedItems.push(`${myWorkToSign.length} công việc`);
+
+              this.notification.success(NOTIFICATION_TITLE.success, `Đã xác nhận ký nhận: ${signedItems.join(', ')}!`);
+              // Reload lại dữ liệu để cập nhật trạng thái IsSigned trên bảng
+              this.getHandoverDataByID(this.HandoverID);
+              // KHÔNG gọi updateAssetOnReceiverSign - việc update tài sản chỉ thực hiện khi nhân sự duyệt
+            } else {
+              this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Có lỗi xảy ra khi xác nhận!');
+            }
+          },
+          error: (err: any) => {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xác nhận ký nhận!');
+          }
+        });
+      }
+    });
+  }
+
+
 
   onAddHandover(isEditmode: boolean): void {
     this.isCheckmode = isEditmode;
@@ -832,11 +1087,11 @@ export class HandoverComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
           },
           {
-            title: 'Thời gian bắt đầu làm việc',
+            title: 'Ngày vào',
             field: 'StartWorking',
-            hozAlign: 'left',
+            hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 200,
+            width: 120,
             formatter: (cell: any) => {
               const value = cell.getValue();
               return value
@@ -845,11 +1100,11 @@ export class HandoverComponent implements OnInit, AfterViewInit {
             },
           },
           {
-            title: 'Thời gian bàn giao',
+            title: 'Ngày bàn giao',
             field: 'HandoverDate',
-            hozAlign: 'left',
+            hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 200,
+            width: 120,
             formatter: (cell: any) => {
               const value = cell.getValue();
               return value
@@ -910,7 +1165,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     } else {
       this.handoverReceiverTable = new Tabulator('#HandoverReceiver', {
         data: this.HandoverReceiverData || [],
-        layout: 'fitDataStretch',
+        layout: 'fitColumns',
         selectableRows: 1,
         height: '100%',
         movableColumns: true,
@@ -1085,66 +1340,72 @@ export class HandoverComponent implements OnInit, AfterViewInit {
           placeholder: 'Không có dữ liệu',
           addRowPos: 'bottom',
           history: true,
-          rowHeader: {
-            headerSort: false,
-            resizable: false,
-            frozen: true,
-            formatter: 'rowSelection',
-            headerHozAlign: 'center',
-            hozAlign: 'center',
-            titleFormatter: 'rowSelection',
-            cellClick: (e: any, cell: any) => {
-              e.stopPropagation();
-            },
-          },
+
           columns: [
             {
               title: 'STT',
               hozAlign: 'center',
-              headerHozAlign: 'center',
-              field: 'STT',
+              width: 60,
+              formatter: 'rownum',
+              headerSort: false,
             },
             {
               title: 'Mã tài sản',
-              field: 'TSAssetCode',
+              field: 'TSCodeNCC',
               headerHozAlign: 'center',
-              minWidth: 200,
+              minWidth: 80,
               widthGrow: 1,
             },
             {
               title: 'Tên tài sản',
               field: 'TSAssetName',
               headerHozAlign: 'center',
-              minWidth: 400,
-              widthGrow: 2,
+              width: 200,
+              formatter: 'textarea'
             },
             {
               title: 'Số lượng',
               field: 'Quantity',
               headerHozAlign: 'center',
-              minWidth: 100,
+              hozAlign: 'center',
+              minWidth: 60,
               widthGrow: 1,
+              mutator: function (value) {
+                return value == null || value === '' ? 1 : value;
+              }
             },
             {
               title: 'Đơn vị tính',
               field: 'UnitName',
               headerHozAlign: 'center',
-              minWidth: 100,
+              width: 100,
               widthGrow: 1,
             },
             {
               title: 'Tình trạng',
               field: 'Status',
               headerHozAlign: 'center',
-              minWidth: 100,
+              width: 100,
               widthGrow: 1,
             },
             {
               title: 'Người nhận',
               field: 'ReceiverName',
               headerHozAlign: 'center',
-              minWidth: 300,
-              widthGrow: 2,
+              width: 120,
+              formatter: 'textarea'
+            },
+            {
+              title: 'Sử dụng tiếp',
+              field: 'IsContinueUse',
+              headerHozAlign: 'center',
+              hozAlign: 'center',
+              width: 100,
+              widthGrow: 1,
+              formatter: 'tickCross',
+              formatterParams: {
+                allowEmpty: true,
+              },
             },
             {
               title: 'Ký nhận',
@@ -1155,6 +1416,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
               formatterParams: {
                 allowEmpty: true,
               },
+              width: 100,
             },
           ],
         }
@@ -1348,6 +1610,115 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     }
   }
 
+  private draw_handoverPersonalAssetTable(): void {
+    if (this.handoverPersonalAssetTable) {
+      this.handoverPersonalAssetTable.setData(this.HandoverPersonalAssetData || []);
+    } else {
+      this.handoverPersonalAssetTable = new Tabulator('#HandoverPersonalAsset', {
+        data: this.HandoverPersonalAssetData || [],
+        layout: 'fitDataStretch',
+        selectableRows: 1,
+        height: '100%',
+        movableColumns: true,
+        reactiveData: true,
+        placeholder: 'Không có dữ liệu',
+        addRowPos: 'bottom',
+        history: true,
+        rowHeader: {
+          headerSort: false,
+          resizable: false,
+          width: 20,
+          frozen: true,
+          formatter: 'rowSelection',
+          headerHozAlign: 'center',
+          hozAlign: 'center',
+          titleFormatter: 'rowSelection',
+          cellClick: (e: any, cell: any) => {
+            e.stopPropagation();
+          },
+        },
+        columns: [
+          {
+            title: 'STT',
+            hozAlign: 'center',
+            formatter: 'rownum',
+            headerHozAlign: 'center',
+            field: 'STT',
+            minWidth: 100,
+            widthGrow: 1,
+          },
+          {
+            title: 'Bàn giao',
+            field: 'IsHandover',
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+            minWidth: 100,
+            widthGrow: 1,
+            formatter: 'tickCross',
+          },
+          {
+            title: 'Tên tài sản',
+            field: 'Name',
+            headerHozAlign: 'center',
+            minWidth: 300,
+            widthGrow: 2,
+          },
+          {
+            title: 'Mã',
+            field: 'Code',
+            headerHozAlign: 'center',
+            minWidth: 150,
+            widthGrow: 1,
+          },
+          {
+            title: 'Số lượng',
+            field: 'Quantity',
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+            minWidth: 100,
+            widthGrow: 1,
+          },
+          {
+            title: 'Đơn vị',
+            field: 'Unit',
+            headerHozAlign: 'center',
+            minWidth: 100,
+            widthGrow: 1,
+          },
+          {
+            title: 'Tình trạng',
+            field: 'Status',
+            headerHozAlign: 'center',
+            minWidth: 150,
+            widthGrow: 1,
+            formatter: (cell: any) => {
+              const val = cell.getValue();
+              if (val === 1) return 'Đang sử dụng';
+              if (val === 2) return 'Chưa sử dụng';
+              return val;
+            },
+          },
+          {
+            title: 'Nhân viên nhận',
+            field: 'ReceiverName',
+            headerHozAlign: 'center',
+            minWidth: 300,
+            widthGrow: 2,
+          },
+          {
+            title: 'Ký nhận',
+            field: 'IsSign',
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+            minWidth: 100,
+            widthGrow: 1,
+            formatter: 'tickCross',
+          },
+        ],
+      });
+    }
+  }
+
   private draw_handoverSubordinatesTable(): void {
     if (this.handoverSubordinatesTable) {
       this.handoverSubordinatesTable.setData(
@@ -1500,8 +1871,15 @@ export class HandoverComponent implements OnInit, AfterViewInit {
             title: 'Ngày duyệt',
             field: 'ApproveDate',
             headerHozAlign: 'center',
+            hozAlign: 'center',
             widthGrow: 2,
-            minWidth: 250,
+            minWidth: 120,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              return value
+                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                : '';
+            },
           },
 
           {

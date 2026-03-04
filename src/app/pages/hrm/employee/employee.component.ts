@@ -241,6 +241,9 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       NguoiLienHeKhiCan: ['', [Validators.required]],
       MoiQuanHe: ['', [Validators.required]],
       SDTNguoiThan: ['', [Validators.required]],
+      NguoiLienHeKhiCan2: [''],
+      MoiQuanHe2: [''],
+      SDTNguoiThan2: [''],
 
       // Trình độ
       SchoolName: [''],
@@ -799,20 +802,38 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
               headerHozAlign: 'center',
             },
             {
-              title: 'Họ tên người thân liên hệ khi cần',
+              title: 'Họ tên người thân 1',
               field: 'NguoiLienHeKhiCan',
               hozAlign: 'left',
               headerHozAlign: 'center',
             },
             {
-              title: 'Mối quan hệ',
+              title: 'Mối quan hệ người thân 1',
               field: 'MoiQuanHe',
               hozAlign: 'left',
               headerHozAlign: 'center',
             },
             {
-              title: 'SĐT của người thân',
+              title: 'SĐT của người thân 1',
               field: 'SDTNguoiThan',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Họ tên người thân 2',
+              field: 'NguoiLienHeKhiCan2',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Mối quan hệ người thân 2',
+              field: 'MoiQuanHe2',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'SĐT của người thân 2',
+              field: 'SDTNguoiThan2',
               hozAlign: 'left',
               headerHozAlign: 'center',
             },
@@ -2069,6 +2090,9 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       NguoiLienHeKhiCan: '',
       MoiQuanHe: '',
       SDTNguoiThan: '',
+      NguoiLienHeKhiCan2: '',
+      MoiQuanHe2: '',
+      SDTNguoiThan2: '',
 
       // Trình độ
       SchoolName: '',
@@ -2229,6 +2253,9 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       NguoiLienHeKhiCan: this.selectedEmployee.NguoiLienHeKhiCan,
       MoiQuanHe: this.selectedEmployee.MoiQuanHe,
       SDTNguoiThan: this.selectedEmployee.SDTNguoiThan,
+      NguoiLienHeKhiCan2: this.selectedEmployee.NguoiLienHeKhiCan2,
+      MoiQuanHe2: this.selectedEmployee.MoiQuanHe2,
+      SDTNguoiThan2: this.selectedEmployee.SDTNguoiThan2,
 
       // Trình độ
       SchoolName: this.selectedEmployee.SchoolName,

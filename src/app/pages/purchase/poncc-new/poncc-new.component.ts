@@ -1,3 +1,4 @@
+import { AppUserService } from './../../../services/app-user.service';
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -12,6 +13,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -52,7 +54,7 @@ import { SafeUrlPipe } from '../../../../safeUrl.pipe';
 import { PaymentOrderDetailComponent } from '../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
-
+import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
   Times: {
@@ -74,6 +76,7 @@ import { MenuItem } from 'primeng/api';
     NzFormModule,
     NzIconModule,
     NzInputModule,
+    NzInputNumberModule,
     NzSelectModule,
     NzSplitterModule,
     NzTabSetComponent,
@@ -155,6 +158,15 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
   datasetPoMuon: any[] = [];
   datasetDetail: any[] = [];
 
+  isLoadingExcel: boolean = false;
+
+  preparedMarginTop: number = 0;
+  directorMarginTop: number = 0;
+  preparedWidth: number = 150;
+  directorWidth: number = 170;
+  preparedMarginLeft: number = 0;
+  directorMarginLeft: number = 20;
+  titleMarginTop: number = 0;
   // Lưu trạng thái bảng để khôi phục sau khi reload
   private savedScrollPosition: number = 0;
   private savedSelectedRowIds: number[] = [];
@@ -171,8 +183,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private supplierSaleService: SupplierSaleService,
     private modalService: NgbModal,
-    private cdr: ChangeDetectorRef
-  ) { }
+    private cdr: ChangeDetectorRef,
+    public appUserService: AppUserService
+  ) {
+    this.employeeId = this.appUserService.employeeID || 0;
+  }
 
   ngOnInit(): void {
     this.loadLookups();
@@ -1351,6 +1366,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     });
   }
 
+  // Handle date input change
+  onDateChange(field: 'dateStart' | 'dateEnd', value: string): void {
+    if (value) {
+      (this as any)[field] = new Date(value);
+    }
+  }
+
   onSearch(): void {
     this.isLoading = true;
     const filter = {
@@ -1477,7 +1499,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 error: (error) => {
                   this.notify.error(
                     'Lỗi',
-                  error.error?.message || error?.message
+                    error.error?.message || error?.message
                   );
                 },
               });
@@ -2037,11 +2059,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
     if (angularGrid.dataView) {
-      angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => {
-          this.applyDistinctFilters();
-        }, 100);
-      });
+      // angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      //   setTimeout(() => {
+      //     this.applyDistinctFilters();
+      //   }, 100);
+      // });
     }
 
     // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
@@ -2052,6 +2074,15 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         }, 50);
       });
     }
+
+    // if (angularGrid.slickGrid) {
+    //   angularGrid.slickGrid.onActiveCellChanged.subscribe((e, args) => {
+    //     setTimeout(() => {
+    //       console.log(args.row);
+    //       this.onActiveRowChanged(args.row);
+    //     }, 50);
+    //   });
+    // }
   }
 
 
@@ -2067,11 +2098,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
     if (angularGrid.dataView) {
-      angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => {
-          this.applyDistinctFilters();
-        }, 100);
-      });
+      // angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      //   setTimeout(() => {
+      //     this.applyDistinctFilters();
+      //   }, 100);
+      // });
     }
 
     // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
@@ -2099,12 +2130,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
     if (angularGrid.dataView) {
-      angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => {
-          this.applyDistinctFilters();
-          this.updateDetailFooterRow();
-        }, 100);
-      });
+      // angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      //   setTimeout(() => {
+      //     this.applyDistinctFilters();
+      //     this.updateDetailFooterRow();
+      //   }, 100);
+      // });
     }
 
     // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
@@ -2755,6 +2786,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     if (index >= listData.length) {
       //   console.log('Đã hoàn thành việc mở danh sách modal.');
+      this.onSearch();
       return;
     }
 
@@ -2768,7 +2800,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     // console.log('PO NCC ID:', ponccId);
 
     if (type === 0) {
-      const modalRef = this.modalService.open(BillImportDetailComponent, {
+      const modalRef = this.modalService.open(BillImportDetailNewComponent, {
         backdrop: 'static',
         keyboard: false,
         centered: true,
@@ -2853,6 +2885,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     }
   }
   onMasterDblClick(event: any): void {
+    clearTimeout(this.clickTimer);
     const args = event?.args;
     const row = args?.row;
 
@@ -2965,8 +2998,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         ? cellDisplaySign
         : {
           image: 'data:image/png;base64,' + po.PicPrepared,
-          width: 150,
-          margin: [0, 0, 40, 0],
+          width: this.preparedWidth,
+          margin: [this.preparedMarginLeft, this.preparedMarginTop, 40, 0],
         };
     if (!isShowSign) cellPicPrepared = cellDisplaySign;
     let cellPicDirector: any =
@@ -2974,21 +3007,22 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         ? cellDisplaySign
         : {
           image: 'data:image/png;base64,' + po.PicDirector,
-          width: 170,
-          margin: [20, 0, 0, 0],
+          width: this.directorWidth,
+          margin: [this.directorMarginLeft, this.directorMarginTop, 0, 0],
         };
     if (!isShowSeal) cellPicDirector = cellDisplaySign;
     // console.log('isShowSeal:', this.isShowSeal);
     // console.log('cellPicPrepared:', cellPicDirector);
 
     let docDefinition = {
+      pageMargins: [40, 20, 40, 10],
       info: {
         title: po.BillCode,
       },
       content: [
-        `${taxCompany.BuyerVietnamese}
-                ${taxCompany.AddressBuyerVienamese}
-                ${taxCompany.TaxVietnamese}`,
+        `${taxCompany.BuyerVietnamese || ''}
+                ${taxCompany.AddressBuyerVienamese || ''}
+                ${taxCompany.TaxVietnamese || ''}`,
         {
           text: 'ĐƠN MUA HÀNG',
           alignment: 'center',
@@ -3014,7 +3048,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
               ],
               [
                 'Địa chỉ:',
-                { colSpan: 3, text: po.AddressNCC },
+                { colSpan: 3, text: this.multiLineCell(po.AddressNCC) },
                 '',
                 '',
                 'Số:',
@@ -3079,6 +3113,14 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
               //list item
               ...items,
               //sum footer table
+              [
+                {
+                  colSpan: 8,
+                  text: po.OriginItem ?? '',
+                  bold: true,
+                  border: [true, false, true, true],
+                },
+              ],
               [
                 { colSpan: 2, text: '', border: [true, false, false, true] },
                 '',
@@ -3191,9 +3233,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 'Ngày giao hàng:',
                 DateTime.fromISO(po.DeliveryDate).toFormat('dd/MM/yyyy'),
               ],
-              ['Địa điểm giao hàng:', po.AddressDelivery],
-              ['Điều khoàn thanh toán:', po.RulePayName],
-              ['Số tài khoản:', po.AccountNumberSupplier],
+              ['Địa điểm giao hàng:', this.multiLineCell(po.AddressDelivery)],
+              ['Điều khoàn thanh toán:', this.multiLineCell(po.RulePayName)],
+              ['Số tài khoản:', this.multiLineCell(po.AccountNumberSupplier)],
             ],
           },
           layout: 'noBorders',
@@ -3201,6 +3243,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         //Chữ ký
         {
           alignment: 'justify',
+          margin: [0, this.titleMarginTop, 0, 0],
           columns: [
             { text: 'Người bán', alignment: 'center', bold: true },
             { text: 'Người lập', alignment: 'center', bold: true },
@@ -3209,6 +3252,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         },
         {
           alignment: 'justify',
+          //margin: [0, this.titleMarginTop, 0, 0],
           columns: [
             {
               text: '(Ký, họ tên)',
@@ -3240,8 +3284,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             {
               table: {
                 body: [
-                  ['Phone:', employeePurchase.Telephone],
-                  ['Email:', employeePurchase.Email],
+                  ['Phone:', this.multiLineCell(employeePurchase.Telephone)],
+                  ['Email:', this.multiLineCell(employeePurchase.Email)],
                 ],
               },
               layout: 'noBorders',
@@ -3261,11 +3305,30 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     return docDefinition;
   }
+
+  multiLineCell(str: string) {
+    if (!str) return '';
+
+    // Clean full-width colon
+    const cleaned = str.replace(/\uFF1A/g, ':');
+
+    // Split theo 2 space
+    const lines = cleaned.split('  ').filter(line => line.trim() !== '');
+
+    if (lines.length <= 1) return cleaned;
+
+    return {
+      stack: lines.map(line => ({
+        text: line.trim(),
+        margin: [0, 2, 0, 0]
+      }))
+    };
+  }
   onCreatePDFLanguageEn(data: any, isShowSign: boolean, isShowSeal: boolean) {
     let po = data.po;
     let poDetails = data.poDetails;
     let taxCompany = data.taxCompany;
-
+    debugger;
     const totalAmount = poDetails.reduce(
       (sum: number, x: any) => sum + x.ThanhTien,
       0
@@ -3309,8 +3372,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         ? cellDisplaySign
         : {
           image: 'data:image/png;base64,' + po.PicPrepared,
-          width: 150,
-          margin: [0, 0, 40, 0],
+          width: this.preparedWidth,
+          margin: [this.preparedMarginLeft, this.preparedMarginTop, 40, 0],
         };
     if (!isShowSign) cellPicPrepared = cellDisplaySign;
 
@@ -3319,8 +3382,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         ? cellDisplaySign
         : {
           image: 'data:image/png;base64,' + po.PicDirector,
-          width: 170,
-          margin: [20, 0, 0, 0],
+          width: this.directorWidth,
+          margin: [this.directorMarginLeft, this.directorMarginTop, 0, 0],
         };
     if (!isShowSeal) cellPicDirector = cellDisplaySign;
     const EMPTY_IMAGE_BASE64 =
@@ -3331,6 +3394,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       'DAYhg0HIYBAyGIQMBiGDQchgEDIYhAwGIYNByGAQMhiEDAYhg0HIYBAyGIQMBiGDQchgEDIYhAwGIYNByGAQMhiEDAYhg' +
       '0HIYBAyGIQMBiGDQchgEDIYhC4EjgSgJ7qviAAAAABJRU5ErkJggg==';
     let docDefinition = {
+      pageMargins: [40, 20, 40, 10],
       info: {
         title: po.BillCode,
       },
@@ -3411,9 +3475,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             widths: [90, '*'],
             body: [
               ['Buyer:', { text: taxCompany.BuyerEnglish, bold: true }],
-              ['Address:', taxCompany.AddressBuyerEnglish],
-              ['Legal Representative:', taxCompany.LegalRepresentativeEnglish],
-              ['Purchaser:', po.Purchaser],
+              ['Address:', this.multiLineCell(taxCompany.AddressBuyerEnglish)],
+              ['Legal Representative:', this.multiLineCell(taxCompany.LegalRepresentativeEnglish)],
+              ['Purchaser:', this.multiLineCell(po.Purchaser)],
             ],
           },
           layout: 'noBorders',
@@ -3443,8 +3507,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
               [
                 {
                   colSpan: 8,
-                  text: '',
-                  style: 'header',
+                  text: po.OriginItem ?? '',
+                  bold: true,
                   border: [true, false, true, true],
                 },
               ],
@@ -3552,11 +3616,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 'Delivery date:',
                 DateTime.fromISO(po.DeliveryDate).toFormat('dd/MM/yyyy'),
               ],
-              ['Delivery point:', po.AddressDelivery],
-              ['Term:', po.RulePayName],
-              ['Bank Charge:', po.BankCharge],
-              ['Fedex Account:', po.FedexAccount],
-              ['Bank Account:', po.AccountNumberSupplier],
+              ['Delivery point:', this.multiLineCell(po.AddressDelivery)],
+              ['Term:', this.multiLineCell(po.RulePayName)],
+              ['Bank Charge:', this.multiLineCell(po.BankCharge)],
+              ['Fedex Account:', this.multiLineCell(po.FedexAccount)],
+              ['Bank Account:', this.multiLineCell(po.AccountNumberSupplier)],
             ],
           },
           layout: 'noBorders',
@@ -3564,6 +3628,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
         {
           alignment: 'justify',
+          margin: [0, this.titleMarginTop, 0, 0],
           columns: [
             { text: 'Supplier', alignment: 'center', bold: true },
             { text: 'Prepared by', alignment: 'center', bold: true },
@@ -3642,6 +3707,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         isShowSign: true,
         isShowSeal: true,
         id: id,
+        preparedMarginTopTab: 0,
+        directorMarginTopTab: 0,
+        preparedWidthTab: 150,
+        directorWidthTab: 170,
+        preparedMarginLeftTab: 0,
+        directorMarginLeftTab: 0.53,
+        titleMarginTopTab: 0,
       });
 
       // Gọi API printPO để lấy data và render PDF
@@ -3663,6 +3735,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
   }
 
   toggleMerge(tab: any) {
+    this.setTab(tab);
     this.srv.printPO(tab.id, tab.isMerge).subscribe({
       next: (response) => {
         this.dataPrint = response.data;
@@ -3674,7 +3747,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
   }
 
   toggleSign(tab: any) {
-    this.srv.printPO(tab.id, tab.isShowSign).subscribe({
+    this.setTab(tab);
+    this.srv.printPO(tab.id, tab.isMerge).subscribe({
       next: (response) => {
         this.dataPrint = response.data;
 
@@ -3685,7 +3759,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
   }
 
   toggleSeal(tab: any) {
-    this.srv.printPO(tab.id, tab.isShowSign).subscribe({
+    this.setTab(tab);
+    this.srv.printPO(tab.id, tab.isMerge).subscribe({
       next: (response) => {
         this.dataPrint = response.data;
 
@@ -3726,6 +3801,87 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     pdfMake.createPdf(tab.docDefinition).download(title + '.pdf');
   }
+
+  //#region In excel poncc
+  onPrintPOExcel(tab: any) {
+    this.isLoadingExcel = true;
+    this.srv
+      .printPONCCExcel(tab.id, tab.isMerge, this.language, tab.isShowSign, tab.isShowSeal)
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${tab.title}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          this.isLoadingExcel = false;
+        },
+        error: (err) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            err?.error?.message || 'Lỗi khi in PO'
+          );
+          this.isLoadingExcel = false;
+        }
+      });
+  }
+
+  cmToPx(cm: number, dpi: number = 96): number {
+    return cm * dpi / 2.54;
+  }
+
+  resetNumber(tab: any) {
+    tab.preparedMarginTopTab = 0;
+    tab.directorMarginTopTab = 0;
+    tab.preparedWidthTab = 150;
+    tab.directorWidthTab = 170;
+    tab.preparedMarginLeftTab = 0;
+    tab.directorMarginLeftTab = 0.53;
+    tab.titleMarginTopTab = 0;
+    this.toggleSeal(tab);
+  }
+
+  setTab(tab: any) {
+    this.preparedMarginTop = this.cmToPx(tab.preparedMarginTopTab);
+    this.directorMarginTop = this.cmToPx(tab.directorMarginTopTab);
+    this.preparedWidth = tab.preparedWidthTab;
+    this.directorWidth = tab.directorWidthTab;
+    this.preparedMarginLeft = this.cmToPx(tab.preparedMarginLeftTab);
+    this.directorMarginLeft = this.cmToPx(tab.directorMarginLeftTab);
+    this.titleMarginTop = this.cmToPx(tab.titleMarginTopTab);
+  }
+
+  onClosePreview() {
+    this.showPreview = false;
+    this.preparedMarginTop = 0;
+    this.directorMarginTop = 0;
+    this.preparedWidth = 150;
+    this.directorWidth = 170;
+    this.preparedMarginLeft = 0;
+    this.directorMarginLeft = 20;
+    this.titleMarginTop = 0;
+  }
+  private clickTimer: any;
+  onActiveRowChanged(row: number | undefined) {
+    clearTimeout(this.clickTimer);
+    if (row == null) return;
+    this.clickTimer = setTimeout(() => {
+      let rowData;
+      if (this.activeTabIndex === 0) {
+        rowData = this.angularGridPoThuongMai?.dataView.getItem(row);
+      } else if (this.activeTabIndex === 1) {
+        rowData = this.angularGridPoMuon?.dataView.getItem(row);
+      }
+
+      this.handleMasterSelectionChange([rowData]);
+    }, 300);
+  }
+  //#endregion
 
   // Initialize PrimeNG MenuBar items
   initMenuItems(): void {
@@ -3829,4 +3985,13 @@ interface PoTab {
   isShowSign: true;
   isShowSeal: true;
   id: 0;
+  preparedMarginTopTab: number;
+  directorMarginTopTab: number;
+  preparedWidthTab: number;
+  directorWidthTab: number;
+  preparedMarginLeftTab: number;
+  directorMarginLeftTab: number;
+  titleMarginTopTab: number;
 }
+
+

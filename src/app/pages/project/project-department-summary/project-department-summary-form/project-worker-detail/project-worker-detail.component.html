@@ -34,7 +34,6 @@
                 formControlName="TT"
                 class="fs-12"
                 placeholder="Nhập số thứ tự (VD: 1, 1.1, 1.2)"
-                [readonly]="isEditMode"
               />
             </nz-form-control>
           </nz-form-item>
@@ -203,8 +202,6 @@
             <ul class="mb-0 ps-3">
               <li>Tổng nhân công = Số người × Số ngày</li>
               <li>Thành tiền = Tổng nhân công × Đơn giá</li>
-              <li *ngIf="!isEditMode">Khi thêm mới, có thể chọn nhân công cha để tạo node con</li>
-              <li *ngIf="isEditMode">Khi sửa, không thể thay đổi số thứ tự và nhân công cha</li>
             </ul>
           </div>
         </div>

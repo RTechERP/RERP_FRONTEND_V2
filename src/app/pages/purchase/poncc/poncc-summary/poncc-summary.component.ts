@@ -87,7 +87,7 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
     private ngbModal: NgbModal,
     private modal: NzModalService,
     private appUserService: AppUserService
-  ) {}
+  ) { }
 
   ponccSummaryMenu: MenuItem[] = [];
   shouldShowSearchBar: boolean = true;
@@ -1321,13 +1321,42 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
       headerRow.font = {
         bold: true,
         name: 'Tahoma',
-        color: { argb: 'FFFFFFFF' },
+        color: { argb: 'FF000000' },
       };
       headerRow.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FF5B9BD5' },
+        fgColor: { argb: 'FFD3D3D3' },
       };
+      headerRow.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      });
+
+      const numericFields = [
+        'UnitPrice',
+        'UnitPriceVAT',
+        'QtyRequest',
+        'QuantityReturn',
+        'QuantityRemain',
+        'TotalMoneyChangePO',
+        'TotalPrice',
+        'FeeShip',
+        'PriceSale',
+        'PriceHistory',
+        'BiddingPrice',
+        'TotalQuantityLast',
+        'MinQuantity',
+        'VAT',
+        'CurrencyRate',
+        'UnitPricePOKH',
+        'TaxReduction',
+        'COFormE',
+      ];
 
       // Thêm các dòng dữ liệu
       rawData.forEach((row: any) => {
@@ -1344,39 +1373,18 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
             col.field === 'IsBill' ||
             col.field === 'OrderQualityNotMet'
           ) {
-            return value === true ? 'V' : '';
+            return value === true ? 'x' : '';
           }
 
           // Format số tiền
-          if (
-            [
-              'UnitPrice',
-              'UnitPriceVAT',
-              'QtyRequest',
-              'QuantityReturn',
-              'QuantityRemain',
-              'TotalMoneyChangePO',
-              'TotalPrice',
-              'FeeShip',
-              'PriceSale',
-              'PriceHistory',
-              'BiddingPrice',
-              'TotalQuantityLast',
-              'MinQuantity',
-              'VAT',
-              'CurrencyRate',
-              'UnitPricePOKH',
-              'TaxReduction',
-              'COFormE',
-            ].includes(col.field)
-          ) {
+          if (numericFields.includes(col.field)) {
             const numValue = Number(value) || 0;
             return numValue === 0
               ? 0
               : new Intl.NumberFormat('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }).format(numValue);
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(numValue);
           }
 
           // Format ngày
@@ -1402,38 +1410,24 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
 
           return value;
         });
-        worksheet.addRow(rowData);
+
+        const addedRow = worksheet.addRow(rowData);
+        // Căn phải cho các cột số
+        columns.forEach((col: any, index) => {
+          if (numericFields.includes(col.field)) {
+            addedRow.getCell(index + 1).alignment = { horizontal: 'right' };
+          }
+        });
       });
 
       // Footer tổng
       const footerRowData = columns.map((col: Column) => {
         if (col.field === 'BillCode') {
-          return `Tổng: ${rawData.length}`;
+          return `${rawData.length}`;
         }
 
         // Các cột cần tính tổng
-        if (
-          [
-            'UnitPrice',
-            'UnitPriceVAT',
-            'QtyRequest',
-            'QuantityReturn',
-            'QuantityRemain',
-            'TotalMoneyChangePO',
-            'TotalPrice',
-            'FeeShip',
-            'PriceSale',
-            'PriceHistory',
-            'BiddingPrice',
-            'TotalQuantityLast',
-            'MinQuantity',
-            'VAT',
-            'CurrencyRate',
-            'UnitPricePOKH',
-            'TaxReduction',
-            'COFormE',
-          ].includes(col.field || '')
-        ) {
+        if (numericFields.includes(col.field || '')) {
           const sum = rawData.reduce((acc: number, item: any) => {
             const val = Number(item[col.field || '']) || 0;
             return acc + val;
@@ -1451,13 +1445,27 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
       footerRow.font = {
         bold: true,
         name: 'Tahoma',
-        color: { argb: 'FFFFFFFF' },
+        color: { argb: 'FF000000' },
       };
       footerRow.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FF5B9BD5' },
+        fgColor: { argb: 'FFD3D3D3' },
       };
+      // Căn phải cho footer các cột số
+      columns.forEach((col: any, index) => {
+        if (numericFields.includes(col.field) || col.field === 'BillCode') {
+          footerRow.getCell(index + 1).alignment = { horizontal: 'right' };
+        }
+      });
+      footerRow.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      });
 
       // Auto-fit columns
       worksheet.columns.forEach((column: any) => {

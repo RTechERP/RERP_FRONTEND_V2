@@ -138,13 +138,14 @@
   background-color: #fafafa;
 }
 ::ng-deep div[id^="billExportDetail_"]{
-  height: 49vh !important;;
+  height: 54vh !important;;
 }
 ::ng-deep .modal-body{
-  height: 89vh !important;
+  height: 91vh !important;
 }
 ::ng-deep .modal-footer{
   border-top: none !important;
+  padding: 0 1rem 0 0 !important;
 }
 .ant-form-item-label {
   padding-bottom: 0 !important;

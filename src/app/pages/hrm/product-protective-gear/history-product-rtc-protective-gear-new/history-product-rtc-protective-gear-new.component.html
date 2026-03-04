@@ -1,0 +1,259 @@
+<div class="container-fluid p-3">
+  <!-- Header: Search on left, Actions on right (like WinForm) -->
+  <div class="header-toolbar">
+    <!-- Left: Search -->
+    <div class="search-section">
+      <span class="search-label">Từ khóa</span>
+      <nz-input-group [nzSuffix]="suffixIconSearch" class="search-input">
+        <input type="text" nz-input placeholder="Nhập từ khóa..." [(ngModel)]="keyword" (keyup.enter)="loadData()" />
+      </nz-input-group>
+      <ng-template #suffixIconSearch>
+        <span nz-icon nzType="search"></span>
+      </ng-template>
+      <button nz-button nzType="default" (click)="loadData()">
+        Tìm kiếm
+      </button>
+      <button nz-button nzType="primary" (click)="saveLayout(true)">
+        Lưu layout
+      </button>
+    </div>
+
+    <!-- Right: Layout Actions -->
+    <div class="action-section">
+      <nz-tag *ngIf="hasUnsavedChanges" nzColor="warning">
+        <span nz-icon nzType="exclamation-circle"></span>
+        Có thay đổi chưa lưu
+      </nz-tag>
+      <a nz-button nzType="link" nzDanger (click)="resetLayout()">
+        Cài lại mặc định
+      </a>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <nz-spin nzSize="large" [nzSpinning]="isLoading"></nz-spin>
+  </div>
+
+  <!-- Tabs for LocationType -->
+  <nz-tabset [(nzSelectedIndex)]="selectedTab" (nzSelectedIndexChange)="onTabChange($event)">
+    <!-- Tab 1: Tủ mũ & quần áo (LocationType = 1) -->
+    <nz-tab nzTitle="Tủ mũ & quần áo">
+      <div class="tab-container" cdkDropList [cdkDropListData]="datasetByType.get(1) || []"
+        (cdkDropListDropped)="drop($event)" (scroll)="onContainerScroll($event)">
+        <div *ngFor="let item of datasetByType.get(1); let i = index; trackBy: trackByItemId"
+          class="card-wrapper-absolute" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
+          (cdkDragMoved)="onDragMoved($event)" (cdkDragEnded)="clearInsertionTarget()">
+
+          <nz-card class="equipment-card" [nzCover]="coverTemplate1">
+            <ng-template #coverTemplate1>
+              <!-- Header with full-width color -->
+              <div class="card-header" [style.background-color]="getStatusColor(item)">
+                <div class="card-header-content">
+                  <div class="header-code">{{ item.ProductCode }}</div>
+                  <div class="header-name">{{ item.ProductName }}</div>
+                </div>
+                <span class="header-status" *ngIf="item.StatusText">{{ item.StatusText }}</span>
+              </div>
+              <!-- Image -->
+              <div class="card-image-container">
+                <img [src]="getImageUrl(item.LocationImg, item.ProductCode)" [alt]="item.ProductName"
+                  class="card-image" />
+              </div>
+            </ng-template>
+
+
+            <div class="card-content">
+              <div class="info-row">
+                <span class="info-label">Vị trí:</span>
+                <span class="info-value">{{ item.AddressBox || item.LocationName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Người mượn:</span>
+                <span class="info-value">{{ item.FullName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Ngày mượn:</span>
+                <span class="info-value">{{ formatDate(item.DateBorrow) }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Ngày trả:</span>
+                <span class="info-value">{{ formatDate(item.DateReturnExpected) }}</span>
+              </div>
+              <div class="card-actions">
+                <button nz-button nzType="primary" nzSize="small" nzBlock nz-dropdown [nzDropdownMenu]="menu1">
+                  Chức năng
+                  <span nz-icon nzType="down"></span>
+                </button>
+                <nz-dropdown-menu #menu1="nzDropdownMenu">
+                  <ul nz-menu>
+                    <li nz-menu-item (click)="handleFunctionClick('borrow', item)">Mượn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('return', item)">Trả</li>
+                    <li nz-menu-item (click)="handleFunctionClick('extend', item)">Gia hạn</li>
+                    <li nz-menu-divider></li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-borrow', item)">Duyệt mượn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-return', item)">Duyệt trả</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-extend', item)">Duyệt gia hạn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('edit-borrower', item)">Sửa người mượn</li>
+                    <li nz-menu-divider></li>
+                    <li nz-menu-item (click)="handleFunctionClick('washing', item)">Đang giặt</li>
+                    <li nz-menu-item (click)="handleFunctionClick('in-use', item)">Đưa vào sử dụng</li>
+                    <li nz-menu-divider></li>
+                    <li nz-menu-item nzDanger (click)="handleFunctionClick('delete', item)">Xóa</li>
+                  </ul>
+                </nz-dropdown-menu>
+              </div>
+            </div>
+          </nz-card>
+
+          <div class="card-placeholder" *cdkDragPlaceholder></div>
+        </div>
+      </div>
+    </nz-tab>
+
+    <!-- Tab 2: Tủ giày (LocationType = 2) -->
+    <nz-tab nzTitle="Tủ giày">
+      <div class="tab-container" cdkDropList [cdkDropListData]="datasetByType.get(2) || []"
+        (cdkDropListDropped)="drop($event)" (scroll)="onContainerScroll($event)">
+        <div *ngFor="let item of datasetByType.get(2); let i = index; trackBy: trackByItemId"
+          class="card-wrapper-absolute" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
+          (cdkDragMoved)="onDragMoved($event)" (cdkDragEnded)="clearInsertionTarget()">
+
+          <nz-card class="equipment-card" [nzCover]="coverTemplate2">
+            <ng-template #coverTemplate2>
+              <!-- Header with full-width color -->
+              <div class="card-header" [style.background-color]="getStatusColor(item)">
+                <div class="card-header-content">
+                  <div class="header-code">{{ item.ProductCode }}</div>
+                  <div class="header-name">{{ item.ProductName }}</div>
+                </div>
+                <span class="header-status" *ngIf="item.StatusText">{{ item.StatusText }}</span>
+              </div>
+              <!-- Image -->
+              <div class="card-image-container">
+                <img [src]="getImageUrl(item.LocationImg, item.ProductCode)" [alt]="item.ProductName"
+                  class="card-image" />
+              </div>
+            </ng-template>
+
+            <div class="card-content">
+              <div class="info-row">
+                <span class="info-label">Vị trí:</span>
+                <span class="info-value">{{ item.AddressBox || item.LocationName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Người mượn:</span>
+                <span class="info-value">{{ item.FullName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Ngày mượn:</span>
+                <span class="info-value">{{ formatDate(item.DateBorrow) }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Ngày trả:</span>
+                <span class="info-value">{{ formatDate(item.DateReturnExpected) }}</span>
+              </div>
+              <div class="card-actions">
+                <button nz-button nzType="primary" nzSize="small" nzBlock nz-dropdown [nzDropdownMenu]="menu2">
+                  Chức năng
+                  <span nz-icon nzType="down"></span>
+                </button>
+                <nz-dropdown-menu #menu2="nzDropdownMenu">
+                  <ul nz-menu>
+                    <li nz-menu-item (click)="handleFunctionClick('borrow', item)">Mượn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('return', item)">Trả</li>
+                    <li nz-menu-item (click)="handleFunctionClick('extend', item)">Gia hạn</li>
+                    <li nz-menu-divider></li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-borrow', item)">Duyệt mượn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-return', item)">Duyệt trả</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-extend', item)">Duyệt gia hạn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('edit-borrower', item)">Sửa người mượn</li>
+                    <li nz-menu-divider></li>
+                    <li nz-menu-item (click)="handleFunctionClick('washing', item)">Đang giặt</li>
+                    <li nz-menu-item (click)="handleFunctionClick('in-use', item)">Đưa vào sử dụng</li>
+                    <li nz-menu-divider></li>
+                    <li nz-menu-item nzDanger (click)="handleFunctionClick('delete', item)">Xóa</li>
+                  </ul>
+                </nz-dropdown-menu>
+              </div>
+            </div>
+          </nz-card>
+
+          <div class="card-placeholder" *cdkDragPlaceholder></div>
+        </div>
+      </div>
+    </nz-tab>
+
+    <!-- Tab 3: Xe đẩy hàng (LocationType = 3) -->
+    <nz-tab nzTitle="Xe đẩy hàng">
+      <div class="tab-container" cdkDropList [cdkDropListData]="datasetByType.get(3) || []"
+        (cdkDropListDropped)="drop($event)" (scroll)="onContainerScroll($event)">
+        <div *ngFor="let item of datasetByType.get(3); let i = index; trackBy: trackByItemId"
+          class="card-wrapper-absolute" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
+          (cdkDragMoved)="onDragMoved($event)" (cdkDragEnded)="clearInsertionTarget()">
+
+          <nz-card class="equipment-card" [nzCover]="coverTemplate3">
+            <ng-template #coverTemplate3>
+              <!-- Header with full-width color -->
+              <div class="card-header" [style.background-color]="getStatusColor(item)">
+                <div class="card-header-content">
+                  <div class="header-code">{{ item.ProductCode }}</div>
+                  <div class="header-name">{{ item.ProductName }}</div>
+                </div>
+                <span class="header-status" *ngIf="item.StatusText">{{ item.StatusText }}</span>
+              </div>
+              <!-- Image -->
+              <div class="card-image-container">
+                <img [src]="getImageUrl(item.LocationImg, item.ProductCode)" [alt]="item.ProductName"
+                  class="card-image" />
+              </div>
+            </ng-template>
+
+            <div class="card-content">
+              <div class="info-row">
+                <span class="info-label">Vị trí:</span>
+                <span class="info-value">{{ item.AddressBox || item.LocationName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Người mượn:</span>
+                <span class="info-value">{{ item.FullName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Ngày mượn:</span>
+                <span class="info-value">{{ formatDate(item.DateBorrow) }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Ngày trả:</span>
+                <span class="info-value">{{ formatDate(item.DateReturnExpected) }}</span>
+              </div>
+              <div class="card-actions">
+                <button nz-button nzType="primary" nzSize="small" nzBlock nz-dropdown [nzDropdownMenu]="menu3">
+                  Chức năng
+                  <span nz-icon nzType="down"></span>
+                </button>
+                <nz-dropdown-menu #menu3="nzDropdownMenu">
+                  <ul nz-menu>
+                    <li nz-menu-item (click)="handleFunctionClick('borrow', item)">Mượn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('return', item)">Trả</li>
+                    <li nz-menu-item (click)="handleFunctionClick('extend', item)">Gia hạn</li>
+                    <li nz-menu-divider></li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-borrow', item)">Duyệt mượn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-return', item)">Duyệt trả</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-extend', item)">Duyệt gia hạn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('edit-borrower', item)">Sửa người mượn</li>
+                    <li nz-menu-divider></li>
+                    <li nz-menu-item (click)="handleFunctionClick('washing', item)">Đang giặt</li>
+                    <li nz-menu-item (click)="handleFunctionClick('in-use', item)">Đưa vào sử dụng</li>
+                    <li nz-menu-divider></li>
+                    <li nz-menu-item nzDanger (click)="handleFunctionClick('delete', item)">Xóa</li>
+                  </ul>
+                </nz-dropdown-menu>
+              </div>
+            </div>
+          </nz-card>
+          <div class="card-placeholder" *cdkDragPlaceholder></div>
+        </div>
+      </div>
+    </nz-tab>
+  </nz-tabset>
+</div>

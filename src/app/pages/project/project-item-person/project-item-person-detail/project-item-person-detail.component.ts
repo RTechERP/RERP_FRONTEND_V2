@@ -65,6 +65,7 @@ interface ProjectItemTab {
 })
 export class ProjectItemPersonDetailComponent implements OnInit {
   @Input() dataInput: any = null;
+  @Input() defaultProjectID: number | null = null;
 
   formGroup!: FormGroup;
   saving: boolean = false;
@@ -164,6 +165,12 @@ export class ProjectItemPersonDetailComponent implements OnInit {
     // Khởi tạo tab đầu tiên
     if (!this.dataInput) {
       this.addTab();
+      if (this.defaultProjectID && this.defaultProjectID > 0) {
+        this.formGroup.patchValue({
+          ProjectID: this.defaultProjectID
+        });
+        this.loadParentList(this.defaultProjectID!);
+      }
     } else if (this.dataInput.ID) {
       // Nếu có ID, gọi API để lấy dữ liệu mới nhất
       this.loadDataById(this.dataInput.ID);

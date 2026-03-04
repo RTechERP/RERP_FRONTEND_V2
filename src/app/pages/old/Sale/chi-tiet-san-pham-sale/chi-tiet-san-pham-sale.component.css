@@ -1,82 +1,82 @@
-.font-12 {
+.chi-tiet-san-pham-sale-font-12 {
   font-size: 12px !important;
 }
 
-.splitter-main,
-.splitter-horizontal {
+.chi-tiet-san-pham-sale-splitter-main,
+.chi-tiet-san-pham-sale-splitter-horizontal {
   font-size: 12px;
 }
 
-.splitter-main {
+.chi-tiet-san-pham-sale-splitter-main {
   height: 80vh !important;
   max-height: 80vh !important;
 }
 
 /* Đảm bảo các panel con không vượt quá 37vh */
-.splitter-main > nz-splitter-panel {
+.chi-tiet-san-pham-sale-splitter-main > nz-splitter-panel {
   max-height: 39vh !important;
 }
 .tabulator{
   font-size: 12px !important;
 }
 
-.splitter-main ::ng-deep > .ant-splitter-panel {
+.chi-tiet-san-pham-sale-splitter-main ::ng-deep > .ant-splitter-panel {
   max-height: 39vh !important;
 }
 
-.filter-section {
+.chi-tiet-san-pham-sale-filter-section {
   border-bottom: 1px solid #d9d9d9;
 }
 
-.input-row {
+.chi-tiet-san-pham-sale-input-row {
   margin-top: 8px;
 }
 
-.btn-refresh {
+.chi-tiet-san-pham-sale-btn-refresh {
   margin-bottom: 8px;
 }
 
-.select-product,
-.input-text,
-.input-number {
+.chi-tiet-san-pham-sale-select-product,
+.chi-tiet-san-pham-sale-input-text,
+.chi-tiet-san-pham-sale-input-number {
   font-size: 12px;
 }
 
-.tabset-font nz-tab-label {
+.chi-tiet-san-pham-sale-tabset-font nz-tab-label {
   font-size: 12px !important;
 }
 
-.tabset-font ::ng-deep .ant-tabs-tab {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .ant-tabs-tab {
   font-size: 12px;
 }
 
 /* Giới hạn chiều cao của tabset và loại bỏ padding để bảng vừa với 37vh */
-.tabset-font {
+.chi-tiet-san-pham-sale-tabset-font {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.tabset-font ::ng-deep .ant-tabs {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .ant-tabs {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.tabset-font ::ng-deep .ant-tabs-content-holder {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .ant-tabs-content-holder {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-.tabset-font ::ng-deep .ant-tabs-content {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .ant-tabs-content {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.tabset-font ::ng-deep .ant-tabs-tabpane {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .ant-tabs-tabpane {
   height: 100%;
   padding: 0 !important;
   display: flex;
@@ -85,7 +85,7 @@
 }
 
 /* Container cho bảng Tabulator */
-.tabset-font ::ng-deep .ant-tabs-tabpane > div {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .ant-tabs-tabpane > div {
   flex: 1;
   overflow: hidden;
   display: flex;
@@ -110,42 +110,42 @@ nz-splitter-panel ::ng-deep .ant-splitter-panel {
 }
 
 /* Điều chỉnh height của tab bar */
-.tabset-font ::ng-deep .ant-tabs-nav {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .ant-tabs-nav {
   margin-bottom: 0 !important;
   padding: 0 8px;
 }
 
 /* Đảm bảo Tabulator container chiếm đúng không gian */
-.tabset-font ::ng-deep .tabulator {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .tabulator {
   height: 100% !important;
   max-height: calc(39vh - 42px) !important; /* Trừ đi chiều cao tab header */
 }
 
 /* Cho phép scroll ngang trong Tabulator */
-.tabset-font ::ng-deep .tabulator-tableholder {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .tabulator-tableholder {
   overflow-x: auto !important;
   overflow-y: auto !important;
 }
 
 /* Đảm bảo scroll ngang luôn hiển thị khi cần */
-.tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar {
   height: 8px;
   width: 8px;
 }
 
-.tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar-track {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
 
-.tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar-thumb {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 4px;
 }
 
-.tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar-thumb:hover {
+.chi-tiet-san-pham-sale-tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
-.toolbar {
+.chi-tiet-san-pham-sale-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -153,7 +153,7 @@ nz-splitter-panel ::ng-deep .ant-splitter-panel {
   padding: 0.25rem;
 }
 
-.status-box {
+.chi-tiet-san-pham-sale-status-box {
   background-color: #FFD84D; /* màu vàng */
   padding: 4px 12px;
   border-radius: 4px;

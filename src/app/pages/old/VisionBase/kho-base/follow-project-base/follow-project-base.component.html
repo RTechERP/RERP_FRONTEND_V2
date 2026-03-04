@@ -31,7 +31,8 @@
               <nz-form-label class="fs-12" [nzSpan]="24">Team</nz-form-label>
               <nz-form-control [nzSpan]="24">
                 <nz-tree-select name="groupSaleID" [(ngModel)]="groupSaleID" style="width: 100%"
-                  [nzNodes]="groupSaleUser" nzShowSearch nzPlaceHolder="Chọn nhân viên">
+                  [nzNodes]="groupSaleUser" nzShowSearch nzPlaceHolder="Chọn nhân viên"
+                  [nzDropdownStyle]="{ 'max-height': '300px', 'overflow-y': 'auto' }">
                 </nz-tree-select>
               </nz-form-control>
             </nz-form-item>

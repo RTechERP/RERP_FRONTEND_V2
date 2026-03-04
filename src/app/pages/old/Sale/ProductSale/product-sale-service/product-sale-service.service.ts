@@ -17,15 +17,16 @@ export class ProductsaleServiceService {
   private unitcountUrl = environment.host + `api/UnitCount`;
   private frimUrl = environment.host + `api/Firm`;
   private employeeUrl = environment.host + `api/Employee/employees`;
+  private productGroupUrl = environment.host + 'api/ProductGroup';
 
-  constructor(private httpclient: HttpClient) {}
+  constructor(private httpclient: HttpClient) { }
 
   getdataProductGroup(
     warehouseCode: string,
     isvisible: boolean
   ): Observable<any> {
     return this.httpclient.get<any>(
-         `${this.productgroupUrl}?isvisible=${isvisible}&warehousecode=${warehouseCode}`
+      `${this.productgroupUrl}?isvisible=${isvisible}&warehousecode=${warehouseCode}`
       // `${this.productgroupUrl}/get-all`
     );
   }
@@ -85,13 +86,13 @@ export class ProductsaleServiceService {
   getDataLocation(productgroupID: number) {
     return this.httpclient.get<any>(
       `${this.locationUrl}/get-location-by-product-group?productgroupID=` +
-        productgroupID
+      productgroupID
     );
   }
   saveDataProductSale(data: any) {
     return this.httpclient.post<any>(`${this.baseUrl}/save-data`, data);
   }
-    saveDataProductSaleExcel(data: any) {
+  saveDataProductSaleExcel(data: any) {
     return this.httpclient.post<any>(`${this.baseUrl}/save-data-excel`, data);
   }
   getDataProductSalebyID(id: number) {
@@ -112,13 +113,17 @@ export class ProductsaleServiceService {
   getProductWareHouse(productgroupID: number) {
     return this.httpclient.get<any>(
       `${this.productgroupwarehouseUrl}/get-warehouse?groupid=` +
-        productgroupID
+      productgroupID
     );
   }
   getTemplateExcel() {
     return this.httpclient.get(`${this.baseUrl}/get-template-excel`, {
       responseType: 'blob' // 
     });
+  }
+
+  getProductGroups(): Observable<any[]> {
+    return this.httpclient.get<any>(`${this.productGroupUrl}/get-productgroup-purchase`);
   }
 }
 

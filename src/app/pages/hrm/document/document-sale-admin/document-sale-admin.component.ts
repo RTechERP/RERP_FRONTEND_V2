@@ -34,6 +34,8 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 import { PermissionService } from '../../../../services/permission.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+import { saveAs } from 'file-saver';
 import { Menubar } from 'primeng/menubar';
 import {
   AngularGridInstance,
@@ -141,6 +143,8 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
   selectedDocumentId: number = 0;
   selectedDocumentName: string = '';
   selectedDocumentTypeID: number = 0;
+  selectedDocumentTypeCode: string = '';
+  selectedRowData: any = null;
   documentFileID: number = 0;
 
   currentUser: any = null;
@@ -274,6 +278,22 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         id: 'NameDocumentType',
         name: 'Loại văn bản',
         field: 'NameDocumentType',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            autoAdjustDropPosition: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'TypeCode',
+        name: 'Mã loại văn bản',
+        field: 'CodeDocumentType',
         width: 150,
         sortable: true,
         filterable: true,
@@ -507,6 +527,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
             }
             const colorIndex = departmentColorMap.get(deptName);
 
+
             return `<span class="group-color-${colorIndex}" data-level="0">Phòng ban: <strong>${deptName}</strong>
                                 <span style="margin-left:10px;">
                                 (${g.count} VB)
@@ -552,6 +573,14 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
       this.selectedDocumentId = rowData.ID;
       this.selectedDocumentName = rowData.NameDocument || rowData.Code || '';
       this.selectedDocumentTypeID = rowData.DocumentTypeID || 0;
+      this.selectedDocumentTypeCode = rowData.CodeDocumentType || '';
+      this.selectedRowData = rowData;
+      console.log('>>> Document selected:', {
+        id: this.selectedDocumentId,
+        name: this.selectedDocumentName,
+        typeCode: this.selectedDocumentTypeCode,
+        selectedRowData: this.selectedRowData
+      });
       this.getDocumentFileByID(this.selectedDocumentId);
     }
   }
@@ -567,7 +596,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
     const rowData = this.angularGridFile?.dataView?.getItem(args.row);
     if (rowData) {
       this.data = [rowData];
-      this.downloadFile();
+      this.viewFile();
     }
   }
 
@@ -578,6 +607,14 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         this.selectedDocumentId = rowData.ID;
         this.selectedDocumentName = rowData.NameDocument || rowData.Code || '';
         this.selectedDocumentTypeID = rowData.DocumentTypeID || 0;
+        this.selectedDocumentTypeCode = rowData.CodeDocumentType || '';
+        this.selectedRowData = rowData;
+        console.log('>>> Document selected (row change):', {
+          id: this.selectedDocumentId,
+          name: this.selectedDocumentName,
+          typeCode: this.selectedDocumentTypeCode,
+          selectedRowData: this.selectedRowData
+        });
         this.getDocumentFileByID(this.selectedDocumentId);
       }
     }
@@ -607,6 +644,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
     const columnsToDistinct = [
       'STT',
       'NameDocumentType',
+      'CodeDocumentType',
       'Code',
       'NameDocument',
       'DepartmentCode',
@@ -681,6 +719,8 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
               const firstItem = this.dataset[0];
               if (firstItem && firstItem.ID) {
                 this.selectedDocumentId = firstItem.ID;
+                this.selectedDocumentTypeCode = firstItem.CodeDocumentType || '';
+                this.selectedRowData = firstItem;
                 this.angularGrid.slickGrid.setSelectedRows([0]);
                 this.getDocumentFileByID(this.selectedDocumentId);
               } else {
@@ -888,16 +928,14 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Tạo subPath dùng tên văn bản để dễ hiểu
-    const safeName = this.selectedDocumentName.replace(/[\\/:*?"<>|]/g, '_'); // Loại bỏ ký tự không hợp lệ
-    const subPath = `Documents/${safeName}`;
+    const key = 'Document';
 
     const loadingMsg = this.message.loading(`Đang tải lên ${file.name}...`, {
       nzDuration: 0,
     }).messageId;
 
     this.documentService
-      .uploadMultipleFiles([file], this.selectedDocumentTypeID, subPath)
+      .uploadMultipleFiles([file], this.selectedDocumentTypeCode, undefined, key)
       .subscribe({
         next: (res) => {
           this.message.remove(loadingMsg);
@@ -908,7 +946,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
             const fileRecord = {
               DocumentID: this.selectedDocumentId,
               FileName: uploadedFile.SavedFileName,
-              FilePath: uploadedFile.FilePath,
+              FilePath: `${key.toLowerCase()}/${uploadedFile.SavedFileName}`,
               FileNameOrigin: uploadedFile.OriginalFileName || file.name,
             };
 
@@ -1036,59 +1074,59 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
     });
   }
 
-  downloadFile() {
-    if (!this.data || this.data.length === 0) {
-      this.notification.warning(
-        'Thông báo',
-        'Vui lòng chọn một file để tải xuống!'
-      );
+  downloadFile(file?: any): void {
+    const fileToDownload = file || (this.data && this.data.length > 0 ? this.data[0] : null);
+    if (!fileToDownload || !fileToDownload.FileName) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy file để tải!');
       return;
     }
 
-    const file = this.data[0];
+    const fileName = fileToDownload.FileName;
+    const typeCode = this.selectedDocumentTypeCode || '';
 
-    if (!file.FilePath) {
-      this.notification.error(
-        'Thông báo',
-        'Không có đường dẫn file để tải xuống!'
-      );
+    this.documentService.downloadFileByKey(fileName, typeCode).subscribe({
+      next: (blob: Blob) => {
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+
+        a.href = objectUrl;
+        a.download = fileToDownload.FileNameOrigin || fileName;
+        a.click();
+
+        URL.revokeObjectURL(objectUrl);
+        this.notification.success(NOTIFICATION_TITLE.success, `Đã tải file: ${fileToDownload.FileNameOrigin || fileName}`);
+      },
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải file: ' + (err?.error?.message || err?.message || 'Không xác định'));
+      },
+    });
+  }
+
+  viewFile(file?: any): void {
+    const fileToView = file || (this.data && this.data.length > 0 ? this.data[0] : null);
+    if (!fileToView || !fileToView.FileName) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy file để xem!');
       return;
     }
 
-    const loadingMsg = this.message.loading('Đang tải xuống file...', {
-      nzDuration: 0,
-    }).messageId;
+    const fileName = fileToView.FileName;
+    const typeCode = this.selectedDocumentTypeCode || '';
 
-    this.documentService
-      .downloadFileSale(file.FileName, this.selectedDocumentName, this.selectedDocumentTypeID)
-      .subscribe({
-        next: (blob: Blob) => {
-          this.message.remove(loadingMsg);
+    this.documentService.downloadFileByKey(fileName, typeCode).subscribe({
+      next: (blob: Blob) => {
+        const objectUrl = URL.createObjectURL(blob);
+        const newWindow = window.open(objectUrl, '_blank');
 
-          if (blob && blob.size > 0) {
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download =
-              file.FileName || file.FileNameOrigin || 'downloaded_file';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            this.notification.success('Thông báo', 'Tải xuống thành công!');
-          } else {
-            this.notification.error('Thông báo', 'File tải về không hợp lệ!');
-          }
-        },
-        error: (res: any) => {
-          this.message.remove(loadingMsg);
-          const errorMsg =
-            res?.error?.message ||
-            res?.message ||
-            'Tải xuống thất bại! Vui lòng thử lại.';
-          this.notification.error('Thông báo', errorMsg);
-        },
-      });
+        if (newWindow) {
+          newWindow.onload = () => {
+            newWindow.document.title = fileToView.FileNameOrigin || fileName;
+          };
+        }
+      },
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xem file: ' + (err?.error?.message || err?.message || 'Không xác định'));
+      },
+    });
   }
 
   onDeleteDocumentFile() {

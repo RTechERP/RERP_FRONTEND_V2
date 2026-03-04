@@ -276,14 +276,16 @@ export class KPIService {
   }
 
   /**
-   * Export Excel by Team
+   * Xuất Excel theo Team - gọi API backend để tạo file ZIP chứa Excel
    * API: GET api/KPIEvaluationFactorScoring/export-excel-by-team
+   * @param kpiSessionId - ID kỳ đánh giá
+   * @param departmentId - ID phòng ban
+   * @returns Blob file ZIP
    */
-  exportExcelByTeam(kpiSessionID: number, departmentID: number, userTeamID: number): Observable<any> {
+  exportExcelByTeam(kpiSessionId: number, departmentId: number): Observable<Blob> {
     const params = new HttpParams()
-      .set('kpiSessionID', kpiSessionID.toString())
-      .set('departmentID', departmentID.toString())
-      .set('userTeamID', userTeamID.toString());
+      .set('kpiSessionId', kpiSessionId.toString())
+      .set('departmentId', departmentId.toString());
     return this.http.get(this.apiUrlFactorScoring + 'export-excel-by-team', {
       params,
       responseType: 'blob'
@@ -439,5 +441,111 @@ export class KPIService {
       .set('kpiSessionID', kpiSessionID.toString());
     return this.http.get<any>(this.apiUrl + 'get-position-employee', { params });
   }
+
+  /**
+   * Choice position for KPI evaluation
+   * API: POST api/KPIEvaluationEmployee/choice-position
+   * @param positionID - Position ID to choose
+   */
+  choicePosition(positionID: number): Observable<any> {
+    const params = new HttpParams().set('positionID', positionID.toString());
+    return this.http.post<any>(this.apiUrl + 'choice-position', null, { params });
+  }
+
+  // ==================== Load Data Team APIs ====================
+
+  /**
+   * Lấy danh sách tất cả team của nhân viên
+   * API: GET api/KPIEvaluationFactorScoring/get-all-team-by-empID
+   * @param employeeID - ID của nhân viên
+   * @param kpiSessionID - ID của kỳ đánh giá KPI
+   */
+  getAllTeamByEmployeeID(employeeID: number, kpiSessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('kpiSessionID', kpiSessionID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'get-all-team-by-empID', { params });
+  }
+
+  /**
+   * Load dữ liệu team và xử lý điểm KPI cho team
+   * API: POST api/KPIEvaluationFactorScoring/load-data-team
+   * @param request - Request object chứa employeeID, kpiSessionID, và danh sách nhân viên được chọn
+   */
+  loadDataTeam(request: {
+    employeeID: number;
+    kpiSessionID: number;
+    lstEmpChose: Array<{ ID: number }>;
+  }): Observable<any> {
+    return this.http.post<any>(this.apiUrlFactorScoring + 'load-data-team', request);
+  }
+
+  /**
+   * Load dữ liệu KPI Rule mới (Factor Scoring)
+   * API: GET api/KPIEvaluationFactorScoring/load-point-rule-new
+   */
+  loadPointRuleNew(kpiExamID: number, employeeID: number, sessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'load-point-rule-new', { params });
+  }
+  /**
+   * Load dữ liệu KPI Rule mới (spGetSumarizebyKPIEmpPointIDNew)
+   * API: GET api/KPIEvaluationEmployee/load-point-rule-new
+   * Controller tự tính empPointID từ sessionID + employeeID
+   * @param kpiExamID - ID bài đánh giá
+   * @param isPublic - Trạng thái công khai
+   * @param employeeID - ID nhân viên
+   * @param sessionID - ID kỳ đánh giá
+   */
+  loadPointRuleNew2(kpiExamID: number, isPublic: boolean, employeeID: number, sessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
+    return this.http.get<any>(this.apiUrl + 'load-point-rule-new2', { params });
+  }
+
+  /**
+   * Lấy điểm cuối cùng của nhân viên
+   * API: GET api/KPIEvaluationFactorScoring/get-final-point?employeeID={employeeID}&sessionID={sessionID}
+   */
+  getFinalPoint(employeeID: number, sessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-final-point', { params });
+  }
+
+  /**
+   * Lấy thông tin IsPublish của empPoint
+   * API: GET api/KPIEvaluationEmployee/get-ispublish
+   * @param kpiExamID - ID bài đánh giá KPI
+   * @param isPublic - Trạng thái công khai hiện tại
+   * @param employeeID - ID nhân viên
+   * @param sessionID - ID kỳ đánh giá
+   * @returns empPoint object chứa IsPublish flag
+   */
+  getIsPublish(kpiExamID: number, isPublic: boolean, employeeID: number, sessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-ispublish', { params });
+  }
+  /**
+   * Lấy thông tin IsPublic
+   * API: GET api/KPIEvaluationEmployee/get-ispublic?empPointID={empPointID}
+   */
+  getIsPublic(empPointID: number): Observable<any> {
+    const params = new HttpParams().set('empPointID', empPointID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-ispublic', { params });
+  }
 }
+
+
 

@@ -178,7 +178,7 @@
                     getFilmRowValidateStatus(i, 'FilmManagementDetailId')
                   " [nzErrorTip]="getFilmRowErrorTip(i, 'FilmManagementDetailId')">
                                     <nz-select formControlName="FilmManagementDetailId" class="w-100" nzShowSearch
-                                        nzAllowClear nzPlaceHolder="Chọn nội dung công việc"
+                                        nzAllowClear nzPlaceHolder="Chọn nội dung công việc" nzDropdownClassName="select-dropdown"
                                         (ngModelChange)="onFilmChange(i, $event)">
                                         <nz-option *ngFor="let film of filmList" [nzValue]="film.ID"
                                             [nzLabel]="film.WorkContent1"></nz-option>

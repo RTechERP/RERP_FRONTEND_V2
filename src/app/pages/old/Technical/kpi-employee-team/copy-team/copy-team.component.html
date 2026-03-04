@@ -1,0 +1,85 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">SAO CHÉP TEAM</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-3">
+    <nz-spin [nzSpinning]="isLoading" nzTip="Đang xử lý...">
+        <form nz-form nzLayout="vertical">
+            <!-- Copy From -->
+            <div class="mb-3">
+                <h6 class="text-muted fw-bold border-bottom pb-1">Sao chép từ</h6>
+                <div class="row">
+                    <div class="col-6">
+                        <nz-form-item>
+                            <nz-form-label [nzSpan]="24" nzRequired>Quý</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select [(ngModel)]="quarterFrom" name="quarterFrom" style="width: 100%;">
+                                    <nz-option *ngFor="let q of quarters" [nzValue]="q"
+                                        [nzLabel]="'Quý ' + q"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                    <div class="col-6">
+                        <nz-form-item>
+                            <nz-form-label [nzSpan]="24" nzRequired>Năm</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-input-number [(ngModel)]="yearFrom" name="yearFrom" [nzMin]="2020" [nzMax]="2100"
+                                    style="width: 100%;"></nz-input-number>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copy To -->
+            <div class="mb-3">
+                <h6 class="text-muted fw-bold border-bottom pb-1">Sao chép đến</h6>
+                <div class="row">
+                    <div class="col-6">
+                        <nz-form-item>
+                            <nz-form-label [nzSpan]="24" nzRequired>Quý</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select [(ngModel)]="quarterTo" name="quarterTo" style="width: 100%;">
+                                    <nz-option *ngFor="let q of quarters" [nzValue]="q"
+                                        [nzLabel]="'Quý ' + q"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                    <div class="col-6">
+                        <nz-form-item>
+                            <nz-form-label [nzSpan]="24" nzRequired>Năm</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-input-number [(ngModel)]="yearTo" name="yearTo" [nzMin]="2020" [nzMax]="2100"
+                                    style="width: 100%;"></nz-input-number>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Department Filter -->
+            <nz-form-item>
+                <nz-form-label [nzSpan]="24">Phòng ban</nz-form-label>
+                <nz-form-control [nzSpan]="24">
+                    <nz-select [(ngModel)]="departmentId" name="departmentId" nzShowSearch nzAllowClear
+                        nzPlaceHolder="Chọn phòng ban" style="width: 100%;">
+                        <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID"
+                            [nzLabel]="dept.Name"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
+        </form>
+    </nz-spin>
+</div>
+
+<div class="modal-footer p-2">
+    <button nz-button nzType="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="copy()" [disabled]="isLoading">
+        <i class="fas fa-copy"></i> Sao chép
+    </button>
+</div>

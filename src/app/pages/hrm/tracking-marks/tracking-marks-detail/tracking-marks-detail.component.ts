@@ -74,7 +74,7 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
   documentTypes: any[] = [];
   taxCompanies: any[] = [];
   sealRegulations: any[] = [];
-  
+
   currentEmployeeId: number = 0;
   currentDepartmentId: number = 0;
   currentDepartmentName: string = '';
@@ -115,7 +115,7 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
     this.loadDocumentTypes();
     this.loadTaxCompanies();
     this.loadSealRegulations();
-    
+
     if (this.trackingMarkId > 0) {
       this.loadTrackingMarkDetail();
     }
@@ -213,7 +213,7 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
 
   loadTrackingMarkDetail() {
     this.deletedFileIds = [];
-    
+
     this.trackingMarksService.getById(this.trackingMarkId).subscribe({
       next: (data: any) => {
         if (data?.status === 1) {
@@ -422,7 +422,7 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
       this.notification.error('Thông báo', 'Không thể tải file chưa được lưu');
       return;
     }
-    
+
     const loadingMsg = this.message.loading('Đang tải xuống file...', {
       nzDuration: 0,
     }).messageId;
@@ -485,7 +485,7 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
     }
 
     const formValue = this.form.getRawValue();
-    
+
     // Validate
     if (!formValue.registerDate) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày đăng ký');
@@ -525,13 +525,13 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
     const model = {
       ID: this.trackingMarkId,
       EmployeeID: this.currentEmployeeId,
-      RegisterDate: formValue.registerDate,
+      RegisterDate: this.formatLocalDate(formValue.registerDate),
       EmployeeSignID: formValue.employeeSignId || 0,
       DocumentTypeID: formValue.documentTypeId,
       DocumentName: formValue.documentName,
       DocumentQuantity: formValue.documentQuantity,
       DocumentTotalPage: formValue.documentTotalPage || 0,
-      Deadline: this.isUrgent ? formValue.deadline : null,
+      Deadline: this.isUrgent ? this.formatLocalDate(formValue.deadline) : null,
       ListSeal: this.selectedSealRegulations.map(id => ({
         ID: 0,
         TrackingMartkID: 0,
@@ -549,7 +549,7 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
       next: (res: any) => {
         if (res?.status === 1) {
           const trackingMarkId = res.data?.id || this.trackingMarkId;
-          
+
           // Upload files if any
           const newFiles = this.files.filter((f: any) => f.file && !f.ID); // Chỉ upload file mới (có file object và ID = 0)
 
@@ -614,5 +614,16 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
   close() {
     this.activeModal.close(false);
   }
+
+  // Format date theo local time để tránh lệch timezone
+  formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  };
 }
 

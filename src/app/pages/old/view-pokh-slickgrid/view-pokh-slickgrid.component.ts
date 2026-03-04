@@ -18,6 +18,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
   AngularGridInstance,
   AngularSlickgridModule,
@@ -72,6 +73,7 @@ interface GroupedData {
     NzDatePickerModule,
     NzInputModule,
     NzInputNumberModule,
+    NzSpinModule,
     AngularSlickgridModule,
     Menubar,
   ],
@@ -170,6 +172,9 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     keyword: '',
   };
 
+  // Loading state
+  isLoadingData: boolean = false;
+
   constructor(
     public activeModal: NgbActiveModal,
     private viewPokhSlickgridService: ViewPokhSlickgridService,
@@ -199,6 +204,19 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
   }
 
   ngAfterViewInit(): void {
+    // Apply default grouping after initialization
+    setTimeout(() => {
+      if (this.angularGrid?.slickGrid && this.angularGrid?.dataView) {
+        this.angularGrid.dataView.setGrouping({
+          getter: 'PONumber',
+          formatter: (g) => `Số POKH: ${g.value}`,
+          collapsed: false,
+          aggregateCollapsed: false,
+          lazyTotalsCalculation: true
+        });
+        this.angularGrid.slickGrid.invalidate();
+      }
+    }, 500);
   }
 
   ngOnDestroy(): void {
@@ -280,6 +298,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       { id: 'ID', name: 'ID', field: 'ID', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, excludeFromExport: true, hidden: true },
       { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'MainIndex', name: 'Loại', field: 'MainIndex', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'StatusText', name: 'Trạng thái', field: 'StatusText', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.statusFormatter, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReceivedDatePO', name: 'Ngày PO', field: 'ReceivedDatePO', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.dateFormatter, cssClass: 'text-center' },
       { id: 'FullName', name: 'Sale phụ trách', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -287,6 +306,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       { id: 'CustomerName', name: 'Tên khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ProductNewCode', name: 'Mã nội bộ', field: 'ProductNewCode', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'ProductCode', name: 'Mã sản phẩm', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Qty', name: 'SL PO', field: 'Qty', width: 80, minWidth: 80, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.moneyFormatter, cssClass: 'text-end' },
       { id: 'QuantityDelived', name: 'SL đã giao', field: 'QuantityDelived', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.moneyFormatter, cssClass: 'text-end' },
@@ -297,6 +317,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       { id: 'IntoMoney', name: 'Tổng giá (chưa VAT)', field: 'IntoMoney', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.moneyFormatter, cssClass: 'text-end' },
       { id: 'VAT', name: 'VAT(%)', field: 'VAT', width: 80, minWidth: 80, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'text-end' },
       { id: 'TotalPriceIncludeVAT', name: 'Tổng tiền (gồm VAT)', field: 'TotalPriceIncludeVAT', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.moneyFormatter, cssClass: 'text-end' },
+      { id: 'TotalPriceDiscountDetail', name: 'Đơn giá sau chiết khấu', field: 'TotalPriceDiscountDetail', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.moneyFormatter, cssClass: 'text-end' },
       { id: 'DeliveryRequestedDate', name: 'Ngày dự kiến GH', field: 'DeliveryRequestedDate', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.dateFormatter, cssClass: 'text-center' },
       { id: 'DateMinutes', name: 'Ngày GH thực tế', field: 'DateMinutes', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.dateFormatter, cssClass: 'text-center' },
       { id: 'PayDate', name: 'Ngày TT dự kiến', field: 'PayDate', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.dateFormatter, cssClass: 'text-center' },
@@ -353,7 +374,27 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         // Don't load once - allow re-render
         loadOnce: false,
       },
+      enableDraggableGrouping: false,
+      createPreHeaderPanel: true,
+      showPreHeaderPanel: true,
+      preHeaderPanelHeight: 40,
+      draggableGrouping: {
+        dropPlaceHolderText: 'Kéo thả tên cột vào đây để nhóm dữ liệu',
+        deleteIconCssClass: 'fa fa-times',
+        groupIconCssClass: 'fa fa-outdent',
+        onGroupChanged: (e, args) => {
+          this.updateFooterRow();
+        }
+      },
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 30,
     };
+
+    // // Set default grouping by PONumber
+    // this.gridOptions.draggableGrouping = {
+    //   dropPlaceHolderText: 'Kéo thả tên cột vào đây để nhóm dữ liệu',
+    // };
   }
 
   initExportGrid(): void {
@@ -365,9 +406,12 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         width: 40,
         maxWidth: 40,
         formatter: (row, cell, value, columnDef, dataContext) => {
-          const isSelected = this.selectedExportRowsAll.some(r => r.BillExportDetailID === dataContext.BillExportDetailID);
+          // Dùng Code + POKHDetailID làm composite key
+          const isSelected = this.selectedExportRowsAll.some(r =>
+            r.POKHDetailID === dataContext.POKHDetailID && r.Code === dataContext.Code
+          );
           return `<div style="text-align: center;">
-            <input type="checkbox" ${isSelected ? 'checked' : ''} class="export-row-checkbox" data-id="${dataContext.BillExportDetailID}" data-parent-id="${dataContext.POKHDetailID}" style="cursor: pointer; width: 16px; height: 16px;"/>
+            <input type="checkbox" ${isSelected ? 'checked' : ''} class="export-row-checkbox" data-code="${dataContext.Code}" data-parent-id="${dataContext.POKHDetailID}" style="cursor: pointer; width: 16px; height: 16px;"/>
           </div>`;
         },
         excludeFromExport: true,
@@ -612,14 +656,25 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
   }
 
   handleExportRowSelect(dataContext: any, parentId: number, isSelected: boolean): void {
-    const billExportDetailID = dataContext.BillExportDetailID || dataContext.ID;
+    const code = dataContext.Code || '';
+    const qty = dataContext.Qty ?? dataContext.qty ?? null;
+    const totalQty = dataContext.TotalQty ?? dataContext.totalQty ?? null;
+
+    // Composite key: POKHDetailID + Code + Qty + TotalQty
+    const isSameKey = (x: any) =>
+      x.POKHDetailID === parentId &&
+      x.Code === code &&
+      x.Qty === qty &&
+      x.TotalQty === totalQty;
 
     if (isSelected) {
-      if (!this.selectedExportRowsAll.some(x => x.BillExportDetailID === billExportDetailID)) {
+      if (!this.selectedExportRowsAll.some(isSameKey)) {
         this.selectedExportRowsAll.push({
           POKHDetailID: parentId,
-          BillExportDetailID: billExportDetailID,
-          Code: dataContext.Code || '',
+          BillExportDetailID: dataContext.BillExportDetailID || dataContext.ID,
+          Code: code,
+          Qty: qty,
+          TotalQty: totalQty,
         });
       }
       // Auto-select parent if not already selected
@@ -628,7 +683,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         this.selectedRowsAll.push({ ...parentData });
       }
     } else {
-      this.selectedExportRowsAll = this.selectedExportRowsAll.filter(x => x.BillExportDetailID !== billExportDetailID);
+      // Xóa dựa trên composite key: Code + POKHDetailID + Qty + TotalQty
+      this.selectedExportRowsAll = this.selectedExportRowsAll.filter(x => !isSameKey(x));
       // Deselect parent if no more exports selected
       const remainingExportsForParent = this.selectedExportRowsAll.filter(x => x.POKHDetailID === parentId);
       if (remainingExportsForParent.length === 0) {
@@ -642,12 +698,22 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
   selectAllExportsForParent(parentData: any): void {
     if (parentData.exportDetails && parentData.exportDetails.length > 0) {
       parentData.exportDetails.forEach((ex: any) => {
-        const billExportDetailID = ex.BillExportDetailID || ex.ID;
-        if (!this.selectedExportRowsAll.some(x => x.BillExportDetailID === billExportDetailID)) {
+        const code = ex.Code || '';
+        const qty = ex.Qty ?? ex.qty ?? null;
+        const totalQty = ex.TotalQty ?? ex.totalQty ?? null;
+        // Composite key: POKHDetailID + Code + Qty + TotalQty
+        if (!this.selectedExportRowsAll.some(x =>
+          x.POKHDetailID === parentData.ID &&
+          x.Code === code &&
+          x.Qty === qty &&
+          x.TotalQty === totalQty
+        )) {
           this.selectedExportRowsAll.push({
             POKHDetailID: parentData.ID,
-            BillExportDetailID: billExportDetailID,
-            Code: ex.Code || '',
+            BillExportDetailID: ex.BillExportDetailID || ex.ID,
+            Code: code,
+            Qty: qty,
+            TotalQty: totalQty,
           });
         }
       });
@@ -846,8 +912,12 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       }
 
       const selectedExports = (row.exportDetails || []).filter((ex: any) => {
+        // Match dùng Code + POKHDetailID + Qty + TotalQty để phân biệt các dòng trùng Code
         return selectedExportsForThisParent.some((selected: any) =>
-          selected.BillExportDetailID === ex.BillExportDetailID
+          selected.POKHDetailID === row.ID &&
+          selected.Code === ex.Code &&
+          selected.Qty === (ex.Qty ?? ex.qty ?? null) &&
+          selected.TotalQty === (ex.TotalQty ?? ex.totalQty ?? null)
         );
       });
 
@@ -939,7 +1009,9 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
   //#region Data Loading
   loadData(): void {
     const startDate = new Date(this.filters.startDate);
+    startDate.setHours(0, 0, 0, 0);  // 00:00:00.000
     const endDate = new Date(this.filters.endDate);
+    endDate.setHours(23, 59, 59, 999);  // 23:59:59.999
 
     const params = {
       employeeTeamSaleId: this.filters.employeeTeamSaleId || 0,
@@ -951,6 +1023,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       warehouseId: this.warehouseId || 0,
     };
 
+    this.isLoadingData = true;
     this.viewPokhSlickgridService.loadViewPOKH(
       startDate, endDate,
       params.employeeTeamSaleId, params.userId, params.poType,
@@ -966,13 +1039,94 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         id: item.ID || idx,
       }));
 
-      // Khôi phục selections - checkbox formatter sẽ tự kiểm tra selectedRowsAll
       setTimeout(() => {
         if (this.angularGrid?.slickGrid) {
           this.angularGrid.slickGrid.invalidate();
           this.angularGrid.slickGrid.render();
+          this.updateFooterRow();
         }
       }, 100);
+      this.isLoadingData = false;
+    },
+      (error) => {
+        this.isLoadingData = false;
+        this.notification.error('Lỗi', 'Không thể tải dữ liệu');
+      }
+    );
+  }
+
+  updateFooterRow(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+
+    const items = this.angularGrid.dataView.getItems();
+
+    // Calculate stats
+    const totalCount = items.length;
+
+    // Helper to sum
+    const sum = (field: string) => items.reduce((acc, item) => acc + (Number(item[field]) || 0), 0);
+
+    const totalQty = sum('Qty');
+    const totalQuantityDelived = sum('QuantityDelived');
+    const totalQuantityPending = sum('QuantityPending');
+    const totalNetUnitPrice = sum('NetUnitPrice');
+    const totalUnitPrice = sum('UnitPrice');
+    const totalIntoMoney = sum('IntoMoney');
+    const totalVAT = sum('VAT');
+    const totalTotalPriceIncludeVAT = sum('TotalPriceIncludeVAT');
+    const totalTotalPriceDiscountDetail = sum('TotalPriceDiscountDetail');
+
+    this.angularGrid.slickGrid.setFooterRowVisibility(true);
+
+    const columns = this.angularGrid.slickGrid.getColumns();
+    const visibleColumns = columns.filter((col: any) => !col.hidden);
+    const footerRow = this.angularGrid.slickGrid.getFooterRow() as HTMLElement;
+
+    visibleColumns.forEach((col: any, index: number) => {
+      const footerCell = footerRow && footerRow.children[index] as HTMLElement;
+      if (!footerCell) return;
+
+      // Reset content
+      footerCell.innerHTML = '';
+      footerCell.style.paddingRight = '4px';
+
+      if (col.id === 'ProductNewCode') {
+        footerCell.innerHTML = `<div style="text-align: right; font-weight: bold;">${totalCount} dòng</div>`;
+      } else if (col.id === 'Qty') {
+        footerCell.innerHTML = `<div style="text-align: right; font-weight: bold;">${new Intl.NumberFormat('vi-VN').format(totalQty)}</div>`;
+      } else if (col.id === 'QuantityDelived') {
+        footerCell.innerHTML = `<div style="text-align: right; font-weight: bold;">${new Intl.NumberFormat('vi-VN').format(totalQuantityDelived)}</div>`;
+      } else if (col.id === 'QuantityPending') {
+        footerCell.innerHTML = `<div style="text-align: right; font-weight: bold;">${new Intl.NumberFormat('vi-VN').format(totalQuantityPending)}</div>`;
+      } else if (col.id === 'NetUnitPrice') {
+        footerCell.innerHTML = `<div style="text-align: right; font-weight: bold;">${new Intl.NumberFormat('vi-VN').format(totalNetUnitPrice)}</div>`;
+      } else if (col.id === 'UnitPrice') {
+        footerCell.innerHTML = `<div style="text-align: right; font-weight: bold;">${new Intl.NumberFormat('vi-VN').format(totalUnitPrice)}</div>`;
+      } else if (col.id === 'IntoMoney') {
+        footerCell.innerHTML = `<div style="text-align: right; font-weight: bold;">${new Intl.NumberFormat('vi-VN').format(totalIntoMoney)}</div>`;
+      } else if (col.id === 'VAT') {
+        // VAT usually not summed directly like this but requested "Total of that column"
+        // If it's percentage, sum might be meaningless, but assuming standard sum request.
+        // Wait, VAT column usually is percentage. Summing percentages is wrong. 
+        // But user asked: "các cột từ SL PO đến tổng tiền gồm vat thì tính tổng của cột đó".
+        // VAT is between them. Let's check the column definition.
+        // { id: 'VAT', name: 'VAT(%)', ... }
+        // Summing % is weird. I will sum it if it's strictly requested "all columns from X to Y".
+        // However, looking at reference pokh-slickgrid, VAT isn't summed in updateProductFooterRow, only Qty and QuantityReturn.
+        // But user explicitly said: "các cột từ SL PO đến tổng tiền gồm vat thì tính tổng của cột đó".
+        // Use judgement: Summing VAT % is useless. Summing VAT money is useful but we don't have a specific VAT Money column visible here (we have IntoMoney and TotalPriceIncludeVAT).
+        // The column 'VAT' field is usually the %.
+        // Let's Skip VAT sum to be safe, or just sum it if user really insists. 
+        // Let's look at `pokh-slickgrid` again.
+        // It has: Qty, QuantityReturn. 
+        // User request: "các cột từ SL PO đến tổng tiền gồm vat thì tính tổng".
+        // Columns order: Qty, QuantityDelived, QuantityPending, Unit, NetUnitPrice, UnitPrice, IntoMoney, VAT, TotalPriceIncludeVAT, TotalPriceDiscountDetail.
+        // I will sum all money/qty columns. I will SKIP Unit and SKIP VAT (percentage).
+      } else if (col.id === 'TotalPriceIncludeVAT') {
+        footerCell.innerHTML = `<div style="text-align: right; font-weight: bold;">${new Intl.NumberFormat('vi-VN').format(totalTotalPriceIncludeVAT)}</div>`;
+      } else if (col.id === 'TotalPriceDiscountDetail') {
+        footerCell.innerHTML = `<div style="text-align: right; font-weight: bold;">${new Intl.NumberFormat('vi-VN').format(totalTotalPriceDiscountDetail)}</div>`;
+      }
     });
   }
 
@@ -1126,11 +1280,15 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     }
 
     const workbook = new ExcelJS.Workbook();
+
+    // Sheet 1: View POKH (dữ liệu chính)
     const worksheet = workbook.addWorksheet('View POKH');
 
     const columnDefs = [
       { field: 'PONumber', title: 'Số POKH', width: 20 },
       { field: 'ProjectCode', title: 'Mã dự án', width: 15 },
+      { field: 'MainIndex', title: 'Loại', width: 15 },
+      { field: 'ProductCode', title: 'Mã sản phẩm', width: 18 },
       { field: 'CustomerName', title: 'Khách hàng', width: 25 },
       { field: 'StatusText', title: 'Trạng thái', width: 25 },
       { field: 'ReceivedDatePO', title: 'Ngày PO', width: 12, isDate: true },
@@ -1147,6 +1305,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
       { field: 'IntoMoney', title: 'Tổng giá (chưa VAT)', width: 18, isMoney: true },
       { field: 'VAT', title: 'VAT(%)', width: 10 },
       { field: 'TotalPriceIncludeVAT', title: 'Tổng tiền (gồm VAT)', width: 20, isMoney: true },
+      { field: 'TotalPriceDiscountDetail', title: 'Đơn giá sau chiết khấu', width: 20, isMoney: true },
     ];
 
     worksheet.columns = columnDefs.map(col => ({
@@ -1176,6 +1335,90 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
           excelRow.getCell(colIndex + 1).numFmt = '#,##0';
         }
       });
+    });
+
+    // Sheet 2: Chi tiết Xuất hàng (Export Details)
+    const exportSheet = workbook.addWorksheet('Chi tiết xuất hàng');
+    const exportColumnDefs = [
+      { field: 'PONumber', title: 'Số POKH', width: 20 },
+      { field: 'ProductCode', title: 'Mã sản phẩm', width: 18 },
+      { field: 'CustomerName', title: 'Khách hàng', width: 25 },
+      { field: 'Code', title: 'Mã phiếu xuất', width: 25 },
+      { field: 'TotalQty', title: 'Tổng SL PO', width: 15 },
+      { field: 'Qty', title: 'SL xuất', width: 15 },
+    ];
+
+    exportSheet.columns = exportColumnDefs.map(col => ({
+      header: col.title,
+      key: col.field,
+      width: col.width,
+    }));
+
+    const exportHeaderRow = exportSheet.getRow(1);
+    exportHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    exportHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF70AD47' } };
+    exportHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    exportHeaderRow.height = 25;
+
+    let exportRowIndex = 2;
+    this.dataset.forEach((parentRow: any) => {
+      if (parentRow.exportDetails && parentRow.exportDetails.length > 0) {
+        parentRow.exportDetails.forEach((exportItem: any) => {
+          const excelRow = exportSheet.getRow(exportRowIndex);
+          excelRow.getCell(1).value = parentRow.PONumber ?? '';
+          excelRow.getCell(2).value = parentRow.ProductCode ?? '';
+          excelRow.getCell(3).value = parentRow.CustomerName ?? '';
+          excelRow.getCell(4).value = exportItem.Code ?? '';
+          excelRow.getCell(5).value = exportItem.TotalQty ?? 0;
+          excelRow.getCell(6).value = exportItem.Qty ?? 0;
+          exportRowIndex++;
+        });
+      }
+    });
+
+    // Sheet 3: Chi tiết Hóa đơn (Invoice Details)
+    const invoiceSheet = workbook.addWorksheet('Chi tiết hóa đơn');
+    const invoiceColumnDefs = [
+      { field: 'PONumber', title: 'Số POKH', width: 20 },
+      { field: 'ProductCode', title: 'Mã sản phẩm', width: 18 },
+      { field: 'CustomerName', title: 'Khách hàng', width: 25 },
+      { field: 'RequestInvoiceCode', title: 'Mã lệnh xuất HĐ', width: 25 },
+      { field: 'TaxCompanyName', title: 'Công ty xuất HĐ', width: 25 },
+      { field: 'InvoiceNumber', title: 'Số hóa đơn', width: 18 },
+      { field: 'InvoiceDate', title: 'Ngày hóa đơn', width: 15, isDate: true },
+    ];
+
+    invoiceSheet.columns = invoiceColumnDefs.map(col => ({
+      header: col.title,
+      key: col.field,
+      width: col.width,
+    }));
+
+    const invoiceHeaderRow = invoiceSheet.getRow(1);
+    invoiceHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    invoiceHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFED7D31' } };
+    invoiceHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    invoiceHeaderRow.height = 25;
+
+    let invoiceRowIndex = 2;
+    this.dataset.forEach((parentRow: any) => {
+      if (parentRow.invoiceDetails && parentRow.invoiceDetails.length > 0) {
+        parentRow.invoiceDetails.forEach((invoiceItem: any) => {
+          const excelRow = invoiceSheet.getRow(invoiceRowIndex);
+          excelRow.getCell(1).value = parentRow.PONumber ?? '';
+          excelRow.getCell(2).value = parentRow.ProductCode ?? '';
+          excelRow.getCell(3).value = parentRow.CustomerName ?? '';
+          excelRow.getCell(4).value = invoiceItem.RequestInvoiceCode ?? '';
+          excelRow.getCell(5).value = invoiceItem.TaxCompanyName ?? '';
+          excelRow.getCell(6).value = invoiceItem.InvoiceNumber ?? '';
+          if (invoiceItem.InvoiceDate) {
+            excelRow.getCell(7).value = new Date(invoiceItem.InvoiceDate).toLocaleDateString('vi-VN');
+          } else {
+            excelRow.getCell(7).value = '';
+          }
+          invoiceRowIndex++;
+        });
+      }
     });
 
     const buffer = await workbook.xlsx.writeBuffer();

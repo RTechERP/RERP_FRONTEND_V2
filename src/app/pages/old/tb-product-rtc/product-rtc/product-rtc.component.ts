@@ -37,7 +37,7 @@ import { PurchaseRequestDemoComponent } from '../../../../pages/purchase/project
 import { ProjectPartlistPriceRequestNewComponent } from '../../../../pages/purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { AppUserService } from '../../../../services/app-user.service';
 import { TbProductRtcImportExcelComponent } from '../tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
-
+import * as ExcelJS from 'exceljs';
 @Component({
     selector: 'app-product-rtc',
     standalone: true,
@@ -1139,13 +1139,10 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         modalRef.componentInstance.showCloseButton = true;
         modalRef.componentInstance.employeeID = this.appUserService.employeeID || 0;
 
-        modalRef.result.then(
-            (result) => {
-                console.log('Modal closed with result:', result);
+        modalRef.result.finally(
+            () => {
+                console.log('Modal closed');
             },
-            (dismissed) => {
-                console.log('Modal dismissed');
-            }
         );
     }
 
@@ -1165,11 +1162,8 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         modalRef.componentInstance.isPriceRequestDemo = true;
         modalRef.componentInstance.projectPartlistPriceRequestTypeID = 6;
 
-        modalRef.result.then(
-            (result) => {
-                console.log('Modal closed with result:', result);
-            },
-            (dismissed) => {
+        modalRef.result.finally(
+            () => {
                 console.log('Modal dismissed');
             }
         );
@@ -1184,13 +1178,10 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         modalRef.componentInstance.warehouseType = this.warehouseType;
         modalRef.componentInstance.warehouseID = this.warehouseID;
-        modalRef.result.then(
-            (result) => {
+        modalRef.result.finally(
+            () => {
                 this.getProduct();
             },
-            () => {
-                console.log('Modal dismissed');
-            }
         );
     }
 
@@ -1202,8 +1193,6 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
             return;
         }
-
-        const ExcelJS = await import('exceljs');
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Danh sách thiết bị');
 

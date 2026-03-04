@@ -70,7 +70,7 @@ import { ProjectFieldDetailComponent } from './project-field-detail/project-fiel
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    NzUploadModule,HasPermissionDirective
+    NzUploadModule, HasPermissionDirective
   ],
   templateUrl: './project-field.component.html',
   styleUrl: './project-field.component.css'
@@ -83,8 +83,8 @@ export class ProjectFieldComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private router: Router,
     private projectService: ProjectService
-  ) {}
-  ngOnInit(): void { 
+  ) { }
+  ngOnInit(): void {
     this.loadData();
   }
   ngAfterViewInit(): void {
@@ -99,53 +99,53 @@ export class ProjectFieldComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_projectField', { static: false })
   tb_projectFieldContainer!: ElementRef;
   tb_projectField: any;
-  toggleSearchPanel(){
+  toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
-  resetSearch(){
+  resetSearch() {
     this.keyword = '';
     this.dataTableProjectField = [...this.originalDataTableProjectField];
     this.tb_projectField.replaceData(this.dataTableProjectField);
   }
-  loadData(){
+  loadData() {
     this.isLoadTable = true;
     this.projectFieldService.getProjectField().subscribe({
       next: (res: any) => {
-        if(res.status === 1){
+        if (res.status === 1) {
           console.log('datahaha', res.data);
           this.originalDataTableProjectField = res.data; // Lưu dữ liệu gốc
           this.dataTableProjectField = res.data;
           this.tb_projectField.replaceData(this.dataTableProjectField);
           this.isLoadTable = false;
-        }else{
+        } else {
           this.notification.error('Lỗi', res.message);
           this.isLoadTable = false;
         }
       }
     });
   }
-  drawTbProjectField(container: HTMLElement){
+  drawTbProjectField(container: HTMLElement) {
     this.tb_projectField = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataTableProjectField,
       paginationMode: 'local',
-      layout: 'fitColumns',
+      layout: 'fitDataStretch',
       columns: [
         { title: 'STT', field: 'STT', hozAlign: 'center', width: 70 },
-        { title: 'Mã lĩnh vực', field: 'Code', hozAlign: 'left' },
-        { title: 'Tên lĩnh vực', field: 'Name', hozAlign: 'left' },
+        { title: 'Mã lĩnh vực', field: 'Code', hozAlign: 'left', width: 150 },
+        { title: 'Tên lĩnh vực', field: 'Name', hozAlign: 'left', width: 150 },
         { title: 'Ghi chú', field: 'Note', hozAlign: 'left', formatter: 'textarea' }
       ]
     });
   }
-  exportExcel(){
-   if(this.dataTableProjectField.length > 0){
-    this.projectService.exportExcel(this.tb_projectField, this.dataTableProjectField, 'Lĩnh vực dự án', 'LINHVUCDUAN');
-   }else{
-    this.notification.info('Thông báo','Không có dữ liệu để xuất!');
-   }
+  exportExcel() {
+    if (this.dataTableProjectField.length > 0) {
+      this.projectService.exportExcel(this.tb_projectField, this.dataTableProjectField, 'Lĩnh vực dự án', 'LINHVUCDUAN');
+    } else {
+      this.notification.info('Thông báo', 'Không có dữ liệu để xuất!');
+    }
   }
-  openProjectFieldDetail(isEditMode: boolean, projectField: any){
+  openProjectFieldDetail(isEditMode: boolean, projectField: any) {
     const modalRef = this.modalService.open(ProjectFieldDetailComponent, {
       centered: true,
       size: 'md',
@@ -155,21 +155,21 @@ export class ProjectFieldComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.isEditMode = isEditMode;
     modalRef.componentInstance.projectField = projectField;
     modalRef.result.then((result) => {
-      if(result == true){
+      if (result == true) {
         this.loadData();
       }
     });
   }
-  addProjectField(){
+  addProjectField() {
     // Lấy ID lớn nhất + 1 để gán vào STT
     let maxSTT = 0;
-    if(this.dataTableProjectField.length > 0){
+    if (this.dataTableProjectField.length > 0) {
       const ids = this.dataTableProjectField
         .map((item: any) => item.STT)
         .filter((stt: any) => stt != null && stt !== undefined && !isNaN(stt));
       maxSTT = ids.length > 0 ? Math.max(...ids) : 0;
     }
-    
+
     const newProjectField = {
       ID: 0,
       STT: maxSTT + 1,
@@ -179,28 +179,28 @@ export class ProjectFieldComponent implements OnInit, AfterViewInit {
     };
     this.openProjectFieldDetail(false, newProjectField);
   }
-  editProjectField(){
+  editProjectField() {
     const selectedProjectField = this.tb_projectField.getSelectedData();
-    if(selectedProjectField.length > 0){
+    if (selectedProjectField.length > 0) {
       this.openProjectFieldDetail(true, selectedProjectField[0]);
-    }else{
+    } else {
       this.notification.error('Thông báo', 'Vui lòng chọn một lĩnh vực để sửa!');
       return;
     }
   }
-  deleteProjectField(){
+  deleteProjectField() {
     const selectedProjectField = this.tb_projectField.getSelectedData();
-    if(!selectedProjectField || selectedProjectField.length === 0){
+    if (!selectedProjectField || selectedProjectField.length === 0) {
       this.notification.error('Thông báo', 'Vui lòng chọn ít nhất một lĩnh vực để xóa!');
       return;
     }
-    
+
     // Hiển thị dialog xác nhận
     const count = selectedProjectField.length;
-    const message = count === 1 
+    const message = count === 1
       ? `Bạn có chắc chắn muốn xóa lĩnh vực <strong>"${selectedProjectField[0].Name}"</strong> không?`
       : `Bạn có chắc chắn muốn xóa <strong>${count}</strong> lĩnh vực đã chọn không?`;
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: message,
@@ -220,10 +220,10 @@ export class ProjectFieldComponent implements OnInit, AfterViewInit {
         }));
         this.projectFieldService.saveProjectField(projectFieldsToDelete).subscribe({
           next: (res: any) => {
-            if(res.status === 1){
+            if (res.status === 1) {
               this.notification.success('Thông báo', 'Đã xóa thành công');
               this.loadData();
-            }else{
+            } else {
               this.notification.error('Thông báo', res.message);
             }
           },
@@ -248,28 +248,28 @@ export class ProjectFieldComponent implements OnInit, AfterViewInit {
 
   onsearchData() {
     this.keyword = this.keyword.trim();
-  
+
     // Nếu keyword rỗng, hiển thị lại toàn bộ dữ liệu gốc
     if (!this.keyword || this.keyword === '') {
       this.dataTableProjectField = [...this.originalDataTableProjectField];
       this.tb_projectField.replaceData(this.dataTableProjectField);
       return;
     }
-  
+
     // Chuẩn hóa keyword để tìm kiếm (ví dụ: "Má" → "ma", "Máy" → "may")
     const keywordNorm = this.normalizeVietnamese(this.keyword);
-  
+
     // Filter từ dữ liệu gốc
     this.dataTableProjectField = this.originalDataTableProjectField.filter((item: any) => {
       const code = this.normalizeVietnamese(item.Code || '');
       const name = this.normalizeVietnamese(item.Name || '');
       const note = this.normalizeVietnamese(item.Note || '');
-  
+
       return code.includes(keywordNorm) ||
-             name.includes(keywordNorm) ||
-             note.includes(keywordNorm);
+        name.includes(keywordNorm) ||
+        note.includes(keywordNorm);
     });
-  
+
     this.tb_projectField.replaceData(this.dataTableProjectField);
   }
 }

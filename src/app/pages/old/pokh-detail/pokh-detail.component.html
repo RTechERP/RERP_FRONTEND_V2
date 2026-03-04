@@ -33,15 +33,20 @@
                 </div>
 
                 <div class="col-md-4">
-                  <label class="mb-1 fs-12">Sales phụ trách</label>
+                  <label class="mb-1 fs-12">Sales phụ trách <span class="text-danger">*</span></label>
                   <nz-select nzShowSearch name="userId" [(ngModel)]="poFormData.userId"
-                    nzPlaceHolder="Chọn người phụ trách" nzAllowClear nzSize="default" class="w-100">
+                    nzPlaceHolder="Chọn người phụ trách" nzAllowClear nzSize="default" class="w-100" required
+                    #userId="ngModel">
                     <nz-option-group *ngFor="let group of userGroups" [nzLabel]="group.label">
                       <nz-option *ngFor="let user of group.options" [nzValue]="user.UserID" [nzLabel]="user.FullName"
                         [nzDisabled]="group.label === 'Team cũ'">
                       </nz-option>
                     </nz-option-group>
                   </nz-select>
+                  <small class="text-danger d-block"
+                    *ngIf="(userId.invalid && userId.touched) || (isSubmitted && (!poFormData.userId || poFormData.userId === 0))">
+                    Vui lòng chọn Sales phụ trách
+                  </small>
                 </div>
 
                 <!-- Row 2 -->

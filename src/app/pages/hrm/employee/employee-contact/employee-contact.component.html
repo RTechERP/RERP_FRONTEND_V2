@@ -1,13 +1,14 @@
 <ng-container class="employee-contact-page">
     <div class="card card-primary rounded-0 border-0 h-100 d-flex flex-column" style="height: 90vh;">
-        <div class="card-header p-1 bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div
+            class="card-header p-1 bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h6 class="text-uppercase m-0">
                 <span class="text-dark font-weight-bold">THÔNG TIN LIÊN HỆ NHÂN VIÊN ({{ totalEmployees }}
                     NS)</span>
             </h6>
             <form class="d-flex gap-2 flex-wrap align-items-center" (submit)="onSearch(); $event.preventDefault()">
-                <nz-select nzSize="default" style="min-width: 180px"  width="100%" [(ngModel)]="departmentId" name="departmentId"
-                    nzPlaceHolder="Chọn phòng ban" (ngModelChange)="loadContactData()">
+                <nz-select nzSize="default" style="min-width: 180px" width="100%" [(ngModel)]="departmentId"
+                    name="departmentId" nzPlaceHolder="Chọn phòng ban" (ngModelChange)="loadContactData()">
                     <nz-option [nzLabel]="'Tất cả phòng ban'" [nzValue]="0"></nz-option>
                     <nz-option *ngFor="let d of departments" [nzLabel]="d.Name" [nzValue]="d.ID"></nz-option>
                 </nz-select>
@@ -42,8 +43,9 @@
         <div class="card-body p-0 flex-grow-1 overflow-hidden">
             <nz-spin [nzSpinning]="isLoading">
                 <div [hidden]="viewMode !== 'table'" id="grid-container-contact" style="height: 89vh; width: 100%;">
-                    <angular-slickgrid gridId="employeeContactGrid" [columns]="columnDefinitions" [options]="gridOptions"
-                        [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+                    <angular-slickgrid gridId="employeeContactGrid" [columns]="columnDefinitions"
+                        [options]="gridOptions" [dataset]="dataset"
+                        (onAngularGridCreated)="angularGridReady($event.detail)">
                     </angular-slickgrid>
                 </div>
 

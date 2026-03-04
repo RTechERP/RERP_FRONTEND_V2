@@ -92,8 +92,8 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
 
   projectId: any;
   keyword: any;
-  dateStart: any = DateTime.local().startOf('month').toJSDate();
-  dateEnd: any = DateTime.local().endOf('month').toJSDate();
+  dateStart: string = DateTime.local().startOf('month').toFormat('yyyy-MM-dd');
+  dateEnd: string = DateTime.local().endOf('month').toFormat('yyyy-MM-dd');
   //#endregion
 
   //#region Load dữ liệu
@@ -119,8 +119,8 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
   resetSearch() {
     this.projectId = null;
     this.keyword = '';
-    this.dateStart = DateTime.local().startOf('month').toJSDate();
-    this.dateEnd = DateTime.local().endOf('month').toJSDate();
+    this.dateStart = DateTime.local().startOf('month').toFormat('yyyy-MM-dd');
+    this.dateEnd = DateTime.local().endOf('month').toFormat('yyyy-MM-dd');
     this.getSynthesisOfGeneratedMaterials();
   }
 

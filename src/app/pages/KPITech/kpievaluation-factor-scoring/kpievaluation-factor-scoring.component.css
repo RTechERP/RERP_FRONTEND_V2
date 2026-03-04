@@ -48,23 +48,25 @@ angular-slickgrid,
 }
 
 /* ==================== HEADER STYLES ==================== */
-:host ::ng-deep .slick-header-column {
+/* Scoped to Team Grid only */
+:host ::ng-deep .grid-team-container .slick-header-column {
     background-color: #fafafa;
     border-right: 1px solid #ddd !important;
     font-weight: 600;
-    height: 90px !important;
+    height: 100px !important;
     line-height: normal !important;
+    white-space: normal !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
 }
 
-:host ::ng-deep .slick-header-columns {
-    height: 90px !important;
+:host ::ng-deep .grid-team-container .slick-header-columns {
+    height: 100px !important;
 }
 
-:host ::ng-deep .slick-header-column .slick-column-name {
+:host ::ng-deep .grid-team-container .slick-header-column .slick-column-name {
     white-space: normal !important;
     line-height: 1.2 !important;
     padding: 0 4px !important;
@@ -80,8 +82,8 @@ angular-slickgrid,
     border-right: 1px solid #ddd !important;
     font-weight: bold !important;
     text-align: center !important;
-    line-height: 30px !important;
-    height: 30px !important;
+    line-height: 40px !important;
+    height: 40px !important;
     background-color: #fafafa !important;
 }
 
@@ -111,6 +113,30 @@ angular-slickgrid,
 :host ::ng-deep .slick-group-toggle {
     cursor: pointer;
 }
+
+/* fix grouping bị xuống dòng */
+
+:host ::ng-deep .slick-row.slick-group {
+    height: 40px !important;
+    line-height: 40px !important;
+}
+
+:host ::ng-deep .slick-row.slick-group .slick-cell {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+:host ::ng-deep .slick-group-title {
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+}
+
+/*end */
 
 :host ::ng-deep .slick-cell {
     padding: 4px 6px;
@@ -231,21 +257,6 @@ nz-tabset {
     line-height: 1.4 !important;
 }
 
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
-    color: #141a24 !important;
-    opacity: 1 !important;
-    padding: 4px !important;
-    padding-left: 12px !important;
-}
-
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-    color: #0e1114 !important;
-    font-weight: 600;
-}
-
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
-    background: #1677ff !important;
-}
 
 /* ==================== EMPLOYEE GRID STATUS COLORING ==================== */
 /* Wrapper to ensure full cell fill */
@@ -290,3 +301,41 @@ nz-tabset {
     align-items: center;
     padding-right: 4px;
 }
+
+/* ==================== CUSTOM EDITOR CLICKABLE INDICATORS ==================== */
+:host ::ng-deep .slick-cell.EvaluationContent,
+:host ::ng-deep .slick-cell.VerificationToolsContent,
+:host ::ng-deep .slick-cell.RuleContent {
+    cursor: zoom-in !important;
+}
+
+:host ::ng-deep .slick-cell.EvaluationContent:hover,
+:host ::ng-deep .slick-cell.VerificationToolsContent:hover,
+:host ::ng-deep .slick-cell.RuleContent:hover {
+    background-color: rgba(24, 144, 255, 0.05) !important;
+}
+
+/* Footer Row căn sang phải */
+:host ::ng-deep .slick-state-default .slick-footerrow-column {
+    justify-content: end !important;
+}
+
+:host ::ng-deep .slick-viewport .slick-viewport-top .slick-viewport-left {
+    max-height: 250px !important;
+}
+
+::ng-deep .type-select-dropdown {
+    min-width: 35vh !important;
+}
+
+/* :host ::ng-deep .slick-header-column {
+    background-color: #fafafa;
+    border-right: 1px solid #ddd !important;
+    font-weight: 600;
+    height: 90px !important;
+    line-height: 90px !important;
+}
+
+:host ::ng-deep .slick-header-columns {
+    height: 90px !important;
+} */

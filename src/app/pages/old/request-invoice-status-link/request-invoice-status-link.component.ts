@@ -109,6 +109,7 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
   listIdsStatusDel: number[] = [];
   deletedFileIds: number[] = [];
   selectedFile: any = null;
+  isSaving: boolean = false;
   private readonly SUPPLEMENT_STATUS_VALUE = 4;
   approvedStatus: any[] = [
     { value: 1, label: 'Chờ duyệt' },
@@ -220,7 +221,7 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
           this.loadStatus()
           setTimeout(() => {
             this.loadStatusInvoice();
-          }, 300); 
+          }, 300);
         }
       },
       (reason) => {
@@ -230,9 +231,10 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
   }
 
   saveAndClose() {
-    if (!this.tb_Table) {
+    if (!this.tb_Table || this.isSaving) {
       return;
     }
+    this.isSaving = true;
     const tableData = this.tb_Table.getData();
     const missingReason = tableData.find(
       (row) =>
@@ -244,6 +246,7 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
         NOTIFICATION_TITLE.warning,
         'Vui lòng nhập lý do cho trạng thái "Yêu cầu bổ sung".'
       );
+      this.isSaving = false;
       return;
     }
     const payload = {
@@ -277,6 +280,7 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
         }
       },
       (error) => {
+        this.isSaving = false;
         this.notification.error(
           NOTIFICATION_TITLE.error,
           error?.message || 'Có lỗi xảy ra khi lưu dữ liệu.'

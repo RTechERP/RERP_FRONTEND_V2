@@ -113,12 +113,21 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
     ) { }
 
     ngOnInit(): void {
+        // Get departmentId from route snapshot or tabData synchronously first
+        const queryDepartmentId = this.route.snapshot.queryParams['departmentId'];
+        this.departmentId = queryDepartmentId
+            ? Number(queryDepartmentId)
+            : (this.tabData?.departmentId ?? 0);
+
+        // Also subscribe for dynamic changes
         this.route.queryParams.subscribe(params => {
-            // this.departmentId = params['departmentId'] ? Number(params['departmentId']) : 0;
-            this.departmentId =
-                params['departmentId']
-                ?? this.tabData?.departmentId
-                ?? 0;
+            const newDepartmentId = params['departmentId']
+                ? Number(params['departmentId'])
+                : (this.tabData?.departmentId ?? 0);
+            if (newDepartmentId !== this.departmentId) {
+                this.departmentId = newDepartmentId;
+                this.search();
+            }
         });
 
         const today = new Date();
@@ -134,6 +143,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
         this.loadDepartments();
         this.loadEmployees();
         this.loadKPIErrorTypes();
+        this.loadKPIErrors();
 
         this.search();
     }
@@ -180,7 +190,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
     }
 
     loadKPIErrors(): void {
-        this.kpiErrorEmployeeService.getKPIError(this.kpiErrorTypeId).subscribe({
+        this.kpiErrorEmployeeService.getKPIError(this.kpiErrorTypeId || 0).subscribe({
             next: (response: any) => {
                 if (response.status === 1) {
                     this.kpiErrors = response.data;
@@ -194,11 +204,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
 
     onTypeChange(): void {
         this.kpiErrorId = 0;
-        if (this.kpiErrorTypeId) {
-            this.loadKPIErrors();
-        } else {
-            this.kpiErrors = [];
-        }
+        this.loadKPIErrors();
         this.search();
     }
 
@@ -425,7 +431,12 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             nzOkText: 'Đồng ý',
             nzCancelText: 'Hủy',
             nzOnOk: () => {
-                this.kpiErrorEmployeeService.autoAdd(this.startDate!, this.endDate!).subscribe({
+                const start = new Date(this.startDate!);
+                start.setHours(0, 0, 0, 0);
+                const end = new Date(this.endDate!);
+                end.setHours(23, 59, 59, 999);
+
+                this.kpiErrorEmployeeService.autoAdd(start, end).subscribe({
                     next: (response: any) => {
                         if (response.status === 1) {
                             const inserted = response.data?.Inserted || 0;
@@ -528,6 +539,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 80,
+                formatter: this.commonTooltipFormatter,
             },
             {
                 id: 'TypeName',
@@ -537,6 +549,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 minWidth: 150,
                 hidden: true,
+                formatter: this.commonTooltipFormatter,
             },
             {
                 id: 'Content',
@@ -545,6 +558,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 300,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -559,6 +573,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 120,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -573,6 +588,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 170,
+                formatter: this.commonTooltipFormatter,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -588,7 +604,13 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 minWidth: 120,
                 formatter: Formatters.dateEuro,
-                filter: { model: Filters['compoundDate'] },
+                filter: {
+                    model: Filters['compoundDate'],
+                    filterOptions: {
+                        enableTime: false,
+                        dateFormat: 'd/m/Y',
+                    },
+                },
             },
             {
                 id: 'ErrorNumber',
@@ -600,6 +622,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal,
                 params: { minDecimal: 0, maxDecimal: 0 },
                 filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-center',
             },
             {
                 id: 'Note',
@@ -608,6 +631,8 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 200,
+                cssClass: 'cell-wrap',
+                formatter: this.commonTooltipFormatter,
             },
         ];
 
@@ -616,6 +641,8 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 container: '.grid-container-main',
                 calculateAvailableSizeBy: 'container',
             },
+            gridWidth: '100%',
+            forceFitColumns: true,
             enableAutoResize: true,
             enableCellNavigation: true,
             enableColumnReorder: true,
@@ -662,6 +689,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 minWidth: 200,
+                formatter: this.commonTooltipFormatter,
             },
         ];
 
@@ -670,6 +698,8 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 container: '.grid-container-file',
                 calculateAvailableSizeBy: 'container',
             },
+            gridWidth: '100%',
+            forceFitColumns: true,
             enableAutoResize: true,
             enableCellNavigation: true,
             enableSorting: true,
@@ -693,6 +723,39 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
         };
     }
 
+    // Helper function to escape HTML special characters for title attributes
+    private escapeHtml(text: string | null | undefined): string {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
+        if (!value) return '';
+        const escaped = this.escapeHtml(value);
+        return `
+                <span
+                title="${escaped}"
+                style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
+                "
+                >
+                ${value}
+                </span>
+            `;
+    }
+
     // Grid events
     angularGridReady(angularGrid: AngularGridInstance): void {
         this.angularGrid = angularGrid;
@@ -703,13 +766,13 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 this.angularGrid.dataView.setGrouping([
                     {
                         getter: 'TypeName',
-                        formatter: (g: any) => `Loại lỗi: <strong>${g.value}</strong> <span style="color:green">(${g.count} dòng)</span>`,
+                        formatter: (g: any) => `Loại lỗi: <strong>${g.value}</strong> <span style="color:red">(${g.count} lỗi)</span>`,
                         aggregateCollapsed: false,
                         lazyTotalsCalculation: true,
                     },
                     {
                         getter: 'Employee',
-                        formatter: (g: any) => `Nhân viên: <strong>${g.value}</strong> <span style="color:green">(${g.count} dòng)</span>`,
+                        formatter: (g: any) => `Nhân viên: <strong>${g.value}</strong> <span style="color:red">(${g.count} lỗi)</span>`,
                         aggregateCollapsed: false,
                         lazyTotalsCalculation: true,
                     },

@@ -1,0 +1,53 @@
+<div class="version-detail-wrapper">
+    <!-- Pinned Close Button -->
+    <button type="button" class="btn-close pinned-close-btn" (click)="onClose()" aria-label="Close"></button>
+
+    <div class="version-detail-container">
+        <div class="version-detail-inner">
+            <div *ngIf="versionData" class="version-content">
+                <!-- Header -->
+                <div class="version-header mb-4">
+                    <h2 class="version-title mb-3">Thông tin bản cập nhật {{ versionData.Code }}</h2>
+                    <div class="version-meta d-flex gap-3 text-muted">
+                        <span><i nz-icon nzType="calendar" nzTheme="outline"></i> Ngày phát hành: {{ publicDateStr
+                            }}</span>
+                        <span *ngIf="versionData.Name" class="badge bg-primary">{{ versionData.Name }}</span>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="version-body mb-4">
+                    <!-- <h5 class="mb-3"><i nz-icon nzType="profile" nzTheme="outline"></i> Nội dung chi tiết:</h5> -->
+                    <div class="content-html p-3 border rounded bg-light" [innerHTML]="sanitizedContent"
+                        style="min-height: 200px; max-height: 300px; overflow-y: auto;"></div>
+                </div>
+
+                <div *ngIf="versionData.Note" class="version-note mb-4">
+                    <h5 class="mb-3"><i nz-icon nzType="info-circle" nzTheme="outline"></i> Ghi chú:</h5>
+                    <div class="p-3 border rounded bg-warning bg-opacity-10">
+                        {{ versionData.Note }}
+                    </div>
+                </div>
+
+                <!-- Footer Action -->
+                <div class="version-footer text-center pt-4 border-top">
+                    <p class="fw-bold text-danger mb-3">Bạn có muốn cập nhật phiên bản mới ngay bây giờ không?</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button nz-button nzType="default" (click)="onClose()" nzSize="large">Để sau</button>
+                        <button nz-button nzType="primary" (click)="onUpdateNow()" nzSize="large">
+                            <i nz-icon nzType="reload" nzTheme="outline"></i> Cập nhật (Tải lại trang)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div *ngIf="!versionData" class="text-center py-5">
+                <i nz-icon nzType="exclamation-circle" nzTheme="outline" class="text-danger"
+                    style="font-size: 48px;"></i>
+                <p class="mt-3 text-muted">Không thể tải thông tin bản cập nhật</p>
+                <button nz-button nzType="default" (click)="onClose()">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>

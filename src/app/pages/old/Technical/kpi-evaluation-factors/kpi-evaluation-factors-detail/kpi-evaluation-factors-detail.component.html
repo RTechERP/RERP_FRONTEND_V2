@@ -1,0 +1,153 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT NỘI DUNG ĐÁNH GIÁ</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-3">
+    <nz-spin [nzSpinning]="isLoading || isSaving" nzTip="Đang xử lý...">
+        <!-- Row 1: STT, Nhóm cha -->
+        <div class="row mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <label class="m-0 text-nowrap">
+                            STT <span class="text-danger">(*)</span>
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <input nz-input nzSize="small" [(ngModel)]="stt" (blur)="errors.stt = ''" />
+                        <span class="text-danger fs-xs" *ngIf="errors.stt">{{ errors.stt }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <label class="m-0 text-nowrap">Nhóm cha</label>
+                    </div>
+                    <div class="col-7">
+                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhóm cha" [(ngModel)]="parentId"
+                            style="width: 100%;" nzSize="small" (ngModelChange)="onParentGroupChange()"
+                            (nzOnClear)="onParentGroupChange()">
+                            <nz-option *ngFor="let item of parentGroups" [nzValue]="item.ID"
+                                [nzLabel]="item.STT ? item.STT + ' - ' + item.EvaluationDetails : item.EvaluationDetails">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                    <div class="col-1 ps-0">
+                        <button nz-button nzType="default" nzSize="small" (click)="onRefreshParentGroup()" nz-tooltip
+                            nzTooltipTitle="Làm mới danh sách nhóm cha">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Loại yếu tố, Loại chuyên môn -->
+        <div class="row mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <label class="m-0 text-nowrap">
+                            Loại yếu tố <span class="text-danger">(*)</span>
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <nz-select nzShowSearch nzPlaceHolder="Chọn loại yếu tố" [(ngModel)]="selectedEvaluationType"
+                            style="width: 100%;" nzSize="small" [nzDisabled]="true">
+                            <nz-option *ngFor="let item of evaluationTypes" [nzValue]="item.ID"
+                                [nzLabel]="item.EValuationType">
+                            </nz-option>
+                        </nz-select>
+                        <span class="text-danger fs-xs" *ngIf="errors.evaluationType">{{ errors.evaluationType }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <label class="m-0 text-nowrap">
+                            Loại chuyên môn <span class="text-danger">(*)</span>
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại chuyên môn"
+                            [(ngModel)]="specializationType" style="width: 100%;" nzSize="small">
+                            <nz-option *ngFor="let item of specializationTypes" [nzValue]="item.ID"
+                                [nzLabel]="item.Name">
+                            </nz-option>
+                        </nz-select>
+                        <span class="text-danger fs-xs" *ngIf="errors.specializationType">{{ errors.specializationType
+                            }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Điểm chuẩn, Hệ số, Đơn vị tính -->
+        <div class="row mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <label class="m-0 text-nowrap">
+                            Điểm chuẩn <span class="text-danger" *ngIf="isStandardPointRequired">(*)</span>
+                        </label>
+                    </div>
+                    <div class="col-4">
+                        <nz-input-number [(ngModel)]="standardPoint" [nzMin]="0" [nzMax]="999999999" [nzStep]="1"
+                            nzSize="small" style="width: 100%;"></nz-input-number>
+                        <span class="text-danger fs-xs" *ngIf="errors.standardPoint">{{ errors.standardPoint }}</span>
+                    </div>
+                    <div class="col-2">
+                        <label class="m-0 text-nowrap">Hệ số</label>
+                    </div>
+                    <div class="col-2">
+                        <nz-input-number [(ngModel)]="coefficient" [nzMin]="0" [nzMax]="999999999" [nzStep]="1"
+                            nzSize="small" style="width: 100%;"></nz-input-number>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <label class="m-0 text-nowrap">Đơn vị tính</label>
+                    </div>
+                    <div class="col-8">
+                        <input nz-input nzSize="small" [(ngModel)]="unit" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 4: Yếu tố đánh giá, Phương tiện xác minh tiêu chí -->
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <div class="mb-1">
+                    <label class="m-0">
+                        Yếu tố đánh giá <span class="text-danger">(*)</span>
+                    </label>
+                </div>
+                <textarea nz-input [(ngModel)]="evaluationContent" [nzAutosize]="{ minRows: 8, maxRows: 12 }"
+                    (blur)="errors.evaluationContent = ''"></textarea>
+                <span class="text-danger fs-xs" *ngIf="errors.evaluationContent">{{ errors.evaluationContent }}</span>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-1">
+                    <label class="m-0">Phương tiện xác minh tiêu chí</label>
+                </div>
+                <textarea nz-input [(ngModel)]="verificationToolsContent"
+                    [nzAutosize]="{ minRows: 8, maxRows: 12 }"></textarea>
+            </div>
+        </div>
+    </nz-spin>
+</div>
+
+<div class="modal-footer p-2">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" nzSize="default" (click)="save()" [nzLoading]="isSaving">
+        <i class="fas fa-save"></i> Lưu
+    </button>
+</div>

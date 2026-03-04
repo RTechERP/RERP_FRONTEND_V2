@@ -457,7 +457,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     this.foodOrderHNTabulator = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
-      height: '82vh',
+      height: '78vh',
       data: this.foodOrderHNList,
       layout: 'fitDataStretch',
       selectableRows: true,

@@ -57,7 +57,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE, ID_ADMIN_SALE_LIST } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
 
 import { DailyReportSaleService } from './daily-report-sale-service/daily-report-sale.service';
@@ -157,7 +157,8 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
         });
         // Kiểm tra quyền admin và set employeeId
         const currentUser = this.appUserService.currentUser;
-        this.isAdmin = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1);
+        const currentUserId = this.appUserService.id || 0;
+        this.isAdmin = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1) || this.appUserService.hasPermission('N1') || ID_ADMIN_SALE_LIST.includes(currentUserId);
         this.isEmployeeIdDisabled = !this.isAdmin;
 
         // Nếu không phải admin, set employeeId của user hiện tại
@@ -452,7 +453,7 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
             ajaxRequestFunc: (url, config, params) => {
                 // Nếu là admin hoặc admin sale thì dùng filters.employeeId (nếu có chọn), nếu không thì lấy userId của user đăng nhập
                 const currentUser = this.appUserService.currentUser;
-                const isAdminOrAdminSale = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1);
+                const isAdminOrAdminSale = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1) || this.appUserService.hasPermission('N1') || ID_ADMIN_SALE_LIST.includes(this.appUserService.id || 0);
                 const userId = isAdminOrAdminSale ? (this.filters.employeeId || 0) : (this.appUserService.id || 0);
                 const page = params.page || 1;
                 const size = params.size || 50;

@@ -99,5 +99,15 @@ export class KpiPositionEmployeeService {
   saveKPIPositionType(model: any): Observable<any> {
     return this.http.post<any>(this._url + 'save-kpi-position-type', model);
   }
+
+  // Copy position employee từ kỳ đánh giá này sang kỳ khác
+  copyPositionEmployee(kpiSessionFrom: number, kpiSessionTo: number): Observable<any> {
+    return this.http.post<any>(this._url + 'copy-position-employee', null, {
+      params: {
+        kpiSessionFrom: kpiSessionFrom.toString(),
+        kpiSessionTo: kpiSessionTo.toString()
+      }
+    });
+  }
 }
 

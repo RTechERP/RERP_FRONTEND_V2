@@ -46,6 +46,10 @@ import { MenuAppService } from '../../pages/systems/menu-app/menu-app.service';
 import { NOTIFICATION_TITLE } from '../../app.config';
 import { environment } from '../../../environments/environment';
 import { CustomRouteReuseStrategy } from '../../custom-route-reuse.strategy';
+import { UpdateVersionService } from '../../pages/systems/update-version/update-version.service';
+import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
+import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { UpdateVersionDetailComponent } from '../../pages/systems/update-version/update-version-detail/update-version-detail.component';
 // import { LayoutEventService } from '../layout-event.service';
 import { take, filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
@@ -121,6 +125,8 @@ export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
         AppNotifycationDropdownComponent,
         AppUserDropdownComponent,
         NzGridModule,
+        NzModalModule,
+        NgbModalModule
     ],
     templateUrl: '../../app.component.html',
     styleUrl: '../../app.component.css',
@@ -142,13 +148,18 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // private layoutEvent: LayoutEventService,
         private cd: ChangeDetectorRef,
         private route: ActivatedRoute,
-        private tabService: TabServiceService
+        private tabService: TabServiceService,
+        private updateVersionService: UpdateVersionService,
+        private nzModal: NzModalService,
+        private modalService: NgbModal,
     ) {
 
         // this.menuComps = this.menuService.getMenus();
     }
     notificationComponent = AppNotifycationDropdownComponent;
     //#region Khai báo biến
+    userAppVersion: string = localStorage.getItem('currentAppVersion') || '0.0.0';
+
     isCollapsed = true;
     isMobile = window.innerHeight <= 768;
     isDatcom = false;
@@ -162,6 +173,12 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     menu: any = {};
     //#endregion
+
+    currentAppVersion: string = '';
+    hasNewVersion: boolean = false;
+    latestVersionDetails: any = null;
+    isAppMenuVisible = false;
+    private eventSource: EventSource | null = null;
     notifItems: NotifyItem[] = [
         // {
         //   id: 1,
@@ -222,39 +239,80 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         return this.dynamicTabComps.length > 0;
     }
 
+
+    tabOpens: string[] = [];
+
     ngOnInit(): void {
 
-        // console.log('this.menuComps ngOnInit:', this.menuComps);
-
-
-        // this.getMenus();
-        // console.log('this.menuComps:', this.menuComps);
-        // console.log('this.getMenus:', this.menuService.getMenus());
+        const tabOpenedsRaw = localStorage.getItem('tabOpeneds');
+        this.tabOpens = tabOpenedsRaw ? JSON.parse(tabOpenedsRaw) : []
+        // console.log('this.tabOpens:', this.tabOpens);
+        // console.log('this.tabOpenedsRaw:', tabOpenedsRaw);
 
         this.menuService.menuKey$.subscribe((x) => {
             // console.log(x);
             this.menuCompKey = x;
             this.isCollapsed = x == '';
         });
-        this.menuComps = this.menuService.getCompMenus(this.menuCompKey);
+        // this.menuComps = this.menuService.getCompMenus(this.menuCompKey);
+        this.menuService.getCompMenus(this.menuCompKey).subscribe(menus => {
+            this.menuComps = menus;
+            const router = this.router.url.split('?')[0].replace('/', '');
+
+            this.toggleMenuComp(this.findRootKeyByRouter(this.menuComps, router) || '');
+
+
+            // if (!window.name) {
+            //     // window.name = 'APP_WINDOW';
+            //     console.log('🆕 New window', window.name);
+            // } else {
+            //     console.log('♻ Existing window');
+            // }
+
+
+            // if (this.tabOpens.length > 0) {
+            //     this.tabOpens.forEach((item, i) => {
+            //         const menu = this.findMenuByRouter(menus, item) as LeafItem;
+            //         if (menu) {
+            //             this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
+            //         }
+            //     })
+            // } else 
+            {
+                const menu = this.findMenuByRouter(menus, router) as LeafItem;
+                // console.log('menu:', menu, router);
+                // console.log('menus:', menus);
+                if (menu) {
+                    this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
+                }
+            }
+
+        });
 
         // Subscribe to TabService for opening component tabs from other components
         this.tabService.tabCompRequest$.subscribe((payload: TabCompPayload) => {
-            console.log('[MainLayout] Received tabCompRequest:', payload);
+            // console.log('[MainLayout] Received tabCompRequest:', payload);
             this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
-        // console.log('menucomps:', menucomps);
-        // this.menuComps = this.sortBySTTImmutable(menucomps, i => i.stt ?? 0);
+
+        // Trì hoãn SSE và version check để các API quan trọng cho UI load trước
+        // (tránh SSE chiếm slot kết nối HTTP của trình duyệt)
+        // setTimeout(() => {
+        //     this.loadCurrentVersion();
+        //     this.initSseConnection();
+        // }, 3000);
     }
 
     ngOnDestroy(): void {
         if (this.routerSubscription) {
             this.routerSubscription.unsubscribe();
         }
+
+        if (this.eventSource) {
+            this.eventSource.close();
+            this.eventSource = null;
+        }
     }
-
-
-
 
     // newTabComp(comp: Type<any>, title: string, data?: any, key: string,) {
     //     this.isCollapsed = true;
@@ -289,15 +347,19 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // }
 
+    // tabOpens: any[] = localStorage.getItem('tabOpened') || [];
+
+
+
     newTabComp(
         comp: Type<any>,
         title: string,
         key: string,
-        data?: any
+        data?: any,
     ) {
         this.isCollapsed = true;
 
-        console.log('newTabComp data:', data);
+        // console.log('newTabComp data:', data);
 
         // stringify ổn định (tránh khác thứ tự key)
         const normalize = (v: any): string =>
@@ -317,8 +379,9 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             t => getTabKey(t) === currentTabKey
         );
 
-        // Nếu tab đã tồn tại → focus
+        // Nếu tab đã tồn tại → cập nhật title và focus
         if (idx >= 0) {
+            this.dynamicTabComps[idx].title = title;
             this.selectedCompIndex = idx;
             return;
         }
@@ -331,13 +394,20 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                 comp,
                 key,
                 injector,
-                data,
+                data
             },
         ];
 
         setTimeout(() => {
             this.selectedCompIndex = this.dynamicTabComps.length - 1;
         });
+
+        if (!this.tabOpens.includes(key)) {
+            this.tabOpens.push(key);
+            localStorage.setItem('tabOpeneds', JSON.stringify(this.tabOpens));
+        }
+
+
     }
 
     // closeTabComp({ index }: { index: number }) {
@@ -350,6 +420,16 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     // }
 
     closeTabComp({ index }: { index: number }) {
+
+        const closedTab = this.dynamicTabComps[index];
+        const key = closedTab?.key; // hoặc closedTab.key
+
+        // 1️⃣ Remove khỏi tabOpens + localStorage
+        if (key) {
+            this.tabOpens = this.tabOpens.filter(t => t !== key);
+            localStorage.setItem('tabOpeneds', JSON.stringify(this.tabOpens));
+        }
+
         // 1️⃣ Xóa tab → component tab bị destroy
         this.dynamicTabComps.splice(index, 1);
 
@@ -376,17 +456,10 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     isMenuCompOpen = (key: string) =>
         this.menuComps.some((m) => m.key === key && m.isOpen);
     toggleMenuComp(key: string) {
-        // this.menus.forEach((x) => (x.isOpen = false));
-
-        // console.log('this.menuComps:', this.menuComps);
-        // console.log('this.this.menuCompKey:', key);
-        // const m = this.menuComps.find((x) => x.key == key);
         const m = Array.from(this.menuComps).find(x => x.key === key);
         if (m) m.isOpen = !m.isOpen;
-
         if (m?.isOpen) this.menuCompKey = key;
-
-        // console.log('toggleMenuComp:', m);
+        this.isCollapsed = false;
     }
 
     // Hàm check và tạo tab từ current route (khi paste URL trực tiếp lần đầu)
@@ -558,6 +631,33 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         return null;
     }
+
+    findByRouter(node: any, router: string): any | null {
+        if (!node) return null;
+
+        if (node.router === router) {
+            return node;
+        }
+
+        if (node.children && node.children.length > 0) {
+            for (const child of node.children) {
+                const found = this.findByRouter(child, router);
+                if (found) return found;
+            }
+        }
+
+        return null;
+    }
+
+    findMenuByRouter(menus: any[], router: string): any | null {
+        for (const menu of menus) {
+            const found = this.findByRouter(menu, router);
+            if (found) return found;
+        }
+        return null;
+    }
+
+
 
 
 
@@ -1124,6 +1224,125 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     //       }
     //     } catch (error) {
     //       console.error('Error restoring tabs:', error);
-    //     }
-    //   }
+    loadCurrentVersion() {
+        const localVersion = localStorage.getItem('currentAppVersion');
+        this.updateVersionService.getCurrentVersion().subscribe({
+            next: (res) => {
+                if (res?.status === 1) {
+                    this.currentAppVersion = res.data;
+                    console.log('Current App Version:', this.currentAppVersion);
+
+                    if (localVersion && localVersion !== this.currentAppVersion) {
+                        this.hasNewVersion = true;
+                        this.fetchVersionDetails(this.currentAppVersion);
+                    } else if (!localVersion) {
+                        localStorage.setItem('currentAppVersion', this.currentAppVersion);
+                        this.userAppVersion = this.currentAppVersion;
+                    }
+                }
+            },
+            error: (err) => console.error('Lỗi lấy phiên bản hiện tại:', err)
+        });
+    }
+
+    fetchVersionDetails(code: string) {
+        this.updateVersionService.getUpdateVersions().subscribe({
+            next: (res) => {
+                if (res?.status === 1) {
+                    const data = res.data?.data || [];
+                    this.latestVersionDetails = data.find((v: any) => v.Code === code);
+                }
+            }
+        });
+    }
+
+    initSseConnection() {
+        const sseUrl = this.updateVersionService.getSseUrl();
+        this.eventSource = new EventSource(sseUrl);
+
+        this.eventSource.addEventListener('contract-updated', (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log('SSE Event [contract-updated]:', data);
+
+                if (data.code && data.code !== this.currentAppVersion) {
+                    this.hasNewVersion = true;
+                    this.currentAppVersion = data.code;
+                    this.fetchVersionDetails(data.code);
+                    this.showUpdatePrompt(data.code);
+                }
+            } catch (e) {
+                console.error('Lỗi parse dữ liệu SSE:', e, event.data);
+            }
+        });
+
+        this.eventSource.onerror = (error) => {
+            console.error('SSE Connection error:', error);
+        };
+    }
+
+    showUpdatePrompt(newVersion: string) {
+        if (this.latestVersionDetails && this.latestVersionDetails.Code === newVersion) {
+            this.showUpdateModal();
+        } else {
+            this.updateVersionService.getUpdateVersions().subscribe({
+                next: (res) => {
+                    if (res?.status === 1) {
+                        const data = res.data?.data || [];
+                        this.latestVersionDetails = data.find((v: any) => v.Code === newVersion);
+
+                        if (this.latestVersionDetails) {
+                            this.showUpdateModal();
+                        } else {
+                            this.showConfirmFallback(newVersion);
+                        }
+                    } else {
+                        this.showConfirmFallback(newVersion);
+                    }
+                },
+                error: (err) => {
+                    console.error('Lỗi load chi tiết phiên bản:', err);
+                    this.showConfirmFallback(newVersion);
+                }
+            });
+        }
+    }
+
+    private showConfirmFallback(newVersion: string) {
+        this.nzModal.confirm({
+            nzTitle: 'Cập nhật phiên bản mới',
+            nzContent: `Hệ thống đã có phiên bản mới (<b>${newVersion}</b>). Bạn có muốn cập nhật ngay không?`,
+            nzOkText: 'Có (Tải lại trang)',
+            nzCancelText: 'Để sau',
+            nzOnOk: () => {
+                localStorage.setItem('currentAppVersion', newVersion);
+                window.location.reload();
+            }
+        });
+    }
+
+    showUpdateModal() {
+        if (!this.latestVersionDetails) {
+            this.showUpdatePrompt(this.currentAppVersion);
+            return;
+        }
+
+        const modalRef = this.modalService.open(UpdateVersionDetailComponent, {
+            centered: true,
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: true,
+            scrollable: true
+        });
+
+        modalRef.componentInstance.versionData = this.latestVersionDetails;
+
+        modalRef.result.then((result) => {
+            if (result === 'update') {
+                localStorage.setItem('currentAppVersion', this.currentAppVersion);
+                window.location.reload();
+            }
+        }).catch(() => {
+        });
+    }
 }

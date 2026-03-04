@@ -1,0 +1,90 @@
+<div class="modal-header bg-primary text-white py-2">
+    <h5 class="modal-title mb-0">
+        <span nz-icon nzType="copy" class="me-2"></span>
+        SAO CHÉP BÀI ĐÁNH GIÁ
+    </h5>
+    <button type="button" class="btn-close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body p-3">
+    <nz-spin [nzSpinning]="isCopying" nzTip="Đang sao chép...">
+        <!-- "Từ" Section (Source) -->
+        <nz-card nzSize="small" nzTitle="Từ (Nguồn)" class="mb-3">
+            <form nz-form nzLayout="vertical">
+                <nz-form-item>
+                    <nz-form-label nzRequired>
+                        Kỳ đánh giá copy
+                    </nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzPlaceHolder="Chọn kỳ đánh giá" [(ngModel)]="sourceSessionId"
+                            name="sourceSessionId" [nzLoading]="isLoadingSession"
+                            (ngModelChange)="onSourceSessionChange()" style="width: 100%;">
+                            <nz-option *ngFor="let session of kpiSessions" [nzValue]="session.ID"
+                                [nzLabel]="session.Code + ' - ' + session.Name">
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                    <nz-form-label nzRequired>
+                        Bài đánh giá copy
+                    </nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzPlaceHolder="Chọn bài đánh giá" [(ngModel)]="sourceExamId"
+                            name="sourceExamId" [nzLoading]="isLoadingSourceExam" style="width: 100%;">
+                            <nz-option *ngFor="let exam of sourceExams" [nzValue]="exam.ID"
+                                [nzLabel]="exam.ExamCode + ' - ' + exam.ExamName">
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </nz-card>
+
+        <nz-divider nzText="Sao chép đến"></nz-divider>
+
+        <!-- "Đến" Section (Target) -->
+        <nz-card nzSize="small" nzTitle="Đến (Đích)">
+            <form nz-form nzLayout="vertical">
+                <nz-form-item>
+                    <nz-form-label nzRequired>
+                        Kỳ đánh giá
+                    </nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzPlaceHolder="Chọn kỳ đánh giá" [(ngModel)]="targetSessionId"
+                            name="targetSessionId" [nzLoading]="isLoadingSession"
+                            (ngModelChange)="onTargetSessionChange()" style="width: 100%;">
+                            <nz-option *ngFor="let session of kpiSessions" [nzValue]="session.ID"
+                                [nzLabel]="session.Code + ' - ' + session.Name">
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                    <nz-form-label nzRequired>
+                        Bài đánh giá
+                    </nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzPlaceHolder="Chọn bài đánh giá" [(ngModel)]="targetExamId"
+                            name="targetExamId" [nzLoading]="isLoadingTargetExam" style="width: 100%;">
+                            <nz-option *ngFor="let exam of targetExams" [nzValue]="exam.ID"
+                                [nzLabel]="exam.ExamCode + ' - ' + exam.ExamName">
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </nz-card>
+    </nz-spin>
+</div>
+
+<div class="modal-footer py-2">
+    <button nz-button nzType="default" (click)="onCancel()">
+        <span nz-icon nzType="close"></span> Hủy
+    </button>
+    <button nz-button nzType="primary" (click)="onCopy()" [nzLoading]="isCopying">
+        <span nz-icon nzType="copy"></span> Sao chép
+    </button>
+</div>

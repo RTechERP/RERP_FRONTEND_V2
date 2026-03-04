@@ -1,0 +1,139 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+  <h6 class="modal-title text-white">Chi tiết yêu cầu mua hàng</h6>
+  <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+<div class=" p-2 h-100">
+  <nz-splitter nzLayout="vertical" style="height: 80vh !important;">
+    <nz-splitter-panel>
+      <div class="card-body p-0" style="height: 100%">
+        <div #DepartmentRequiredTable></div>
+      </div>
+    </nz-splitter-panel>
+    <nz-splitter-panel>
+      <div class="card-body hcns-table-wrapper" style="height: 100%; ">
+        <div class="hcns-table-container">
+          <table class="hcns-table">
+            <thead>
+              <tr>
+                <th colspan="8" style="text-align: center; border-bottom: 1px solid #d9d9d9">HCNS ĐỀ XUẤT</th>
+              </tr>
+              <tr>
+                <th style="width: 80px; text-align: center;">
+                  <i class="fas fa-plus text-success cursor-pointer" (click)="addProductRow()"
+                    title="Thêm sản phẩm"></i>
+                </th>
+                <th>Tên sản phẩm/ Dịch vụ<span class="text-danger ps-1 me-1"> (*)</span></th>
+                <th>NCC/Phương án<span class="text-danger ps-1 me-1"> (*)</span></th>
+                <th>Thông tin liên hệ<span class="text-danger ps-1 me-1"> (*)</span></th>
+                <th>Đơn vị tính</th>
+                <th>Đơn giá(Gồm VAT)<span class="text-danger ps-1 me-1"> (*)</span></th>
+                <th>Thành tiền(VNĐ)<span class="text-danger ps-1 me-1"> (*)</span></th>
+                <th>Ghi chú/Lý do đề xuất</th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let product of HCNSApprovalData">
+                <ng-container *ngFor="let supplier of (product.Suppliers || []); let supplierIndex = index">
+                  <tr>
+                    <!-- Action column (chỉ hiển thị ở row đầu tiên) -->
+                    <td *ngIf="supplierIndex === 0" [attr.rowspan]="(product.Suppliers || []).length || 1"
+                      style="text-align: center;">
+                      <i class="fas fa-times text-danger cursor-pointer delete-btn"
+                        (click)="removeProductRow(product.rowID)" title="Xóa sản phẩm"></i>
+                    </td>
+
+                    <!-- Product Name (chỉ hiển thị ở row đầu tiên) -->
+                    <td *ngIf="supplierIndex === 0" [attr.rowspan]="(product.Suppliers || []).length || 1"
+                      [class.validation-error]="hasValidationError(product.rowID, 0, 'ProductName')">
+                      <input type="text" [(ngModel)]="product.ProductName"
+                        (blur)="syncProductName(product.rowID, product.ProductName); validateField(product.rowID, 0, 'ProductName', product.ProductName)"
+                        [class.error-input]="hasValidationError(product.rowID, 0, 'ProductName')">
+                      <div *ngIf="hasValidationError(product.rowID, 0, 'ProductName')" class="error-message">
+                        {{ getValidationError(product.rowID, 0, 'ProductName') }}
+                      </div>
+                    </td>
+
+                    <!-- Supplier column với actions -->
+                    <td [class.validation-error]="hasValidationError(product.rowID, supplierIndex, 'Supplier')">
+                      <div>
+                        <input type="text" [(ngModel)]="supplier.Supplier"
+                          (blur)="validateField(product.rowID, supplierIndex, 'Supplier', supplier.Supplier)"
+                          [class.error-input]="hasValidationError(product.rowID, supplierIndex, 'Supplier')">
+                        <div>
+                          <i class="fas fa-plus text-success cursor-pointer" (click)="addSupplierRow(product.rowID)"
+                            title="Thêm nhà cung cấp"></i>
+                          <i class="fas fa-times text-danger cursor-pointer"
+                            (click)="removeSupplierRow(product.rowID, supplierIndex)" title="Xóa nhà cung cấp"></i>
+                        </div>
+                      </div>
+                      <div *ngIf="hasValidationError(product.rowID, supplierIndex, 'Supplier')" class="error-message">
+                        {{ getValidationError(product.rowID, supplierIndex, 'Supplier') }}
+                      </div>
+                    </td>
+
+                    <!-- Contact -->
+                    <td [class.validation-error]="hasValidationError(product.rowID, supplierIndex, 'Contact')">
+                      <input type="text" [(ngModel)]="supplier.Contact"
+                        (blur)="validateField(product.rowID, supplierIndex, 'Contact', supplier.Contact)"
+                        [class.error-input]="hasValidationError(product.rowID, supplierIndex, 'Contact')">
+                      <div *ngIf="hasValidationError(product.rowID, supplierIndex, 'Contact')" class="error-message">
+                        {{ getValidationError(product.rowID, supplierIndex, 'Contact') }}
+                      </div>
+                    </td>
+
+                    <!-- Unit -->
+                    <td>
+                      <input type="text" [(ngModel)]="supplier.Unit">
+                    </td>
+
+                    <!-- Unit Price -->
+                    <td [class.validation-error]="hasValidationError(product.rowID, supplierIndex, 'UnitPrice')">
+                      <input type="text" class="text-end" [value]="getFormattedCurrencyValue(supplier.UnitPrice)"
+                        (keydown)="onCurrencyKeyDown($event)"
+                        (input)="onCurrencyInput($event, product, supplierIndex, 'UnitPrice')"
+                        (blur)="validateField(product.rowID, supplierIndex, 'UnitPrice', supplier.UnitPrice)"
+                        [class.error-input]="hasValidationError(product.rowID, supplierIndex, 'UnitPrice')"
+                        placeholder="0">
+                      <div *ngIf="hasValidationError(product.rowID, supplierIndex, 'UnitPrice')" class="error-message">
+                        {{ getValidationError(product.rowID, supplierIndex, 'UnitPrice') }}
+                      </div>
+                    </td>
+
+                    <!-- Total Amount -->
+                    <td [class.validation-error]="hasValidationError(product.rowID, supplierIndex, 'TotalAmount')">
+                      <input type="text" class="text-end" [value]="getFormattedCurrencyValue(supplier.TotalAmount)"
+                        (keydown)="onCurrencyKeyDown($event)"
+                        (input)="onCurrencyInput($event, product, supplierIndex, 'TotalAmount')"
+                        (blur)="validateField(product.rowID, supplierIndex, 'TotalAmount', supplier.TotalAmount)"
+                        [class.error-input]="hasValidationError(product.rowID, supplierIndex, 'TotalAmount')"
+                        placeholder="0">
+                      <div *ngIf="hasValidationError(product.rowID, supplierIndex, 'TotalAmount')"
+                        class="error-message">
+                        {{ getValidationError(product.rowID, supplierIndex, 'TotalAmount') }}
+                      </div>
+                    </td>
+
+                    <!-- Note -->
+                    <td>
+                      <textarea rows="2" [(ngModel)]="supplier.Note"></textarea>
+                    </td>
+                  </tr>
+                </ng-container>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </nz-splitter-panel>
+  </nz-splitter>
+</div>
+
+<div class="modal-footer flex-shrink-0">
+  <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+    Đóng
+  </button>
+  <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
+    Lưu
+  </button>
+</div>

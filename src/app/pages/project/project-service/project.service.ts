@@ -377,7 +377,7 @@ export class ProjectService {
 
   getSelectedRowsRecursive(data: any[]): any[] {
     let selected: any[] = [];
-  
+
     data.forEach((row) => {
       // Lấy dòng cha (parent) - lấy tất cả các dòng
       selected.push({
@@ -387,7 +387,7 @@ export class ProjectService {
         Selected: row.Selected,
         projectTypeID: row.ProjectTypeID || row.ID
       });
-      
+
       // Đệ quy lấy tất cả các dòng con (children) nếu có
       if (row._children && Array.isArray(row._children)) {
         selected = selected.concat(
@@ -395,7 +395,7 @@ export class ProjectService {
         );
       }
     });
-  
+
     return selected;
   }
   // Chức năng người tham gia dự án
@@ -854,6 +854,187 @@ export class ProjectService {
     window.URL.revokeObjectURL(link.href);
   }
   //#endregion
+  async exportExcelGroupBinh(
+    table: any,
+    data: any,
+    sheetName: string,
+    fileName: string,
+    groupName: string
+  ) {
+    if (!data) {
+      if (!data || data.length === 0) {
+        if (!data || data.length === 0) {
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!');
+          return;
+        }
+      }
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    const columns = table.getColumns();
+
+    // Xử lý cho cả SlickGrid và Tabulator:
+    // - SlickGrid: getColumns() trả về trực tiếp mảng column definitions (có .name, .field)
+    // - Tabulator: getColumns() trả về mảng có method getDefinition() (có .title, .field)
+    const visibleColumns = columns
+      .map((col: any) => {
+        // Kiểm tra nếu có getDefinition() thì dùng (Tabulator)
+        // Nếu không thì dùng trực tiếp (SlickGrid)
+        if (typeof col.getDefinition === 'function') {
+          return col.getDefinition();
+        }
+        // SlickGrid: column đã là definition, chuyển .name thành .title cho thống nhất
+        return {
+          ...col,
+          title: col.name || col.title || col.field,
+          field: col.field
+        };
+      })
+      .filter((def: any) => def.formatter !== "rowSelection" && def.id !== '_checkbox_selector'); // bỏ cột checkbox
+
+    const headers = visibleColumns.map((def: any) => def.title || def.name || def.field);
+
+
+    // Thêm vào Excel
+    worksheet.addRow(headers);
+
+    let nums: number[] = [];
+    const groupedData = new Map<string, any[]>();
+
+    // Nhóm dữ liệu theo ProjectCode
+    data.forEach((row: any) => {
+      const type = row[groupName] || '';
+      if (!groupedData.has(type)) {
+        groupedData.set(type, []);
+      }
+      groupedData.get(type)?.push(row);
+    });
+
+    // Duyệt qua từng nhóm và ghi dữ liệu
+    groupedData.forEach((rows, grname) => {
+      const groupRow = worksheet.addRow([`${grname}`]);
+      const groupRowIndex = groupRow.number;
+      worksheet.mergeCells(`A${groupRowIndex}:D${groupRowIndex}`);
+      nums.push(groupRowIndex);
+
+      groupRow.font = { bold: true };
+      groupRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' },
+      };
+
+      // Ghi dữ liệu thực tế của nhóm này
+      rows.forEach((row: any) => {
+        const rowData = visibleColumns.map((col: any) => {
+          const field = col.field; // dùng field từ visibleColumns
+          let value = row[field];
+
+          // Nếu là boolean, chuyển thành checkbox biểu tượng
+          if (typeof value === 'boolean') {
+            return value ? '☑' : '☐';
+          }
+
+          // Format ngày nếu là ISO string
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+            value = new Date(value);
+          }
+
+          return value;
+        });
+
+        worksheet.addRow(rowData);
+      });
+    });
+
+    // Format cột có giá trị là Date
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // bỏ qua tiêu đề
+      row.eachCell((cell, colNumber) => {
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
+        }
+      });
+    });
+
+    // Tự động căn chỉnh độ rộng cột
+    worksheet.columns.forEach((column: any, colIndex: number) => {
+      if (colIndex === 0) {
+        column.width = 20;
+        return;
+      }
+
+      let maxLength = 10;
+
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        let cellValue = '';
+
+        if (cell.value != null) {
+          if (typeof cell.value === 'object') {
+            if (cell.value.richText) {
+              cellValue = cell.value.richText.map((t: any) => t.text).join('');
+            } else if (cell.value.text) {
+              cellValue = cell.value.text;
+            } else if (cell.value.result) {
+              cellValue = cell.value.result.toString();
+            } else {
+              cellValue = cell.value.toString();
+            }
+          } else {
+            cellValue = cell.value.toString();
+          }
+        }
+
+        const length = cellValue.length;
+        maxLength = Math.max(maxLength, length + 1);
+      });
+
+      column.width = Math.min(maxLength, 20);
+    });
+
+    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
+    worksheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: columns.length,
+      },
+    };
+
+    worksheet.eachRow({ includeEmpty: true }, (row) => {
+      if (row.number === 1) return;
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.alignment = { vertical: 'middle', wrapText: true };
+      });
+    });
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const formattedDate = new Date()
+      .toISOString()
+      .slice(2, 10)
+      .split('-')
+      .reverse()
+      .join('');
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = fileName + `.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+  }
+  //#endregion
 
   //#region Xuất excel thường
   async exportExcel(table: any, data: any, sheetName: any, fileName: any) {
@@ -879,7 +1060,7 @@ export class ProjectService {
 
       const excelRow = worksheet.addRow(rowData);
       rowIndex = excelRow.number;
-      
+
       // Kiểm tra nếu là dòng cuối cùng (bottom row) - có thể chứa text như "Số báo cáo = ..." hoặc "Tổng số ngày = ..."
       const isBottomRow = index === data.length - 1;
       if (isBottomRow) {
@@ -935,7 +1116,7 @@ export class ProjectService {
         };
       });
     });
-    
+
 
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();
@@ -1000,10 +1181,10 @@ export class ProjectService {
       dateTimeS: dateTimeS?.toISO() || new Date().toISOString(),
       dateTimeE: dateTimeE?.toISO() || new Date().toISOString(),
       keyword: keyword.trim(),
-      userID: userID.toString(),
+      userID: (userID ?? 0).toString(),
       projectTypeID: projectTypeID.trim(),
-      userTeamID: userTeamID.toString(),
-      departmentID: departmentID.toString(),
+      userTeamID: (userTeamID ?? 0).toString(),
+      departmentID: (departmentID ?? 0).toString(),
     };
 
     return this.http.post(`${this.urlProjectSummary}get-projects`, filter);
@@ -1048,7 +1229,7 @@ export class ProjectService {
       }
     );
   }
-  
+
 
   //#endregion
   //#region kiểu dự án
@@ -1081,63 +1262,64 @@ export class ProjectService {
   }
   //#end
 
-    //#region Tổng hợp nhân công
-    getProjectWorkerSynthetic(projectID:number, projectworkertypeID:number, keyword:string): Observable<any> {
-      const filter: any = {
-        projectID: projectID.toString(),
-        projectworkertypeID: projectworkertypeID.toString(),
-        keyword: keyword.trim(),
-      };
-      return this.http.post<any>(this.urlProjectSummary + `get-project-worker-synthetic`, filter);
-    }
-    getProjectCombobox(): Observable<any> {
-      return this.http.get<any>(this.urlProjectSummary + `get-combobox-project`);
-    }
-    getProjectWorkerType(): Observable<any> {
-      return this.http.get<any>(this.urlProjectSummary + `get-worker-type`);
-    }
-    //#endregion
-    //#region Danh sách báo cáo công việc
-    getProjectListWorkReport(projectId: number, keyword: string, page: number, size: number): Observable<any> {
-      const filter: any = {
-        projectId: projectId.toString()||0,
-        keyword: keyword.trim() ||'',
-        page: page.toString(),
-        size: size.toString(),
-      };
-      return this.http.get<any>(this.urlProject + `get-project-work-reports`, { params: filter });
-    }
-    //#endregion
+  //#region Tổng hợp nhân công
+  getProjectWorkerSynthetic(projectID: number, projectworkertypeID: number, keyword: string): Observable<any> {
+    const filter: any = {
+      projectID: projectID.toString(),
+      projectworkertypeID: projectworkertypeID.toString(),
+      keyword: keyword.trim(),
+    };
+    return this.http.post<any>(this.urlProjectSummary + `get-project-worker-synthetic`, filter);
+  }
+  getProjectCombobox(): Observable<any> {
+    return this.http.get<any>(this.urlProjectSummary + `get-combobox-project`);
+  }
+  getProjectWorkerType(): Observable<any> {
+    return this.http.get<any>(this.urlProjectSummary + `get-worker-type`);
+  }
+  //#endregion
+  //#region Danh sách báo cáo công việc
+  getProjectListWorkReport(projectId: number, keyword: string, page: number, size: number, teamId: number): Observable<any> {
+    const filter: any = {
+      projectId: projectId.toString() || 0,
+      keyword: keyword.trim() || '',
+      page: page.toString(),
+      size: size.toString(),
+      teamId: teamId.toString() || 0,
+    };
+    return this.http.get<any>(this.urlProject + `get-project-work-reports`, { params: filter });
+  }
+  //#endregion
 
-    //#region Kiểm tra quyền nhân viên
-    getEmployeePermission(projectId: number, employeeId: number): Observable<any> {
-      const params = new HttpParams()
-        .set('projectId', projectId.toString())
-        .set('employeeId', employeeId.toString());
-      return this.http.get<any>(this.urlProject + `get-employee-permission`, { params });
-    }
-    //#endregion
+  //#region Kiểm tra quyền nhân viên
+  getEmployeePermission(projectId: number, employeeId: number): Observable<any> {
+    const params = new HttpParams()
+      .set('projectId', projectId.toString())
+      .set('employeeId', employeeId.toString());
+    return this.http.get<any>(this.urlProject + `get-employee-permission`, { params });
+  }
+  //#endregion
 
-    //#region Leader project
-    getLeaderProject(keyword: string): Observable<any> {
-      return this.http.get<any>(this.urlProject + `get-project-leader/${keyword}`);
-    }
-    saveProjectLeader(payload: any): Observable<any> {
-      return this.http.post<any>(this.urlProject + `save-data-project-leader`, payload);
-    }
-    //#endregion
+  //#region Leader project
+  getLeaderProject(keyword: string): Observable<any> {
+    return this.http.get<any>(this.urlProject + `get-project-leader/${keyword}`);
+  }
+  saveProjectLeader(payload: any): Observable<any> {
+    return this.http.post<any>(this.urlProject + `save-data-project-leader`, payload);
+  }
+  //#endregion
 
-    //#region Upload file
-    uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
-      const formData = new FormData();
-      files.forEach((file) => {
-        formData.append('files', file);
-      });
-      formData.append('key', 'Projects');  //192.268.1.190/duan/Projects
-      if (subPath && subPath.trim()) {
-        formData.append('subPath', subPath.trim());
-      }
-      return this.http.post<any>(this.apiUrl + `home/upload-multiple`, formData);
+  //#region Upload file
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('key', 'Projects');  //192.268.1.190/duan/Projects
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
     }
-    //#endregion
+    return this.http.post<any>(this.apiUrl + `home/upload-multiple`, formData);
+  }
+  //#endregion
 }

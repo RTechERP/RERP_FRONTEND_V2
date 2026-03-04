@@ -205,12 +205,13 @@ export class ViewPokhRowDetailViewComponent implements OnInit, OnDestroy {
                 minWidth: 40,
                 maxWidth: 40,
                 formatter: (row, cell, value, columnDef, dataContext) => {
+                    // Dùng Code + POKHDetailID làm composite key (vì BillExportDetailID có thể undefined)
                     const isSelected = this.parentRef?.selectedExportRowsAll?.some(
-                        (r: any) => r.BillExportDetailID === dataContext.BillExportDetailID
+                        (r: any) => r.POKHDetailID === dataContext.POKHDetailID && r.Code === dataContext.Code
                     );
                     return `<div style="text-align: center;">
             <input type="checkbox" ${isSelected ? 'checked' : ''} class="export-row-checkbox" 
-              data-id="${dataContext.BillExportDetailID}" 
+              data-code="${dataContext.Code}" 
               data-parent-id="${dataContext.POKHDetailID}" 
               style="cursor: pointer; width: 16px; height: 16px;"/>
           </div>`;

@@ -1,5 +1,5 @@
 .document-common-page {
-  height: 90vh;
+  height: 94vh;
   font-size: 12px;
 }
 
@@ -20,7 +20,8 @@
 }
 
 .grid-wrapper {
-  height: calc(100vh - 180px); /* trừ header */
+  height: calc(100vh - 180px);
+  /* trừ header */
   min-height: 800px;
   width: 100%;
 }

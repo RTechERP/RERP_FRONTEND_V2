@@ -8,7 +8,7 @@ import { PONCCFilter, PONCCSaveRequest } from './poncc.model';
 export class PONCCService {
   private baseUrl = environment.host + 'api/PONCC/';
   private summaryUrl = environment.host + 'api/PONCCHistory/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(filter: PONCCFilter): Observable<any> {
     let httpParams = new HttpParams();
@@ -263,5 +263,20 @@ export class PONCCService {
   // Xóa lịch sử PONCC
   deletePonccHistory(data: { lsDeleted: number[] }): Observable<any> {
     return this.http.post<any>(`${this.summaryUrl}deleted`, data);
+  }
+
+  printPONCCExcel(
+    id: number,
+    isMerge: boolean,
+    language: string,
+    isShowSign: boolean,
+    isShowSeal: boolean
+  ) {
+    return this.http.get(
+      `${this.baseUrl}print-excel?id=${id}&isMerge=${isMerge}&language=${language}&isShowSign=${isShowSign}&isShowSeal=${isShowSeal}`,
+      {
+        responseType: 'blob'
+      }
+    );
   }
 }

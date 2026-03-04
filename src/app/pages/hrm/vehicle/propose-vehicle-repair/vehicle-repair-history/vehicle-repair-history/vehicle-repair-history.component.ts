@@ -64,6 +64,8 @@ import { VehicleRepairHistoryService } from '../vehicle-repair-history-service/v
 import { VehicleRepairComponentFormComponent } from '../../../vehicle-repair/vehicle-repair-component-form/vehicle-repair-component-form.component';
 import { VehicleRepairHistoryFormComponent } from '../vehicle-repair-history-form/vehicle-repair-history-form.component';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+// @ts-ignore - environment file is in .gitignore but available at runtime
+import { environment } from '../../../../../../../environments/environment';
 @Component({
   standalone: true,
   selector: 'app-vehicle-repair-history',
@@ -386,6 +388,18 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
               cssClass: 'group-info',
               title: 'THÔNG TIN HẠNG MỤC',
               columns: [
+                {
+                  title: 'Thời gian kỳ trước',
+                  field: 'TimePrevious',
+                  width: 120,
+                  hozAlign: 'center',
+                  formatter: (cell) => {
+                    const v = cell.getValue();
+                    if (!v) return '';
+                    const d = new Date(v);
+                    return d.toLocaleDateString('vi-VN');
+                  },
+                },
                 {
                   title: 'Km kỳ trước',
                   field: 'KmPreviousPeriod',
@@ -829,7 +843,8 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
       return;
     }
 
-    const templateUrl = 'assets/templateForm/MauTheoDoiXe.xlsx';
+    // Lấy template từ API share trên server
+    const templateUrl = environment.host + 'api/share/Software/Template/ExportExcel/MauTheoDoiXeTemplate.xlsx';
     const tmplWb = await this.loadTemplate(templateUrl);
     const tmpl = tmplWb.getWorksheet('Template') ?? tmplWb.worksheets[0];
     if (!tmpl) {
@@ -917,15 +932,13 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         { key: 'ProposeContent' },
         { key: 'Reason' },
         { key: 'DateApprove', type: COL.date },
+        { key: 'TimePrevious', type: COL.date },
         { key: 'KmPreviousPeriod', type: COL.number },
         { key: 'KmCurrentPeriod', type: COL.number },
         { key: 'KmInPeriod', type: COL.number },
         { key: 'Unit' },
-        { key: 'Quantity', type: COL.number },
-        { key: 'UnitPrice', type: COL.money },
         { key: 'TotalPrice', type: COL.money },
         { key: 'TimeEndRepair', type: COL.date },
-        { key: 'WarrantyPeriod', type: COL.number },
         { key: 'LinkChungTu', type: COL.multiline },
         { key: 'GaraName' },
         { key: 'AddressGara' },
@@ -952,15 +965,13 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
             r?.ProposeContent ?? r?.Content ?? r?.VehicleRepairTypeName ?? '',
           Reason: r?.Reason ?? '',
           DateApprove: r?.DateApprove ?? r?.DateReportApprove ?? '',
+          TimePrevious: r?.TimePrevious ?? '',
           KmPreviousPeriod: kmPrev || null,
           KmCurrentPeriod: kmCurr || null,
           KmInPeriod: (kmPrev === 0 && kmCurr === 0) ? null : kmIn,
           Unit: r?.Unit ?? '',
-          Quantity: r?.Quantity ?? null,
-          UnitPrice: r?.UnitPrice ?? null,
           TotalPrice: r?.TotalPrice ?? null,
           TimeEndRepair: r?.TimeEndRepair ?? r?.DateImplement ?? '',
-          WarrantyPeriod: r?.WarrantyPeriod ?? r?.Warranty ?? null,
           LinkChungTu: fileLinks, // <-- toàn bộ ServerPath
           GaraName: r?.GaraName ?? '',
           AddressGara: r?.AddressGara ?? '',
@@ -992,9 +1003,8 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     try {
       await wb.xlsx.load(buf);
     } catch (e) {
-      // debug xem có phải trả về HTML không
       const text = new TextDecoder().decode(new Uint8Array(buf).slice(0, 200));
-      console.error('First 200 bytes of template:', text);
+
       throw e;
     }
 

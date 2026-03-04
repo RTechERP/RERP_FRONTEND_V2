@@ -1041,6 +1041,8 @@ export const routes: Routes = [
             { path: 'lucky-number-person', component: LuckyNumberComponent, canActivate: [authGuard] },
             { path: 'lucky-number', component: LuckyNumberComponent, canActivate: [authGuard] },
             { path: 'update-version', component: UpdateVersionComponent, canActivate: [authGuard] },
+
+            { path: 'daily-report-bod', component: DailyReportThrComponent, canActivate: [authGuard] },
         ],
     },
 ];

@@ -26,7 +26,7 @@ export class BorrowService {
   GlobalEmployeeId: number = 78;
   LoginName: string = 'ADMIN';
   ISADMIN: boolean = true;
-
+  
   private pad(n: number): string {
     return String(n).padStart(2, '0');
   }
@@ -65,6 +65,7 @@ export class BorrowService {
       this.apiUrl + `borrow/get-employee-team-and-department`
     );
   }
+  
   getUserHistoryProduct(userId: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `borrow/get-user-history-product?userId=${userId}&status=0`
@@ -75,6 +76,7 @@ export class BorrowService {
       this.apiUrl + `borrow/get-user-history-product?userId=${userId}&status=-1`
     );
   }
+
 
   getProductRTCDetail(
     productGroupID: number,

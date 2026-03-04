@@ -527,6 +527,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
             }
             const colorIndex = departmentColorMap.get(deptName);
 
+
             return `<span class="group-color-${colorIndex}" data-level="0">Phòng ban: <strong>${deptName}</strong>
                                 <span style="margin-left:10px;">
                                 (${g.count} VB)

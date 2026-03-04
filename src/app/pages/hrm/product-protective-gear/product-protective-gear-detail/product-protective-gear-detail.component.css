@@ -1,0 +1,56 @@
+
+
+.image-preview-container {
+    border: 1px solid #d9d9d9;
+    padding: 10px;
+    min-height: 500px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fafafa;
+    border-radius: 4px;
+}
+
+.image-preview-container img {
+    max-width: 100%;
+    max-height: 480px;
+    object-fit: contain;
+}
+
+.no-image-text {
+    color: #999;
+    font-size: 14px;
+}
+
+.modal-header {
+    background-color: #1890ff !important;
+}
+
+.modal-title {
+    color: white !important;
+    font-weight: 600;
+}
+
+.mt-2 {
+    margin-top: 8px;
+}
+
+/* Select with button container */
+.select-with-button {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.select-with-button nz-select {
+    flex: 1;
+}
+
+/* Quick add button styling */
+.quick-add-btn {
+    height: 32px;
+    min-width: 32px;
+    padding: 0 8px;
+    flex-shrink: 0;
+}

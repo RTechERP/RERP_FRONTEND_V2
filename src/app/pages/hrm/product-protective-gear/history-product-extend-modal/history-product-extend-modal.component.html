@@ -1,0 +1,13 @@
+<div class="extend-modal-content">
+    <div class="extend-row">
+        <label class="extend-label">Gia hạn đến</label>
+        <nz-date-picker [(ngModel)]="extendDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày" [nzShowToday]="true"
+            class="extend-datepicker">
+        </nz-date-picker>
+    </div>
+
+    <div class="modal-footer">
+        <button nz-button nzType="primary" (click)="onConfirm()" class="btn-yes">Yes</button>
+        <button nz-button nzType="default" (click)="onCancel()" class="btn-no">No</button>
+    </div>
+</div>

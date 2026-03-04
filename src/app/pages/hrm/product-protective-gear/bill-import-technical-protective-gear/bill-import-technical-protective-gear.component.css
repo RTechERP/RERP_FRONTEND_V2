@@ -1,0 +1,42 @@
+/* Detail legend title - smaller font */
+.detail-legend {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Master grid - push down a bit */
+.grid-container-master-import {
+    margin-top: 8px;
+    height: 40vh;
+}
+
+/* Detail grid height */
+.grid-container-detail-import {
+    height: 35vh;
+}
+
+/* Detail fieldset styling */
+.detail-fieldset {
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 12px;
+}
+
+
+.grid-sparepartgroup-container,
+.grid-sparepart-container {
+    height: 100%;
+    width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}

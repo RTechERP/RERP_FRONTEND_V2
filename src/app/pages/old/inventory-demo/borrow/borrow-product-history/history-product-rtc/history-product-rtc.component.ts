@@ -101,6 +101,7 @@ import { environment } from '../../../../../../../environments/environment';
     Menubar,
   ],
 })
+
 export class HistoryProductRtcComponent
   implements OnInit, AfterViewInit, OnDestroy
 {

@@ -39,9 +39,11 @@ import {
   Column,
   Editors,
   FieldType,
+  Filters,
   Formatters,
   GridOption,
   Grouping,
+  MultipleSelectOption,
   OnEventArgs,
   SlickGrid,
 } from 'angular-slickgrid';
@@ -348,6 +350,9 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
             id: item.POKHDetailID,
             parentId: item.ParentID == 0 ? null : item.ParentID
           }));
+
+          // Cập nhật filter collection động cho các cột multiselect
+          setTimeout(() => this.applyDistinctFiltersToGrid(this.dataset), 200);
 
           // Select lại các dòng có trong selectedRowsAll
           if (this.angularGrid && this.angularGrid.slickGrid) {
@@ -949,6 +954,9 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
             parentId: item.ParentID == 0 ? null : item.ParentID
           }));
 
+          // Cập nhật filter collection động cho các cột multiselect
+          setTimeout(() => this.applyDistinctFiltersToGrid(this.dataset), 200);
+
           // Select lại các dòng có trong selectedRowsAll
           if (this.angularGrid && this.angularGrid.slickGrid) {
             // Đợi grid render xong dataset mới
@@ -1055,7 +1063,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
-        // formatter: Formatters.tree,  // Thêm tree formatter để hiển thị expand/collapse icons
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'StatusText',
@@ -1066,6 +1078,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: 'string',
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'CustomerName',
@@ -1076,6 +1093,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProjectName',
@@ -1086,6 +1108,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductCode',
@@ -1096,6 +1123,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductNewCode',
@@ -1106,6 +1138,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'GuestCode',
@@ -1116,6 +1153,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductName',
@@ -1126,6 +1168,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductGroupName',
@@ -1136,6 +1183,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'Unit',
@@ -1146,6 +1198,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'Qty',
@@ -1155,6 +1212,8 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         minWidth: 70,
         sortable: true,
         type: FieldType.number,
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
       },
       {
@@ -1165,6 +1224,8 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         minWidth: 70,
         sortable: true,
         type: FieldType.number,
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
         editor: {
           model: Editors['integer'],
@@ -1178,6 +1239,8 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         minWidth: 50,
         sortable: true,
         type: FieldType.number,
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
       },
       {
@@ -1188,6 +1251,8 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         minWidth: 70,
         sortable: true,
         type: FieldType.number,
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
       },
       {
@@ -1199,6 +1264,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'BillExportCode',
@@ -1209,6 +1279,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.string,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+        },
       },
       {
         id: 'CreatedDate',
@@ -1427,5 +1502,54 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         this.isRestoringSelection = false;
       }, 50);
     }
+  }
+
+  private applyDistinctFiltersToGrid(dataSource: any[]): void {
+    if (!this.angularGrid?.slickGrid) return;
+
+    const data = dataSource || this.angularGrid?.dataView?.getItems() || [];
+    if (!data || data.length === 0) return;
+
+    const fieldsToFilter = [
+      'PONumber', 'StatusText', 'CustomerName', 'ProjectName',
+      'ProductCode', 'ProductNewCode', 'GuestCode', 'ProductName',
+      'ProductGroupName', 'Unit', 'UserReceiver', 'BillExportCode'
+    ];
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = this.angularGrid.slickGrid.getColumns();
+    if (!columns) return;
+
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    this.columnDefinitions.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    this.angularGrid.slickGrid.setColumns(this.angularGrid.slickGrid.getColumns());
+    this.angularGrid.slickGrid.invalidate();
+    this.angularGrid.slickGrid.render();
   }
 }

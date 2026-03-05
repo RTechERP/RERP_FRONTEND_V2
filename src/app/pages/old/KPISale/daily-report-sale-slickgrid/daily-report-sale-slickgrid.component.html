@@ -37,13 +37,27 @@
 
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12"
-                        style="font-size: 12px; display: flex; align-items: center; margin-right: 6px;">Loại
-                        nhóm</nz-form-label>
+                        style="font-size: 12px; display: flex; align-items: center; margin-right: 6px;">Team</nz-form-label>
                     <nz-form-control>
-                        <nz-select name="groupTypeId" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Loại nhóm"
-                            style="width: 130px;" [(ngModel)]="filters.groupTypeId">
-                            <nz-option *ngFor="let item of groupTypes" [nzValue]="item.value"
-                                [nzLabel]="item.label"></nz-option>
+                        <nz-select name="teamId" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Team"
+                            nzDropdownClassName="select-dropdown" style="width: 160px;" [(ngModel)]="filters.teamId"
+                            [nzDisabled]="isTeamIdDisabled" (ngModelChange)="onTeamChange($event)">
+                            <nz-option *ngFor="let item of teamSales" [nzValue]="item.ID"
+                                [nzLabel]="item.Name"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12"
+                        style="font-size: 12px; display: flex; align-items: center; margin-right: 6px;">Nhân
+                        viên</nz-form-label>
+                    <nz-form-control>
+                        <nz-select name="employeeId" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Nhân viên"
+                            nzDropdownClassName="select-dropdown" style="width: 180px;" [(ngModel)]="filters.employeeId"
+                            [nzDisabled]="isEmployeeIdDisabled">
+                            <nz-option *ngFor="let item of employees" [nzValue]="item.UserID"
+                                [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
                         </nz-select>
                     </nz-form-control>
                 </nz-form-item>
@@ -97,27 +111,14 @@
                                             </nz-form-control>
                                         </nz-form-item>
 
-                                        <nz-form-item class="mb-2">
-                                            <nz-form-label class="fs-12">Team</nz-form-label>
-                                            <nz-form-control class="w-100">
-                                                <nz-select name="teamId" nzShowSearch nzAllowClear nzSize="small"
-                                                    class="w-100" nzPlaceHolder="Team" [(ngModel)]="filters.teamId"
-                                                    [nzDisabled]="isTeamIdDisabled">
-                                                    <nz-option *ngFor="let item of teamSales" [nzValue]="item.ID"
-                                                        [nzLabel]="item.Name"></nz-option>
-                                                </nz-select>
-                                            </nz-form-control>
-                                        </nz-form-item>
-
                                         <nz-form-item class="mb-0">
-                                            <nz-form-label class="fs-12">Nhân viên</nz-form-label>
+                                            <nz-form-label class="fs-12">Loại nhóm</nz-form-label>
                                             <nz-form-control class="w-100">
-                                                <nz-select name="employeeId" nzShowSearch nzAllowClear nzSize="small"
-                                                    class="w-100" nzPlaceHolder="Nhân viên"
-                                                    [(ngModel)]="filters.employeeId"
-                                                    [nzDisabled]="isEmployeeIdDisabled">
-                                                    <nz-option *ngFor="let item of employees" [nzValue]="item.UserID"
-                                                        [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
+                                                <nz-select name="groupTypeId" nzShowSearch nzAllowClear nzSize="small"
+                                                    class="w-100" nzPlaceHolder="Loại nhóm"
+                                                    [(ngModel)]="filters.groupTypeId">
+                                                    <nz-option *ngFor="let item of groupTypes" [nzValue]="item.value"
+                                                        [nzLabel]="item.label"></nz-option>
                                                 </nz-select>
                                             </nz-form-control>
                                         </nz-form-item>

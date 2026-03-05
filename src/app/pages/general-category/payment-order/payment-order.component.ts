@@ -49,6 +49,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { PaymentOrderSpecialComponent } from './payment-order-special/payment-order-special.component';
+import { PaymentOrderLogComponent } from './payment-order-log/payment-order-log.component';
 import { environment } from '../../../../environments/environment';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { DateTime } from 'luxon';
@@ -1646,6 +1647,13 @@ export class PaymentOrderComponent implements OnInit {
                             }
                         }
                     },
+                    {
+                        command: '', title: 'Lịch sử duyệt/không duyệt', iconCssClass: 'fa-solid fa-clock-rotate-left fa-lg text-info', positionOrder: 3,
+                        action: (e, args) => {
+                            this.onOpenPaymentOrderLog();
+                        }
+                    },
+
                 ],
             }
         };
@@ -3129,6 +3137,36 @@ export class PaymentOrderComponent implements OnInit {
             );
         }
 
+    }
+
+    onOpenPaymentOrderLog() {
+        let grid = this.angularGrid;
+        if (this.activeTab == '1') grid = this.angularGridSpecial;
+
+        let activeCell = grid.slickGrid.getActiveCell();
+        if (!activeCell) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một phiếu');
+            return;
+        }
+
+        const rowIndex = activeCell.row;
+        const item = grid.dataView.getItem(rowIndex);
+        const id = item?.ID || 0;
+
+        if (id <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một phiếu');
+            return;
+        }
+
+        const modalRef = this.modalService.open(PaymentOrderLogComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            scrollable: true,
+        });
+
+        modalRef.componentInstance.paymentOrderId = id;
     }
 
     onCreate() {

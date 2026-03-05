@@ -46,11 +46,11 @@ import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/sign
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormGroup, FormArray, FormBuilder, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { map, catchError, of, forkJoin } from 'rxjs';
+import { map, catchError, of, forkJoin, finalize } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
@@ -100,25 +100,37 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   @Input() warehouseId: number = 0;
   dailyReportSaleForm!: FormGroup;
   isSubmitted: boolean = false;
-  projectStatusOld: number = 0; // Trạng thái dự án cũ từ project được chọn
-  showDateStatusLogModal: boolean = false; // Hiển thị modal chọn ngày thay đổi trạng thái
-  isAdmin: boolean = false; // Kiểm tra user có phải admin không
-  isUserIdDisabled: boolean = false; // Disable dropdown userId nếu không phải admin
-  isEditMode: boolean = false; // Chế độ sửa
-  isLoading: boolean = false; // Đang load dữ liệu
 
-  // Modal thêm trạng thái dự án
+  // Manage data individually per row
+  projectStatusOldMap: { [index: number]: number } = {};
+  showDateStatusLogModalMap: { [index: number]: boolean } = {};
+
+  // Data sources per row mapped by FormArray index
+  contactsMap: { [index: number]: any[] } = {};
+  partsMap: { [index: number]: any[] } = {};
+
+  isAdmin: boolean = false;
+  isUserIdDisabled: boolean = false;
+  isEditMode: boolean = false;
+  isLoading: boolean = false;
+
+  // Date constraints: chỉ cho phép báo cáo trong 3 ngày gần nhất
+  minDateStart: Date;
+  maxDateStart: Date;
+  disabledDateStart = (current: Date): boolean => {
+    return current < this.minDateStart || current > this.maxDateStart;
+  };
+
   showProjectStatusModal: boolean = false;
   projectStatusForm!: FormGroup;
   isSavingProjectStatus: boolean = false;
   isSaving: boolean = false;
 
+  // Global data sources
   users: any[] = [];
   projects: any[] = [];
   customers: any[] = [];
-  contacts: any[] = [];
   groupTypes: any[] = [];
-  parts: any[] = [];
   firms: any[] = [];
   projectTypes: any[] = [];
   projectStatuses: any[] = [];
@@ -134,12 +146,29 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     private projectService: ProjectService,
     private firmService: FirmService,
   ) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    this.maxDateStart = today;
+    this.minDateStart = new Date(today);
+    this.minDateStart.setDate(this.minDateStart.getDate() - 2);
+
     this.initForm();
     this.initProjectStatusForm();
   }
 
+  get reports(): FormArray {
+    return this.dailyReportSaleForm.get('reports') as FormArray;
+  }
+
   initForm(): void {
     this.dailyReportSaleForm = this.fb.group({
+      reports: this.fb.array([])
+    });
+  }
+
+  createReportGroup(): FormGroup {
+    return this.fb.group({
+      id: [0], // For tracking edit mode internally
       userId: [null, Validators.required],
       projectId: [null],
       customerId: [null, Validators.required],
@@ -158,7 +187,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       problemBacklog: [''],
       planNext: ['', Validators.required],
       productOfCustomer: ['', Validators.required],
-      dateStatusLog: [null], // Ngày thay đổi trạng thái
+      dateStatusLog: [null],
     });
   }
 
@@ -170,20 +199,8 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    // Kiểm tra quyền admin và set userId
     this.isAdmin = this.appUserService.isAdmin;
     this.isUserIdDisabled = !this.isAdmin;
-
-    // Nếu không phải admin, set userId của user hiện tại và disable dropdown
-    if (!this.isAdmin) {
-      const currentUserId = this.appUserService.id;
-      if (currentUserId) {
-        this.dailyReportSaleForm.patchValue({
-          userId: currentUserId
-        });
-        this.dailyReportSaleForm.get('userId')?.disable();
-      }
-    }
 
     this.loadUsers();
     this.loadProjects();
@@ -193,39 +210,87 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     this.loadProjectStatuses();
     this.loadMainIndexes();
 
-    this.dailyReportSaleForm.get('customerId')?.valueChanges.subscribe((customerId: number | null) => {
-      this.onCustomerChange(customerId);
-    });
-
-    this.dailyReportSaleForm.get('projectId')?.valueChanges.subscribe((projectId: number | null) => {
-      this.onProjectChange(projectId);
-    });
-
-    this.dailyReportSaleForm.get('projectStatusId')?.valueChanges.subscribe((projectStatusId: number | null) => {
-      this.onProjectStatusChange(projectStatusId);
-    });
-
-    this.dailyReportSaleForm.get('userId')?.valueChanges.subscribe((userId: number | null) => {
-      this.loadProductCustomer();
-    });
-
-    // Nếu có editId thì load dữ liệu để sửa
     if (this.editId > 0) {
       this.isEditMode = true;
       this.loadExistingData();
     } else {
-      // Nếu thêm mới, tự động set dateStart và dateEnd về hôm nay
-      const today = new Date();
-      this.dailyReportSaleForm.patchValue({
-        dateStart: today,
-        dateEnd: today
-      });
+      this.addReport();
     }
   }
 
-  ngAfterViewInit(): void {
+  addReport(): void {
+    const reportGroup = this.createReportGroup();
+    const index = this.reports.length;
 
+    // Set default values logic
+    if (!this.isAdmin) {
+      const currentUserId = this.appUserService.id;
+      if (currentUserId) {
+        reportGroup.patchValue({ userId: currentUserId });
+        reportGroup.get('userId')?.disable();
+      }
+    }
+
+    const today = new Date();
+    reportGroup.patchValue({
+      dateStart: today,
+      dateEnd: today
+    });
+
+    // Wire up value changes for this specific index
+    this.setupValueChanges(reportGroup, index);
+
+    this.reports.push(reportGroup);
+
+    // Initialize map maps for rows
+    this.contactsMap[index] = [];
+    this.partsMap[index] = [];
+    this.projectStatusOldMap[index] = 0;
+    this.showDateStatusLogModalMap[index] = false;
   }
+
+  removeReport(index: number): void {
+    if (this.reports.length > 1) {
+      this.reports.removeAt(index);
+
+      delete this.contactsMap[index];
+      delete this.partsMap[index];
+      delete this.projectStatusOldMap[index];
+      delete this.showDateStatusLogModalMap[index];
+      for (let i = index; i < this.reports.length; i++) {
+        this.contactsMap[i] = this.contactsMap[i + 1] || [];
+        this.partsMap[i] = this.partsMap[i + 1] || [];
+        this.projectStatusOldMap[i] = this.projectStatusOldMap[i + 1] || 0;
+        this.showDateStatusLogModalMap[i] = this.showDateStatusLogModalMap[i + 1] || false;
+      }
+
+      delete this.contactsMap[this.reports.length];
+      delete this.partsMap[this.reports.length];
+      delete this.projectStatusOldMap[this.reports.length];
+      delete this.showDateStatusLogModalMap[this.reports.length];
+
+    }
+  }
+
+  setupValueChanges(group: FormGroup, index: number): void {
+    group.get('customerId')?.valueChanges.subscribe((customerId: number | null) => {
+      this.onCustomerChange(customerId, index);
+    });
+
+    group.get('projectId')?.valueChanges.subscribe((projectId: number | null) => {
+      this.onProjectChange(projectId, index);
+    });
+
+    group.get('projectStatusId')?.valueChanges.subscribe((projectStatusId: number | null) => {
+      this.onProjectStatusChange(projectStatusId, index);
+    });
+
+    group.get('userId')?.valueChanges.subscribe((userId: number | null) => {
+      this.loadProductCustomer(index);
+    });
+  }
+
+  ngAfterViewInit(): void { }
 
   loadExistingData(): void {
     this.isLoading = true;
@@ -233,13 +298,18 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       next: (response) => {
         if (response.status === 1 && response.data) {
           const data = response.data;
-          console.log("Data sửa:", data);
+          const reportGroup = this.createReportGroup();
+          const index = 0;
 
-          // Set projectStatusOld
-          this.projectStatusOld = data.ProjectStatusBaseID || 0;
+          this.contactsMap[index] = [];
+          this.partsMap[index] = [];
 
-          // Set form values trước (không bao gồm contactId và partId)
-          this.dailyReportSaleForm.patchValue({
+          if (!this.isAdmin) reportGroup.get('userId')?.disable();
+
+          this.projectStatusOldMap[index] = data.ProjectStatusBaseID || 0;
+
+          reportGroup.patchValue({
+            id: this.editId,
             userId: data.UserID || null,
             projectId: data.ProjectID || null,
             customerId: data.CustomerID || null,
@@ -256,50 +326,35 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
             planNext: data.PlanNext || '',
             productOfCustomer: data.ProductOfCustomer || '',
           });
-          // Load contacts và parts trước, sau đó mới set contactId và partId
+
+          this.reports.push(reportGroup);
+          this.setupValueChanges(reportGroup, index);
+
           if (data.CustomerID) {
             const contactId = data.ContacID || null;
             const partId = data.EndUser || null;
 
-            // Sử dụng forkJoin để đợi cả 2 API load xong
             forkJoin({
               contacts: this.dailyReportSaleService.getCustomerContacts(data.CustomerID),
               parts: this.dailyReportSaleService.getCustomerParts(data.CustomerID)
             }).subscribe({
               next: (results) => {
-                // Set contacts list
-                if (results.contacts.status === 1) {
-                  this.contacts = results.contacts.data || [];
-                }
-                // Set parts list
-                if (results.parts.status === 1) {
-                  this.parts = results.parts.data || [];
-                }
+                if (results.contacts.status === 1) this.contactsMap[index] = results.contacts.data || [];
+                if (results.parts.status === 1) this.partsMap[index] = results.parts.data || [];
 
-                // Sau khi load xong contacts và parts, mới set contactId và partId
-                this.dailyReportSaleForm.patchValue({
-                  contactId: contactId,
-                  partId: partId
-                });
-
-                // Load projectStatus trực tiếp thay vì gọi onProjectChange
-                // vì onProjectChange sẽ re-patch customerId => trigger onCustomerChange => reset contactId về null
-                this.loadProjectStatusForEdit(data.ProjectID || null);
+                reportGroup.patchValue({ contactId, partId }, { emitEvent: false });
+                this.loadProjectStatusForEdit(data.ProjectID || null, index);
                 this.isLoading = false;
               },
               error: (error) => {
                 console.error('Error loading contacts/parts:', error);
-                // Vẫn set giá trị dù có lỗi
-                this.dailyReportSaleForm.patchValue({
-                  contactId: contactId,
-                  partId: partId
-                });
-                this.loadProjectStatusForEdit(data.ProjectID || null);
+                reportGroup.patchValue({ contactId, partId }, { emitEvent: false });
+                this.loadProjectStatusForEdit(data.ProjectID || null, index);
                 this.isLoading = false;
               }
             });
           } else {
-            this.loadProjectStatusForEdit(data.ProjectID || null);
+            this.loadProjectStatusForEdit(data.ProjectID || null, index);
             this.isLoading = false;
           }
         } else {
@@ -316,169 +371,140 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   loadUsers() {
-    this.dailyReportSaleService.getEmployees().subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.users = response.data || [];
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách nhân viên');
-        }
+    this.dailyReportSaleService.getEmployees().subscribe({
+      next: (response) => {
+        if (response.status === 1) this.users = response.data || [];
+        else this.notification.error('Lỗi', response.message || 'Không thể tải danh sách nhân viên');
       },
-      (error) => {
+      error: (error) => {
         this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách nhân viên');
         console.error('Error loading employees:', error);
       }
-    );
+    });
   }
 
   loadProjects() {
-    this.dailyReportSaleService.getProjects().subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.projects = response.data || [];
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách dự án');
-        }
+    this.dailyReportSaleService.getProjects().subscribe({
+      next: (response) => {
+        if (response.status === 1) this.projects = response.data || [];
+        else this.notification.error('Lỗi', response.message || 'Không thể tải danh sách dự án');
       },
-      (error) => {
+      error: (error) => {
         this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách dự án');
         console.error('Error loading projects:', error);
       }
-    );
+    });
   }
 
   loadCustomers() {
-    this.dailyReportSaleService.getCustomers().subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.customers = response.data || [];
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách khách hàng');
-        }
+    this.dailyReportSaleService.getCustomers().subscribe({
+      next: (response) => {
+        if (response.status === 1) this.customers = response.data || [];
+        else this.notification.error('Lỗi', response.message || 'Không thể tải danh sách khách hàng');
       },
-      (error) => {
+      error: (error) => {
         this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách khách hàng');
         console.error('Error loading customers:', error);
       }
-    );
+    });
   }
 
   loadFirmBase() {
-    this.dailyReportSaleService.getFirmBase().subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.firms = response.data || [];
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách hãng');
-        }
+    this.dailyReportSaleService.getFirmBase().subscribe({
+      next: (response) => {
+        if (response.status === 1) this.firms = response.data || [];
+        else this.notification.error('Lỗi', response.message || 'Không thể tải danh sách hãng');
       },
-      (error) => {
+      error: (error) => {
         this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách hãng');
         console.error('Error loading firms:', error);
       }
-    );
+    });
   }
+
   loadProjectTypeBase() {
-    this.dailyReportSaleService.getProjectTypeBase().subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.projectTypes = response.data || [];
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách loại dự án');
-        }
+    this.dailyReportSaleService.getProjectTypeBase().subscribe({
+      next: (response) => {
+        if (response.status === 1) this.projectTypes = response.data || [];
+        else this.notification.error('Lỗi', response.message || 'Không thể tải danh sách loại dự án');
       },
-      (error) => {
+      error: (error) => {
         this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách loại dự án');
         console.error('Error loading project types:', error);
       }
-    );
+    });
   }
 
   loadProjectStatuses() {
-    this.dailyReportSaleService.getProjectStatuses().subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.projectStatuses = response.data || [];
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách trạng thái dự án');
-        }
+    this.dailyReportSaleService.getProjectStatuses().subscribe({
+      next: (response) => {
+        if (response.status === 1) this.projectStatuses = response.data || [];
+        else this.notification.error('Lỗi', response.message || 'Không thể tải danh sách trạng thái dự án');
       },
-      (error) => {
+      error: (error) => {
         this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách trạng thái dự án');
         console.error('Error loading project statuses:', error);
       }
-    );
+    });
   }
 
-  loadCustomerContacts(customerId: number) {
-    this.dailyReportSaleService.getCustomerContacts(customerId).subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.contacts = response.data || [];
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách người liên hệ');
-        }
+  loadCustomerContacts(customerId: number, index: number) {
+    this.dailyReportSaleService.getCustomerContacts(customerId).subscribe({
+      next: (response) => {
+        if (response.status === 1) this.contactsMap[index] = response.data || [];
+        else this.notification.error('Lỗi', response.message || 'Không thể tải danh sách người liên hệ');
       },
-      (error) => {
+      error: (error) => {
         this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách người liên hệ');
         console.error('Error loading customer contacts:', error);
       }
-    );
+    });
   }
 
-  loadCustomerParts(customerId: number) {
-    this.dailyReportSaleService.getCustomerParts(customerId).subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.parts = response.data || [];
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách EndUser');
-        }
+  loadCustomerParts(customerId: number, index: number) {
+    this.dailyReportSaleService.getCustomerParts(customerId).subscribe({
+      next: (response) => {
+        if (response.status === 1) this.partsMap[index] = response.data || [];
+        else this.notification.error('Lỗi', response.message || 'Không thể tải danh sách EndUser');
       },
-      (error) => {
+      error: (error) => {
         this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách EndUser');
         console.error('Error loading customer parts:', error);
       }
-    );
+    });
   }
 
   loadMainIndexes() {
-    this.dailyReportSaleService.getMainIndexes().subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.groupTypes = response.data || [];
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách loại nhóm');
-        }
+    this.dailyReportSaleService.getMainIndexes().subscribe({
+      next: (response) => {
+        if (response.status === 1) this.groupTypes = response.data || [];
+        else this.notification.error('Lỗi', response.message || 'Không thể tải danh sách loại nhóm');
       },
-      (error) => {
+      error: (error) => {
         this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách loại nhóm');
         console.error('Error loading group types:', error);
       }
-    );
+    });
   }
 
-  onCustomerChange(customerId: number | null): void {
-    // Nếu đang load dữ liệu edit thì không reset contactId và partId
-    if (this.isLoading) {
-      return;
-    }
+  onCustomerChange(customerId: number | null, index: number): void {
+    if (this.isLoading) return;
 
-    this.dailyReportSaleForm.patchValue({
+    this.reports.at(index).patchValue({
       contactId: null,
       partId: null
-    });
+    }, { emitEvent: false });
 
     if (customerId) {
-      this.loadCustomerContacts(customerId);
-      this.loadCustomerParts(customerId);
+      this.loadCustomerContacts(customerId, index);
+      this.loadCustomerParts(customerId, index);
     } else {
-      this.contacts = [];
-      this.parts = [];
+      this.contactsMap[index] = [];
+      this.partsMap[index] = [];
     }
   }
 
-  onAddCustomer(): void {
+  onAddCustomer(index: number): void {
     const modalRef = this.modalService.open(CustomerDetailComponent, {
       centered: true,
       size: 'xl',
@@ -493,18 +519,17 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
           this.loadCustomers();
         }
       },
-      (reason) => {
-        console.log('Modal closed:', reason);
-      }
+      (reason) => console.log('Modal closed:', reason)
     );
   }
 
-  onAddProject(): void {
+  onAddProject(index: number): void {
     this.notification.info('Thông báo', 'Chức năng thêm dự án đang được phát triển');
   }
 
-  onAddContact(): void {
-    if (!this.dailyReportSaleForm.get('customerId')?.value || this.dailyReportSaleForm.get('customerId')?.value <= 0) {
+  onAddContact(index: number): void {
+    const customerId = this.reports.at(index).get('customerId')?.value;
+    if (!customerId || customerId <= 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn Khách hàng trước!');
       return;
     }
@@ -516,17 +541,16 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
 
     modalRef.componentInstance.warehouseId = this.warehouseId;
     modalRef.componentInstance.isEditMode = true;
-    modalRef.componentInstance.EditID = this.dailyReportSaleForm.get('customerId')?.value;
+    modalRef.componentInstance.EditID = customerId;
 
     modalRef.result.then(
       (result) => {
         if (result && result.success) {
           this.loadCustomers();
+          this.loadCustomerContacts(customerId, index);
         }
       },
-      (reason) => {
-        console.log('Modal closed:', reason);
-      }
+      (reason) => console.log('Modal closed:', reason)
     );
   }
 
@@ -543,9 +567,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
           this.loadFirmBase();
         }
       },
-      (reason) => {
-        console.log('Modal closed:', reason);
-      }
+      (reason) => console.log('Modal closed:', reason)
     );
   }
 
@@ -562,14 +584,11 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
           this.loadProjectTypeBase();
         }
       },
-      (reason) => {
-        console.log('Modal closed:', reason);
-      }
+      (reason) => console.log('Modal closed:', reason)
     );
   }
 
   onAddProjectStatus(): void {
-    // Reset form và mở modal
     this.projectStatusForm.reset({
       stt: this.projectStatuses.length + 1,
       statusName: ''
@@ -577,7 +596,6 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     this.showProjectStatusModal = true;
   }
 
-  // Các hàm xử lý modal trạng thái dự án
   onProjectStatusModalCancel(): void {
     this.showProjectStatusModal = false;
     this.projectStatusForm.reset();
@@ -585,7 +603,6 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
 
   saveAndCloseProjectStatus(): void {
     if (this.projectStatusForm.invalid) {
-      // Đánh dấu các trường là touched để hiển thị lỗi
       Object.values(this.projectStatusForm.controls).forEach(control => {
         control.markAsTouched();
       });
@@ -596,12 +613,11 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     const stt = this.projectStatusForm.get('stt')?.value;
     const statusName = this.projectStatusForm.get('statusName')?.value;
 
-    // Gọi API để lưu trạng thái dự án
     this.dailyReportSaleService.saveProjectStatus(stt, statusName).subscribe({
       next: (response) => {
         if (response.status === 1) {
           this.notification.success('Thành công', 'Thêm trạng thái dự án thành công!');
-          this.loadProjectStatuses(); // Load lại danh sách trạng thái
+          this.loadProjectStatuses();
           this.showProjectStatusModal = false;
           this.projectStatusForm.reset();
         } else {
@@ -616,9 +632,9 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onAddPart(): void {
-
-    if (!this.dailyReportSaleForm.get('customerId')?.value || this.dailyReportSaleForm.get('customerId')?.value <= 0) {
+  onAddPart(index: number): void {
+    const customerId = this.reports.at(index).get('customerId')?.value;
+    if (!customerId || customerId <= 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn Khách hàng trước!');
       return;
     }
@@ -629,188 +645,142 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
     });
 
-    modalRef.componentInstance.customerId = this.dailyReportSaleForm.get('customerId')?.value;
+    modalRef.componentInstance.customerId = customerId;
 
     modalRef.result.then(
       (result) => {
         if (result && result.success) {
-          this.loadCustomerParts(this.dailyReportSaleForm.get('customerId')?.value);
+          this.loadCustomerParts(customerId, index);
         }
       },
-      (reason) => {
-        console.log('Modal closed:', reason);
-      }
+      (reason) => console.log('Modal closed:', reason)
     );
   }
 
-  loadProductCustomer(): void {
-    // Nếu đang load dữ liệu edit thì không xử lý
-    if (this.isLoading) {
-      return;
-    }
+  loadProductCustomer(index: number): void {
+    if (this.isLoading) return;
 
-    const userId = this.dailyReportSaleForm.get('userId')?.value;
-    const projectId = this.dailyReportSaleForm.get('projectId')?.value;
+    const group = this.reports.at(index);
+    const userId = group.get('userId')?.value;
+    const projectId = group.get('projectId')?.value;
 
-    // Chỉ load khi có cả userId và projectId
-    if (!userId || userId <= 0 || !projectId || projectId <= 0) {
-      return;
-    }
+    if (!userId || userId <= 0 || !projectId || projectId <= 0) return;
 
-    // Load DailyReportSale mới nhất để lấy ProductOfCustomer
     this.dailyReportSaleService.getLatestDailyReportSale(userId, projectId).subscribe({
       next: (response) => {
         if (response.status === 1 && response.data) {
           const productOfCustomer = response.data.ProductOfCustomer || '';
-          this.dailyReportSaleForm.patchValue({
-            productOfCustomer: productOfCustomer
-          });
+          group.patchValue({ productOfCustomer }, { emitEvent: false });
         }
       },
-      error: (error) => {
-        console.error('Error loading latest DailyReportSale:', error);
-      }
+      error: (error) => console.error('Error loading latest DailyReportSale:', error)
     });
 
-    // Load FollowProjectBase mới nhất để lấy FirmBaseID và ProjectTypeBaseID
     this.dailyReportSaleService.getLatestFollowProjectBase(projectId).subscribe({
       next: (response) => {
         if (response.status === 1 && response.data) {
           const followProject = response.data;
-          this.dailyReportSaleForm.patchValue({
+          group.patchValue({
             firmId: followProject.FirmBaseID || null,
             projectTypeId: followProject.ProjectTypeBaseID || null
-          });
+          }, { emitEvent: false });
         }
       },
-      error: (error) => {
-        console.error('Error loading latest FollowProjectBase:', error);
-      }
+      error: (error) => console.error('Error loading latest FollowProjectBase:', error)
     });
   }
 
-  onProjectChange(projectId: number | null): void {
-    // Nếu đang load dữ liệu edit thì không xử lý
-    if (this.isLoading) {
-      return;
-    }
+  onProjectChange(projectId: number | null, index: number): void {
+    if (this.isLoading) return;
 
     if (projectId && projectId > 0) {
-      // Load project detail để lấy CustomerID và ProjectStatus
       this.projectService.getProject(projectId).subscribe({
         next: (response) => {
           if (response.status === 1 && response.data) {
             const project = response.data;
+            const group = this.reports.at(index);
 
-            // Set customerId từ project
-            this.dailyReportSaleForm.patchValue({
-              customerId: project.CustomerID || null
-            });
+            group.patchValue({ customerId: project.CustomerID || null });
 
-            // Set projectStatusId và projectStatusOld
-            this.projectStatusOld = project.ProjectStatus || 0;
-            this.dailyReportSaleForm.patchValue({
-              projectStatusId: this.projectStatusOld
-            });
+            this.projectStatusOldMap[index] = project.ProjectStatus || 0;
+            group.patchValue({ projectStatusId: this.projectStatusOldMap[index] }, { emitEvent: false });
 
-            // Load ProductCustomer sau khi set các giá trị
-            this.loadProductCustomer();
+            this.loadProductCustomer(index);
           }
         },
-        error: (error) => {
-          console.error('Error loading project:', error);
-        }
+        error: (error) => console.error('Error loading project:', error)
       });
     } else {
-      this.projectStatusOld = 0;
+      this.projectStatusOldMap[index] = 0;
     }
   }
 
-  /**
-   * Load projectStatusId khi đang edit mà không re-patch customerId.
-   * Khác với onProjectChange: KHÔNG gọi patchValue({customerId}) tránh trigger onCustomerChange reset contactId.
-   */
-  loadProjectStatusForEdit(projectId: number | null): void {
-    if (!projectId || projectId <= 0) {
-      return;
-    }
+  loadProjectStatusForEdit(projectId: number | null, index: number): void {
+    if (!projectId || projectId <= 0) return;
     this.projectService.getProject(projectId).subscribe({
       next: (response) => {
         if (response.status === 1 && response.data) {
           const project = response.data;
-          this.projectStatusOld = project.ProjectStatus || 0;
-          this.dailyReportSaleForm.patchValue({
-            projectStatusId: this.projectStatusOld
-          });
+          this.projectStatusOldMap[index] = project.ProjectStatus || 0;
+          this.reports.at(index).patchValue({
+            projectStatusId: this.projectStatusOldMap[index]
+          }, { emitEvent: false });
         }
       },
-      error: (error) => {
-        console.error('Error loading project for edit:', error);
-      }
+      error: (error) => console.error('Error loading project for edit:', error)
     });
   }
 
-  onProjectStatusChange(projectStatusId: number | null): void {
-    // Nếu đang load dữ liệu edit thì không xử lý
-    if (this.isLoading) {
-      return;
-    }
+  onProjectStatusChange(projectStatusId: number | null, index: number): void {
+    if (this.isLoading) return;
 
-    const projectId = this.dailyReportSaleForm.get('projectId')?.value;
+    const projectId = this.reports.at(index).get('projectId')?.value;
 
-    // nếu projectStatus mới giống với projectStatusOld hoặc projectStatus <= 0 hoặc projectId <= 0 thì ẩn modal
     if (!projectId || projectId <= 0 || !projectStatusId || projectStatusId <= 0) {
-      this.showDateStatusLogModal = false;
+      this.showDateStatusLogModalMap[index] = false;
       return;
     }
 
-    // Nếu projectStatus mới giống với projectStatusOld thì ẩn modal
-    if (this.projectStatusOld === projectStatusId) {
-      this.showDateStatusLogModal = false;
+    if (this.projectStatusOldMap[index] === projectStatusId) {
+      this.showDateStatusLogModalMap[index] = false;
       return;
     }
 
-    // Nếu projectStatus thay đổi so với projectStatusOld thì hiển thị modal
-    if (this.projectStatusOld > 0 && this.projectStatusOld !== projectStatusId) {
-      this.showDateStatusLogModal = true;
+    if (this.projectStatusOldMap[index] > 0 && this.projectStatusOldMap[index] !== projectStatusId) {
+      this.showDateStatusLogModalMap[index] = true;
     }
   }
 
-  onDateStatusLogOk(): void {
-    const dateStatusLog = this.dailyReportSaleForm.get('dateStatusLog')?.value;
+  onDateStatusLogOk(index: number): void {
+    const dateStatusLog = this.reports.at(index).get('dateStatusLog')?.value;
     if (!dateStatusLog) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn ngày thay đổi trạng thái');
       return;
     }
-    this.showDateStatusLogModal = false;
+    this.showDateStatusLogModalMap[index] = false;
   }
 
-  onDateStatusLogCancel(): void {
-    this.dailyReportSaleForm.patchValue({
-      projectStatusId: this.projectStatusOld,
+  onDateStatusLogCancel(index: number): void {
+    this.reports.at(index).patchValue({
+      projectStatusId: this.projectStatusOldMap[index],
       dateStatusLog: null
-    });
-    this.showDateStatusLogModal = false;
+    }, { emitEvent: false });
+    this.showDateStatusLogModalMap[index] = false;
   }
 
-  getFormData(): any {
-    // Lấy giá trị từ form, nếu control bị disable thì dùng getRawValue()
-    const formValue = this.dailyReportSaleForm.getRawValue();
+  getFormData(group: FormGroup, index: number): any {
+    const formValue = group.getRawValue();
     const employeeId = this.appUserService.employeeID || 0;
 
     const formatDate = (date: any): string => {
       if (!date) return '';
-      if (date instanceof Date) {
-        return date.toISOString();
-      }
-      if (typeof date === 'string') {
-        return new Date(date).toISOString();
-      }
+      if (date instanceof Date) return date.toISOString();
+      if (typeof date === 'string') return new Date(date).toISOString();
       return '';
     };
 
     return {
-      ID: this.editId > 0 ? this.editId : 0,
+      ID: formValue.id || 0,
       projectId: formValue.projectId || 0,
       customerId: formValue.customerId || 0,
       warehouseId: this.warehouseId || 0,
@@ -830,78 +800,83 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       problemBacklog: (formValue.problemBacklog || '').trim(),
       planNext: (formValue.planNext || '').trim(),
       productOfCustomer: (formValue.productOfCustomer || '').trim(),
-      // Các trường cho updateProject
-      projectStatusOld: this.projectStatusOld || 0,
+      projectStatusOld: this.projectStatusOldMap[index] || 0,
       employeeId: employeeId,
       dateStatusLog: formValue.dateStatusLog ? formatDate(formValue.dateStatusLog) : new Date().toISOString(),
     };
   }
 
   validateForm(): boolean {
-    // Lấy giá trị từ form, nếu control bị disable thì dùng getRawValue()
-    const formValue = this.dailyReportSaleForm.getRawValue();
+    for (let i = 0; i < this.reports.length; i++) {
+      const group = this.reports.at(i) as FormGroup;
+      const formValue = group.getRawValue();
+      const prefix = this.reports.length > 1 ? `[Bản ghi ${i + 1}] ` : '';
 
-    if (!formValue.userId || formValue.userId <= 0) {
-      this.notification.warning('Cảnh báo', 'Xin vui lòng nhập Người phụ trách.');
-      return false;
-    }
+      if (!formValue.userId || formValue.userId <= 0) {
+        this.notification.warning('Cảnh báo', `${prefix}Xin vui lòng nhập Người phụ trách.`);
+        return false;
+      }
 
-    if (!formValue.customerId || formValue.customerId <= 0) {
-      this.notification.warning('Cảnh báo', 'Xin vui lòng nhập Khách hàng.');
-      return false;
-    }
+      // Validate dateStart trong 3 ngày gần nhất
+      if (!formValue.dateStart) {
+        this.notification.warning('Cảnh báo', `${prefix}Vui lòng chọn Ngày thực hiện!`);
+        return false;
+      }
+      const dateStart = new Date(formValue.dateStart);
+      dateStart.setHours(0, 0, 0, 0);
+      if (dateStart < this.minDateStart || dateStart > this.maxDateStart) {
+        const formatDate = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        this.notification.warning('Cảnh báo', `${prefix}Chỉ được báo cáo trong 3 ngày gần nhất (${formatDate(this.minDateStart)} - ${formatDate(this.maxDateStart)})`);
+        return false;
+      }
 
-    if (!formValue.groupTypeId || formValue.groupTypeId <= 0) {
-      this.notification.warning('Cảnh báo', 'Xin vui lòng nhập Loại nhóm!');
-      return false;
-    }
+      if (!formValue.customerId || formValue.customerId <= 0) {
+        this.notification.warning('Cảnh báo', `${prefix}Xin vui lòng nhập Khách hàng.`);
+        return false;
+      }
+      if (!formValue.groupTypeId || formValue.groupTypeId <= 0) {
+        this.notification.warning('Cảnh báo', `${prefix}Xin vui lòng nhập Loại nhóm!`);
+        return false;
+      }
+      if (!formValue.content || !formValue.content.trim()) {
+        this.notification.warning('Cảnh báo', `${prefix}Vui lòng nhập Việc đã làm!`);
+        return false;
+      }
+      if (!formValue.result || !formValue.result.trim()) {
+        this.notification.warning('Cảnh báo', `${prefix}Vui lòng nhập Kết quả!`);
+        return false;
+      }
+      if (!formValue.planNext || !formValue.planNext.trim()) {
+        this.notification.warning('Cảnh báo', `${prefix}Vui lòng nhập Kế hoạch ngày tiếp theo!`);
+        return false;
+      }
+      if (!formValue.productOfCustomer || !formValue.productOfCustomer.trim()) {
+        this.notification.warning('Cảnh báo', `${prefix}Vui lòng nhập Sản phẩm của KH!`);
+        return false;
+      }
+      if (!formValue.firmId || formValue.firmId <= 0) {
+        this.notification.warning('Cảnh báo', `${prefix}Vui lòng nhập Hãng!`);
+        return false;
+      }
+      if (!formValue.projectTypeId || formValue.projectTypeId <= 0) {
+        this.notification.warning('Cảnh báo', `${prefix}Vui lòng nhập Loại dự án!`);
+        return false;
+      }
+      if (!formValue.contactId || formValue.contactId <= 0) {
+        this.notification.warning('Cảnh báo', `${prefix}Vui lòng nhập Liên hệ!`);
+        return false;
+      }
+      if (!formValue.projectStatusId || formValue.projectStatusId <= 0) {
+        this.notification.warning('Cảnh báo', `${prefix}Vui lòng nhập Trạng thái dự án!`);
+        return false;
+      }
 
-    if (!formValue.content || !formValue.content.trim()) {
-      this.notification.warning('Cảnh báo', 'Vui lòng nhập Việc đã làm!');
-      return false;
-    }
-
-    if (!formValue.result || !formValue.result.trim()) {
-      this.notification.warning('Cảnh báo', 'Vui lòng nhập Kết quả!');
-      return false;
-    }
-
-    if (!formValue.planNext || !formValue.planNext.trim()) {
-      this.notification.warning('Cảnh báo', 'Vui lòng nhập Kế hoạch ngày tiếp theo!');
-      return false;
-    }
-
-    if (!formValue.productOfCustomer || !formValue.productOfCustomer.trim()) {
-      this.notification.warning('Cảnh báo', 'Vui lòng nhập Sản phẩm của KH!');
-      return false;
-    }
-
-    if (!formValue.firmId || formValue.firmId <= 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng nhập Hãng!');
-      return false;
-    }
-
-    if (!formValue.projectTypeId || formValue.projectTypeId <= 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng nhập Loại dự án!');
-      return false;
-    }
-
-    if (!formValue.contactId || formValue.contactId <= 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng nhập Liên hệ!');
-      return false;
-    }
-
-    if (!formValue.projectStatusId || formValue.projectStatusId <= 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng nhập Trạng thái dự án!');
-      return false;
-    }
-
-    // Kiểm tra nếu projectStatus thay đổi và chưa có dateStatusLog
-    const projectStatusNew = formValue.projectStatusId;
-    if (!formValue.dateStatusLog && this.projectStatusOld > 0 && this.projectStatusOld !== projectStatusNew) {
-      this.showDateStatusLogModal = true;
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn Ngày thay đổi trạng thái!');
-      return false;
+      const projectStatusNew = formValue.projectStatusId;
+      if (!formValue.dateStatusLog && this.projectStatusOldMap[i] > 0 && this.projectStatusOldMap[i] !== projectStatusNew) {
+        this.showDateStatusLogModalMap[i] = true;
+        this.notification.warning('Cảnh báo', `${prefix}Vui lòng chọn Ngày thay đổi trạng thái!`);
+        return false;
+      }
     }
 
     return true;
@@ -914,32 +889,37 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   saveAndClose() {
     this.isSubmitted = true;
 
-    if (!this.validateForm()) {
+    if (!this.validateForm() || this.dailyReportSaleForm.invalid) {
+      this.notification.error('Lỗi', 'Vui lòng điền đầy đủ thông tin bắt buộc cho tất cả các bản ghi');
       return;
     }
 
-    if (this.dailyReportSaleForm.valid) {
-      this.isSaving = true;
-      const dto = this.getFormData();
+    this.isSaving = true;
 
-      this.dailyReportSaleService.save(dto).subscribe({
-        next: (response) => {
-          if (response.status === 1) {
-            this.notification.success('Thành công', response.message || 'Lưu dữ liệu thành công');
-            this.activeModal.close({ success: true, reloadData: true });
-          } else {
-            this.notification.error('Lỗi', response.message || 'Không thể lưu dữ liệu');
-            this.isSaving = false;
-          }
-        },
-        error: (error) => {
-          console.error('Error saving daily report sale:', error);
-          this.notification.error('Lỗi', error.error?.message || 'Lỗi kết nối khi lưu dữ liệu');
-          this.isSaving = false;
+    const saveObservables = this.reports.controls.map((group, index) => {
+      const dto = this.getFormData(group as FormGroup, index);
+      return this.dailyReportSaleService.save(dto);
+    });
+
+    forkJoin(saveObservables).pipe(
+      finalize(() => this.isSaving = false)
+    ).subscribe({
+      next: (responses) => {
+        const hasError = responses.some(res => res.status !== 1);
+        if (hasError) {
+          this.notification.warning('Cảnh báo', 'Một số bản ghi không thể lưu dữ liệu thành công.');
+          this.activeModal.close({ success: true, reloadData: true });
+        } else {
+          this.notification.success('Thành công', 'Lưu dữ liệu thành công toàn bộ bản ghi');
+          this.activeModal.close({ success: true, reloadData: true });
         }
-      });
-    } else {
-      this.notification.error('Lỗi', 'Vui lòng điền đầy đủ thông tin bắt buộc');
-    }
+      },
+      error: (error) => {
+        console.error('Error saving daily report sales:', error);
+        const errorMsg = error.error?.data?.message || error.error?.message || 'Có lỗi kết nối khi lưu dữ liệu';
+        this.notification.error('Lỗi', errorMsg);
+      }
+    });
+
   }
 }

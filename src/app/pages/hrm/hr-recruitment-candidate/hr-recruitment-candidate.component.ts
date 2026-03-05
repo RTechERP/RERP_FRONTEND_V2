@@ -20,6 +20,9 @@ import {
   Filters,
   Formatters,
   GridOption,
+  Grouping,
+  GroupTotalFormatters,
+  SortComparers,
   MultipleSelectOption,
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -54,6 +57,8 @@ import { HrRecruitmentCandidateDetailComponent } from './hr-recruitment-candidat
 import { HRRecruitmentCandidateService } from './hr-recruitment-candidate.service';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { HrInterviewInvitationComponent } from './hr-interview-invitation/hr-interview-invitation.component';
+import { ProjectService } from '../../project/project-service/project.service';
+import { DepartmentServiceService } from '../department/department-service/department-service.service';
 
 @Component({
   selector: 'app-hr-recruitment-candidate',
@@ -89,7 +94,9 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
     private route: ActivatedRoute,
     private permissionService: PermissionService,
     private hrRecruitmentCandidateService: HRRecruitmentCandidateService,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private projectService: ProjectService,
+    private departmentService: DepartmentServiceService
   ) { }
   exportProgress = { current: 0, total: 0, fileName: '' };
   private exportModalRef: any = null;
@@ -105,6 +112,11 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
   isLoading = false;
   excelExportService = new ExcelExportService();
   keyword: any = '';
+  employeeRequestId: any = -1;
+  employees: any[] = [];
+
+  departmentId: any = -1;
+  departmentList: any[] = [];
 
   dateStart: Date = new Date(
     new Date().getFullYear(),
@@ -126,6 +138,8 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
   //#region Sự kiện load mở CN
   ngOnInit(): void {
     this.getPositionContract();
+    this.getEmployees();
+    this.loadDepartments();
     this.loadMenu();
     this.initAngularGrid();
     this.onSearch();
@@ -237,6 +251,38 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
           {
             nzStyle: { whiteSpace: 'pre-line' }
           });
+      },
+    });
+  }
+
+  getEmployees() {
+    this.projectService.getUsers().subscribe({
+      next: (response: any) => {
+        this.employees = this.projectService.createdDataGroup(
+          response.data,
+          'DepartmentName'
+        );
+      },
+      error: (error: any) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi khi tải danh sách nhân viên: ' + (error.message || error)
+        );
+      },
+    });
+  }
+
+  loadDepartments() {
+    this.departmentService.getDepartments().subscribe({
+      next: (data: any) => {
+        console.log(data);
+        this.departmentList = data.data;
+      },
+      error: (error) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          error.error?.message || 'Lỗi khi tải danh sách phòng ban'
+        );
       },
     });
   }
@@ -483,21 +529,22 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         },
         excelExportOptions: { width: 25 },
       },
-      {
-        id: 'DepartmentName',
-        field: 'DepartmentName',
-        name: 'Phòng ban',
-        width: 250,
-        sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
-          collectionOptions: { addBlankEntry: true },
-        },
-        excelExportOptions: { width: 25 },
-      },
+      // {
+      //   id: 'DepartmentName',
+      //   field: 'DepartmentName',
+      //   name: 'Phòng ban',
+      //   width: 250,
+      //   sortable: true,
+      //   filterable: true,
+      //   groupTotalsFormatter: GroupTotalFormatters['sumTotals'],
+      //   filter: {
+      //     model: Filters['multipleSelect'],
+      //     collection: [],
+      //     filterOptions: { filter: true } as MultipleSelectOption,
+      //     collectionOptions: { addBlankEntry: true },
+      //   },
+      //   excelExportOptions: { width: 25 },
+      // },
       {
         id: 'Note',
         field: 'Note',
@@ -568,12 +615,34 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         thousandSeparator: ',',
       },
 
+      enableGrouping: true,
+
       rowHeight: 30,
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
       frozenColumn: 3
     };
+  }
+
+  groupByDepartment() {
+    const dataView = this.angularGrid?.dataView;
+    if (!dataView) return;
+
+    dataView.setGrouping([
+      {
+        getter: 'DepartmentName',
+        formatter: (g: any) =>
+          `<b>Phòng ban:</b> ${g.value || '(Chưa có)'} &nbsp; <span style="color:#e34141">(${g.count} ứng viên)</span>`,
+        comparer: (a: any, b: any) => SortComparers.string(a.value, b.value),
+        aggregators: [],
+        collapsed: false,
+        lazyTotalsCalculation: true,
+      }
+    ] as Grouping[]);
+
+    this.angularGrid?.slickGrid?.invalidate();
+    this.angularGrid?.slickGrid?.render();
   }
 
   updateMasterFooterRow() {
@@ -674,6 +743,8 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
     this.hrRecruitmentCandidateService.getDataHrRecruitmentCandidate(
       0,
       this.status ?? -1,
+      this.employeeRequestId ?? -1,
+      this.departmentId ?? -1,
       this.employeeChucVuHDId ?? -1,
       toLocalISO(new Date(this.dateStart.getFullYear(), this.dateStart.getMonth(), this.dateStart.getDate(), 0, 0, 0)),
       toLocalISO(new Date(this.dateEnd.getFullYear(), this.dateEnd.getMonth(), this.dateEnd.getDate(), 23, 59, 59)),
@@ -684,6 +755,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
           (item: any, index: number) => ({
             ...item,
             id: item.ID ?? item.id ?? `row_${index}`,
+            STT: index + 1,
           })
         );
         this.isLoading = false;
@@ -691,6 +763,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         setTimeout(() => {
           this.applyDistinctFilters();
           this.updateMasterFooterRow();
+          this.groupByDepartment();
           this.angularGrid?.slickGrid?.invalidate();
           this.angularGrid?.slickGrid?.render();
           this.angularGrid?.slickGrid?.resizeCanvas();

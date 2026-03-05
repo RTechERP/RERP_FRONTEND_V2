@@ -149,7 +149,7 @@
       </ng-template>
       <ng-template #phoneErrorTpl let-control>
         <ng-container *ngIf="control.hasError('required')"
-          >Vui lòng nhập số điện thoại!</ng-container
+          >Vui lòng nhập sđt!</ng-container
         >
         <ng-container *ngIf="control.hasError('pattern')"
           >Sai định dạng SĐT! (VD: 0123456789 hoặc +84123456789)</ng-container
@@ -238,11 +238,26 @@
                 nzAllowClear
                 nzShowSearch
               >
-                <nz-option
-                  *ngFor="let item of hrHiringRequestList"
-                  [nzValue]="item.ID"
-                  [nzLabel]="item.Code"
-                ></nz-option>
+                <ng-container *ngFor="let group of hrHiringRequestList">
+                  <nz-option-group [nzLabel]="group.label">
+                    <nz-option
+                      *ngFor="let option of group.options"
+                      [nzLabel]="option.item.Code"
+                      [nzValue]="option.item.ID"
+                      nzCustomContent
+                    >
+                      <span
+                        style="
+                          white-space: normal;
+                          word-break: break-word;
+                          display: block;
+                        "
+                      >
+                        {{ option.item.Code }}
+                      </span>
+                    </nz-option>
+                  </nz-option-group>
+                </ng-container>
               </nz-select>
             </nz-form-control>
           </nz-form-item>

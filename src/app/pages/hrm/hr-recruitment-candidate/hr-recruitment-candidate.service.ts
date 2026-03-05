@@ -29,6 +29,8 @@ export class HRRecruitmentCandidateService {
   getDataHrRecruitmentCandidate(
     id: number,
     status: number,
+    employeeRequestId: number,
+    departmentId: number,
     employeeChucVuHDId: number,
     ds: any,
     de: any,
@@ -36,7 +38,7 @@ export class HRRecruitmentCandidateService {
   ) {
     return this.http.get<any>(
       this.apiUrl +
-      `data?id=${id}&status=${status}&employeeChucVuHDId=${employeeChucVuHDId}&dateStart=${ds}&dateEnd=${de}&keyword=${keywords}`
+      `data?id=${id}&status=${status}&employeeRequestId=${employeeRequestId}&departmentId=${departmentId}&employeeChucVuHDId=${employeeChucVuHDId}&dateStart=${ds}&dateEnd=${de}&keyword=${keywords}`
     );
   }
 

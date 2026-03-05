@@ -139,6 +139,7 @@ export class KpiEmployeeTeamComponent implements OnInit {
 
     this.gridOptionsTeam = {
       enableAutoResize: true,
+      forceFitColumns: true,
       autoResize: {
         container: '.grid-container-team',
         calculateAvailableSizeBy: 'container',
@@ -184,6 +185,7 @@ export class KpiEmployeeTeamComponent implements OnInit {
 
     this.gridOptionsEmployee = {
       enableAutoResize: true,
+      forceFitColumns: true,
       autoResize: {
         container: '.grid-container-employee',
         calculateAvailableSizeBy: 'container',

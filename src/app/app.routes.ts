@@ -1053,6 +1053,11 @@ export const routes: Routes = [
             //Cài đặt phòng kỹ thuật
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
             { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation-factors', component: KpiEvaluationFactorsComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation-rule', component: KpiEvaluationRuleComponent, canActivate: [authGuard] },
+            { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation', component: KpiEvaluationComponent, canActivate: [authGuard] },
+            { path: 'kpi-employee-team', component: KpiEmployeeTeamComponent, canActivate: [authGuard] },
 
             //Tổng hợp kpi
             { path: 'kpi-synthetic-years', component: KpiSyntheticYearsComponent, canActivate: [authGuard] },

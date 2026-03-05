@@ -13,12 +13,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AppUserService } from '../../../services/app-user.service';
 import { BorrowService } from '../../../pages/old/inventory-demo/borrow/borrow-service/borrow.service';
 import { PermissionService } from '../../../services/permission.service';
-import {
-  GroupItem,
-  LeafItem,
-  MenuItem,
-  MenuService,
-} from '../../../pages/systems/menus/menu-service/menu.service';
+import { GroupItem, LeafItem, MenuItem, MenuService } from '../../../pages/systems/menus/menu-service/menu.service';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { NOTIFICATION_TITLE } from '../../../app.config';
@@ -270,101 +265,62 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
         });
     }
-    this.newTab(route, title);
-  }
-  getMenus() {
-    // console.log('this.appUserService.currentUser:', this.appUserService.currentUser);
 
-    this.menuAppService.getAll().subscribe({
-      next: (response) => {
-        const map = new Map<number, any>();
-        // this.nodes = [];
-        // Tạo map trước
-        response.data.menus.forEach((item: any) => {
-          let isPermission = item.IsPermission;
 
-          //Nếu là AGV-Cơ khí
-          if (item.Router == 'daily-report-machine') {
-            isPermission =
-              this.isAdmin ||
-              this.departmentAgvCokhis.includes(this.departmentID) ||
-              this.userAllReportTechs.includes(this.id);
-          }
-
-          //nếu là sale
-          if (
-            item.Router == 'daily-report-sale-admin' ||
-            item.Router == 'daily-report-sale' ||
-            item.Code == 'M66'
-          ) {
-            isPermission =
-              this.isAdmin || this.departmentSales.includes(this.departmentID);
-          }
-
-          //Nếu là Kỹ thuật
-          if (item.Router == 'daily-report-tech') {
-            isPermission =
-              this.isAdmin ||
-              this.departmentTechs.includes(this.departmentID) ||
-              this.userAllReportTechs.includes(this.id);
-          }
-
-          //Nếu là HR
-          if (
-            item.Router == 'daily-report-thr' ||
-            item.Router == 'daily-report-lxcp' ||
-            item.Code == 'M70'
-          ) {
-            isPermission =
-              this.isAdmin ||
-              this.isHR ||
-              this.positinCPs.includes(this.positionID) ||
-              this.positinLXs.includes(this.positionID);
-          }
-
-          //Nếu là lắp rap
-          if (item.Router == 'daily-report-lr') {
-            isPermission =
-              this.isAdmin ||
-              this.departmentLapraps.includes(this.departmentID) ||
-              this.userAllReportTechs.includes(this.id);
-          }
-
-          //Nếu là MKT
-          if (item.Router == 'daily-report-mkt') {
-            isPermission =
-              this.isAdmin || this.marketings.includes(this.departmentID);
-          }
-
-          map.set(item.ID, {
-            STT: item.STT,
-            Code: item.Code,
-            Title: item.Title,
-            Router:
-              item.Router == '' ? '' : `${environment.baseHref}/${item.Router}`,
-            Icon: `${environment.host}api/share/software/icon/${item.Icon}`,
-            IsPermission: isPermission,
-            IsOpen: true,
-            ParentID: item.ParentID,
-            Children: [],
-            ID: item.ID,
-            QueryParam: item.QueryParam ?? '',
-          });
+    getHoliday(year: number, month: number): void {
+        this.holidayService.getHolidays(month + 1, year).subscribe({
+            next: (response) => {
+                this.holidays = response.data.holidays;
+                this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            },
         });
+    }
 
-        // Gắn cha – con
-        response.data.menus.forEach((item: any) => {
-          const node = map.get(item.ID);
+    getEmployeeOnleaveAndWFH(): void {
 
-          if (item.ParentID && map.has(item.ParentID)) {
-            const parent = map.get(item.ParentID);
-            parent.Children.push(node);
-          } else {
-            this.menus.push(node);
-          }
+        this.homepageService.getEmployeeOnleaveAndWFH().subscribe({
+            next: (response) => {
+                this.employeeOnleaves = response.data.employeeOnleaves || [];
+                this.employeeWfhs = response.data.employeeWfhs || [];
+
+                this.totalEmployeeOnleave = this.employeeOnleaves.reduce(
+                    (sum: any, dept: any) => sum + dept.Employees.length,
+                    0
+                );
+                this.totalEmployeeWfh = this.employeeWfhs.reduce(
+                    (sum: any, dept: any) => sum + dept.Employees.length,
+                    0
+                );
+
+                // console.log('employeeWfhs:', this.employeeWfhs);
+            },
+            error: (error: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+            }
+        })
+
+    }
+
+    loadNewsletters(): void {
+        this.homepageService.getNewsletters().subscribe({
+            next: (response) => {
+                const data = response.data || [];
+                // Sort by CreatedDate descending and take top 10
+                this.newsletters = data;
+            },
+            error: (error: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+            }
         });
+    }
 
-        // console.log('this.menus:', this.menus);
+    onPick(n: NotifyItem) {
+        console.log('picked:', n);
+    }
+
 
     openModule(event: MouseEvent, route: string, key: string) {
 
@@ -397,16 +353,16 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     //     ];
     //     console.log('this.dynamicTabs after add:', this.dynamicTabs);
 
-        this.menuApproves = this.menus.find((x) => x.Code == 'appvovedperson');
-        // console.log('this.menuApproves:', this.menuApproves);
+    //     // this.dynamicTabs = [
+    //     //     ...this.dynamicTabs,
+    //     //     { title, route, data }
+    //     // ];
 
-        var pesons = this.menus.find((x) => x.Code == 'person');
-        this.menuPersons = pesons.Children.filter(
-          (x: any) =>
-            x.Code == 'registerpayroll' ||
-            x.Code == 'dailyreport' ||
-            x.Code == 'registercommon',
-        );
+    //     // setTimeout(() => {
+    //     //     this.selectedIndex = this.dynamicTabs.length - 1;
+    //     //     this.router.navigateByUrl(route);
+    //     // });
+    // }
 
     newTab(route: string, title: string, queryParams?: any) {
         route = route.replace(environment.baseHref, '');
@@ -463,67 +419,36 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
             localStorage.removeItem('tabOpeneds');
         }
-      } else if (typeof queryParams === 'object') {
-        // Đã là object rồi, không cần parse
-        parsedParams = queryParams;
-        // console.log('queryParams already object:', parsedParams);
-      }
-    } else {
-      // console.log('queryParams is empty or undefined');
     }
 
-    const normalizedParams =
-      parsedParams &&
-      typeof parsedParams === 'object' &&
-      Object.keys(parsedParams).length > 0
-        ? parsedParams
-        : undefined;
-    // if (idx >= 0) {
-    this.selectedIndex = idx;
-
-    const cleanRoute = route.startsWith('/') ? route.substring(1) : route;
-    let url = `/${cleanRoute}`;
-    if (normalizedParams) {
-      const params = new URLSearchParams();
-      Object.keys(normalizedParams).forEach((key) => {
-        const value = normalizedParams[key];
-        // Convert boolean, number sang string
-        params.append(key, String(value));
-      });
-      url += `?${params.toString()}`;
+    onSelectChangeCalendar(value: Date): void {
+        // this.calendarDate = value;
+        this.getHoliday(value.getFullYear(), value.getMonth());
     }
 
-    // this.router.navigateByUrl(route);
-    // console.log('navigateByUrl(url):', url);
-    this.router.navigateByUrl(url).then(() => {
-      // Reset flag sau khi navigation xong
-      setTimeout(() => {
-        // this.isNavigatingFromNewTab = false;
-      }, 100);
-    });
-    return;
-    // }
+    openNewsletterDetail(newsletterId: number): void {
+        const modalRef = this.modalService.open(NewsletterDetailComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: true,
+            scrollable: true
+        });
 
-    this.dynamicTabs = [...this.dynamicTabs, { title, route, queryParams }];
-    // console.log('this.dynamicTabs after add:', this.dynamicTabs);
+        modalRef.componentInstance.newsletterId = newsletterId;
+    }
 
-    setTimeout(() => {
-      this.selectedIndex = this.dynamicTabs.length - 1;
-      this.router.navigateByUrl(route);
-    });
-  }
+    getNewsletterImageUrl(item: any): string {
+        const serverPath = item?.ServerImgPath;
+        const imageName = item?.Image; // Keep consistency with item properties
 
-  handleClickLink(
-    event: MouseEvent,
-    route: string,
-    title: string,
-    queryParam?: string,
-  ) {
-    // console.log('route:', route);
-    if (route == '') return;
-    if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
-      event.preventDefault(); // chặn reload
-      this.newTab(route, title, queryParam);
+        if (!serverPath && !imageName) return 'assets/images/no-image.png';
+
+        const host = environment.host + 'api/share/';
+        let urlImage = (serverPath || imageName || '').replace("\\\\192.168.1.190\\", "");
+        urlImage = urlImage.replace(/\\/g, '/');
+
+        return host + urlImage;
     }
     ngOnDestroy(): void {
         clearTimeout(this.clickTimer);

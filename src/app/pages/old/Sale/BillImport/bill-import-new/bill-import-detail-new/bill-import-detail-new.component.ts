@@ -539,12 +539,14 @@ export class BillImportDetailNewComponent
     this.newBillImport.DeliverID = firstHistory.UserID;
     this.newBillImport.KhoTypeID = firstHistory.ProductGroupID;
     this.newBillImport.KhoType = firstHistory.ProductGroupName;
+    this.newBillImport.WarehouseID = firstHistory.WarehouseID;
 
     this.validateForm.patchValue(
       {
         BillImportCode: this.newBillImport.BillImportCode,
         DeliverID: this.newBillImport.DeliverID,
         KhoTypeID: this.newBillImport.KhoTypeID,
+        WarehouseID: this.newBillImport.WarehouseID,
       },
       { emitEvent: false }
     );
@@ -1594,22 +1596,34 @@ export class BillImportDetailNewComponent
     this.billImportService.getWarehouse().subscribe((res: any) => {
       const list = res.data || [];
       this.warehouses = list;
-      const currentWarehouse = list.find(
-        (item: any) =>
-          String(item.WarehouseCode).toUpperCase() ===
-          String(this.WarehouseCode).toUpperCase()
-      );
-      const currentId = currentWarehouse?.ID ?? 0;
+
+      // Nếu @Input warehouseID đã được truyền vào, ưu tiên dùng giá trị đó
+      let resolvedId: number;
+      let resolvedName: string;
+
+      if (this.warehouseID && this.warehouseID > 0) {
+        const matchedWarehouse = list.find((item: any) => item.ID === this.warehouseID);
+        resolvedId = this.warehouseID;
+        resolvedName = matchedWarehouse?.WarehouseName || this.WarehouseCode;
+      } else {
+        const currentWarehouse = list.find(
+          (item: any) =>
+            String(item.WarehouseCode).toUpperCase() ===
+            String(this.WarehouseCode).toUpperCase()
+        );
+        resolvedId = currentWarehouse?.ID ?? 0;
+        resolvedName = currentWarehouse?.WarehouseName || this.WarehouseCode;
+      }
 
       const hnId =
         list.find((item: any) =>
           String(item.WareHouseCode).toUpperCase().includes('HN')
         )?.ID ?? 1;
 
-      this.validateForm.controls['WarehouseID'].setValue(currentId);
-      this.validateForm.controls['WarehouseName'].setValue(
-        currentWarehouse?.WarehouseName || this.WarehouseCode
-      );
+      // Reset to null first to force nz-select re-render khi giá trị giống nhau
+      this.validateForm.controls['WarehouseID'].setValue(null, { emitEvent: false });
+      this.validateForm.controls['WarehouseID'].setValue(resolvedId);
+      this.validateForm.controls['WarehouseName'].setValue(resolvedName);
       this.validateForm.controls['WarehouseID'].disable();
 
       this.warehouseIdHN = hnId;
@@ -1933,7 +1947,7 @@ export class BillImportDetailNewComponent
         CustomerFullName: '',
         BillCodePO: item.BillCodePO || '',
         PONumber: '',
-        Note: item.Note || '',
+        Note: item.BorrowCode + ' - ' + item.Note || '',
         SomeBill: item.SomeBill || '',
         DateSomeBill: item.DateSomeBill ? new Date(item.DateSomeBill) : null,
         DPO: item.DPO || 0,
@@ -1943,6 +1957,7 @@ export class BillImportDetailNewComponent
         SerialNumber: item.SerialNumber || '',
         BillExportDetailID: item.BorrowID || 0,
         CodeMaPhieuMuon: item.BorrowCode || '',
+        WarehouseID: this.warehouseID,
       };
     });
 

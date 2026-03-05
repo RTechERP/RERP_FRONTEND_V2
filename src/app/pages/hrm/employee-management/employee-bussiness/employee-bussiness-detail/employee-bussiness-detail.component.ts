@@ -566,27 +566,24 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         if (data && data.data) {
           const dataArray = Array.isArray(data.data) ? data.data : [data.data];
 
-          this.projectList = [
-            { value: 0, label: '--Chọn dự án--' },
-            ...dataArray.map((item: any) => {
-              if (item.ID !== undefined) {
-                const projectText = item.ProjectCode
-                  ? `${item.ProjectCode} - ${item.ProjectName || ''}`
-                  : (item.ProjectName || '');
-                return {
-                  value: item.ID,
-                  label: projectText
-                };
-              }
-              if (item.id !== undefined && item.text !== undefined) {
-                return {
-                  value: item.id,
-                  label: item.text
-                };
-              }
-              return item;
-            })
-          ];
+          this.projectList = dataArray.map((item: any) => {
+            if (item.ID !== undefined) {
+              const projectText = item.ProjectCode
+                ? `${item.ProjectCode} - ${item.ProjectName || ''}`
+                : (item.ProjectName || '');
+              return {
+                value: item.ID,
+                label: projectText
+              };
+            }
+            if (item.id !== undefined && item.text !== undefined) {
+              return {
+                value: item.id,
+                label: item.text
+              };
+            }
+            return item;
+          });
 
           // Cập nhật tabulator nếu đã khởi tạo
           if (this.tabulator) {
@@ -595,8 +592,19 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
               const currentDef = projectColumn.getDefinition();
               projectColumn.updateDefinition({
                 ...currentDef,
+                editor: 'list',
                 editorParams: {
-                  values: this.projectList
+                  ...(currentDef as any).editorParams,
+                  values: this.projectList,
+                  autocomplete: true,
+                  filterFunc: (term: string, label: string, value: any, item: any) => {
+                    if (!term) return true;
+                    const searchTerm = term.toLowerCase();
+                    return label.toLowerCase().includes(searchTerm);
+                  },
+                  allowEmpty: true,
+                  listOnEmpty: true,
+                  freetext: false
                 }
               } as any);
             }
@@ -607,7 +615,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             }
           }
         } else {
-          this.projectList = [{ value: 0, label: '--Chọn dự án--' }];
+          this.projectList = [];
         }
       },
       error: (error: any) => {
@@ -615,7 +623,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           const errorMessage = error?.error?.Message || error?.error?.message || error?.message || 'Không thể tải danh sách dự án.';
           this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
         }
-        this.projectList = [{ value: 0, label: '--Chọn dự án--' }];
+        this.projectList = [];
       }
     });
   }
@@ -652,8 +660,19 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
               const currentDef = vehicleColumn.getDefinition();
               vehicleColumn.updateDefinition({
                 ...currentDef,
+                editor: 'list',
                 editorParams: {
-                  values: this.vehicleList
+                  ...(currentDef as any).editorParams,
+                  values: this.vehicleList,
+                  search: true,
+                  autocomplete: false,
+                  listOnEmpty: true,
+                  freetext: false,
+                  filterFunc: (term: string, label: string, value: any, item: any) => {
+                    if (!term) return true;
+                    const searchTerm = term.toLowerCase();
+                    return label.toLowerCase().includes(searchTerm);
+                  }
                 }
               } as any);
             }
@@ -785,7 +804,16 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             editor: 'list',
             headerSort: false,
             editorParams: {
-              values: this.projectList
+              values: this.projectList,
+              autocomplete: true,
+              filterFunc: (term: string, label: string, value: any, item: any) => {
+                if (!term) return true;
+                const searchTerm = term.toLowerCase();
+                return label.toLowerCase().includes(searchTerm);
+              },
+              allowEmpty: true,
+              listOnEmpty: true,
+              freetext: false
             },
             formatter: (cell: any) => {
               const value = parseInt(cell.getValue()) || 0;
@@ -802,7 +830,16 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             editor: 'list',
             headerSort: false,
             editorParams: {
-              values: this.employeeTypeBussinessList
+              values: this.employeeTypeBussinessList,
+              search: true,
+              autocomplete: false,
+              listOnEmpty: true,
+              freetext: false,
+              filterFunc: (term: string, label: string, value: any, item: any) => {
+                if (!term) return true;
+                const searchTerm = term.toLowerCase();
+                return label.toLowerCase().includes(searchTerm);
+              }
             },
             formatter: (cell: any) => {
 
@@ -857,7 +894,16 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             width: 300,
             editor: 'list',
             editorParams: {
-              values: this.overNightTypeList
+              values: this.overNightTypeList,
+              search: true,
+              autocomplete: false,
+              listOnEmpty: true,
+              freetext: false,
+              filterFunc: (term: string, label: string, value: any, item: any) => {
+                if (!term) return true;
+                const searchTerm = term.toLowerCase();
+                return label.toLowerCase().includes(searchTerm);
+              }
             },
             headerSort: false,
             formatter: (cell: any) => {
@@ -909,7 +955,16 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             headerSort: false,
             editor: 'list',
             editorParams: {
-              values: this.vehicleList
+              values: this.vehicleList,
+              search: true,
+              autocomplete: false,
+              listOnEmpty: true,
+              freetext: false,
+              filterFunc: (term: string, label: string, value: any, item: any) => {
+                if (!term) return true;
+                const searchTerm = term.toLowerCase();
+                return label.toLowerCase().includes(searchTerm);
+              }
             },
             formatter: (cell: any) => {
               const value = parseInt(cell.getValue()) || 0;
@@ -1126,6 +1181,21 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             #tb_employee_bussiness_detail .tabulator-row .tabulator-cell,
             #tb_employee_bussiness_detail * {
               font-size: 12px !important;
+            }
+            .tabulator-edit-list-search {
+              padding: 6px 10px !important;
+              border-bottom: 1px solid #d9d9d9 !important;
+              background-color: #f5f5f5 !important;
+              display: block !important;
+            }
+            .tabulator-edit-list-search input {
+              border: 1px solid #d9d9d9 !important;
+              border-radius: 2px !important;
+              padding: 4px 8px !important;
+              width: 100% !important;
+              box-sizing: border-box !important;
+              font-size: 12px !important;
+              color: #000000 !important;
             }
           `;
           const existingStyle = document.getElementById('tabulator-employee-bussiness-detail-font-size-override');

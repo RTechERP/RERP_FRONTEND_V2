@@ -581,6 +581,25 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         }
         this.tabulator = new Tabulator(this.tbApproveTpRef.nativeElement, {
             ...DEFAULT_TABLE_CONFIG,
+            rowFormatter: (row) => {
+                const data = row.getData();
+                const createdDateStr = data['NgayDangKy'] as string;
+                if (createdDateStr && this.searchForm) {
+                    const createdDate = DateTime.fromISO(createdDateStr);
+                    const { startDate, endDate } = this.searchForm.value;
+
+                    if (startDate && endDate) {
+                        const start = DateTime.fromISO(startDate).startOf('day');
+                        const end = DateTime.fromISO(endDate).endOf('day');
+
+                        if (createdDate < start || createdDate > end) {
+                            row.getElement().style.backgroundColor = '#efc6ed8c';
+                        } else {
+                            row.getElement().style.backgroundColor = '';
+                        }
+                    }
+                }
+            },
             layout: 'fitDataStretch',
             height: '80vh',
             paginationMode: 'local',

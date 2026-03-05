@@ -1,9 +1,9 @@
-<ng-container class="w-100">
-  <div [id]="'list-product-project-container-' + warehouseCode" class="card h-100 border-0 rounded-0" style="background: transparent">
-    <div class="card-header bg-white p-1">
-      <div class="d-flex gap-1 align-items-center">
+<ng-container class="w-100 list-product-project-w-100">
+  <div [id]="'list-product-project-container-' + warehouseCode" class="card h-100 border-0 rounded-0 list-product-project-card list-product-project-h-100 list-product-project-border-0 list-product-project-rounded-0" style="background: transparent">
+    <div class="card-header bg-white p-1 list-product-project-card-header list-product-project-bg-white list-product-project-p-1">
+      <div class="d-flex gap-1 align-items-center list-product-project-d-flex list-product-project-gap-1 list-product-project-align-items-center">
         <nz-select
-          class="fs-12"
+          class="fs-12 list-product-project-fs-12"
           style="width: 500px"
           [(ngModel)]="sreachParam.selectedProject"
           nzShowSearch
@@ -20,10 +20,10 @@
           >
           </nz-option>
         </nz-select>
-        <p-menubar [model]="listProductMenu" class="p-0 border-0"> </p-menubar>
+        <p-menubar [model]="listProductMenu" class="p-0 border-0 list-product-project-p-0 list-product-project-border-0"> </p-menubar>
       </div>
     </div>
-    <div class="card-body p-0 w-100" style="height: calc(100vh - 200px)">
+    <div class="card-body p-0 w-100 list-product-project-card-body list-product-project-p-0 list-product-project-w-100" style="height: calc(100vh - 200px)">
       <div
         *ngIf="isLoading"
         style="
@@ -41,7 +41,7 @@
       >
         <nz-spin [nzSpinning]="isLoading"></nz-spin>
       </div>
-      <div [id]="'grid-container-' + warehouseCode" class="grid-container" style="height: 100%">
+      <div [id]="'grid-container-' + warehouseCode" class="grid-container list-product-project-grid-container" style="height: 100%">
         <angular-slickgrid
           [gridId]="'listProductProjectGrid-' + warehouseCode"
           [columns]="columnDefinitions"

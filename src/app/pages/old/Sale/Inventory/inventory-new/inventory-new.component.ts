@@ -717,7 +717,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             .getdataProductGroup(this.warehouseCode, true)
             .subscribe({
                 next: (res) => {
-                    
+
                     this.isLoadingProductGroup = false;
                     if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
                         this.dataProductGroup = res.data;
@@ -729,7 +729,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                             parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
                         }));
 
-                        if(this.isWareHouseDP){
+                        if (this.isWareHouseDP) {
                             mappedData = mappedData.filter(
                                 (item: any) => item.ID === 4 || item.ID === 13 || item.parentId === 4 || item.parentId === 13);
                         }
@@ -828,7 +828,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                             id: item.ID,
                         }));
 
-                        if(this.isWareHouseDP){
+                        if (this.isWareHouseDP) {
                             mappedData = mappedData.filter(
                                 (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 || item.ParentID === 4 || item.ParentID === 13);
                         }
@@ -1218,9 +1218,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     ) {
         const modalRef = this.modalService.open(BillExportDetailNewComponent, {
             centered: true,
-            size: 'xl',
             backdrop: 'static',
             keyboard: false,
+            fullscreen: true,
         });
 
         modalRef.componentInstance.isBorrow = true;

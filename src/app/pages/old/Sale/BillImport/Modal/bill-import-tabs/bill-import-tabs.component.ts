@@ -31,6 +31,7 @@ export class BillImportTabsComponent implements OnInit {
   @Input() tabs: TabData[] = [];
   @Input() createImport: boolean = true;
   @Input() billType: number = 1;
+  @Input() warehouseID: number = 0;
 
   @ViewChildren(BillImportDetailNewComponent) billImportDetails!: QueryList<BillImportDetailNewComponent>;
 
@@ -39,7 +40,7 @@ export class BillImportTabsComponent implements OnInit {
   constructor(
     public activeModal: NgbActiveModal,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
   }

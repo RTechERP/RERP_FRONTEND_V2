@@ -1,3 +1,14 @@
+::ng-deep app-hr-recruitment-candidate p-menubar .p-menubar {
+  width: 100%;
+  display: flex;
+}
+
+::ng-deep app-hr-recruitment-candidate p-menubar .p-menubar-end {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
 ::ng-deep #hrRecruitmentCandidateGrid {
   height: 85.2vh !important;
 }
@@ -17,5 +28,4 @@
   .slick-footerrow-columns
   .slick-footerrow-column {
   border-right: 1px solid #ddd !important;
-  
 }

@@ -2,21 +2,37 @@
   <div class="card h-100 border-0 rounded-0" style="background: transparent">
     <div class="card-header bg-white p-1">
       <div class="d-flex gap-1 align-items-center">
-        <p-menubar [model]="hrRecruitmentCandidateMenu" class="p-0 border-0">
+        <p-menubar
+          [model]="hrRecruitmentCandidateMenu"
+          class="p-0 border-0"
+          style="width: 100%"
+        >
+          <ng-template #end>
+            <div style="margin-left: auto">
+              <button
+                nz-button
+                nzType="text"
+                nzShape="circle"
+                *ngIf="isMobile"
+                (click)="isShowModal = true; $event.stopPropagation()"
+              >
+                <nz-icon nzType="search"></nz-icon>
+              </button>
+            </div>
+          </ng-template>
         </p-menubar>
       </div>
     </div>
-    <div class="filter-bar bg-light border-bottom p-2">
+
+    <!-- Filter bar: chỉ hiện trên desktop -->
+    <div class="filter-bar bg-light border-bottom p-2" *ngIf="!isMobile">
       <form
         nz-form
         nzLayout="inline"
         class="d-flex flex-wrap gap-2 align-items-center"
       >
-        <!-- Các filter mặc định hiển thị -->
         <nz-form-item class="mb-0">
-          <nz-form-label class="fs-12" style="font-size: 12px"
-            >Từ ngày</nz-form-label
-          >
+          <nz-form-label class="fs-12">Từ ngày</nz-form-label>
           <nz-form-control>
             <input
               type="date"
@@ -30,9 +46,7 @@
         </nz-form-item>
 
         <nz-form-item class="mb-0">
-          <nz-form-label class="fs-12" style="font-size: 12px"
-            >Đến ngày</nz-form-label
-          >
+          <nz-form-label class="fs-12">Đến ngày</nz-form-label>
           <nz-form-control>
             <input
               type="date"
@@ -45,37 +59,28 @@
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item>
-          <nz-form-label class="fs-12">Trạng thái</nz-form-label>
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12">Phòng ban</nz-form-label>
           <nz-form-control>
             <nz-select
-              [(ngModel)]="status"
-              name="status"
-              nzPlaceHolder="Trạng thái"
+              name="departmentId"
+              [(ngModel)]="departmentId"
+              nzPlaceHolder="Tất cả phòng ban"
               nzSize="small"
               style="width: 180px"
               nzAllowClear
               nzShowSearch
             >
-              <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
-              <nz-option [nzValue]="0" nzLabel="Ứng tuyển"></nz-option>
-              <nz-option [nzValue]="1" nzLabel="Gửi thư mời"></nz-option>
-              <nz-option [nzValue]="2" nzLabel="Xác nhận phỏng vấn"></nz-option>
-              <nz-option [nzValue]="3" nzLabel="Đã phỏng vấn"></nz-option>
-              <nz-option [nzValue]="4" nzLabel="Kết quả không đạt"></nz-option>
-              <nz-option [nzValue]="5" nzLabel="Kết quả đạt"></nz-option>
-              <nz-option [nzValue]="6" nzLabel="Trình phê duyệt"></nz-option>
               <nz-option
-                [nzValue]="7"
-                nzLabel="Gửi thư mời nhận việc"
+                *ngFor="let dept of departmentList"
+                [nzValue]="dept.ID"
+                [nzLabel]="dept.Name"
               ></nz-option>
-              <nz-option [nzValue]="8" nzLabel="Xác nhận thư mời"></nz-option>
-              <nz-option [nzValue]="9" nzLabel="Nhận việc"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item>
+        <nz-form-item class="mb-0">
           <nz-form-label class="fs-12">Vị trí</nz-form-label>
           <nz-form-control>
             <nz-select
@@ -83,7 +88,7 @@
               name="employeeChucVuHDId"
               nzPlaceHolder="Vị trí"
               nzSize="small"
-              style="width: 300px"
+              style="width: 220px"
               nzAllowClear
               nzShowSearch
             >
@@ -98,9 +103,7 @@
         </nz-form-item>
 
         <nz-form-item class="mb-0">
-          <nz-form-label class="fs-12" style="font-size: 12px"
-            >Từ khóa</nz-form-label
-          >
+          <nz-form-label class="fs-12">Từ khóa</nz-form-label>
           <nz-form-control>
             <input
               nz-input
@@ -114,7 +117,7 @@
           </nz-form-control>
         </nz-form-item>
 
-        <!-- Nút tìm kiếm với dropdown cho filter bổ sung -->
+        <!-- Nút tìm kiếm + filter nâng cao -->
         <nz-form-item class="mb-0">
           <nz-form-control>
             <div class="btn-group">
@@ -159,6 +162,182 @@
         </nz-form-item>
       </form>
     </div>
+
+    <!-- Modal tìm kiếm cho mobile -->
+    <nz-modal
+      [(nzVisible)]="isShowModal"
+      nzTitle="Tìm kiếm"
+      nzWidth="100vw"
+      nzCentered
+      [nzBodyStyle]="{ padding: '0px 16px' }"
+      (nzOnCancel)="isShowModal = false"
+      (nzOnOk)="onSearch(); isShowModal = false"
+      nzOkText="Tìm kiếm"
+    >
+      <ng-container *nzModalContent>
+        <form nz-form nzLayout="vertical" class="mt-2">
+          <div nz-row [nzGutter]="12">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>Từ ngày</nz-form-label>
+                <nz-form-control>
+                  <input
+                    type="date"
+                    class="form-control form-control-sm"
+                    [ngModel]="dateStart | date: 'yyyy-MM-dd'"
+                    (ngModelChange)="onDateChange('dateStart', $event)"
+                    name="dateStart_m"
+                  />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>Đến ngày</nz-form-label>
+                <nz-form-control>
+                  <input
+                    type="date"
+                    class="form-control form-control-sm"
+                    [ngModel]="dateEnd | date: 'yyyy-MM-dd'"
+                    (ngModelChange)="onDateChange('dateEnd', $event)"
+                    name="dateEnd_m"
+                  />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Phòng ban</nz-form-label>
+                <nz-form-control>
+                  <nz-select
+                    name="departmentId_m"
+                    [(ngModel)]="departmentId"
+                    nzPlaceHolder="Tất cả phòng ban"
+                    class="w-100"
+                    nzAllowClear
+                    nzShowSearch
+                  >
+                    <nz-option
+                      *ngFor="let dept of departmentList"
+                      [nzValue]="dept.ID"
+                      [nzLabel]="dept.Name"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Trạng thái</nz-form-label>
+                <nz-form-control>
+                  <nz-select
+                    [(ngModel)]="status"
+                    name="status_m"
+                    nzPlaceHolder="Trạng thái"
+                    class="w-100"
+                    nzAllowClear
+                    nzShowSearch
+                  >
+                    <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+                    <nz-option [nzValue]="0" nzLabel="Ứng tuyển"></nz-option>
+                    <nz-option
+                      [nzValue]="1"
+                      nzLabel="Gửi thư mời PV"
+                    ></nz-option>
+                    <nz-option
+                      [nzValue]="2"
+                      nzLabel="Xác nhận phỏng vấn"
+                    ></nz-option>
+                    <nz-option [nzValue]="3" nzLabel="Đã phỏng vấn"></nz-option>
+                    <nz-option
+                      [nzValue]="4"
+                      nzLabel="Kết quả không đạt"
+                    ></nz-option>
+                    <nz-option [nzValue]="5" nzLabel="Kết quả đạt"></nz-option>
+                    <nz-option
+                      [nzValue]="6"
+                      nzLabel="Trình phê duyệt"
+                    ></nz-option>
+                    <nz-option
+                      [nzValue]="7"
+                      nzLabel="Gửi thư mời nhận việc"
+                    ></nz-option>
+                    <nz-option
+                      [nzValue]="8"
+                      nzLabel="Xác nhận thư mời"
+                    ></nz-option>
+                    <nz-option [nzValue]="9" nzLabel="Nhận việc"></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Vị trí</nz-form-label>
+                <nz-form-control>
+                  <nz-select
+                    [(ngModel)]="employeeChucVuHDId"
+                    name="employeeChucVuHDId_m"
+                    nzPlaceHolder="Vị trí"
+                    class="w-100"
+                    nzAllowClear
+                    nzShowSearch
+                  >
+                    <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+                    <nz-option
+                      *ngFor="let item of positionContract"
+                      [nzValue]="item.ID"
+                      [nzLabel]="item.Name"
+                    ></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Nhân viên</nz-form-label>
+                <nz-form-control>
+                  <nz-select
+                    name="employeeRequestId_m"
+                    [(ngModel)]="employeeRequestId"
+                    class="w-100"
+                    nzShowSearch
+                    nzAllowClear
+                    nzPlaceHolder="--Chọn nhân viên--"
+                  >
+                    <ng-container *ngFor="let group of employees">
+                      <nz-option-group [nzLabel]="group.label">
+                        <nz-option
+                          *ngFor="let option of group.options"
+                          [nzLabel]="
+                            option.item.Code + ' - ' + option.item.FullName
+                          "
+                          [nzValue]="option.item.EmployeeID"
+                        ></nz-option>
+                      </nz-option-group>
+                    </ng-container>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Từ khóa</nz-form-label>
+                <nz-form-control>
+                  <input
+                    nz-input
+                    placeholder="Nhập từ khóa tìm kiếm"
+                    [(ngModel)]="keyword"
+                    name="keyword_m"
+                  />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+        </form>
+      </ng-container>
+    </nz-modal>
+
     <div class="card-body p-0 w-100" style="height: calc(100vh - 200px)">
       <div
         *ngIf="isLoading"
@@ -186,6 +365,8 @@
           (onAngularGridCreated)="
             angularGridHrRecruitmentCandidateReady($event.detail)
           "
+          (onClick)="onGridClick($event.detail.eventData, $event.detail.args)"
+          (onDblClick)="onDblClick($event.detail.eventData, $event.detail.args)"
         >
         </angular-slickgrid>
       </div>
@@ -210,22 +391,30 @@
 <ng-template #advancedFiltersTemplate>
   <div style="background-color: #ffffff; padding: 0">
     <form nz-form nzLayout="vertical" class="mt-1">
-      <nz-form-item class="mb-0" class="mt-1">
-        <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
-        <nz-form-control [nzSpan]="24">
+      <nz-form-item>
+        <nz-form-label class="fs-12">Trạng thái</nz-form-label>
+        <nz-form-control>
           <nz-select
-            name="departmentId"
-            [(ngModel)]="departmentId"
-            nzPlaceHolder="Tất cả phòng ban"
-            style="width: 100%"
+            [(ngModel)]="status"
+            name="status"
+            nzPlaceHolder="Trạng thái"
             nzAllowClear
             nzShowSearch
           >
+            <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+            <nz-option [nzValue]="0" nzLabel="Ứng tuyển"></nz-option>
+            <nz-option [nzValue]="1" nzLabel="Gửi thư mời PV"></nz-option>
+            <nz-option [nzValue]="2" nzLabel="Xác nhận phỏng vấn"></nz-option>
+            <nz-option [nzValue]="3" nzLabel="Đã phỏng vấn"></nz-option>
+            <nz-option [nzValue]="4" nzLabel="Kết quả không đạt"></nz-option>
+            <nz-option [nzValue]="5" nzLabel="Kết quả đạt"></nz-option>
+            <nz-option [nzValue]="6" nzLabel="Trình phê duyệt"></nz-option>
             <nz-option
-              *ngFor="let dept of departmentList"
-              [nzValue]="dept.ID"
-              [nzLabel]="dept.Name"
+              [nzValue]="7"
+              nzLabel="Gửi thư mời nhận việc"
             ></nz-option>
+            <nz-option [nzValue]="8" nzLabel="Xác nhận thư mời"></nz-option>
+            <nz-option [nzValue]="9" nzLabel="Nhận việc"></nz-option>
           </nz-select>
         </nz-form-control>
       </nz-form-item>

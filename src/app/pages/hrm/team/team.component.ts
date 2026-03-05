@@ -141,7 +141,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.teamTabulator.setData(this.teamList);
         // this.teamTabulator.setData(this.teamList).then(() => {
         //   const rows = this.employeeTabulator.getRows();
-       
+
         //   if (rows.length > 0) {
         //     rows[0].select();
         //     rows[0].scrollTo();
@@ -193,6 +193,22 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.loadEmployeeTeam(0, this.selectedTeam?.ID);
       }
       // hoặc this.loadPositionContract(); nếu muốn reload từ server
+    }
+  }
+
+  onSearchMainEmployee(event: any) {
+    const keyword = event.target.value.toLowerCase();
+    if (this.employeeTabulator) {
+      if (keyword != "") {
+        this.employeeTabulator.setFilter([
+          [
+            { field: 'Code', type: 'like', value: keyword },
+            { field: 'FullName', type: 'like', value: keyword },
+          ]
+        ], 'or');
+      } else {
+        this.employeeTabulator.clearFilter(true);
+      }
     }
   }
 

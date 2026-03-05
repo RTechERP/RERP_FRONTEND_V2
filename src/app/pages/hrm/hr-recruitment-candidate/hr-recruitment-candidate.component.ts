@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  HostListener,
   ChangeDetectorRef,
   ViewChild,
   TemplateRef,
@@ -118,6 +119,8 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
   departmentId: any = -1;
   departmentList: any[] = [];
 
+  isHavePermission: any = false;
+
   dateStart: Date = new Date(
     new Date().getFullYear(),
     new Date().getMonth() - 1,
@@ -131,7 +134,15 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
   status: any = -1;
   employeeChucVuHDId: any = -1;
   positionContract: any[] = [];
+
+  isMobile = window.innerWidth <= 768;
+  isShowModal = false;
   //#endregion
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.isMobile = window.innerWidth <= 768;
+  }
 
 
 
@@ -143,6 +154,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
     this.loadMenu();
     this.initAngularGrid();
     this.onSearch();
+    this.isHavePermission = this.permissionService.hasPermission('N1,N2');
   }
 
   ngAfterViewInit(): void {
@@ -153,7 +165,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
 
   loadMenu() {
     const statusItems = [
-      { value: 1, label: '1. Gửi thư mời' },
+      { value: 1, label: '1. Gửi thư mời PV' },
       { value: 2, label: '2. Xác nhận phỏng vấn' },
       { value: 3, label: '3. Đã phỏng vấn' },
       { value: 4, label: '4. Kết quả không đạt' },
@@ -289,7 +301,6 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
 
   //#endregion
 
-  //#region Sự kiện xử lý bảng
   angularGridHrRecruitmentCandidateReady(angularGrid: AngularGridInstance) {
     this.angularGrid = angularGrid;
 
@@ -306,6 +317,56 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
     }, 100);
   }
 
+  onGridClick(eventData: any, args: any) {
+    const grid = this.angularGrid?.slickGrid;
+    if (!grid) return;
+
+    const cell = grid.getCellFromEvent(eventData);
+    if (!cell) return;
+
+    // Nếu click vào cột checkbox (col 0) thì để slickgrid tự xử lý
+    if (cell.cell === 0) return;
+
+    const rowIndex = cell.row;
+    const selectedRows = grid.getSelectedRows() as number[];
+
+    // Nếu đang có nhiều dòng được chọn và click vào 1 trong số đó → giữ nguyên
+    // Nếu chỉ click 1 dòng bình thường → select duy nhất dòng đó
+    if (selectedRows.length <= 1 || !selectedRows.includes(rowIndex)) {
+      grid.setSelectedRows([rowIndex]);
+    }
+  }
+
+  onDblClick(eventData: any, args: any) {
+    if (!this.isHavePermission) return;
+
+    const grid = this.angularGrid?.slickGrid;
+    if (!grid) return;
+
+    const cell = grid.getCellFromEvent(eventData);
+    if (!cell) return;
+
+    // Không xử lý khi double click vào cột checkbox
+    if (cell.cell === 0) return;
+
+    const item = this.angularGrid.dataView.getItem(cell.row);
+    if (!item || item.__group || item.__groupTotals) return;
+
+    const modalRef = this.modalService.open(HrRecruitmentCandidateDetailComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      size: 'xl',
+    });
+
+    modalRef.componentInstance.hrRecruitmentCandidate = item;
+    modalRef.componentInstance.stt = item.STT ?? 0;
+    modalRef.result.then(
+      () => this.onSearch(),
+      () => { }
+    );
+  }
+
   initAngularGrid() {
     this.columnDefinitions = [
       {
@@ -319,94 +380,10 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         excelExportOptions: { width: 8 },
       },
       {
-        id: 'FullName',
-        field: 'FullName',
-        name: 'Tên ứng viên',
+        id: 'StatusName',
+        field: 'StatusName',
+        name: 'Trạng thái ứng tuyển',
         width: 250,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        excelExportOptions: { width: 30 },
-      },
-      {
-        id: 'DateOfBirth',
-        field: 'DateOfBirth',
-        name: 'Ngày sinh',
-        minWidth: 150,
-        sortable: true,
-        filterable: true,
-        formatter: Formatters.date,
-        exportCustomFormatter: Formatters.date,
-        type: 'date',
-        params: { dateFormat: 'DD/MM/YYYY' },
-        filter: { model: Filters['compoundDate'] },
-        excelExportOptions: { width: 14 },
-      },
-      {
-        id: 'GenderText',
-        field: 'GenderText',
-        name: 'Giới tính',
-        width: 250,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        excelExportOptions: { width: 12 },
-      },
-      {
-        id: 'PhoneNumber',
-        field: 'PhoneNumber',
-        name: 'Số điện thoại',
-        width: 250,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        excelExportOptions: { width: 16 },
-      },
-      {
-        id: 'Email',
-        field: 'Email',
-        name: 'Email',
-        width: 250,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        excelExportOptions: { width: 28 },
-      },
-      {
-        id: 'Address',
-        field: 'Address',
-        name: 'Địa chỉ',
-        width: 250,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        excelExportOptions: { width: 35 },
-      },
-      {
-        id: 'UserName',
-        field: 'UserName',
-        name: 'Tên đăng nhập',
-        width: 250,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        excelExportOptions: { width: 18 },
-      },
-      {
-        id: 'Password',
-        field: 'Password',
-        name: 'Mật khẩu',
-        width: 200,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        excelExportOptions: { width: 16 },
-      },
-      {
-        id: 'PositionName',
-        field: 'PositionName',
-        name: 'Chức vụ ứng tuyển',
-        width: 200,
         sortable: true,
         filterable: true,
         filter: {
@@ -418,10 +395,20 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         excelExportOptions: { width: 25 },
       },
       {
-        id: 'StatusName',
-        field: 'StatusName',
-        name: 'Trạng thái ứng tuyển',
+        id: 'FullName',
+        field: 'FullName',
+        name: 'Tên ứng viên',
         width: 250,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        excelExportOptions: { width: 30 },
+      },
+      {
+        id: 'PositionName',
+        field: 'PositionName',
+        name: 'Vị trí ứng tuyển',
+        width: 200,
         sortable: true,
         filterable: true,
         filter: {
@@ -445,6 +432,51 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         excelExportOptions: { width: 16 },
+      },
+      {
+        id: 'UserName',
+        field: 'UserName',
+        name: 'Tên đăng nhập',
+        width: 250,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        excelExportOptions: { width: 18 },
+      },
+      {
+        id: 'Password',
+        field: 'Password',
+        name: 'Mật khẩu',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        excelExportOptions: { width: 16 },
+      },
+      {
+        id: 'PhaseHiringText',
+        field: 'PhaseHiringText',
+        name: 'Yêu cầu tuyển dụng',
+        width: 250,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        excelExportOptions: { width: 25 },
+      },
+      {
+        id: 'EmployeeRequest',
+        field: 'EmployeeRequest',
+        name: 'Người yêu cầu',
+        width: 250,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+          collectionOptions: { addBlankEntry: true },
+        },
+        excelExportOptions: { width: 25 },
       },
       {
         id: 'FileCVName',
@@ -505,46 +537,59 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         excelExportOptions: { width: 16 },
       },
       {
-        id: 'PhaseHiringText',
-        field: 'PhaseHiringText',
-        name: 'Yêu cầu tuyển dụng',
+        id: 'GenderText',
+        field: 'GenderText',
+        name: 'Giới tính',
         width: 250,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        excelExportOptions: { width: 25 },
+        excelExportOptions: { width: 12 },
       },
       {
-        id: 'EmployeeRequest',
-        field: 'EmployeeRequest',
-        name: 'Người yêu cầu',
+        id: 'DateOfBirth',
+        field: 'DateOfBirth',
+        name: 'Ngày sinh',
+        minWidth: 150,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        excelExportOptions: { width: 14 },
+      },
+      {
+        id: 'PhoneNumber',
+        field: 'PhoneNumber',
+        name: 'Số điện thoại',
         width: 250,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
-          collectionOptions: { addBlankEntry: true },
-        },
-        excelExportOptions: { width: 25 },
+        filter: { model: Filters['compoundInputText'] },
+        excelExportOptions: { width: 16 },
       },
-      // {
-      //   id: 'DepartmentName',
-      //   field: 'DepartmentName',
-      //   name: 'Phòng ban',
-      //   width: 250,
-      //   sortable: true,
-      //   filterable: true,
-      //   groupTotalsFormatter: GroupTotalFormatters['sumTotals'],
-      //   filter: {
-      //     model: Filters['multipleSelect'],
-      //     collection: [],
-      //     filterOptions: { filter: true } as MultipleSelectOption,
-      //     collectionOptions: { addBlankEntry: true },
-      //   },
-      //   excelExportOptions: { width: 25 },
-      // },
+      {
+        id: 'Email',
+        field: 'Email',
+        name: 'Email',
+        width: 250,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        excelExportOptions: { width: 28 },
+      },
+      {
+        id: 'Address',
+        field: 'Address',
+        name: 'Địa chỉ',
+        width: 250,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        excelExportOptions: { width: 35 },
+      },
       {
         id: 'Note',
         field: 'Note',
@@ -585,8 +630,8 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         selectActiveRow: false,
       },
       checkboxSelector: {
-        hideInFilterHeaderRow: false,
-        hideInColumnTitleRow: true,
+        hideInFilterHeaderRow: true,
+        hideInColumnTitleRow: false,
         applySelectOnAllPages: false,
       },
       enableCheckboxSelector: true,
@@ -621,7 +666,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
-      frozenColumn: 3
+      //frozenColumn: 3
     };
   }
 

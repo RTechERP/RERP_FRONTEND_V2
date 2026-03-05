@@ -3570,7 +3570,6 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
    * 3. Gán vào node MA09
    */
   private calculatorNoError(): void {
-    debugger;
     // Tìm các node có mã trong danh sách
     const filteredNodes = this.dataRule.filter((row: any) =>
       this.listCodesNoError.includes(row.EvaluationCode)

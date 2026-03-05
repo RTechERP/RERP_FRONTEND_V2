@@ -231,6 +231,21 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     this.formGroup.get('realityProjectEndDate')?.valueChanges.subscribe(value => {
       this.realityProjectEndDate = value;
     });
+    this.formGroup.get('note')?.valueChanges.subscribe(value => {
+      this.note = value;
+    });
+    this.formGroup.get('currentState')?.valueChanges.subscribe(value => {
+      this.currentState = value;
+    });
+    this.formGroup.get('firmBaseId')?.valueChanges.subscribe(value => {
+      this.firmBaseId = value;
+    });
+    this.formGroup.get('prjTypeBaseId')?.valueChanges.subscribe(value => {
+      this.prjTypeBaseId = value;
+    });
+    this.formGroup.get('projectContactName')?.valueChanges.subscribe(value => {
+      this.projectContactName = value;
+    });
     // Theo dõi customerId và projectTypeId
     // combineLatest([
     //   this.formGroup.get('customerId')!.valueChanges,
@@ -407,7 +422,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
             projectName: response.data.ProjectName,
             userSaleId: response.data.UserID,
             userTechId: response.data.UserTechnicalID,
-            projectCode: response.data.ProjectCode
+            projectCode: response.data.ProjectCode,
+            note: response.data.Note ?? '',
           });
           this.createDate = DateTime.fromISO(response.data.CreatedDate)
             .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
@@ -432,6 +448,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
             projectStatusIdDetail: response.data.ProjectStatus,
             projectStatusId: response.data.ProjectStatus, // Cập nhật projectStatusId vào form
             createdDate: this.createDate,
+            currentState: response.data.CurrentState ?? '',
           });
         },
         error: (error: any) => {
@@ -462,10 +479,13 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
               .toFormat('yyyy-MM-dd')
             : null;
 
-          // Cập nhật form values cho ngày
+          // Cập nhật form values cho ngày và các combo
           this.formGroup.patchValue({
             expectedPlanDate: this.expectedPlanDate,
-            expectedQuotationDate: this.expectedQuotationDate
+            expectedQuotationDate: this.expectedQuotationDate,
+            firmBaseId: res.data.FirmBaseID ?? null,
+            prjTypeBaseId: res.data.ProjectTypeBaseID ?? null,
+            projectContactName: res.data.ProjectContactName ?? '',
           });
           this.expectedPODate = res.data.ExpectedPODate
             ? DateTime.fromISO(res.data.ExpectedPODate)

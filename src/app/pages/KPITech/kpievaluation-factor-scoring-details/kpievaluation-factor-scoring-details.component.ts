@@ -560,6 +560,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     }
 
     this.applyVisibilityRules();
+
+    // Khởi tạo logicalTabIndex ban đầu dựa trên các tab hiển thị
+    this.onTabChange(0);
+
     this.initializeGrids();
     // Bắt đầu load combobox ngay khi init component
     this.loadComboboxData();
@@ -1755,11 +1759,16 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.selectedTabIndex = index;
 
     // Calculate logical tab index based on visible tabs
-    let visibleTabs = ['skill']; // Tab 0 is always visible
+    let visibleTabs: string[] = [];
 
-    if (this.showTabGeneral) visibleTabs.push('general');
-    visibleTabs.push('specialization'); // Always visible
-    visibleTabs.push('master'); // Always visible
+    // KPI Kỹ năng, Chung, Chuyên môn, Tổng hợp are hidden when typePoint === 4
+    if (this.typePoint !== 4) {
+      visibleTabs.push('skill'); // Tab 0
+      if (this.showTabGeneral) visibleTabs.push('general');
+      visibleTabs.push('specialization');
+      visibleTabs.push('master');
+    }
+
     if (this.showTabRule) visibleTabs.push('rule');
     if (this.showTabTeam) visibleTabs.push('team');
 
@@ -3315,7 +3324,6 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    * 8. Reload dữ liệu KPI Chuyên Môn
    */
   btnUpdateDataRow_Click(): void {
-    debugger;
     //#region Bước 1: Kiểm tra dòng đang được chọn trong Rule Grid
     if (!this.angularGridRule?.slickGrid) {
       this.notification.error('Lỗi', 'Grid Rule chưa sẵn sàng!');

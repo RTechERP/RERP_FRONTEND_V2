@@ -1,0 +1,40 @@
+<div class="practice-detail-container">
+    <!-- Header -->
+    <div class="practice-detail-header">
+        <div class="header-info">
+            <h4 class="practice-detail-title">{{ displayTitle }}</h4>
+        </div>
+        <button nz-button nzType="default" class="close-btn" (click)="onClose()">
+            <span nz-icon nzType="close"></span>
+            Đóng
+        </button>
+    </div>
+
+    <!-- Body -->
+    <div class="practice-detail-body">
+        <nz-spin [nzSpinning]="isLoading">
+            <div *ngIf="question" class="detail-content">
+                <!-- Question Number -->
+                <div class="question-header">
+                    <span class="question-number">Câu {{ question.STT }}:</span>
+                </div>
+
+                <!-- Question Text -->
+                <div class="question-text">
+                    {{ question.QuestionText }}
+                </div>
+
+                <!-- Question Image -->
+                <div *ngIf="questionImage" class="question-image-container">
+                    <img [src]="questionImage" alt="Hình ảnh câu hỏi" class="question-image">
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="!question && !isLoading" class="empty-state">
+                <span nz-icon nzType="file-unknown" nzTheme="outline" class="empty-icon"></span>
+                <p>Không tìm thấy thông tin câu hỏi</p>
+            </div>
+        </nz-spin>
+    </div>
+</div>

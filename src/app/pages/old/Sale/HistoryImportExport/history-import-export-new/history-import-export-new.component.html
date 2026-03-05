@@ -1,34 +1,34 @@
-<div [id]="'history-import-export-container-' + warehouseCode" class="history-container h-100">
+<div [id]="'history-import-export-container-' + warehouseCode" class="history-container h-100 history-import-export-new-history-container history-import-export-new-h-100">
     <!-- Header with filters and export button -->
-    <div [id]="'history-header-' + warehouseCode" class="header-section p-2 bg-white border-bottom">
-        <div class="d-flex flex-wrap align-items-center gap-2">
+    <div [id]="'history-header-' + warehouseCode" class="header-section p-2 bg-white border-bottom history-import-export-new-header-section history-import-export-new-p-2 history-import-export-new-bg-white history-import-export-new-border-bottom">
+        <div class="d-flex flex-wrap align-items-center gap-2 history-import-export-new-d-flex history-import-export-new-flex-wrap history-import-export-new-align-items-center history-import-export-new-gap-2">
             <!-- Date filters -->
-            <div class="d-flex align-items-center gap-1">
-                <label class="fs-12 mb-0">Từ ngày:</label>
+            <div class="d-flex align-items-center gap-1 history-import-export-new-d-flex history-import-export-new-align-items-center history-import-export-new-gap-1">
+                <label class="fs-12 mb-0 history-import-export-new-fs-12 history-import-export-new-mb-0">Từ ngày:</label>
                 <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateStart"
-                    class="date-picker-input">
+                    class="date-picker-input history-import-export-new-date-picker-input">
                 </nz-date-picker>
             </div>
 
-            <div class="d-flex align-items-center gap-1">
-                <label class="fs-12 mb-0">Đến ngày:</label>
+            <div class="d-flex align-items-center gap-1 history-import-export-new-d-flex history-import-export-new-align-items-center history-import-export-new-gap-1">
+                <label class="fs-12 mb-0 history-import-export-new-fs-12 history-import-export-new-mb-0">Đến ngày:</label>
                 <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateEnd"
-                    class="date-picker-input">
+                    class="date-picker-input history-import-export-new-date-picker-input">
                 </nz-date-picker>
             </div>
 
             <!-- Keyword search -->
-            <div class="d-flex align-items-center gap-1">
-                <label class="fs-12 mb-0">Từ khóa:</label>
+            <div class="d-flex align-items-center gap-1 history-import-export-new-d-flex history-import-export-new-align-items-center history-import-export-new-gap-1">
+                <label class="fs-12 mb-0 history-import-export-new-fs-12 history-import-export-new-mb-0">Từ khóa:</label>
                 <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword"
-                    (keyup.enter)="searchData()" nzSize="small" class="keyword-input" />
+                    (keyup.enter)="searchData()" nzSize="small" class="keyword-input history-import-export-new-keyword-input" />
             </div>
 
             <!-- Status filter -->
-            <div class="d-flex align-items-center gap-1">
-                <label class="fs-12 mb-0">Lọc phiếu:</label>
+            <div class="d-flex align-items-center gap-1 history-import-export-new-d-flex history-import-export-new-align-items-center history-import-export-new-gap-1">
+                <label class="fs-12 mb-0 history-import-export-new-fs-12 history-import-export-new-mb-0">Lọc phiếu:</label>
                 <nz-select nzSize="small" [(ngModel)]="searchParams.status" (keyup.enter)="searchData()"
-                    class="status-select">
+                    class="status-select history-import-export-new-status-select">
                     <nz-option *ngFor="let c of cbbStatus" [nzValue]="c.ID" [nzLabel]="c.Name">
                     </nz-option>
                 </nz-select>
@@ -48,16 +48,16 @@
                 <span nz-icon nzType="reload"></span> Đặt lại
             </button>
 
-            <button type="button" class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                <img class="btn-action-icon" src="assets/icon/action_export_excel_24.svg" alt="Export Excel" /> Xuất
+            <button type="button" class="fs-12 history-import-export-new-fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                <img class="btn-action-icon history-import-export-new-btn-action-icon" src="assets/icon/action_export_excel_24.svg" alt="Export Excel" /> Xuất
                 Excel
             </button>
         </div>
     </div>
 
     <!-- Main content with grid -->
-    <div class="content-section">
-        <div class="grid-container-{{warehouseCode}} grid-wrapper">
+    <div class="content-section history-import-export-new-content-section">
+        <div class="grid-container-{{warehouseCode}} grid-wrapper history-import-export-new-grid-wrapper">
             <nz-spin [nzSpinning]="isLoading">
                 <angular-slickgrid [gridId]="gridId" [columns]="columnDefinitions" [options]="gridOptions"
                     [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">

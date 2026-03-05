@@ -82,7 +82,7 @@ export class DocumentService {
     files: File[],
     typeCode?: string,
     subPath?: string,
-    defaultKey: string = 'TrainingRegistration'
+    defaultKey: string = 'Document'
   ): Observable<any> {
     const formData = new FormData();
     files.forEach((file) => {
@@ -105,9 +105,33 @@ export class DocumentService {
     return this.http.post<any>(`${this.apiUrl}/home/upload-multiple`, formData);
   }
 
+  downloadFileByKey(fileName: string, typeCode?: string, subPath?: string): Observable<Blob> {
+    // Set key based on typeCode: CER=Certificate, COP=Critical, default=Document
+    let key = 'Document';
+    const normalizedCode = (typeCode || '').trim().toUpperCase();
+    if (normalizedCode === 'CER') {
+      key = 'Certificate';
+    } else if (normalizedCode === 'COP') {
+      key = 'Critical';
+    }
+
+    let params = new HttpParams()
+      .set('key', key)
+      .set('fileName', fileName);
+
+    if (subPath && subPath.trim()) {
+      params = params.set('subPath', subPath.trim());
+    }
+
+    return this.http.get(`${this.apiUrl}/home/download-by-key`, {
+      params,
+      responseType: 'blob',
+    });
+  }
+
   downloadFile(filePath: string, typeCode?: string): Observable<Blob> {
-    // Set key based on typeCode: CER=Certificate, COP=Critical, default=TrainingRegistration
-    let key = 'TrainingRegistration';
+    // Set key based on typeCode: CER=Certificate, COP=Critical, default=Document
+    let key = 'Document';
     const normalizedCode = (typeCode || '').trim().toUpperCase();
     if (normalizedCode === 'CER') {
       key = 'Certificate';

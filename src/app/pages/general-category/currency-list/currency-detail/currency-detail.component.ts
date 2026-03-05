@@ -87,7 +87,6 @@ export class CurrencyDetailComponent implements OnInit {
       DateExpriedUnofficialQuota: data.DateExpriedUnofficialQuota ? new Date(data.DateExpriedUnofficialQuota) : null,
       Note: data.Note || ''
     });
-    // Định dạng vi-VN cho các trường tỷ giá khi mở form
     this.formatRateField('CurrencyRate');
     this.formatRateField('CurrencyRateOfficialQuota');
     this.formatRateField('CurrencyRateUnofficialQuota');
@@ -108,7 +107,6 @@ export class CurrencyDetailComponent implements OnInit {
 
   handleSubmit(): void {
     if (this.currencyForm.invalid) {
-      // Mark all fields as touched to show validation errors
       Object.values(this.currencyForm.controls).forEach(control => {
         if (control.invalid) {
           control.markAsDirty();
@@ -119,7 +117,6 @@ export class CurrencyDetailComponent implements OnInit {
       return;
     }
 
-    // Chuẩn hóa chuỗi tỷ giá về số để lưu backend (không kiểm tra kiểu số ở UI)
     const sanitize = (v: any) => this.normalizeNumberInput(v);
     const raw = this.currencyForm.value;
     const formValue = {
@@ -147,7 +144,6 @@ export class CurrencyDetailComponent implements OnInit {
     });
   }
 
-  // Helper methods for template validation display
   isFieldInvalid(fieldName: string): boolean {
     const field = this.currencyForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
@@ -183,11 +179,11 @@ export class CurrencyDetailComponent implements OnInit {
     return labels[fieldName] || fieldName;
   }
 
-  // Định dạng vi-VN cho trường tỷ giá khi blur hoặc khi load
+  // Format en-US khi blur hoặc khi load
   formatRateField(fieldName: 'CurrencyRate' | 'CurrencyRateOfficialQuota' | 'CurrencyRateUnofficialQuota'): void {
     const control = this.currencyForm.get(fieldName);
     if (!control) return;
-    const formatted = this.toViLocaleString(control.value);
+    const formatted = this.toLocaleString(control.value);
     control.setValue(formatted, { emitEvent: false });
   }
 
@@ -198,15 +194,11 @@ export class CurrencyDetailComponent implements OnInit {
 
     let s = String(raw).trim();
     if (s === '') return 0;
-
-    // Giữ lại chỉ chữ số, dấu '.' và ','
     s = s.replace(/[^\d.,-]/g, '');
 
-    // Lấy dấu âm nếu có
     const sign = s.startsWith('-') ? -1 : 1;
     s = s.replace(/-/g, '');
 
-    // Xác định dấu thập phân là ký tự phân tách xuất hiện cuối cùng ('.' hoặc ',')
     const lastDot = s.lastIndexOf('.');
     const lastComma = s.lastIndexOf(',');
     const lastSepIndex = Math.max(lastDot, lastComma);
@@ -216,7 +208,6 @@ export class CurrencyDetailComponent implements OnInit {
       const fractionalPart = s.slice(lastSepIndex + 1).replace(/[.,]/g, '');
       s = integerPart + '.' + fractionalPart;
     } else {
-      // Không có dấu phân tách -> bỏ mọi dấu và parse
       s = s.replace(/[.,]/g, '');
     }
 
@@ -224,53 +215,47 @@ export class CurrencyDetailComponent implements OnInit {
     return isNaN(num) ? 0 : sign * num;
   }
 
-  private toViLocaleString(value: any): string {
-    // Bảo toàn số chữ số thập phân từ input gốc (nếu có)
+  private toLocaleString(value: any): string {
     const raw = value;
     const num = this.normalizeNumberInput(value);
 
     let decimals = 0;
     if (raw !== null && raw !== undefined) {
-        const str = String(raw);
-        const m = str.match(/[.,](\d+)/);
-        if (m && m[1]) decimals = m[1].length;
+      const str = String(raw);
+      const m = str.match(/[.,](\d+)/);
+      if (m && m[1]) decimals = m[1].length;
     }
 
-    const fmt = new Intl.NumberFormat('vi-VN', {
-        useGrouping: true,
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
+    const fmt = new Intl.NumberFormat('en-US', {
+      useGrouping: true,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
     });
 
     return num === 0 ? '' : fmt.format(num);
   }
 
-  // Format theo vi-VN ngay khi nhập, giữ caret hợp lý
+  // Format en-US ngay khi nhập, giữ caret hợp lý
   onRateInput(fieldName: 'CurrencyRate' | 'CurrencyRateOfficialQuota' | 'CurrencyRateUnofficialQuota', event: Event): void {
     const inputEl = event.target as HTMLInputElement;
     const raw = inputEl.value;
     const oldPos = inputEl.selectionStart ?? raw.length;
 
-    // Xác định caret đang ở trước hay sau dấu phân tách hiện tại (trên chuỗi raw)
-    const lastSepRawIdx = Math.max(raw.lastIndexOf('.'), raw.lastIndexOf(','));
-    const caretBeforeSep = lastSepRawIdx !== -1 && oldPos <= lastSepRawIdx;
+    // Format ngay theo en-US
+    const formatted = this.formatImmediateCurrency(raw);
 
-    // Format ngay theo vi-VN
-    const formatted = this.formatImmediateViCurrency(raw);
-
-    // Cập nhật form control và input (không phát event)
+    // Cập nhật form control và input
     const control = this.currencyForm.get(fieldName);
     control?.setValue(formatted, { emitEvent: false });
     inputEl.value = formatted;
 
-    // Nếu số đang kết thúc bằng “,” và caret trước dấu đó -> giữ caret ngay trước “,” để nhập phần nguyên
-    const sepIdxFormatted = formatted.lastIndexOf(',');
+    // Nếu số kết thúc bằng "." -> đặt caret SAU dấu "." để nhập phần thập phân
+    const sepIdxFormatted = formatted.lastIndexOf('.');
     let newPos: number;
 
-    if (sepIdxFormatted !== -1 && sepIdxFormatted === formatted.length - 1 && caretBeforeSep) {
-      newPos = sepIdxFormatted; // ngay trước dấu “,”
+    if (sepIdxFormatted !== -1 && sepIdxFormatted === formatted.length - 1) {
+      newPos = formatted.length;
     } else {
-      // Bảo toàn số lượng chữ số trước caret
       const digitsBeforeCaret = this.countDigits(raw.slice(0, oldPos));
       newPos = this.caretPosForDigits(formatted, digitsBeforeCaret);
     }
@@ -287,59 +272,52 @@ export class CurrencyDetailComponent implements OnInit {
     for (let i = 0; i < formatted.length; i++) {
       if (/\d/.test(formatted[i])) count++;
       if (count >= digitsTarget) {
-        // Tránh đặt caret sau dấu “,” treo nếu không cần
         return i + 1;
       }
     }
-    // Nếu không đủ chữ số (ví dụ bị rút gọn), đặt caret trước “,” nếu có; nếu không thì cuối chuỗi
-    const sepIdx = formatted.lastIndexOf(',');
+    const sepIdx = formatted.lastIndexOf('.');
     return sepIdx !== -1 ? sepIdx : formatted.length;
   }
 
-  private formatImmediateViCurrency(raw: string): string {
+  // en-US: comma = thousands, dot = decimal
+  private formatImmediateCurrency(raw: string): string {
     if (raw === null || raw === undefined) return '';
     let s = String(raw).trim();
     if (s === '') return '';
 
-    // Dấu âm
     let sign = '';
     if (s.startsWith('-')) {
       sign = '-';
       s = s.slice(1);
     }
 
-    // Chỉ giữ số và phân tách
-    s = s.replace(/[^\d.,]/g, '');
+    // Chỉ giữ số và dấu chấm (en-US: dấu chấm = thập phân)
+    s = s.replace(/[^\d.]/g, '');
 
-    // Tách phần nguyên/thập phân theo ký tự phân tách cuối cùng
     const lastDot = s.lastIndexOf('.');
-    const lastComma = s.lastIndexOf(',');
-    const lastSepIndex = Math.max(lastDot, lastComma);
-    const endsWithSep = lastSepIndex !== -1 && lastSepIndex === s.length - 1;
+    const endsWithSep = lastDot !== -1 && lastDot === s.length - 1;
 
     let intPart = '';
     let fracPart = '';
 
-    if (lastSepIndex !== -1) {
-      intPart = s.slice(0, lastSepIndex).replace(/[.,]/g, '');
-      fracPart = endsWithSep ? '' : s.slice(lastSepIndex + 1).replace(/[.,]/g, '');
+    if (lastDot !== -1) {
+      intPart = s.slice(0, lastDot).replace(/\./g, '');
+      fracPart = endsWithSep ? '' : s.slice(lastDot + 1);
     } else {
-      intPart = s.replace(/[.,]/g, '');
+      intPart = s;
     }
 
-    // Format phần nguyên theo nhóm nghìn
     const intNum = parseInt(intPart || '0', 10);
-    const intFormatted = new Intl.NumberFormat('vi-VN', { useGrouping: true }).format(isNaN(intNum) ? 0 : intNum);
+    const intFormatted = new Intl.NumberFormat('en-US', { useGrouping: true }).format(isNaN(intNum) ? 0 : intNum);
 
-    // Nếu vừa gõ dấu phân tách -> hiện dấu “,” treo để nhập thập phân
+    // Nếu vừa gõ dấu "." -> hiện dấu "." treo để nhập thập phân
     if (endsWithSep) {
-      return sign + intFormatted + ',';
+      return sign + intFormatted + '.';
     }
 
-    // Format phần thập phân theo số chữ số người dùng gõ
     const decimals = fracPart.length;
     const num = parseFloat(`${intPart || '0'}.${fracPart || ''}`);
-    const fmt = new Intl.NumberFormat('vi-VN', {
+    const fmt = new Intl.NumberFormat('en-US', {
       useGrouping: true,
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals

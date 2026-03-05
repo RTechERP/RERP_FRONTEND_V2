@@ -503,15 +503,3 @@
   align-items: center;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.02);
 }
-
-.app-launcher-footer button {
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(239, 71, 35, 0.2);
-  background: #17d6dd;
-  border-color: #18ced4;
-}
-
-.app-launcher-footer button:hover {
-  background: #17d6dd;
-  border-color: #18ced4;
-}

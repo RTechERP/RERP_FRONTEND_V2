@@ -1,35 +1,35 @@
 <!-- Card Content: Splitter với 3 hàng -->
-<ng-container class="container-fluid w-100 p-2">
+<ng-container class="container-fluid w-100 p-2 chi-tiet-san-pham-sale-container-fluid chi-tiet-san-pham-sale-w-100 chi-tiet-san-pham-sale-p-2">
   <!-- HÀNG 1: BỘ LỌC SẢN PHẨM -->
   <!-- <nz-splitter-panel [nzSize]="80" [nzMin]="60" [nzMax]="120"> -->
-      <div class="card h-100 p-2 border-0 rounded-0">
-  <div class="toolbar">
+      <div class="card h-100 p-2 border-0 rounded-0 chi-tiet-san-pham-sale-card chi-tiet-san-pham-sale-h-100 chi-tiet-san-pham-sale-p-2 chi-tiet-san-pham-sale-border-0 chi-tiet-san-pham-sale-rounded-0">
+  <div class="toolbar chi-tiet-san-pham-sale-toolbar">
     <button
       nz-button
       nzType="default"
       nzSize="small"
-      class="btn-refresh font-12 p-1"
+      class="btn-refresh font-12 p-1 chi-tiet-san-pham-sale-btn-refresh chi-tiet-san-pham-sale-font-12 chi-tiet-san-pham-sale-p-1"
       (click)="refreshData()"
     >
-      <img alt="img" src="assets/icon/green_refresh_button.svg" class="btn-action-icon" />
+      <img alt="img" src="assets/icon/green_refresh_button.svg" class="btn-action-icon chi-tiet-san-pham-sale-btn-action-icon" />
       Làm mới
     </button>
 
-    <div class="status-box">Đang mượn</div>
+    <div class="status-box chi-tiet-san-pham-sale-status-box">Đang mượn</div>
   </div>
 
-  <div class="filter-section font-12 pb-2">
+  <div class="filter-section font-12 pb-2 chi-tiet-san-pham-sale-filter-section chi-tiet-san-pham-sale-font-12 chi-tiet-san-pham-sale-pb-2">
     <nz-row [nzGutter]="[8, 8]">
       <nz-col [nzSpan]="8">
-        <label class="font-12">Mã sản phẩm</label>
-        <nz-input-group class="input-group-full">
+        <label class="font-12 chi-tiet-san-pham-sale-font-12">Mã sản phẩm</label>
+        <nz-input-group class="input-group-full chi-tiet-san-pham-sale-input-group-full">
           <nz-select
             nzShowSearch
             nzAllowClear
             nzPlaceHolder="Chọn sản phẩm"
             [(ngModel)]="productSaleID"
             (ngModelChange)="onProductChange($event)"
-            class="select-product w-100 font-12"
+            class="select-product w-100 font-12 chi-tiet-san-pham-sale-select-product chi-tiet-san-pham-sale-w-100 chi-tiet-san-pham-sale-font-12"
             nzDisabled
           >
             <nz-option
@@ -42,94 +42,94 @@
         </nz-input-group>
       </nz-col>
       <nz-col [nzSpan]="16">
-        <label class="font-12">Tên sản phẩm</label>
-        <nz-input-group class="input-group-full">
+        <label class="font-12 chi-tiet-san-pham-sale-font-12">Tên sản phẩm</label>
+        <nz-input-group class="input-group-full chi-tiet-san-pham-sale-input-group-full">
           <input
             nz-input
             placeholder="Tên sản phẩm"
             [(ngModel)]="productName"
-            class="input-text font-12"
+            class="input-text font-12 chi-tiet-san-pham-sale-input-text chi-tiet-san-pham-sale-font-12"
             disabled
           />
         </nz-input-group>
       </nz-col>
     </nz-row>
 
-    <nz-row [nzGutter]="[8, 8]" class="input-row font-12">
+    <nz-row [nzGutter]="[8, 8]" class="input-row font-12 chi-tiet-san-pham-sale-input-row chi-tiet-san-pham-sale-font-12">
       <nz-col [nzSpan]="4">
-        <label class="font-12">Tồn kho đầu kỳ</label>
+        <label class="font-12 chi-tiet-san-pham-sale-font-12">Tồn kho đầu kỳ</label>
         <nz-input-group>
           <input
             type="number"
             nz-input
             placeholder="0.00"
             [(ngModel)]="numberDauKy"
-            class="input-number font-12"
+            class="input-number font-12 chi-tiet-san-pham-sale-input-number chi-tiet-san-pham-sale-font-12"
             disabled
           />
         </nz-input-group>
       </nz-col>
       <nz-col [nzSpan]="4">
-        <label class="font-12">Nhập</label>
+        <label class="font-12 chi-tiet-san-pham-sale-font-12">Nhập</label>
         <nz-input-group>
           <input
             type="number"
             nz-input
             placeholder="0.00"
             [value]="totalImport"
-            class="input-number font-12"
+            class="input-number font-12 chi-tiet-san-pham-sale-input-number chi-tiet-san-pham-sale-font-12"
             disabled
           />
         </nz-input-group>
       </nz-col>
       <nz-col [nzSpan]="4">
-        <label class="font-12">Xuất</label>
+        <label class="font-12 chi-tiet-san-pham-sale-font-12">Xuất</label>
         <nz-input-group>
           <input
             type="number"
             nz-input
             placeholder="0.00"
             [value]="totalExport"
-            class="input-number font-12"
+            class="input-number font-12 chi-tiet-san-pham-sale-input-number chi-tiet-san-pham-sale-font-12"
             disabled
           />
         </nz-input-group>
       </nz-col>
       <nz-col [nzSpan]="4">
-        <label class="font-12">Yêu cầu xuất</label>
+        <label class="font-12 chi-tiet-san-pham-sale-font-12">Yêu cầu xuất</label>
         <nz-input-group>
           <input
             type="number"
             nz-input
             placeholder="0.00"
             [value]="totalRequestExport"
-            class="input-number font-12"
+            class="input-number font-12 chi-tiet-san-pham-sale-input-number chi-tiet-san-pham-sale-font-12"
             disabled
           />
         </nz-input-group>
       </nz-col>
       <nz-col [nzSpan]="4">
-        <label class="font-12">SL giữ</label>
+        <label class="font-12 chi-tiet-san-pham-sale-font-12">SL giữ</label>
         <nz-input-group>
           <input
             type="number"
             nz-input
             placeholder="0.00"
             [value]="totalKeep"
-            class="input-number font-12"
+            class="input-number font-12 chi-tiet-san-pham-sale-input-number chi-tiet-san-pham-sale-font-12"
             disabled
           />
         </nz-input-group>
       </nz-col>
       <nz-col [nzSpan]="4">
-        <label class="font-12">Tồn cuối kỳ</label>
+        <label class="font-12 chi-tiet-san-pham-sale-font-12">Tồn cuối kỳ</label>
         <nz-input-group>
           <input
             type="number"
             nz-input
             placeholder="0.00"
             [value]="totalLast"
-            class="input-number font-12"
+            class="input-number font-12 chi-tiet-san-pham-sale-input-number chi-tiet-san-pham-sale-font-12"
             disabled
           />
         </nz-input-group>
@@ -137,13 +137,13 @@
     </nz-row>
   </div>
   <!-- </nz-splitter-panel> -->
-  <nz-splitter nzLayout="vertical" class="splitter-main font-12">
+  <nz-splitter nzLayout="vertical" class="splitter-main font-12 chi-tiet-san-pham-sale-splitter-main chi-tiet-san-pham-sale-font-12">
     <!-- HÀNG 2: 2 PANEL TRÊN (Phiếu nhập + Phiếu xuất) -->
     <nz-splitter-panel style="height: 37vh" [nzSize]="'50%'">
-      <nz-splitter class="splitter-horizontal font-12">
+      <nz-splitter class="splitter-horizontal font-12 chi-tiet-san-pham-sale-splitter-horizontal chi-tiet-san-pham-sale-font-12">
         <!-- PHIẾU NHẬP -->
         <nz-splitter-panel [nzSize]="'50%'">
-          <nz-tabset class="tabset-font">
+          <nz-tabset class="tabset-font chi-tiet-san-pham-sale-tabset-font">
             <nz-tab nzTitle="Phiếu nhập">
               <!-- Nội dung tab phiếu nhập -->
               <div #tbl_DataImport></div>
@@ -153,7 +153,7 @@
 
         <!-- PHIẾU XUẤT (2 TAB) -->
         <nz-splitter-panel [nzSize]="'50%'">
-          <nz-tabset class="tabset-font">
+          <nz-tabset class="tabset-font chi-tiet-san-pham-sale-tabset-font">
             <nz-tab nzTitle="Phiếu xuất">
               <!-- Nội dung tab phiếu xuất -->
               <div #tbl_DataExport></div>
@@ -169,10 +169,10 @@
 
     <!-- HÀNG 3: 2 PANEL DƯỚI (Phiếu yêu cầu nhập + Hàng giữ) -->
     <nz-splitter-panel [nzSize]="'50%'">
-      <nz-splitter class="splitter-horizontal font-12">
+      <nz-splitter class="splitter-horizontal font-12 chi-tiet-san-pham-sale-splitter-horizontal chi-tiet-san-pham-sale-font-12">
         <!-- PHIẾU YÊU CẦU NHẬP -->
         <nz-splitter-panel style="height: 37vh" [nzSize]="'50%'">
-          <nz-tabset class="tabset-font">
+          <nz-tabset class="tabset-font chi-tiet-san-pham-sale-tabset-font">
             <nz-tab nzTitle="Phiếu yêu cầu nhập">
               <!-- Nội dung tab -->
               <div #tbl_DataRequestImport></div>
@@ -182,7 +182,7 @@
 
         <!-- HÀNG GIỮ -->
         <nz-splitter-panel style="height: 37vh" [nzSize]="'50%'">
-          <nz-tabset class="tabset-font">
+          <nz-tabset class="tabset-font chi-tiet-san-pham-sale-tabset-font">
             <nz-tab nzTitle="Hàng giữ">
               <!-- Nội dung tab hàng giữ -->
               <div #tbl_Data></div>

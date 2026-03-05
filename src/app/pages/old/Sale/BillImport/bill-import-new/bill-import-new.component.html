@@ -1,21 +1,21 @@
-<ng-container class="w-100">
-    <div class="card h-100 border-0 rounded-0">
+<ng-container class="w-100 bill-import-new-w-100">
+    <div class="card h-100 border-0 rounded-0 bill-import-new-card bill-import-new-h-100 bill-import-new-border-0 bill-import-new-rounded-0">
         <!-- Search Panel Above Grid -->
 
         <!-- PrimeNG Menubar Toolbar -->
         <p-menubar [model]="menuBars">
             <ng-template pTemplate="item" let-item>
-                <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                <a class="p-menuitem-link bill-import-new-p-menuitem-link" [ngClass]="item.styleClass">
                     <i [class]="item.icon"></i>
-                    <span class="p-menuitem-text">{{ item.label }}</span>
+                    <span class="p-menuitem-text bill-import-new-p-menuitem-text">{{ item.label }}</span>
                 </a>
             </ng-template>
         </p-menubar>
-        <div class="card-header bg-white p-2">
+        <div class="card-header bg-white p-2 bill-import-new-card-header bill-import-new-bg-white bill-import-new-p-2">
             <form [id]="'form-bill-import-search-' + wareHouseCode" nz-form nzLayout="inline"
                 (keyup.enter)="onSearch()">
                 <nz-form-item>
-                    <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-new-fs-12">Từ ngày</nz-form-label>
                     <nz-form-control>
                         <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateStart"
                             name="dateStart" [nzDisabled]="checked" (ngModelChange)="onDateStartChange($event)"
@@ -25,7 +25,7 @@
                 </nz-form-item>
 
                 <nz-form-item>
-                    <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-new-fs-12">Đến ngày</nz-form-label>
                     <nz-form-control>
                         <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateEnd"
                             name="dateEnd" [nzDisabled]="checked" (ngModelChange)="onDateEndChange($event)"
@@ -35,7 +35,7 @@
                 </nz-form-item>
 
                 <nz-form-item>
-                    <nz-form-label class="fs-12">Lọc kho</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-new-fs-12">Lọc kho</nz-form-label>
                     <nz-form-control>
                         <nz-select nzAllowClear="true" [(ngModel)]="selectedKhoTypes"
                             (ngModelChange)="onKhoTypeChange($event)" [nzMode]="'multiple'"
@@ -52,13 +52,13 @@
                 </nz-form-item>
 
                 <nz-form-item>
-                    <nz-form-label class="fs-12">Lọc phiếu</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-new-fs-12">Lọc phiếu</nz-form-label>
                     <nz-form-control>
                         <nz-select nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status"
                             name="status" style="width: 150px">
                             <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">{{ item.ID }}</span>
+                                <div class="d-flex align-items-center bill-import-new-d-flex bill-import-new-align-items-center">
+                                    <span class="me-2 bill-import-new-me-2">{{ item.ID }}</span>
                                     <span>{{ item.Name }}</span>
                                 </div>
                             </nz-option>
@@ -67,7 +67,7 @@
                 </nz-form-item>
 
                 <nz-form-item>
-                    <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-new-fs-12">Từ khóa</nz-form-label>
                     <nz-form-control>
                         <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword"
                             nzSize="small" (keyup.enter)="onSearch()" style="width: 200px" />
@@ -92,7 +92,7 @@
         </div>
 
         <!-- Grid Content -->
-        <div class="card-body p-0">
+        <div class="card-body p-0 bill-import-new-card-body bill-import-new-p-0">
             <div *ngIf="isLoading">
                 <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
             position: 'absolute',
@@ -116,14 +116,14 @@
                 </angular-slickgrid>
             </div>
             <!-- Detail Grid -->
-            <div class="mt-2">
-                <fieldset class="detail-fieldset">
-                    <legend class="detail-legend">
+            <div class="mt-2 bill-import-new-mt-2">
+                <fieldset class="detail-fieldset bill-import-new-detail-fieldset">
+                    <legend class="detail-legend bill-import-new-detail-legend">
                         {{ tabDetailTitle }}
                     </legend>
 
                     <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
-                        <div [ngClass]="'grid-container-detail-' + componentId" class="w-100">
+                        <div [ngClass]="'grid-container-detail-' + componentId" class="w-100 bill-import-new-w-100">
                             <angular-slickgrid [gridId]="'gridDetail-' + componentId"
                                 [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
                                 [dataset]="datasetDetail"

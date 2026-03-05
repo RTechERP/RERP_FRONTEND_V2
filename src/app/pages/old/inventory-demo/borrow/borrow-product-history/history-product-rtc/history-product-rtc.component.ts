@@ -101,9 +101,9 @@ import { environment } from '../../../../../../../environments/environment';
     Menubar,
   ],
 })
+
 export class HistoryProductRtcComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   // INTEGRATION: Input/Output để hoạt động như modal
   @Input() isModalMode: boolean = false;
   @Output() productsExported = new EventEmitter<any[]>();
@@ -136,7 +136,7 @@ export class HistoryProductRtcComponent
   gridOptions: GridOption = {};
   isLoading: boolean = false;
   shouldShowSearchBar: boolean = true;
-
+  isAdminDemo: boolean = false;
   // No pagination - load all data at once
 
   // Excel Export
@@ -158,7 +158,9 @@ export class HistoryProductRtcComponent
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private permissionService: PermissionService
-  ) {}
+  ) {
+    this.isAdminDemo = ID_ADMIN_DEMO_LIST.includes(this.appUserService.id ?? 0);
+  }
 
   ngOnInit(): void {
     this.loadMenu();
@@ -455,9 +457,8 @@ export class HistoryProductRtcComponent
           }
 
           if (bgColor) {
-            return `<span style="background-color: ${bgColor}; color: ${textColor}; display: block; width: 100%; height: 100%; padding: 3px;">${
-              value || ''
-            }</span>`;
+            return `<span style="background-color: ${bgColor}; color: ${textColor}; display: block; width: 100%; height: 100%; padding: 3px;">${value || ''
+              }</span>`;
           }
           return value || '';
         },

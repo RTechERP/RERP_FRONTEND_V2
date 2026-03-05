@@ -1,32 +1,32 @@
-.history-container {
+.history-import-export-new-history-container {
     display: flex;
     flex-direction: column;
 }
 
-.header-section {
+.history-import-export-new-header-section {
     flex-shrink: 0;
 }
 
-.content-section {
+.history-import-export-new-content-section {
     flex: 1;
     overflow: hidden;
 }
 
-.date-picker-input {
+.history-import-export-new-date-picker-input {
     width: 120px;
 }
 
-.keyword-input {
+.history-import-export-new-keyword-input {
     width: 150px;
 }
 
-.status-select {
+.history-import-export-new-status-select {
     width: 120px;
 }
 
-.grid-wrapper {
+.history-import-export-new-grid-wrapper {
     height: 100%;
 }
-::ng-deep div[id^="historyImportExport-"] {
+:host ::ng-deep div[id^="historyImportExport-"] {
     height: 91vh !important;
 }

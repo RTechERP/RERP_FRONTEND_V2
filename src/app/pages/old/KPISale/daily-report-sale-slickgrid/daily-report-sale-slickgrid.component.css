@@ -27,6 +27,16 @@ angular-slickgrid,
     height: 100% !important;
 }
 
+/* nz-spin height fix: đảm bảo nz-spin và các phần tử con chiếm 100% chiều cao */
+:host ::ng-deep .grid-container-daily-report nz-spin,
+:host ::ng-deep .grid-container-daily-report .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-daily-report .ant-spin-container,
+:host ::ng-deep .grid-container-daily-report angular-slickgrid,
+:host ::ng-deep .grid-container-daily-report .slickgrid-container,
+:host ::ng-deep .grid-container-daily-report .gridPane {
+    height: 100% !important;
+}
+
 .inner-content {
     padding: 0 !important;
 }
@@ -39,10 +49,16 @@ angular-slickgrid,
     flex-shrink: 0;
 }
 
-::ng-deep .slick-cell {
+/* :host ::ng-deep .slick-cell {
     font-size: 0.75rem;
-}
+    white-space: normal !important;
+    text-overflow: clip !important;
+    overflow: visible !important;
+    line-height: 1.4;
+    display: flex !important;
+    align-items: center;
+} */
 
-::ng-deep .slick-header-column {
+:host ::ng-deep .slick-header-column {
     font-size: 0.75rem;
 }

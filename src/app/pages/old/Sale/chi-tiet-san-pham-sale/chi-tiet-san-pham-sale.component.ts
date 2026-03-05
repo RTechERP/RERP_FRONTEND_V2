@@ -47,6 +47,7 @@ import { MenuEventService } from '../../../systems/menus/menu-service/menu-event
 import { NgZone } from '@angular/core';
 import { BillExportDetailNewComponent } from '../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 import { ClipboardService } from '../../../../services/clipboard.service';
+import { BillImportDetailNewComponent } from '../BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 @Component({
   selector: 'app-chi-tiet-san-pham-sale',
   imports: [
@@ -74,8 +75,7 @@ import { ClipboardService } from '../../../../services/clipboard.service';
   styleUrls: ['./chi-tiet-san-pham-sale.component.css'],
 })
 export class ChiTietSanPhamSaleComponent
-  implements OnInit, AfterViewInit, OnChanges
-{
+  implements OnInit, AfterViewInit, OnChanges {
   @ViewChild('tbl_DataImport', { static: true }) tbl_DataImport!: any;
   @ViewChild('tbl_DataExport', { static: true }) tbl_DataExport!: any;
   @ViewChild('tbl_DataRequestImport', { static: true })
@@ -262,7 +262,7 @@ export class ChiTietSanPhamSaleComponent
           this.notificationService.error(
             'Lỗi',
             err.error.message ||
-              'Không thể tải dữ liệu lịch sử nhập xuất sản phẩm.'
+            'Không thể tải dữ liệu lịch sử nhập xuất sản phẩm.'
           );
         },
       });
@@ -337,11 +337,11 @@ export class ChiTietSanPhamSaleComponent
     this.loaddata();
   }
   openBillImportDetail(rowData: any) {
-    const modalRef = this.modalService.open(BillImportDetailComponent, {
+    const modalRef = this.modalService.open(BillImportDetailNewComponent, {
       centered: true,
-      size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      fullscreen: true,
     });
 
     // Truyền dữ liệu giống như BillImportComponent
@@ -359,10 +359,9 @@ export class ChiTietSanPhamSaleComponent
   openBillExportDetail(rowData: any) {
     const modalRef = this.modalService.open(BillExportDetailNewComponent, {
       centered: true,
-      windowClass: 'full-screen-modal',
-      size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      fullscreen: true,
     });
 
     modalRef.componentInstance.newBillExport = rowData;
@@ -472,9 +471,8 @@ export class ChiTietSanPhamSaleComponent
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return `<input type="checkbox" ${
-                value === true ? 'checked' : ''
-              } disabled />`;
+              return `<input type="checkbox" ${value === true ? 'checked' : ''
+                } disabled />`;
             },
           },
           {
@@ -611,9 +609,8 @@ export class ChiTietSanPhamSaleComponent
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return `<input type="checkbox" ${
-                value === true ? 'checked' : ''
-              } disabled />`;
+              return `<input type="checkbox" ${value === true ? 'checked' : ''
+                } disabled />`;
             },
           },
           {
@@ -744,9 +741,8 @@ export class ChiTietSanPhamSaleComponent
               headerHozAlign: 'center',
               formatter: (cell) => {
                 const value = cell.getValue();
-                return `<input type="checkbox" ${
-                  value === true ? 'checked' : ''
-                } disabled />`;
+                return `<input type="checkbox" ${value === true ? 'checked' : ''
+                  } disabled />`;
               },
             },
             {
@@ -867,9 +863,8 @@ export class ChiTietSanPhamSaleComponent
               headerHozAlign: 'center',
               formatter: (cell) => {
                 const value = cell.getValue();
-                return `<input type="checkbox" ${
-                  value === true ? 'checked' : ''
-                } disabled />`;
+                return `<input type="checkbox" ${value === true ? 'checked' : ''
+                  } disabled />`;
               },
             },
             {

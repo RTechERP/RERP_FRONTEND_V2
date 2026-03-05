@@ -218,7 +218,10 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
   getHrHiringRequest() {
     this.hrRecruitmentCandidateService.getHrHiringRequest().subscribe({
       next: (response: any) => {
-        this.hrHiringRequestList = response.data ?? [];
+        this.hrHiringRequestList = this.projectService.createdDataGroup(
+          response.data,
+          'DepartmentName'
+        );
       },
       error: (err: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,

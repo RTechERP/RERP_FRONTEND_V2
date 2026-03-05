@@ -72,9 +72,9 @@
             style="height: 100%;">
 
             <!-- Tab 1: KPI Kỹ năng -->
-            <nz-tab nzTitle="KPI Kỹ năng">
+            <nz-tab nzTitle="KPI Kỹ năng" *ngIf="typePoint !== 4">
                 <div class="grid-skill-details-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 0" gridId="grid-skill-details"
+                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 0" gridId="grid-skill-details"
                         [columns]="skillColumns" [options]="skillGridOptions" [dataset]="dataSkill"
                         (onAngularGridCreated)="onSkillGridReady($event)">
                     </angular-slickgrid>
@@ -82,9 +82,9 @@
             </nz-tab>
 
             <!-- Tab 2: KPI Chung -->
-            <nz-tab nzTitle="KPI Chung" *ngIf="showTabGeneral">
+            <nz-tab nzTitle="KPI Chung" *ngIf="showTabGeneral && typePoint !== 4">
                 <div class="grid-general-details-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && selectedTabIndex === 1" gridId="grid-general-details"
+                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 1" gridId="grid-general-details"
                         [columns]="generalColumns" [options]="generalGridOptions" [dataset]="dataGeneral"
                         (onAngularGridCreated)="onGeneralGridReady($event)">
                     </angular-slickgrid>
@@ -92,7 +92,7 @@
             </nz-tab>
 
             <!-- Tab 3: KPI Chuyên môn -->
-            <nz-tab nzTitle="KPI Chuyên môn">
+            <nz-tab nzTitle="KPI Chuyên môn" *ngIf="typePoint !== 4">
                 <div class="grid-specialization-details-container" style="height: 100%; position: relative;">
                     <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 2"
                         gridId="grid-specialization-details" [columns]="specializationColumns"
@@ -102,7 +102,7 @@
                 </div>
             </nz-tab>
             <!-- Tab 4: Tổng hợp đánh giá -->
-            <nz-tab nzTitle="Tổng hợp đánh giá">
+            <nz-tab nzTitle="Tổng hợp đánh giá" *ngIf="typePoint !== 4">
                 <div class="grid-master-details-container" style="height: 100%; position: relative;">
                     <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 3" gridId="grid-master-details"
                         [columns]="masterColumns" [options]="masterGridOptions" [dataset]="dataMaster"

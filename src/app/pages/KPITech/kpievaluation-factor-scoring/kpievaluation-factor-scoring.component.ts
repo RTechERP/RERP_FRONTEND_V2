@@ -4401,7 +4401,6 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
    * 3. Gán vào node MA09
    */
   private calculatorNoError(): void {
-    debugger;
     // Tìm các node có mã trong danh sách
     const filteredNodes = this.dataRule.filter((row: any) =>
       this.listCodesNoError.includes(row.EvaluationCode)
@@ -4421,7 +4420,6 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
     // Tìm node MA09 và gán giá trị
     const ma09Node = this.dataRule.find((row: any) => row.EvaluationCode === 'MA09');
     if (ma09Node) {
-      debugger;
       ma09Node.FirstMonth = firstMonth;
       ma09Node.SecondMonth = secondMonth;
       ma09Node.ThirdMonth = thirdMonth;

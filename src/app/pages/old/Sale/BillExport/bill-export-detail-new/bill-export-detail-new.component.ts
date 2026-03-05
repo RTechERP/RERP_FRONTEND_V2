@@ -1881,16 +1881,16 @@ export class BillExportDetailNewComponent
 
 
         // Khi chuyển sang "Yêu cầu xuất kho" (Status=6): enable Deadline, set CreatDate = ngày hiện tại
-        if (value === 6) {
-            this.validateForm.get('DeadlineDate')?.enable();
-            this.validateForm.get('DeadlineTime')?.enable();
-            this.validateForm.patchValue({ CreatDate: new Date() });
-        } else {
-            // Các status khác: disable Deadline
-            this.validateForm.get('DeadlineDate')?.disable();
-            this.validateForm.get('DeadlineTime')?.disable();
-            this.validateForm.patchValue({ DeadlineDate: null, DeadlineTime: null });
-        }
+        // if (value === 6) {
+        //     this.validateForm.get('DeadlineDate')?.enable();
+        //     this.validateForm.get('DeadlineTime')?.enable();
+        //     this.validateForm.patchValue({ CreatDate: new Date() });
+        // } else {
+        //     // Các status khác: disable Deadline
+        //     this.validateForm.get('DeadlineDate')?.disable();
+        //     this.validateForm.get('DeadlineTime')?.disable();
+        //     this.validateForm.patchValue({ DeadlineDate: null, DeadlineTime: null });
+        // }
     }
 
     /**

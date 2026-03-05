@@ -3055,8 +3055,8 @@ export class PaymentOrderComponent implements OnInit {
         // when clicking on any cell, we will make it the new selected row
         // however, we don't want to interfere with multiple row selection checkbox which is on 1st column cell
         if (args.cell !== 0) {
-            const item = this.gridData.setSelectedRows([args.row]);
-            // const item = args.grid.getDataItem(args.row)
+            this.gridData.setSelectedRows([args.row]);
+            const item = args.grid.getDataItem(args.row)
             // console.log('selected item:', item);
             this.loadDetail(item.ID);
 

@@ -271,12 +271,15 @@ export class PaymentOrderComponent implements OnInit {
         // this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
 
 
+        // console.log('this.isPermisstion:', this.isPermisstion);
+        // console.log('this.isPermisstionDB:', this.isPermisstionDB);
+        // console.log('this.isPermisstionHR:', this.isPermisstionHR);
 
         if (!this.isPermisstion && !this.isPermisstionDB) {
             this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
         } else if (this.isApprove) {
-            console.log('isApprove:', this.isApprove);
+            // console.log('isApprove:', this.isApprove);
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP) ||
                 this.appUserService.currentUser?.Permissions.includes(permissionCodeSale)) {
                 this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
@@ -310,7 +313,7 @@ export class PaymentOrderComponent implements OnInit {
                 this.param.step = 0;
             }
         } else {
-            console.log('isApprove else:', this.isApprove);
+            // console.log('isApprove else:', this.isApprove);
             this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
         }
@@ -2695,10 +2698,19 @@ export class PaymentOrderComponent implements OnInit {
 
     loadDataNormal() {
         this.isLoading = true;
+
+        let emp = 0;
+        if (this.isPermisstion && this.isApprove) {
+            emp = this.param.employeeID;
+        } else if (this.appUserService.currentUser?.EmployeeID == 0 && this.appUserService.currentUser?.IsAdmin) {
+            emp = this.param.employeeID;
+        } else emp = this.appUserService.currentUser?.EmployeeID == 0 ? -1 : (this.appUserService.currentUser?.EmployeeID || 0);
+
         const p = {
             ...this.param,
             isSpecialOrder: 0,
             // isIgnoreHR: this.isPermisstionHR ? 0 : -1,
+            employeeID: emp
         }
         // console.log(this.param);
         this.paymentService.get(p).subscribe({
@@ -2751,8 +2763,10 @@ export class PaymentOrderComponent implements OnInit {
 
         let emp = 0;
         if (this.isPermisstionDB && this.isApprove) {
-            emp = 0;
-        } else emp = this.appUserService.currentUser?.EmployeeID || 0;
+            emp = this.param.employeeID;
+        } else if (this.appUserService.currentUser?.EmployeeID == 0 && this.appUserService.currentUser?.IsAdmin) {
+            emp = this.param.employeeID;
+        } else emp = this.appUserService.currentUser?.EmployeeID == 0 ? -1 : (this.appUserService.currentUser?.EmployeeID || 0);
 
         const p = {
             ...this.param,

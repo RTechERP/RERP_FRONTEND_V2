@@ -1,0 +1,54 @@
+<div class="exam-result-container">
+    <!-- Header -->
+    <div class="practice-header">
+        <div class="header-left">
+            <button nz-button nzType="text" nzSize="small" (click)="onBack()" title="Quay lại bài học" class="back-btn">
+                <span nz-icon nzType="arrow-left"></span>
+            </button>
+            <h4 class="practice-title">Bài thi trắc nghiệm {{ courseName }}</h4>
+        </div>
+        <div class="header-right">
+            <button nz-button nzType="primary" class="start-exam-btn" (click)="onStartExam()">
+                <span nz-icon nzType="edit"></span>
+                Làm bài
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="exam-result-table-wrapper">
+        <nz-spin [nzSpinning]="isLoading">
+            <table class="exam-result-table">
+                <thead>
+                    <tr>
+                        <th class="text-white">Khoá học</th>
+                        <th class="text-white">Đề thi</th>
+                        <th class="text-white text-center">Số câu hỏi</th>
+                        <th class="text-white text-center">Số câu đúng</th>
+                        <th class="text-white text-center">Số câu sai</th>
+                        <th class="text-white text-center">Điểm</th>
+                        <th class="text-white text-center">Thời gian bắt đầu</th>
+                        <th class="text-white text-center">Thời gian kết thúc</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of examResults; let odd = odd" [class.odd-row]="odd">
+                        <td class="p-1">{{ item.NameCourse }}</td>
+                        <td class="p-1">{{ item.NameExam }}</td>
+                        <td class="text-end p-1">{{ item.TotalQuestion }}</td>
+                        <td class="text-end p-1">{{ item.TotalCorrect }}</td>
+                        <td class="text-end p-1">{{ item.TotalIncorrect }}</td>
+                        <td class="text-end p-1">{{ item.PercentageCorrect }}</td>
+                        <td class="text-center p-1">{{ formatDate(item.CreatedDate) }}</td>
+                        <td class="text-center p-1">{{ formatDate(item.UpdatedDate) }}</td>
+                    </tr>
+                    <tr *ngIf="examResults.length === 0 && !isLoading">
+                        <td colspan="8" class="text-center text-muted py-4">
+                            Chưa có kết quả thi nào
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </nz-spin>
+    </div>
+</div>

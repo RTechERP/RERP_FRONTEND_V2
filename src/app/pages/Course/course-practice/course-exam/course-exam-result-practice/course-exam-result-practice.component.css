@@ -1,0 +1,152 @@
+.practice-result-container {
+    padding: 16px;
+    background-color: #f5f5f5;
+    min-height: 100%;
+}
+
+.practice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.practice-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #262626;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-btn {
+    padding: 0;
+    font-size: 18px;
+    color: #595959;
+}
+
+.back-btn:hover {
+    color: #1890ff;
+}
+
+.start-exam-btn {
+    background: #52c41a !important;
+    border-color: #52c41a !important;
+    font-weight: 600;
+}
+
+.start-exam-btn:hover {
+    background: #73d13d !important;
+    border-color: #73d13d !important;
+}
+
+.practice-content {
+    margin-bottom: 16px;
+}
+
+.section-card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 100%;
+}
+
+.section-title {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #262626;
+}
+
+/* Table Styles */
+::ng-deep .ant-table-thead>tr>th {
+    background: #17a2b8 !important;
+    color: white !important;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px 12px !important;
+}
+
+::ng-deep .ant-table-tbody>tr>td {
+    padding: 8px 12px !important;
+}
+
+::ng-deep .ant-table-tbody>tr:hover>td {
+    background: #e6f7ff !important;
+}
+
+::ng-deep .ant-table-tbody>tr.selected>td {
+    background: #bae7ff !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.question-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.status-pass {
+    background-color: #52c41a;
+    color: white;
+}
+
+.status-fail {
+    background-color: #ff4d4f;
+    color: white;
+}
+
+.status-pending {
+    background-color: #fadb14;
+    color: #262626;
+}
+
+/* Footer */
+.practice-footer {
+    padding: 12px 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Row */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -8px;
+}
+
+.col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding: 0 8px;
+}
+
+@media (max-width: 992px) {
+    .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 16px;
+    }
+}

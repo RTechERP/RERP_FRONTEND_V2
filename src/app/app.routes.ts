@@ -212,14 +212,22 @@ import { ProjectSurveySlickGridComponent } from './pages/project-survey-slick-gr
 import { RequestInvoiceSummarySlickgridComponent } from './pages/old/request-invoice-summary-slickgrid/request-invoice-summary-slickgrid.component';
 import { NewsletterComponent } from './pages/old/newsletter/newsletter/newsletter.component';
 import { NewsletterTypeComponent } from './pages/old/newsletter/newsletter/newsletter-type/newsletter-type.component';
+import { NewsletterFormViewAllComponent } from './pages/old/newsletter/newsletter/newsletter-form-view-all/newsletter-form-view-all.component';
 import { ProjectPartlistPriceRequestOldComponent } from './pages/purchase/project-partlist-price-request-old/project-partlist-price-request-old.component';
 import { MeetingMinuteSlickGridComponent } from './pages/meeting-minute-slick-grid/meeting-minute-slick-grid.component';
 import { DocumentSaleAdminComponent } from './pages/hrm/document/document-sale-admin/document-sale-admin.component';
+import { ProductProtectiveGearComponent } from './pages/hrm/product-protective-gear/product-protective-gear/product-protective-gear.component';
+import { InventoryDemoProtectiveGearComponent } from './pages/hrm/product-protective-gear/inventory-demo-protective-gear/inventory-demo-protective-gear.component';
+import { ProductLocationTechComponent } from './pages/hrm/product-protective-gear/product-location-tech/product-location-tech.component';
+import { BillImportTechnicalProtectiveGearComponent } from './pages/hrm/product-protective-gear/bill-import-technical-protective-gear/bill-import-technical-protective-gear.component';
+import { BillExportTechnicalProtectiveGearComponent } from './pages/hrm/product-protective-gear/bill-export-technical-protective-gear/bill-export-technical-protective-gear.component';
+import { HistoryProductRtcProtectiveGearComponent } from './pages/hrm/product-protective-gear/history-product-rtc-protective-gear/history-product-rtc-protective-gear.component';
+import { HistoryProductRtcProtectiveGearNewComponent } from './pages/hrm/product-protective-gear/history-product-rtc-protective-gear-new/history-product-rtc-protective-gear-new.component';
+// import { CustomerSlickgridComponent } from './pages/hrm/customers/customer-slickgrid/customer-slickgrid.component';
 import { InventoryBorrowNCCComponent } from './pages/old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 import { OfficeSupplyRequestPersonComponent } from './pages/hrm/office-supply/OfficeSupplyRequests/office-supply-request-person/office-supply-request-person.component';
 
 
-import { NewsletterFormViewAllComponent } from './pages/old/newsletter/newsletter/newsletter-form-view-all/newsletter-form-view-all.component';
 import { CourseManagementComponent } from './pages/Course/course-management/course-management.component';
 import { EconimicContractTermComponent } from './pages/hrm/economic-contract/econimic-contract-term/econimic-contract-term.component';
 import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/economic-contract-type/economic-contract-type.component';
@@ -257,6 +265,7 @@ import { KpiEvaluationRuleComponent } from './pages/old/Technical/kpi-evaluation
 import { UpdateVersionComponent } from './pages/systems/update-version/update-version.component';
 import { KpiEvaluationFactorsComponent } from './pages/old/Technical/kpi-evaluation-factors/kpi-evaluation-factors.component';
 import { LuckyNumberComponent } from './pages/hrm/lucky-number/lucky-number.component';
+import { CoursePracticeComponent } from './pages/Course/course-practice/course-practice.component';
 import { KpiSyntheticYearsComponent } from './pages/old/Technical/kpi-synthetic-years/kpi-synthetic-years.component';
 import { SummaryKpiEmployeePointComponent } from './pages/old/Technical/summary-kpi-employee-point/summary-kpi-employee-point.component';
 import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-base/follow-project-base-slickgrid/follow-project-base-slickgrid.component';
@@ -1009,15 +1018,26 @@ export const routes: Routes = [
             { path: 'bill-import-qc', component: BillImportQcComponent, canActivate: [authGuard] },
 
             { path: 'newsletter', component: NewsletterComponent, canActivate: [authGuard] },
+            { path: 'newsletter-view-all', component: NewsletterFormViewAllComponent, canActivate: [authGuard] },
             { path: 'newsletter-type', component: NewsletterTypeComponent, canActivate: [authGuard] },
             { path: 'newsletter-view-all', component: NewsletterFormViewAllComponent, canActivate: [authGuard] },
 
             { path: 'document-sale-admin', component: DocumentSaleAdminComponent, canActivate: [authGuard] },
+            // Tủ đồ bảo hộ và phòng sạch
+            { path: 'product-protective-gear', component: ProductProtectiveGearComponent, canActivate: [authGuard] },
+            { path: 'inventory-demo-protective-gear', component: InventoryDemoProtectiveGearComponent, canActivate: [authGuard] },
+            { path: 'product-location-tech', component: ProductLocationTechComponent, canActivate: [authGuard] },
+            { path: 'bill-import-tech-protective-gear', component: BillImportTechnicalProtectiveGearComponent, canActivate: [authGuard] },
+            { path: 'bill-export-tech-protective-gear', component: BillExportTechnicalProtectiveGearComponent, canActivate: [authGuard] },
+            { path: 'history-product-rtc-protective-gear', component: HistoryProductRtcProtectiveGearComponent, canActivate: [authGuard] },
+            { path: 'history-product-rtc-protective-gear-new', component: HistoryProductRtcProtectiveGearNewComponent, canActivate: [authGuard] },
+ 
             { path: 'inventory-borrow-ncc', component: InventoryBorrowNCCComponent, canActivate: [authGuard] },
 
 
             // COURSE
             { path: 'course-management', component: CourseManagementComponent, canActivate: [authGuard] },
+            { path: 'course-practice', component: CoursePracticeComponent, canActivate: [authGuard] },
 
             { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
 

@@ -15,23 +15,28 @@
                         (click)="openDeleteModal()" *hasPermission="'N26,N40,N1'">
                         <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
                     </button>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+
+
                     <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openAddEmployeeModal()"
                         *hasPermission="'N26,N40,N1'">
-                        <img src="assets/icon/add_employee_16.png" alt="Thêm NV" />Thêm NV
+                        <img src="assets/icon/plus.png" alt="Thêm NV" />Thêm NV
                     </button>
                     <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="removeEmployeeFromTeam()"
                         *hasPermission="'N26,N40,N1'">
-                        <img src="assets/icon/action_delete_employee_16.png" alt="Xóa NV" />Xóa NV
+                        <img src="assets/icon/minus-button.png" alt="Xóa NV" />Xóa NV
                     </button>
-                </div>
-                <div class="d-flex gap-2 align-items-center" style="width: 30vw;">
-                    <label for="" class="fs-12 fw-bold col-2 text-center">Phòng ban</label>
-                    <nz-select [(ngModel)]="department" (ngModelChange)="onDepartmentChange()"
-                        style="font-size: 0.75rem; font-weight: bold; height: 3vh !important; width: 4vw;"
-                        nzPlaceHolder="Tất cả phòng ban" style="width: 80%;" nzAllowClear nzShowSearch>
-                        <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
-                            [nzLabel]="dept.Name"></nz-option>
-                    </nz-select>
+
+                    <div class="d-flex gap-2 align-items-center" style="width: 15vw;">
+                        <label for="" class="fs-12 fw-bold text-nowrap mb-0">Phòng ban</label>
+                        <nz-select [(ngModel)]="department" (ngModelChange)="onDepartmentChange()"
+                            style="font-size: 0.75rem; font-weight: bold; height: 3vh !important; width: 100%;"
+                            nzPlaceHolder="Tất cả phòng ban" nzAllowClear nzShowSearch>
+                            <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
+                                [nzLabel]="dept.Name"></nz-option>
+                        </nz-select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,7 +92,7 @@
             <nz-form-item class="mb-1">
                 <nz-form-label [nzSpan]="24">Phòng ban <span class="text-danger ps-1">*</span></nz-form-label>
                 <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn phòng ban">
-                    <nz-select formControlName="DepartmentID" nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch >
+                    <nz-select formControlName="DepartmentID" nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch>
                         <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
                             [nzLabel]="dept.Name"></nz-option>
                     </nz-select>
@@ -154,8 +159,8 @@
                 <nz-form-label [nzSpan]="3" nzFor="departmentEmployee">Phòng ban</nz-form-label>
                 <nz-form-control [nzSpan]="9" nzErrorTip="Vui lòng chọn phòng ban">
                     <nz-select id="departmentEmployee" [(ngModel)]="departmentEmployee" name="departmentEmployee"
-                        (ngModelChange)="onDepartmentEmployeeChange()" nzPlaceHolder="Tất cả phòng ban" nzAllowClear [nzDisabled]="true"
-                        nzShowSearch style="width: 100%;">
+                        (ngModelChange)="onDepartmentEmployeeChange()" nzPlaceHolder="Tất cả phòng ban" nzAllowClear
+                        [nzDisabled]="true" nzShowSearch style="width: 100%;">
                         <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
                             [nzLabel]="dept.Name"></nz-option>
                     </nz-select>

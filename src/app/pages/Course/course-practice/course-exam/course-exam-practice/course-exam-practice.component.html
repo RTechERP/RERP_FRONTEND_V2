@@ -1,0 +1,39 @@
+<div class="practice-modal-container">
+    <!-- Header -->
+    <div class="practice-modal-header">
+        <div class="header-info">
+            <h4 class="practice-modal-title">Bài thi thực hành {{ courseName }}</h4>
+            <p class="practice-date">{{ createdDate }}</p>
+        </div>
+        <button nz-button nzType="primary" class="complete-btn" (click)="onSubmit()" [nzLoading]="isSubmitting"
+            [disabled]="isSubmitting">
+            <span nz-icon nzType="check"></span>
+            Hoàn thành
+        </button>
+    </div>
+
+    <!-- Body -->
+    <div class="practice-modal-body">
+        <nz-spin [nzSpinning]="isLoading">
+            <div class="practice-card">
+                <nz-table #practiceTable [nzData]="questions" [nzShowPagination]="false" [nzBordered]="true"
+                    [nzSize]="'small'" nzTableLayout="fixed">
+                    <thead>
+                        <tr>
+                            <th nzWidth="80px">STT</th>
+                            <th>CÂU HỎI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let question of questions" class="question-row" (click)="onQuestionClick(question)">
+                            <td class="text-center">{{ question.STT }}</td>
+                            <td class="question-text">
+                                {{ question.QuestionText }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </nz-table>
+            </div>
+        </nz-spin>
+    </div>
+</div>

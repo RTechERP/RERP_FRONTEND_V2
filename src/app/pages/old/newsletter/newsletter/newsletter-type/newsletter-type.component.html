@@ -1,6 +1,7 @@
+ 
 <ng-container class="w-100">
   <div class="card h-100 border-0 rounded-0">
-    <div class="card-header bg-white p-2">
+    <!-- <div class="card-header bg-white p-2">
         <div class="d-flex flex-column flex-md-row gap-2 align-items-start align-items-md-center flex-wrap">
           <div class="d-flex gap-1 align-items-center flex-wrap">
             <button type="button" nz-button class="btn-add" nzType="default" nzSize="small" (click)="openAddModal()">
@@ -18,9 +19,17 @@
           </div>
 
         </div>
-    </div>
+    </div> -->
+    <p-menubar [model]="menuBars">
+  <ng-template pTemplate="item" let-item>
+    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+      <i [class]="item.icon"></i>
+      <span class="p-menuitem-text">{{ item.label }}</span>
+    </a>
+  </ng-template>
+</p-menubar> 
 
-    <div class="card-body p-0 d-flex align-items-center justify-content-center" style="position: relative">
+    <div class="card-body p-0 d-flex align-items-center justify-content-center mt-0" style="position: relative">
       <div *ngIf="isLoading">
         <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
             position: 'absolute',
@@ -41,54 +50,53 @@
 </ng-container>
 
 <div class="modal fade" id="addNewsletterTypeModal" tabindex="-1" aria-labelledby="addNewsletterTypeModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered fs-12">
-        <div class="modal-content">
-            <div class="modal-header bg-primary">
-                <h6 class="modal-title text-uppercase text-white" id="addNewsletterTypeModalLabel">
-                    Loại bản tin
-                </h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form nz-form [formGroup]="newsletterTypeForm" (ngSubmit)="onSubmit()">
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered fs-12">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6 class="modal-title text-uppercase text-white" id="addNewsletterTypeModalLabel">
+          Loại bản tin
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form nz-form [formGroup]="newsletterTypeForm" (ngSubmit)="onSubmit()">
 
 
-                      <nz-form-item class="mb-1">
-                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">Mã loại tin tức<span
-                                class="fs-12 text-danger ps-1">*</span></nz-form-label>
-                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã loại tin tức">
-                                <input formControlName="TypeCode" placeholder="Nhập mã loại tin tức" nz-input />
-                        </nz-form-control>
-                    </nz-form-item>
+          <nz-form-item class="mb-1">
+            <nz-form-label [nzSpan]="24" class="fs-12 p-0">Mã loại tin tức<span
+                class="fs-12 text-danger ps-1">*</span></nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã loại tin tức">
+              <input formControlName="TypeCode" placeholder="Nhập mã loại tin tức" nz-input />
+            </nz-form-control>
+          </nz-form-item>
 
-                    <nz-form-item class="mb-1">
-                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">STT<span
-                                class="fs-12 text-danger ps-1">*</span></nz-form-label>
-                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập STT">
-                            <nz-input-number formControlName="STT" placeholder="Nhập STT" nzMin="1"
-                                nzMax="100" style="width: 100%" />
-                        </nz-form-control>
-                    </nz-form-item>
+          <nz-form-item class="mb-1">
+            <nz-form-label [nzSpan]="24" class="fs-12 p-0">STT<span
+                class="fs-12 text-danger ps-1">*</span></nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập STT">
+              <nz-input-number formControlName="STT" placeholder="Nhập STT" nzMin="1" nzMax="100" style="width: 100%" />
+            </nz-form-control>
+          </nz-form-item>
 
-                    <nz-form-item class="mb-1">
-                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">Tên loại tin tức<span
-                                class="fs-12 text-danger ps-1">*</span></nz-form-label>
-                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên loại tin tức">
-                            <input formControlName="TypeName" placeholder="Nhập tên loại tin tức" nz-input />
-                        </nz-form-control>
-                    </nz-form-item>
+          <nz-form-item class="mb-1">
+            <nz-form-label [nzSpan]="24" class="fs-12 p-0">Tên loại tin tức<span
+                class="fs-12 text-danger ps-1">*</span></nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên loại tin tức">
+              <input formControlName="TypeName" placeholder="Nhập tên loại tin tức" nz-input />
+            </nz-form-control>
+          </nz-form-item>
 
-                </form>
-            </div>
-            <div class="modal-footer py-0">
-                <button type="button" class="btn btn-outline-danger" style="border: 1px solid; border-radius: 0;" data-bs-dismiss="modal">
-                    Đóng
-                </button>
-                <button type="button" style="border-radius: 0;" class="btn btn-primary" (click)="onSubmit()" >
-                    Lưu
-                </button>
-            </div>
-        </div>
+        </form>
+      </div>
+      <div class="modal-footer py-0">
+        <button nz-button nzType="default" type="button" style="border-radius: 0;" data-bs-dismiss="modal" [nzLoading]="isLoading">
+          Đóng
+        </button>
+        <button nz-button nzType="primary" type="button" style="border-radius: 0;" (click)="onSubmit()" [nzLoading]="isLoading">
+          Lưu
+        </button>
+      </div>
     </div>
+  </div>
 </div>

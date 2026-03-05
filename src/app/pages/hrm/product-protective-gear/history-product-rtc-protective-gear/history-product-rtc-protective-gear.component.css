@@ -1,0 +1,26 @@
+::ng-deep div[id^="grid-container-history-product-rtc"] {
+       height: 81vh !important;
+}
+
+/* Compact form spacing */
+.compact-form nz-form-item {
+       margin-bottom: 4px !important;
+}
+
+.compact-form nz-form-label {
+       padding-bottom: 0px !important;
+       line-height: 1.2 !important;
+}
+
+::ng-deep .ant-card-body {
+       padding: 0px !important;
+}
+
+::ng-deep .ant-splitter {
+       height: 74vh !important;
+}
+
+:host ::ng-deep .slick-row.row-red {
+       background-color: red !important;
+       color: white !important;
+}

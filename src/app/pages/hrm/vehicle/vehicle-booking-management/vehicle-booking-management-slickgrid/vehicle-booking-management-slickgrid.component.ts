@@ -1231,6 +1231,12 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
                   hozAlign: 'center',
                   width: 150,
                 },
+                {
+                  title: 'SDT Người đi',
+                  field: 'PassengerPhoneNumber',
+                  hozAlign: 'center',
+                  width: 120,
+                },
                 { title: 'Tên người giao', field: 'DeliverName', width: 150 },
                 {
                   title: 'Điểm xuất phát',
@@ -1353,7 +1359,7 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
             {
               //create column group
               cssClass: 'group-passenger',
-              title: 'Thông tin người đi',
+              title: 'Thông tin người đặt',
               columns: [
                 // {
                 //   title: 'Tên người đi',
@@ -1361,12 +1367,16 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
                 //   hozAlign: 'center',
                 //   width: 150,
                 // },
+
                 {
-                  title: 'SDT Người đi',
-                  field: 'PassengerPhoneNumber',
-                  hozAlign: 'center',
-                  width: 120,
+                  title: 'Họ tên',
+                  // field: 'FullName',
+                  field: 'BookerVehicles',
+                  width: 100,
+                  bottomCalc: 'count',
+                  formatter: 'textarea',
                 },
+                { title: 'Phòng ban', field: 'DepartmentName', width: 120, formatter: 'textarea', },
               ],
             },
             {

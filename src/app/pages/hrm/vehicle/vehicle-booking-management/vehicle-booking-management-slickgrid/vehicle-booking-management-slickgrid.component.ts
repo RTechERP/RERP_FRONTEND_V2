@@ -1216,15 +1216,22 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
               columns: [
 
                 { title: 'Hình thức đặt', field: 'CategoryText', width: 120 },
+                // {
+                //   title: 'Họ tên',
+                //   // field: 'FullName',
+                //   field: 'BookerVehicles',
+                //   width: 100,
+                //   bottomCalc: 'count',
+                //   formatter: 'textarea',
+                // },
+                // { title: 'Phòng ban', field: 'DepartmentName', width: 120, formatter: 'textarea', },
                 {
-                  title: 'Họ tên',
-                  // field: 'FullName',
-                  field: 'BookerVehicles',
-                  width: 100,
-                  bottomCalc: 'count',
-                  formatter: 'textarea',
+                  title: 'Tên người đi',
+                  field: 'PassengerName',
+                  hozAlign: 'center',
+                  width: 150,
                 },
-                { title: 'Phòng ban', field: 'DepartmentName', width: 120, formatter: 'textarea', },
+                { title: 'Tên người giao', field: 'DeliverName', width: 150 },
                 {
                   title: 'Điểm xuất phát',
                   field: 'DepartureAddress',
@@ -1348,12 +1355,12 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
               cssClass: 'group-passenger',
               title: 'Thông tin người đi',
               columns: [
-                {
-                  title: 'Tên người đi',
-                  field: 'PassengerName',
-                  hozAlign: 'center',
-                  width: 150,
-                },
+                // {
+                //   title: 'Tên người đi',
+                //   field: 'PassengerName',
+                //   hozAlign: 'center',
+                //   width: 150,
+                // },
                 {
                   title: 'SDT Người đi',
                   field: 'PassengerPhoneNumber',
@@ -1367,7 +1374,7 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
               cssClass: 'group-delivery',
               title: 'Thông tin hàng giao',
               columns: [
-                { title: 'Tên người giao', field: 'DeliverName', width: 150 },
+                // { title: 'Tên người giao', field: 'DeliverName', width: 150 },
                 {
                   title: 'SDT người giao',
                   field: 'DeliverPhoneNumber',

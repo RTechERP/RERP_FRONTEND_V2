@@ -203,6 +203,8 @@ export class PaymentOrderComponent implements OnInit {
     isPermisstionDB: boolean = false;
     isPermisstionHR: boolean = false;
 
+    filterTimeout: any;
+
     constructor(
         private modalService: NgbModal,
         private paymentService: PaymentOrderService,
@@ -1647,7 +1649,11 @@ export class PaymentOrderComponent implements OnInit {
                         }
                     },
                 ],
-            }
+            },
+
+            // onFilterChanged: (_e: Event, args: any) => {
+            //     this.applyDistinctFilters(args.grid);
+            // }
         };
 
         this.columnDefinitionDetails = [
@@ -2555,13 +2561,11 @@ export class PaymentOrderComponent implements OnInit {
         this.gridDataSpecial = angularGrid?.slickGrid || {};
         angularGrid.dataView.onRowCountChanged.subscribe(() => {
 
-            this.applyDistinctFilters(angularGrid);
-            // const count = angularGrid.dataView.getLength();
-            // console.log('Row count:', count);
-            // const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
-            // if (columnElement) {
-            //     columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
-            // }
+            clearTimeout(this.filterTimeout);
+
+            this.filterTimeout = setTimeout(() => {
+                this.applyDistinctFilters(this.angularGridSpecial);
+            }, 2000);
 
             this.updateTotal(this.angularGridSpecial);
         });
@@ -2875,19 +2879,9 @@ export class PaymentOrderComponent implements OnInit {
 
 
     applyDistinctFilters(angularGrid: AngularGridInstance): void {
-        // const angularGrid = this.angularGrid;
-        // console.log('angularGrid:', angularGrid);
         if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
-
-        // const data: any[] = [];
         const data = angularGrid.dataView.getFilteredItems();
-        // setTimeout(() => {
-        //     console.log('angularGrid data:', data);;
-        // });
-
         if (!data || data.length === 0) return;
-
-
         const getUniqueValues = (
             items: any[],
             field: string
@@ -2978,6 +2972,7 @@ export class PaymentOrderComponent implements OnInit {
 
     }
 
+
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
@@ -2996,25 +2991,14 @@ export class PaymentOrderComponent implements OnInit {
 
         angularGrid.dataView.onRowCountChanged.subscribe(() => {
 
-            // console.log('this.isFiltering:', this.isFiltering);
-            if (!this.isFiltering) {
-                // this.applyDistinctFilters(angularGrid);
-            };
+            clearTimeout(this.filterTimeout);
 
-            // setTimeout(() => {
-            //     this.applyDistinctFilters(angularGrid);
-            // }, 3);
-
-            // const count = angularGrid.dataView.getLength();
-            // // console.log('Row count:', count);
-            // const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
-            // if (columnElement) {
-            //     columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
-            // }
+            this.filterTimeout = setTimeout(() => {
+                this.applyDistinctFilters(this.angularGrid);
+            }, 2000);
 
             this.updateTotal(this.angularGrid);
         });
-
 
     }
 
@@ -3049,8 +3033,8 @@ export class PaymentOrderComponent implements OnInit {
         // when clicking on any cell, we will make it the new selected row
         // however, we don't want to interfere with multiple row selection checkbox which is on 1st column cell
         if (args.cell !== 0) {
-            // const item = this.gridData.setSelectedRows([args.row]);
-            const item = args.grid.getDataItem(args.row)
+            const item = this.gridData.setSelectedRows([args.row]);
+            // const item = args.grid.getDataItem(args.row)
             // console.log('selected item:', item);
             this.loadDetail(item.ID);
 

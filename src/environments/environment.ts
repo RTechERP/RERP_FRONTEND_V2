@@ -1,4 +1,14 @@
 export const environment = {
+<<<<<<< HEAD
+    production: false,
+    apiKey:
+        "RTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keY",
+    host: 'https://localhost:7187/',
+    // host: 'http://10.20.28.213:8087/',
+    hostwebold: 'https://localhost:19028/',
+    baseHref: '/rerpweb',
+    title: 'R-ERP',
+=======
   production: false,
   apiKey:
     "RTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keY",
@@ -8,4 +18,5 @@ export const environment = {
   hostwebold: 'https://localhost:19028/',
   baseHref: '/',
   title: 'R-ERP',
+>>>>>>> origin/master
 };

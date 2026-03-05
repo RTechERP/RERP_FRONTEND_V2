@@ -619,20 +619,16 @@ export class BillExportDetailNewComponent
         POKHDetailIDActual: item.POKHDetailIDActual || 0,
         PONumber: item.PONumber || '',
       }));
-      console.log('🔵 [handleWarehouseReleaseFlow] dataDetail after mapping:', this.dataDetail);
     }
 
     if (this.newBillExport.KhoTypeID > 0) {
-      console.log('🔵 [handleWarehouseReleaseFlow] Calling changeProductGroup with KhoTypeID:', this.newBillExport.KhoTypeID);
       this.changeProductGroup(this.newBillExport.KhoTypeID);
       // Refresh grid sau khi productOptions được load
       setTimeout(() => {
-        console.log('🔵 [handleWarehouseReleaseFlow] Refreshing grid after timeout, dataDetail:', this.dataDetail);
         this.refreshGrid();
         this.updateTotalInventoryForExistingRows();
       }, 500);
     }
-    console.log('🔵 [handleWarehouseReleaseFlow] END');
   }
 
   /** Luồng tạo phiếu xuất trả nhà cung cấp */
@@ -1047,7 +1043,7 @@ export class BillExportDetailNewComponent
         width: 140,
         sortable: true,
         filterable: true,
-        hidden: true, // Mặc định ẩn, chỉ hiển thị khi Status = 0 (Mượn) hoặc Status = 7 (Yêu cầu mượn)
+        hidden: !(this.isBorrow || this.newBillExport.Status === 0 || this.newBillExport.Status === 7), // Ẩn mặc định, chỉ hiển thị khi Status = 0 (Mượn) hoặc Status = 7 (Yêu cầu mượn) hoặc isBorrow = true
         formatter: (_row, _cell, value) => {
           if (!value) return '';
           const date = new Date(value);
@@ -1155,6 +1151,15 @@ export class BillExportDetailNewComponent
         excludeFromHeaderMenu: true,
         hidden: true,
         editor: { model: Editors['text'], maxLength: 50 }, // nvarchar(50)
+      },
+      {
+        id: 'PONumber',
+        name: 'Số PO',
+        field: 'PONumber',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'AddSerial',
@@ -1868,6 +1873,24 @@ export class BillExportDetailNewComponent
     this.newBillExport.Status = value;
     this.updateColumnVisibility();
     this.updateDateValidators(value);
+
+    // Lấy lại mã phiếu mới theo loại khi tạo mới (không phải edit)
+    if (!this.isCheckmode) {
+      this.getNewCode();
+    }
+
+    
+    // Khi chuyển sang "Yêu cầu xuất kho" (Status=6): enable Deadline, set CreatDate = ngày hiện tại
+    if (value === 6) {
+      this.validateForm.get('DeadlineDate')?.enable();
+      this.validateForm.get('DeadlineTime')?.enable();
+      this.validateForm.patchValue({ CreatDate: new Date() });
+    } else {
+      // Các status khác: disable Deadline
+      this.validateForm.get('DeadlineDate')?.disable();
+      this.validateForm.get('DeadlineTime')?.disable();
+      this.validateForm.patchValue({ DeadlineDate: null, DeadlineTime: null });
+    }
   }
 
   /**
@@ -2041,6 +2064,9 @@ export class BillExportDetailNewComponent
             String(item.WarehouseCode).toUpperCase().trim() === searchCode
         );
         if (currentWarehouse) {
+          if (!this.newBillExport || typeof this.newBillExport !== 'object') {
+            this.newBillExport = {} as any;
+          }
           this.newBillExport.WarehouseID = currentWarehouse.ID || 0;
 
           // Nếu đang ở chế độ thêm mới và đã có KhoTypeID, load SenderID từ ProductGroupWarehouse
@@ -2050,7 +2076,8 @@ export class BillExportDetailNewComponent
         }
       },
       error: (err: any) => {
-        console.error('Error getting warehouse:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } });
       },
     });
   }
@@ -2069,7 +2096,8 @@ export class BillExportDetailNewComponent
           }));
       },
       error: (err: any) => {
-        console.error('Error getting warehouse list:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } });
         this.dataCbbWareHouseTransfer = [];
       },
     });
@@ -2082,7 +2110,8 @@ export class BillExportDetailNewComponent
         this.dataCbbSupplier = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err: any) => {
-        console.error('Error getting suppliers:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } });
       },
     });
   }
@@ -2094,7 +2123,8 @@ export class BillExportDetailNewComponent
         this.dataCbbUser = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err: any) => {
-        console.error('Error getting users:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } });
       },
     });
   }
@@ -2118,7 +2148,8 @@ export class BillExportDetailNewComponent
         this.dataCbbAdressStock = res.data || [];
       },
       error: (err: any) => {
-        console.error('Error getting address stock:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } });
       },
     });
   }
@@ -2136,7 +2167,8 @@ export class BillExportDetailNewComponent
         }
       },
       error: (err: any) => {
-        console.error('Error getting customers:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } });
       },
     });
   }
@@ -2167,7 +2199,8 @@ export class BillExportDetailNewComponent
         }
       },
       error: (err) => {
-        console.error('Error getting AddressStock:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } });
       },
     });
   }
@@ -2184,7 +2217,8 @@ export class BillExportDetailNewComponent
         );
       },
       error: (err: any) => {
-        console.error('Error getting product groups:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } });
       },
     });
 
@@ -2908,13 +2942,13 @@ export class BillExportDetailNewComponent
           GroupID: this.newBillExport.GroupID,
           WarehouseType: wareHouseCode ? wareHouseCode.ProductGroupName : this.newBillExport.WarehouseType,
           KhoTypeID: formValues.KhoTypeID,
-          CreatDate: formValues.CreatDate,
-          CreatedDate: formValues.CreatDate,
-          UpdatedDate: new Date(),
+          CreatDate: this.toLocalISOString(formValues.CreatDate),
+          CreatedDate: this.toLocalISOString(formValues.CreatDate),
+          UpdatedDate: this.toLocalISOString(new Date()),
           ProductType: formValues.ProductType,
           AddressStockID: formValues.AddressStockID || this.newBillExport.AddressStockID,
           WarehouseID: this.newBillExport.WarehouseID,
-          RequestDate: formValues.RequestDate,
+          RequestDate: this.toLocalISOString(formValues.RequestDate),
           BillDocumentExportType: 2,
           IsApproved: this.newBillExport.IsApproved || false,
           IsTransfer: formValues.IsTransfer,
@@ -2941,7 +2975,8 @@ export class BillExportDetailNewComponent
           this.isSaving = false;
         },
         error: (err: any) => {
-          this.showErrorNotification(err?.error?.message || 'Có lỗi xảy ra khi lưu!');
+          console.log(err);
+          this.showErrorNotification(err?.error?.message || err?.message);
           this.isSaving = false;
         },
       });

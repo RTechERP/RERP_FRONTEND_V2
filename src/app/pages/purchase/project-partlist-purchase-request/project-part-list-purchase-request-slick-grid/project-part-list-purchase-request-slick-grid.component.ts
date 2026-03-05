@@ -5933,14 +5933,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       const dataView = angularGrid.dataView;
       if (!dataView) return;
 
-      // Lấy dữ liệu đã được filter từ view (không phải tất cả data gốc)
-      const data: any[] = [];
-      for (let i = 0; i < dataView.getLength(); i++) {
-        const item = dataView.getItem(i);
-        if (item) {
-          data.push(item);
-        }
-      }
+      // Lấy toàn bộ data (không phải chỉ filtered view) - giống project-slick-grid2
+      const data = dataView.getItems() as any[];
       if (!data || data.length === 0) return;
 
       const columns = angularGrid.slickGrid.getColumns();
@@ -6002,19 +5996,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             }
           }
           // Handle text columns - get unique values from data
-          else if (
-            [
-              'ProductCode',
-              'ProjectCode',
-              'ProductName',
-              'Manufacturer',
-              'StatusRequestText',
-              'FullName',
-              'UpdatedName',
-              'ProductNewCode',
-              'ProductCodeRTC',
-            ].includes(field)
-          ) {
+          else {
             const collection = getUniqueValues(data, field);
             if (column.filter) {
               column.filter.collection = collection;
@@ -6079,19 +6061,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
               }
             }
             // Handle text columns - get unique values from data
-            else if (
-              [
-                'ProductCode',
-                'ProjectCode',
-                'ProductName',
-                'Manufacturer',
-                'StatusRequestText',
-                'FullName',
-                'UpdatedName',
-                'ProductNewCode',
-                'ProductCodeRTC',
-              ].includes(field)
-            ) {
+            else {
               const collection = getUniqueValues(data, field);
               if (colDef.filter) {
                 colDef.filter.collection = collection;

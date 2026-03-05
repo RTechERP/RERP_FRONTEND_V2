@@ -118,9 +118,9 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 ?? 'HN';
 
             this.warehouseID =
-                params['warehouseID']
-                ?? this.tabData?.warehouseID
-                ?? 1;
+                Number(params['warehouseID'])
+                || Number(this.tabData?.warehouseID)
+                || 1;
 
             this.searchParams.warehouseCode = this.warehouseCode;
             this.searchParams.warehouseID = this.warehouseID;
@@ -717,6 +717,9 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                     this.dataset = (res.data || []).map((item: any) => {
                         // Apply row formatting logic
                         let rowClass = '';
+                        if (item.DualDate === 1) {
+                            rowClass = 'row-dual';
+                        }
                         if (item.ExpectReturnDate) {
                             const expectDate = new Date(item.ExpectReturnDate);
                             const today = new Date();
@@ -726,9 +729,6 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                             if (expectDate < today) {
                                 rowClass = 'row-overdue';
                             }
-                        }
-                        if (item.DualDate === 1) {
-                            rowClass = 'row-dual';
                         }
 
                         return {
@@ -812,7 +812,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             return {
                 groupID: groupID,
                 groupName: groupName,
-                dataHistory: filterData
+                dataHistory: filterData.map(item => ({ ...item, WarehouseID: this.warehouseID }))
             };
         });
 
@@ -826,6 +826,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         modalRef.componentInstance.createImport = true;
         modalRef.componentInstance.tabs = tabs;
         modalRef.componentInstance.billType = 1;
+        modalRef.componentInstance.warehouseID = this.warehouseID;
 
         modalRef.result.finally(() => {
             this.selectedRows = [];
@@ -904,6 +905,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         modalRef.componentInstance.createImport = true;
         modalRef.componentInstance.tabs = tabs;
         modalRef.componentInstance.billType = 1;
+        modalRef.componentInstance.warehouseID = this.warehouseID;
 
         modalRef.result.finally(() => {
             this.loadData();

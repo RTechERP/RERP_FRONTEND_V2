@@ -1,5 +1,7 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { MenuItem } from 'primeng/api';
+import { Menubar } from 'primeng/menubar';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -22,6 +24,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ProjectService } from '../../project/project-service/project.service';
+import { PermissionService } from '../../../services/permission.service';
 @Component({
   selector: 'app-team',
   templateUrl: './team.component.html',
@@ -41,7 +44,8 @@ import { ProjectService } from '../../project/project-service/project.service';
     NzSplitterModule,
     FormsModule,
     NgIf,
-    NzSpinModule, HasPermissionDirective
+    NzSpinModule, HasPermissionDirective,
+    Menubar
   ],
   standalone: true
 })
@@ -49,6 +53,8 @@ export class TeamComponent implements OnInit, AfterViewInit {
   private teamTabulator!: Tabulator;
   private employeeTabulator!: Tabulator;
   private employeeTeamTabulator!: Tabulator;
+  menuBars: MenuItem[] = [];
+  menuBarsEmployee: MenuItem[] = [];
   teamList: any[] = [];
   employeeList: any[] = [];
   employeeCombo: any[] = [];
@@ -78,7 +84,8 @@ export class TeamComponent implements OnInit, AfterViewInit {
     private departmentService: DepartmentServiceService,
     private fb: FormBuilder,
     private modal: NzModalService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private permissionService: PermissionService
   ) {
     this.initForm();
   }
@@ -98,6 +105,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
+    this.initMenuBar();
     this.loadDepartments();
     this.loadTeams();
     this.loadEmployee();
@@ -106,6 +114,54 @@ export class TeamComponent implements OnInit, AfterViewInit {
     this.initializeTeamTable();
     this.initializeEmployeeTable();
     this.initializeEmployeeTeamTable();
+  }
+
+  initMenuBar() {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-circle-plus fa-lg text-success',
+        visible: this.permissionService.hasPermission('N26,N40,N1'),
+        command: () => {
+          this.openAddModal();
+        },
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-file-pen fa-lg text-primary',
+        visible: this.permissionService.hasPermission('N26,N40,N1'),
+        command: () => {
+          this.openEditModal();
+        },
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: this.permissionService.hasPermission('N26,N40,N1'),
+        command: () => {
+          this.openDeleteModal();
+        },
+      },
+    ];
+
+    this.menuBarsEmployee = [
+      {
+        label: 'Thêm NV',
+        icon: 'fa-solid fa-user-plus fa-lg text-success',
+        visible: this.permissionService.hasPermission('N26,N40,N1'),
+        command: () => {
+          this.openAddEmployeeModal();
+        },
+      },
+      {
+        label: 'Xóa NV',
+        icon: 'fa-solid fa-user-minus fa-lg text-danger',
+        visible: this.permissionService.hasPermission('N26,N40,N1'),
+        command: () => {
+          this.removeEmployeeFromTeam();
+        },
+      },
+    ];
   }
 
   //#region load dữ liệu phòng ban lên select

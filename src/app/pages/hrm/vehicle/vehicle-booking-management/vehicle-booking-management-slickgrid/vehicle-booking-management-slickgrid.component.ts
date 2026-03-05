@@ -1399,7 +1399,7 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
                   width: 120,
                 },
                 { title: 'Tên kiện hàng', field: 'PackageName', width: 80, formatter: 'textarea' },
-                { title: 'Kích thước(cm)', field: 'PackageSize', width: 120 },
+                { title: 'Kích thước(cm)', field: 'PackageSize', width: 120, hozAlign: 'right' },
                 { title: 'Cân nặng(kg)', field: 'PackageWeight', width: 120, hozAlign: 'right' },
                 {
                   title: 'Số lượng kiện hàng',

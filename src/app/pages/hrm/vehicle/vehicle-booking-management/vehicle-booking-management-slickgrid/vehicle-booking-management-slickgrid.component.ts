@@ -1215,7 +1215,7 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
               title: 'Thông tin đặt xe',
               columns: [
 
-                { title: 'Hình thức đặt', field: 'CategoryText', width: 120 },
+                { title: 'Hình thức đặt', field: 'CategoryText', width: 120, formatter: 'textarea' },
                 // {
                 //   title: 'Họ tên',
                 //   // field: 'FullName',
@@ -1230,14 +1230,16 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
                   field: 'PassengerName',
                   hozAlign: 'center',
                   width: 150,
+                  formatter: 'textarea'
                 },
                 {
                   title: 'SDT Người đi',
                   field: 'PassengerPhoneNumber',
                   hozAlign: 'center',
                   width: 120,
+                  formatter: 'textarea'
                 },
-                { title: 'Tên người giao', field: 'DeliverName', width: 150 },
+                { title: 'Tên người giao', field: 'DeliverName', width: 150, formatter: 'textarea' },
                 {
                   title: 'Điểm xuất phát',
                   field: 'DepartureAddress',
@@ -1390,7 +1392,7 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
                   field: 'DeliverPhoneNumber',
                   width: 120,
                 },
-                { title: 'Tên người nhận', field: 'ReceiverName', width: 120 },
+                { title: 'Tên người nhận', field: 'ReceiverName', width: 120, formatter: 'textarea' },
                 {
                   title: 'SDT người nhận',
                   field: 'ReceiverPhoneNumber',
@@ -1419,8 +1421,8 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
 
               ],
             },
-            { title: 'Tên TBP duyệt', field: 'FullNameTBP', width: 120 },
-            { title: 'TBP duyệt', field: 'ApprovedTBPText', width: 100 },
+            { title: 'Tên TBP duyệt', field: 'FullNameTBP', width: 120, formatter: 'textarea' },
+            { title: 'TBP duyệt', field: 'ApprovedTBPText', width: 100, formatter: 'textarea' },
 
             {
               title: 'Lý do phát sinh',

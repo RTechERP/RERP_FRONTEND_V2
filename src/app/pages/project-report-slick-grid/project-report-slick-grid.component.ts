@@ -392,6 +392,9 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       angularGrid.dataView.onRowCountChanged.subscribe(() => {
         this.recalcFilteredTotals();
       });
+      angularGrid.dataView.onRowsChanged.subscribe(() => {
+        this.recalcFilteredTotals();
+      });
     }
   }
 

@@ -129,7 +129,7 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
 
   statusList: any[] = [
     { value: 0, label: '1. Ứng tuyển' },
-    { value: 1, label: '2. Gửi thư mời' },
+    { value: 1, label: '2. Gửi thư mời PV' },
     { value: 2, label: '3. Xác nhận phỏng vấn' },
     { value: 3, label: '4. Đã phỏng vấn' },
     { value: 4, label: '5. Kết quả không đạt' },

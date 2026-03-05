@@ -1228,7 +1228,7 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
                 {
                   title: 'Tên người đi',
                   field: 'PassengerName',
-                  hozAlign: 'center',
+                  hozAlign: 'left',
                   width: 150,
                   formatter: 'textarea'
                 },
@@ -1400,11 +1400,12 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
                 },
                 { title: 'Tên kiện hàng', field: 'PackageName', width: 80, formatter: 'textarea' },
                 { title: 'Kích thước(cm)', field: 'PackageSize', width: 120 },
-                { title: 'Cân nặng(kg)', field: 'PackageWeight', width: 120 },
+                { title: 'Cân nặng(kg)', field: 'PackageWeight', width: 120, hozAlign: 'right' },
                 {
                   title: 'Số lượng kiện hàng',
                   field: 'PackageQuantity',
                   width: 160,
+                  hozAlign: 'right',
                 },
                 {
                   title: 'Tiền xe',
@@ -1415,6 +1416,7 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
                     if (!value && value !== 0) return '';
                     return `${Number(value).toLocaleString('vi-VN')}đ`;
                   },
+                  hozAlign: 'right'
                 },
                 { title: 'Dự án', field: 'ProjectFullName', width: 300, formatter: 'textarea' },
                 { title: 'Dự án', field: 'ProjectID', width: 300, formatter: 'textarea', visible: false },

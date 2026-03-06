@@ -371,8 +371,9 @@ export class RequestInvoiceDetailComponent implements OnInit {
    * Validate
    */
   validateDetails(): boolean {
-    for (let i = 0; i < this.details.length; i++) {
-      const row = this.details[i];
+    const currentData = this.tb_DataTable.getData();
+    for (let i = 0; i < currentData.length; i++) {
+      const row = currentData[i];
       const isStock = !!row.IsStock;
       const billCode = row.BillImportCode ? row.BillImportCode.toString() : '';
       const productNewCode = row.ProductNewCode || '';
@@ -470,6 +471,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
       // key: để backend nhận biết loại tài liệu
       formData.append('key', 'RequestInvoiceFile');
 
+      // Lấy thông tin RequestInvoice để tạo subPath, sau đó mới gọi upload
       this.requestInvoiceService.getRequestInvoiceById(RIID).subscribe((data: any) => {
         const requestInvoice = data;
 
@@ -488,25 +490,42 @@ export class RequestInvoiceDetailComponent implements OnInit {
         ].join('/');
 
         formData.append('subPath', subPath);
-      });
 
+        // ✅ Gọi API upload SAU KHI đã append subPath vào formData
+        this.RIDService.uploadFiles(formData, RIID, 1).subscribe({
+          next: (response) => {
+            if (response.status === 1) {
+              const uploadedFiles = response.data as any[];
+              const totalRequested = newFiles.length;
+              const totalUploaded = uploadedFiles.length;
 
-      // const sanitize = (s: string) =>
-      //   s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
-      // const subPath = [sanitize(year), sanitize(customerName), sanitize(poCode)]
-      //   .filter((x) => x)
-      //   .join('/');
+              if (totalUploaded === totalRequested) {
+                this.notification.success('Thông báo', `${totalUploaded} file đã được upload thành công!`);
+              } else {
+                this.notification.warning('Thông báo', `${totalUploaded}/${totalRequested} file upload thành công, ${totalRequested - totalUploaded} file thất bại.`);
+              }
 
-      // formData.append('subPath', subPath);
-
-      // Gọi API upload
-      this.RIDService.uploadFiles(formData, RIID, 1).subscribe({
-        next: () => {
-          console.log('Upload files thành công');
-        },
-        error: (error) => {
-          this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
-        },
+              // Cập nhật lại danh sách file với ServerPath trả về từ server
+              this.files = [
+                ...this.files.filter((f: any) => !f.file),
+                ...uploadedFiles.map((f: any) => ({
+                  fileName: f.FileName,
+                  ServerPath: f.ServerPath,
+                  ID: f.ID,
+                  IsDeleted: false,
+                }))
+              ];
+              if (this.tb_InvoiceFile) {
+                this.tb_InvoiceFile.setData(this.files);
+              }
+            } else {
+              this.notification.error('Thông báo', response.message || 'Upload file thất bại!');
+            }
+          },
+          error: (error) => {
+            this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
+          },
+        });
       });
     }
 

@@ -1,0 +1,40 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">LỊCH SỬ DUYỆT / KHÔNG DUYỆT</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-2">
+    <div class="row g-2 mb-2 align-items-end">
+        <div class="col-sm-4">
+            <div class="form-group mb-0">
+                <label class="m-0">Mã phiếu</label>
+                <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn mã phiếu"
+                    [(ngModel)]="selectedPaymentOrderId" name="paymentOrderId" class="w-100">
+                    <nz-option *ngFor="let item of paymentOrders" [nzValue]="item.ID" [nzLabel]="item.Code"></nz-option>
+                </nz-select>
+            </div>
+        </div>
+        <div class="col-auto">
+            <button nz-button nzType="primary" nzSize="small" (click)="loadData()">
+                <i class="fas fa-search"></i> Tìm kiếm
+            </button>
+        </div>
+        <div class="col-auto">
+            <button nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                <i class="fas fa-file-excel"></i> Xuất excel
+            </button>
+        </div>
+    </div>
+
+    <div class="grid-container-log">
+        <angular-slickgrid gridId="grvPaymentOrderLog" [columns]="columnDefinitions" [options]="gridOptions"
+            [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+        </angular-slickgrid>
+    </div>
+</div>
+
+<div class="modal-footer p-1">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+</div>

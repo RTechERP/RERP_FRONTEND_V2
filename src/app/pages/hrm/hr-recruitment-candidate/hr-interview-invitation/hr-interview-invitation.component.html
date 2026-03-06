@@ -1,0 +1,454 @@
+<div class="email-composer">
+  <!-- HEADER -->
+  <div class="email-header">
+    <div class="header-icon">
+      <i class="fa-solid fa-envelope-open-text"></i>
+    </div>
+    <div class="header-text">
+      <h4>Soạn thư mời phỏng vấn</h4>
+      <span class="form-code">BM02-RTC.HR-QT01</span>
+    </div>
+    <div class="header-meta">
+      <span class="candidate-count">
+        <i class="fa-solid fa-users"></i> {{ mails.length }} ứng viên
+      </span>
+
+      <button class="modal-close-btn" (click)="onCancel()" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <nz-spin [nzSpinning]="isSending" nzTip="Đang gửi mail...">
+    <!-- TABS PER ỨNG VIÊN -->
+    <nz-tabset
+      [nzSelectedIndex]="activeTabIndex"
+      (nzSelectedIndexChange)="activeTabIndex = $any($event)"
+      nzType="card"
+      class="candidate-tabs"
+    >
+      <nz-tab *ngFor="let mail of mails; let i = index" [nzTitle]="tabTitle">
+        <ng-template #tabTitle>
+          <i
+            class="fa-solid fa-user-tie"
+            style="margin-right: 5px; color: #2e86c1"
+          ></i>
+          {{ mail.candidateName }}
+        </ng-template>
+
+        <div class="tab-body">
+          <!-- LEFT: FORM -->
+          <div class="form-panel" [class.collapsed]="previewIndex === i">
+            <!-- Email + Subject -->
+            <div class="field-group">
+              <label class="field-label"
+                ><i class="fa-solid fa-at text-primary"></i> Đến (Email)
+                <span style="color: red">(*)</span></label
+              >
+              <input
+                nz-input
+                [(ngModel)]="mail.toEmail"
+                placeholder="email@domain.com"
+              />
+            </div>
+            <div class="field-group">
+              <label class="field-label"
+                ><i class="fa-solid fa-heading text-warning"></i> Tiêu đề
+                <span style="color: red">(*)</span></label
+              >
+              <input nz-input [(ngModel)]="mail.subject" />
+            </div>
+
+            <nz-divider
+              nzText="Thông tin phỏng vấn"
+              nzOrientation="left"
+            ></nz-divider>
+
+            <!-- Tên + Vị trí -->
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label">Tên ứng viên</label>
+                <input nz-input [(ngModel)]="mail.candidateName" />
+              </div>
+              <div class="field-group flex1">
+                <label class="field-label">Vị trí ứng tuyển</label>
+                <input nz-input [(ngModel)]="mail.position" />
+              </div>
+            </div>
+
+            <!-- Ngày phỏng vấn vòng 1 (chỉ hiện khi round = 2) -->
+            <div class="fields-row" *ngIf="round === 2">
+              <div class="field-group">
+                <label class="field-label"
+                  ><i class="fa-solid fa-calendar-check text-warning"></i> Ngày
+                  PV vòng 1 <span style="color: red">(*)</span></label
+                >
+                <nz-date-picker
+                  [(ngModel)]="mail.round1InterviewDate"
+                  nzFormat="dd/MM/yyyy"
+                  style="width: 100%"
+                  nzPlaceHolder="Ngày phỏng vấn vòng 1"
+                ></nz-date-picker>
+              </div>
+            </div>
+
+            <!-- Thời gian phỏng vấn -->
+            <div class="fields-row">
+              <div class="field-group" style="flex: 2">
+                <label class="field-label"
+                  ><i class="fa-solid fa-calendar text-success"></i> Ngày phỏng
+                  vấn <span style="color: red">(*)</span></label
+                >
+                <nz-date-picker
+                  [(ngModel)]="mail.interviewDate"
+                  nzFormat="dd/MM/yyyy"
+                  style="width: 100%"
+                  nzPlaceHolder="Chọn ngày"
+                ></nz-date-picker>
+              </div>
+              <div class="field-group" style="flex: 1">
+                <label class="field-label"
+                  ><i class="fa-solid fa-clock text-success"></i> Giờ</label
+                >
+                <nz-select [(ngModel)]="mail.interviewHour" style="width: 100%">
+                  <nz-option
+                    *ngFor="let h of hours"
+                    [nzValue]="h"
+                    [nzLabel]="h + 'h'"
+                  ></nz-option>
+                </nz-select>
+              </div>
+              <div class="field-group" style="flex: 1">
+                <label class="field-label"
+                  ><i class="fa-solid fa-clock text-success"></i> Phút</label
+                >
+                <nz-select
+                  [(ngModel)]="mail.interviewMinute"
+                  style="width: 100%"
+                >
+                  <nz-option
+                    *ngFor="let m of minutes"
+                    [nzValue]="m"
+                    [nzLabel]="m + 'p'"
+                  ></nz-option>
+                </nz-select>
+              </div>
+            </div>
+
+            <!-- Deadline phản hồi -->
+            <div class="fields-row">
+              <div class="field-group" style="flex: 2">
+                <label class="field-label"
+                  ><i class="fa-solid fa-calendar text-success"></i> Phản hồi
+                  trước ngày <span style="color: red">(*)</span></label
+                >
+                <nz-date-picker
+                  [(ngModel)]="mail.replyDeadlineDate"
+                  nzFormat="dd/MM/yyyy"
+                  style="width: 100%"
+                  nzPlaceHolder="Chọn ngày"
+                ></nz-date-picker>
+              </div>
+              <div class="field-group" style="flex: 1">
+                <label class="field-label"
+                  ><i class="fa-solid fa-clock text-success"></i> Giờ</label
+                >
+                <nz-select
+                  [(ngModel)]="mail.replyDeadlineHour"
+                  style="width: 100%"
+                >
+                  <nz-option
+                    *ngFor="let h of hours"
+                    [nzValue]="h"
+                    [nzLabel]="h + 'h'"
+                  ></nz-option>
+                </nz-select>
+              </div>
+              <div class="field-group" style="flex: 1">
+                <label class="field-label"
+                  ><i class="fa-solid fa-clock text-success"></i> Phút</label
+                >
+                <nz-select
+                  [(ngModel)]="mail.replyDeadlineMinute"
+                  style="width: 100%"
+                >
+                  <nz-option
+                    *ngFor="let m of minutes"
+                    [nzValue]="m"
+                    [nzLabel]="m + 'p'"
+                  ></nz-option>
+                </nz-select>
+              </div>
+            </div>
+
+            <!-- Địa điểm -->
+            <div class="field-group">
+              <label class="field-label"
+                ><i class="fa-solid fa-location-dot text-danger"></i> Địa chỉ
+                phỏng vấn</label
+              >
+              <textarea
+                nz-input
+                [(ngModel)]="mail.interviewAddress"
+                [nzAutosize]="{ minRows: 1, maxRows: 4 }"
+                placeholder="Địa chỉ phỏng vấn"
+              ></textarea>
+            </div>
+
+            <nz-divider
+              nzText="Liên hệ & Nội dung thêm"
+              nzOrientation="left"
+            ></nz-divider>
+
+            <!-- Liên hệ -->
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label"
+                  ><i class="fa-solid fa-phone text-primary"></i> SĐT</label
+                >
+                <input nz-input [(ngModel)]="mail.contactPhone" />
+              </div>
+              <div class="field-group flex1">
+                <label class="field-label"
+                  ><i class="fa-solid fa-envelope text-primary"></i> Email liên
+                  hệ</label
+                >
+                <input nz-input [(ngModel)]="mail.contactEmail" />
+              </div>
+            </div>
+
+            <!-- Rich text editor: Nội dung bổ sung -->
+            <div class="field-group">
+              <label class="field-label">Nội dung bổ sung</label>
+              <div class="rich-editor-wrapper">
+                <!-- Toolbar -->
+                <div class="rich-toolbar">
+                  <button
+                    type="button"
+                    class="tb-btn"
+                    title="In đậm"
+                    (mousedown)="$event.preventDefault(); execCmd('bold')"
+                  >
+                    <b>B</b>
+                  </button>
+                  <button
+                    type="button"
+                    class="tb-btn"
+                    title="In nghiêng"
+                    (mousedown)="$event.preventDefault(); execCmd('italic')"
+                  >
+                    <i>I</i>
+                  </button>
+                  <button
+                    type="button"
+                    class="tb-btn"
+                    title="Gạch chân"
+                    (mousedown)="$event.preventDefault(); execCmd('underline')"
+                  >
+                    <u>U</u>
+                  </button>
+                  <div class="tb-sep"></div>
+
+                  <button
+                    type="button"
+                    class="tb-btn tb-size"
+                    title="Cỡ chữ nhỏ"
+                    (mousedown)="
+                      $event.preventDefault(); execCmd('fontSize', '2')
+                    "
+                  >
+                    <span style="font-size: 11px">A</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="tb-btn tb-size"
+                    title="Cỡ chữ vừa"
+                    (mousedown)="
+                      $event.preventDefault(); execCmd('fontSize', '3')
+                    "
+                  >
+                    <span style="font-size: 14px">A</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="tb-btn tb-size"
+                    title="Cỡ chữ lớn"
+                    (mousedown)="
+                      $event.preventDefault(); execCmd('fontSize', '5')
+                    "
+                  >
+                    <span style="font-size: 18px">A</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="tb-btn tb-size"
+                    title="Cỡ chữ rất lớn"
+                    (mousedown)="
+                      $event.preventDefault(); execCmd('fontSize', '7')
+                    "
+                  >
+                    <span style="font-size: 22px">A</span>
+                  </button>
+
+                  <div class="tb-sep"></div>
+
+                  <!-- Màu chữ -->
+                  <label class="tb-color-label" title="Màu chữ">
+                    <span class="color-icon">A</span>
+                    <input
+                      type="color"
+                      class="color-picker"
+                      (change)="execCmd('foreColor', $any($event.target).value)"
+                    />
+                  </label>
+
+                  <!-- Màu nền -->
+                  <label class="tb-color-label" title="Màu nền chữ">
+                    <span class="color-icon bg-icon">A</span>
+                    <input
+                      type="color"
+                      class="color-picker"
+                      (change)="
+                        execCmd('hiliteColor', $any($event.target).value)
+                      "
+                    />
+                  </label>
+
+                  <div class="tb-sep"></div>
+
+                  <button
+                    type="button"
+                    class="tb-btn"
+                    title="Căn trái"
+                    (mousedown)="
+                      $event.preventDefault(); execCmd('justifyLeft')
+                    "
+                  >
+                    <i class="fa-solid fa-align-left"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="tb-btn"
+                    title="Căn giữa"
+                    (mousedown)="
+                      $event.preventDefault(); execCmd('justifyCenter')
+                    "
+                  >
+                    <i class="fa-solid fa-align-center"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="tb-btn"
+                    title="Căn phải"
+                    (mousedown)="
+                      $event.preventDefault(); execCmd('justifyRight')
+                    "
+                  >
+                    <i class="fa-solid fa-align-right"></i>
+                  </button>
+
+                  <div class="tb-sep"></div>
+
+                  <button
+                    type="button"
+                    class="tb-btn"
+                    title="Danh sách"
+                    (mousedown)="
+                      $event.preventDefault(); execCmd('insertUnorderedList')
+                    "
+                  >
+                    <i class="fa-solid fa-list-ul"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="tb-btn"
+                    title="Xóa định dạng"
+                    (mousedown)="
+                      $event.preventDefault(); execCmd('removeFormat')
+                    "
+                  >
+                    <i class="fa-solid fa-eraser"></i>
+                  </button>
+                </div>
+
+                <!-- Editable area -->
+                <div
+                  class="rich-editor"
+                  contenteditable="true"
+                  #editorRef
+                  [attr.data-placeholder]="'Nhập nội dung bổ sung (nếu có)...'"
+                  (input)="onEditorInput(i, $event)"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Chữ ký -->
+            <div class="field-group">
+              <label class="field-label"
+                ><i class="fa-solid fa-signature text-muted"></i> Chữ ký</label
+              >
+              <textarea
+                nz-input
+                [(ngModel)]="mail.signature"
+                [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                placeholder="Họ tên - Chức vụ&#10;Bộ phận Tuyển dụng"
+              ></textarea>
+            </div>
+          </div>
+          <!-- /form-panel -->
+
+          <!-- RIGHT: PREVIEW EMAIL -->
+          <div class="preview-panel">
+            <div class="preview-label">
+              <i class="fa-solid fa-eye"></i> Xem trước
+            </div>
+            <div class="email-preview-card">
+              <div class="preview-meta">
+                <div class="meta-row">
+                  <span class="meta-key">Đến:</span>
+                  <span class="meta-val">{{
+                    mail.toEmail || "(chưa nhập email)"
+                  }}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-key">Tiêu đề:</span>
+                  <span class="meta-val bold">{{ mail.subject }}</span>
+                </div>
+              </div>
+              <nz-divider></nz-divider>
+              <div
+                class="email-body-preview"
+                [innerHTML]="getPreviewBody(mail)"
+              ></div>
+            </div>
+          </div>
+        </div>
+        <!-- /tab-body -->
+      </nz-tab>
+    </nz-tabset>
+  </nz-spin>
+
+  <!-- FOOTER -->
+  <div class="email-footer">
+    <span class="footer-hint">
+      <i class="fa-solid fa-circle-info text-primary"></i>
+      Kiểm tra kỹ nội dung từng tab trước khi gửi
+    </span>
+    <div class="footer-right">
+      <button nz-button nzType="default" (click)="onCancel()" nzDanger>
+        Đóng
+      </button>
+      <button
+        nz-button
+        nzType="primary"
+        (click)="onSend()"
+        [nzLoading]="isSending"
+      >
+        <i class="fa-solid fa-paper-plane"></i>
+        Gửi {{ mails.length > 1 ? mails.length + " mail" : "mail" }}
+      </button>
+    </div>
+  </div>
+</div>
+
+

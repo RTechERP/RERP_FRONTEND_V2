@@ -154,6 +154,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   isProblem: boolean = false;
   isSaving: boolean = false;
   currentUserPhoneNumber: string = ''; // SDT của người đang đăng nhập
+  isSpecialEmployee: boolean = false; // NV ID 395 được chọn bất kỳ thời gian
 
   // Flatpickr instances
   private flatpickrInstances: Map<string, flatpickr.Instance> = new Map();
@@ -243,11 +244,18 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
       this.errors.timeNeedPresent = '';
     });
 
-    // DepartureDate - with minDate set to today
-    this.initializeFlatpickrFieldWithMinDate('departureDate', this.departureDate, (date: Date) => {
-      this.departureDate = date;
-      this.errors.departureDate = '';
-    }, new Date());
+    // DepartureDate - NV 395 không giới hạn minDate, NV bình thường minDate = today
+    if (this.isSpecialEmployee) {
+      this.initializeFlatpickrField('departureDate', this.departureDate, (date: Date) => {
+        this.departureDate = date;
+        this.errors.departureDate = '';
+      });
+    } else {
+      this.initializeFlatpickrFieldWithMinDate('departureDate', this.departureDate, (date: Date) => {
+        this.departureDate = date;
+        this.errors.departureDate = '';
+      }, new Date());
+    }
 
     // TimeReturn
     this.initializeFlatpickrField('timeReturn', this.timeReturn, (date: Date) => {
@@ -378,6 +386,8 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
         if (!this.isEdit) {
           const currentEmployeeId = this.appUserService.employeeID;
           if (currentEmployeeId) {
+            // Check xem có phải NV đặc biệt (ID 395) không
+            this.isSpecialEmployee = currentEmployeeId === 395;
             // Tìm employee trong danh sách đã load
             const currentEmployee = this.employees.find(emp => emp.ID === currentEmployeeId);
             if (currentEmployee) {
@@ -402,6 +412,8 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
                 this.onPassengerEmployeeChange(1, this.employeeId);
               }
             }
+            // Re-init flatpickr sau khi xác định isSpecialEmployee
+            this.reinitializeFlatpickr();
           }
         }
       },
@@ -657,6 +669,35 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
       this.departureReturnAddress = '';
     } else {
       this.departureReturnAddress = text;
+    }
+  }
+
+  onBookerEmployeeChange(empId: number): void {
+    if (empId && empId > 0) {
+      const emp = this.employees.find(e => e.ID === empId);
+      if (emp) {
+        this.employeeId = emp.ID;
+        this.fullName = emp.FullName || '';
+        this.bookerVehicles = this.fullName;
+        this.currentUserPhoneNumber = emp.SDTCaNhan || emp.SdtcaNhan || emp.PhoneNumber || '';
+      }
+      // Reload province arrives theo employee mới
+      this.loadProvincesArrives();
+      // Cập nhật passenger đầu tiên theo người được chọn
+      if (this.passengers.length > 0) {
+        this.passengers[0].employeeId = empId;
+        this.onPassengerEmployeeChange(1, empId);
+      }
+    } else {
+      this.employeeId = 0;
+      this.fullName = '';
+      this.bookerVehicles = '';
+      this.currentUserPhoneNumber = '';
+      // Reset passenger đầu tiên
+      if (this.passengers.length > 0) {
+        this.passengers[0].employeeId = 0;
+        this.onPassengerEmployeeChange(1, 0);
+      }
     }
   }
 
@@ -972,8 +1013,9 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
     // Build payload
     const payloads: any[] = [];
 
-    // Khi lưu mới, lấy EmployeeID từ AppUserService
-    const employeeIdToSave = this.isEdit ? this.employeeId : (this.appUserService.employeeID || 0);
+    // Lấy EmployeeID và BookerVehicles trực tiếp từ giá trị đã chọn trên form
+    const employeeIdToSave = this.isEdit ? this.employeeId : (this.employeeId || 0);
+    const bookerVehiclesToSave = this.bookerVehicles;
 
     if (this.category == 1 || this.category == 4 || this.category == 5) {
       // Create payload for each passenger
@@ -982,7 +1024,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
         const payload: any = {
           ID: i === 0 ? this.id : 0,
           EmployeeID: employeeIdToSave,
-          BookerVehicles: this.bookerVehicles,
+          BookerVehicles: bookerVehiclesToSave,
           PhoneNumber: '',
           CompanyNameArrives: this.companyNameArrives,
           Province: this.province,
@@ -1026,7 +1068,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
         const payload: any = {
           ID: i === 0 ? this.id : 0,
           EmployeeID: employeeIdToSave,
-          BookerVehicles: this.bookerVehicles,
+          BookerVehicles: bookerVehiclesToSave,
           PhoneNumber: '',
           CompanyNameArrives: this.companyNameArrives,
           Province: this.province,

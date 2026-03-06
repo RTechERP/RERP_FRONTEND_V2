@@ -1,0 +1,492 @@
+/* ===========================
+   WRAPPER
+=========================== */
+::ng-deep .email-composer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 560px;
+  background: #f0f4fa;
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 13px;
+  border-top-left-radius: 7px !important;
+  border-top-right-radius: 7px !important;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+.email-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #154360, #2e86c1);
+  color: white;
+  flex-shrink: 0;
+}
+
+.header-icon {
+  font-size: 26px;
+  opacity: 0.9;
+}
+
+.header-text h4 {
+  margin: 0;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.form-code {
+  font-size: 11px;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.header-meta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 0, 0, 0.5);
+  background: rgb(255, 0, 0);
+  color: rgb(0, 0, 0);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.modal-close-btn:hover {
+  background: rgb(255, 0, 0);
+  border-color: rgb(255, 0, 0);
+  transform: scale(1.1);
+}
+
+.candidate-count {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ===========================
+   TABS
+=========================== */
+.candidate-tabs {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-content-holder {
+  overflow-y: auto;
+  flex: 1;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-nav {
+  background: #e8f0fb;
+  margin: 0;
+  padding: 0 12px;
+  padding-top: 6px;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-tab {
+  border-radius: 6px 6px 0 0 !important;
+  font-size: 13px;
+  padding: 6px 14px !important;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-tab-active {
+  background: #154360 !important;
+  font-weight: 600;
+}
+
+/* Dropdown "..." khi tab tràn */
+::ng-deep .ant-tabs-dropdown {
+  background: white !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  padding: 4px 0 !important;
+}
+
+::ng-deep .ant-tabs-dropdown-menu {
+  background: white !important;
+}
+
+::ng-deep .ant-tabs-dropdown-menu-item {
+  color: #333 !important;
+  font-size: 13px !important;
+  padding: 7px 16px !important;
+}
+
+::ng-deep .ant-tabs-dropdown-menu-item:hover {
+  background: #e8f0fb !important;
+  color: #ffffff !important;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-tab-active .ant-tabs-tab-btn i {
+  color: white !important;
+}
+
+/* ===========================
+   TAB BODY: 2 CỘT
+=========================== */
+.tab-body {
+  display: flex;
+  gap: 0;
+  height: 100%;
+  min-height: 400px;
+}
+
+/* ===========================
+   FORM PANEL
+=========================== */
+.form-panel {
+  flex: 1;
+  padding: 10px 14px;
+  overflow-y: auto;
+  border-right: 1px solid #d6e4f7;
+  background: white;
+  min-width: 0;
+  max-width: 52%;
+}
+
+.form-panel.collapsed {
+  flex: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.field-group {
+  margin-bottom: 7px;
+}
+
+.field-group label.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a4a6a;
+  margin-bottom: 4px;
+}
+
+.fields-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.flex1 {
+  flex: 1;
+}
+.flex2 {
+  flex: 2;
+}
+
+/* ===========================
+   RICH TEXT EDITOR
+=========================== */
+.rich-editor-wrapper {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  overflow: hidden;
+  background: white;
+}
+
+.rich-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 6px 8px;
+  background: #f5f7ff;
+  border-bottom: 1px solid #e0e7ef;
+}
+
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.tb-btn:hover {
+  background: #dde9ff;
+  border-color: #91b8f5;
+  color: #1a5276;
+}
+
+.tb-size {
+  width: 30px;
+  line-height: 1;
+  font-weight: 700;
+  color: #1a3a5c;
+}
+
+.tb-sep {
+  width: 1px;
+  height: 20px;
+  background: #ccc;
+  margin: 0 4px;
+}
+
+.tb-color-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #d9d9d9;
+  background: #fff;
+  transition: all 0.15s;
+}
+
+.tb-color-label:hover {
+  background: #dde9ff;
+  border-color: #91b8f5;
+}
+
+.color-icon {
+  font-size: 14px;
+  font-weight: 700;
+  color: #c0392b;
+  user-select: none;
+  pointer-events: none;
+  text-decoration: underline;
+  text-decoration-color: red;
+  text-decoration-thickness: 3px;
+}
+
+.bg-icon {
+  color: #1a5276;
+  background: #fff3cd;
+  border-radius: 2px;
+  padding: 0 2px;
+  text-decoration: none;
+}
+
+.color-picker {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.rich-editor {
+  min-height: 80px;
+  max-height: 160px;
+  padding: 10px 12px;
+  outline: none;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #222;
+  overflow-y: auto;
+  font-family: "Times New Roman", serif;
+}
+
+.rich-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #aaa;
+  pointer-events: none;
+}
+
+/* ===========================
+   PREVIEW PANEL
+=========================== */
+.preview-panel {
+  flex: 1;
+  padding: 10px 14px;
+  overflow-y: auto;
+  background: #f7f9fc;
+  min-width: 0;
+}
+
+.preview-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2e86c1;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 8px;
+}
+
+.email-preview-card {
+  background: white;
+  border: 1px solid #d6e4f7;
+  border-radius: 8px;
+  padding: 18px 22px;
+  box-shadow: 0 2px 10px rgba(46, 134, 193, 0.08);
+}
+
+.preview-meta {
+  margin-bottom: 0;
+}
+
+.meta-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+
+.meta-key {
+  font-weight: 700;
+  color: #555;
+  min-width: 60px;
+}
+
+.meta-val {
+  color: #333;
+  flex: 1;
+  word-break: break-all;
+}
+.meta-val.bold {
+  font-weight: 600;
+  color: #154360;
+}
+
+.email-body-preview {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 14px;
+  line-height: 1.85;
+  color: #222;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ===========================
+   FOOTER
+=========================== */
+.email-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 20px;
+  background: white;
+  border-top: 1px solid #dde4f0;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.footer-hint {
+  font-size: 12px;
+  color: #888;
+}
+
+.footer-right {
+  display: flex;
+  gap: 8px;
+}
+
+/* Scrollbars */
+.form-panel::-webkit-scrollbar,
+.preview-panel::-webkit-scrollbar,
+.rich-editor::-webkit-scrollbar {
+  width: 5px;
+}
+
+.form-panel::-webkit-scrollbar-thumb,
+.preview-panel::-webkit-scrollbar-thumb,
+.rich-editor::-webkit-scrollbar-thumb {
+  background: #c8d8f0;
+  border-radius: 3px;
+}
+
+/* ===========================
+   RESPONSIVE MOBILE
+=========================== */
+@media (max-width: 768px) {
+  .tab-body {
+    flex-direction: column;
+    height: auto;
+    min-height: unset;
+  }
+
+  .form-panel {
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #d6e4f7;
+  }
+
+  .form-panel.collapsed {
+    display: none;
+  }
+
+  .preview-panel {
+    padding: 10px;
+  }
+
+  .fields-row {
+    flex-wrap: wrap;
+  }
+
+  .fields-row .field-group {
+    min-width: 0;
+    flex: 1 1 45%;
+  }
+
+  .email-footer {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
+  .footer-hint {
+    display: none;
+  }
+
+  .footer-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .email-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .header-text h4 {
+    font-size: 13px;
+  }
+
+  .candidate-count {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+}
+
+

@@ -1,33 +1,9 @@
 <ng-container class="w-100">
     <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex gap-2">
-                    <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="openAddModal()"
-                        *hasPermission="'N26,N40,N1'">
-                        <img src="assets/icon/action_add_item_16.png" alt="Thêm " /> Thêm
-                    </button>
-                    <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="openEditModal()"
-                        *hasPermission="'N26,N40,N1'">
-                        <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
-                    </button>
-                    <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small"
-                        (click)="openDeleteModal()" *hasPermission="'N26,N40,N1'">
-                        <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
-                    </button>
-                </div>
+        <p-menubar [model]="menuBars">
+            <ng-template #end>
                 <div class="d-flex gap-2 align-items-center">
-
-
-                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openAddEmployeeModal()"
-                        *hasPermission="'N26,N40,N1'">
-                        <img src="assets/icon/btn_add_employe_16.png" alt="Thêm NV" />Thêm NV
-                    </button>
-                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="removeEmployeeFromTeam()"
-                        *hasPermission="'N26,N40,N1'">
-                        <img src="assets/icon/btn_remove_employee_16.png" alt="Xóa NV" />Xóa NV
-                    </button>
-
+                    <p-menubar [model]="menuBarsEmployee" [style]="{'border': 'none', 'padding': '0'}"></p-menubar>
                     <div class="d-flex gap-2 align-items-center" style="width: 15vw;">
                         <label for="" class="fs-12 fw-bold text-nowrap mb-0">Phòng ban</label>
                         <nz-select [(ngModel)]="department" (ngModelChange)="onDepartmentChange()"
@@ -38,8 +14,8 @@
                         </nz-select>
                     </div>
                 </div>
-            </div>
-        </div>
+            </ng-template>
+        </p-menubar>
         <div class="card-body p-0">
             <nz-splitter>
                 <nz-splitter-panel nzResizable="false" nzDefaultSize="60%" nzMin="20%" nzMax="70%">

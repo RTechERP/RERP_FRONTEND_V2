@@ -270,6 +270,7 @@ import { KpiSyntheticYearsComponent } from './pages/old/Technical/kpi-synthetic-
 import { SummaryKpiEmployeePointComponent } from './pages/old/Technical/summary-kpi-employee-point/summary-kpi-employee-point.component';
 import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-base/follow-project-base-slickgrid/follow-project-base-slickgrid.component';
 import { DailyReportSaleAdminSlickgridComponent } from './pages/old/KPISale/daily-report-sale-admin-slickgrid/daily-report-sale-admin-slickgrid.component';
+import { HRRecruitmentCandidateComponent } from './pages/hrm/hr-recruitment-candidate/hr-recruitment-candidate.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -1031,7 +1032,7 @@ export const routes: Routes = [
             { path: 'bill-export-tech-protective-gear', component: BillExportTechnicalProtectiveGearComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-protective-gear', component: HistoryProductRtcProtectiveGearComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-protective-gear-new', component: HistoryProductRtcProtectiveGearNewComponent, canActivate: [authGuard] },
- 
+
             { path: 'inventory-borrow-ncc', component: InventoryBorrowNCCComponent, canActivate: [authGuard] },
 
 
@@ -1052,6 +1053,11 @@ export const routes: Routes = [
             //Cài đặt phòng kỹ thuật
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
             { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation-factors', component: KpiEvaluationFactorsComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation-rule', component: KpiEvaluationRuleComponent, canActivate: [authGuard] },
+            { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-evaluation', component: KpiEvaluationComponent, canActivate: [authGuard] },
+            { path: 'kpi-employee-team', component: KpiEmployeeTeamComponent, canActivate: [authGuard] },
 
             //Tổng hợp kpi
             { path: 'kpi-synthetic-years', component: KpiSyntheticYearsComponent, canActivate: [authGuard] },
@@ -1063,6 +1069,7 @@ export const routes: Routes = [
             { path: 'update-version', component: UpdateVersionComponent, canActivate: [authGuard] },
 
             { path: 'daily-report-bod', component: DailyReportThrComponent, canActivate: [authGuard] },
+            { path: 'hr-recruitment-candidate', component: HRRecruitmentCandidateComponent, canActivate: [authGuard] },
         ],
     },
 ];

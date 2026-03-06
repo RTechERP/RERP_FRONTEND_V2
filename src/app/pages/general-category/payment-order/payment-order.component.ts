@@ -49,6 +49,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { PaymentOrderSpecialComponent } from './payment-order-special/payment-order-special.component';
+import { PaymentOrderLogComponent } from './payment-order-log/payment-order-log.component';
 import { environment } from '../../../../environments/environment';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { DateTime } from 'luxon';
@@ -203,6 +204,8 @@ export class PaymentOrderComponent implements OnInit {
     isPermisstionDB: boolean = false;
     isPermisstionHR: boolean = false;
 
+    filterTimeout: any;
+
     constructor(
         private modalService: NgbModal,
         private paymentService: PaymentOrderService,
@@ -268,12 +271,15 @@ export class PaymentOrderComponent implements OnInit {
         // this.isPermisstionDB ? 0 : this.appUserService.currentUser?.EmployeeID
 
 
+        // console.log('this.isPermisstion:', this.isPermisstion);
+        // console.log('this.isPermisstionDB:', this.isPermisstionDB);
+        // console.log('this.isPermisstionHR:', this.isPermisstionHR);
 
         if (!this.isPermisstion && !this.isPermisstionDB) {
             this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
         } else if (this.isApprove) {
-            console.log('isApprove:', this.isApprove);
+            // console.log('isApprove:', this.isApprove);
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP) ||
                 this.appUserService.currentUser?.Permissions.includes(permissionCodeSale)) {
                 this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
@@ -307,7 +313,7 @@ export class PaymentOrderComponent implements OnInit {
                 this.param.step = 0;
             }
         } else {
-            console.log('isApprove else:', this.isApprove);
+            // console.log('isApprove else:', this.isApprove);
             this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
         }
@@ -1646,8 +1652,19 @@ export class PaymentOrderComponent implements OnInit {
                             }
                         }
                     },
+                    {
+                        command: '', title: 'Lịch sử duyệt/không duyệt', iconCssClass: 'fa-solid fa-clock-rotate-left fa-lg text-info', positionOrder: 3,
+                        action: (e, args) => {
+                            this.onOpenPaymentOrderLog();
+                        }
+                    },
+
                 ],
-            }
+            },
+
+            // onFilterChanged: (_e: Event, args: any) => {
+            //     this.applyDistinctFilters(args.grid);
+            // }
         };
 
         this.columnDefinitionDetails = [
@@ -2555,13 +2572,11 @@ export class PaymentOrderComponent implements OnInit {
         this.gridDataSpecial = angularGrid?.slickGrid || {};
         angularGrid.dataView.onRowCountChanged.subscribe(() => {
 
-            this.applyDistinctFilters(angularGrid);
-            // const count = angularGrid.dataView.getLength();
-            // console.log('Row count:', count);
-            // const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
-            // if (columnElement) {
-            //     columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
-            // }
+            clearTimeout(this.filterTimeout);
+
+            this.filterTimeout = setTimeout(() => {
+                this.applyDistinctFilters(this.angularGridSpecial);
+            }, 2000);
 
             this.updateTotal(this.angularGridSpecial);
         });
@@ -2683,10 +2698,19 @@ export class PaymentOrderComponent implements OnInit {
 
     loadDataNormal() {
         this.isLoading = true;
+
+        let emp = 0;
+        if (this.isPermisstion && this.isApprove) {
+            emp = this.param.employeeID;
+        } else if (this.appUserService.currentUser?.EmployeeID == 0 && this.appUserService.currentUser?.IsAdmin) {
+            emp = this.param.employeeID;
+        } else emp = this.appUserService.currentUser?.EmployeeID == 0 ? -1 : (this.appUserService.currentUser?.EmployeeID || 0);
+
         const p = {
             ...this.param,
             isSpecialOrder: 0,
             // isIgnoreHR: this.isPermisstionHR ? 0 : -1,
+            employeeID: emp
         }
         // console.log(this.param);
         this.paymentService.get(p).subscribe({
@@ -2739,8 +2763,10 @@ export class PaymentOrderComponent implements OnInit {
 
         let emp = 0;
         if (this.isPermisstionDB && this.isApprove) {
-            emp = 0;
-        } else emp = this.appUserService.currentUser?.EmployeeID || 0;
+            emp = this.param.employeeID;
+        } else if (this.appUserService.currentUser?.EmployeeID == 0 && this.appUserService.currentUser?.IsAdmin) {
+            emp = this.param.employeeID;
+        } else emp = this.appUserService.currentUser?.EmployeeID == 0 ? -1 : (this.appUserService.currentUser?.EmployeeID || 0);
 
         const p = {
             ...this.param,
@@ -2875,19 +2901,9 @@ export class PaymentOrderComponent implements OnInit {
 
 
     applyDistinctFilters(angularGrid: AngularGridInstance): void {
-        // const angularGrid = this.angularGrid;
-        // console.log('angularGrid:', angularGrid);
         if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
-
-        // const data: any[] = [];
         const data = angularGrid.dataView.getFilteredItems();
-        // setTimeout(() => {
-        //     console.log('angularGrid data:', data);;
-        // });
-
         if (!data || data.length === 0) return;
-
-
         const getUniqueValues = (
             items: any[],
             field: string
@@ -2978,6 +2994,7 @@ export class PaymentOrderComponent implements OnInit {
 
     }
 
+
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
@@ -2996,25 +3013,14 @@ export class PaymentOrderComponent implements OnInit {
 
         angularGrid.dataView.onRowCountChanged.subscribe(() => {
 
-            // console.log('this.isFiltering:', this.isFiltering);
-            if (!this.isFiltering) {
-                // this.applyDistinctFilters(angularGrid);
-            };
+            clearTimeout(this.filterTimeout);
 
-            // setTimeout(() => {
-            //     this.applyDistinctFilters(angularGrid);
-            // }, 3);
-
-            // const count = angularGrid.dataView.getLength();
-            // // console.log('Row count:', count);
-            // const columnElement = angularGrid.slickGrid?.getFooterRowColumn('Code');
-            // if (columnElement) {
-            //     columnElement.textContent = `${this.formatNumber(angularGrid.dataView.getLength(), 0)}`;
-            // }
+            this.filterTimeout = setTimeout(() => {
+                this.applyDistinctFilters(this.angularGrid);
+            }, 2000);
 
             this.updateTotal(this.angularGrid);
         });
-
 
     }
 
@@ -3049,7 +3055,7 @@ export class PaymentOrderComponent implements OnInit {
         // when clicking on any cell, we will make it the new selected row
         // however, we don't want to interfere with multiple row selection checkbox which is on 1st column cell
         if (args.cell !== 0) {
-            // const item = this.gridData.setSelectedRows([args.row]);
+            this.gridData.setSelectedRows([args.row]);
             const item = args.grid.getDataItem(args.row)
             // console.log('selected item:', item);
             this.loadDetail(item.ID);
@@ -3129,6 +3135,36 @@ export class PaymentOrderComponent implements OnInit {
             );
         }
 
+    }
+
+    onOpenPaymentOrderLog() {
+        let grid = this.angularGrid;
+        if (this.activeTab == '1') grid = this.angularGridSpecial;
+
+        let activeCell = grid.slickGrid.getActiveCell();
+        if (!activeCell) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một phiếu');
+            return;
+        }
+
+        const rowIndex = activeCell.row;
+        const item = grid.dataView.getItem(rowIndex);
+        const id = item?.ID || 0;
+
+        if (id <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một phiếu');
+            return;
+        }
+
+        const modalRef = this.modalService.open(PaymentOrderLogComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            scrollable: true,
+        });
+
+        modalRef.componentInstance.paymentOrderId = id;
     }
 
     onCreate() {

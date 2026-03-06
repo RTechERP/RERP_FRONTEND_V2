@@ -1,0 +1,31 @@
+::ng-deep app-hr-recruitment-candidate p-menubar .p-menubar {
+  width: 100%;
+  display: flex;
+}
+
+::ng-deep app-hr-recruitment-candidate p-menubar .p-menubar-end {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+::ng-deep #hrRecruitmentCandidateGrid {
+  height: 85.2vh !important;
+}
+
+.fs-12 {
+  font-size: 0.75rem !important;
+}
+
+.grid-container {
+  width: 100%;
+  height: 100%;
+}
+
+::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+}

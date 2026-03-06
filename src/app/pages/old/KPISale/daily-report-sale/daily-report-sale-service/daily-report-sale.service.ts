@@ -183,4 +183,12 @@ export class DailyReportSaleService {
       },
     });
   }
+
+  getEmployeesByTeamSale(teamId: number = 0): Observable<any> {
+    return this.http.get(this._url + 'get-employees-by-team-sale', {
+      params: {
+        teamId: teamId.toString(),
+      },
+    });
+  }
 }

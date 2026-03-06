@@ -1,0 +1,9 @@
+.ant-form-item-label {
+  padding: 0 !important;
+}
+
+::ng-deep #grdFileHr {
+  height: 12vh !important;
+}
+
+

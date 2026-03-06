@@ -75,11 +75,12 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
   departments: any[] = [];
 
   // Grid IDs
-  gridSessionId = 'gridSession';
-  gridExamId = 'gridExam';
-  gridSkillId = 'gridSkill';
-  gridGeneralId = 'gridGeneral';
-  gridSpecialtyId = 'gridSpecialty';
+  private uuid = Math.random().toString(36).substring(2, 9);
+  gridSessionId = `gridSession_${this.uuid}`;
+  gridExamId = `gridExam_${this.uuid}`;
+  gridSkillId = `gridSkill_${this.uuid}`;
+  gridGeneralId = `gridGeneral_${this.uuid}`;
+  gridSpecialtyId = `gridSpecialty_${this.uuid}`;
 
   // SlickGrid instances
   angularGridSession!: AngularGridInstance;

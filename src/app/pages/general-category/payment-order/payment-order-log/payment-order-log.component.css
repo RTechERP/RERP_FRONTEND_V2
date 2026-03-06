@@ -1,0 +1,28 @@
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 2px;
+    display: block;
+}
+
+:host ::ng-deep .ant-input-number {
+    width: 100%;
+}
+
+:host ::ng-deep .ant-picker {
+    width: 100%;
+}
+
+.grid-container-log {
+    height: 65vh;
+    width: 100%;
+}
+
+:host ::ng-deep .grid-container-log nz-spin,
+:host ::ng-deep .grid-container-log .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-log .ant-spin-container,
+:host ::ng-deep .grid-container-log angular-slickgrid,
+:host ::ng-deep .grid-container-log .slickgrid-container,
+:host ::ng-deep .grid-container-log .gridPane {
+    height: 100% !important;
+}

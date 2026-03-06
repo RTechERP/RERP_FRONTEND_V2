@@ -2,6 +2,14 @@
   padding: 0 !important;
 }
 
+/* Desktop */
 ::ng-deep #grdFileHr {
   height: 12vh !important;
+}
+
+/* Mobile fullscreen: modal cao hơn nên grid cũng set cao hơn */
+@media (max-width: 576px) {
+  ::ng-deep #grdFileHr {
+    height: 20vh !important;
+  }
 }

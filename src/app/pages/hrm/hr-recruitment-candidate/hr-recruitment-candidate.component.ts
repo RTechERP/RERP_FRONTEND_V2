@@ -357,6 +357,8 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
       keyboard: false,
       centered: true,
       size: 'xl',
+      fullscreen: 'sm',
+      scrollable: true,
     });
 
     modalRef.componentInstance.hrRecruitmentCandidate = item;
@@ -666,7 +668,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
-      //frozenColumn: 3
+      frozenColumn: 4
     };
   }
 
@@ -839,6 +841,8 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         keyboard: false,
         centered: true,
         size: 'xl',
+        fullscreen: 'sm',
+        scrollable: true,
       }
     );
 
@@ -877,6 +881,8 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         keyboard: false,
         centered: true,
         size: 'xl',
+        fullscreen: 'sm',
+        scrollable: true,
       }
     );
 

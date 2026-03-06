@@ -8,11 +8,11 @@ import {
 
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../auth.service';
+import { AuthService } from '../../../../../auth/auth.service';
 import { switchMap } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { CryptoService } from '../login/crypto.service';
+import { CryptoService } from '../../../../../auth/login/crypto.service';
 
 @Component({
     selector: 'app-login-candidate',

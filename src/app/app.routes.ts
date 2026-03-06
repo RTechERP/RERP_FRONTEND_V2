@@ -1,14 +1,14 @@
 import { Routes } from '@angular/router';
 import { WelcomeComponent } from './pages/old/welcome/welcome.component';
 import { LoginComponent } from './auth/login/login.component';
-import { LoginCandidateComponent } from './auth/login-candidate/login-candidate.component';
+import { LoginCandidateComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/login-candidate/login-candidate.component';
 import { authGuard } from './auth/auth.guard';
 import { candidateAuthGuard } from './auth/candidate-auth.guard';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
 import { HomeLayoutNewComponent } from './layouts/home-layout/home-layout-new/home-layout-new.component';
-import { HomeLayoutCandidateComponent } from './layouts/home-layout/home-layout-candidate/home-layout-candidate.component';
+import { HomeLayoutCandidateComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/home-layout-candidate/home-layout-candidate.component';
 import { FoodOrderComponent } from './pages/hrm/food-order/food-order.component';
 import { DayOffComponent } from './pages/hrm/day-off/day-off.component';
 import { MenuApp } from './pages/systems/menu-app/model/menu-app';

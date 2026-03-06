@@ -17,7 +17,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentApplicationFormService } from './hr-recruitment-application-form.service';
 
 @Component({

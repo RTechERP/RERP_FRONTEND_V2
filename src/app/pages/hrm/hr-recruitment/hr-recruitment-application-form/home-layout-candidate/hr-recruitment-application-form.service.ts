@@ -36,6 +36,10 @@ export class HRRecruitmentApplicationFormService {
         return this.http.post<any>(`${this.apiUrl}/save-form`, data);
     }
 
+    saveFormAuto(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/save-form-auto`, data);
+    }
+
     getCandidateInformation(hRRecruitmentCandidateID: number): Observable<any> {
         return this.http.get<any>(`${this.apiUrl}/get-candidate-infomation`, {
             params: { hRRecruitmentCandidateID }

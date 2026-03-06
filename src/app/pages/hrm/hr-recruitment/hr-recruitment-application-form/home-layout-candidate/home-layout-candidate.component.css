@@ -252,33 +252,34 @@
 
 /* ===== INPUTS ===== */
 .cell-input {
-    border: none !important;
+    border: 1px solid #d9d9d9 !important;
     box-shadow: none !important;
-    background: transparent !important;
-    padding: 0 !important;
+    background: #fff !important;
+    padding: 2px 8px !important;
     font-size: 12px !important;
-    height: auto !important;
+    height: 30px !important;
     line-height: 1.4 !important;
+    border-radius: 2px !important;
 }
 
 .cell-input:focus {
-    background: #e6f7ff !important;
+    background: #fff !important;
+    border-color: #1890ff !important;
 }
 
 .inline-input {
-    border: none !important;
-    border-bottom: 1px solid #999 !important;
+    border: 1px solid #d9d9d9 !important;
     box-shadow: none !important;
-    background: transparent !important;
-    border-radius: 0 !important;
+    background: #fff !important;
+    border-radius: 2px !important;
     font-size: 12px !important;
-    padding: 0 4px !important;
-    height: auto !important;
+    padding: 2px 8px !important;
+    height: 30px !important;
 }
 
 .inline-input:focus {
-    border-bottom-color: #1890ff !important;
-    background: #e6f7ff !important;
+    border-color: #1890ff !important;
+    background: #fff !important;
 }
 
 /* Validation Styles */
@@ -320,8 +321,10 @@
     margin-bottom: 0 !important;
 }
 
-::ng-deep .form-paper nz-form-label {
+::ng-deep .form-paper nz-form-label,
+::ng-deep .form-paper .ant-form-item-label>label {
     padding: 0 !important;
+    font-size: 12px !important;
 }
 
 ::ng-deep .form-paper .ant-select-selector,
@@ -343,10 +346,21 @@
     box-shadow: none !important;
 }
 
-/* Bottom border cho inline-input select nếu cần */
-::ng-deep .form-paper nz-select.inline-input .ant-select-selector {
-    border-bottom: 1px solid #999 !important;
+/* Xóa hoàn toàn viền cho select có class border-less-select */
+::ng-deep .form-paper .border-less-select,
+::ng-deep .form-paper .border-less-select .ant-select-selector {
+    border: none !important;
+    border-bottom: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
     border-radius: 0 !important;
+}
+
+/* Giữ trạng thái không viền khi focus hoặc lỗi */
+::ng-deep .form-paper .border-less-select.ant-select-focused .ant-select-selector,
+::ng-deep .form-paper .border-less-select.ant-select-status-error .ant-select-selector {
+    border: none !important;
+    box-shadow: none !important;
 }
 
 ::ng-deep .form-paper .ant-input-number-input {
@@ -357,8 +371,9 @@
 
 ::ng-deep .form-paper .ant-input-number-input {
     font-size: 12px !important;
-    padding: 0 4px !important;
-    height: auto !important;
+    padding: 0 8px !important;
+    height: 30px !important;
+    text-align: left !important;
 }
 
 ::ng-deep .form-paper textarea.ant-input {
@@ -465,4 +480,39 @@
     .section-row {
         font-size: 11px;
     }
+}
+
+/* ===== SCROLL BUTTONS (Bottom-Left) ===== */
+.scroll-buttons-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
+}
+
+.scroll-btn {
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: #23458a !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.3s ease !important;
+    opacity: 0.7;
+}
+
+.scroll-btn:hover {
+    transform: scale(1.1);
+    opacity: 1;
+    background-color: #1a346a !important;
+}
+
+.scroll-btn span {
+    font-size: 14px;
 }

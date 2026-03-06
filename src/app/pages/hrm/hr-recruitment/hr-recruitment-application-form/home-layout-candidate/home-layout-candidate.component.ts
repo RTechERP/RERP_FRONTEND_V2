@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
-import { forkJoin, interval, of, Subject } from 'rxjs';
+import { forkJoin, interval, of, Subject, timer } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { Router, RouterLink } from '@angular/router';
@@ -116,8 +116,9 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
     }
 
     private startTimers() {
-        // Kiểm tra mỗi 50 giây
-        interval(50000).pipe(takeUntil(this.destroy$)).subscribe(() => {
+        // Chạy lần đầu ngay lập tức và sau đó mỗi 30 giây
+        timer(0, 30000).pipe(takeUntil(this.destroy$)).subscribe(() => {
+            console.log('--- Timer check ---');
             this.checkSession();
             this.autoSave();
         });
@@ -132,10 +133,12 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
     }
 
     private autoSave() {
-        // Chỉ tự động lưu nếu form hợp lệ và không đang trong quá trình save/reload
-        if (this.form.valid && !this.isLoading && !this.isSaving) {
-            console.log('Auto saving...');
-            this.saveFormData(true);
+        // Gỡ bỏ kiểm tra form.valid để lưu tiến độ tự động ngay cả khi chưa nhập đủ
+        if (!this.isLoading && !this.isSaving) {
+            console.log('Auto saving at:', new Date().toLocaleTimeString());
+            this.saveFormData(false, true);
+        } else {
+            console.log('Skip auto save. Loading:', this.isLoading, 'Saving:', this.isSaving);
         }
     }
 
@@ -182,8 +185,17 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
     }
 
     patchForm(data: any) {
+        if (!data) return;
+
+        // Normalize main form data (Initial load uses 'applicationForm' array, Save result uses 'HRRecruitmentApplicationForm' object)
+        let mainForm = null;
         if (data.applicationForm && data.applicationForm.length > 0) {
-            const mainForm = data.applicationForm[0];
+            mainForm = data.applicationForm[0];
+        } else if (data.HRRecruitmentApplicationForm) {
+            mainForm = data.HRRecruitmentApplicationForm;
+        }
+
+        if (mainForm) {
             if (mainForm.CreatedDate) {
                 this.createdDate = new Date(mainForm.CreatedDate);
             }
@@ -201,13 +213,13 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
                 IsPlanPregnant: mainForm.IsPlanPregnant ?? false,
             });
 
-            // Bind position info - now chucVuList is already loaded
+            // Bind position info
             if (mainForm.ChucVuHDID) {
                 this.onPositionChange(mainForm.ChucVuHDID);
             }
 
             // Image preview
-            if (mainForm.FileName) {
+            if (mainForm.FileName && !this.imagePreview) {
                 this.hrService.downloadFile(mainForm.FileName).subscribe({
                     next: (blob) => {
                         this.imagePreview = URL.createObjectURL(blob);
@@ -225,7 +237,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
                     this.form.patchValue({
                         FullName: candidate.FullName || null,
                         DateOfBirth: this.formatDateForInput(candidate.DateOfBirth) || null,
-                        Email: candidate.Email || null,
+                        Email: candidate.Email || candidate.UserName || null,
                         Gender: candidate.Gender ?? null,
                         Mobile: candidate.PhoneNumber || null,
                         ChucVuHDID: candidate.EmployeeChucVuHDID || null,
@@ -234,30 +246,29 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
                         this.onPositionChange(candidate.EmployeeChucVuHDID);
                     }
                 }
-            } catch (e) { console.error('Error reading CurrentUserCandidate for default values', e); }
+            } catch (e) {
+                console.error('Error reading CurrentUserCandidate for default values', e);
+            }
         }
 
-        // Populate lists
+        // Populate lists - handle both lowercase and PascalCase keys
         const arraysMapping = [
-            { key: 'emergencyContacts', data: data.emergencyContacts, defaultCount: 2, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], FullName: [item.FullName, [Validators.required]], Relation: [item.Relation, [Validators.required]], Tel: [item.Tel, [Validators.required]], Address: [item.Address, [Validators.required]] }) },
-            { key: 'educations', data: data.educations, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], NameOfSchool: [item.NameOfSchool, [Validators.required]], Major: [item.Major, [Validators.required]], GraduatedTime: [item.GraduatedTime, [Validators.required]], QualificationLevel: [item.QualificationLevel, [Validators.required]] }) },
-            { key: 'foreignLanguages', data: data.foreignLanguageSkills, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], ForeignLanguage: [item.ForeignLanguage], Listening: [item.Listening], Speaking: [item.Speaking], Reading: [item.Reading], Writing: [item.Writing] }) },
-            { key: 'otherCertificates', data: data.otherCertificates, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], DateOfIssue: [this.formatDateForInput(item.DateOfIssue)], Certificates: [item.Certificates, [Validators.maxLength(550)]], IssuedBy: [item.IssuedBy, [Validators.maxLength(550)]], QualificationLevel: [item.QualificationLevel] }) },
-            { key: 'workExperiences', data: data.workingExperiences, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], CompanyName: [item.CompanyName, [Validators.maxLength(250)]], PositionName: [item.PositionName, [Validators.maxLength(250)]], DateStart: [this.formatDateForInput(item.DateStart)], DateEnd: [this.formatDateForInput(item.DateEnd)], Leader: [item.Leader, [Validators.maxLength(550)]], Mission: [item.Mission, [Validators.maxLength(550)]], Achievement: [item.Achievement, [Validators.maxLength(550)]], Salary: [item.Salary], WorkingStatus: [item.WorkingStatus], ReasonQuit: [item.ReasonQuit, [Validators.maxLength(550)]], }) }
+            { key: 'emergencyContacts', data: data.emergencyContacts || data.EmergencyContacts, defaultCount: 2, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], FullName: [item.FullName, [Validators.required]], Relation: [item.Relation, [Validators.required]], Tel: [item.Tel, [Validators.required]], Address: [item.Address, [Validators.required]] }) },
+            { key: 'educations', data: data.educations || data.Educations, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], NameOfSchool: [item.NameOfSchool, [Validators.required]], Major: [item.Major, [Validators.required]], GraduatedTime: [item.GraduatedTime, [Validators.required]], QualificationLevel: [item.QualificationLevel, [Validators.required]] }) },
+            { key: 'foreignLanguages', data: data.foreignLanguageSkills || data.ForeignLanguageSkills, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], ForeignLanguage: [item.ForeignLanguage], Listening: [item.Listening], Speaking: [item.Speaking], Reading: [item.Reading], Writing: [item.Writing] }) },
+            { key: 'otherCertificates', data: data.otherCertificates || data.OtherCertificates, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], DateOfIssue: [this.formatDateForInput(item.DateOfIssue)], Certificates: [item.Certificates, [Validators.maxLength(550)]], IssuedBy: [item.IssuedBy, [Validators.maxLength(550)]], QualificationLevel: [item.QualificationLevel] }) },
+            { key: 'workExperiences', data: data.workingExperiences || data.WorkingExperiences, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], CompanyName: [item.CompanyName, [Validators.maxLength(250)]], PositionName: [item.PositionName, [Validators.maxLength(250)]], DateStart: [this.formatDateForInput(item.DateStart)], DateEnd: [this.formatDateForInput(item.DateEnd)], Leader: [item.Leader, [Validators.maxLength(550)]], Mission: [item.Mission, [Validators.maxLength(550)]], Achievement: [item.Achievement, [Validators.maxLength(550)]], Salary: [item.Salary], WorkingStatus: [item.WorkingStatus], ReasonQuit: [item.ReasonQuit, [Validators.maxLength(550)]], }) }
         ];
 
         arraysMapping.forEach(m => {
             const fa = this.form.get(m.key) as FormArray;
             if (fa) {
-                // Clear all existing controls to avoid duplicates
                 fa.clear();
-
                 if (m.data && m.data.length > 0) {
                     m.data.forEach((item: any) => {
                         fa.push(m.formGroupFn(item));
                     });
                 } else {
-                    // Only add default empty rows if we have no data at all
                     for (let i = 0; i < (m.defaultCount || 1); i++) {
                         if (m.key === 'emergencyContacts') this.addEmergencyContact();
                         else if (m.key === 'educations') this.addEducation();
@@ -270,16 +281,15 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
         });
 
         // RecruitmentInfo
-        if (data.recruitmentInfo) {
-            const info = Array.isArray(data.recruitmentInfo) ? data.recruitmentInfo[0] : data.recruitmentInfo;
+        const recInfo = data.recruitmentInfo || data.RecruitmentInfo;
+        if (recInfo) {
+            const info = Array.isArray(recInfo) ? recInfo[0] : recInfo;
             if (info) {
                 this.form.get('recruitmentInfo')?.patchValue(info);
             }
         }
 
-        // Set dynamic validators based on survey answers
         this.updateSurveyValidators();
-
         this.cdr.detectChanges();
     }
 
@@ -338,8 +348,8 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
             NumberCCCD: [null, [Validators.maxLength(150)]],
             IssuedOn: [null],
             IssuedBy: [null, [Validators.maxLength(550)]],
-            Tel: [null, [Validators.required, Validators.maxLength(150)]],
-            Mobile: [null, [Validators.required, Validators.maxLength(150)]],
+            Tel: [null, [Validators.required, Validators.maxLength(150), Validators.pattern(/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/)]],
+            Mobile: [null, [Validators.required, Validators.maxLength(150), Validators.pattern(/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/)]],
             Email: [null, [Validators.required, Validators.email, Validators.maxLength(150)]],
             Hobbies: [null, [Validators.maxLength(550)]],
             Height: [null],
@@ -388,7 +398,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
             ID: [0],
             FullName: [null, [Validators.required, Validators.maxLength(250)]],
             Relation: [null, [Validators.required, Validators.maxLength(250)]],
-            Tel: [null, [Validators.required, Validators.maxLength(150)]],
+            Tel: [null, [Validators.required, Validators.maxLength(150), Validators.pattern(/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/)]],
             Address: [null, [Validators.required, Validators.maxLength(550)]]
         }));
     }
@@ -540,7 +550,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
         this.markControlsDirty(this.form);
 
         if (this.form.invalid) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc (các ô màu đỏ)!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin!');
             return;
         }
 
@@ -573,7 +583,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
         }
     }
 
-    private saveFormData(isSilent: boolean = false) {
+    private saveFormData(isSilent: boolean = false, isAuto: boolean = false) {
         this.isSaving = true;
         const formValue = this.form.value;
 
@@ -613,44 +623,54 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
             RecruitmentInfo: this.sanitizeData(recruitmentInfo)
         };
 
-        this.hrService.saveForm(payload).subscribe({
+        const saveObs = isAuto ? this.hrService.saveFormAuto(payload) : this.hrService.saveForm(payload);
+
+        saveObs.subscribe({
             next: (res) => {
                 this.isLoading = false;
                 if (res.status === 1 || res.isSuccess) {
                     // Xóa danh sách chờ sau khi lưu thành công
                     Object.keys(this.deletedList).forEach(k => this.deletedList[k] = []);
 
-                    // ★ FIX: Reload data từ server để cập nhật ID cho tất cả bảng link
-                    // Tránh lỗi trùng lặp khi save tiếp theo (ID=0 sẽ tạo INSERT mới)
-                    const candidateStr = localStorage.getItem('CurrentUserCandidate');
-                    if (candidateStr) {
-                        try {
-                            const candidate = JSON.parse(candidateStr);
-                            const candidateID = candidate.ID || 0;
-                            if (candidateID > 0) {
-                                this.hrService.getCandidateInformation(candidateID).subscribe({
-                                    next: (reloadRes) => {
-                                        if (reloadRes?.data) {
-                                            this.patchForm(reloadRes.data);
-                                        }
-                                        this.isSaving = false;
-                                    },
-                                    error: () => {
-                                        this.isSaving = false;
-                                    }
-                                });
-                            } else {
-                                this.isSaving = false;
-                            }
-                        } catch (e) {
-                            this.isSaving = false;
+                    if (isAuto && res.data) {
+                        // Nếu là lưu tự động và có data trả về (chứa ID mới), patch form luôn
+                        this.patchForm(res.data);
+                        this.isSaving = false;
+                        if (!isSilent) {
+                            //    this.notification.success(NOTIFICATION_TITLE.success, 'Đã lưu tờ khai thành công!');
                         }
                     } else {
-                        this.isSaving = false;
-                    }
+                        // ★ FIX: Reload data từ server để cập nhật ID cho tất cả bảng link (Dùng cho manual save)
+                        const candidateStr = localStorage.getItem('CurrentUserCandidate');
+                        if (candidateStr) {
+                            try {
+                                const candidate = JSON.parse(candidateStr);
+                                const candidateID = candidate.ID || 0;
+                                if (candidateID > 0) {
+                                    this.hrService.getCandidateInformation(candidateID).subscribe({
+                                        next: (reloadRes) => {
+                                            if (reloadRes?.data) {
+                                                this.patchForm(reloadRes.data);
+                                            }
+                                            this.isSaving = false;
+                                        },
+                                        error: () => {
+                                            this.isSaving = false;
+                                        }
+                                    });
+                                } else {
+                                    this.isSaving = false;
+                                }
+                            } catch (e) {
+                                this.isSaving = false;
+                            }
+                        } else {
+                            this.isSaving = false;
+                        }
 
-                    if (!isSilent) {
-                        this.notification.success(NOTIFICATION_TITLE.success, 'Đã lưu tờ khai thành công!');
+                        if (!isSilent) {
+                            this.notification.success(NOTIFICATION_TITLE.success, 'Đã lưu tờ khai thành công!');
+                        }
                     }
                 } else {
                     this.isSaving = false;
@@ -665,5 +685,12 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
                 this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra: ' + (err?.error?.message || err?.message));
             }
         });
+    }
+
+    scrollTo(id: string) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
     }
 }

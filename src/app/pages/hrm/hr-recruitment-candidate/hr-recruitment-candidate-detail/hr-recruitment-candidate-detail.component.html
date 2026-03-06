@@ -244,6 +244,7 @@
                 nzAllowClear
                 nzShowSearch
                 class="w-100"
+                (ngModelChange)="onHiringRequestChange($event)"
               >
                 <ng-container *ngFor="let group of hrHiringRequestList">
                   <nz-option-group [nzLabel]="group.label">
@@ -428,5 +429,3 @@
     ></textarea>
   </div>
 </ng-template>
-
-

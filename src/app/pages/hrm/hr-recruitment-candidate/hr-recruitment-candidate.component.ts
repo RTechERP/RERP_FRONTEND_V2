@@ -718,6 +718,22 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
     }
   }
 
+  reNumberSTTByGroup() {
+    // Sort theo DepartmentName để items cùng nhóm liền kề
+    this.dataset.sort((a: any, b: any) =>
+      (a.DepartmentName ?? '').localeCompare(b.DepartmentName ?? '')
+    );
+
+    // Đánh lại STT trong từng group
+    const counters = new Map<string, number>();
+    this.dataset = this.dataset.map((item: any) => {
+      const key = item.DepartmentName ?? '';
+      const n = (counters.get(key) ?? 0) + 1;
+      counters.set(key, n);
+      return { ...item, STT: n };
+    });
+  }
+
   applyDistinctFilters() {
     const angularGrid = this.angularGrid;
     if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
@@ -808,6 +824,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         setTimeout(() => {
           this.applyDistinctFilters();
           this.updateMasterFooterRow();
+          this.reNumberSTTByGroup();
           this.groupByDepartment();
           this.angularGrid?.slickGrid?.invalidate();
           this.angularGrid?.slickGrid?.render();

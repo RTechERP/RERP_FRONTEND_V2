@@ -67,15 +67,26 @@
               [(ngModel)]="departmentId"
               nzPlaceHolder="Tất cả phòng ban"
               nzSize="small"
-              style="width: 180px"
+              style="width: 250px"
               nzAllowClear
               nzShowSearch
+              nzCustomContent
             >
               <nz-option
                 *ngFor="let dept of departmentList"
                 [nzValue]="dept.ID"
                 [nzLabel]="dept.Name"
-              ></nz-option>
+              >
+                <span
+                  style="
+                    white-space: normal;
+                    word-break: break-word;
+                    display: block;
+                  "
+                >
+                  {{ dept.Name }}
+                </span>
+              </nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -88,7 +99,7 @@
               name="employeeChucVuHDId"
               nzPlaceHolder="Vị trí"
               nzSize="small"
-              style="width: 220px"
+              style="width: 250px"
               nzAllowClear
               nzShowSearch
             >
@@ -97,7 +108,18 @@
                 *ngFor="let item of positionContract"
                 [nzValue]="item.ID"
                 [nzLabel]="item.Name"
-              ></nz-option>
+                nzCustomContent
+              >
+                <span
+                  style="
+                    white-space: normal;
+                    word-break: break-word;
+                    display: block;
+                  "
+                >
+                  {{ item.Name }}
+                </span>
+              </nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -288,7 +310,17 @@
                       *ngFor="let item of positionContract"
                       [nzValue]="item.ID"
                       [nzLabel]="item.Name"
-                    ></nz-option>
+                    >
+                      <span
+                        style="
+                          white-space: normal;
+                          word-break: break-word;
+                          display: block;
+                        "
+                      >
+                        {{ item.Name }}
+                      </span></nz-option
+                    >
                   </nz-select>
                 </nz-form-control>
               </nz-form-item>
@@ -435,7 +467,17 @@
                   *ngFor="let option of group.options"
                   [nzLabel]="option.item.Code + ' - ' + option.item.FullName"
                   [nzValue]="option.item.EmployeeID"
+                  nzCustomContent
                 >
+                  <span
+                    style="
+                      white-space: normal;
+                      word-break: break-word;
+                      display: block;
+                    "
+                  >
+                    {{ option.item.Code }} - {{ option.item.FullName }}
+                  </span>
                 </nz-option>
               </nz-option-group>
             </ng-container>
@@ -445,5 +487,3 @@
     </form>
   </div>
 </ng-template>
-
-

@@ -339,7 +339,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
       ],
       groupBy: 'Typetext',
       groupHeader: (value, count, data) => {
-        return `<strong>${value}</strong>`;
+        return `<div style="width: 100%; height: 100%; font-weight: bold;">${value}</div>`;
       }
     });
   }
@@ -358,12 +358,87 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
       return calc;
     };
 
+    const checkInFmt = (cell: any) => {
+      const d = cell.getRow().getData();
+      const v = this.timeDisplay(d?.CheckInDate, d?.CheckIn); // ưu tiên Date, fallback chuỗi
+
+      // Priority 1: Quên chấm công thực tế (IsNoFinger) -> Màu vàng (Hổ trợ cả khi v trống)
+      const isNoFingerReal = this.toBool(d?.IsNoFinger);
+      if (isNoFingerReal) {
+        return `<div class="bg-forgot-finger" style="padding: 4px; border-radius: 4px; width: 100%; text-align: center;">${v || ''}</div>`;
+      }
+
+      if (!v) return ''; // không có giờ -> để trống
+
+      // Priority 2: Các cờ đăng ký phát sinh (nghỉ/công tác/quên vân tay/WFH) => không tô
+      const isOnLeave = this.toBool(d?.OnLeave);
+      const isBusiness = this.toBool(d?.Bussiness);
+      const isNoFingerReg = this.toBool(d?.NoFingerprint);
+      const isWFH = this.toBool(d?.WFH);
+      if (isOnLeave || isBusiness || isNoFingerReg || isWFH) return v;
+
+      // Priority 3: Chỉ tô khi ngày làm việc (không phải ngày lễ/nghỉ)
+      const holidayDay = Number(d?.HolidayDay) || 0;
+      if (holidayDay !== 0) return v;
+
+      // Priority 4: Đi muộn (vàng nếu > 1h, đỏ nếu muộn thường)
+      const isOverLate = this.toBool(d?.IsOverLate);
+      const isLate = this.toBool(d?.IsLate);
+
+      const style = isOverLate
+        ? 'background-color: yellow; color:#000;'
+        : isLate
+          ? 'background-color: rgb(255, 0, 0); color:#fff;'
+          : '';
+
+      return style ? `<div style="${style} padding: 4px; border-radius: 4px; text-align: center;">${v}</div>` : v;
+    };
+
+    const checkOutFmt = (cell: any) => {
+      const d = cell.getRow().getData();
+      const v = this.timeDisplay(d?.CheckOutDate, d?.CheckOut);
+
+      // Priority 1: Quên chấm công thực tế (IsNoFinger) -> Màu vàng
+      const isNoFingerReal = this.toBool(d?.IsNoFinger);
+      if (isNoFingerReal) {
+        return `<div class="bg-forgot-finger" style="padding: 4px; border-radius: 4px; width: 100%; text-align: center;">${v || ''}</div>`;
+      }
+
+      if (!v) return '';
+
+      const isOnLeave = this.toBool(d?.OnLeave);
+      const isBusiness = this.toBool(d?.Bussiness);
+      const isNoFingerReg = this.toBool(d?.NoFingerprint);
+      const isWFH = this.toBool(d?.WFH);
+      if (isOnLeave || isBusiness || isNoFingerReg || isWFH) return v;
+
+      const holidayDay = Number(d?.HolidayDay) || 0;
+      if (holidayDay !== 0) return v;
+
+      const isOverEarly = this.toBool(d?.IsOverEarly);
+      const isEarly = this.toBool(d?.IsEarly);
+
+      const style = isOverEarly
+        ? 'background-color: yellow; color:#000;'
+        : isEarly
+          ? 'background-color: rgb(255, 0, 0); color:#fff;'
+          : '';
+
+      return style ? `<div style="${style} padding: 4px; border-radius: 4px; text-align: center;">${v}</div>` : v;
+    };
+
     this.fingerprintTabulator = new Tabulator(this.tbFingerprintRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       height: '85vh',
       paginationMode: 'local',
       data: [],
+      rowFormatter: (row) => {
+        const data = row.getData();
+        if (Number(data['HolidayDay']) > 0) {
+          row.getElement().classList.add('bg-holiday');
+        }
+      },
       columns: [
         {
           title: 'Họ tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center',
@@ -388,12 +463,12 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
           width: 80, headerWordWrap: true, headerSort: false
         },
         {
-          title: 'Giờ vào', field: 'CheckIn', hozAlign: 'center', headerHozAlign: 'center',
-          width: 100, headerWordWrap: true, headerSort: false
+          title: 'Giờ vào', field: 'CheckInDate', hozAlign: 'center', headerHozAlign: 'center',
+          width: 100, headerWordWrap: true, headerSort: false, formatter: checkInFmt
         },
         {
-          title: 'Giờ ra', field: 'CheckOut', hozAlign: 'center', headerHozAlign: 'center',
-          width: 100, headerWordWrap: true, headerSort: false
+          title: 'Giờ ra', field: 'CheckOutDate', hozAlign: 'center', headerHozAlign: 'center',
+          width: 100, headerWordWrap: true, headerSort: false, formatter: checkOutFmt
         },
         {
           title: 'Đi muộn', field: 'IsLateRegister', hozAlign: 'center', headerHozAlign: 'center',
@@ -496,6 +571,43 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
   formatNumber(value: any): string {
     if (value == null || value === undefined || value === '') return '';
     return new Intl.NumberFormat('vi-VN').format(Number(value));
+  }
+
+  private toBool(v: any): boolean {
+    if (v === true || v === false) return v;
+    const n = Number(v);
+    if (!isNaN(n)) return n > 0;
+    const s = String(v ?? '').toLowerCase();
+    return s === 'true' || s === '1' || s === 'yes';
+  }
+
+  private timeDisplay(dateVal: any, timeVal: any): string {
+    // Ưu tiên datetime
+    if (dateVal) {
+      const dt = new Date(dateVal);
+      if (!isNaN(dt.getTime())) {
+        const hh = dt.getHours();
+        const mm = dt.getMinutes();
+        const ss = dt.getSeconds?.() ?? 0;
+        // Nếu time = 00:00:00 → coi như không có giờ
+        if (hh === 0 && mm === 0 && ss === 0) return '';
+        return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+      }
+    }
+
+    // Fallback: chuỗi HH:mm[:ss]
+    const s = String(timeVal ?? '').trim();
+    if (!s) return '';
+    const m = s.match(/^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
+    if (m) {
+      const hh = +m[1];
+      const mm = +m[2];
+      const ss = +(m[3] ?? 0);
+      // 00:00[:00] → để trống
+      if (hh === 0 && mm === 0 && ss === 0) return '';
+      return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+    }
+    return s;
   }
 
   onConfirmPayroll() {
@@ -662,6 +774,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
 
     if (data.header && Array.isArray(data.header)) {
       data.header.forEach((headerItem: any) => {
+        const isHoliday = headerItem.statuswork == 0;
         columns.push({
           title: headerItem.text || '',
           field: headerItem.fieldname || '',
@@ -670,14 +783,25 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
           width: 30,
           headerWordWrap: true,
           headerSort: false,
+          cssClass: isHoliday ? 'bg-holiday-cell' : '',
+          titleFormatter: isHoliday ? (cell: any) => `<div class="bg-holiday-header" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${headerItem.text}</div>` : undefined,
           formatter: (cell: any) => {
             const value = cell.getValue();
+            let displayValue = '';
             // Extract text part if value contains ";" separator (format: "Text;Status")
             if (value && typeof value === 'string' && value.includes(';')) {
-              const parts = value.split(';');
-              return parts[0] || '';
+              displayValue = value.split(';')[0] || '';
+            } else {
+              displayValue = value || '';
             }
-            return value || '';
+
+            if (isHoliday) {
+              return `<div class="bg-holiday-cell" style="width:100%; height:100%">${displayValue}</div>`;
+            } else if (!displayValue || displayValue.trim() === '') {
+              return `<div class="bg-forgot-finger" style="width:100%; height:100%">${displayValue}</div>`;
+            }
+
+            return displayValue;
           }
         });
       });

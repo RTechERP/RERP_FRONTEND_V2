@@ -88,6 +88,7 @@
 ::ng-deep #tbl_employee_payroll .group-actual {
   background-color: rgb(210, 229, 161) !important;
 }
+
 ::ng-deep #tbl_employee_payroll .group-tax-deduction {
   background-color: rgb(255, 199, 95) !important;
 }
@@ -219,3 +220,31 @@
 ::ng-deep #tbl_employee_payroll.payroll-confirmed tbody td {
   background-color: #56dd76 !important;
 }
+
+/* Custom coloring classes for Tabulator */
+::ng-deep .tabulator-row.bg-holiday {
+  background-color: #a8b2bb !important;
+  color: white !important;
+}
+
+::ng-deep .tabulator-cell.bg-forgot-finger {
+  background-color: yellow !important;
+  color: black !important;
+}
+
+::ng-deep .tabulator-cell.bg-holiday-cell {
+  background-color: #a8b2bb !important;
+  color: white !important;
+}
+
+::ng-deep .tabulator-col.bg-holiday-header {
+  background-color: #a8b2bb !important;
+  color: white !important;
+}
+
+/* ::ng-deep .tabulator-group {
+  background-color: #a8b2bb !important;
+  color: white !important;
+  text-transform: uppercase;
+  font-weight: bold;
+} */

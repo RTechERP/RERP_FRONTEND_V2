@@ -413,3 +413,5 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
     });
   }
 }
+
+

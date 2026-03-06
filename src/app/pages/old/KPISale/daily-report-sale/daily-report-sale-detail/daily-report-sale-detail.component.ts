@@ -118,7 +118,17 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   minDateStart: Date;
   maxDateStart: Date;
   disabledDateStart = (current: Date): boolean => {
-    return current < this.minDateStart || current > this.maxDateStart;
+    const applyValidationDate = new Date(2026, 2, 7); // 07/03/2026
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (today >= applyValidationDate) {
+      // Từ ngày 07/03/2026 trở đi, áp dụng khóa 3 ngày
+      return current < this.minDateStart || current > this.maxDateStart;
+    }
+
+    // Trước ngày 07/03/2026: cho phép chọn ngày cũ (không chặn minDateStart), chỉ chặn chọn ngày tương lai
+    return current > this.maxDateStart;
   };
 
   showProjectStatusModal: boolean = false;

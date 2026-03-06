@@ -357,6 +357,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
       keyboard: false,
       centered: true,
       size: 'xl',
+      scrollable: true,
     });
 
     modalRef.componentInstance.hrRecruitmentCandidate = item;
@@ -856,6 +857,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         keyboard: false,
         centered: true,
         size: 'xl',
+        scrollable: true,
       }
     );
 
@@ -894,6 +896,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         keyboard: false,
         centered: true,
         size: 'xl',
+        scrollable: true,
       }
     );
 
@@ -1083,6 +1086,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         keyboard: false,
         centered: true,
         size: 'xl',
+        scrollable: true,
       }
     );
 
@@ -1323,6 +1327,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         keyboard: false,
         centered: true,
         size: 'xl',
+        scrollable: true,
       }
     );
 

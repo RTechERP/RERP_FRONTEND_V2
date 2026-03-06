@@ -60,6 +60,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { HrInterviewInvitationComponent } from './hr-interview-invitation/hr-interview-invitation.component';
 import { ProjectService } from '../../project/project-service/project.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-hr-recruitment-candidate',
@@ -489,16 +490,16 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         filter: { model: Filters['compoundInputText'] },
         excelExportOptions: { width: 30 },
       },
-      {
-        id: 'ServerPath',
-        field: 'ServerPath',
-        name: 'Đường dẫn file',
-        width: 300,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        excelExportOptions: { width: 40 },
-      },
+      // {
+      //   id: 'ServerPath',
+      //   field: 'ServerPath',
+      //   name: 'Đường dẫn file',
+      //   width: 300,
+      //   sortable: true,
+      //   filterable: true,
+      //   filter: { model: Filters['compoundInputText'] },
+      //   excelExportOptions: { width: 40 },
+      // },
       {
         id: 'StatusMailText',
         field: 'StatusMailText',
@@ -667,7 +668,38 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
-      frozenColumn: 4
+      frozenColumn: 4,
+      contextMenu: {
+        hideCloseButton: false,
+        commandTitle: '',
+        commandItems: [
+          {
+            command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 10,
+            action: (e, args) => {
+              const filePath = args.dataContext?.ServerPath || '';
+              if (filePath) {
+                const host = environment.host + 'api/share';
+                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileCVName}`;
+                const newWindow = window.open(
+                  urlImg,
+                  '_blank',
+                );
+
+                if (newWindow) {
+                  newWindow.onload = () => {
+                    newWindow.document.title = args.dataContext?.FileCVName;
+                  };
+                }
+              }
+            }
+          },
+          {
+            command: '', title: 'Tải file', iconCssClass: 'fa-solid fa-download', positionOrder: 9,
+            action: (e, args) => this.onDownloadCV()
+          },
+
+        ],
+      }
     };
   }
 

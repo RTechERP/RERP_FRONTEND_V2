@@ -48,8 +48,8 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private orgChartService: OrgChartService,
     private notification: NzNotificationService,
-    private workplanService:WorkplanService
-  ) {}
+    private workplanService: WorkplanService
+  ) { }
 
   ngOnInit(): void {
     this.loadDepartments();
@@ -135,7 +135,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Group templates
     this.setupGroupTemplates($);
-    
+
     // Link template
     this.diagram.linkTemplate = $(go.Link,
       {
@@ -424,7 +424,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         key: "Admin",
         parent: assistantTech,
         position: "Admin of the Engineering Department",
-        name: "Nguyễn Thị Lan Hương",
+        name: "Mai Thị Tú Oanh",
         color: "#c8e6c9",
         colorStroke: "black",
         isAssistant: true,

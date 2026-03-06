@@ -108,6 +108,7 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
   tempNoteLog: string = '';
   private fb = inject(NonNullableFormBuilder);
   hrHiringRequestList: any[] = [];
+  hrHiringRequestRaw: any[] = [];  // raw data để tra cứu
   employeeChucVuHDList: any[] = [];
   fileList: any[] = [];
   dataFiles: any[] = [];
@@ -218,6 +219,7 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
   getHrHiringRequest() {
     this.hrRecruitmentCandidateService.getHrHiringRequest().subscribe({
       next: (response: any) => {
+        this.hrHiringRequestRaw = response.data ?? [];
         this.hrHiringRequestList = this.projectService.createdDataGroup(
           response.data,
           'DepartmentName'
@@ -228,6 +230,14 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
           { nzStyle: { whiteSpace: 'pre-line' } });
       },
     });
+  }
+
+  onHiringRequestChange(selectedId: number | null) {
+    if (!selectedId) return;
+    const found = this.hrHiringRequestRaw.find((item: any) => item.ID === selectedId);
+    if (found?.EmployeeChucVuHDID) {
+      this.validateForm.patchValue({ EmployeeChucVuHDID: found.EmployeeChucVuHDID });
+    }
   }
 
   loadForm() {

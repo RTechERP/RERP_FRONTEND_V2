@@ -6,4 +6,37 @@
   height: 12vh !important;
 }
 
+/*
+  .modal-content (Bootstrap): display:flex; flex-direction:column; max-height:100%; overflow:hidden
+  Component root là flex-child trực tiếp của .modal-content
+  → Dùng flex:1 1 auto thay vì height:100% vì max-height không tạo định nghĩa chiều cao cho %
+*/
+.modal-dialog-scrollable {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto; /* fill .modal-content */
+  min-height: 0; /* cho phép shrink khi cần */
+  overflow: hidden;
+}
 
+.modal-header {
+  flex-shrink: 0;
+}
+
+.modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-footer {
+  flex-shrink: 0;
+}
+
+@media (max-width: 576px) {
+  ::ng-deep #grdFileHr {
+    height: 20vh !important;
+  }
+}

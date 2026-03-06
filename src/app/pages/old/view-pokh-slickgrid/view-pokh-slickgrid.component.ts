@@ -502,6 +502,11 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
 
     // Setup click handlers
     if (angularGrid.slickGrid) {
+      // Inject select-all checkbox into header cell after grid renders
+      setTimeout(() => {
+        this.injectSelectAllCheckbox();
+      }, 300);
+
       angularGrid.slickGrid.onClick.subscribe((e: any, args: any) => {
         const target = e.target as HTMLElement;
         const dataContext = angularGrid.slickGrid?.getDataItem(args.row);
@@ -527,6 +532,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
           if (checkboxColumnIndex !== undefined && checkboxColumnIndex >= 0) {
             angularGrid.slickGrid?.updateCell(args.row, checkboxColumnIndex);
           }
+          // Update header checkbox state
+          this.updateSelectAllCheckbox();
           return;
         }
       });
@@ -739,6 +746,101 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     if (rowDetailView?.exportAngularGrid?.slickGrid) {
       rowDetailView.exportAngularGrid.slickGrid.invalidate();
       rowDetailView.exportAngularGrid.slickGrid.render();
+    }
+  }
+
+  toggleSelectAll(isSelectAll: boolean): void {
+    if (!this.angularGrid?.dataView || !this.angularGrid?.slickGrid) return;
+
+    // Get all visible/filtered rows from the dataView
+    const dataView = this.angularGrid.dataView;
+    const totalRows = dataView.getLength();
+
+    if (isSelectAll) {
+      for (let i = 0; i < totalRows; i++) {
+        const item = dataView.getItem(i);
+        if (item && item.ID && !this.selectedRowsAll.some((r: any) => r.ID === item.ID)) {
+          this.selectedRowsAll.push({ ...item });
+          // Auto-select all exports for this parent (giữ logic nested table)
+          this.selectAllExportsForParent(item);
+        }
+      }
+    } else {
+      // Deselect all: get IDs of visible rows and remove them
+      const visibleIds: number[] = [];
+      for (let i = 0; i < totalRows; i++) {
+        const item = dataView.getItem(i);
+        if (item && item.ID) {
+          visibleIds.push(item.ID);
+        }
+      }
+      this.selectedRowsAll = this.selectedRowsAll.filter((r: any) => !visibleIds.includes(r.ID));
+      // Remove export selections for deselected parents
+      this.selectedExportRowsAll = this.selectedExportRowsAll.filter((x: any) => !visibleIds.includes(x.POKHDetailID));
+    }
+
+    this.selectedRows = [...this.selectedRowsAll];
+
+    // Re-render grid to update all checkboxes
+    this.angularGrid.slickGrid.invalidate();
+    this.angularGrid.slickGrid.render();
+
+    // Refresh all open nested export grids
+    this.nestedRowDetailViews.forEach((view, parentId) => {
+      this.refreshNestedExportGrid(parentId);
+    });
+
+    console.log('Toggle select all:', isSelectAll, 'selectedRowsAll:', this.selectedRowsAll);
+    console.log('selectedExportRowsAll:', this.selectedExportRowsAll);
+  }
+
+  injectSelectAllCheckbox(): void {
+    if (!this.angularGrid?.slickGrid) return;
+
+    // Use SlickGrid's getHeaderRowColumn API to get the filter row cell for 'select' column
+    const headerFilterCell = this.angularGrid.slickGrid.getHeaderRowColumn('select');
+    if (!headerFilterCell) return;
+
+    // Check if checkbox already injected
+    if (headerFilterCell.querySelector('.select-all-checkbox')) return;
+
+    // Clear the filter cell and inject checkbox
+    headerFilterCell.innerHTML = `<div style="text-align: center; padding-top: 4px;"><input type="checkbox" class="select-all-checkbox" style="cursor: pointer; width: 16px; height: 16px;" title="Chọn tất cả"/></div>`;
+
+    // Attach click listener
+    const checkbox = headerFilterCell.querySelector('.select-all-checkbox') as HTMLInputElement;
+    if (checkbox) {
+      checkbox.addEventListener('click', (e: Event) => {
+        e.stopPropagation();
+        const isChecked = (e.target as HTMLInputElement).checked;
+        this.toggleSelectAll(isChecked);
+      });
+    }
+  }
+
+  updateSelectAllCheckbox(): void {
+    if (!this.angularGrid?.slickGrid || !this.angularGrid?.dataView) return;
+
+    const dataView = this.angularGrid.dataView;
+    const totalRows = dataView.getLength();
+
+    // Check if all visible rows are selected
+    let allSelected = totalRows > 0;
+    for (let i = 0; i < totalRows; i++) {
+      const item = dataView.getItem(i);
+      if (item && item.ID && !this.selectedRowsAll.some((r: any) => r.ID === item.ID)) {
+        allSelected = false;
+        break;
+      }
+    }
+
+    // Update the header filter row checkbox
+    const headerFilterCell = this.angularGrid.slickGrid.getHeaderRowColumn('select');
+    if (headerFilterCell) {
+      const selectAllCheckbox = headerFilterCell.querySelector('.select-all-checkbox') as HTMLInputElement;
+      if (selectAllCheckbox) {
+        selectAllCheckbox.checked = allSelected;
+      }
     }
   }
 

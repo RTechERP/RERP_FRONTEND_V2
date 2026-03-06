@@ -218,10 +218,10 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
         // Kiểm tra quyền admin và set employeeId
         const currentUser = this.appUserService.currentUser;
         const currentUserId = this.appUserService.id || 0;
-        const isN1OrAdmin = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1) || this.appUserService.hasPermission('N1');
+        const isN1OrAdmin = this.appUserService.isAdmin || (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false);
         this.isAdmin = isN1OrAdmin || ID_ADMIN_SALE_LIST.includes(currentUserId);
 
-        const isInAdminSaleList = ID_ADMIN_SALE_LIST.includes(currentUserId);
+        const isInAdminSaleList = ID_ADMIN_SALE_LIST.includes(currentUserId) || (currentUser?.IsAdminSale === 1);
 
         if (isN1OrAdmin) {
             // N1 / isAdmin: enable cả team lẫn nhân viên, không lock vào team/người nào
@@ -385,6 +385,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
             centered: true,
             size: 'xl',
             backdrop: 'static',
+            fullscreen: true,
         });
 
         modalRef.componentInstance.editId = editId;

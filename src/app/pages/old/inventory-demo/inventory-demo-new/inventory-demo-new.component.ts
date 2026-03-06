@@ -1643,6 +1643,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             title: `Chi tiết SP - ${productCode}`,
             key: `material-detail-product-rtc-${productRTCID}`,
             data: {
+                warehouseType: this.warehouseType,
                 productRTCID1: productRTCID,
                 warehouseID1: this.warehouseID || 1,
                 ProductCode: productCode,

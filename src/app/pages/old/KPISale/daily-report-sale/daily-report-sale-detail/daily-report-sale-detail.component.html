@@ -24,7 +24,8 @@
                                     <span class="text-danger">*</span>
                                 </label>
                                 <nz-select nzShowSearch nzPlaceHolder="Chọn người phụ trách" nzAllowClear nzSize="small"
-                                    class="w-100" formControlName="userId" [nzDisabled]="isUserIdDisabled">
+                                    nzDropdownClassName="select-dropdown" class="w-100" formControlName="userId"
+                                    [nzDisabled]="isUserIdDisabled">
                                     <nz-option *ngFor="let item of users" [nzValue]="item.UserID"
                                         [nzLabel]="item.FullName"></nz-option>
                                 </nz-select>
@@ -37,7 +38,7 @@
                                     <span>Dự án</span>
                                 </label>
                                 <nz-select nzShowSearch nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="small"
-                                    class="w-100" formControlName="projectId">
+                                    nzDropdownClassName="select-dropdown" class="w-100" formControlName="projectId">
                                     <nz-option *ngFor="let item of projects" [nzValue]="item.ID"
                                         [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
                                 </nz-select>
@@ -52,7 +53,7 @@
                                     </button>
                                 </label>
                                 <nz-select nzShowSearch nzPlaceHolder="Chọn hãng" nzAllowClear nzSize="small"
-                                    class="w-100" formControlName="firmId">
+                                    nzDropdownClassName="select-dropdown" class="w-100" formControlName="firmId">
                                     <nz-option *ngFor="let item of firms" [nzValue]="item.ID"
                                         [nzLabel]="item.FirmName"></nz-option>
                                 </nz-select>
@@ -70,7 +71,7 @@
                                     </button>
                                 </label>
                                 <nz-select nzShowSearch nzPlaceHolder="Chọn loại dự án" nzAllowClear nzSize="small"
-                                    class="w-100" formControlName="projectTypeId">
+                                    nzDropdownClassName="select-dropdown" class="w-100" formControlName="projectTypeId">
                                     <nz-option *ngFor="let item of projectTypes" [nzValue]="item.ID"
                                         [nzLabel]="item.ProjectTypeName"></nz-option>
                                 </nz-select>
@@ -88,7 +89,7 @@
                                     </button>
                                 </label>
                                 <nz-select nzShowSearch nzPlaceHolder="Chọn khách hàng" nzAllowClear nzSize="small"
-                                    class="w-100" formControlName="customerId">
+                                    nzDropdownClassName="select-dropdown" class="w-100" formControlName="customerId">
                                     <nz-option *ngFor="let item of customers" [nzValue]="item.ID"
                                         [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"></nz-option>
                                 </nz-select>
@@ -106,7 +107,8 @@
                                     </button>
                                 </label>
                                 <nz-select nzShowSearch nzPlaceHolder="Chọn trạng thái dự án" nzAllowClear
-                                    nzSize="small" class="w-100" formControlName="projectStatusId">
+                                    nzSize="small" nzDropdownClassName="select-dropdown" class="w-100"
+                                    formControlName="projectStatusId">
                                     <nz-option *ngFor="let item of projectStatuses" [nzValue]="item.ID"
                                         [nzLabel]="item.StatusName"></nz-option>
                                 </nz-select>
@@ -146,7 +148,7 @@
                                     </button>
                                 </label>
                                 <nz-select nzShowSearch nzPlaceHolder="Chọn người liên hệ" nzAllowClear nzSize="small"
-                                    class="w-100" formControlName="contactId">
+                                    nzDropdownClassName="select-dropdown" class="w-100" formControlName="contactId">
                                     <nz-option *ngFor="let item of contactsMap[i]" [nzValue]="item.ID"
                                         [nzLabel]="item.ContactName +  ' - ' + item.CustomerPosition"></nz-option>
                                 </nz-select>
@@ -160,7 +162,7 @@
                                     <span class="text-danger">*</span>
                                 </label>
                                 <nz-select nzShowSearch nzPlaceHolder="Chọn loại nhóm" nzAllowClear nzSize="small"
-                                    class="w-100" formControlName="groupTypeId">
+                                    nzDropdownClassName="select-dropdown" class="w-100" formControlName="groupTypeId">
                                     <nz-option *ngFor="let item of groupTypes" [nzValue]="item.value || item.ID"
                                         [nzLabel]="item.label || item.MainIndex"></nz-option>
                                 </nz-select>
@@ -177,7 +179,7 @@
                                 </label>
                                 <div class="d-flex align-items-center">
                                     <nz-select nzShowSearch nzPlaceHolder="Chọn EndUser" nzAllowClear nzSize="small"
-                                        class="w-100" formControlName="partId">
+                                        nzDropdownClassName="select-dropdown" class="w-100" formControlName="partId">
                                         <nz-option *ngFor="let item of partsMap[i]" [nzValue]="item.ID"
                                             [nzLabel]="item.PartCode"></nz-option>
                                     </nz-select>

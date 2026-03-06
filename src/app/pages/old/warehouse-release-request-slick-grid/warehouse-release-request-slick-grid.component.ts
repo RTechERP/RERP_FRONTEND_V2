@@ -1399,10 +1399,17 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         }
       });
 
-      // Tìm các dòng vừa bị bỏ chọn (CHỈ trong các dòng đang hiển thị sau filter, có trong selectedRowsAll, nhưng không có trong currentSelectedIds)
+      // Cập nhật lại currentSelectedIds sau khi selectChildrenOfParent có thể đã thay đổi selection
+      const updatedSelectedRows = grid.getSelectedRows() || [];
+      const updatedSelectedIds = updatedSelectedRows.map((rowIdx: number) => {
+        const rowData = grid.getDataItem(rowIdx);
+        return rowData?.POKHDetailID;
+      }).filter((id: any) => id !== undefined);
+
+      // Tìm các dòng vừa bị bỏ chọn (CHỈ trong các dòng đang hiển thị sau filter, có trong selectedRowsAll, nhưng không có trong updatedSelectedIds)
       // Điều này đảm bảo rằng các dòng bị filter ra vẫn giữ trạng thái select trong selectedRowsAll
       const deselectedIds = visibleIds.filter((id: any) =>
-        !currentSelectedIds.includes(id) &&
+        !updatedSelectedIds.includes(id) &&
         this.selectedRowsAll.some(r => r['POKHDetailID'] === id)
       );
 

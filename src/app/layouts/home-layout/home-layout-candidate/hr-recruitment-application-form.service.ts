@@ -18,14 +18,14 @@ export class HRRecruitmentApplicationFormService {
     uploadFile(file: File): Observable<any> {
         const formData = new FormData();
         formData.append('files', file);
-        formData.append('key', 'CandidateImage');
+        formData.append('key', 'HRRecruitmentApplicationForm');
         return this.http.post<any>(`${environment.host}api/home/upload-multiple`, formData);
     }
 
     downloadFile(fileName: string): Observable<Blob> {
         return this.http.get(`${environment.host}api/home/download-by-key`, {
             params: {
-                key: 'CandidateImage',
+                key: 'HRRecruitmentApplicationForm',
                 fileName: fileName
             },
             responseType: 'blob'

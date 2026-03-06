@@ -15,6 +15,23 @@
   border-top-right-radius: 7px !important;
 }
 
+/* Đảm bảo phần giữa (nz-spin chứa tabs) co giãn và scroll */
+::ng-deep .email-composer > nz-spin {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .email-composer > nz-spin > .ant-spin-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 /* ===========================
    HEADER
 =========================== */
@@ -430,6 +447,50 @@
    RESPONSIVE MOBILE
 =========================== */
 @media (max-width: 768px) {
+  /* Chiếm toàn màn hình */
+  ::ng-deep .email-composer {
+    height: 100dvh !important;
+    min-height: unset;
+    border-radius: 0 !important;
+  }
+
+  /* Header cố định, không thu nhỏ */
+  .email-header {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  /* Phần giữa (nz-spin + tabs) scroll */
+  ::ng-deep .email-composer > nz-spin {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  ::ng-deep .email-composer > nz-spin > .ant-spin-container {
+    overflow: visible;
+  }
+
+  /* Footer cố định, không thu nhỏ */
+  .email-footer {
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
+  .footer-hint {
+    display: none;
+  }
+
+  .footer-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Tab body stack dọc */
   .tab-body {
     flex-direction: column;
     height: auto;
@@ -457,26 +518,6 @@
   .fields-row .field-group {
     min-width: 0;
     flex: 1 1 45%;
-  }
-
-  .email-footer {
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 8px 12px;
-  }
-
-  .footer-hint {
-    display: none;
-  }
-
-  .footer-right {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .email-header {
-    padding: 10px 12px;
-    gap: 8px;
   }
 
   .header-text h4 {

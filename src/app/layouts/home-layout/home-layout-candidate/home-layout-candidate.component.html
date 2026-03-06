@@ -1,0 +1,763 @@
+<nav class="navbar sticky-top p-0 candidate-navbar">
+    <div class="container-fluid px-2">
+        <a class="navbar-brand p-0 navbar-logo" routerLink="/home-candidate">
+            <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="RTC" width="100%">
+        </a>
+        <div>
+            <span class="text-white fw-bold navbar-title">TRANG ỨNG VIÊN</span>
+        </div>
+    </div>
+</nav>
+
+<div class="application-form-wrapper">
+    <div class="form-paper">
+        <form [formGroup]="form">
+
+            <!-- ===== HEADER ===== -->
+            <div class="form-header">
+                <div class="header-left">
+                    <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="RTC" class="logo-img">
+                </div>
+                <div class="header-center">
+                    <h2 class="form-title">THÔNG TIN ỨNG VIÊN</h2>
+                    <p class="form-subtitle"><i>Application Form</i></p>
+                    <p class="form-code">(BM03-RTC.HR-QT01)</p>
+                </div>
+                <div class="header-right">
+                    <div class="photo-box">
+                        @if (imagePreview) {
+                        <img [src]="imagePreview" alt="Ảnh 3x4" class="photo-preview" />
+                        <div class="photo-overlay">
+                            <div class="photo-action-btn" (click)="viewPreviewImage($event)" title="Xem ảnh">
+                                <span nz-icon nzType="eye"></span>
+                            </div>
+                            <div class="photo-action-btn delete" (click)="clearImage($event)" title="Xóa ảnh">
+                                <span nz-icon nzType="delete"></span>
+                            </div>
+                        </div>
+                        } @else {
+                        <div class="photo-placeholder" (click)="fileInput.click()">
+                            <span nz-icon nzType="camera" style="font-size: 20px; color: #999;"></span>
+                            <span>Ảnh 3x4</span>
+                        </div>
+                        }
+                    </div>
+                    <input type="file" #fileInput accept="image/*" (change)="onImageSelected($event)"
+                        style="display: none;" />
+                </div>
+            </div>
+
+            <div class="form-intro">
+                <p>Cảm ơn bạn đã quan tâm đến thông tin tuyển dụng của RTC. Để giúp chúng tôi nắm rõ hơn các thông tin
+                    về bạn, xin bạn vui lòng điền đầy đủ các thông tin vào chỗ trống dưới đây bằng tiếng Việt hoặc
+                    tiếng Anh.</p>
+                <p><i>Thank you for your choosing our company. Application form is an important part in our
+                        recruitment process of RTC. Please fill in it clearly in Vietnamese or English.</i></p>
+            </div>
+
+            <!-- Vị trí dự tuyển -->
+            <div class="section-row mb-3">
+                <label class="fw-bold">Vị trí dự tuyển tại RTC/ <i>Your desired position in RTC</i> <span
+                        class="text-danger">(*)</span></label>
+                <div class="mt-1">
+                    <label>Vị trí /<i>Position:</i></label>
+                    <nz-select [ngModel]="form.get('ChucVuHDID')?.value" (ngModelChange)="onPositionChange($event)"
+                        [ngModelOptions]="{standalone: true}" class="inline-input" style="width: 60%;"
+                        nzPlaceHolder="Chọn vị trí dự tuyển" nzShowSearch nzAllowClear
+                        [nzStatus]="(form.get('ChucVuHDID')?.invalid && form.get('ChucVuHDID')?.dirty) ? 'error' : ''">
+                        @for (item of chucVuList; track item.ID) {
+                        <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+            </div>
+
+            <!-- ===== I. THÔNG TIN CÁ NHÂN ===== -->
+            <h5 class="section-title">I. Thông tin cá nhân/<i>Personal details</i></h5>
+
+            <div class="contact-card">
+                <nz-row [nzGutter]="12">
+                    <!-- Họ và tên -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
+                        <div class="contact-field">
+                            <label>Họ và tên/<i>Full Name</i> <span class="text-danger">(*)</span></label>
+                            <input nz-input formControlName="FullName"
+                                [nzStatus]="(form.get('FullName')?.invalid && form.get('FullName')?.dirty) ? 'error' : ''" />
+                        </div>
+                    </nz-col>
+                    <!-- Giới tính -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12">
+                        <div class="contact-field">
+                            <label>Giới tính/<i>Gender</i> <span class="text-danger">(*)</span></label>
+                            <div [class.error-container]="form.get('Gender')?.invalid && form.get('Gender')?.dirty">
+                                <nz-radio-group formControlName="Gender">
+                                    <label nz-radio [nzValue]="1">Nam/<i>Male</i></label>
+                                    <label nz-radio [nzValue]="2" class="ms-4">Nữ/<i>Female</i></label>
+                                </nz-radio-group>
+                            </div>
+                        </div>
+                    </nz-col>
+                    <!-- Ngày sinh -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12">
+                        <div class="contact-field">
+                            <label>Ngày sinh/<i>Date of birth</i> <span class="text-danger">(*)</span></label>
+                            <input type="date" formControlName="DateOfBirth" class="cell-input" style="width: 100%;" />
+                        </div>
+                    </nz-col>
+                    <!-- Nơi sinh -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12">
+                        <div class="contact-field">
+                            <label>Nơi sinh/<i>Place of birth</i> <span class="text-danger">(*)</span></label>
+                            <input nz-input formControlName="PlaceOfBirth"
+                                [nzStatus]="(form.get('PlaceOfBirth')?.invalid && form.get('PlaceOfBirth')?.dirty) ? 'error' : ''" />
+                        </div>
+                    </nz-col>
+                    <!-- Dân tộc -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                        <div class="contact-field">
+                            <label>Dân tộc/<i>Ethnic</i> <span class="text-danger">(*)</span></label>
+                            <input nz-input formControlName="Ethnic"
+                                [nzStatus]="(form.get('Ethnic')?.invalid && form.get('Ethnic')?.dirty) ? 'error' : ''" />
+                        </div>
+                    </nz-col>
+                    <!-- Tôn giáo -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                        <div class="contact-field">
+                            <label>Tôn giáo/<i>Religion</i> <span class="text-danger">(*)</span></label>
+                            <input nz-input formControlName="Religion"
+                                [nzStatus]="(form.get('Religion')?.invalid && form.get('Religion')?.dirty) ? 'error' : ''" />
+                        </div>
+                    </nz-col>
+                    <!-- Thường trú -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
+                        <div class="contact-field">
+                            <label>Thường trú/<i>Permanent residence</i> <span class="text-danger">(*)</span></label>
+                            <input nz-input formControlName="PermanentResidence"
+                                [nzStatus]="(form.get('PermanentResidence')?.invalid && form.get('PermanentResidence')?.dirty) ? 'error' : ''" />
+                        </div>
+                    </nz-col>
+                    <!-- Nơi ở hiện nay -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
+                        <div class="contact-field">
+                            <label>Nơi ở hiện nay/<i>Current address</i> <span class="text-danger">(*)</span></label>
+                            <input nz-input formControlName="CurrentAddress"
+                                [nzStatus]="(form.get('CurrentAddress')?.invalid && form.get('CurrentAddress')?.dirty) ? 'error' : ''" />
+                        </div>
+                    </nz-col>
+                    <!-- Số CMND/CCCD -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                        <div class="contact-field">
+                            <label>Số CMND/CCCD/<i>ID</i></label>
+                            <input nz-input formControlName="NumberCCCD" />
+                        </div>
+                    </nz-col>
+                    <!-- Ngày cấp -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                        <div class="contact-field">
+                            <label>Ngày cấp/<i>Issued on</i></label>
+                            <input type="date" formControlName="IssuedOn" class="cell-input" style="width:100%;" />
+                        </div>
+                    </nz-col>
+                    <!-- Nơi cấp -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12">
+                        <div class="contact-field">
+                            <label>Nơi cấp/<i>Issued by</i></label>
+                            <input nz-input formControlName="IssuedBy" />
+                        </div>
+                    </nz-col>
+                    <!-- ĐTCĐ -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+                        <div class="contact-field">
+                            <label>ĐTCĐ/<i>Tel #</i> <span class="text-danger">(*)</span></label>
+                            <input nz-input formControlName="Tel"
+                                [nzStatus]="(form.get('Tel')?.invalid && form.get('Tel')?.dirty) ? 'error' : ''" />
+                        </div>
+                    </nz-col>
+                    <!-- Di động -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+                        <div class="contact-field">
+                            <label>Di động/<i>Mobile</i> <span class="text-danger">(*)</span></label>
+                            <input nz-input formControlName="Mobile"
+                                [nzStatus]="(form.get('Mobile')?.invalid && form.get('Mobile')?.dirty) ? 'error' : ''" />
+                        </div>
+                    </nz-col>
+                    <!-- Email -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+                        <div class="contact-field">
+                            <label>Email <span class="text-danger">(*)</span></label>
+                            <input nz-input formControlName="Email"
+                                [nzStatus]="(form.get('Email')?.invalid && form.get('Email')?.dirty) ? 'error' : ''" />
+                        </div>
+                    </nz-col>
+                    <!-- Sở thích cá nhân -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
+                        <div class="contact-field">
+                            <label>Sở thích cá nhân/<i>Hobbies</i></label>
+                            <textarea nz-input formControlName="Hobbies"
+                                [nzAutosize]="{ minRows: 2, maxRows: 6 }"></textarea>
+                        </div>
+                    </nz-col>
+                    <!-- Chiều cao -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6">
+                        <div class="contact-field">
+                            <label>Chiều cao/<i>Height</i>(cm)</label>
+                            <nz-input-number formControlName="Height" [nzMin]="0" [nzStep]="1"
+                                style="width:100%;"></nz-input-number>
+                        </div>
+                    </nz-col>
+                    <!-- Cân nặng -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6">
+                        <div class="contact-field">
+                            <label>Cân nặng/<i>Weight</i>(kg)</label>
+                            <nz-input-number formControlName="Weight" [nzMin]="0" [nzStep]="1"
+                                style="width:100%;"></nz-input-number>
+                        </div>
+                    </nz-col>
+                    <!-- Tình trạng hôn nhân -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
+                        <div class="contact-field">
+                            <label>Tình trạng hôn nhân/<i>Marital status</i> <span
+                                    class="text-danger">(*)</span></label>
+                            <div
+                                [class.error-container]="form.get('MaritalStatus')?.invalid && form.get('MaritalStatus')?.dirty">
+                                <nz-radio-group formControlName="MaritalStatus">
+                                    <label nz-radio [nzValue]="1">Độc thân/<i>Single</i></label>
+                                    <label nz-radio [nzValue]="2" class="ms-3">Đã lập gia đình/<i>Married</i></label>
+                                    <label nz-radio [nzValue]="3" class="ms-3">Ly hôn/<i>Divorced</i></label>
+                                </nz-radio-group>
+                            </div>
+                        </div>
+                    </nz-col>
+                    <!-- Thương tật -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
+                        <div class="contact-field">
+                            <label>Có bị thương tật và ốm nặng/<i>Injuries or serious ills:</i></label>
+                            <div>
+                                <nz-radio-group formControlName="InjuriesOrSeriousIll" class="me-3">
+                                    <label nz-radio [nzValue]="true">Có/<i>Yes</i></label>
+                                    <label nz-radio [nzValue]="false">Không/<i>No</i></label>
+                                </nz-radio-group>
+                                <span class="ms-2">Khi nào / <i>If yes-specify:</i></span>
+                                <input nz-input formControlName="IfYesSpecify" class="inline-input"
+                                    style="width:50%; max-width: 300px;" />
+                            </div>
+                        </div>
+                    </nz-col>
+                    <!-- Mang thai -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
+                        <div class="contact-field">
+                            <label>Hiện tại có mang thai không (nữ)/<i>Currently pregnant:</i></label>
+                            <nz-radio-group formControlName="CurrentlyPregnant">
+                                <label nz-radio [nzValue]="true">Có/<i>Yes</i></label>
+                                <label nz-radio [nzValue]="false" class="ms-3">Không/<i>No</i></label>
+                            </nz-radio-group>
+                        </div>
+                    </nz-col>
+                    <!-- Dự kiến mang thai -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
+                        <div class="contact-field">
+                            <label>Bạn có dự kiến mang thai trong 06 tháng tới? (nữ):</label>
+                            <nz-radio-group formControlName="IsPlanPregnant">
+                                <label nz-radio [nzValue]="true">Có/<i>Yes</i></label>
+                                <label nz-radio [nzValue]="false" class="ms-3">Không/<i>No</i></label>
+                            </nz-radio-group>
+                        </div>
+                    </nz-col>
+                </nz-row>
+            </div>
+
+            <!-- ===== NGƯỜI LIÊN HỆ KHẨN CẤP ===== -->
+            <div class="mt-4">
+                <p class="fw-bold mb-1">Người liên hệ khẩn khi cần/<i>Emergency contact</i>
+                    <span class="text-muted fs-11"> (Tối thiểu hai (2) người thân. Trong đó có một người thân là bố
+                        hoặc mẹ.Nếu đã lập gia đình thì cung cấp thông tin vợ hoặc chồng) / (At least two (2) relatives.
+                        One of whom must be a father or mother. If married, provide information about your
+                        spouse.)</span>
+                </p>
+                <div formArrayName="emergencyContacts">
+                    @for (contact of emergencyContacts.controls; track $index) {
+                    <div [formGroupName]="$index" class="contact-card">
+                        <div class="contact-card-header">
+                            <span class="fw-bold">Người liên hệ {{ $index + 1 }}
+                                @if ($index === 0) {
+                                <span class="text-muted"> (Bố/Mẹ)</span>
+                                }
+                            </span>
+                            @if ($index > 1) {
+                            <button nz-button nzType="text" nzDanger nzSize="small"
+                                (click)="removeEmergencyContact($index)" title="Xóa"><span nz-icon
+                                    nzType="delete"></span></button>
+                            }
+                        </div>
+                        <nz-row [nzGutter]="12">
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                                <div class="contact-field">
+                                    <label>Họ và tên/<i>Full name</i> <span class="text-danger">(*)</span></label>
+                                    <input nz-input formControlName="FullName" placeholder="Nhập họ tên"
+                                        [nzStatus]="(contact.get('FullName')?.invalid && contact.get('FullName')?.dirty) ? 'error' : ''" />
+                                </div>
+                            </nz-col>
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                                <div class="contact-field">
+                                    <label>Quan hệ/<i>Relation</i> <span class="text-danger">(*)</span></label>
+                                    <input nz-input formControlName="Relation" placeholder="VD: Bố, Mẹ, Anh..."
+                                        [nzStatus]="(contact.get('Relation')?.invalid && contact.get('Relation')?.dirty) ? 'error' : ''" />
+                                </div>
+                            </nz-col>
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                                <div class="contact-field">
+                                    <label>Điện thoại/<i>Tel</i> <span class="text-danger">(*)</span></label>
+                                    <input nz-input formControlName="Tel" placeholder="Nhập số điện thoại"
+                                        [nzStatus]="(contact.get('Tel')?.invalid && contact.get('Tel')?.dirty) ? 'error' : ''" />
+                                </div>
+                            </nz-col>
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                                <div class="contact-field">
+                                    <label>Địa chỉ/<i>Address</i> <span class="text-danger">(*)</span></label>
+                                    <input nz-input formControlName="Address" placeholder="Nhập địa chỉ"
+                                        [nzStatus]="(contact.get('Address')?.invalid && contact.get('Address')?.dirty) ? 'error' : ''" />
+                                </div>
+                            </nz-col>
+                        </nz-row>
+                    </div>
+                    }
+                </div>
+                <button nz-button nzType="dashed" nzSize="small" (click)="addEmergencyContact()" class="mb-3"
+                    style="font-size: 12px;">
+                    <span nz-icon nzType="plus"></span> Thêm người liên hệ
+                </button>
+            </div>
+
+            <!-- ===== II. TRÌNH ĐỘ HỌC VẤN ===== -->
+            <h5 class="section-title mt-4">II. Trình độ học vấn/<i>Education</i></h5>
+            <div formArrayName="educations">
+                @for (edu of educations.controls; track $index) {
+                <div [formGroupName]="$index" class="contact-card">
+                    <div class="contact-card-header">
+                        <span class="fw-bold">Trường {{ $index + 1 }}</span>
+                        @if (educations.length > 1) {
+                        <button nz-button nzType="text" nzDanger nzSize="small" (click)="removeEducation($index)"
+                            title="Xóa"><span nz-icon nzType="delete"></span></button>
+                        }
+                    </div>
+                    <nz-row [nzGutter]="12">
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="7">
+                            <div class="contact-field">
+                                <label>Tên trường/<i>School</i> <span class="text-danger">(*)</span></label>
+                                <input nz-input formControlName="NameOfSchool" placeholder="Nhập tên trường"
+                                    [nzStatus]="(edu.get('NameOfSchool')?.invalid && edu.get('NameOfSchool')?.dirty) ? 'error' : ''" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                            <div class="contact-field">
+                                <label>Ngành học/<i>Major</i> <span class="text-danger">(*)</span></label>
+                                <input nz-input formControlName="Major" placeholder="Nhập ngành học"
+                                    [nzStatus]="(edu.get('Major')?.invalid && edu.get('Major')?.dirty) ? 'error' : ''" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                            <div class="contact-field">
+                                <label>Thời gian/<i>Graduated time</i> <span class="text-danger">(*)</span></label>
+                                <input nz-input formControlName="GraduatedTime" placeholder="VD: 2018 - 2022"
+                                    [nzStatus]="(edu.get('GraduatedTime')?.invalid && edu.get('GraduatedTime')?.dirty) ? 'error' : ''" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="5">
+                            <div class="contact-field">
+                                <label>Xếp loại/<i>Qualification</i> <span class="text-danger">(*)</span></label>
+                                <nz-select formControlName="QualificationLevel" nzPlaceHolder="Chọn xếp loại"
+                                    class="w-100" nzAllowClear nzSize="small"
+                                    [nzStatus]="(edu.get('QualificationLevel')?.invalid && edu.get('QualificationLevel')?.dirty) ? 'error' : ''">
+                                    @for (item of qualificationLevelOptions; track item.value) {
+                                    <nz-option [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+                                    }
+                                </nz-select>
+                            </div>
+                        </nz-col>
+                    </nz-row>
+                </div>
+                }
+            </div>
+            <button nz-button nzType="dashed" nzSize="small" (click)="addEducation()" class="mt-1 mb-3"
+                style="font-size: 12px;">
+                <span nz-icon nzType="plus"></span> Thêm trường
+            </button>
+
+            <!-- Trình độ ngoại ngữ -->
+            <p class="fw-bold mt-3 mb-1">Trình độ ngoại ngữ/<i>Foreign language skills</i></p>
+            <div formArrayName="foreignLanguages">
+                @for (lang of foreignLanguages.controls; track $index) {
+                <div [formGroupName]="$index" class="contact-card">
+                    <div class="contact-card-header">
+                        <span class="fw-bold">Ngoại ngữ {{ $index + 1 }}</span>
+                        @if (foreignLanguages.length > 1) {
+                        <button nz-button nzType="text" nzDanger nzSize="small" (click)="removeForeignLanguage($index)"
+                            title="Xóa"><span nz-icon nzType="delete"></span></button>
+                        }
+                    </div>
+                    <nz-row [nzGutter]="12">
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+                            <div class="contact-field">
+                                <label>Ngoại ngữ/<i>Language</i></label>
+                                <input nz-input formControlName="ForeignLanguage" placeholder="VD: Tiếng Anh" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4">
+                            <div class="contact-field">
+                                <label>Nghe/<i>Listening</i></label>
+                                <nz-select formControlName="Listening" nzPlaceHolder="Chọn" class="w-100" nzAllowClear
+                                    nzSize="small">
+                                    @for (item of languageLevelOptions; track item.value) {
+                                    <nz-option [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+                                    }
+                                </nz-select>
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4">
+                            <div class="contact-field">
+                                <label>Nói/<i>Speaking</i></label>
+                                <nz-select formControlName="Speaking" nzPlaceHolder="Chọn" class="w-100" nzAllowClear
+                                    nzSize="small">
+                                    @for (item of languageLevelOptions; track item.value) {
+                                    <nz-option [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+                                    }
+                                </nz-select>
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4">
+                            <div class="contact-field">
+                                <label>Đọc/<i>Reading</i></label>
+                                <nz-select formControlName="Reading" nzPlaceHolder="Chọn" class="w-100" nzAllowClear
+                                    nzSize="small">
+                                    @for (item of languageLevelOptions; track item.value) {
+                                    <nz-option [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+                                    }
+                                </nz-select>
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4">
+                            <div class="contact-field">
+                                <label>Viết/<i>Writing</i></label>
+                                <nz-select formControlName="Writing" nzPlaceHolder="Chọn" class="w-100" nzAllowClear
+                                    nzSize="small">
+                                    @for (item of languageLevelOptions; track item.value) {
+                                    <nz-option [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+                                    }
+                                </nz-select>
+                            </div>
+                        </nz-col>
+                    </nz-row>
+                </div>
+                }
+            </div>
+            <button nz-button nzType="dashed" nzSize="small" (click)="addForeignLanguage()" class="mt-1 mb-3"
+                style="font-size: 12px;">
+                <span nz-icon nzType="plus"></span> Thêm ngoại ngữ
+            </button>
+
+            <!-- Chứng chỉ khác -->
+            <p class="fw-bold mt-3 mb-1">Chứng chỉ khác/<i>Other certificates</i></p>
+            <div formArrayName="otherCertificates">
+                @for (cert of otherCertificates.controls; track $index) {
+                <div [formGroupName]="$index" class="contact-card">
+                    <div class="contact-card-header">
+                        <span class="fw-bold">Chứng chỉ {{ $index + 1 }}</span>
+                        @if (otherCertificates.length > 1) {
+                        <button nz-button nzType="text" nzDanger nzSize="small" (click)="removeOtherCertificate($index)"
+                            title="Xóa"><span nz-icon nzType="delete"></span></button>
+                        }
+                    </div>
+                    <nz-row [nzGutter]="12">
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                            <div class="contact-field">
+                                <label>Ngày cấp/<i>Date of issue</i></label>
+                                <input type="date" formControlName="DateOfIssue" class="cell-input w-100" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                            <div class="contact-field">
+                                <label>Tên chứng chỉ/<i>Certificates</i></label>
+                                <input nz-input formControlName="Certificates" placeholder="Nhập tên chứng chỉ" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                            <div class="contact-field">
+                                <label>Đơn vị cấp/<i>Issued by</i></label>
+                                <input nz-input formControlName="IssuedBy" placeholder="Nhập đơn vị cấp" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                            <div class="contact-field">
+                                <label>Xếp loại/<i>Qualification</i></label>
+                                <nz-select formControlName="QualificationLevel" nzPlaceHolder="Chọn xếp loại"
+                                    class="w-100" nzAllowClear nzSize="small">
+                                    @for (item of qualificationLevelOptions; track item.value) {
+                                    <nz-option [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+                                    }
+                                </nz-select>
+                            </div>
+                        </nz-col>
+                    </nz-row>
+                </div>
+                }
+            </div>
+            <button nz-button nzType="dashed" nzSize="small" (click)="addOtherCertificate()" class="mt-1 mb-3"
+                style="font-size: 12px;">
+                <span nz-icon nzType="plus"></span> Thêm chứng chỉ
+            </button>
+
+            <!-- Hoạt động khác -->
+            <div class="mt-3">
+                <p class="fw-bold mb-1">Các hoạt động, thành tích xã hội khác/ <i>Other activities,
+                        achievements:</i></p>
+                <textarea nz-input formControlName="OtherActivities" rows="3"
+                    placeholder="Nhập các hoạt động, thành tích xã hội khác..."></textarea>
+            </div>
+
+            <!-- ===== III. QUÁ TRÌNH CÔNG TÁC ===== -->
+            <h5 class="section-title mt-4">III. Quá trình công tác <span class="text-muted fs-11">(Kể cả bán thời
+                    gian)</span> <i>Working experiences (part-time and full-time)</i></h5>
+
+            <div formArrayName="workExperiences">
+                @for (work of workExperiences.controls; track $index) {
+                <div [formGroupName]="$index" class="contact-card">
+                    <div class="contact-card-header">
+                        <span class="fw-bold">Công ty {{ $index + 1 }}</span>
+                        @if (workExperiences.length > 1) {
+                        <button nz-button nzType="text" nzDanger nzSize="small" (click)="removeWorkExperience($index)"
+                            title="Xóa"><span nz-icon nzType="delete"></span> Xóa</button>
+                        }
+                    </div>
+                    <nz-row [nzGutter]="12">
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+                            <div class="contact-field">
+                                <label>Tên công ty/<i>Company</i></label>
+                                <input nz-input formControlName="CompanyName" placeholder="Nhập tên công ty" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+                            <div class="contact-field">
+                                <label>Chức danh/Vị trí/<i>Position</i></label>
+                                <input nz-input formControlName="PositionName" placeholder="Nhập chức danh" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+                            <div class="contact-field">
+                                <label>Cấp trên trực tiếp/<i>Leader</i></label>
+                                <input nz-input formControlName="Leader" placeholder="Họ tên, chức danh, điện thoại" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="6">
+                            <div class="contact-field">
+                                <label>Từ/<i>From</i></label>
+                                <input type="date" formControlName="DateStart" class="cell-input w-100" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="6">
+                            <div class="contact-field">
+                                <label>Đến/<i>To</i></label>
+                                <input type="date" formControlName="DateEnd" class="cell-input w-100" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                            <div class="contact-field">
+                                <label>Mức lương/<i>Salary</i></label>
+                                <nz-input-number formControlName="Salary" [nzMin]="0" [nzStep]="500000" class="w-100"
+                                    nzSize="small" nzPlaceHolder="Nhập mức lương" [nzFormatter]="formatterVND"
+                                    [nzParser]="parserVND"></nz-input-number>
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                            <div class="contact-field">
+                                <label>Trạng thái</label>
+                                <nz-radio-group formControlName="WorkingStatus">
+                                    <label nz-radio [nzValue]="1">Còn làm</label>
+                                    <label nz-radio [nzValue]="2">Đã nghỉ</label>
+                                </nz-radio-group>
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
+                            <div class="contact-field">
+                                <label>Nhiệm vụ, trách nhiệm/<i>Mission</i></label>
+                                <textarea nz-input formControlName="Mission" rows="2"
+                                    placeholder="Nhập nhiệm vụ, trách nhiệm..."></textarea>
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
+                            <div class="contact-field">
+                                <label>Lý do nghỉ việc/<i>Reason quit</i></label>
+                                <input nz-input formControlName="ReasonQuit" placeholder="Nhập lý do nghỉ việc" />
+                            </div>
+                        </nz-col>
+                        <nz-col [nzXs]="24">
+                            <div class="contact-field">
+                                <label>Thành tích đạt được/<i>Achievement</i></label>
+                                <textarea nz-input formControlName="Achievement" rows="2"
+                                    placeholder="Nhập thành tích đạt được..."></textarea>
+                            </div>
+                        </nz-col>
+                    </nz-row>
+                </div>
+                }
+            </div>
+            <button nz-button nzType="dashed" nzSize="small" (click)="addWorkExperience()" class="mt-1 mb-3"
+                style="font-size: 12px;">
+                <span nz-icon nzType="plus"></span> Thêm quá trình công tác
+            </button>
+
+            <!-- ===== IV. ĐẶC ĐIỂM CÁ NHÂN ===== -->
+            <h5 class="section-title mt-4">IV. Đặc điểm cá nhân và kinh nghiệm phù hợp với vị trí dự tuyển/ <i>How
+                    your experiences or characters can be suitable with applied position?</i> <span
+                    class="text-danger">(*)</span></h5>
+            <textarea nz-input formControlName="Experiences" rows="4"
+                placeholder="Nhập đặc điểm cá nhân và kinh nghiệm phù hợp..."
+                [nzStatus]="(form.get('Experiences')?.invalid && form.get('Experiences')?.dirty) ? 'error' : ''"></textarea>
+
+            <!-- ===== V. THÔNG TIN TUYỂN DỤNG ===== -->
+            <h5 class="section-title mt-4">V. Thông tin tuyển dụng mà bạn biết được qua/<i>Select channel you get our
+                    recruitment info</i></h5>
+            <div formGroupName="recruitmentInfo" class="contact-card">
+                <nz-row [nzGutter]="[12, 8]">
+                    <nz-col [nzXs]="24" [nzSm]="12">
+                        <label nz-checkbox formControlName="JobWebsites">Website việc làm/<i>Jobs websites</i></label>
+                    </nz-col>
+                    <nz-col [nzXs]="24" [nzSm]="12">
+                        <label nz-checkbox formControlName="Headhunters">Công ty giới thiệu việc
+                            làm/<i>Headhunters</i></label>
+                    </nz-col>
+                    <nz-col [nzXs]="24" [nzSm]="12">
+                        <label nz-checkbox formControlName="Newspapers">Báo giấy/<i>Newspapers</i></label>
+                    </nz-col>
+                    <nz-col [nzXs]="24" [nzSm]="12">
+                        <label nz-checkbox formControlName="Relatives">Người thân, quen/<i>Relatives</i></label>
+                    </nz-col>
+                    <nz-col [nzXs]="24" [nzSm]="12">
+                        <label nz-checkbox formControlName="SocialNetwork">Mạng xã hội/<i>Social networks (Facebook,
+                                Zalo, ...)</i></label>
+                    </nz-col>
+                    <nz-col [nzXs]="24" [nzSm]="12">
+                        <label nz-checkbox formControlName="Others">Khác/<i>Others</i></label>
+                    </nz-col>
+                </nz-row>
+            </div>
+
+            <!-- ===== VI. LÝ DO NỘP ĐƠN ===== -->
+            <h5 class="section-title mt-4">VI. Lý do nộp đơn dự tuyển vào Công ty chúng tôi/<i>The main reasons for
+                    your application</i> <span class="text-danger">(*)</span></h5>
+            <textarea nz-input formControlName="ReasonApplication" rows="3" placeholder="Nhập lý do ứng tuyển..."
+                [nzStatus]="(form.get('ReasonApplication')?.invalid && form.get('ReasonApplication')?.dirty) ? 'error' : ''"></textarea>
+
+            <!-- ===== IX. MỨC LƯƠNG ===== -->
+            <h5 class="section-title mt-4">IX. Mức lương tối thiểu mong muốn/<i>Your accepted salary</i> <span
+                    class="text-danger">(*)</span></h5>
+            <nz-input-number formControlName="AcceptedSalary" [nzMin]="0" [nzStep]="500000" class="w-50"
+                nzPlaceHolder="Nhập mức lương mong muốn" [nzFormatter]="formatterVND" [nzParser]="parserVND"
+                [nzStatus]="(form.get('AcceptedSalary')?.invalid && form.get('AcceptedSalary')?.dirty) ? 'error' : ''"></nz-input-number>
+
+            <!-- ===== X. NGÀY BẮT ĐẦU ===== -->
+            <h5 class="section-title mt-4">X. Ngày có thể bắt đầu làm việc/<i>Date for start</i> <span
+                    class="text-danger">(*)</span></h5>
+            <input type="date" formControlName="DateOfStart" class="cell-input w-50" />
+
+            <!-- ===== XI. CÂU HỎI KHẢO SÁT (CARD LAYOUT) ===== -->
+            <h5 class="section-title mt-4">XI. Anh/chị vui lòng trả lời các câu hỏi sau:</h5>
+            <div class="survey-questions">
+                <!-- Câu 1 -->
+                <div class="contact-card">
+                    <p class="mb-2 fw-bold" style="font-size: 12px;">1. Anh/chị có người thân hay bạn bè đang làm việc
+                        tại RTC không? / Nếu có xin
+                        vui lòng cho biết họ tên, chức vụ, phòng ban.</p>
+                    <nz-radio-group formControlName="HasRelativeOrFriendInCompany" class="mb-2"
+                        (ngModelChange)="updateSurveyValidators()">
+                        <label nz-radio [nzValue]="false">Không</label>
+                        <label nz-radio [nzValue]="true">Có</label>
+                    </nz-radio-group>
+                    @if (form.get('HasRelativeOrFriendInCompany')?.value) {
+                    <textarea nz-input formControlName="RelativeInfo" [nzAutosize]="{ minRows: 2 }"
+                        placeholder="Ghi rõ họ tên, chức vụ, phòng ban người thân..." class="inline-input mt-1"
+                        [nzStatus]="(form.get('RelativeInfo')?.invalid && form.get('RelativeInfo')?.dirty) ? 'error' : ''"></textarea>
+                    }
+                </div>
+
+                <!-- Câu 2 -->
+                <div class="contact-card">
+                    <p class="mb-2 fw-bold" style="font-size: 12px;">2. Anh/Chị đã từng đóng Bảo hiểm Xã hội trước đây
+                        chưa?</p>
+                    <nz-radio-group formControlName="HasSocialInsurance" class="mb-2"
+                        (ngModelChange)="updateSurveyValidators()">
+                        <label nz-radio [nzValue]="false">Không</label>
+                        <label nz-radio [nzValue]="true">Có</label>
+                    </nz-radio-group>
+                    @if (form.get('HasSocialInsurance')?.value) {
+                    <div class="mt-1">
+                        <label class="fs-11 text-muted d-block">Nếu đã có sổ BHXH vui lòng ghi rõ số sổ:</label>
+                        <input nz-input formControlName="BHXH" placeholder="Nhập số sổ BHXH..."
+                            class="inline-input w-100"
+                            [nzStatus]="(form.get('BHXH')?.invalid && form.get('BHXH')?.dirty) ? 'error' : ''" />
+                    </div>
+                    }
+                </div>
+
+                <!-- Câu 3 -->
+                <div class="contact-card">
+                    <p class="mb-2 fw-bold" style="font-size: 12px;">3. Anh/Chị đã có mã số thuế cá nhân chưa?</p>
+                    <nz-radio-group formControlName="HasTaxCode" class="mb-2"
+                        (ngModelChange)="updateSurveyValidators()">
+                        <label nz-radio [nzValue]="false">Không</label>
+                        <label nz-radio [nzValue]="true">Có</label>
+                    </nz-radio-group>
+                    @if (form.get('HasTaxCode')?.value) {
+                    <div class="mt-1">
+                        <label class="fs-11 text-muted d-block">Nếu có vui lòng ghi rõ số mã số thuế:</label>
+                        <input nz-input formControlName="TaxCode" placeholder="Nhập mã số thuế..."
+                            class="inline-input w-100"
+                            [nzStatus]="(form.get('TaxCode')?.invalid && form.get('TaxCode')?.dirty) ? 'error' : ''" />
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <!-- ===== CAM KẾT VÀ CHỮ KÝ ===== -->
+            <div class="mt-5 text-center">
+                <p class="mb-1" style="font-size: 13px;">Tôi cam đoan tất cả các thông tin trên đây là đúng. Tôi không
+                    che giấu thông tin nào. Tôi
+                    đồng ý nếu tôi cung cấp bất kỳ thông tin sai lệch nào Công ty có quyền chấm dứt Hợp đồng lao động
+                    với
+                    tôi ngay lập tức mà không cần thông báo hoặc bồi thường.</p>
+                <div class="mt-4" style="display: flex; justify-content: flex-end;">
+                    <div style="text-align: center; min-width: 280px;">
+                        <p class="mb-0">Hà Nội, ngày/<i>date</i> {{createdDate | date:'dd'}} tháng/<i>month</i>
+                            {{createdDate | date:'MM'}} năm/<i>year</i> {{createdDate | date:'yyyy'}}</p>
+                        <p class="fw-bold">Người khai ký tên/<i>Signature</i></p>
+                        <div style="height: 60px;"></div>
+                        <p class="fw-bold mb-0" style="font-size: 14px; text-transform: uppercase;">{{
+                            form.get('FullName')?.value }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== NÚT LƯU ===== -->
+            <div class="text-center mt-5 mb-5">
+                <button nz-button nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading"
+                    style="font-size: 14px; padding: 8px 64px; height: auto; border-radius: 4px; font-weight: bold;">
+                    <span nz-icon nzType="save"></span> LƯU TỜ KHAI
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<nz-modal [(nzVisible)]="previewVisible" [nzContent]="modalContent" [nzFooter]="null"
+    (nzOnCancel)="previewVisible = false" nzWidth="auto">
+    <ng-template #modalContent>
+        <div class="text-center">
+            <img [src]="imagePreview" style="max-width: 90vw; max-height: 85vh; border-radius: 4px;" />
+        </div>
+    </ng-template>
+</nz-modal>
+
+<!-- <nz-footer
+    style="padding: 0 10px !important; background-color: #ffffff; font-size: 11px; font-weight: bold; color: #000000; height: 30px; line-height: 30px; display: block; border-top: 1px solid #f0f0f0;">
+    R-ERP Candidate Portal
+</nz-footer> -->

@@ -1,11 +1,14 @@
 import { Routes } from '@angular/router';
 import { WelcomeComponent } from './pages/old/welcome/welcome.component';
 import { LoginComponent } from './auth/login/login.component';
+import { LoginCandidateComponent } from './auth/login-candidate/login-candidate.component';
 import { authGuard } from './auth/auth.guard';
+import { candidateAuthGuard } from './auth/candidate-auth.guard';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
 import { HomeLayoutNewComponent } from './layouts/home-layout/home-layout-new/home-layout-new.component';
+import { HomeLayoutCandidateComponent } from './layouts/home-layout/home-layout-candidate/home-layout-candidate.component';
 import { FoodOrderComponent } from './pages/hrm/food-order/food-order.component';
 import { DayOffComponent } from './pages/hrm/day-off/day-off.component';
 import { MenuApp } from './pages/systems/menu-app/model/menu-app';
@@ -278,6 +281,7 @@ export const routes: Routes = [
         component: AuthLayoutComponent,
         children: [
             { path: 'login', component: LoginComponent },
+            { path: 'login-candidate', component: LoginCandidateComponent },
             { path: '', redirectTo: 'login', pathMatch: 'full' },
         ],
     },
@@ -289,6 +293,13 @@ export const routes: Routes = [
         canActivate: [],
         // children: [{ path: 'home', component: HomeLayoutComponent }],
         children: [{ path: 'home', component: HomeLayoutNewComponent }],
+    },
+
+    {
+        path: '',
+        component: HomeLayoutCandidateComponent,
+        canActivate: [candidateAuthGuard],
+        children: [{ path: 'home-candidate', component: HomeLayoutCandidateComponent }],
     },
 
     {
@@ -958,8 +969,6 @@ export const routes: Routes = [
             { path: 'product-agv', component: ProductRtcComponent, canActivate: [authGuard] },
             { path: 'material-detail-of-product-rtc', component: MaterialDetailOfProductRtcComponent, canActivate: [authGuard] },
             { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
-
-
             //Nhân dự
             { path: 'hr-hiring-request', component: HrhiringRequestComponent, canActivate: [authGuard] },
             { path: 'job-requirement-hr', component: JobRequirementComponent, canActivate: [authGuard] },

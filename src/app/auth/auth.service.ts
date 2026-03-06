@@ -16,6 +16,9 @@ import { NOTIFICATION_TITLE } from '../app.config';
 export class AuthService {
     private apiUrl = environment.host + 'api/home/';
     private tokenkey = 'token';
+    private candidateTokenKey = 'candidate_token';
+    private candidateExpiresKey = 'candidate_token_expires';
+    private candidateUserKey = 'CurrentUserCandidate';
 
     constructor(
         private http: HttpClient,
@@ -47,6 +50,31 @@ export class AuthService {
             catchError((error) => {
                 // console.error('Login error:', error);
                 this.notification.error(NOTIFICATION_TITLE.error, error.message, {});
+                throw error;
+            })
+        );
+    }
+
+    loginCandidate(credentials: any): Observable<any> {
+        return this.http.post(environment.host + 'api/HRRecruitmentApplicationForm/login-candidate', credentials).pipe(
+            tap((response: any) => {
+                if (response && response.access_token) {
+                    // Lưu token candidate riêng (lấy từ form hoặc mặc định 10 phút)
+                    this.setCandidateToken(response.access_token, credentials.expiry || 10);
+
+                    // Gọi getCurrentCandidate ngay sau khi login thành công
+                    this.getCurrentCandidate().subscribe({
+                        next: (userResponse) => {
+                            this.permissionService.refreshPermissions();
+                        },
+                        error: (error) => {
+                            this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+                        },
+                    });
+                }
+            }),
+            catchError((error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error.message, {});
                 throw error;
             })
         );
@@ -84,8 +112,71 @@ export class AuthService {
             })
         );
     }
+
+    getCurrentCandidate(): Observable<any> {
+        const token = this.getCandidateToken();
+
+        if (!token) {
+            return of(null);
+        }
+
+        const headers = new HttpHeaders({
+            Authorization: `Bearer ${token}`,
+            'x-api-key': environment.apiKey,
+            'Content-Type': 'application/json',
+        });
+
+        return this.http.get(environment.host + 'api/HRRecruitmentApplicationForm/current-candidate', { headers }).pipe(
+            tap((response: any) => {
+                if (response && response.status === 1 && response.data) {
+                    localStorage.setItem(this.candidateUserKey, JSON.stringify(response.data));
+                } else {
+                    console.warn('Invalid response format or no data for candidate:', response);
+                }
+            }),
+            catchError((error) => {
+                if (error.status === 401) {
+                    console.log('Candidate token expired, logging out...');
+                    this.logoutCandidate();
+                }
+                throw error;
+            })
+        );
+    }
+
     getToken(): string | null {
-        return localStorage.getItem(this.tokenkey);
+        const path = window.location.pathname;
+        // Ưu tiên token candidate nếu đang ở khu vực candidate hoặc login-candidate
+        if (path.includes('/home-candidate') || path.includes('/login-candidate')) {
+            const candidateToken = this.getCandidateToken();
+            if (candidateToken) return candidateToken;
+        }
+
+        const mainToken = localStorage.getItem(this.tokenkey);
+        if (mainToken) return mainToken;
+
+        return this.getCandidateToken(); // Fallback cuối cùng
+    }
+
+    setCandidateToken(token: string, expiresMinutes: number): void {
+        const expiresAt = new Date().getTime() + expiresMinutes * 60 * 1000;
+        localStorage.setItem(this.candidateTokenKey, token);
+        localStorage.setItem(this.candidateExpiresKey, expiresAt.toString());
+    }
+
+    getCandidateToken(): string | null {
+        const token = localStorage.getItem(this.candidateTokenKey);
+        const expiresAt = localStorage.getItem(this.candidateExpiresKey);
+
+        if (!token || !expiresAt) return null;
+
+        // Kiểm tra hết hạn
+        if (new Date().getTime() > parseInt(expiresAt)) {
+            this.logoutCandidate();
+            return null;
+        }
+
+        return token;
     }
 
     logout() {
@@ -96,7 +187,21 @@ export class AuthService {
         this.permissionService.refreshPermissions();
     }
 
+    logoutCandidate() {
+        localStorage.removeItem(this.candidateTokenKey);
+        localStorage.removeItem(this.candidateExpiresKey);
+        localStorage.removeItem(this.candidateUserKey);
+        sessionStorage.clear();
+
+        this.permissionService.clearPermissions();
+        this.permissionService.refreshPermissions();
+    }
+
     isLoggedIn(): boolean {
         return !!localStorage.getItem(this.tokenkey);
+    }
+
+    isCandidateLoggedIn(): boolean {
+        return !!this.getCandidateToken();
     }
 }

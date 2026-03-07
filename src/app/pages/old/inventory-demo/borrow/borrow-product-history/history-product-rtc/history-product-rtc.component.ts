@@ -467,6 +467,21 @@ export class HistoryProductRtcComponent
         },
       },
       {
+        id: 'OldBorrower',
+        field: 'OldBorrower',
+        name: 'Người mượn cũ',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
         id: 'DateBorrow',
         field: 'DateBorrow',
         name: 'Ngày mượn',

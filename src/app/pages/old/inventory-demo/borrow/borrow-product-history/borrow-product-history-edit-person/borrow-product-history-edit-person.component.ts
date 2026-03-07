@@ -205,7 +205,10 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
     }
 
     let arrID = this.arrHistoryProductID;
-
+    let previousBorrowerId = 0;
+    if (this.PeopleID != this.NewPeopleID) {
+      previousBorrowerId = this.PeopleID;
+    }
     if (this.addExport) {
       this.loadBilllNumber(); // lấy billnumber
       let billExportTechnical = {
@@ -225,6 +228,7 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
         ApproverID: 0,
         UpdatedDate: new Date().toISOString(),
         WarehouseID: 1,
+        PreviousBorrowerID: previousBorrowerId,
       };
 
       this.borrowService.postSaveBillExportTechnical(billExportTechnical).subscribe({
@@ -265,6 +269,7 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
             data.PeopleID = this.NewPeopleID;
             data.Project = this.Project;
             data.Note = this.Note;
+            data.PreviousBorrowerID = previousBorrowerId;
             // ngày gia hạn đâu
             data.BillExportTechnicalID = this.BillExportTechnicalID;
             this.borrowService.postSaveHistoryProduct(data).subscribe();

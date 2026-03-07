@@ -65,6 +65,9 @@ import { BillExportTechnicalFormComponent } from '../../../../bill-export-techni
 import {
   ID_ADMIN_DEMO_LIST,
   NOTIFICATION_TITLE,
+  NOTIFICATION_TITLE_MAP,
+  NOTIFICATION_TYPE_MAP,
+  RESPONSE_STATUS,
 } from '../../../../../../app.config';
 
 // Directives
@@ -698,11 +701,14 @@ export class HistoryProductRtcComponent
           );
         }
       },
-      error: (error) => {
+      error: (err: any) => {
         this.notification.create(
-          'error',
-          'Lỗi',
-          'Không thể tải dữ liệu. Vui lòng thử lại sau.'
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -764,11 +770,14 @@ export class HistoryProductRtcComponent
           }
         }, 100);
       },
-      error: (error: any) => {
-        this.isLoading = false;
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Lỗi khi tải dữ liệu: ' + (error.message || error)
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -1221,7 +1230,9 @@ export class HistoryProductRtcComponent
       modalRef.componentInstance.ProductName = this.selectedProductName;
       modalRef.componentInstance.ProductCode = this.selectedProductCode;
       modalRef.result.finally(() => {
-        this.loadData();
+        setTimeout(() => {
+          this.filter();
+        }, 500);
       });
     }
   }

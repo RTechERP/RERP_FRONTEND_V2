@@ -37,6 +37,7 @@ import { BorrowService } from '..//../borrow-service/borrow.service';
 import { CommonModule } from '@angular/common';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { catchError, map, Observable, throwError } from 'rxjs';
+import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../../app.config';
 @Component({
   selector: 'app-borrow-product-history-edit-person',
   templateUrl: './borrow-product-history-edit-person.component.html',
@@ -74,6 +75,7 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
   @Input() arrHistoryProductID: any[] = [];
   @Input() ProductCode: any = '';
   @Input() ProductName: any = '';
+  @ViewChild('dateReturnModal') dateReturnModal!: TemplateRef<any>;
 
   employees: any[] = [];
   oldEmployees: any[] = [];
@@ -83,7 +85,8 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
   NewPeopleID: any = 0;
   Note: any = ''
   addExport: any = false;
-  dateExtend: any = new Date().toISOString();
+  dateExtend: any = null;
+  DateReturnExpected: any = null;
   supplier: any = '';
   BillType: any = 0;
   BillExportTechnicalID: any = 0;
@@ -125,19 +128,23 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
           );
         }
       },
-      error: (error) => {
+      error: (err: any) => {
         this.notification.create(
-          'error',
-          'Lỗi',
-          'Không thể tải dữ liệu. Vui lòng thử lại sau.'
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       }
     });
     this.borrowService.getUserHistoryProduct(0).subscribe({
       next: (data) => {
+        console.log(data);
         if (data.status == 1) {
           this.oldEmployees = data.data.map((item: any) => ({
-            title: item.Code + ' - ' + item.FullName,
+            title: item.EmployeeCode + ' - ' + item.FullName,
             value: item.ID
           }));
 
@@ -149,11 +156,14 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
           );
         }
       },
-      error: (error) => {
+      error: (err: any) => {
         this.notification.create(
-          'error',
-          'Lỗi',
-          'Không thể tải dữ liệu. Vui lòng thử lại sau.'
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       }
     });
@@ -184,31 +194,59 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
             );
           }
         },
-        error: (error) => {
+        error: (err: any) => {
           this.notification.create(
-            'error',
-            'Lỗi',
-            'Không thể tải dữ liệu. Vui lòng thử lại sau.'
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
         }
       });
     }
   }
+
   onSubmit() {
     if (this.NewPeopleID == 0 || this.NewPeopleID == null) {
-      this.notification.create(
-        'warning',
-        'Thông báo',
-        'Vui lòng chọn người mượn mới!'
-      );
+      this.notification.create('warning', 'Thông báo', 'Vui lòng chọn người mượn mới!');
       return;
     }
 
-    let arrID = this.arrHistoryProductID;
-    let previousBorrowerId = 0;
     if (this.PeopleID != this.NewPeopleID) {
-      previousBorrowerId = this.PeopleID;
+      // Mở popup nhập ngày trả dự kiến
+      const modalRef = this.modal.create({
+        nzTitle: 'Nhập ngày trả dự kiến',
+        nzContent: this.dateReturnModal,
+        nzOkText: 'Xác nhận',
+        nzCancelText: 'Bỏ qua',
+        nzOnOk: () => {
+          if (!this.dateExtend) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn ngày trả dự kiến!');
+            return false;
+          }
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const selected = new Date(this.dateExtend);
+          selected.setHours(0, 0, 0, 0);
+          if (selected < today) {
+            this.notification.warning('Thông báo', 'Ngày trả dự kiến phải lớn hơn bằng!');
+            return false;
+          }
+          this.doSave();
+          return true;
+        },
+      });
+      return;
     }
+
+    this.doSave();
+  }
+
+  doSave() {
+
+    let arrID = this.arrHistoryProductID;
     if (this.addExport) {
       this.loadBilllNumber(); // lấy billnumber
       let billExportTechnical = {
@@ -228,7 +266,6 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
         ApproverID: 0,
         UpdatedDate: new Date().toISOString(),
         WarehouseID: 1,
-        PreviousBorrowerID: previousBorrowerId,
       };
 
       this.borrowService.postSaveBillExportTechnical(billExportTechnical).subscribe({
@@ -239,11 +276,19 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
             this.notification.warning('Thông báo', 'Không có dữ liệu.');
           }
         },
-        error: () => {
-          this.notification.error('Lỗi', 'Không thể tải dữ liệu. Vui lòng thử lại sau.');
+        error: (err: any) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
         }
       });
     }
+
     arrID.forEach((id, i) => {
       this.borrowService.getHistoryProductRTCByID(id).subscribe({
         next: (resHistory) => {
@@ -265,14 +310,28 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
               this.borrowService.postSaveBillExportDetailTechnical(billExportDetail).subscribe();
 
             }
-            // lưu data mới
-            data.PeopleID = this.NewPeopleID;
+
             data.Project = this.Project;
             data.Note = this.Note;
-            data.PreviousBorrowerID = previousBorrowerId;
-            // ngày gia hạn đâu
             data.BillExportTechnicalID = this.BillExportTechnicalID;
+            data.ParentID = 0;
+            if (this.PeopleID != this.NewPeopleID && this.NewPeopleID != 0) {
+
+              let newBorrow = { ...data };
+
+              newBorrow.ID = 0;
+              newBorrow.PeopleID = this.NewPeopleID;
+              newBorrow.ParentID = this.PeopleID;
+              newBorrow.DateBorrow = new Date().toISOString();
+              newBorrow.DateReturnExpected = this.dateExtend ? new Date(this.dateExtend).toISOString() : null;
+
+              this.borrowService.postSaveHistoryProduct(newBorrow).subscribe();
+
+              data.Status = 0;
+            }
+
             this.borrowService.postSaveHistoryProduct(data).subscribe();
+
           }
         }
       });
@@ -295,16 +354,16 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
           );
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.notification.create(
-          'error',
-          'Lỗi',
-          'Không thể tải dữ liệu. Vui lòng thử lại sau.'
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
-        console.error(err);
       }
     });
   }
-
-
 }

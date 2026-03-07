@@ -67,6 +67,7 @@ import { PONCCService } from '../../poncc/poncc.service';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { ActivatedRoute } from '@angular/router';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
 
 interface Tab {
   id: number;
@@ -271,6 +272,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     private supplierSaleService: SupplierSaleService,
     private ponccService: PONCCService,
     private route: ActivatedRoute,
+    private tabService: TabServiceService,
     @Optional() public activeModal?: NgbActiveModal
   ) { }
 
@@ -3371,46 +3373,46 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           selectedItem.CurrencyRate = newCurrencyRate;
         } else if (field === 'SupplierSaleID') {
           this.OnSupplierSaleChangedSlickGrid(selectedItem);
-
-          // Recalculate totals nếu cần
-          if (
-            [
-              'UnitPrice',
-              'Quantity',
-              'CurrencyRate',
-              'VAT',
-              'CurrencyID',
-            ].includes(field)
-          ) {
-            this.recalculateTotals(selectedItem);
-          }
-
-          // Track changes cho dòng này
-          const selectedRowId = Number(selectedItem.ID || 0);
-          if (selectedRowId > 0) {
-            const existingIndex = this.changedRows.findIndex(
-              (r: any) => Number(r.ID) === selectedRowId
-            );
-            if (existingIndex >= 0) {
-              this.changedRows[existingIndex] = { ...selectedItem };
-            } else {
-              this.changedRows.push({ ...selectedItem });
-            }
-          }
-
-          // Update item in dataView
-          if (selectedItem.id) {
-            angularGrid.dataView.updateItem(selectedItem.id, selectedItem);
-          }
-          hasUpdatedRows = true;
         }
 
-        // Refresh grid nếu có dòng được update
-        if (hasUpdatedRows) {
-          angularGrid.slickGrid.invalidate();
-          angularGrid.slickGrid.render();
-          this.ensureCheckboxSelector(angularGrid);
+        // Recalculate totals nếu cần (áp dụng cho TẤT CẢ các field liên quan)
+        if (
+          [
+            'UnitPrice',
+            'Quantity',
+            'CurrencyRate',
+            'VAT',
+            'CurrencyID',
+          ].includes(field)
+        ) {
+          this.recalculateTotals(selectedItem);
         }
+
+        // Track changes cho dòng này (áp dụng cho TẤT CẢ các field)
+        const selectedRowId = Number(selectedItem.ID || 0);
+        if (selectedRowId > 0) {
+          const existingIndex = this.changedRows.findIndex(
+            (r: any) => Number(r.ID) === selectedRowId
+          );
+          if (existingIndex >= 0) {
+            this.changedRows[existingIndex] = { ...selectedItem };
+          } else {
+            this.changedRows.push({ ...selectedItem });
+          }
+        }
+
+        // Update item in dataView (áp dụng cho TẤT CẢ các field)
+        if (selectedItem.id) {
+          angularGrid.dataView.updateItem(selectedItem.id, selectedItem);
+        }
+        hasUpdatedRows = true;
+      }
+
+      // Refresh grid nếu có dòng được update
+      if (hasUpdatedRows) {
+        angularGrid.slickGrid.invalidate();
+        angularGrid.slickGrid.render();
+        this.ensureCheckboxSelector(angularGrid);
       }
     }
 
@@ -4647,28 +4649,17 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
                             Note: note, // Gán Model từ projectpartlist vào Note
                           };
 
-                          const modalRef = this.modalService.open(
-                            PonccDetailComponent,
-                            {
-                              backdrop: 'static',
-                              keyboard: false,
-                              centered: true,
-                              windowClass: 'full-screen-modal',
+                          // Mở tab mới thay vì modal
+                          this.tabService.openTabComp({
+                            comp: PonccDetailComponent,
+                            title: `Tạo PO NCC - ${poncc.BillCode || 'Mới'}`,
+                            key: `poncc-detail-ycmh-${Date.now()}`,
+                            data: {
+                              poncc: poncc,
+                              ponccDetail: listRequest || [],
+                              isAddPoYCMH: true,
+                              skipBillCodeGeneration: true,
                             }
-                          );
-
-                          // Pass data to modal component
-                          modalRef.componentInstance.poncc = poncc;
-                          modalRef.componentInstance.ponccDetail =
-                            listRequest || [];
-                          modalRef.componentInstance.isAddPoYCMH = true;
-                          // Báo cho PonccDetailComponent biết BillCode đã được gen từ YCMH, không cần gen lại
-                          modalRef.componentInstance.skipBillCodeGeneration =
-                            true;
-
-                          // Reload table after modal closes
-                          modalRef.result.finally(() => {
-                            this.onSearch();
                           });
                         },
                         error: (error) => {
@@ -4793,6 +4784,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       const ProductGroupName = productGroup?.ProductGroupName || '';
 
       // Tạo request object
+      const thanhTien = quantity * unitPrice;
+      const vatMoney = thanhTien * (vat / 100);
       const request = {
         ...row,
         STT: stt,
@@ -4800,11 +4793,11 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         ProductCodeOfSupplier: String(row.ProductName + '-' + row.ProductCode || ''),
         ProductGroupName: ProductGroupName,
         PriceHistory: Number(row.HistoryPrice || 0),
-        VATMoney: totaMoneyVAT,
+        VATMoney: vatMoney,
         VAT: vat,
-        ThanhTien: Number(row.TotalPrice || 0),
+        ThanhTien: thanhTien,
         QtyRequest: Number(row.Quantity || 0),
-        IsBill: totaMoneyVAT > 0 ? true : false,
+        IsBill: vatMoney > 0 ? true : false,
         IsPurchase: false,
         ProjectPartlistPurchaseRequestID: id,
         PONCCDetailRequestBuyID: id.toString()

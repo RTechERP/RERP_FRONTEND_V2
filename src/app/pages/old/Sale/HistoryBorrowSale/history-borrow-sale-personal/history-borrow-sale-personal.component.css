@@ -1,0 +1,47 @@
+/* Color legend */
+.history-borrow-sale-new-color-legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.history-borrow-sale-new-color-box {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.history-borrow-sale-new-color-dual {
+  background-color: #ffff99;
+}
+
+.history-borrow-sale-new-color-overdue {
+  background-color: #ffb3d9;
+}
+
+/* Row colors for SlickGrid */
+:host ::ng-deep .slick-row.row-dual {
+  background-color: #ffff99 !important;
+}
+
+:host ::ng-deep .slick-row.row-overdue {
+  background-color: #ffb3d9 !important;
+}
+
+:host ::ng-deep div[id^="historyBorrowSalePersonalGrid-"] {
+  height: 84.5vh !important;
+}
+
+/* Advanced filters dropdown */
+.history-borrow-sale-new-advanced-filters-container {
+  min-width: 300px;
+  background-color: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.history-borrow-sale-new-advanced-filters-content {
+  background-color: #ffffff;
+}

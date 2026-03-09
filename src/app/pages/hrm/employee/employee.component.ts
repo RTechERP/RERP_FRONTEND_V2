@@ -65,6 +65,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ProjectService } from '../../project/project-service/project.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TeamComponent } from '../team/team.component';
+import { PermissionService } from '../../../services/permission.service';
 
 @Component({
   selector: 'app-employee',
@@ -140,6 +141,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   positionForm!: FormGroup;
   isLoading = false;
   employeeTeam: any[] = [];
+  isSalaryVisible: boolean = false;
 
   constructor(
     private employeeService: EmployeeService,
@@ -150,6 +152,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private projectService: ProjectService,
     private modalService: NgbModal,
+    private permissionService: PermissionService
   ) {
     // Subscribe to EndContract changes
     this.endContractControl.valueChanges.subscribe((checked) => {
@@ -335,6 +338,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.isSalaryVisible = this.permissionService.hasPermission('N1,N2');
     this.initForm();
     this.initSearchForm();
     this.initFormPosition();
@@ -1177,6 +1181,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'LƯƠNG',
+          visible: this.isSalaryVisible,
           columns: [
             {
               title: '',
@@ -1186,7 +1191,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'LuongThuViec',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1200,7 +1206,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'LuongCoBan',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1219,7 +1226,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'AnCa',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1233,7 +1241,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'XangXe',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1247,7 +1256,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'DienThoai',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1261,7 +1271,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'NhaO',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1275,7 +1286,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'TrangPhuc',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1289,7 +1301,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'ChuyenCan',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1303,7 +1316,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'Khac',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1317,7 +1331,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'TongPhuCap',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1336,7 +1351,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'TongLuong',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1351,13 +1367,15 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         },
         {
           title: '',
+          visible: this.isSalaryVisible,
           columns: [
             {
               title: 'Giảm trừ bản thân',
               field: 'GiamTruBanThan',
               hozAlign: 'left',
               headerHozAlign: 'center',
-              formatter(cell) {
+              visible: this.isSalaryVisible,
+              formatter(cell: any) {
                 const value = cell.getValue();
                 if (value === null || value === undefined) return 'đ0';
                 return (
@@ -1370,13 +1388,15 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'GIẢM TRỪ GIA CẢNH',
+          visible: this.isSalaryVisible,
           columns: [
             {
               title: 'Số người PT',
               field: 'SoNguoiPT',
               hozAlign: 'left',
               headerHozAlign: 'center',
-              formatter(cell) {
+              visible: this.isSalaryVisible,
+              formatter(cell: any) {
                 const value = cell.getValue();
                 if (value === null || value === undefined) return 'đ0';
                 return (
@@ -1390,7 +1410,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
               field: 'TongTien',
               hozAlign: 'left',
               headerHozAlign: 'center',
-              formatter(cell) {
+              visible: this.isSalaryVisible,
+              formatter(cell: any) {
                 const value = cell.getValue();
                 if (value === null || value === undefined) return 'đ0';
                 return (
@@ -1403,18 +1424,21 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         },
         {
           title: '',
+          visible: this.isSalaryVisible,
           columns: [
             {
               title: 'MST cá nhân',
               field: 'MST',
               hozAlign: 'left',
               headerHozAlign: 'center',
+              visible: this.isSalaryVisible,
             },
             {
               title: 'STK chuyển lương',
               field: 'STKChuyenLuong',
               hozAlign: 'left',
               headerHozAlign: 'center',
+              visible: this.isSalaryVisible,
             },
           ],
         },
@@ -2596,6 +2620,25 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         Classification: education.Classification,
       })),
     };
+
+    if (!this.isSalaryVisible) {
+      delete (employeeData as any).LuongThuViec;
+      delete (employeeData as any).LuongCoBan;
+      delete (employeeData as any).AnCa;
+      delete (employeeData as any).XangXe;
+      delete (employeeData as any).DienThoai;
+      delete (employeeData as any).NhaO;
+      delete (employeeData as any).TrangPhuc;
+      delete (employeeData as any).ChuyenCan;
+      delete (employeeData as any).Khac;
+      delete (employeeData as any).TongPhuCap;
+      delete (employeeData as any).TongLuong;
+      delete (employeeData as any).GiamTruBanThan;
+      delete (employeeData as any).SoNguoiPT;
+      delete (employeeData as any).TongTien;
+      delete (employeeData as any).MST;
+      delete (employeeData as any).STKChuyenLuong;
+    }
 
     console.log("hihi", employeeData)
     // Lấy dữ liệu từ bảng education

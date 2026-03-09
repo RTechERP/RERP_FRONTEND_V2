@@ -65,9 +65,6 @@ import { BillExportTechnicalFormComponent } from '../../../../bill-export-techni
 import {
   ID_ADMIN_DEMO_LIST,
   NOTIFICATION_TITLE,
-  NOTIFICATION_TITLE_MAP,
-  NOTIFICATION_TYPE_MAP,
-  RESPONSE_STATUS,
 } from '../../../../../../app.config';
 
 // Directives
@@ -81,10 +78,7 @@ import { HistoryProductRtcReturnQrComponent } from '../history-product-rtc-retur
 import { environment } from '../../../../../../../environments/environment';
 
 @Component({
-  selector: 'app-history-product-rtc',
-  templateUrl: './history-product-rtc.component.html',
-  styleUrls: ['./history-product-rtc.component.css'],
-  standalone: true,
+  selector: 'app-history-product-rtc-personal',
   imports: [
     CommonModule,
     FormsModule,
@@ -103,10 +97,10 @@ import { environment } from '../../../../../../../environments/environment';
     NgbModalModule,
     Menubar,
   ],
+  templateUrl: './history-product-rtc-personal.component.html',
+  styleUrl: './history-product-rtc-personal.component.css'
 })
-
-export class HistoryProductRtcComponent
-  implements OnInit, AfterViewInit, OnDestroy {
+export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit, OnDestroy {
   // INTEGRATION: Input/Output để hoạt động như modal
   @Input() isModalMode: boolean = false;
   @Output() productsExported = new EventEmitter<any[]>();
@@ -132,7 +126,7 @@ export class HistoryProductRtcComponent
   selectedProductName: any = '';
   selectedProductCode: any = '';
   selectedProductsMap: Map<number, any> = new Map();
-  gridId: string = `historyProductRtcGrid-`;
+  gridId: string = `historyProductRtcPersonalGrid-`;
   // AngularSlickGrid
   angularGrid!: AngularGridInstance;
   columnDefinitions: Column[] = [];
@@ -160,7 +154,8 @@ export class HistoryProductRtcComponent
     private appUserService: AppUserService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private userService: AppUserService
   ) {
     this.isAdminDemo = ID_ADMIN_DEMO_LIST.includes(this.appUserService.id ?? 0);
   }
@@ -467,21 +462,6 @@ export class HistoryProductRtcComponent
         },
       },
       {
-        id: 'OldBorrower',
-        field: 'OldBorrower',
-        name: 'Người mượn cũ',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
-      {
         id: 'DateBorrow',
         field: 'DateBorrow',
         name: 'Ngày mượn',
@@ -615,52 +595,52 @@ export class HistoryProductRtcComponent
       contextMenu: {
         hideCloseButton: false,
         commandItems: [
-          {
-            command: 'view-history',
-            title: 'Lịch sử gia hạn',
-            iconCssClass: 'fa fa-history',
-            action: (e: any, args: any) => {
-              const rowData = args.dataContext;
-              const id = rowData?.ID || 0;
-              if (id > 0) {
-                this.historyProductRTCLog(id);
-              }
-            },
-          },
-          {
-            command: 'view-detail',
-            title: 'Chi tiết',
-            iconCssClass: 'fa fa-info-circle',
-            action: (e: any, args: any) => {
-              const rowData = args.dataContext;
-              this.openDetailTab(rowData);
-            },
-          },
-          {
-            command: 'view-bill-export',
-            title: 'Xem phiếu xuất',
-            iconCssClass: 'fa fa-file-text-o',
-            action: (e: any, args: any) => {
-              const rowData = args.dataContext;
-              this.showBillExport(rowData);
-            },
-          },
-          {
-            command: 'delete',
-            title: 'Xóa',
-            iconCssClass: 'fa fa-trash',
-            // Chỉ Admin Demo mới có quyền xóa
-            itemVisibilityOverride: () => {
-              return (ID_ADMIN_DEMO_LIST.includes(this.appUserService.id ?? 0) || this.appUserService.isAdmin);
-            },
-            action: (e: any, args: any) => {
-              const rowData = args.dataContext;
-              const id = rowData?.ID || 0;
-              if (id > 0) {
-                this.deleteHistoryProduct([id]);
-              }
-            },
-          },
+          // {
+          //   command: 'view-history',
+          //   title: 'Lịch sử gia hạn',
+          //   iconCssClass: 'fa fa-history',
+          //   action: (e: any, args: any) => {
+          //     const rowData = args.dataContext;
+          //     const id = rowData?.ID || 0;
+          //     if (id > 0) {
+          //       this.historyProductRTCLog(id);
+          //     }
+          //   },
+          // },
+          // {
+          //   command: 'view-detail',
+          //   title: 'Chi tiết',
+          //   iconCssClass: 'fa fa-info-circle',
+          //   action: (e: any, args: any) => {
+          //     const rowData = args.dataContext;
+          //     this.openDetailTab(rowData);
+          //   },
+          // },
+          // {
+          //   command: 'view-bill-export',
+          //   title: 'Xem phiếu xuất',
+          //   iconCssClass: 'fa fa-file-text-o',
+          //   action: (e: any, args: any) => {
+          //     const rowData = args.dataContext;
+          //     this.showBillExport(rowData);
+          //   },
+          // },
+          // {
+          //   command: 'delete',
+          //   title: 'Xóa',
+          //   iconCssClass: 'fa fa-trash',
+          //   // Chỉ Admin Demo mới có quyền xóa
+          //   itemVisibilityOverride: () => {
+          //     return (ID_ADMIN_DEMO_LIST.includes(this.appUserService.id ?? 0) || this.appUserService.isAdmin);
+          //   },
+          //   action: (e: any, args: any) => {
+          //     const rowData = args.dataContext;
+          //     const id = rowData?.ID || 0;
+          //     if (id > 0) {
+          //       this.deleteHistoryProduct([id]);
+          //     }
+          //   },
+          // },
         ],
       },
       // Config xuất excel
@@ -716,14 +696,11 @@ export class HistoryProductRtcComponent
           );
         }
       },
-      error: (err: any) => {
+      error: (error) => {
         this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
+          'error',
+          'Lỗi',
+          'Không thể tải dữ liệu. Vui lòng thử lại sau.'
         );
       },
     });
@@ -732,6 +709,7 @@ export class HistoryProductRtcComponent
   loadData() {
     this.isLoading = true;
 
+    const employeeID = this.userService.id ?? 0;
     // Single API call with large pageSize to load all data at once
     const params = {
       keyWords: this.keyWords?.trim() || '',
@@ -742,7 +720,7 @@ export class HistoryProductRtcComponent
         ? this.borrowService.formatDateVN(new Date(this.dateEnd as any))
         : '',
       warehouseID: this.warehouseID ?? 0,
-      userID: this.userID ?? 0,
+      userID: employeeID,
       status:
         this.selectedStatus && this.selectedStatus.length > 0
           ? this.selectedStatus.join(',')
@@ -785,14 +763,11 @@ export class HistoryProductRtcComponent
           }
         }, 100);
       },
-      error: (err: any) => {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
+      error: (error: any) => {
+        this.isLoading = false;
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi khi tải dữ liệu: ' + (error.message || error)
         );
       },
     });
@@ -1245,9 +1220,7 @@ export class HistoryProductRtcComponent
       modalRef.componentInstance.ProductName = this.selectedProductName;
       modalRef.componentInstance.ProductCode = this.selectedProductCode;
       modalRef.result.finally(() => {
-        setTimeout(() => {
-          this.filter();
-        }, 500);
+        this.loadData();
       });
     }
   }
@@ -1496,14 +1469,14 @@ export class HistoryProductRtcComponent
           this.returnProduct();
         },
       },
-      {
-        label: 'Duyệt mượn',
-        icon: 'fa-solid fa-circle-check text-success',
-        visible: this.permissionService.hasPermission('N26,N1,N80'),
-        command: () => {
-          this.approveBorrowing();
-        },
-      },
+      // {
+      //   label: 'Duyệt mượn',
+      //   icon: 'fa-solid fa-circle-check text-success',
+      //   visible: this.permissionService.hasPermission('N26,N1,N80'),
+      //   command: () => {
+      //     this.approveBorrowing();
+      //   },
+      // },
       {
         label: 'Làm mới',
         icon: 'fa-solid fa-spinner text-primary',
@@ -1511,21 +1484,21 @@ export class HistoryProductRtcComponent
           this.refresh();
         },
       },
-      {
-        label: 'Sửa người mượn',
-        icon: 'fa fa-pencil text-primary',
-        visible: this.permissionService.hasPermission('N26,N1,N34,N80'),
-        command: () => {
-          this.editBorrower();
-        },
-      },
-      {
-        label: 'Quá hạn',
-        icon: 'fa-solid fa-calendar-xmark text-danger',
-        command: () => {
-          this.expiredProduct();
-        },
-      },
+      // {
+      //   label: 'Sửa người mượn',
+      //   icon: 'fa fa-pencil text-primary',
+      //   visible: this.permissionService.hasPermission('N26,N1,N34,N80'),
+      //   command: () => {
+      //     this.editBorrower();
+      //   },
+      // },
+      // {
+      //   label: 'Quá hạn',
+      //   icon: 'fa-solid fa-calendar-xmark text-danger',
+      //   command: () => {
+      //     this.expiredProduct();
+      //   },
+      // },
       {
         label: 'Xuất Excel',
         icon: 'fa-solid fa-file-excel text-success',
@@ -1617,4 +1590,5 @@ export class HistoryProductRtcComponent
     );
   }
   //#endregion
+
 }

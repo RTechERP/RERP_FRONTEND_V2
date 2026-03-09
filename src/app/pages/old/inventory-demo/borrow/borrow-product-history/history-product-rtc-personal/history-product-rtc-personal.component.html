@@ -23,14 +23,14 @@
     </div>
     <div class="filter-bar bg-light border-bottom p-2 py-0" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
       <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
-        <nz-form-item>
+        <nz-form-item class="m-0">
           <nz-form-label class="fs-12">Từ ngày</nz-form-label>
           <nz-form-control>
             <nz-date-picker nzFormat="dd/MM/yyyy" class="w-100" [(ngModel)]="dateStart" nzAllowClear="false"
               name="dateStart" nzSize="small"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
-        <nz-form-item class="mt-0">
+        <nz-form-item class="m-0">
           <nz-form-label class="fs-12">Đến ngày</nz-form-label>
           <nz-form-control>
             <nz-date-picker nzFormat="dd/MM/yyyy" class="w-100" [(ngModel)]="dateEnd" nzAllowClear="false"
@@ -53,7 +53,7 @@
             </nz-select>
           </nz-form-control>
         </nz-form-item> -->
-        <nz-form-item>
+        <nz-form-item class="m-0">
           <nz-form-label class="fs-12">Trạng thái</nz-form-label>
           <nz-form-control>
             <nz-select [(ngModel)]="selectedStatus" nzAllowClear nzShowSearch (ngModelChange)="onStatusChange($event)"
@@ -71,7 +71,7 @@
             </nz-select>
           </nz-form-control>
         </nz-form-item>
-        <nz-form-item>
+        <nz-form-item class="m-0">
           <nz-form-label class="fs-12">Từ khóa</nz-form-label>
           <nz-form-control>
             <input name="keyword" nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWords" nzSize="small" />

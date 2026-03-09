@@ -472,10 +472,15 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    const searchData = this.searchForm.value || {};
+    const status = searchData.status || 0;
+    const department = searchData.department || 0;
+    const keyword = searchData.keyword || '';
+
     this.isLoading = true;
-    this.employeeService.getEmployees().subscribe({
+    this.employeeService.filterEmployee(status, department, keyword).subscribe({
       next: (data) => {
-        this.employees = data.data || [];
+        this.employees = Array.isArray(data.data) ? data.data : (data.data ? [data.data] : []);
         this.tabulatorEmployee.setData(this.employees).then(() => {
           this.isLoading = false;
         });
@@ -2707,19 +2712,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   //#endregion
 
   onSearch() {
-    const searchData = this.searchForm.value;
-    this.employeeService
-      .filterEmployee(
-        searchData.status || 0,
-        searchData.department || 0,
-        searchData.keyword || ''
-      )
-      .subscribe({
-        next: (data: any) => {
-          const result = Array.isArray(data.data) ? data.data : [data.data];
-          this.tabulatorEmployee.setData(result);
-        },
-      });
+    this.loadEmployees();
   }
 
   resetSearch() {

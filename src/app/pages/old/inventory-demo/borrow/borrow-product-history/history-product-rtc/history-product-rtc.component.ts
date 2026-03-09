@@ -1005,6 +1005,10 @@ export class HistoryProductRtcComponent
                   }
                 }
 
+                if (rowData.PeopleID != userId && !isGlobalAdmin && !isAdmin) {
+                  continue;
+                }
+
                 validItems.push({ id, modulaLocationDetailID });
               } catch (error) {
                 // Bỏ qua item này và tiếp tục

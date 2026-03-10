@@ -721,8 +721,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
-      frozenColumn: 5
-      frozenColumn: 4,
+      frozenColumn: 5,
       contextMenu: {
         hideCloseButton: false,
         commandTitle: '',

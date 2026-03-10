@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/Sale/ListProductProject/list-product-project.component.css"],
+  "sourcesContent": [":host ::ng-deep div[id^=\"listProductProjectGrid-\"] {\r\n  height: 85vh !important;\r\n}\r\n\r\n.list-product-project-fs-12 {\r\n  font-size: 0.75rem !important;\r\n}\r\n\r\n.list-product-project-grid-container {\r\n  width: 100%;\r\n  height: 100%;\r\n}\r\n\r\n:host ::ng-deep\r\n  .slickgrid-container\r\n  .slick-footerrow\r\n  .slick-footerrow-columns\r\n  .slick-footerrow-column {\r\n  border-right: 1px solid #ddd !important;\r\n  justify-content: end !important;\r\n}\r\n\r\n/* C\u0103n ph\u1EA3i pagination */\r\n:host ::ng-deep .slick-pagination {\r\n  display: flex;\r\n  justify-content: end;\r\n}\r\n\r\n:host ::ng-deep .slick-pagination-count,\r\n:host ::ng-deep .text-item-per-page {\r\n  display: none !important;\r\n}\r\n"],
+  "mappings": "AAAA,MAAM,UAAU,GAAG,CAAC,6BAClB,OAAQ,cACV,CAEA,CAAC,2BACC,UAAW,gBACb,CAEA,CAAC,oCACC,MAAO,KACP,OAAQ,IACV,CAEA,MAAM,UACJ,CAAC,oBACD,CAAC,gBACD,CAAC,wBACD,CAAC,uBACD,aAAc,IAAI,MAAM,eACxB,gBAAiB,aACnB,CAGA,MAAM,UAAU,CAAC,iBACf,QAAS,KACT,gBAAiB,GACnB,CAEA,MAAM,UAAU,CAAC,uBACjB,MAAM,UAAU,CAAC,mBACf,QAAS,cACX",
+  "names": []
+}

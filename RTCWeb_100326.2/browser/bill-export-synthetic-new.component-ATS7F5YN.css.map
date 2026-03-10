@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/Sale/BillExport/Modal/bill-export-synthetic-new/bill-export-synthetic-new.component.css"],
+  "sourcesContent": ["::ng-deep div[id^=\"billExportSyntheticGrid-\"] {\r\n  height: 82vh !important;\r\n}\r\n\r\n/* Grid container */\r\n.grid-container {\r\n  height: 78vh;\r\n  width: 100%;\r\n}\r\n\r\n/* Right align for numeric columns */\r\n::ng-deep .text-right {\r\n  text-align: right !important;\r\n}\r\n\r\n/* Center align */\r\n::ng-deep .text-center {\r\n  text-align: center !important;\r\n}\r\n\r\n::ng-deep .slick-headerrow-column input {\r\n  font-family: 'Roboto', sans-serif !important;\r\n  font-size: 12px !important;\r\n}\r\n"],
+  "mappings": "AAAA,UAAU,GAAG,CAAC,8BACZ,OAAQ,cACV,CAGA,CAAC,eACC,OAAQ,KACR,MAAO,IACT,CAGA,UAAU,CAAC,WACT,WAAY,eACd,CAGA,UAAU,CAAC,YACT,WAAY,gBACd,CAEA,UAAU,CAAC,uBAAuB,MAChC,YAAa,MAAQ,CAAE,qBACvB,UAAW,cACb",
+  "names": []
+}

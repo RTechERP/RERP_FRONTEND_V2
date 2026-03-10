@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/bill-import-technical/check-history-tech/check-history-tech.component.css"],
+  "sourcesContent": [".filter-section {\r\n  padding: 16px;\r\n  background: #f5f5f5;\r\n  border-radius: 4px;\r\n  margin-bottom: 16px;\r\n}\r\n\r\n.filter-section label {\r\n  display: block;\r\n  margin-bottom: 4px;\r\n  font-weight: 500;\r\n}\r\n\r\n.grid-container {\r\n  width: 100%;\r\n  height: calc(100vh - 300px);\r\n  min-height: 400px;\r\n}\r\n\r\n::ng-deep .row-warning {\r\n  background-color: #fff3cd !important;\r\n}\r\n\r\n::ng-deep .row-selected {\r\n  background-color: #cce5ff !important;\r\n}\r\n\r\n::ng-deep .slick-row.row-warning:hover {\r\n  background-color: #ffe69c !important;\r\n}\r\n\r\n::ng-deep .slick-row.row-selected:hover {\r\n  background-color: #99d1ff !important;\r\n}\r\n\r\n"],
+  "mappings": "AAAA,CAAC,eAAD,QACW,KACT,WAAY,QAFd,cAGiB,IACf,cAAe,IACjB,CAEA,CAPC,eAOe,MACd,QAAS,MACT,cAAe,IACf,YAAa,GACf,CAEA,CAAC,eACC,MAAO,KACP,OAAQ,KAAK,MAAM,EAAE,OACrB,WAAY,KACd,CAEA,UAAU,CAAC,YACT,iBAAkB,iBACpB,CAEA,UAAU,CAAC,aACT,iBAAkB,iBACpB,CAEA,UAAU,CAAC,SAAS,CART,WAQqB,OAC9B,iBAAkB,iBACpB,CAEA,UAAU,CAJC,SAIS,CART,YAQsB,OAC/B,iBAAkB,iBACpB",
+  "names": []
+}

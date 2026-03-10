@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/Course/summary-of-exam-results/summary-of-exam-results.component.css"],
+  "sourcesContent": [":host {\r\n  font-size: 12px !important;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 12px;\r\n}\r\n\r\n.box {\r\n  height: 100%;\r\n  width: 100%;\r\n}\r\n\r\n.card {\r\n  display: flex;\r\n  flex-direction: column;\r\n  height: 100%;\r\n}\r\n\r\n.card-body {\r\n  flex: 1;\r\n  overflow: hidden;\r\n}\r\n\r\n.ant-splitter-panel {\r\n  position: relative;\r\n}\r\n\r\n.ant-splitter {\r\n  height: 100% !important;\r\n}\r\n\r\n"],
+  "mappings": "AAAA,MACE,UAAW,cACb,CAEA,CAAC,UACC,UAAW,IACb,CAEA,CAAC,IACC,OAAQ,KACR,MAAO,IACT,CAEA,CAAC,KACC,QAAS,KACT,eAAgB,OAChB,OAAQ,IACV,CAEA,CAAC,UACC,KAAM,EACN,SAAU,MACZ,CAEA,CAAC,mBACC,SAAU,QACZ,CAEA,CAAC,aACC,OAAQ,cACV",
+  "names": []
+}

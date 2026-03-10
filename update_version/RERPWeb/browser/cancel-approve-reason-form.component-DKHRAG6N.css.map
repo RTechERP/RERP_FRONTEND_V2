@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/job-requirement/cancel-approve-reason-form/cancel-approve-reason-form.component.css"],
+  "sourcesContent": [".modal-body {\r\n  min-height: 150px;\r\n}\r\n\r\ntextarea {\r\n  resize: vertical;\r\n}\r\n\r\n"],
+  "mappings": "AAAA,CAAC,WACC,WAAY,KACd,CAEA,SACE,OAAQ,QACV",
+  "names": []
+}

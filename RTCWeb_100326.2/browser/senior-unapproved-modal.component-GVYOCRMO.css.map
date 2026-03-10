@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/person/approve-tp/senior-unapproved-modal/senior-unapproved-modal.component.css"],
+  "sourcesContent": [".btn-close,\r\n.modal-header .btn-close {\r\n    background-color: #dc3545 !important;\r\n    /* background-image: none !important; */\r\n    font-weight: bold;\r\n    font-size: 1.5rem;\r\n}"],
+  "mappings": "AAAA,CAAC,UACD,CAAC,aAAa,CADb,UAEG,iBAAkB,kBAElB,YAAa,IACb,UAAW,MACf",
+  "names": []
+}

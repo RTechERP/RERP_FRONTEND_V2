@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/pokh-history/import-excel/import-excel.component.css"],
+  "sourcesContent": [".card {\r\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\r\n}\r\n\r\n.form-label {\r\n  font-size: 14px;\r\n  color: #333;\r\n}\r\n\r\n.form-control {\r\n  border-radius: 4px;\r\n}\r\n\r\n.form-control:focus {\r\n  border-color: #40a9ff;\r\n  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);\r\n}\r\n\r\n.card-header {\r\n  border-bottom: 1px solid #e8e8e8;\r\n  padding: 12px 16px;\r\n}\r\n\r\n.modal-body {\r\n  background-color: #fafafa;\r\n}\r\n\r\n.card-body {\r\n  background-color: #fff;\r\n}\r\n\r\n"],
+  "mappings": "AAAA,CAAC,KACC,WAAY,EAAE,IAAI,IAAI,SACxB,CAEA,CAAC,WACC,UAAW,KACX,MAAO,IACT,CAEA,CAAC,aATD,cAUiB,GACjB,CAEA,CAJC,YAIY,OACX,aAAc,QACd,WAAY,EAAE,EAAE,EAAE,IAAI,SACxB,CAEA,CAAC,YACC,cAAe,IAAI,MAAM,QAnB3B,QAoBW,KAAK,IAChB,CAEA,CAAC,WACC,iBAAkB,OACpB,CAEA,CAAC,UACC,iBAAkB,IACpB",
+  "names": []
+}

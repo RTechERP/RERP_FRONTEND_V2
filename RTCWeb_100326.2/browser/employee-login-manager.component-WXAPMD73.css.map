@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/employee/employee-login-manager/employee-login-manager.component.css"],
+  "sourcesContent": [".ant-form-item-label {\r\n    padding: 0px !important;\r\n  }\r\n  \r\n  /* Ho\u1EB7c target c\u1EE5 th\u1EC3 h\u01A1n */\r\n  nz-form-label .ant-form-item-label {\r\n    padding: 0px !important;\r\n  }"],
+  "mappings": "AAAA,CAAC,oBAAD,QACa,WACX,CAGA,cAAc,CALf,oBAAD,QAMa,WACX",
+  "names": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/employee-management/employee-curriculart/employee-curricular/employee-curricular.component.css"],
+  "sourcesContent": [":host {\r\n  font-size: 12px !important;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 12px;\r\n}\r\n\r\n.my-tall-modal .modal-dialog {\r\n  max-width: 900px;   /* chi\u1EC1u r\u1ED9ng */\r\n  width: 75vw;         /* ho\u1EB7c t\u1EF1 \u0111\u1EB7t % */\r\n  height: 80vh;       /* chi\u1EC1u cao 80% viewport */\r\n  margin: auto;\r\n}\r\n\r\n.my-tall-modal .modal-content {\r\n  height: 50vh;       /* chi\u1EBFm to\u00E0n b\u1ED9 chi\u1EC1u cao dialog */\r\n  display: flex;\r\n  flex-direction: column;\r\n}\r\n\r\n.my-tall-modal .modal-body {\r\n  flex: 1 1 auto;     /* modal body co gi\u00E3n theo chi\u1EC1u cao */\r\n  overflow-y: auto;   /* b\u1EADt scroll n\u1EBFu n\u1ED9i dung d\u00E0i */\r\n}"],
+  "mappings": "AAAA,MACE,UAAW,cACb,CAEA,CAAC,UACC,UAAW,IACb,CAEA,CAAC,cAAc,CAAC,aACd,UAAW,MACX,MAAO,KACP,OAAQ,KAXV,OAYU,IACV,CAEA,CAPC,cAOc,CAAC,cACd,OAAQ,KACR,QAAS,KACT,eAAgB,MAClB,CAEA,CAbC,cAac,CAAC,WACd,KAAM,EAAE,EAAE,KACV,WAAY,IACd",
+  "names": []
+}

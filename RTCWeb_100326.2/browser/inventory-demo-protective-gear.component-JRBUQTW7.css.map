@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/product-protective-gear/inventory-demo-protective-gear/inventory-demo-protective-gear.component.css"],
+  "sourcesContent": ["::ng-deep #grid-container-product-group-demo {\r\n    height: 89vh !important;\r\n}\r\n\r\n::ng-deep #grid-container-product-rtc-demo {\r\n    height: 89vh !important;\r\n}\r\n\r\n/* Container - fit screen without browser scroll */\r\n:host {\r\n    display: block;\r\n    height: calc(100vh - 50px);\r\n    max-height: calc(100vh - 50px);\r\n    overflow: hidden;\r\n}\r\n\r\n.card {\r\n    height: 100%;\r\n    max-height: 100%;\r\n    overflow: hidden;\r\n}\r\n\r\n.grid-container-product-rtc-demo {\r\n    overflow: auto;\r\n    /* height: calc(100vh - 110px) !important; */\r\n}"],
+  "mappings": "AAAA,UAAU,CAAC,kCACP,OAAQ,cACZ,CAEA,UAAU,CAAC,gCACP,OAAQ,cACZ,CAGA,MACI,QAAS,MACT,OAAQ,KAAK,MAAM,EAAE,MACrB,WAAY,KAAK,MAAM,EAAE,MACzB,SAAU,MACd,CAEA,CAAC,KACG,OAAQ,KACR,WAAY,KACZ,SAAU,MACd,CAEA,CAlBW,gCAmBP,SAAU,IAEd",
+  "names": []
+}

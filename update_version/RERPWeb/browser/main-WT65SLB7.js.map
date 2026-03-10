@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/main.ts"],
+  "sourcesContent": ["import { bootstrapApplication } from '@angular/platform-browser';\r\nimport { appConfig } from './app/app.config';\r\nimport { AppComponent } from './app/app.component';\r\nimport { NZ_I18N, vi_VN } from 'ng-zorro-antd/i18n';\r\nimport { registerLocaleData } from '@angular/common';\r\nimport vi from '@angular/common/locales/vi';\r\nimport { warn } from 'ng-zorro-antd/core/logger';\r\n\r\ndeclare const Slick: any;\r\n\r\nif (typeof Slick !== 'undefined') {\r\n    Slick.Logger = {\r\n        warn: () => { },\r\n        info: () => { },\r\n        error: console.error\r\n    }\r\n}\r\n\r\nregisterLocaleData(vi);\r\n\r\nbootstrapApplication(AppComponent, appConfig).catch((err) =>\r\n    console.error(err)\r\n);\r\n"],
+  "mappings": "uSAUI,OAAOA,MAAU,MACjBA,MAAMC,OAAS,CACXC,KAAMA,IAAK,CAAG,EACdC,KAAMA,IAAK,CAAG,EACdC,MAAOC,QAAQD,QAIvBE,EAAmBC,CAAE,EAErBC,EAAqBC,EAAcC,CAAS,EAAEC,MAAOC,GACjDP,QAAQD,MAAMQ,CAAG,CAAC",
+  "names": ["Slick", "Logger", "warn", "info", "error", "console", "registerLocaleData", "vi", "bootstrapApplication", "AppComponent", "appConfig", "catch", "err"]
+}

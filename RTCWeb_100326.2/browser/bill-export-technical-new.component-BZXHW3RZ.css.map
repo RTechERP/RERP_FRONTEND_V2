@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/bill-export-technical/bill-export-technical-new/bill-export-technical-new.component.css"],
+  "sourcesContent": ["::ng-deep div[id^=\"billExportTechnicalGrid-\"] {\r\n  min-height: 50vh !important;\r\n  max-height: 80vh !important;\r\n}\r\n"],
+  "mappings": "AAAA,UAAU,GAAG,CAAC,8BACZ,WAAY,eACZ,WAAY,cACd",
+  "names": []
+}

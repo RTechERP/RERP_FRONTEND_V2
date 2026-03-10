@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/Technical/kpi-evaluation-factors/copy-kpi-exam/copy-kpi-exam.component.css"],
+  "sourcesContent": [".modal-header {\r\n    border-bottom: none;\r\n}\r\n\r\n.modal-footer {\r\n    border-top: 1px solid #e8e8e8;\r\n}\r\n\r\n::ng-deep .ant-card-head {\r\n    min-height: 40px;\r\n    padding: 0 12px;\r\n    background-color: #f5f5f5;\r\n}\r\n\r\n::ng-deep .ant-card-head-title {\r\n    padding: 8px 0;\r\n    font-weight: 600;\r\n    font-size: 13px;\r\n}\r\n\r\n::ng-deep .ant-card-body {\r\n    padding: 12px;\r\n}\r\n\r\n::ng-deep .ant-form-item {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n::ng-deep .ant-form-item:last-child {\r\n    margin-bottom: 0;\r\n}\r\n\r\n::ng-deep .ant-form-item-label>label {\r\n    font-size: 12px;\r\n    color: #333;\r\n}"],
+  "mappings": "AAAA,CAAC,aACG,cAAe,IACnB,CAEA,CAAC,aACG,WAAY,IAAI,MAAM,OAC1B,CAEA,UAAU,CAAC,cACP,WAAY,KAThB,QAUa,EAAE,KACX,iBAAkB,OACtB,CAEA,UAAU,CAAC,oBAdX,QAea,IAAI,EACb,YAAa,IACb,UAAW,IACf,CAEA,UAAU,CAAC,cApBX,QAqBa,IACb,CAEA,UAAU,CAAC,cACP,cAAe,IACnB,CAEA,UAAU,CAJC,aAIa,YACpB,cAAe,CACnB,CAEA,UAAU,CAAC,mBAAmB,CAAC,MAC3B,UAAW,KACX,MAAO,IACX",
+  "names": []
+}

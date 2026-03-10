@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/Technical/kpi-error/kpi-error-fine-amount/kpi-error-fine-amount.component.css"],
+  "sourcesContent": ["#grid-container {\r\n    width: 100%;\r\n    height: 350px;\r\n}\r\n\r\n:host ::ng-deep .slick-cell {\r\n    padding: 4px 8px;\r\n}\r\n\r\n:host ::ng-deep .slick-header-column {\r\n    font-weight: bold;\r\n}"],
+  "mappings": "AAAA,CAAC,eACG,MAAO,KACP,OAAQ,KACZ,CAEA,MAAM,UAAU,CAAC,WALjB,QAMa,IAAI,GACjB,CAEA,MAAM,UAAU,CAAC,oBACb,YAAa,GACjB",
+  "names": []
+}

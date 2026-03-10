@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/hrhiring-request/hrhiring-request.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n  all: revert;\r\n}\r\n\r\n.ant-splitter-panel {\r\n  position: relative;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n  position: absolute;\r\n  width: 100%;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.inner-content {\r\n  padding: 0 !important;\r\n}\r\n\r\n.ant-tabs-tab-btn {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {\r\n  color: #141a24 !important;\r\n  opacity: 1 !important;\r\n  padding: 4px !important;\r\n  padding-left: 12px !important;\r\n}\r\n:host\r\n  ::ng-deep\r\n  nz-tabset.approval-tabs\r\n  .ant-tabs-tab.ant-tabs-tab-active\r\n  .ant-tabs-tab-btn {\r\n  color: #0e1114 !important;\r\n  font-weight: 600;\r\n}\r\n:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {\r\n  background: #1677ff !important;\r\n}\r\n\r\n::ng-deep .ant-splitter-panel {\r\n  height: 94vh !important;\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,mBACC,SAAU,QACZ,CAEA,CAAC,UACC,UAAW,OACX,SAAU,SACV,MAAO,IACT,CAEA,CAAC,eAlBD,QAmBW,CACX,CAEA,CAAC,cAtBD,QAuBW,WACX,CAEA,CAAC,iBACC,UAAW,MACb,CAEA,MAAM,UAAU,SAAS,CAAC,cAAc,CAJvC,iBAKC,MAAO,kBACP,QAAS,YAhCX,QAiCW,YACK,cAChB,CACA,MACE,UACA,SAAS,CARe,cASxB,CAAC,YAAY,CAAC,oBACd,CAdD,iBAeC,MAAO,kBACP,YAAa,GACf,CACA,MAAM,UAAU,SAAS,CAdC,cAcc,CAAC,iBACvC,WAAY,iBACd,CAEA,UAAU,CAxCT,mBAyCC,OAAQ,cACV",
+  "names": []
+}

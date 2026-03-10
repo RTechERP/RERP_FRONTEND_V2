@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/employee-management/employee-bussiness/employee-bussiness-summary/employee-bussiness-summary.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 12px;\r\n}\r\n\r\n::ng-deep .modal-fullscreen {\r\n  max-width: 100%;\r\n  margin: 0;\r\n  height: 100vh;\r\n}\r\n\r\n::ng-deep .modal-fullscreen .modal-content {\r\n  height: 100vh;\r\n  border-radius: 0;\r\n}\r\n\r\n::ng-deep .tabulator {\r\n  font-size: 12px !important;\r\n}\r\n\r\n::ng-deep .tabulator-header {\r\n  background-color: #f5f5f5;\r\n  font-weight: bold;\r\n  font-size: 12px !important;\r\n}\r\n\r\n::ng-deep .tabulator-col {\r\n  font-size: 12px !important;\r\n}\r\n\r\n::ng-deep .tabulator-col-title {\r\n  font-size: 12px !important;\r\n}\r\n\r\n::ng-deep .tabulator-row {\r\n  min-height: 30px;\r\n  font-size: 12px !important;\r\n}\r\n\r\n::ng-deep .tabulator-cell {\r\n  padding: 4px 8px;\r\n  font-size: 12px !important;\r\n}\r\n\r\n\r\n"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,IACb,CAEA,UAAU,CAAC,iBACT,UAAW,KALb,OAMU,EACR,OAAQ,KACV,CAEA,UAAU,CANC,iBAMiB,CAAC,cAC3B,OAAQ,MAXV,cAYiB,CACjB,CAEA,UAAU,CAAC,UACT,UAAW,cACb,CAEA,UAAU,CAAC,iBACT,iBAAkB,QAClB,YAAa,IACb,UAAW,cACb,CAEA,UAAU,CAAC,cACT,UAAW,cACb,CAEA,UAAU,CAAC,oBACT,UAAW,cACb,CAEA,UAAU,CAAC,cACT,WAAY,KACZ,UAAW,cACb,CAEA,UAAU,CAAC,eAtCX,QAuCW,IAAI,IACb,UAAW,cACb",
+  "names": []
+}

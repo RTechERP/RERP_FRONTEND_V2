@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/Technical/search-product-tech-serial/search-product-tech-serial.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem !important;\r\n}\r\n\r\n::ng-deep\r\n  .slickgrid-container\r\n  .slick-footerrow\r\n  .slick-footerrow-columns\r\n  .slick-footerrow-column {\r\n  border-right: 1px solid #ddd !important;\r\n}\r\n\r\n.ant-splitter {\r\n  height: 90vh !important;\r\n}\r\n\r\n::ng-deep .ant-card-body {\r\n  padding: 2px !important;\r\n}\r\n\r\n::ng-deep .ant-card-head {\r\n  padding-left: 6px !important;\r\n  text-transform: uppercase;\r\n}\r\n\r\n::ng-deep div[id^=\"gridExportTech-\"] {\r\n  height: 85vh !important;\r\n}\r\n\r\n::ng-deep div[id^=\"gridImportTech-\"] {\r\n  height: 85vh !important;\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,gBACb,CAEA,UACE,CAAC,oBACD,CAAC,gBACD,CAAC,wBACD,CAAC,uBACD,aAAc,IAAI,MAAM,cAC1B,CAEA,CAAC,aACC,OAAQ,cACV,CAEA,UAAU,CAAC,cAhBX,QAiBW,aACX,CAEA,UAAU,CAAC,cACT,aAAc,cACd,eAAgB,SAClB,CAEA,UAAU,GAAG,CAAC,qBACZ,OAAQ,cACV,CAEA,UAAU,GAAG,CAAC,qBACZ,OAAQ,cACV",
+  "names": []
+}

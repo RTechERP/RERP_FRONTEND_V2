@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/org-chart-rtc/org-chart-rtc-management/org-chart-rtc-management.component.css"],
+  "sourcesContent": [".master-section,\r\n.detail-section {\r\n    height: 100%;\r\n    display: flex;\r\n    flex-direction: column;\r\n}\r\n\r\n.master-grid-container,\r\n.detail-grid-container {\r\n    flex: 1;\r\n    overflow: hidden;\r\n}\r\n\r\n.detail-header {\r\n    padding: 8px;\r\n    background: #f5f5f5;\r\n    border-bottom: 1px solid #ddd;\r\n}\r\n\r\n.badge {\r\n    font-size: 12px;\r\n    padding: 4px 8px;\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,eACD,CAAC,eACG,OAAQ,KACR,QAAS,KACT,eAAgB,MACpB,CAEA,CAAC,sBACD,CAAC,sBACG,KAAM,EACN,SAAU,MACd,CAEA,CAAC,cAbD,QAca,IACT,WAAY,QACZ,cAAe,IAAI,MAAM,IAC7B,CAEA,CAAC,MACG,UAAW,KApBf,QAqBa,IAAI,GACjB",
+  "names": []
+}

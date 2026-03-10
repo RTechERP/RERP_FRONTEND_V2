@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["angular:styles/component:css;e3ca547edf929108850c2bc202ac3cc3468f24b5c167eaec397ae441e9f7149a;D:/LeTheAnh/RTC/Project/2025/SourceCode/RTC.25.008/FontEnd/RERP/RERP_FRONTEND_V2/src/app/pages/hrm/vehicle/vehicle-booking-management/date-time-picker-editor.component.ts"],
+  "sourcesContent": ["\n    :host {\n      display: block;\n      width: 100%;\n    }\n  "],
+  "mappings": "AACI,MACE,QAAS,MACT,MAAO,IACT",
+  "names": []
+}

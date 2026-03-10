@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/purchase/project-partlist-purchase-request/purchase-request-demo/purchase-request-demo.component.css"],
+  "sourcesContent": ["::ng-deep .ant-tabs{\r\nheight: 100%;\r\n}\r\n::ng-deep .ant-tabs-content{\r\nheight: 100%;\r\n}\r\n::ng-deep .ant-tabs-content-holder {\r\n    height: 100%;\r\n    }\r\n::ng-deep .ant-tabs-tabpane{\r\nheight: 100%;\r\n}\r\n"],
+  "mappings": "AAAA,UAAU,CAAC,SACX,OAAQ,IACR,CACA,UAAU,CAAC,iBACX,OAAQ,IACR,CACA,UAAU,CAAC,wBACP,OAAQ,IACR,CACJ,UAAU,CAAC,iBACX,OAAQ,IACR",
+  "names": []
+}

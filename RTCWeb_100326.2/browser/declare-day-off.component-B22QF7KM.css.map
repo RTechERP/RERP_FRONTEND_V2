@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/day-off/declare-day-off/declare-day-off.component.css"],
+  "sourcesContent": [".modal-backdrop {\r\n    background-color: rgba(0, 0, 0, 0.5);\r\n    backdrop-filter: blur(5px);\r\n    -webkit-backdrop-filter: blur(5px);\r\n  }\r\n  \r\n  .modal-backdrop.show {\r\n    opacity: 1;\r\n  }\r\n  \r\n  .modal {\r\n    background-color: rgba(0, 0, 0, 0.5);\r\n  }\r\n  \r\n  .modal-dialog {\r\n    position: relative;\r\n    z-index: 1050;\r\n  }"],
+  "mappings": "AAAA,CAAC,eACG,iBAAkB,UAClB,gBAAiB,KAAK,KACtB,wBAAyB,KAAK,IAChC,CAEA,CAND,cAMgB,CAAC,KACd,QAAS,CACX,CAEA,CAAC,MACC,iBAAkB,SACpB,CAEA,CAAC,aACC,SAAU,SACV,QAAS,IACX",
+  "names": []
+}

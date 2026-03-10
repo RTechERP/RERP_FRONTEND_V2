@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/phase-allocation-person/choose-employee/choose-employee.component.css"],
+  "sourcesContent": ["/* \u0110\u1ED5i m\u00E0u ch\u1EEF trong headerFilter th\u00E0nh \u0111en */\r\n::ng-deep .tabulator-header-filter input {\r\n    color: #000000 !important;\r\n}\r\n\r\n::ng-deep .tabulator-header-filter select {\r\n    color: #000000 !important;\r\n}"],
+  "mappings": "AACA,UAAU,CAAC,wBAAwB,MAC/B,MAAO,cACX,CAEA,UAAU,CAJC,wBAIwB,OAC/B,MAAO,cACX",
+  "names": []
+}

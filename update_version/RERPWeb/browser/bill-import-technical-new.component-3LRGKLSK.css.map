@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/bill-import-technical/bill-import-technical-new/bill-import-technical-new.component.css"],
+  "sourcesContent": ["::ng-deep div[id^=\"billImportTechnicalGrid-\"] {\r\n  min-height: 55vh !important;\r\n}\r\n"],
+  "mappings": "AAAA,UAAU,GAAG,CAAC,8BACZ,WAAY,cACd",
+  "names": []
+}

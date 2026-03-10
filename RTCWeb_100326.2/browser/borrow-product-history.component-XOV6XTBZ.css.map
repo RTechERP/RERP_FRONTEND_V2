@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/inventory-demo/borrow/borrow-product-history/borrow-product-history.component.css"],
+  "sourcesContent": [".card-body{\r\n    height: 96%;\r\n}"],
+  "mappings": "AAAA,CAAC,UACG,OAAQ,GACZ",
+  "names": []
+}

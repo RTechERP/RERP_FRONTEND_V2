@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["angular:styles/component:css;fd8f9a97fd6a897ed1d65d70e6dc6a570e1dfde90f9b0b3e4b5b42a442466084;D:/LeTheAnh/RTC/Project/2025/SourceCode/RTC.25.008/FontEnd/RERP/RERP_FRONTEND_V2/src/app/pages/hrm/over-time/over-time-person/over-time-person-form/project-item-select-modal/project-item-select-modal.component.ts"],
+  "sourcesContent": ["\n    .tabulator-container {\n      height: 400px;\n      width: 100%;\n    }\n    .modal-body {\n      min-height: 450px;\n    }\n  "],
+  "mappings": "AACI,CAAC,oBACC,OAAQ,MACR,MAAO,IACT,CACA,CAAC,WACC,WAAY,KACd",
+  "names": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/Technical/kpi-evaluation-rule/kpi-rule-detail/kpi-rule-detail.component.css"],
+  "sourcesContent": [".fs-xs {\r\n    font-size: 0.75rem;\r\n}\r\n\r\n.modal-body {\r\n    padding: 12px !important;\r\n}\r\n\r\n:host ::ng-deep .ant-input-number {\r\n    width: 100%;\r\n}\r\n\r\n:host ::ng-deep .ant-select {\r\n    width: 100%;\r\n}\r\n\r\nlabel {\r\n    font-size: 13px;\r\n    margin-bottom: 0;\r\n}\r\n\r\n.font-weight-bold {\r\n    font-weight: 600;\r\n}\r\n\r\ntextarea.ant-input {\r\n    resize: none;\r\n}"],
+  "mappings": "AAAA,CAAC,MACG,UAAW,MACf,CAEA,CAAC,WAJD,QAKa,cACb,CAEA,MAAM,UAAU,CAAC,iBACb,MAAO,IACX,CAEA,MAAM,UAAU,CAAC,WACb,MAAO,IACX,CAEA,MACI,UAAW,KACX,cAAe,CACnB,CAEA,CAAC,iBACG,YAAa,GACjB,CAEA,QAAQ,CAAC,UACL,OAAQ,IACZ",
+  "names": []
+}

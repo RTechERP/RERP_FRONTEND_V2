@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/protectgear/protectgear-form/protectgear-form.component.css"],
+  "sourcesContent": [".modal-header {\r\n  padding: 8px 16px;\r\n}\r\n\r\n.modal-title {\r\n  font-size: 14px;\r\n  font-weight: 600;\r\n}\r\n\r\n.fs-7 {\r\n  font-size: 12px;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 12px;\r\n}\r\n\r\nnz-form-label {\r\n  font-size: 12px;\r\n}\r\n\r\n.mobile-friendly {\r\n  overflow-x: hidden;\r\n}\r\n\r\n@media (max-width: 768px) {\r\n  .modal-body {\r\n    padding: 8px;\r\n  }\r\n}\r\n\r\n"],
+  "mappings": "AAAA,CAAC,aAAD,QACW,IAAI,IACf,CAEA,CAAC,YACC,UAAW,KACX,YAAa,GACf,CAEA,CAAC,KAID,CAAC,MAHC,UAAW,IACb,CAMA,cACE,UAAW,IACb,CAEA,CAAC,gBACC,WAAY,MACd,CAEA,OAAO,CAAC,SAAS,EAAE,OACjB,CAAC,WA1BH,QA2Ba,GACX,CACF",
+  "names": []
+}

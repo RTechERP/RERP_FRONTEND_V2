@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/employee-management/employee-timekeeping/employee-timekeeping-management/employee-timekeeping-management.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n  all: revert;\r\n}\r\n\r\n.ant-splitter-panel{\r\n  position: relative;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n  position: absolute;\r\n  width: 100%;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.inner-content {\r\n  padding: 0 !important;\r\n}\r\n\r\n.ant-tabs-tab-btn {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n/* Class ri\u00EAng cho tab title c\u1EE7a b\u1EA3ng ch\u1EA5m c\u00F4ng */\r\n:host ::ng-deep .timekeeping-tabs .ant-tabs-tab-btn {\r\n  padding: 4px 12px !important;\r\n}\r\n\r\n\r\n:host ::ng-deep .tabulator-col .mt-header-day.weekend{\r\n  background:#fde68a; border-radius:4px;\r\n}\r\n\r\n\r\n:host ::ng-deep .ant-tabs,\r\n:host ::ng-deep .ant-tabs-content,\r\n:host ::ng-deep .ant-tabs-tabpane {\r\n  height: 100%;\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,mBACC,SAAU,QACZ,CAEA,CAAC,UACC,UAAW,OACX,SAAU,SACV,MAAO,IACT,CAEA,CAAC,eAlBD,QAmBW,CACX,CAEA,CAAC,cAtBD,QAuBW,WACX,CAEA,CAAC,iBACC,UAAW,MACb,CAGA,MAAM,UAAU,CAAC,iBAAiB,CALjC,iBA1BD,QAgCW,IAAI,cACf,CAGA,MAAM,UAAU,CAAC,cAAc,CAAC,aAAa,CAAC,QAC5C,WAAW,QArCb,cAqCoC,GACpC,CAGA,MAAM,UAAU,CAAC,SACjB,MAAM,UAAU,CAAC,iBACjB,MAAM,UAAU,CAAC,iBACf,OAAQ,IACV",
+  "names": []
+}

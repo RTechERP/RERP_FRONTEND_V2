@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/product-protective-gear/history-product-rtc-protective-gear/history-product-rtc-protective-gear.component.css"],
+  "sourcesContent": ["::ng-deep div[id^=\"grid-container-history-product-rtc\"] {\r\n       height: 81vh !important;\r\n}\r\n\r\n/* Compact form spacing */\r\n.compact-form nz-form-item {\r\n       margin-bottom: 4px !important;\r\n}\r\n\r\n.compact-form nz-form-label {\r\n       padding-bottom: 0px !important;\r\n       line-height: 1.2 !important;\r\n}\r\n\r\n::ng-deep .ant-card-body {\r\n       padding: 0px !important;\r\n}\r\n\r\n::ng-deep .ant-splitter {\r\n       height: 74vh !important;\r\n}\r\n\r\n:host ::ng-deep .slick-row.row-red {\r\n       background-color: red !important;\r\n       color: white !important;\r\n}"],
+  "mappings": "AAAA,UAAU,GAAG,CAAC,wCACP,OAAQ,cACf,CAGA,CAAC,aAAa,aACP,cAAe,aACtB,CAEA,CAJC,aAIa,cACP,eAAgB,YAChB,YAAa,aACpB,CAEA,UAAU,CAAC,cAdX,QAegB,WAChB,CAEA,UAAU,CAAC,aACJ,OAAQ,cACf,CAEA,MAAM,UAAU,CAAC,SAAS,CAAC,QACpB,iBAAkB,cAClB,MAAO,cACd",
+  "names": []
+}

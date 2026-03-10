@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/project/project-survey-detail/project-survey-detail.component.css"],
+  "sourcesContent": [".reset {\r\n  all: revert;\r\n  padding: 0.5rem;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n  border: 1px solid;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem !important;\r\n}\r\n\r\n.modal-dialog.modal-dialog-centered.modal-xl {\r\n  max-width: none !important;\r\n  width: 80vw !important;\r\n}\r\n\r\n.tabulator-editing textarea {\r\n  border: none;\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,MACC,IAAK,OADP,QAEW,KACX,CAEA,CAAC,UACC,UAAW,OACX,OAAQ,IAAI,KACd,CAEA,CAAC,eAVD,QAWW,CACX,CAEA,CAAC,MACC,UAAW,gBACb,CAEA,CAAC,YAAY,CAAC,qBAAqB,CAAC,SAClC,UAAW,eACX,MAAO,cACT,CAEA,CAAC,kBAAkB,SACjB,OAAQ,IACV",
+  "names": []
+}

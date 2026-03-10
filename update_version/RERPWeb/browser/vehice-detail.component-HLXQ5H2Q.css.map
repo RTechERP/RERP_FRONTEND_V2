@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/employee-management/employee-bussiness/vehice-detail/vehice-detail.component.css"],
+  "sourcesContent": [".tabulator-modal {\r\n  z-index: 1055 !important;\r\n}\r\n\r\n.tabulator-modal .modal-dialog {\r\n  pointer-events: all !important;\r\n}\r\n\r\n.tabulator-modal .modal-content {\r\n  pointer-events: all !important;\r\n}"],
+  "mappings": "AAAA,CAAC,gBACC,QAAS,cACX,CAEA,CAJC,gBAIgB,CAAC,aAIlB,CARC,gBAQgB,CAAC,cAHhB,eAAgB,aAClB",
+  "names": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/purchase/inventory-project-product-sale-link/inventory-project-product-sale-link-detail/inventory-project-product-sale-link-detail.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n::ng-deep #gridInventoryDetail {\r\n  height: 50vh !important;\r\n  border: 1px solid #ddd;\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CAEA,UAAU,CAAC,oBACT,OAAQ,eACR,OAAQ,IAAI,MAAM,IACpB",
+  "names": []
+}

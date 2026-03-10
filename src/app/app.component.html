@@ -13,7 +13,7 @@
         <ul nz-menu nzMode="inline">
             <li nz-menu-item nzMatchRouter class="m-0 fw-bold">
                 <img src="assets/icon/home.svg" class="menu-icon m-1" width="24px" />
-                <a routerLink="/home">Trang chủ</a>
+                <a routerLink="/home" target="_blank"> Trang chủ</a>
             </li>
             @for (m of menuComps; track m.key) {
 
@@ -129,8 +129,6 @@
                     </nz-tabset>
                 </div>
                 <div class="header-trigger">
-
-
                     <nz-dropdown-menu #appmenu="nzDropdownMenu">
                         <div class="app-launcher">
 
@@ -143,7 +141,7 @@
                                 </a>
                                 }
                             </div>
-                            <div class="app-launcher-footer">
+                            <div class="app-launcher-footer" req>
                                 <button nz-button nzType="primary" (click)="isAppMenuVisible = false"
                                     style="font-size: 12px; height: 30px; border-radius: 4px; padding: 0 20px;">
                                     OK

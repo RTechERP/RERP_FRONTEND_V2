@@ -834,10 +834,22 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       }
       const dateStart = new Date(formValue.dateStart);
       dateStart.setHours(0, 0, 0, 0);
-      if (dateStart < this.minDateStart || dateStart > this.maxDateStart) {
-        const formatDate = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-        this.notification.warning('Cảnh báo', `${prefix}Chỉ được báo cáo trong 3 ngày gần nhất (${formatDate(this.minDateStart)} - ${formatDate(this.maxDateStart)})`);
-        return false;
+
+      const applyValidationDate = new Date(2026, 2, 7); // 07/03/2026
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (today >= applyValidationDate) {
+        if (dateStart < this.minDateStart || dateStart > this.maxDateStart) {
+          const formatDate = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+          this.notification.warning('Cảnh báo', `${prefix}Chỉ được báo cáo trong 3 ngày gần nhất (${formatDate(this.minDateStart)} - ${formatDate(this.maxDateStart)})`);
+          return false;
+        }
+      } else {
+        if (dateStart > this.maxDateStart) {
+          this.notification.warning('Cảnh báo', `${prefix}Không được phép chọn ngày trong tương lai!`);
+          return false;
+        }
       }
 
       if (!formValue.customerId || formValue.customerId <= 0) {

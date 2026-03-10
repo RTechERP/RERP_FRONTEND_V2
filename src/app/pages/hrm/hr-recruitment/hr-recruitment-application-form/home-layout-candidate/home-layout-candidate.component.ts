@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { forkJoin, interval, of, Subject, timer } from 'rxjs';
@@ -43,7 +43,9 @@ import { HRRecruitmentApplicationFormService } from './hr-recruitment-applicatio
     templateUrl: './home-layout-candidate.component.html',
     styleUrl: './home-layout-candidate.component.css'
 })
-export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
+export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChanges {
+    @Input() candidateId: number | null = null;
+    @Input() isEmbedded = false;
     private destroy$ = new Subject<void>();
     form!: FormGroup;
     isLoading = false;
@@ -107,7 +109,15 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.initForm();
         this.loadInitialData();
-        this.startTimers();
+        if (!this.isEmbedded) {
+            this.startTimers();
+        }
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['candidateId'] && !changes['candidateId'].firstChange && this.form) {
+            this.loadInitialData();
+        }
     }
 
     ngOnDestroy(): void {
@@ -125,6 +135,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
     }
 
     private checkSession() {
+        if (this.isEmbedded) return;
         const expiresAt = localStorage.getItem('candidate_token_expires');
         if (expiresAt && new Date().getTime() > parseInt(expiresAt)) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiên đăng nhập đã hết hạn!');
@@ -133,6 +144,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
     }
 
     private autoSave() {
+        if (this.isEmbedded) return;
         // Gỡ bỏ kiểm tra form.valid để lưu tiến độ tự động ngay cả khi chưa nhập đủ
         if (!this.isLoading && !this.isSaving) {
             console.log('Auto saving at:', new Date().toLocaleTimeString());
@@ -144,17 +156,26 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
 
     loadInitialData() {
         this.isLoading = true;
-        const candidateStr = localStorage.getItem('CurrentUserCandidate');
         let hRRecruitmentCandidateID = 0;
 
-        if (candidateStr) {
-            try {
-                const candidate = JSON.parse(candidateStr);
-                hRRecruitmentCandidateID = candidate.ID || 0;
-                if (hRRecruitmentCandidateID > 0) {
-                    this.form.patchValue({ HRRecruitmentCandidateID: hRRecruitmentCandidateID });
+        // Ưu tiên dùng candidateId từ @Input (HR xem), nếu không có mới dùng localStorage (Ứng viên tự xem)
+        if (this.isEmbedded && this.candidateId && this.candidateId > 0) {
+            hRRecruitmentCandidateID = this.candidateId;
+        } else if (!this.isEmbedded) {
+            const candidateStr = localStorage.getItem('CurrentUserCandidate');
+            if (candidateStr) {
+                try {
+                    const candidate = JSON.parse(candidateStr);
+                    hRRecruitmentCandidateID = candidate.ID || 0;
+                } catch (e) {
+                    console.error('Error parsing candidate from localStorage', e);
                 }
-            } catch (e) { console.error('Error parsing candidate', e); }
+            }
+        }
+
+        // Luôn gán ID vào form ngay lập tức để tránh mất ID khi save
+        if (hRRecruitmentCandidateID > 0) {
+            this.form.patchValue({ HRRecruitmentCandidateID: hRRecruitmentCandidateID });
         }
 
         const observables: any = {
@@ -229,25 +250,27 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
                 });
             }
         } else {
-            // Form chưa có dữ liệu → lấy thông tin từ CurrentUserCandidate
-            try {
-                const candidateStr = localStorage.getItem('CurrentUserCandidate');
-                if (candidateStr) {
-                    const candidate = JSON.parse(candidateStr);
-                    this.form.patchValue({
-                        FullName: candidate.FullName || null,
-                        DateOfBirth: this.formatDateForInput(candidate.DateOfBirth) || null,
-                        Email: candidate.Email || candidate.UserName || null,
-                        Gender: candidate.Gender ?? null,
-                        Mobile: candidate.PhoneNumber || null,
-                        ChucVuHDID: candidate.EmployeeChucVuHDID || null,
-                    });
-                    if (candidate.EmployeeChucVuHDID) {
-                        this.onPositionChange(candidate.EmployeeChucVuHDID);
+            // Form chưa có dữ liệu trong DB → Patch thông tin cơ bản từ session ứng viên (chỉ khi ứng viên tự điền)
+            if (!this.isEmbedded) {
+                try {
+                    const candidateStr = localStorage.getItem('CurrentUserCandidate');
+                    if (candidateStr) {
+                        const candidate = JSON.parse(candidateStr);
+                        this.form.patchValue({
+                            FullName: candidate.FullName || null,
+                            DateOfBirth: this.formatDateForInput(candidate.DateOfBirth) || null,
+                            Email: candidate.Email || candidate.UserName || null,
+                            Gender: candidate.Gender ?? null,
+                            Mobile: candidate.PhoneNumber || null,
+                            ChucVuHDID: candidate.EmployeeChucVuHDID || null,
+                        });
+                        if (candidate.EmployeeChucVuHDID) {
+                            this.onPositionChange(candidate.EmployeeChucVuHDID);
+                        }
                     }
+                } catch (e) {
+                    console.error('Error reading CurrentUserCandidate for default values', e);
                 }
-            } catch (e) {
-                console.error('Error reading CurrentUserCandidate for default values', e);
             }
         }
 
@@ -640,30 +663,32 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy {
                             //    this.notification.success(NOTIFICATION_TITLE.success, 'Đã lưu tờ khai thành công!');
                         }
                     } else {
-                        // ★ FIX: Reload data từ server để cập nhật ID cho tất cả bảng link (Dùng cho manual save)
-                        const candidateStr = localStorage.getItem('CurrentUserCandidate');
-                        if (candidateStr) {
-                            try {
-                                const candidate = JSON.parse(candidateStr);
-                                const candidateID = candidate.ID || 0;
-                                if (candidateID > 0) {
-                                    this.hrService.getCandidateInformation(candidateID).subscribe({
-                                        next: (reloadRes) => {
-                                            if (reloadRes?.data) {
-                                                this.patchForm(reloadRes.data);
-                                            }
-                                            this.isSaving = false;
-                                        },
-                                        error: () => {
-                                            this.isSaving = false;
-                                        }
-                                    });
-                                } else {
+                        // Reload data để cập nhật ID cho các grid con (manual save)
+                        let candidateIDForReload = 0;
+                        if (this.isEmbedded) {
+                            candidateIDForReload = this.candidateId || 0;
+                        } else {
+                            const candidateStr = localStorage.getItem('CurrentUserCandidate');
+                            if (candidateStr) {
+                                try {
+                                    const candidate = JSON.parse(candidateStr);
+                                    candidateIDForReload = candidate.ID || 0;
+                                } catch (e) { }
+                            }
+                        }
+
+                        if (candidateIDForReload > 0) {
+                            this.hrService.getCandidateInformation(candidateIDForReload).subscribe({
+                                next: (reloadRes) => {
+                                    if (reloadRes?.data) {
+                                        this.patchForm(reloadRes.data);
+                                    }
+                                    this.isSaving = false;
+                                },
+                                error: () => {
                                     this.isSaving = false;
                                 }
-                            } catch (e) {
-                                this.isSaving = false;
-                            }
+                            });
                         } else {
                             this.isSaving = false;
                         }

@@ -1,5 +1,3 @@
-
-
 /* HCNS Table Wrapper */
 .hcns-table-wrapper {
   display: flex;
@@ -202,7 +200,7 @@
 }
 
 /* Supplier actions container */
-.hcns-table td > div {
+.hcns-table td>div {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -211,7 +209,7 @@
   box-sizing: border-box;
 }
 
-.hcns-table td > div > div:last-child {
+.hcns-table td>div>div:last-child {
   display: flex;
   gap: 4px;
   flex-shrink: 0;
@@ -219,7 +217,7 @@
 }
 
 /* Đảm bảo input trong supplier column vừa với container */
-.hcns-table td > div > input {
+.hcns-table td>div>input {
   flex: 1;
   min-width: 0;
 }
@@ -269,21 +267,21 @@
   .hcns-table {
     font-size: 0.7rem;
   }
-  
+
   .hcns-table th {
     padding: 6px 8px;
   }
-  
+
   .hcns-table input,
   .hcns-table textarea {
     padding: 4px 8px;
     font-size: 0.7rem;
   }
-  
-  .hcns-table td > div {
+
+  .hcns-table td>div {
     padding: 4px 8px;
   }
-  
+
   .hcns-table td[rowspan],
   .hcns-table td[style*="text-align: center"] {
     padding: 4px 8px;
@@ -292,6 +290,7 @@
 
 /* Tablet và Mobile - Responsive cho modal và splitter */
 @media (max-width: 768px) {
+
   /* Modal body responsive */
   .modal-body {
     padding: 0.5rem !important;
@@ -315,7 +314,8 @@
   }
 
   .hcns-table {
-    min-width: 1200px; /* Đảm bảo table không bị co quá nhỏ */
+    min-width: 1200px;
+    /* Đảm bảo table không bị co quá nhỏ */
     font-size: 0.65rem;
   }
 
@@ -335,7 +335,7 @@
     font-size: 0.65rem;
   }
 
-  .hcns-table td > div {
+  .hcns-table td>div {
     padding: 2px 4px;
     gap: 4px;
   }
@@ -381,7 +381,7 @@
     font-size: 0.6rem;
   }
 
-  .hcns-table td > div {
+  .hcns-table td>div {
     padding: 2px 3px;
     gap: 2px;
   }
@@ -463,3 +463,24 @@
   color: #ffaaa5;
 }
 
+/* Autocomplete multiline support */
+::ng-deep .multiline-option {
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  height: auto !important;
+  min-height: 32px !important;
+  display: block !important;
+}
+
+::ng-deep .ant-select-item-option-content {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+/* Tăng width cho ô NCC */
+.hcns-table td:nth-child(3) {
+  min-width: 300px;
+}

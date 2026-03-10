@@ -94,4 +94,11 @@ export class RecommendSupplierService {
     return this.http.get<any>(environment.host + `api/handover/get-all-employees`);
   }
 
+  getHistoricalSuppliers(): Observable<any> {
+    return this.http.post<any>(
+      environment.host + `api/recommendsupplier/get-historical-suppliers`,
+      {}
+    );
+  }
+
 }

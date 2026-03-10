@@ -25,7 +25,7 @@ export class MainLayoutCandidateComponent {
 
     navigateToIQTest() {
         // Hiện tại chưa có trang test IQ nên thông báo
-        this.notification.info(NOTIFICATION_TITLE.info, 'Chức năng Test IQ đang được phát triển. Vui lòng quay lại sau!');
+        this.notification.info(NOTIFICATION_TITLE.warning, 'Chức năng Test IQ đang được phát triển. Vui lòng quay lại sau!');
     }
 
     logout() {

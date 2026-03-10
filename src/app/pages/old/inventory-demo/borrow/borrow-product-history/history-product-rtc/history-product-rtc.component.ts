@@ -1005,6 +1005,23 @@ export class HistoryProductRtcComponent
                                     }
                                 }
 
+                                if (rowData.PeopleID != userId && !isGlobalAdmin && !isAdmin) {
+                                    continue;
+                                }
+                                if (isGlobalAdmin || isAdmin) {
+                                    if (
+                                        modulaLocationDetailID > 0 &&
+                                        statusPerson <= 0 &&
+                                        !(isGlobalAdmin && employeeID <= 0)
+                                    ) {
+                                        this.notification.error(
+                                            'Thông báo',
+                                            'Nhân viên chưa hoàn thành thao tác trả hàng.\nBạn không thể duyệt trả!'
+                                        );
+                                        return;
+                                    }
+                                }
+
                                 validItems.push({ id, modulaLocationDetailID });
                             } catch (error) {
                                 // Bỏ qua item này và tiếp tục

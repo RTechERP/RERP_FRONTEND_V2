@@ -24,6 +24,8 @@ import { DateTime } from 'luxon';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
+import { NzInputModule } from 'ng-zorro-antd/input';
 
 
 import { RecommendSupplierService } from '../recommend-supplier-service/recommend-supplier.service';
@@ -70,7 +72,8 @@ interface ValidationError {
     NzModalModule,
     NzSplitterModule,
     NzCheckboxModule,
-
+    NzAutocompleteModule,
+    NzInputModule,
   ],
   standalone: true,
   templateUrl: './recommend-supplier-form.component.html',
@@ -107,7 +110,13 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   DateEnd: Date = new Date();
   DepartmentRequiredID: number = 0;
 
+  historicalSuppliers: any[] = [];
+  filteredSuppliers: string[] = [];
+  historicalUnitPrices: (string | number)[] = [];
+  filteredUnitPrices: (string | number)[] = [];
+
   ngOnInit(): void {
+    this.loadHistoricalSuppliers();
     if (this.JobrequirementID) {
       if (this.isCheckmode) {
         this.loadDepartmentRequiredData(this.JobrequirementID);
@@ -840,6 +849,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
     if (field === 'UnitPrice') {
       supplier.UnitPrice = numericValue;
       this.calculateTotalAmount(product, supplier, supplierIndex);
+      this.onUnitPriceInput(numericValue);
     } else if (field === 'TotalAmount') {
       supplier.TotalAmount = numericValue;
     }
@@ -871,5 +881,70 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
         this.calculateTotalAmount(product, supplier, index);
       });
     });
+  }
+
+  loadHistoricalSuppliers(): void {
+    this.recommendSupplierService.getHistoricalSuppliers().subscribe({
+      next: (res) => {
+        this.historicalSuppliers = res.data || [];
+      },
+      error: (err) => console.error('Error loading historical suppliers', err)
+    });
+  }
+
+  onSupplierInput(value: string | any): void {
+    const valStr = (value || '').toString().toLowerCase();
+
+    // Suggest unique suppliers that match the input
+    this.filteredSuppliers = Array.from(new Set(
+      this.historicalSuppliers
+        .filter(s => s.Supplier && s.Supplier.toString().toLowerCase().includes(valStr))
+        .map(s => s.Supplier)
+    ));
+  }
+
+  onSelectSupplier(supplierName: string, product: ProductProposalRow, supplierIndex: number): void {
+    // Find matching historical record
+    const historical = this.historicalSuppliers.find(s => s.Supplier === supplierName);
+    if (historical) {
+      const supplier = product.Suppliers[supplierIndex];
+
+      // Auto-bind fields if they exist in historical record
+      if (historical.Contact) supplier.Contact = historical.Contact;
+      if (historical.Unit) supplier.Unit = historical.Unit;
+
+      // Auto-bind UnitPrice and calculate total
+      if (historical.UnitPrice != null) {
+        supplier.UnitPrice = historical.UnitPrice;
+      }
+
+      this.calculateTotalAmount(product, supplier, supplierIndex);
+    }
+  }
+
+  onUnitPriceInput(value: string | number): void {
+    const rawVal = String(value).replace(/[^0-9]/g, '');
+    if (!rawVal) {
+      this.filteredUnitPrices = [];
+      return;
+    }
+
+    const currentPrices = this.HCNSApprovalData.flatMap(p => p.Suppliers.map(s => s.UnitPrice));
+    const historicalPrices = this.historicalSuppliers.map(s => s.UnitPrice);
+
+    const allPrices = Array.from(new Set([...currentPrices, ...historicalPrices]))
+      .filter(p => {
+        if (p == null || p === '') return false;
+        const pStr = String(p).replace(/[^0-9]/g, '');
+        return pStr.includes(rawVal);
+      });
+
+    this.filteredUnitPrices = allPrices;
+  }
+
+  onSelectUnitPrice(value: any, product: ProductProposalRow, supplierIndex: number): void {
+    const supplier = product.Suppliers[supplierIndex];
+    supplier.UnitPrice = this.parseCurrency(value);
+    this.calculateTotalAmount(product, supplier, supplierIndex);
   }
 }

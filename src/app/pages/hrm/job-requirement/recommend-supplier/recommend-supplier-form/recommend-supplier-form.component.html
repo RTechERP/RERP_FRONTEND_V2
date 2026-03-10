@@ -55,14 +55,22 @@
 
                     <!-- Supplier column với actions -->
                     <td [class.validation-error]="hasValidationError(product.rowID, supplierIndex, 'Supplier')">
-                      <div>
-                        <input type="text" [(ngModel)]="supplier.Supplier"
+                      <div class="d-flex align-items-center">
+                        <input type="text" [(ngModel)]="supplier.Supplier" (ngModelChange)="onSupplierInput($event)"
+                          (focus)="onSupplierInput(supplier.Supplier)" [nzAutocomplete]="autoSupplier"
                           (blur)="validateField(product.rowID, supplierIndex, 'Supplier', supplier.Supplier)"
                           [class.error-input]="hasValidationError(product.rowID, supplierIndex, 'Supplier')">
-                        <div>
+                        <nz-autocomplete #autoSupplier [nzOverlayStyle]="{'width': 'auto', 'min-width': '400px'}"
+                          (selectionChange)="onSelectSupplier($event.nzValue, product, supplierIndex)">
+                          <nz-auto-option *ngFor="let option of filteredSuppliers" [nzValue]="option"
+                            class="multiline-option">
+                            {{ option }}
+                          </nz-auto-option>
+                        </nz-autocomplete>
+                        <div class="ms-2 flex-shrink-0">
                           <i class="fas fa-plus text-success cursor-pointer" (click)="addSupplierRow(product.rowID)"
                             title="Thêm nhà cung cấp"></i>
-                          <i class="fas fa-times text-danger cursor-pointer"
+                          <i class="fas fa-times text-danger cursor-pointer ms-1"
                             (click)="removeSupplierRow(product.rowID, supplierIndex)" title="Xóa nhà cung cấp"></i>
                         </div>
                       </div>
@@ -91,9 +99,16 @@
                       <input type="text" class="text-end" [value]="getFormattedCurrencyValue(supplier.UnitPrice)"
                         (keydown)="onCurrencyKeyDown($event)"
                         (input)="onCurrencyInput($event, product, supplierIndex, 'UnitPrice')"
+                        [nzAutocomplete]="autoUnitPrice"
                         (blur)="validateField(product.rowID, supplierIndex, 'UnitPrice', supplier.UnitPrice)"
                         [class.error-input]="hasValidationError(product.rowID, supplierIndex, 'UnitPrice')"
                         placeholder="0">
+                      <nz-autocomplete #autoUnitPrice
+                        (selectionChange)="onSelectUnitPrice($event.nzValue, product, supplierIndex)">
+                        <nz-auto-option *ngFor="let option of filteredUnitPrices" [nzValue]="option">
+                          {{ getFormattedCurrencyValue(option) }}
+                        </nz-auto-option>
+                      </nz-autocomplete>
                       <div *ngIf="hasValidationError(product.rowID, supplierIndex, 'UnitPrice')" class="error-message">
                         {{ getValidationError(product.rowID, supplierIndex, 'UnitPrice') }}
                       </div>

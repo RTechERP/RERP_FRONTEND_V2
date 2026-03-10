@@ -9,10 +9,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const auth = inject(AuthService);
     const token = auth.getToken();
     // Không chèn token nếu là request tới API login
-    const isLoginRequest = req.url.includes('/api/home/login');
+    const isLoginRequest = req.url.includes('/api/home/login') || req.url.includes('/login-candidate');
     if (isLoginRequest) {
-        //  console.log("token:", token);
-
         return next(req);
     }
 
@@ -24,21 +22,24 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         });
     }
 
-    // return next(req);
     return next(req).pipe(
         catchError((error: HttpErrorResponse) => {
-
             if ((error.status === 401 || error.status === 419) && !isLoggingOut) {
                 isLoggingOut = true;
 
-                auth.logout(); // clear token, user
+                // Kiểm tra xem đang ở khu vực candidate hay nhân viên
+                const isCandidateArea = window.location.pathname.includes('/home-candidate');
 
-                // ✅ navigate về login
-                window.location.href = '/rerpweb/login';
+                if (isCandidateArea) {
+                    auth.logoutCandidate();
+                    window.location.href = '/rerpweb/login-candidate';
+                } else {
+                    auth.logout();
+                    window.location.href = '/rerpweb/login';
+                }
             }
 
             console.log("HttpErrorResponse:", error);
-
             return throwError(() => error);
         })
     );

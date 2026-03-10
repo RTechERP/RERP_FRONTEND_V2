@@ -11,8 +11,9 @@
 
   <div class="modal-body p-0 px-3">
     <form nz-form [formGroup]="validateForm" class="container-fluid">
-      <div nz-row [nzGutter]="16">
-        <div nz-col [nzSpan]="2">
+      <!-- Hàng 1: STT, Họ tên, Ngày sinh, Giới tính, Tên đăng nhập, Mật khẩu -->
+      <div nz-row [nzGutter]="[16, 0]">
+        <div nz-col [nzXs]="12" [nzSm]="12" [nzMd]="2">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">STT</nz-form-label>
             <nz-form-control [nzSpan]="24">
@@ -26,7 +27,7 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="5">
+        <div nz-col [nzXs]="12" [nzSm]="12" [nzMd]="5">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Họ và tên <span class="text-danger ms-1">(*)</span>
@@ -45,7 +46,7 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="4">
+        <div nz-col [nzXs]="12" [nzSm]="12" [nzMd]="4">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Ngày sinh <span class="text-danger ms-1">(*)</span>
@@ -64,7 +65,7 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="3">
+        <div nz-col [nzXs]="12" [nzSm]="12" [nzMd]="3">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Giới tính <span class="text-danger ms-1">(*)</span>
@@ -77,6 +78,7 @@
                 name="Gender"
                 formControlName="Gender"
                 placeholder="Chọn giới tính"
+                class="w-100"
               >
                 <nz-option
                   *ngFor="let item of genderList"
@@ -88,7 +90,7 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="5">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="5">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Tên đăng nhập <span class="text-danger ms-1">(*)</span>
@@ -104,7 +106,7 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="5">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="5">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Mật khẩu <span class="text-danger ms-1">(*)</span>
@@ -131,6 +133,8 @@
           </nz-form-item>
         </div>
       </div>
+
+      <!-- Error templates -->
       <ng-template #emailErrorTpl let-control>
         <ng-container *ngIf="control.hasError('required')"
           >Vui lòng nhập email!</ng-container
@@ -149,7 +153,7 @@
       </ng-template>
       <ng-template #phoneErrorTpl let-control>
         <ng-container *ngIf="control.hasError('required')"
-          >Vui lòng nhập số điện thoại!</ng-container
+          >Vui lòng nhập sđt!</ng-container
         >
         <ng-container *ngIf="control.hasError('pattern')"
           >Sai định dạng SĐT! (VD: 0123456789 hoặc +84123456789)</ng-container
@@ -171,8 +175,9 @@
         >
       </ng-template>
 
-      <div nz-row [nzGutter]="16">
-        <div nz-col [nzSpan]="7">
+      <!-- Hàng 2: Email, SĐT, Địa chỉ -->
+      <div nz-row [nzGutter]="[16, 0]">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="7">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Email <span class="text-danger ms-1">(*)</span>
@@ -188,12 +193,11 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="4">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="4">
           <nz-form-item>
-            <nz-form-label [nzSpan]="24" class="fw-semibold"
-              >Số điện thoại
-              <span class="text-danger ms-1">(*)</span></nz-form-label
-            >
+            <nz-form-label [nzSpan]="24" class="fw-semibold">
+              Số điện thoại <span class="text-danger ms-1">(*)</span>
+            </nz-form-label>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="phoneErrorTpl">
               <input
                 nz-input
@@ -205,11 +209,11 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="13">
+        <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="13">
           <nz-form-item>
-            <nz-form-label [nzSpan]="24" class="fw-semibold">
-              Địa chỉ
-            </nz-form-label>
+            <nz-form-label [nzSpan]="24" class="fw-semibold"
+              >Địa chỉ</nz-form-label
+            >
             <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập địa chỉ!">
               <input
                 nz-input
@@ -221,8 +225,10 @@
           </nz-form-item>
         </div>
       </div>
-      <div nz-row [nzGutter]="16">
-        <div nz-col [nzSpan]="7">
+
+      <!-- Hàng 3: Yêu cầu TD, Ngày ứng tuyển, Vị trí, Trạng thái -->
+      <div nz-row [nzGutter]="[16, 0]">
+        <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="7">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Yêu cầu tuyển dụng <span class="text-danger ms-1">(*)</span>
@@ -237,18 +243,35 @@
                 placeholder="Chọn yêu cầu tuyển dụng"
                 nzAllowClear
                 nzShowSearch
+                class="w-100"
+                (ngModelChange)="onHiringRequestChange($event)"
               >
-                <nz-option
-                  *ngFor="let item of hrHiringRequestList"
-                  [nzValue]="item.ID"
-                  [nzLabel]="item.Code"
-                ></nz-option>
+                <ng-container *ngFor="let group of hrHiringRequestList">
+                  <nz-option-group [nzLabel]="group.label">
+                    <nz-option
+                      *ngFor="let option of group.options"
+                      [nzLabel]="option.item.Code"
+                      [nzValue]="option.item.ID"
+                      nzCustomContent
+                    >
+                      <span
+                        style="
+                          white-space: normal;
+                          word-break: break-word;
+                          display: block;
+                        "
+                      >
+                        {{ option.item.Code }}
+                      </span>
+                    </nz-option>
+                  </nz-option-group>
+                </ng-container>
               </nz-select>
             </nz-form-control>
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="4">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="4">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Ngày ứng tuyển <span class="text-danger ms-1">(*)</span>
@@ -267,7 +290,7 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="8">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Vị trí ứng tuyển <span class="text-danger ms-1">(*)</span>
@@ -279,6 +302,7 @@
                 placeholder="Chọn chức vụ"
                 nzAllowClear
                 nzShowSearch
+                class="w-100"
               >
                 <nz-option
                   *ngFor="let item of employeeChucVuHDList"
@@ -290,7 +314,7 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzSpan]="5">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="5">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Trạng thái <span class="text-danger ms-1">(*)</span>
@@ -305,6 +329,7 @@
                 placeholder="Chọn trạng thái"
                 nzAllowClear
                 nzShowSearch
+                class="w-100"
               >
                 <nz-option
                   *ngFor="let item of statusList"
@@ -316,8 +341,10 @@
           </nz-form-item>
         </div>
       </div>
-      <div nz-row [nzGutter]="16">
-        <div nz-col [nzSpan]="16">
+
+      <!-- Hàng 4: Ghi chú + File CV -->
+      <div nz-row [nzGutter]="[16, 0]">
+        <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="16">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold"
               >Ghi chú</nz-form-label
@@ -333,7 +360,7 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div nz-col [nzSpan]="8">
+        <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               <input
@@ -343,7 +370,6 @@
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                 (change)="handleChangeFile($event)"
               />
-
               <button
                 nz-button
                 nzSize="small"
@@ -354,7 +380,6 @@
                 Cập nhật CV
               </button>
             </nz-form-label>
-
             <nz-form-control [nzSpan]="24">
               <div class="grid-container-file-hr border">
                 <angular-slickgrid

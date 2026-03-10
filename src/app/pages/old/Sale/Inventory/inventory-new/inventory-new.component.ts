@@ -50,6 +50,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
 import { ChiTietSanPhamSaleComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { ProjectPartlistPriceRequestNewComponent } from '../../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 
 interface ProductGroup {
     ID?: number;
@@ -731,7 +732,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
                         if (this.isWareHouseDP) {
                             mappedData = mappedData.filter(
-                                (item: any) => item.ID === 4 || item.ID === 13 || item.parentId === 4 || item.parentId === 13);
+                                (item: any) => item.ID === 4 || item.ID === 13 || item.parentId === 4 || item.parentId === 13 || item.ProductGroupID === 'D');
                         }
 
                         this.datasetProductGroup = mappedData;
@@ -830,7 +831,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
                         if (this.isWareHouseDP) {
                             mappedData = mappedData.filter(
-                                (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 || item.ParentID === 4 || item.ParentID === 13);
+                                (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 || item.ProductGroupID === 83 ||
+                                    item.ParentID === 4 || item.ParentID === 13 || item.ParentID === 83);
                         }
 
                         this.datasetInventory = mappedData;
@@ -1908,5 +1910,34 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             return v.toString(16);
         });
     }
+
+    //#region Yêu cầu báo giá
+    openPriceRequest() {
+        const modalRef = this.modalService.open(
+            ProjectPartlistPriceRequestNewComponent,
+            {
+                centered: true,
+                size: 'xl',
+                backdrop: 'static',
+                keyboard: false,
+                windowClass: 'full-screen-modal',
+            }
+        );
+
+        modalRef.componentInstance.projectPartlistPriceRequestTypeID = 7;
+
+        modalRef.result.then(
+            (result) => {
+                console.log('Modal closed with result:', result);
+            },
+            (reason) => {
+                console.log('Modal dismissed:', reason);
+            }
+        );
+    }
+    //#endregion
+
+    //#region Yêu cầu mua hàng
+    //#endregion
 
 }

@@ -18,8 +18,15 @@
           <span *ngIf="category != 6 && category != 7 && category != 2 && category != 8">Người đặt</span>
           <span class="text-danger">(*)</span>
         </label>
-        <input nz-input type="text" nzSize="small" [(ngModel)]="bookerVehicles" name="bookerVehicles" disabled />
+        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="employeeId" name="bookerEmployee"
+          [nzDisabled]="!isSpecialEmployee" (ngModelChange)="onBookerEmployeeChange($event)">
+          <nz-option-group *ngFor="let group of employeesGrouped" [nzLabel]="group.department">
+            <nz-option *ngFor="let emp of group.list" [nzValue]="emp.ID"
+              [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+          </nz-option-group>
+        </nz-select>
       </div>
+
 
       <!-- Hình thức đặt -->
       <div class="form-group mb-1 p-1 col-sm-4">

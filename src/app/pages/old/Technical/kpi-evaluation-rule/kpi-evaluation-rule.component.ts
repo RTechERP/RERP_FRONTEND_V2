@@ -74,9 +74,10 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
   positions: any[] = [];
 
   // Grid IDs
-  gridSessionId = 'gridSession';
-  gridRuleId = 'gridRule';
-  gridRuleDetailId = 'gridRuleDetail';
+  private uuid = Math.random().toString(36).substring(2, 9);
+  gridSessionId = `gridSession_${this.uuid}`;
+  gridRuleId = `gridRule_${this.uuid}`;
+  gridRuleDetailId = `gridRuleDetail_${this.uuid}`;
 
   // SlickGrid instances
   angularGridSession!: AngularGridInstance;

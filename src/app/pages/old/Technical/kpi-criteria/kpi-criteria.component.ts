@@ -199,6 +199,7 @@ export class KpiCriteriaComponent implements OnInit, OnDestroy {
 
     this.gridOptionsCriteria = {
       enableAutoResize: true,
+      forceFitColumns: true,
       autoResize: {
         container: '.grid-container-criteria',
         calculateAvailableSizeBy: 'container',

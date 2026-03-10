@@ -41,483 +41,483 @@ import { AppUserService } from '../../../../../../services/app-user.service';
 import { ID_ADMIN_DEMO_LIST } from '../../../../../../app.config';
 
 @Component({
-  selector: 'app-borrow-product-history-detail',
-  templateUrl: './borrow-product-history-detail.component.html',
-  styleUrls: ['./borrow-product-history-detail.component.css'],
-  imports: [
-    NzCardModule,
-    FormsModule,
-    ReactiveFormsModule,
-    NzFormModule,
-    NzButtonModule,
-    NzIconModule,
-    NzRadioModule,
-    NzSpaceModule,
-    NzLayoutModule,
-    NzFlexModule,
-    NzDrawerModule,
-    NzSplitterModule,
-    NzGridModule,
-    NzDatePickerModule,
-    NzAutocompleteModule,
-    NzInputModule,
-    NzSelectModule,
-    NzTableModule,
-    NzTabsModule,
-    NzSpinModule,
-    NzTreeSelectModule,
-    NzModalModule,
-    NzCheckboxModule,
-    CommonModule,
+    selector: 'app-borrow-product-history-detail',
+    templateUrl: './borrow-product-history-detail.component.html',
+    styleUrls: ['./borrow-product-history-detail.component.css'],
+    imports: [
+        NzCardModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NzFormModule,
+        NzButtonModule,
+        NzIconModule,
+        NzRadioModule,
+        NzSpaceModule,
+        NzLayoutModule,
+        NzFlexModule,
+        NzDrawerModule,
+        NzSplitterModule,
+        NzGridModule,
+        NzDatePickerModule,
+        NzAutocompleteModule,
+        NzInputModule,
+        NzSelectModule,
+        NzTableModule,
+        NzTabsModule,
+        NzSpinModule,
+        NzTreeSelectModule,
+        NzModalModule,
+        NzCheckboxModule,
+        CommonModule,
 
 
-  ]
+    ]
 })
 export class BorrowProductHistoryDetailComponent implements OnInit {
 
-  // INTEGRATION: Input để hoạt động như modal từ bill export technical
-  @Input() isExportMode: boolean = false; // Chế độ xuất sang phiếu xuất
+    // INTEGRATION: Input để hoạt động như modal từ bill export technical
+    @Input() isExportMode: boolean = false; // Chế độ xuất sang phiếu xuất
 
-  constructor(
-    public activeModal: NgbActiveModal,
-    private borrowService: BorrowService,
-    private modal: NzModalService,
-    private notification: NzNotificationService,
-    private appUserService:AppUserService
-  ) { this.PeopleID=this.appUserService.id}
+    constructor(
+        public activeModal: NgbActiveModal,
+        private borrowService: BorrowService,
+        private modal: NzModalService,
+        private notification: NzNotificationService,
+        private appUserService: AppUserService
+    ) { this.PeopleID = this.appUserService.id }
 
-  @ViewChild('tb_productRTCDetail', { static: false })
-  tb_productRTCDetailContainer!: ElementRef;
-  tb_productRTCDetailBody: any;
+    @ViewChild('tb_productRTCDetail', { static: false })
+    tb_productRTCDetailContainer!: ElementRef;
+    tb_productRTCDetailBody: any;
 
-  @ViewChild('tb_productRTCDetailBorrow', { static: false })
-  tb_productRTCDetailBorrowContainer!: ElementRef;
-  tb_productRTCDetailBorrowBody: any;
+    @ViewChild('tb_productRTCDetailBorrow', { static: false })
+    tb_productRTCDetailBorrowContainer!: ElementRef;
+    tb_productRTCDetailBorrowBody: any;
 
-  // parram call api
-  userId: any = 0;
-  productGroupID: any = 0;
-  keyword: any = '';
-  checkAll: any = 1;
-  filter: any = '';
-  warehouseID: any = 1;
-  @Input() warehouseType: number = 1;
+    // parram call api
+    userId: any = 0;
+    productGroupID: any = 0;
+    keyword: any = '';
+    checkAll: any = 1;
+    filter: any = '';
+    @Input() warehouseID: any = 1;
+    @Input() warehouseType: number = 1;
 
-  users: any[] = []; // get user select option
+    users: any[] = []; // get user select option
 
-  selectedProduct: any[] = [];
-  selectedProductBorrow: any[] = [];
-  arrProductBorrow: any[] = [];
+    selectedProduct: any[] = [];
+    selectedProductBorrow: any[] = [];
+    arrProductBorrow: any[] = [];
 
-  // param create product history
-  PeopleID: any = 0;
-  Project: string = "Test văn phòng";
-  Note: string = "";
-  Status: number = 7;
-  DateReturnExpected: Date = new Date(Date.UTC(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    new Date().getDate(),
-    23, 59, 59
-  ));
-  DateBorrow: Date = new Date();
-  ProductRTCID: number = 0;
+    // param create product history
+    PeopleID: any = 0;
+    Project: string = "Test văn phòng";
+    Note: string = "";
+    Status: number = 7;
+    DateReturnExpected: Date = new Date(Date.UTC(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        new Date().getDate(),
+        23, 59, 59
+    ));
+    DateBorrow: Date = new Date();
+    ProductRTCID: number = 0;
 
 
-  ngOnInit() {
-    this.loadUser();
-    this.getProductRTCDetail();
-  }
-  ngAfterViewInit(): void {
-
-    this.drawTbProductRTCDetail(this.tb_productRTCDetailContainer.nativeElement);
-    this.drawTbProductRTCDetailBorrow(this.tb_productRTCDetailBorrowContainer.nativeElement);
-  }
-
-  loadUser() {
-    this.userId = this.appUserService.id;
-    if(ID_ADMIN_DEMO_LIST.includes(this.userId) || this.appUserService.isAdmin) {
-      this.userId = 0;
+    ngOnInit() {
+        this.loadUser();
+        this.getProductRTCDetail();
     }
-    this.borrowService.getUserHistoryProduct(this.userId).subscribe({
-      next: (response: any) => {
-        let data = response.data;
-        this.users = this.createdNestedGroup(data, 'DepartmentName', 'TeamName');
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
+    ngAfterViewInit(): void {
 
-  }
-  getProductRTCDetail() {
-    this.borrowService.getProductRTCDetail(this.productGroupID, this.keyword, this.checkAll, this.filter, this.warehouseID, this.warehouseType).subscribe({
-      next: (response: any) => {
-        this.tb_productRTCDetailBody.setData(response.data);
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
-  }
-  getProductRTCDetailBorrow() {
-    this.tb_productRTCDetailBody.setData(this.arrProductBorrow);
-  }
-  onSearch(event: any) {
-    const keyword = (event.target.value || "").toLowerCase();
-
-    this.tb_productRTCDetailBody.setFilter([
-      [
-        { field: "ProductName", type: "like", value: keyword },
-        { field: "ProductCode", type: "like", value: keyword },
-        { field: "SerialNumber", type: "like", value: keyword },
-        { field: "PartNumber", type: "like", value: keyword },
-        { field: "Serial", type: "like", value: keyword },
-        { field: "Maker", type: "like", value: keyword },
-        { field: "AddressBox", type: "like", value: keyword },
-        // { field: "Note", type: "like", value: keyword }
-      ]
-    ]);
-  }
-
-  drawTbProductRTCDetail(container: HTMLElement) {
-    this.tb_productRTCDetailBody = new Tabulator(container, {
-      ...DEFAULT_TABLE_CONFIG,
-      height: '100%',
-      layout: 'fitDataStretch',
-      selectableRows: true,
-      index: "ID",
-      pagination: true,
-      paginationMode:'local',
-      paginationSize: 20,           // số record mỗi trang
-      paginationSizeSelector: [20, 50, 100], // cho phép user chọn
-      locale: 'vi',
-      columns: [
-        { title: 'ID', field: 'ID', hozAlign: 'left', headerHozAlign: 'center', visible: false },
-        { title: 'Tên', field: 'ProductName', hozAlign: 'left', headerHozAlign: 'center',width:200 },
-        { title: 'Mã sản phẩm', field: 'ProductCode', hozAlign: 'left', headerHozAlign: 'center', width:150 },
-        { title: 'Serial', field: 'SerialNumber', hozAlign: 'left', headerHozAlign: 'center',width:150 },
-        { title: 'Part Number', field: 'PartNumber', hozAlign: 'left', headerHozAlign: 'center',width:150  },
-        { title: 'Code', field: 'Serial', hozAlign: 'left', headerHozAlign: 'center',width:150  },
-        { title: 'Hãng', field: 'Maker', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Số lượng hiện có', field: 'InventoryReal', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: 'Vị trí (Hộp)', field: 'AddressBox', hozAlign: 'left', headerHozAlign: 'center' },
-        // { title: 'Note', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width:200 },
-      ],
-    });
-    // Lắng nghe sự kiện chọn
-    this.tb_productRTCDetailBody.on('rowSelected', (row: any) => {
-      this.selectedProduct.push(row.getData());
-    });
-    //  Lắng nghe sự kiện bỏ chọn
-    this.tb_productRTCDetailBody.on('rowDeselected', (row: any) => {
-      const index = this.selectedProduct.indexOf(row.getData());
-      if (index !== -1) {
-        this.selectedProduct.splice(index, 1);
-      }
-
-    });
-  }
-  drawTbProductRTCDetailBorrow(container: HTMLElement) {
-    this.tb_productRTCDetailBorrowBody = new Tabulator(container, {
-      ...DEFAULT_TABLE_CONFIG,
-      height: '100%',
-      layout: 'fitColumns',
-      selectableRows: true,
-      pagination:false,
-      locale: 'vi',
-      index: "ID",
-      columns: [
-        { title: 'ID', field: 'ID', visible: false },
-        { title: 'Mã sản phẩm', field: 'ProductCode' },
-        { title: 'Tên', field: 'ProductName' },
-        { title: 'Số lượng mượn', field: 'NumberBorrow', hozAlign: 'right', editor:'input' },
-      ],
-    });
-
-    this.tb_productRTCDetailBorrowBody.on('rowSelected', (row: any) => {
-      const rowData = row.getData();
-      this.selectedProductBorrow.push(rowData);
-    });
-
-    this.tb_productRTCDetailBorrowBody.on('rowDeselected', (row: any) => {
-      const rowData = row.getData();
-      this.selectedProductBorrow = this.selectedProductBorrow.filter(
-        item => item.ID !== rowData.ID
-      );
-    });
-
-  }
-  moveData() {
-    if (this.selectedProduct.length === 0) {
-      this.notification.create(
-        'warning',
-        'Thông báo',
-        'Vui lòng chọn sản phẩm cần mượn!.'
-      );
-      return;
+        this.drawTbProductRTCDetail(this.tb_productRTCDetailContainer.nativeElement);
+        this.drawTbProductRTCDetailBorrow(this.tb_productRTCDetailBorrowContainer.nativeElement);
     }
 
-    const itemsToRemove: any[] = [];
-    const borrowArray = [...this.arrProductBorrow]; // copy
-
-    // duyệt qua bản sao để không bị ảnh hưởng khi update/xóa
-    for (const item of [...this.selectedProduct]) {
-      item.InventoryReal--;
-
-      // Kiểm tra sản phẩm đã tồn tại trong borrow chưa
-      // const idx = borrowArray.findIndex((x: any) => x.ID === item.ID);
-      // if (idx !== -1) {
-      //   borrowArray[idx].NumberBorrow++;
-      // } else {
-      borrowArray.push({
-        ID: item.ID,
-        ProductCode: item.ProductCode,
-        ProductName: item.ProductName,
-        ProductCodeRTC: item.ProductCodeRTC,
-        SerialNumber: item.SerialNumber,
-        PartNumber: item.PartNumber,
-        Maker: item.Maker,
-        Note: item.Note,
-        NumberBorrow: 1,
-        UnitCountName: item.UnitCountName || '',
-        UnitCountID: item.UnitCountID || 0,
-      });
-      // }
-
-      if (item.InventoryReal === 0) {
-        this.tb_productRTCDetailBody.deleteRow(item.ID);
-        itemsToRemove.push(item);
-      } else {
-        // update lại số lượng tồn kho trên row
-        const row = this.tb_productRTCDetailBody.getRow(item.ID);
-        if (row) {
-          row.update({ InventoryReal: item.InventoryReal });
+    loadUser() {
+        this.userId = this.appUserService.id;
+        if (ID_ADMIN_DEMO_LIST.includes(this.userId) || this.appUserService.isAdmin) {
+            this.userId = 0;
         }
-      }
+        this.borrowService.getUserHistoryProduct(this.userId).subscribe({
+            next: (response: any) => {
+                let data = response.data;
+                this.users = this.createdNestedGroup(data, 'DepartmentName', 'TeamName');
+            },
+            error: (error) => {
+                console.error('Lỗi:', error);
+            },
+        });
+
+    }
+    getProductRTCDetail() {
+        this.borrowService.getProductRTCDetail(this.productGroupID, this.keyword, this.checkAll, this.filter, this.warehouseID, this.warehouseType).subscribe({
+            next: (response: any) => {
+                this.tb_productRTCDetailBody.setData(response.data);
+            },
+            error: (error) => {
+                console.error('Lỗi:', error);
+            },
+        });
+    }
+    getProductRTCDetailBorrow() {
+        this.tb_productRTCDetailBody.setData(this.arrProductBorrow);
+    }
+    onSearch(event: any) {
+        const keyword = (event.target.value || "").toLowerCase();
+
+        this.tb_productRTCDetailBody.setFilter([
+            [
+                { field: "ProductName", type: "like", value: keyword },
+                { field: "ProductCode", type: "like", value: keyword },
+                { field: "SerialNumber", type: "like", value: keyword },
+                { field: "PartNumber", type: "like", value: keyword },
+                { field: "Serial", type: "like", value: keyword },
+                { field: "Maker", type: "like", value: keyword },
+                { field: "AddressBox", type: "like", value: keyword },
+                // { field: "Note", type: "like", value: keyword }
+            ]
+        ]);
     }
 
-    // update borrow 1 lần sau vòng lặp
-    this.arrProductBorrow = borrowArray;
-    this.tb_productRTCDetailBorrowBody.setData(borrowArray);
+    drawTbProductRTCDetail(container: HTMLElement) {
+        this.tb_productRTCDetailBody = new Tabulator(container, {
+            ...DEFAULT_TABLE_CONFIG,
+            height: '100%',
+            layout: 'fitDataStretch',
+            selectableRows: true,
+            index: "ID",
+            pagination: true,
+            paginationMode: 'local',
+            paginationSize: 20,           // số record mỗi trang
+            paginationSizeSelector: [20, 50, 100], // cho phép user chọn
+            locale: 'vi',
+            columns: [
+                { title: 'ID', field: 'ID', hozAlign: 'left', headerHozAlign: 'center', visible: false },
+                { title: 'Tên', field: 'ProductName', hozAlign: 'left', headerHozAlign: 'center', width: 200 },
+                { title: 'Mã sản phẩm', field: 'ProductCode', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
+                { title: 'Serial', field: 'SerialNumber', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
+                { title: 'Part Number', field: 'PartNumber', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
+                { title: 'Code', field: 'Serial', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
+                { title: 'Hãng', field: 'Maker', hozAlign: 'left', headerHozAlign: 'center' },
+                { title: 'Số lượng hiện có', field: 'InventoryReal', hozAlign: 'right', headerHozAlign: 'center' },
+                { title: 'Vị trí (Hộp)', field: 'AddressBox', hozAlign: 'left', headerHozAlign: 'center' },
+                // { title: 'Note', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width:200 },
+            ],
+        });
+        // Lắng nghe sự kiện chọn
+        this.tb_productRTCDetailBody.on('rowSelected', (row: any) => {
+            this.selectedProduct.push(row.getData());
+        });
+        //  Lắng nghe sự kiện bỏ chọn
+        this.tb_productRTCDetailBody.on('rowDeselected', (row: any) => {
+            const index = this.selectedProduct.indexOf(row.getData());
+            if (index !== -1) {
+                this.selectedProduct.splice(index, 1);
+            }
 
-    // cuối cùng mới lọc selectedProduct
-    this.selectedProduct = this.selectedProduct.filter(
-      item => !itemsToRemove.includes(item)
-    );
-
-  }
-  removeData() {
-    if (!this.selectedProductBorrow || this.selectedProductBorrow.length === 0) {
-      this.notification.create('warning', 'Thông báo', 'Vui lòng chọn sản phẩm để trả lại!');
-      return;
+        });
     }
+    drawTbProductRTCDetailBorrow(container: HTMLElement) {
+        this.tb_productRTCDetailBorrowBody = new Tabulator(container, {
+            ...DEFAULT_TABLE_CONFIG,
+            height: '100%',
+            layout: 'fitColumns',
+            selectableRows: true,
+            pagination: false,
+            locale: 'vi',
+            index: "ID",
+            columns: [
+                { title: 'ID', field: 'ID', visible: false },
+                { title: 'Mã sản phẩm', field: 'ProductCode' },
+                { title: 'Tên', field: 'ProductName' },
+                { title: 'Số lượng mượn', field: 'NumberBorrow', hozAlign: 'right', editor: 'input' },
+            ],
+        });
 
-    // Lưu các ID đang chọn
-    const selectedIds = this.selectedProductBorrow.map((x: any) => x.ID);
+        this.tb_productRTCDetailBorrowBody.on('rowSelected', (row: any) => {
+            const rowData = row.getData();
+            this.selectedProductBorrow.push(rowData);
+        });
 
-    let borrowArray = [...this.arrProductBorrow];
+        this.tb_productRTCDetailBorrowBody.on('rowDeselected', (row: any) => {
+            const rowData = row.getData();
+            this.selectedProductBorrow = this.selectedProductBorrow.filter(
+                item => item.ID !== rowData.ID
+            );
+        });
 
-    for (const selected of [...this.selectedProductBorrow]) {
-      const idx = borrowArray.findIndex((x: any) => x.ID === selected.ID);
-      if (idx !== -1) {
-        const borrowItem = borrowArray[idx];
-        borrowItem.NumberBorrow--;
+    }
+    moveData() {
+        if (this.selectedProduct.length === 0) {
+            this.notification.create(
+                'warning',
+                'Thông báo',
+                'Vui lòng chọn sản phẩm cần mượn!.'
+            );
+            return;
+        }
 
-        if (borrowItem.NumberBorrow <= 0) {
-          // Xóa khỏi Borrow
-          borrowArray.splice(idx, 1);
-          this.tb_productRTCDetailBorrowBody.deleteRow(borrowItem.ID);
+        const itemsToRemove: any[] = [];
+        const borrowArray = [...this.arrProductBorrow]; // copy
+
+        // duyệt qua bản sao để không bị ảnh hưởng khi update/xóa
+        for (const item of [...this.selectedProduct]) {
+            item.InventoryReal--;
+
+            // Kiểm tra sản phẩm đã tồn tại trong borrow chưa
+            // const idx = borrowArray.findIndex((x: any) => x.ID === item.ID);
+            // if (idx !== -1) {
+            //   borrowArray[idx].NumberBorrow++;
+            // } else {
+            borrowArray.push({
+                ID: item.ID,
+                ProductCode: item.ProductCode,
+                ProductName: item.ProductName,
+                ProductCodeRTC: item.ProductCodeRTC,
+                SerialNumber: item.SerialNumber,
+                PartNumber: item.PartNumber,
+                Maker: item.Maker,
+                Note: item.Note,
+                NumberBorrow: 1,
+                UnitCountName: item.UnitCountName || '',
+                UnitCountID: item.UnitCountID || 0,
+            });
+            // }
+
+            if (item.InventoryReal === 0) {
+                this.tb_productRTCDetailBody.deleteRow(item.ID);
+                itemsToRemove.push(item);
+            } else {
+                // update lại số lượng tồn kho trên row
+                const row = this.tb_productRTCDetailBody.getRow(item.ID);
+                if (row) {
+                    row.update({ InventoryReal: item.InventoryReal });
+                }
+            }
+        }
+
+        // update borrow 1 lần sau vòng lặp
+        this.arrProductBorrow = borrowArray;
+        this.tb_productRTCDetailBorrowBody.setData(borrowArray);
+
+        // cuối cùng mới lọc selectedProduct
+        this.selectedProduct = this.selectedProduct.filter(
+            item => !itemsToRemove.includes(item)
+        );
+
+    }
+    removeData() {
+        if (!this.selectedProductBorrow || this.selectedProductBorrow.length === 0) {
+            this.notification.create('warning', 'Thông báo', 'Vui lòng chọn sản phẩm để trả lại!');
+            return;
+        }
+
+        // Lưu các ID đang chọn
+        const selectedIds = this.selectedProductBorrow.map((x: any) => x.ID);
+
+        let borrowArray = [...this.arrProductBorrow];
+
+        for (const selected of [...this.selectedProductBorrow]) {
+            const idx = borrowArray.findIndex((x: any) => x.ID === selected.ID);
+            if (idx !== -1) {
+                const borrowItem = borrowArray[idx];
+                borrowItem.NumberBorrow--;
+
+                if (borrowItem.NumberBorrow <= 0) {
+                    // Xóa khỏi Borrow
+                    borrowArray.splice(idx, 1);
+                    this.tb_productRTCDetailBorrowBody.deleteRow(borrowItem.ID);
+                } else {
+                    borrowArray[idx] = borrowItem;
+                    const row = this.tb_productRTCDetailBorrowBody.getRow(borrowItem.ID);
+                    if (row) row.update({ NumberBorrow: borrowItem.NumberBorrow });
+                }
+
+                // Trả lại bên bảng chính
+                const rowMain = this.tb_productRTCDetailBody.getRow(borrowItem.ID);
+                if (rowMain) {
+                    const rowData = rowMain.getData();
+                    rowData.InventoryReal++;
+                    rowMain.update(rowData);
+                } else {
+                    this.tb_productRTCDetailBody.addRow({
+                        ID: borrowItem.ID,
+                        ProductCode: borrowItem.ProductCode,
+                        ProductName: borrowItem.ProductName,
+                        SerialNumber: borrowItem.SerialNumber,
+                        PartNumber: borrowItem.PartNumber,
+                        Maker: borrowItem.Maker,
+                        Note: borrowItem.Note,
+                        InventoryReal: 1,
+                    });
+                }
+            }
+        }
+
+        this.arrProductBorrow = borrowArray;
+
+        this.tb_productRTCDetailBorrowBody.deselectRow();
+        selectedIds.forEach(id => {
+            const row = this.tb_productRTCDetailBorrowBody.getRow(id);
+            if (row) row.select();
+        });
+
+        // Cập nhật lại selectedProductBorrow
+        this.selectedProductBorrow = this.tb_productRTCDetailBorrowBody.getSelectedData();
+    }
+    onSubmit() {
+        if (this.arrProductBorrow.length == 0) {
+            this.notification.create(
+                'warning',
+                'Thông báo',
+                'Vui lòng chọn thiết bị mượn!.'
+            );
+            return;
         } else {
-          borrowArray[idx] = borrowItem;
-          const row = this.tb_productRTCDetailBorrowBody.getRow(borrowItem.ID);
-          if (row) row.update({ NumberBorrow: borrowItem.NumberBorrow });
-        }
+            if (this.PeopleID == 0) {
+                this.notification.create(
+                    'warning',
+                    'Thông báo',
+                    'Vui lòng chọn người mượn!.'
+                );
+                return;
+            }
+            if (this.Project == "") {
+                this.notification.create(
+                    'warning',
+                    'Thông báo',
+                    'Vui lòng nhập dự án!.'
+                );
+                return;
+            }
+            if (this.DateReturnExpected <= new Date()) {
+                this.notification.create(
+                    'warning',
+                    'Thông báo',
+                    'Ngày dự kiến trả không phù hợp! Ngày dự kiến trả phải lớn hơn ngày mượn hoặc thời gian hiện tại!.'
+                );
+                return;
+            }
 
-        // Trả lại bên bảng chính
-        const rowMain = this.tb_productRTCDetailBody.getRow(borrowItem.ID);
-        if (rowMain) {
-          const rowData = rowMain.getData();
-          rowData.InventoryReal++;
-          rowMain.update(rowData);
-        } else {
-          this.tb_productRTCDetailBody.addRow({
-            ID: borrowItem.ID,
-            ProductCode: borrowItem.ProductCode,
-            ProductName: borrowItem.ProductName,
-            SerialNumber: borrowItem.SerialNumber,
-            PartNumber: borrowItem.PartNumber,
-            Maker: borrowItem.Maker,
-            Note: borrowItem.Note,
-            InventoryReal: 1,
-          });
+            this.modal.confirm({
+                nzTitle: 'Xác nhận đăng ký mượn.',
+                nzContent: `Bạn có chắc chắn muốn mượn không?`,
+                nzOkText: 'Xác nhận',
+                nzCancelText: 'Hủy',
+                nzOnOk: () => {
+                    const deleteRequests = this.arrProductBorrow.map(item => {
+                        const data = {
+                            ProductRTCID: item.ID,
+                            HistoryProductRTCID: 0,
+                            PeopleID: this.PeopleID,
+                            Project: this.Project,
+                            Note: this.Note || '',
+                            Status: 7, // trạng thái đăng kí mượn
+                            DateReturnExpected: this.DateReturnExpected.toISOString(),
+                            DateBorrow: this.DateBorrow.toISOString(),
+                            Quantity: item.NumberBorrow,
+                            SerialNumber: item.SerialNumber || '',
+                            IsDelete: false
+                        };
+                        const IDAdminDemo = ID_ADMIN_DEMO_LIST || [];
+                        const userId = this.appUserService?.id || 0;
+                        const isAdmin = IDAdminDemo.includes(userId);
+                        const isGlobalAdmin = this.appUserService?.isAdmin || false;
+                        // trạng thái đang mượn nếu là admin
+                        if (isAdmin || isGlobalAdmin) {
+                            data.Status = 1;
+                        }
+                        console.log('data', data);
+
+                        return this.borrowService.postSaveHistoryProductRTC(data).toPromise()
+                            .then(() => {
+                                return { item, success: true, message: null }
+                            })
+                            .catch(error => {
+                                const message = error?.error?.message || 'Lỗi không xác định!';
+                                console.error(`Lỗi khi thêm thiết bị ${item.ID}:`, message);
+                                return { item, success: false, message };
+                            });
+                    });
+
+                    Promise.all(deleteRequests).then(results => {
+                        const successCount = results.filter(r => r.success).length;
+                        const failed = results.filter(r => !r.success);
+
+                        if (successCount > 0) {
+                            this.notification.success('Thành công', `Đã thêm ${successCount} thiết bị thành công!`);
+                        }
+
+                        if (failed.length > 0) {
+                            failed.forEach(f => {
+                                this.notification.error('Lỗi', f.message);
+                            });
+                        }
+                    });
+                    this.activeModal.close();
+                }
+            });
+
+
         }
-      }
     }
 
-    this.arrProductBorrow = borrowArray;
 
-    this.tb_productRTCDetailBorrowBody.deselectRow();
-    selectedIds.forEach(id => {
-      const row = this.tb_productRTCDetailBorrowBody.getRow(id);
-      if (row) row.select();
-    });
+    // INTEGRATION: Xuất sản phẩm đã chọn sang phiếu xuất
+    exportToBillExport() {
+        if (this.arrProductBorrow.length === 0) {
+            this.notification.create(
+                'warning',
+                'Thông báo',
+                'Vui lòng chọn sản phẩm cần xuất sang phiếu xuất!'
+            );
+            return;
+        }
 
-    // Cập nhật lại selectedProductBorrow
-    this.selectedProductBorrow = this.tb_productRTCDetailBorrowBody.getSelectedData();
-  }
-  onSubmit() {
-    if (this.arrProductBorrow.length == 0) {
-      this.notification.create(
-        'warning',
-        'Thông báo',
-        'Vui lòng chọn thiết bị mượn!.'
-      );
-      return;
-    } else {
-      if (this.PeopleID == 0) {
-        this.notification.create(
-          'warning',
-          'Thông báo',
-          'Vui lòng chọn người mượn!.'
-        );
-        return;
-      }
-      if (this.Project == "") {
-        this.notification.create(
-          'warning',
-          'Thông báo',
-          'Vui lòng nhập dự án!.'
-        );
-        return;
-      }
-      if (this.DateReturnExpected <= new Date()) {
-        this.notification.create(
-          'warning',
-          'Thông báo',
-          'Ngày dự kiến trả không phù hợp! Ngày dự kiến trả phải lớn hơn ngày mượn hoặc thời gian hiện tại!.'
-        );
-        return;
-      }
+        // Lấy dữ liệu từ bảng sản phẩm đã chọn
+        const productsToExport = this.arrProductBorrow.map((item: any) => ({
+            ProductRTCID: item.ID,
+            ProductCode: item.ProductCode,
+            ProductName: item.ProductName,
+            ProductCodeRTC: item.ProductCodeRTC,
+            UnitCountName: item.UnitCountName || '',
+            UnitCountID: item.UnitCountID || 0,
+            Maker: item.Maker || '',
+            NumberBorrow: item.NumberBorrow || 1,
+            SerialNumber: item.SerialNumber || '',
+            PartNumber: item.PartNumber || '',
+            Note: item.Note || '',
+        }));
 
-      this.modal.confirm({
-        nzTitle: 'Xác nhận đăng ký mượn.',
-        nzContent: `Bạn có chắc chắn muốn mượn không?`,
-        nzOkText: 'Xác nhận',
-        nzCancelText: 'Hủy',
-        nzOnOk: () => {
-          const deleteRequests = this.arrProductBorrow.map(item => {
-            const data = {
-              ProductRTCID: item.ID,
-              HistoryProductRTCID: 0,
-              PeopleID: this.PeopleID,
-              Project: this.Project,
-              Note: this.Note || '',
-              Status: 7, // trạng thái đăng kí mượn
-              DateReturnExpected: this.DateReturnExpected.toISOString(),
-              DateBorrow: this.DateBorrow.toISOString(),
-              Quantity: item.NumberBorrow,
-              SerialNumber: item.SerialNumber || '',
-              IsDelete: false
+        // Đóng modal và trả về dữ liệu
+        this.activeModal.close(productsToExport);
+    }
+
+    // Service grouping theo DepartmentName -> TeamName
+    createdNestedGroup(items: any[], groupByDept: string, groupByTeam: string) {
+        const deptGrouped: Record<string, any[]> = items.reduce((acc, item) => {
+            const deptKey = item[groupByDept] || 'Khác';
+            if (!acc[deptKey]) acc[deptKey] = [];
+            acc[deptKey].push(item);
+            return acc;
+        }, {});
+
+        return Object.entries(deptGrouped).map(([deptLabel, deptItems]) => {
+            const teamGrouped: Record<string, any[]> = deptItems.reduce((acc, item) => {
+                const teamKey = item[groupByTeam] || 'Khác';
+                if (!acc[teamKey]) acc[teamKey] = [];
+                acc[teamKey].push(item);
+                return acc;
+            }, {});
+
+            return {
+                label: deptLabel,
+                teams: Object.entries(teamGrouped).map(([teamLabel, teamItems]) => ({
+                    label: teamLabel,
+                    options: teamItems.map(item => ({ item }))
+                }))
             };
-              const IDAdminDemo = ID_ADMIN_DEMO_LIST || [];
-              const userId = this.appUserService?.id || 0;
-              const isAdmin = IDAdminDemo.includes(userId);
-              const isGlobalAdmin = this.appUserService?.isAdmin || false;
-            // trạng thái đang mượn nếu là admin
-            if (isAdmin || isGlobalAdmin ) {
-              data.Status = 1;
-            }
-            console.log('data',data);
-
-            return this.borrowService.postSaveHistoryProductRTC(data).toPromise()
-              .then(() => {
-                return { item, success: true, message: null }
-              })
-              .catch(error => {
-                const message = error?.error?.message || 'Lỗi không xác định!';
-                console.error(`Lỗi khi thêm thiết bị ${item.ID}:`, message);
-                return { item, success: false, message };
-              });
-          });
-
-          Promise.all(deleteRequests).then(results => {
-            const successCount = results.filter(r => r.success).length;
-            const failed = results.filter(r => !r.success);
-
-            if (successCount > 0) {
-              this.notification.success('Thành công', `Đã thêm ${successCount} thiết bị thành công!`);
-            }
-
-            if (failed.length > 0) {
-              failed.forEach(f => {
-                this.notification.error('Lỗi', f.message);
-              });
-            }
-          });
-          this.activeModal.close();
-        }
-      });
-
-
+        });
     }
-  }
-
-
-  // INTEGRATION: Xuất sản phẩm đã chọn sang phiếu xuất
-  exportToBillExport() {
-    if (this.arrProductBorrow.length === 0) {
-      this.notification.create(
-        'warning',
-        'Thông báo',
-        'Vui lòng chọn sản phẩm cần xuất sang phiếu xuất!'
-      );
-      return;
-    }
-
-    // Lấy dữ liệu từ bảng sản phẩm đã chọn
-    const productsToExport = this.arrProductBorrow.map((item: any) => ({
-      ProductRTCID: item.ID,
-      ProductCode: item.ProductCode,
-      ProductName: item.ProductName,
-      ProductCodeRTC: item.ProductCodeRTC,
-      UnitCountName: item.UnitCountName || '',
-      UnitCountID: item.UnitCountID || 0,
-      Maker: item.Maker || '',
-      NumberBorrow: item.NumberBorrow || 1,
-      SerialNumber: item.SerialNumber || '',
-      PartNumber: item.PartNumber || '',
-      Note: item.Note || '',
-    }));
-
-    // Đóng modal và trả về dữ liệu
-    this.activeModal.close(productsToExport);
-  }
-
-  // Service grouping theo DepartmentName -> TeamName
-  createdNestedGroup(items: any[], groupByDept: string, groupByTeam: string) {
-    const deptGrouped: Record<string, any[]> = items.reduce((acc, item) => {
-      const deptKey = item[groupByDept] || 'Khác';
-      if (!acc[deptKey]) acc[deptKey] = [];
-      acc[deptKey].push(item);
-      return acc;
-    }, {});
-
-    return Object.entries(deptGrouped).map(([deptLabel, deptItems]) => {
-      const teamGrouped: Record<string, any[]> = deptItems.reduce((acc, item) => {
-        const teamKey = item[groupByTeam] || 'Khác';
-        if (!acc[teamKey]) acc[teamKey] = [];
-        acc[teamKey].push(item);
-        return acc;
-      }, {});
-
-      return {
-        label: deptLabel,
-        teams: Object.entries(teamGrouped).map(([teamLabel, teamItems]) => ({
-          label: teamLabel,
-          options: teamItems.map(item => ({ item }))
-        }))
-      };
-    });
-  }
 }

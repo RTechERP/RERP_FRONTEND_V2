@@ -1215,16 +1215,31 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
               title: 'Thông tin đặt xe',
               columns: [
 
-                { title: 'Hình thức đặt', field: 'CategoryText', width: 120 },
+                { title: 'Hình thức đặt', field: 'CategoryText', width: 120, formatter: 'textarea' },
+                // {
+                //   title: 'Họ tên',
+                //   // field: 'FullName',
+                //   field: 'BookerVehicles',
+                //   width: 100,
+                //   bottomCalc: 'count',
+                //   formatter: 'textarea',
+                // },
+                // { title: 'Phòng ban', field: 'DepartmentName', width: 120, formatter: 'textarea', },
                 {
-                  title: 'Họ tên',
-                  // field: 'FullName',
-                  field: 'BookerVehicles',
-                  width: 100,
-                  bottomCalc: 'count',
-                  formatter: 'textarea',
+                  title: 'Tên người đi',
+                  field: 'PassengerName',
+                  hozAlign: 'left',
+                  width: 150,
+                  formatter: 'textarea'
                 },
-                { title: 'Phòng ban', field: 'DepartmentName', width: 120, formatter: 'textarea', },
+                {
+                  title: 'SDT Người đi',
+                  field: 'PassengerPhoneNumber',
+                  hozAlign: 'center',
+                  width: 120,
+                  formatter: 'textarea'
+                },
+                { title: 'Tên người giao', field: 'DeliverName', width: 150, formatter: 'textarea' },
                 {
                   title: 'Điểm xuất phát',
                   field: 'DepartureAddress',
@@ -1346,20 +1361,24 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
             {
               //create column group
               cssClass: 'group-passenger',
-              title: 'Thông tin người đi',
+              title: 'Thông tin người đặt',
               columns: [
+                // {
+                //   title: 'Tên người đi',
+                //   field: 'PassengerName',
+                //   hozAlign: 'center',
+                //   width: 150,
+                // },
+
                 {
-                  title: 'Tên người đi',
-                  field: 'PassengerName',
-                  hozAlign: 'center',
-                  width: 150,
+                  title: 'Họ tên',
+                  // field: 'FullName',
+                  field: 'BookerVehicles',
+                  width: 100,
+                  bottomCalc: 'count',
+                  formatter: 'textarea',
                 },
-                {
-                  title: 'SDT Người đi',
-                  field: 'PassengerPhoneNumber',
-                  hozAlign: 'center',
-                  width: 120,
-                },
+                { title: 'Phòng ban', field: 'DepartmentName', width: 120, formatter: 'textarea', },
               ],
             },
             {
@@ -1367,25 +1386,26 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
               cssClass: 'group-delivery',
               title: 'Thông tin hàng giao',
               columns: [
-                { title: 'Tên người giao', field: 'DeliverName', width: 150 },
+                // { title: 'Tên người giao', field: 'DeliverName', width: 150 },
                 {
                   title: 'SDT người giao',
                   field: 'DeliverPhoneNumber',
                   width: 120,
                 },
-                { title: 'Tên người nhận', field: 'ReceiverName', width: 120 },
+                { title: 'Tên người nhận', field: 'ReceiverName', width: 120, formatter: 'textarea' },
                 {
                   title: 'SDT người nhận',
                   field: 'ReceiverPhoneNumber',
                   width: 120,
                 },
                 { title: 'Tên kiện hàng', field: 'PackageName', width: 80, formatter: 'textarea' },
-                { title: 'Kích thước(cm)', field: 'PackageSize', width: 120 },
-                { title: 'Cân nặng(kg)', field: 'PackageWeight', width: 120 },
+                { title: 'Kích thước(cm)', field: 'PackageSize', width: 120, hozAlign: 'right' },
+                { title: 'Cân nặng(kg)', field: 'PackageWeight', width: 120, hozAlign: 'right' },
                 {
                   title: 'Số lượng kiện hàng',
                   field: 'PackageQuantity',
                   width: 160,
+                  hozAlign: 'right',
                 },
                 {
                   title: 'Tiền xe',
@@ -1396,14 +1416,15 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
                     if (!value && value !== 0) return '';
                     return `${Number(value).toLocaleString('vi-VN')}đ`;
                   },
+                  hozAlign: 'right'
                 },
                 { title: 'Dự án', field: 'ProjectFullName', width: 300, formatter: 'textarea' },
                 { title: 'Dự án', field: 'ProjectID', width: 300, formatter: 'textarea', visible: false },
 
               ],
             },
-            { title: 'Tên TBP duyệt', field: 'FullNameTBP', width: 120 },
-            { title: 'TBP duyệt', field: 'ApprovedTBPText', width: 100 },
+            { title: 'Tên TBP duyệt', field: 'FullNameTBP', width: 120, formatter: 'textarea' },
+            { title: 'TBP duyệt', field: 'ApprovedTBPText', width: 100, formatter: 'textarea' },
 
             {
               title: 'Lý do phát sinh',

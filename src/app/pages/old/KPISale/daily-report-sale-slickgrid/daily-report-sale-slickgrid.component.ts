@@ -218,27 +218,37 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
         // Kiểm tra quyền admin và set employeeId
         const currentUser = this.appUserService.currentUser;
         const currentUserId = this.appUserService.id || 0;
-        this.isAdmin = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1) || this.appUserService.hasPermission('N1') || ID_ADMIN_SALE_LIST.includes(currentUserId);
+        const isN1OrAdmin = this.appUserService.isAdmin || (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false);
+        this.isAdmin = isN1OrAdmin || ID_ADMIN_SALE_LIST.includes(currentUserId);
 
-        const isInAdminSaleList = ID_ADMIN_SALE_LIST.includes(currentUserId);
-        this.isTeamIdDisabled = !isInAdminSaleList;
-        this.isEmployeeIdDisabled = !isInAdminSaleList;
+        const isInAdminSaleList = ID_ADMIN_SALE_LIST.includes(currentUserId) || (currentUser?.IsAdminSale === 1);
 
-        if (isInAdminSaleList) {
+        if (isN1OrAdmin) {
+            // N1 / isAdmin: enable cả team lẫn nhân viên, không lock vào team/người nào
+            this.isTeamIdDisabled = false;
+            this.isEmployeeIdDisabled = false;
+        } else if (isInAdminSaleList) {
+            // Admin sale list: enable nhân viên, lock team theo employee
+            this.isTeamIdDisabled = true;
+            this.isEmployeeIdDisabled = false;
             const currentEmployeeId = this.appUserService.employeeID;
             if (currentEmployeeId) {
                 this.needLoadTeam = true;
                 this.loadRootTeamByEmployee(currentEmployeeId);
             }
         } else {
-            this.filters.teamId = 0; // chọn tất cả team theo yêu cầu
-            this.filters.employeeId = currentUserId; // đổ đúng nhân viên đó lên
+            // User thường: disable cả hai, tự điền employeeId
+            this.isTeamIdDisabled = true;
+            this.isEmployeeIdDisabled = true;
+            this.filters.teamId = 0;
+            this.filters.employeeId = currentUserId;
         }
 
         this.loadProjects();
         this.loadCustomers();
-        this.loadEmployees();
         this.loadEmployeeTeamSale();
+        // Load employees theo team (nếu teamId = 0 thì API sẽ trả full nhân viên)
+        this.loadEmployeesByTeam(this.filters.teamId || 0);
     }
 
     ngAfterViewInit(): void {
@@ -281,22 +291,30 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
         );
     }
 
-    loadEmployees(): void {
-        this.dailyReportSaleService.getEmployees().subscribe(
+    loadEmployeesByTeam(teamId: number): void {
+        this.dailyReportSaleService.getEmployeesByTeamSale(teamId).subscribe(
             (response) => {
                 if (response.status === 1) {
                     this.employees = (response.data || []).filter((item: any) => {
                         return item.FullName && item.FullName.trim().length > 0;
                     });
                 } else {
+                    this.employees = [];
                     this.notification.error('Lỗi', response.message || 'Không thể tải danh sách nhân viên');
                 }
             },
             (error) => {
+                this.employees = [];
                 this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách nhân viên');
-                console.error('Error loading employees:', error);
+                console.error('Error loading employees by team:', error);
             }
         );
+    }
+
+    onTeamChange(teamId: number): void {
+        this.filters.teamId = teamId || 0;
+        this.filters.employeeId = 0;
+        this.loadEmployeesByTeam(this.filters.teamId);
     }
 
     loadEmployeeTeamSale(): void {
@@ -342,6 +360,10 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
             (response) => {
                 if (response.status === 1 && response.data) {
                     this.filters.teamId = response.data.TeamID || 0;
+                    // Load employees theo team vừa lấy được
+                    if (this.filters.teamId > 0) {
+                        this.loadEmployeesByTeam(this.filters.teamId);
+                    }
                 }
                 this.isTeamLoaded = true;
                 if (this.isGridReady) {
@@ -363,6 +385,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
             centered: true,
             size: 'xl',
             backdrop: 'static',
+            fullscreen: true,
         });
 
         modalRef.componentInstance.editId = editId;

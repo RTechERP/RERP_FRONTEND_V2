@@ -256,3 +256,5 @@ export class HrInterviewInvitationComponent implements OnInit, AfterViewInit {
     private service: HRRecruitmentCandidateService
   ) { }
 }
+
+

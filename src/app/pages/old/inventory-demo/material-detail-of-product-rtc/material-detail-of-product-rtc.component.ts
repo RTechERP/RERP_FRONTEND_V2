@@ -142,19 +142,13 @@ export class MaterialDetailOfProductRtcComponent
     });
   }
   ngOnInit() {
-    // Read data from query params (when opened via window.open with route)
+    // Read only IDs from query params (when opened via window.open with route)
+    // Data tồn kho (ProductCode, ProductName, NumberBegin, ...) sẽ lấy từ getInventoryDemo
     this.route.queryParams.subscribe((params) => {
       if (Object.keys(params).length > 0) {
         this.productRTCID1 = parseInt(params['productRTCID1'] || '0', 10);
         this.warehouseID1 = parseInt(params['warehouseID1'] || '0', 10);
-        this.ProductCode = params['ProductCode'] || '';
-        this.ProductName = params['ProductName'] || '';
-        this.NumberBegin = parseFloat(params['NumberBegin'] || '0');
-        this.InventoryLatest = parseFloat(params['InventoryLatest'] || '0');
-        this.NumberImport = parseFloat(params['NumberImport'] || '0');
-        this.NumberExport = parseFloat(params['NumberExport'] || '0');
-        this.NumberBorrowing = parseFloat(params['NumberBorrowing'] || '0');
-        this.InventoryReal = parseFloat(params['InventoryReal'] || '0');
+        this.warehouseType = parseInt(params['warehouseType'] || '1', 10);
       }
     });
 
@@ -162,14 +156,7 @@ export class MaterialDetailOfProductRtcComponent
     if (this.tabData) {
       this.productRTCID1 = this.tabData.productRTCID1 || 0;
       this.warehouseID1 = this.tabData.warehouseID1 || 0;
-      this.ProductCode = this.tabData.ProductCode || '';
-      this.ProductName = this.tabData.ProductName || '';
-      this.NumberBegin = this.tabData.NumberBegin || 0;
-      this.InventoryLatest = this.tabData.InventoryLatest || 0;
-      this.NumberImport = this.tabData.NumberImport || 0;
-      this.NumberExport = this.tabData.NumberExport || 0;
-      this.NumberBorrowing = this.tabData.NumberBorrowing || 0;
-      this.InventoryReal = this.tabData.InventoryReal || 0;
+      this.warehouseType = this.tabData.warehouseType || 1;
     }
     this.initForm();
     this.initColumns();
@@ -461,6 +448,7 @@ export class MaterialDetailOfProductRtcComponent
       checkAll: 1,
       warehouseID: this.warehouseID1 || 1,
       productRTCID: this.productRTCID1 || 1,
+      warehouseType: this.warehouseType || 1
     };
     console.log('request', request);
     this.inventoryDemoService
@@ -470,7 +458,7 @@ export class MaterialDetailOfProductRtcComponent
         this.ProductCode = response.products?.[0]?.ProductCode || '';
         this.ProductName = response.products?.[0]?.ProductName || '';
         this.NumberBegin = response.products?.[0]?.Number || 0;
-        this.InventoryLatest = response.products?.[0]?.InventoryLatest || 0;
+        this.InventoryLatest = response.products?.[0]?.InventoryLate || 0;
         this.NumberImport = response.products?.[0]?.NumberImport || 0;
         this.NumberExport = response.products?.[0]?.NumberExport || 0;
         this.NumberBorrowing = response.products?.[0]?.NumberBorrowing || 0;

@@ -69,11 +69,32 @@ export const appConfig: ApplicationConfig = {
 // export const HOST = 'http://192.168.1.2:8088/api/';
 // export const LOGIN_NAME = 'ADMINSW';
 export const SERVER_PATH = 'D:/LeTheAnh/RTC/UPLOADFILE/TrainingRegistration/';
+
+export enum RESPONSE_STATUS {
+    ERROR = 0,
+    SUCCESS = 1,
+    FORBIDDEN = 403
+}
+
 export const NOTIFICATION_TITLE = {
     error: 'Lỗi',
     success: 'Thông báo',
     warning: 'Thông báo',
 };
+
+export const NOTIFICATION_TITLE_MAP: Record<RESPONSE_STATUS, string> = {
+    [RESPONSE_STATUS.ERROR]: 'Lỗi',
+    [RESPONSE_STATUS.SUCCESS]: 'Thành công',
+    [RESPONSE_STATUS.FORBIDDEN]: 'Thông báo'
+};
+
+export const NOTIFICATION_TYPE_MAP: any = {
+    1: 'success',
+    403: 'warning',
+    0: 'error'
+};
+
+
 export const ID_ADMIN_DEMO_LIST: number[] = [24, 1434, 88, 1534, 1700];
 export const USER_ALL_REPORT_TECH: number[] = [1, 23, 24, 78, 88, 1221, 1313, 1434, 1431, 53, 51, 1534, 1700];
 export const ID_ADMIN_SALE_LIST: number[] = [1, 2, 1293, 1177, 1313, 23, 1380, 1132, 11, 17, 1185, 1463, 1431, 1604];

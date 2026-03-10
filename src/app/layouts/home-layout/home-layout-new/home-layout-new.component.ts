@@ -32,6 +32,7 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { HostListener } from '@angular/core';
 import { UpdateVersionService } from '../../../pages/systems/update-version/update-version.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { NotificationService } from '../../../services/notification.service';
 interface LiXi {
     id: number;
     left: number;
@@ -83,7 +84,6 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     private clickTimer: any;
     isMobile = window.innerHeight <= 768;
 
-    notifItems: NotifyItem[] = [];
     isAppMenuVisible = false;
     selectedModuleKey = '';
     menus: any[] = [];
@@ -154,8 +154,11 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         private modalService: NgbModal,
         private borrowService: BorrowService,
         private updateVersionService: UpdateVersionService,
-        private nzModal: NzModalService
+        private nzModal: NzModalService,
+        public notifService: NotificationService,
     ) { }
+
+    get notifItems(): NotifyItem[] { return this.notifService.items; }
 
     ngOnInit(): void {
         this.appUserService.user$.subscribe(() => {
@@ -204,14 +207,35 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         this.borrowService.getQuantityBorrow().subscribe({
             next: (res: any) => {
                 this.quantityBorrow = res.data.QuantitySemiExpired;
-                // console.log('Sắp hết hạn:', this.quantityBorrow);
                 this.quantityBorrowExpried = res.data.QuantityExpired;
-                // console.log('Hết hạn:', this.quantityBorrowExpried);
+
+                if (this.quantityBorrow > 0) {
+                    this.notifService.addItem({
+                        id: 1,
+                        time: new Date().toISOString(),
+                        title: 'Vật tư sắp hết hạn',
+                        text: `Bạn đang có ${this.quantityBorrow} vật tư mượn sắp hết hạn`,
+                        group: 'today',
+                        icon: 'clock-circle',
+                        route: 'history-product-rtc-personal'
+                    });
+                }
+                if (this.quantityBorrowExpried > 0) {
+                    this.notifService.addItem({
+                        id: 2,
+                        time: new Date().toISOString(),
+                        title: 'Vật tư quá hạn',
+                        text: `Bạn đang có ${this.quantityBorrowExpried} vật tư mượn quá hạn`,
+                        group: 'today',
+                        icon: 'warning',
+                        route: 'history-product-rtc-personal'
+                    });
+                }
             },
             error: (err: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
-        })
+        });
     }
 
     newTabApprove() {
@@ -318,7 +342,13 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     }
 
     onPick(n: NotifyItem) {
-        console.log('picked:', n);
+        if (n.route) {
+            this.newTab(n.route, n.title || 'Thông báo');
+        }
+    }
+
+    onPickHistoryProduct() {
+        this.newTab('history-product-rtc-personal', '');
     }
 
 

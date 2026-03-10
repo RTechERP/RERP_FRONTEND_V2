@@ -15,7 +15,7 @@
             <app-app-notifycation-dropdown [items]="notifItems" (itemClick)="onPick($event)">
                 <button nz-button nzType="text" class="text-light fs-7" trigger>
                     <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length" class="fs-7">
-                        <img src="assets/icon/notification_home.svg" class="bell-icon">
+                        <img src="assets/icon/notification_home.svg" class="bell-icon" [ngClass]="{'has-notif': notifItems.length > 0}">
                     </nz-badge>
                 </button>
             </app-app-notifycation-dropdown>

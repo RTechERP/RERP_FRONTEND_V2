@@ -1181,6 +1181,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
               field: 'MucDongBHXHHienTai',
               hozAlign: 'left',
               headerHozAlign: 'center',
+              visible: this.isSalaryVisible,
             },
           ],
         },
@@ -2627,6 +2628,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     };
 
     if (!this.isSalaryVisible) {
+      delete (employeeData as any).MucDongBHXHHienTai;
       delete (employeeData as any).LuongThuViec;
       delete (employeeData as any).LuongCoBan;
       delete (employeeData as any).AnCa;

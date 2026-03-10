@@ -31,7 +31,7 @@ import {
 } from 'angular-slickgrid';
 import { PaymentOrder, PaymentOrderDetailField, PaymentOrderField } from './model/payment-order';
 import { CommonModule } from '@angular/common';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import Swal from 'sweetalert2';
@@ -318,7 +318,6 @@ export class PaymentOrderComponent implements OnInit {
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
         }
         // }
-
 
 
         this.initGrid();
@@ -3281,6 +3280,8 @@ export class PaymentOrderComponent implements OnInit {
 
         const action = data[0].Action.ButtonActionGroup || '';
 
+        console.log("handleApproved data:", data);
+
         if (action == 'btnTBP') {
             this.paymentService.appovedTBP(data).subscribe({
                 next: (response) => {
@@ -3288,10 +3289,18 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    //     {
+                    //         nzStyle: { whiteSpace: 'pre-line' }
+                    //     });
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
-                        });
+                        }
+                    );
                 }
             })
         } else if (action == 'btnHR') {
@@ -3301,10 +3310,19 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    //     {
+                    //         nzStyle: { whiteSpace: 'pre-line' }
+                    //     });
+
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
-                        });
+                        }
+                    );
                 }
             })
         } else if (action == 'btnKTTT') {
@@ -3314,10 +3332,19 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    //     {
+                    //         nzStyle: { whiteSpace: 'pre-line' }
+                    //     });
+
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
-                        });
+                        }
+                    );
                 }
             })
         } else if (action == 'btnKTT') {
@@ -3327,10 +3354,18 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    //     {
+                    //         nzStyle: { whiteSpace: 'pre-line' }
+                    //     });
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
-                        });
+                        }
+                    );
                 }
             })
         } else if (action == 'btnBGĐ') {
@@ -3340,7 +3375,15 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message);
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    //     {
+                    //         nzStyle: { whiteSpace: 'pre-line' }
+                    //     }
+                    // );
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
                         {
                             nzStyle: { whiteSpace: 'pre-line' }
                         }
@@ -3604,6 +3647,7 @@ export class PaymentOrderComponent implements OnInit {
                     confirmButtonText: 'Duyệt',
                     cancelButtonText: 'Hủy',
                 }).then((result: any) => {
+                    console.log('result:', result);
                     if (result.isConfirmed) {
                         // console.log('duyêt:', selectedItems);
 

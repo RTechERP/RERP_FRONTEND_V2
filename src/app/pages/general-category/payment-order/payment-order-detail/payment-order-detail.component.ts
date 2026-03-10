@@ -15,7 +15,7 @@ import { min, Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { CURRENCY_CONFIGS, PaymentOrderService } from '../payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { ChiTieitSanPhamSaleService } from '../../../old/Sale/chi-tiet-san-pham-sale/chi-tieit-san-pham-sale.service';
@@ -903,7 +903,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     submitForm() {
 
 
-        console.log('this.validateForm.valid:', this.validateForm.valid);
+        // console.log('this.validateForm.valid:', this.validateForm.valid);
         if (!this.validateForm.valid) {
 
             Object.values(this.validateForm.controls).forEach(control => {
@@ -956,7 +956,15 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                     this.activeModal.close();
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                    // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                     this.isSubmit = false;
                 }
             });
@@ -1096,10 +1104,18 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         // console.log('paymentOrderID:', paymentOrderID);
         this.paymentService.uploadFile(files, paymentOrderID, JSON.stringify(this.fileDeletes)).subscribe({
             next: (reponse) => {
-                console.log(reponse);
+                // console.log(reponse);
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         })
     }
@@ -1113,7 +1129,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         const columnId = gridInstance.slickGrid?.getColumns()[cell].id;
 
-        console.log('columnId:', columnId);
+        // console.log('columnId:', columnId);
 
         let total = 0;
         // let i = this.dataset.length;

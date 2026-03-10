@@ -1142,6 +1142,7 @@ export class BorrowProductHistoryComponent implements OnInit {
             }
         );
         modalRef.componentInstance.warehouseType = this.warehouseType;
+        modalRef.componentInstance.warehouseID = this.warehouseID;
 
         modalRef.result.finally(() => {
             this.drawTbProductHistory(this.tb_productHistoryContainer.nativeElement);

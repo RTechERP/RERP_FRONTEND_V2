@@ -7,247 +7,247 @@ import * as ExcelJS from 'exceljs';
 import { environment } from '../../../../../../environments/environment';
 import { AppUserService } from '../../../../../services/app-user.service';
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root',
 })
 export class BorrowService {
-  private apiUrl = `${environment.host}api/`;
-  private apiUrlQR = `${environment.host}api/HistoryProductRTC/`;
+    private apiUrl = `${environment.host}api/`;
+    private apiUrlQR = `${environment.host}api/HistoryProductRTC/`;
 
-  constructor(
-    private http: HttpClient,
-    private notification: NzNotificationService,
-    private appUserService: AppUserService
-  ) {
-    this.LoginName = appUserService.loginName || '';
-    this.ISADMIN = appUserService.isAdmin || false;
-    this.GlobalEmployeeId = appUserService.employeeID || 0;
-  }
+    constructor(
+        private http: HttpClient,
+        private notification: NzNotificationService,
+        private appUserService: AppUserService
+    ) {
+        this.LoginName = appUserService.loginName || '';
+        this.ISADMIN = appUserService.isAdmin || false;
+        this.GlobalEmployeeId = appUserService.employeeID || 0;
+    }
 
-  GlobalEmployeeId: number = 78;
-  LoginName: string = 'ADMIN';
-  ISADMIN: boolean = true;
-  
-  private pad(n: number): string {
-    return String(n).padStart(2, '0');
-  }
+    GlobalEmployeeId: number = 78;
+    LoginName: string = 'ADMIN';
+    ISADMIN: boolean = true;
 
-  formatDateVN(date: Date): string {
-    // Cộng 7 giờ từ UTC
-    const vnDate = new Date(date.getTime() + 7 * 60 * 60 * 1000);
-    return (
-      `${vnDate.getUTCFullYear()}-${this.pad(
-        vnDate.getUTCMonth() + 1
-      )}-${this.pad(vnDate.getUTCDate())} ` +
-      `${this.pad(vnDate.getUTCHours())}:${this.pad(
-        vnDate.getUTCMinutes()
-      )}:${this.pad(vnDate.getUTCSeconds())}`
-    );
-  }
+    private pad(n: number): string {
+        return String(n).padStart(2, '0');
+    }
 
-  getApiUrlProductHistory() {
-    return this.apiUrl + `borrow/get-product-history`;
-  }
+    formatDateVN(date: Date): string {
+        // Cộng 7 giờ từ UTC
+        const vnDate = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+        return (
+            `${vnDate.getUTCFullYear()}-${this.pad(
+                vnDate.getUTCMonth() + 1
+            )}-${this.pad(vnDate.getUTCDate())} ` +
+            `${this.pad(vnDate.getUTCHours())}:${this.pad(
+                vnDate.getUTCMinutes()
+            )}:${this.pad(vnDate.getUTCSeconds())}`
+        );
+    }
 
-  getProductHistory(params: any): Observable<any> {
-    let httpParams = new HttpParams();
-    Object.keys(params).forEach((key) => {
-      if (params[key] !== null && params[key] !== undefined) {
-        httpParams = httpParams.append(key, params[key].toString());
-      }
-    });
-    return this.http.get<any>(this.apiUrl + `borrow/get-product-history`, {
-      params: httpParams,
-    });
-  }
+    getApiUrlProductHistory() {
+        return this.apiUrl + `borrow/get-product-history`;
+    }
 
-  getEmployeeTeamAndDepartment(): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `borrow/get-employee-team-and-department`
-    );
-  }
-  
-  getUserHistoryProduct(userId: number): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `borrow/get-user-history-product?userId=${userId}&status=0`
-    );
-  }
-  getOldUserHistoryProduct(userId: number): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `borrow/get-user-history-product?userId=${userId}&status=-1`
-    );
-  }
+    getProductHistory(params: any): Observable<any> {
+        let httpParams = new HttpParams();
+        Object.keys(params).forEach((key) => {
+            if (params[key] !== null && params[key] !== undefined) {
+                httpParams = httpParams.append(key, params[key].toString());
+            }
+        });
+        return this.http.get<any>(this.apiUrl + `borrow/get-product-history`, {
+            params: httpParams,
+        });
+    }
 
+    getEmployeeTeamAndDepartment(): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrl + `borrow/get-employee-team-and-department`
+        );
+    }
 
-  getProductRTCDetail(
-    productGroupID: number,
-    keyword: string,
-    checkAll: number,
-    filter: string,
-    warehouseID: number,
-    warehouseType: number
-  ): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl +
-      `borrow/get-productrtc-detail?productGroupID=${productGroupID}&keyword=${keyword}&checkAll=${checkAll}&filter=${filter}&warehouseID=${warehouseID}&warehouseType=${warehouseType}`
-    );
-  }
-  getHistoryProductBorrowDetail(historyId: number): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl +
-      `borrow/get-history-product-borrow-detail?historyId=${historyId}`
-    );
-  }
-  getHistoryProductRTCLog(historyId: number): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `borrow/get-history-productrtc-log?historyID=${historyId}`
-    );
-  }
-  getHistoryError(productHistoryID: number): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl +
-      `borrow/get-history-error?productHistoryID=${productHistoryID}`
-    );
-  }
-  getHistoryProductRTCByID(productHistoryID: number): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl +
-      `borrow/get-history-product-rtc-by-id?productHistoryID=${productHistoryID}`
-    );
-  }
-  getPersonalHistoryError(Id: number): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `borrow/get-personal-history-error?Id=${Id}`
-    );
-  }
-
-  getBillNumber(): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `borrow/get-bill-number`);
-  }
-
-  postSaveHistoryProductRTC(data: any): Observable<any> {
-    return this.http.post<any>(
-      this.apiUrl + `borrow/save-history-productrtc`,
-      data
-    );
-  }
-  postSaveBillExportDetailTechnical(data: any): Observable<any> {
-    return this.http.post<any>(
-      this.apiUrl + `borrow/save-bill-export-detail-technical`,
-      data
-    );
-  }
-  postSaveBillExportTechnical(data: any): Observable<any> {
-    return this.http.post<any>(
-      this.apiUrl + `borrow/save-billexport-technical`,
-      data
-    );
-  }
-
-  postSaveHistoryProductRTCLog(data: any): Observable<any> {
-    return this.http.post<any>(
-      this.apiUrl + `borrow/save-history-product-log`,
-      data
-    );
-  }
-  postSaveHistoryProduct(data: any): Observable<any> {
-    return this.http.post<any>(
-      this.apiUrl + `borrow/save-history-product`,
-      data
-    );
-  }
-  postSaveHistoryError(data: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl + `borrow/save-history-error`, data);
-  }
-
-  postReturnProductRTC(
-    historyId: number,
-    isAdmin: boolean,
-    modulaLocationDetailID: number = 0
-  ): Observable<any> {
-    const body = {
-      HistoryId: historyId,
-      IsAdmin: isAdmin,
-      ModulaLocationDetailID: modulaLocationDetailID,
-    };
-
-    return this.http.post<any>(`${this.apiUrl}borrow/return-productrtc`, body);
-  }
-  postApproveBorrowingRTC(
-    historyId: number,
-    modulaLocationDetailID: number,
-    isAdmin: boolean
-  ): Observable<any> {
-    const body = {
-      historyId: historyId,
-      modulaLocationDetailID: modulaLocationDetailID,
-      isAdmin: isAdmin,
-    };
-
-    return this.http.post<any>(`${this.apiUrl}borrow/approve-borrowing`, body);
-  }
+    getUserHistoryProduct(userId: number): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrl + `borrow/get-user-history-product?userId=${userId}&status=0`
+        );
+    }
+    getOldUserHistoryProduct(userId: number): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrl + `borrow/get-user-history-product?userId=${userId}&status=-1`
+        );
+    }
 
 
-  postDeleteHistoryProduct(ids: number[]): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}borrow/delete`, ids);
-  }
+    getProductRTCDetail(
+        productGroupID: number,
+        keyword: string,
+        checkAll: number,
+        filter: string,
+        warehouseID: number,
+        warehouseType: number
+    ): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrl +
+            `borrow/get-productrtc-detail?productGroupID=${productGroupID}&keyword=${keyword}&checkAll=${checkAll}&filter=${filter}&warehouseID=${warehouseID}&warehouseType=${warehouseType}`
+        );
+    }
+    getHistoryProductBorrowDetail(historyId: number): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrl +
+            `borrow/get-history-product-borrow-detail?historyId=${historyId}`
+        );
+    }
+    getHistoryProductRTCLog(historyId: number): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrl + `borrow/get-history-productrtc-log?historyID=${historyId}`
+        );
+    }
+    getHistoryError(productHistoryID: number): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrl +
+            `borrow/get-history-error?productHistoryID=${productHistoryID}`
+        );
+    }
+    getHistoryProductRTCByID(productHistoryID: number): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrl +
+            `borrow/get-history-product-rtc-by-id?productHistoryID=${productHistoryID}`
+        );
+    }
+    getPersonalHistoryError(Id: number): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrl + `borrow/get-personal-history-error?Id=${Id}`
+        );
+    }
 
-  createdDataGroup(items: any[], groupByField: string): any[] {
-    const grouped: Record<string, any[]> = items.reduce((acc, item) => {
-      const groupKey = item[groupByField] || '';
-      if (!acc[groupKey]) acc[groupKey] = [];
-      acc[groupKey].push(item);
-      return acc;
-    }, {});
+    getBillNumber(): Observable<any> {
+        return this.http.get<any>(this.apiUrl + `borrow/get-bill-number`);
+    }
 
-    return Object.entries(grouped).map(([groupLabel, groupItems]) => ({
-      label: groupLabel,
-      options: groupItems.map((item) => ({
-        item: item,
-      })),
-    }));
-  }
+    postSaveHistoryProductRTC(data: any): Observable<any> {
+        return this.http.post<any>(
+            this.apiUrl + `borrow/save-history-productrtc`,
+            data
+        );
+    }
+    postSaveBillExportDetailTechnical(data: any): Observable<any> {
+        return this.http.post<any>(
+            this.apiUrl + `borrow/save-bill-export-detail-technical`,
+            data
+        );
+    }
+    postSaveBillExportTechnical(data: any): Observable<any> {
+        return this.http.post<any>(
+            this.apiUrl + `borrow/save-billexport-technical`,
+            data
+        );
+    }
 
-  //#region Mượn trả QR
-  getUserProductQR(userId: number): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrlQR + `user-product-qr?userId=${userId}`
-    );
-  }
+    postSaveHistoryProductRTCLog(data: any): Observable<any> {
+        return this.http.post<any>(
+            this.apiUrl + `borrow/save-history-product-log`,
+            data
+        );
+    }
+    postSaveHistoryProduct(data: any): Observable<any> {
+        return this.http.post<any>(
+            this.apiUrl + `borrow/save-history-product`,
+            data
+        );
+    }
+    postSaveHistoryError(data: any): Observable<any> {
+        return this.http.post<any>(this.apiUrl + `borrow/save-history-error`, data);
+    }
 
-  getProductQR(): Observable<any> {
-    return this.http.get<any>(this.apiUrlQR + `product-qr`);
-  }
+    postReturnProductRTC(
+        historyId: number,
+        isAdmin: boolean,
+        modulaLocationDetailID: number = 0
+    ): Observable<any> {
+        const body = {
+            HistoryId: historyId,
+            IsAdmin: isAdmin,
+            ModulaLocationDetailID: modulaLocationDetailID,
+        };
 
-  getProductRTCByQR(qrCode: string, warehouseID: number): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrlQR +
-      `product-rtc-by-qr?qrCode=${qrCode}&warehouseID=${warehouseID}`
-    );
-  }
+        return this.http.post<any>(`${this.apiUrl}borrow/return-productrtc`, body);
+    }
+    postApproveBorrowingRTC(
+        historyId: number,
+        modulaLocationDetailID: number,
+        isAdmin: boolean
+    ): Observable<any> {
+        const body = {
+            historyId: historyId,
+            modulaLocationDetailID: modulaLocationDetailID,
+            isAdmin: isAdmin,
+        };
 
-  getProductByQR(qrCode: string, warehouseID: number): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrlQR + `load-qr-code?qrCode=${qrCode}&warehouseID=${warehouseID}`
-    );
-  }
+        return this.http.post<any>(`${this.apiUrl}borrow/approve-borrowing`, body);
+    }
 
-  getProductByQRReturn(
-    qrCode: string,
-    userId: number,
-    warehouseID: number
-  ): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrlQR +
-      `load-qr-code-return?qrCode=${qrCode}&userId=${userId}&warehouseID=${warehouseID}`
-    );
-  }
 
-  saveProductQR(data: any): Observable<any> {
-    return this.http.post<any>(this.apiUrlQR + `save-data-product-qr`, data);
-  }
-  //#endregion
+    postDeleteHistoryProduct(ids: number[]): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}borrow/delete`, ids);
+    }
 
-  getQuantityBorrow(): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `borrow/get-quantity-product-borrow`);
-  }
+    createdDataGroup(items: any[], groupByField: string): any[] {
+        const grouped: Record<string, any[]> = items.reduce((acc, item) => {
+            const groupKey = item[groupByField] || '';
+            if (!acc[groupKey]) acc[groupKey] = [];
+            acc[groupKey].push(item);
+            return acc;
+        }, {});
+
+        return Object.entries(grouped).map(([groupLabel, groupItems]) => ({
+            label: groupLabel,
+            options: groupItems.map((item) => ({
+                item: item,
+            })),
+        }));
+    }
+
+    //#region Mượn trả QR
+    getUserProductQR(userId: number): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrlQR + `user-product-qr?userId=${userId}`
+        );
+    }
+
+    getProductQR(): Observable<any> {
+        return this.http.get<any>(this.apiUrlQR + `product-qr`);
+    }
+
+    getProductRTCByQR(qrCode: string, warehouseID: number): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrlQR +
+            `product-rtc-by-qr?qrCode=${qrCode}&warehouseID=${warehouseID}`
+        );
+    }
+
+    getProductByQR(qrCode: string, warehouseID: number): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrlQR + `load-qr-code?qrCode=${qrCode}&warehouseID=${warehouseID}`
+        );
+    }
+
+    getProductByQRReturn(
+        qrCode: string,
+        userId: number,
+        warehouseID: number
+    ): Observable<any> {
+        return this.http.get<any>(
+            this.apiUrlQR +
+            `load-qr-code-return?qrCode=${qrCode}&userId=${userId}&warehouseID=${warehouseID}`
+        );
+    }
+
+    saveProductQR(data: any): Observable<any> {
+        return this.http.post<any>(this.apiUrlQR + `save-data-product-qr`, data);
+    }
+    //#endregion
+
+    getQuantityBorrow(): Observable<any> {
+        return this.http.get<any>(this.apiUrl + `borrow/get-quantity-product-borrow`);
+    }
 }

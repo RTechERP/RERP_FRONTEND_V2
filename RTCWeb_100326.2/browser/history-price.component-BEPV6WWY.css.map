@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/purchase/project-partlist-purchase-request/history-price/history-price.component.css"],
-  "sourcesContent": [".fs-12 {\r\n    font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n    all: revert;\r\n}\r\n\r\n.ant-splitter-panel {\r\n    position: relative;\r\n}\r\n\r\n.tabulator {\r\n    font-size: 0.75rem !important;\r\n    /* position: absolute !important; */\r\n    width: 100% !important;\r\n}\r\n\r\n.tabulator-cell {\r\n    padding: 0px;\r\n}\r\n\r\n.inner-content {\r\n    padding: 0 !important;\r\n}\r\n\r\n.ant-tabs-tab-btn {\r\n    font-size: 0.75rem;\r\n}\r\n\r\n.ant-splitter {\r\n    height: 93vh !important;\r\n}\r\n\r\n.modal-header {\r\n    border-top-left-radius: 0 !important;\r\n    border-top-right-radius: 0 !important;\r\n}\r\n\r\n.modal-body {\r\n    font-size: 12px;\r\n}\r\n\r\n.modal-body input,\r\n.modal-body button,\r\n.modal-body .tabulator {\r\n    font-size: 12px !important;\r\n}"],
-  "mappings": "AAAA,CAAC,MACG,UAAW,MACf,CAEA,CAAC,MACG,IAAK,MACT,CAEA,CAAC,mBACG,SAAU,QACd,CAEA,CAAC,UACG,UAAW,iBAEX,MAAO,cACX,CAEA,CAAC,eAlBD,QAmBa,CACb,CAEA,CAAC,cAtBD,QAuBa,WACb,CAEA,CAAC,iBACG,UAAW,MACf,CAEA,CAAC,aACG,OAAQ,cACZ,CAEA,CAAC,aACG,uBAAwB,YACxB,wBAAyB,WAC7B,CAEA,CAAC,WACG,UAAW,IACf,CAEA,CAJC,WAIW,MACZ,CALC,WAKW,OACZ,CANC,WAMW,CAjCX,UAkCG,UAAW,cACf",
-  "names": []
-}

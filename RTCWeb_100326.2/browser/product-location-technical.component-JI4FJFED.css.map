@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/product-location-technical/product-location-technical.component.css"],
-  "sourcesContent": ["/* ProductLocation Technical Component Styles */\r\n/* Set font-size 12px (0.75rem) for entire component */\r\n:host {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.card {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.card-header {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.card-body {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n/* Buttons */\r\n.btn-add,\r\n.btn-edit,\r\n.btn-delete,\r\n.btn-refresh,\r\nnz-button {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n::ng-deep .ant-btn {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n/* Input fields */\r\n.form-control {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.form-control-sm {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n/* Tabulator table */\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n::ng-deep .tabulator .tabulator-header {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n::ng-deep .tabulator .tabulator-cell {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n/* Icons */\r\nnz-icon {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n::ng-deep .anticon {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n"],
-  "mappings": "AAEA,MACE,UAAW,MACb,CAEA,CAAC,KAID,CAAC,YAID,CAAC,UAPC,UAAW,MACb,CAWA,CAAC,QACD,CAAC,SACD,CAAC,WACD,CAAC,YACD,UACE,UAAW,MACb,CAEA,UAAU,CAAC,QACT,UAAW,MACb,CAGA,CAAC,aAID,CAAC,gBAKD,CAAC,UARC,UAAW,MACb,CAWA,UAAU,CAJT,UAIoB,CAAC,iBACpB,UAAW,MACb,CAEA,UAAU,CART,UAQoB,CAAC,eACpB,UAAW,MACb,CAGA,QACE,UAAW,MACb,CAEA,UAAU,CAAC,QACT,UAAW,MACb",
-  "names": []
-}

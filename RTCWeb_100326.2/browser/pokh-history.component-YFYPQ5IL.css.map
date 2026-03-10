@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/pokh-history/pokh-history.component.css"],
-  "sourcesContent": [":host {\r\n  display: flex;\r\n  flex-direction: column;\r\n  height: 100%;\r\n  min-height: 0;\r\n}\r\n\r\n.ant-splitter {\r\n  height: 89.8vh !important;\r\n}\r\n\r\n:host ::ng-deep .ant-splitter-panel {\r\n  height: 100%;\r\n  display: flex;\r\n  flex-direction: column;\r\n  overflow: hidden;\r\n}\r\n\r\n#tb_Table {\r\n  height: 100%;\r\n  min-height: 0;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n  all: revert;\r\n}\r\n\r\n.ant-splitter-panel {\r\n  position: relative;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem !important;\r\n  /* position: absolute !important; */\r\n  width: 100% !important;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.inner-content {\r\n  padding: 0 !important;\r\n}\r\n\r\n.ant-tabs-tab-btn {\r\n  font-size: 0.75rem;\r\n}"],
-  "mappings": "AAAA,MACE,QAAS,KACT,eAAgB,OAChB,OAAQ,KACR,WAAY,CACd,CAEA,CAAC,aACC,OAAQ,gBACV,CAEA,MAAM,UAAU,CAAC,mBACf,OAAQ,KACR,QAAS,KACT,eAAgB,OAChB,SAAU,MACZ,CAEA,CAAC,SACC,OAAQ,KACR,WAAY,CACd,CAEA,CAAC,MACC,UAAW,MACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CApBiB,mBAqBf,SAAU,QACZ,CAEA,CAAC,UACC,UAAW,iBAEX,MAAO,cACT,CAEA,CAAC,eAzCD,QA0CW,CACX,CAEA,CAAC,cA7CD,QA8CW,WACX,CAEA,CAAC,iBACC,UAAW,MACb",
-  "names": []
-}

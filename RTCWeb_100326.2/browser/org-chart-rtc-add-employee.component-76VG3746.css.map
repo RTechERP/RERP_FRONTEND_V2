@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/org-chart-rtc/org-chart-rtc-add-employee/org-chart-rtc-add-employee.component.css"],
-  "sourcesContent": [".modal-header {\r\n    border-bottom: 1px solid #dee2e6;\r\n    padding: 1rem;\r\n}\r\n\r\n.modal-body {\r\n    padding: 1rem;\r\n    max-height: 70vh;\r\n    overflow-y: auto;\r\n}\r\n\r\n.modal-footer {\r\n    border-top: 1px solid #dee2e6;\r\n    padding: 1rem;\r\n    display: flex;\r\n    justify-content: flex-end;\r\n    gap: 8px;\r\n}\r\n\r\n\r\n.form-label {\r\n    font-size: 13px;\r\n    margin-bottom: 4px;\r\n    display: block;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,aACG,cAAe,IAAI,MAAM,QAD7B,QAEa,IACb,CAEA,CAAC,WALD,QAMa,KACT,WAAY,KACZ,WAAY,IAChB,CAEA,CAAC,aACG,WAAY,IAAI,MAAM,QAZ1B,QAaa,KACT,QAAS,KACT,gBAAiB,SACjB,IAAK,GACT,CAGA,CAAC,WACG,UAAW,KACX,cAAe,IACf,QAAS,KACb",
-  "names": []
-}

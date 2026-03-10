@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Sale/ProductSale/import-excel-product-sale/import-excel-product-sale.component.css"],
-  "sourcesContent": [".fs-12 {\r\n    font-size: 0.75rem;\r\n  }\r\n  \r\n  .reset {\r\n    all: revert;\r\n  }\r\n  \r\n  .tabulator {\r\n    font-size: 0.75rem;\r\n  }\r\n  \r\n  .tabulator-cell {\r\n    padding: 0px;\r\n  }\r\n  \r\n  .inner-content {\r\n    padding: 0 !important;\r\n  }\r\n  \r\n  .ant-tabs-tab-btn {\r\n    font-size: 0.75rem;\r\n  }\r\n  "],
-  "mappings": "AAAA,CAAC,MACG,UAAW,MACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,UACC,UAAW,MACb,CAEA,CAAC,eAZH,QAaa,CACX,CAEA,CAAC,cAhBH,QAiBa,WACX,CAEA,CAAC,iBACC,UAAW,MACb",
-  "names": []
-}

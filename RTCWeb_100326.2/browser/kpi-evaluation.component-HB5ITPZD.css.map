@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/kpi-evaluation/kpi-evaluation.component.css"],
-  "sourcesContent": [".grid-container {\r\n  width: 100%;\r\n  height: 100%;\r\n}\r\n\r\n:host {\r\n  display: flex;\r\n  flex-direction: column;\r\n  height: calc(100vh - 60px);\r\n  width: 100%;\r\n}"],
-  "mappings": "AAAA,CAAC,eACC,MAAO,KACP,OAAQ,IACV,CAEA,MACE,QAAS,KACT,eAAgB,OAChB,OAAQ,KAAK,MAAM,EAAE,MACrB,MAAO,IACT",
-  "names": []
-}

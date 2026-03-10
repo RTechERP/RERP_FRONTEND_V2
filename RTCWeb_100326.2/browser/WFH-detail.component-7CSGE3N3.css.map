@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/employee-management/employee-wfh/WFH-detail/WFH-detail.component.css"],
-  "sourcesContent": [".tabulator {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,UACC,UAAW,MACb,CAEA,CAAC,eAJD,QAKW,CACX,CAEA,CAAC,MACC,UAAW,MACb",
-  "names": []
-}

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/vehicle/vehicle-management/vehicle-category/vehicle-category-form/vehicle-category-form.component.css"],
-  "sourcesContent": [".reset {\r\n    all: revert;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n  border: 1px solid !important;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n.custom-border {\r\n  border: 1px ;  /* M\u00E0u vi\u1EC1n m\u1EB7c \u0111\u1ECBnh c\u1EE7a Ant Design */\r\n  border-radius: 4px;         /* Bo g\u00F3c 4px */\r\n  padding: 16px;              /* T\u1EA1o kho\u1EA3ng \u0111\u1EC7m b\u00EAn trong */\r\n  transition: all 0.3s;       /* Hi\u1EC7u \u1EE9ng m\u01B0\u1EE3t khi hover */\r\n\r\n}\r\n\r\n"],
-  "mappings": "AAAA,CAAC,MACG,IAAK,MACT,CAEA,CAAC,UACC,UAAW,OACX,OAAQ,IAAI,eACd,CAEA,CAAC,eATD,QAUW,CACX,CAEA,CAAC,MACC,UAAW,MACb,CACA,CAAC,cACC,OAAQ,IAjBV,cAkBiB,IAlBjB,QAmBW,KACT,WAAY,IAAI,GAElB",
-  "names": []
-}

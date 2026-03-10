@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/job-requirement/note-form/note-form.component.css"],
-  "sourcesContent": [".modal-header {\r\n  padding: 12px 16px;\r\n  border-bottom: 1px solid #e8e8e8;\r\n}\r\n\r\n.modal-title {\r\n  margin: 0;\r\n  font-size: 16px;\r\n  font-weight: 500;\r\n}\r\n\r\n.modal-body {\r\n  padding: 16px;\r\n}\r\n\r\n.modal-footer {\r\n  padding: 12px 16px;\r\n  border-top: 1px solid #e8e8e8;\r\n  display: flex;\r\n  justify-content: flex-end;\r\n  gap: 8px;\r\n}\r\n\r\n"],
-  "mappings": "AAAA,CAAC,aAAD,QACW,KAAK,KACd,cAAe,IAAI,MAAM,OAC3B,CAEA,CAAC,YALD,OAMU,EACR,UAAW,KACX,YAAa,GACf,CAEA,CAAC,WAXD,QAYW,IACX,CAEA,CAAC,aAfD,QAgBW,KAAK,KACd,WAAY,IAAI,MAAM,QACtB,QAAS,KACT,gBAAiB,SACjB,IAAK,GACP",
-  "names": []
-}

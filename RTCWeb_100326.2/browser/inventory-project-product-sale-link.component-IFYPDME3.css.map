@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/purchase/inventory-project-product-sale-link/inventory-project-product-sale-link.component.css"],
-  "sourcesContent": ["::ng-deep #inventoryProjectProductSaleLinkGrid {\r\n  height: 86.5vh !important;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem !important;\r\n}\r\n\r\n.grid-container {\r\n  width: 100%;\r\n  height: 100%;\r\n}\r\n\r\n::ng-deep\r\n  .slickgrid-container\r\n  .slick-footerrow\r\n  .slick-footerrow-columns\r\n  .slick-footerrow-column {\r\n  border-right: 1px solid #ddd !important;\r\n}\r\n"],
-  "mappings": "AAAA,UAAU,CAAC,oCACT,OAAQ,gBACV,CAEA,CAAC,MACC,UAAW,gBACb,CAEA,CAAC,eACC,MAAO,KACP,OAAQ,IACV,CAEA,UACE,CAAC,oBACD,CAAC,gBACD,CAAC,wBACD,CAAC,uBACD,aAAc,IAAI,MAAM,cAC1B",
-  "names": []
-}

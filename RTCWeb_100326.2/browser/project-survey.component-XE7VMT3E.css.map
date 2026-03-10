@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/project/project-survey/project-survey.component.css"],
-  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n  all: revert;\r\n}\r\n\r\n.ant-splitter-panel{\r\n  position: relative;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n  position: absolute;\r\n  width: 100%;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.inner-content {\r\n  padding: 0 !important;\r\n}\r\n\r\n.ant-tabs-tab-btn {\r\n  font-size: 0.75rem;\r\n}\r\n.ant-splitter {\r\n  height: 93vh !important;\r\n}\r\n\r\n/* Modal v\u1EDBi header m\u00E0u primary */\r\n::ng-deep .modal-primary-header .ant-modal-header {\r\n  background: #1677ff !important;\r\n  border-bottom: 1px solid #1677ff;\r\n}\r\n\r\n::ng-deep .modal-primary-header .ant-modal-title {\r\n  color: #fff !important;\r\n  font-weight: 600;\r\n}\r\n\r\n::ng-deep .modal-primary-header .ant-modal-close {\r\n  color: #fff !important;\r\n}\r\n\r\n::ng-deep .modal-primary-header .ant-modal-close:hover {\r\n  color: rgba(255, 255, 255, 0.8) !important;\r\n}\r\n\r\n"],
-  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,mBACC,SAAU,QACZ,CAEA,CAAC,UACC,UAAW,OACX,SAAU,SACV,MAAO,IACT,CAEA,CAAC,eAlBD,QAmBW,CACX,CAEA,CAAC,cAtBD,QAuBW,WACX,CAEA,CAAC,iBACC,UAAW,MACb,CACA,CAAC,aACC,OAAQ,cACV,CAGA,UAAU,CAAC,qBAAqB,CAAC,iBAC/B,WAAY,kBACZ,cAAe,IAAI,MAAM,OAC3B,CAEA,UAAU,CALC,qBAKqB,CAAC,gBAC/B,MAAO,eACP,YAAa,GACf,CAEA,UAAU,CAVC,qBAUqB,CAAC,gBAC/B,MAAO,cACT,CAEA,UAAU,CAdC,qBAcqB,CAJC,eAIe,OAC9C,MAAO,eACT",
-  "names": []
-}

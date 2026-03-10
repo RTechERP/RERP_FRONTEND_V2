@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/payroll/payroll/payroll.component.css"],
-  "sourcesContent": ["/* Payroll filter (year/keyword) responsive helpers */\r\n.payroll-filter-year-group {\r\n  flex: 1 1 100%;\r\n}\r\n\r\n.payroll-filter-year-input {\r\n  width: 100%;\r\n}\r\n\r\n@media (min-width: 576px) {\r\n  .payroll-filter-year-group {\r\n    flex: 0 0 auto;\r\n  }\r\n\r\n  .payroll-filter-year-input {\r\n    width: 80px;\r\n  }\r\n}\r\n"],
-  "mappings": "AACA,CAAC,0BACC,KAAM,EAAE,EAAE,IACZ,CAEA,CAAC,0BACC,MAAO,IACT,CAEA,OAAO,CAAC,SAAS,EAAE,OACjB,CATD,0BAUG,KAAM,EAAE,EAAE,IACZ,CAEA,CATD,0BAUG,MAAO,IACT,CACF",
-  "names": []
-}

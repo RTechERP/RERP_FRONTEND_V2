@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/early-late/early-late-summary/early-late-summary.component.css"],
-  "sourcesContent": [".fs-12 {\r\n  font-size: 12px;\r\n}\r\n\r\n\r\n.ant-splitter{\r\n  height: 94vh !important;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,MACC,UAAW,IACb,CAGA,CAAC,aACC,OAAQ,cACV",
-  "names": []
-}

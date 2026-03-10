@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/purchase/inventory-project/inventory-project-detail/inventory-project-detail.component.css"],
-  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem !important;\r\n}\r\n\r\n.modal-header {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  border-bottom: 1px solid #f0f0f0;\r\n}\r\n\r\n.modal-title {\r\n  margin: 0;\r\n}\r\n\r\n.btn-close {\r\n  background: transparent;\r\n  border: none;\r\n  font-size: 16px;\r\n  cursor: pointer;\r\n  padding: 0;\r\n  width: 24px;\r\n  height: 24px;\r\n  line-height: 1;\r\n  color: #ffffff;\r\n  opacity: 0.8;\r\n}\r\n\r\n.btn-close:hover {\r\n  opacity: 1;\r\n}\r\n\r\n.btn-close::before {\r\n  content: '\u00D7';\r\n  font-size: 22px;\r\n}\r\n\r\n.modal-body {\r\n  max-height: calc(100vh - 200px);\r\n  overflow-y: auto;\r\n}\r\n\r\n.modal-footer {\r\n  display: flex;\r\n  justify-content: flex-end;\r\n  gap: 8px;\r\n  border-top: 1px solid #f0f0f0;\r\n}\r\n\r\n\r\n"],
-  "mappings": "AAAA,CAAC,MACC,UAAW,gBACb,CAEA,CAAC,aACC,QAAS,KACT,gBAAiB,cACjB,YAAa,OACb,cAAe,IAAI,MAAM,OAC3B,CAEA,CAAC,YAXD,OAYU,CACV,CAEA,CAAC,UACC,WAAY,YACZ,OAAQ,KACR,UAAW,KACX,OAAQ,QAnBV,QAoBW,EACT,MAAO,KACP,OAAQ,KACR,YAAa,EACb,MAAO,KACP,QAAS,EACX,CAEA,CAbC,SAaS,OACR,QAAS,CACX,CAEA,CAjBC,SAiBS,QACR,QAAS,MACT,UAAW,IACb,CAEA,CAAC,WACC,WAAY,KAAK,MAAM,EAAE,OACzB,WAAY,IACd,CAEA,CAAC,aACC,QAAS,KACT,gBAAiB,SACjB,IAAK,IACL,WAAY,IAAI,MAAM,OACxB",
-  "names": []
-}

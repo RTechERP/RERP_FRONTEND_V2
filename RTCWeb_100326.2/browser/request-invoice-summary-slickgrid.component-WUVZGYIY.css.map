@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/request-invoice-summary-slickgrid/request-invoice-summary-slickgrid.component.css"],
-  "sourcesContent": [".fs-12 {\r\n    font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n    all: revert;\r\n}\r\n\r\n.ant-splitter-panel {\r\n    position: relative;\r\n}\r\n\r\n.tabulator-cell {\r\n    padding: 0px;\r\n}\r\n\r\n.inner-content {\r\n    padding: 0 !important;\r\n}\r\n\r\n.ant-tabs-tab-btn {\r\n    font-size: 0.75rem;\r\n}\r\n\r\n.ant-splitter {\r\n    height: 84vh !important;\r\n}\r\n\r\n/* SlickGrid Styles */\r\n.grid-container {\r\n    height: 100%;\r\n}\r\n\r\n#gridContainer {\r\n    height: 100%;\r\n}\r\n\r\n/* SlickGrid filter header */\r\n::ng-deep .slick-headerrow {\r\n    background-color: #f8f9fa;\r\n}\r\n\r\n::ng-deep .slick-headerrow-column input {\r\n    color: #000000 !important;\r\n    width: 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n*/:host ::ng-deep .slickgrid-container {\r\n    height: 100% !important;\r\n}\r\n\r\n/* Urgent row styling */\r\n:host ::ng-deep .slick-row.urgent-row {\r\n    background-color: #FFA500 !important;\r\n}"],
-  "mappings": "AAAA,CAAC,MACG,UAAW,MACf,CAEA,CAAC,MACG,IAAK,MACT,CAEA,CAAC,mBACG,SAAU,QACd,CAEA,CAAC,eAZD,QAaa,CACb,CAEA,CAAC,cAhBD,QAiBa,WACb,CAEA,CAAC,iBACG,UAAW,MACf,CAEA,CAAC,aACG,OAAQ,cACZ,CAGA,CAAC,eAID,CAAC,cAHG,OAAQ,IACZ,CAOA,UAAU,CAAC,gBACP,iBAAkB,OACtB,CAEA,UAAU,CAAC,uBAAuB,MAC9B,MAAO,eACP,MAAO,KACP,WAAY,UAChB,CAEA,CAAC,CAAC,CAAC,KAAK,CAAC,CAAC,QAAQ,CAAC,oBACf,OAAQ,cACZ,CAGA,MAAM,UAAU,CAAC,SAAS,CAAC,WACvB,iBAAkB,gBACtB",
-  "names": []
-}

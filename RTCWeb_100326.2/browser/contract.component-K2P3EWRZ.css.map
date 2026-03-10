@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/contract/contract.component.css"],
-  "sourcesContent": [".tabulator {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.btn {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n  all: revert;\r\n}\r\n\r\n.modal-body {\r\npadding-top: 0 !important;\r\n}\r\n\r\n.ant-form-item-label {\r\npadding: 0px !important;\r\n}\r\n\r\n/* Ho\u1EB7c target c\u1EE5 th\u1EC3 h\u01A1n */\r\nnz-form-label .ant-form-item-label {\r\npadding: 0px !important;\r\n}\r\n\r\n.ant-modal-footer .ant-btn:first-child {    \r\nborder-color: red;\r\ncolor: red;\r\n}\r\n\r\n.ant-modal-footer .ant-btn:first-child:hover{    \r\nbackground: red;\r\ncolor: white;\r\n}\r\n\r\n.cdk-overlay-container {\r\nz-index: 9999 !important;\r\n}"],
-  "mappings": "AAAA,CAAC,UAID,CAAC,MAID,CAAC,IAPC,UAAW,MACb,CAUA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,WACD,YAAa,WACb,CAEA,CAAC,oBApBD,QAqBS,WACT,CAGA,cAAc,CALb,oBApBD,QA0BS,WACT,CAEA,CAAC,iBAAiB,CAAC,OAAO,aAC1B,aAAc,IACd,MAAO,GACP,CAEA,CALC,iBAKiB,CALC,OAKO,YAAY,OACtC,WAAY,IACZ,MAAO,IACP,CAEA,CAAC,sBACD,QAAS,cACT",
-  "names": []
-}

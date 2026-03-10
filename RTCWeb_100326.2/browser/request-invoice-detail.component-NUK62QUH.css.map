@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/request-invoice-detail/request-invoice-detail.component.css"],
-  "sourcesContent": ["\r\n.ant-splitter {\r\n    height: 45vh !important;\r\n}"],
-  "mappings": "AACA,CAAC,aACG,OAAQ,cACZ",
-  "names": []
-}

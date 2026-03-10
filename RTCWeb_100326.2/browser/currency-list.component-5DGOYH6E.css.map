@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/general-category/currency-list/currency-list.component.css"],
-  "sourcesContent": [".search-box {\r\n  padding: 4px 8px;\r\n  border: 1px solid #d9d9d9;\r\n  border-radius: 4px;\r\n  font-size: 12px;\r\n  max-width: 240px;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 12px;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,WAAD,QACW,IAAI,IACb,OAAQ,IAAI,MAAM,QAFpB,cAGiB,IACf,UAAW,KACX,UAAW,KACb,CAEA,CAAC,MACC,UAAW,IACb",
-  "names": []
-}

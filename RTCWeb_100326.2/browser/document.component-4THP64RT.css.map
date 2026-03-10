@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/document/document.component.css"],
-  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n:host {\r\n  font-size: 12px !important;\r\n}\r\n\r\n.tabulator {\r\n    font-size: 12px;\r\n}"],
-  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CACA,MACE,UAAW,cACb,CAEA,CAAC,UACG,UAAW,IACf",
-  "names": []
-}

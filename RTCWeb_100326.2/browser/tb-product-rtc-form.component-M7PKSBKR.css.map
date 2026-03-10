@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/tb-product-rtc/tb-product-rtc-form/tb-product-rtc-form.component.css"],
-  "sourcesContent": ["    .tab-content-equal-height {\r\n    height: 710px; /* ho\u1EB7c chi\u1EC1u cao ph\u00F9 h\u1EE3p v\u1EDBi giao di\u1EC7n */\r\n    }\r\n/* T\u1ED1i \u01B0u cho mobile */\r\n@media (max-width: 576px) {\r\n    .modal-body { padding: 12px !important; }\r\n    .g-3 { --bs-gutter-x: 0.5rem; }\r\n    nz-form-label { font-size: 11.5px !important; }\r\n  }\r\n"],
-  "mappings": "AAAI,CAAC,yBACD,OAAQ,KACR,CAEJ,OAAO,CAAC,SAAS,EAAE,OACf,CAAC,WALL,QAK2B,cAAiB,CACxC,CAAC,IAAM,eAAe,KAAQ,CAC9B,cAAgB,UAAW,gBAAmB,CAChD",
-  "names": []
-}

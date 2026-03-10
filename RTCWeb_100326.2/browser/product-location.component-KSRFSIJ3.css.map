@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/general-category/product-location/product-location.component.css"],
-  "sourcesContent": ["/* ProductLocation Component Styles */\r\n.fs-12 {\r\n  font-size: 12px;\r\n}\r\n\r\n.card {\r\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\r\n}\r\n\r\n.card-header {\r\n  border-bottom: 1px solid #e9ecef;\r\n}\r\n\r\n.btn-group button {\r\n  margin-right: 5px;\r\n}\r\n\r\n#dataProductLocation {\r\n  font-size: 13px;\r\n}\r\n\r\n/* Tabulator custom styles */\r\n.tabulator {\r\n  border: 1px solid #dee2e6;\r\n}\r\n\r\n.tabulator .tabulator-header {\r\n  background-color: #f8f9fa;\r\n  border-bottom: 1px solid #dee2e6;\r\n}\r\n\r\n.tabulator .tabulator-row.tabulator-selected {\r\n  background-color: #e3f2fd !important;\r\n}\r\n\r\n.tabulator .tabulator-row:hover {\r\n  background-color: #f5f5f5;\r\n}"],
-  "mappings": "AACA,CAAC,MACC,UAAW,IACb,CAEA,CAAC,KACC,WAAY,EAAE,IAAI,IAAI,SACxB,CAEA,CAAC,YACC,cAAe,IAAI,MAAM,OAC3B,CAEA,CAAC,UAAU,OACT,aAAc,GAChB,CAEA,CAAC,oBACC,UAAW,IACb,CAGA,CAAC,UACC,OAAQ,IAAI,MAAM,OACpB,CAEA,CAJC,UAIU,CAAC,iBACV,iBAAkB,QAClB,cAAe,IAAI,MAAM,OAC3B,CAEA,CATC,UASU,CAAC,aAAa,CAAC,mBACxB,iBAAkB,iBACpB,CAEA,CAbC,UAaU,CAJC,aAIa,OACvB,iBAAkB,OACpB",
-  "names": []
-}

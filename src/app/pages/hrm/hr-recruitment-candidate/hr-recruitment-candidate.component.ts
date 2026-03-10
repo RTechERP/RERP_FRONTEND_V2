@@ -60,6 +60,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { HrInterviewInvitationComponent } from './hr-interview-invitation/hr-interview-invitation.component';
 import { ProjectService } from '../../project/project-service/project.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
+import { HomeLayoutCandidateComponent } from '../hr-recruitment/hr-recruitment-application-form/home-layout-candidate/home-layout-candidate.component';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -81,6 +82,7 @@ import { environment } from '../../../../environments/environment';
     NzDropDownModule,
     NgbModalModule,
     Menubar,
+    HomeLayoutCandidateComponent,
   ],
   templateUrl: './hr-recruitment-candidate.component.html',
   styleUrl: './hr-recruitment-candidate.component.css'
@@ -138,6 +140,11 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
 
   isMobile = window.innerWidth <= 768;
   isShowModal = false;
+
+  // Modal xem tờ khai ứng viên
+  isShowApplicationFormModal = false;
+  selectedCandidateIDForForm = 0;
+  selectedCandidateNameForForm = '';
   //#endregion
 
   @HostListener('window:resize')
@@ -251,6 +258,11 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
       //   icon: 'fa-solid fa-scroll fa-lg text-success',
       //   command: () => this.onSendOfferLetter(),
       // },
+      {
+        label: 'Xem tờ khai UV',
+        icon: 'fa-solid fa-file-lines fa-lg text-info',
+        command: () => this.viewApplicationForm(),
+      },
     ];
   }
 
@@ -369,6 +381,36 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
     );
   }
 
+  viewApplicationForm() {
+
+    const selectedRows = this.angularGrid?.slickGrid?.getSelectedRows() || [];
+    if (selectedRows.length !== 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng để xem tờ khai!');
+      return;
+    }
+
+
+    const item = this.angularGrid.slickGrid.getDataItem(selectedRows[0]);
+    if (!item) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy thông tin ứng viên!');
+      return;
+    }
+
+    if (item.StatusApplicationForm !== 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên chưa tạo tờ khai!');
+      return;
+    }
+
+    this.selectedCandidateIDForForm = item.ID || item.HRRecruitmentCandidateID || 0;
+    this.selectedCandidateNameForForm = item.FullName || '';
+
+    if (this.selectedCandidateIDForForm > 0) {
+      this.isShowApplicationFormModal = true;
+    } else {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy thông tin ứng viên');
+    }
+  }
+
   initAngularGrid() {
     this.columnDefinitions = [
       {
@@ -385,7 +427,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         id: 'StatusName',
         field: 'StatusName',
         name: 'Trạng thái ứng tuyển',
-        width: 250,
+        width: 180,
         sortable: true,
         filterable: true,
         filter: {
@@ -395,6 +437,16 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
           collectionOptions: { addBlankEntry: true },
         },
         excelExportOptions: { width: 25 },
+      },
+      {
+        id: 'StatusApplicationFormText',
+        field: 'StatusApplicationFormText',
+        name: 'Trạng thái tờ khai UV',
+        width: 180,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        excelExportOptions: { width: 16 },
       },
       {
         id: 'FullName',
@@ -455,6 +507,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         filter: { model: Filters['compoundInputText'] },
         excelExportOptions: { width: 16 },
       },
+
       {
         id: 'PhaseHiringText',
         field: 'PhaseHiringText',
@@ -668,6 +721,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 28,
+      frozenColumn: 5
       frozenColumn: 4,
       contextMenu: {
         hideCloseButton: false,

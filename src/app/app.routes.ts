@@ -9,6 +9,7 @@ import { MainLayoutComponent } from './layouts/main-layout/main-layout.component
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
 import { HomeLayoutNewComponent } from './layouts/home-layout/home-layout-new/home-layout-new.component';
 import { HomeLayoutCandidateComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/home-layout-candidate/home-layout-candidate.component';
+import { MainLayoutCandidateComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/main-layout-candidate/main-layout-candidate.component';
 import { FoodOrderComponent } from './pages/hrm/food-order/food-order.component';
 import { DayOffComponent } from './pages/hrm/day-off/day-off.component';
 import { MenuApp } from './pages/systems/menu-app/model/menu-app';
@@ -274,6 +275,7 @@ import { SummaryKpiEmployeePointComponent } from './pages/old/Technical/summary-
 import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-base/follow-project-base-slickgrid/follow-project-base-slickgrid.component';
 import { DailyReportSaleAdminSlickgridComponent } from './pages/old/KPISale/daily-report-sale-admin-slickgrid/daily-report-sale-admin-slickgrid.component';
 import { HRRecruitmentCandidateComponent } from './pages/hrm/hr-recruitment-candidate/hr-recruitment-candidate.component';
+import { HRRecruitmentApplicationComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/hr-recruitment-application/hr-recruitment-application.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -297,9 +299,11 @@ export const routes: Routes = [
 
     {
         path: '',
-        component: HomeLayoutCandidateComponent,
         canActivate: [candidateAuthGuard],
-        children: [{ path: 'home-candidate', component: HomeLayoutCandidateComponent }],
+        children: [
+            { path: 'main-candidate', component: MainLayoutCandidateComponent },
+            { path: 'home-candidate', component: HomeLayoutCandidateComponent }
+        ],
     },
 
     {
@@ -1079,6 +1083,7 @@ export const routes: Routes = [
 
             { path: 'daily-report-bod', component: DailyReportThrComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-candidate', component: HRRecruitmentCandidateComponent, canActivate: [authGuard] },
+            { path: 'hr-recruitment-application', component: HRRecruitmentApplicationComponent, canActivate: [authGuard] },
         ],
     },
 ];

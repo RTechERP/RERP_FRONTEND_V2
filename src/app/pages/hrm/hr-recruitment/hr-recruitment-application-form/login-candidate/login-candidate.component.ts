@@ -27,7 +27,7 @@ export class LoginCandidateComponent {
     isLoading = false;
     token: any;
 
-    returnUrl = '/home-candidate';
+    returnUrl = '/main-candidate';
 
     constructor(
         private formBuilder: FormBuilder,
@@ -47,7 +47,7 @@ export class LoginCandidateComponent {
     ngOnInit(): void {
         this.loadRememberLogin();
         this.returnUrl =
-            this.route.snapshot.queryParamMap.get('returnUrl') || '/home-candidate';
+            this.route.snapshot.queryParamMap.get('returnUrl') || '/main-candidate';
     }
 
     // 🔹 Load username + password đã nhớ

@@ -339,7 +339,13 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
             }, { emitEvent: false });
           }
           const currentEndTime = tabForm.get('EndTime')?.value;
-          if (currentEndTime) {
+          if (!currentEndTime) {
+            const now = new Date();
+            const defaultEndTime = new Date(selectedYear, selectedMonth, selectedDay, now.getHours(), now.getMinutes(), 0, 0);
+            tabForm.patchValue({
+              EndTime: defaultEndTime
+            }, { emitEvent: false });
+          } else {
             // Nếu đã có EndTime, chỉ cập nhật ngày, giữ nguyên giờ/phút
             const endTimeDate = currentEndTime instanceof Date ? currentEndTime : new Date(currentEndTime);
             const newEndTime = new Date(selectedYear, selectedMonth, selectedDay, endTimeDate.getHours(), endTimeDate.getMinutes(), 0, 0);
@@ -573,9 +579,11 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
               );
               this.calculateTotalHour(tab.form);
 
+              /*
               if (normalized.getHours() >= 20) {
                 tab.form.patchValue({ Overnight: true }, { emitEvent: false });
               }
+              */
             }
           }
         },
@@ -619,9 +627,11 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
               instance.setDate(normalized, false);
               this.calculateTotalHour(tab.form);
 
+              /*
               if (normalized.getHours() >= 20) {
                 tab.form.patchValue({ Overnight: true }, { emitEvent: false });
               }
+              */
             }
           }
         },
@@ -647,9 +657,11 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
 
               this.calculateTotalHour(tab.form);
 
+              /*
               if (normalized.getHours() >= 20) {
                 tab.form.patchValue({ Overnight: true }, { emitEvent: false });
               }
+              */
             }
           };
 
@@ -693,9 +705,11 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
                   );
                   this.calculateTotalHour(tab.form);
 
+                  /*
                   if (normalized.getHours() >= 20) {
                     tab.form.patchValue({ Overnight: true }, { emitEvent: false });
                   }
+                  */
                 }
               }
             }
@@ -879,6 +893,9 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       Reason: data.Reason || ''
     }, { emitEvent: false });
 
+    // Bỏ logic tự động check Overnight ở đây để tránh ghi đè dữ liệu từ database
+    // Logic tự động sẽ được xử lý qua subscriptions khi người dùng thay đổi thời gian
+    /*
     if (endTimeValue) {
       const endTime = new Date(endTimeValue);
       const hours = endTime.getHours();
@@ -888,6 +905,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
         }, { emitEvent: false });
       }
     }
+    */
 
     this.isProblemValue = data.IsProblem || false;
     this.attachFileName = data.FileName || '';
@@ -1105,10 +1123,12 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
         this.calculateTotalHour(form);
 
         // Auto check Overnight nếu EndTime >= 20:00
+        /*
         const hours = date.getHours();
         if (hours >= 20) {
           form.patchValue({ Overnight: true }, { emitEvent: false });
         }
+        */
       }
     }
   }
@@ -1148,18 +1168,22 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     const defaultTimeStart = new Date(today);
     defaultTimeStart.setHours(18, 0, 0, 0);
 
+    const currentTime = this.normalizeToMinute(new Date());
+    const dateCheckForReset = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 20, 0, 0);
+    const isOvernightInitial = currentTime ? currentTime.getTime() >= dateCheckForReset.getTime() : false;
+
     this.overTimeForm.patchValue({
       ID: 0,
       EmployeeID: defaultEmployeeID,
       DateRegister: today,
       ApprovedID: null,
       TimeStart: defaultTimeStart,
-      EndTime: null,
+      EndTime: currentTime,
       TotalHour: null,
       Location: 1,
       TypeID: null,
       ProjectID: null,
-      Overnight: false,
+      Overnight: isOvernightInitial,
       Reason: '',
       IsProblem: false
     }, { emitEvent: false });
@@ -2369,18 +2393,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
           const endTimeDate = new Date(endTime);
           const dateRegister = this.commonForm.get('DateRegister')?.value;
 
-          let hasOtherOvernight = false;
-          for (let i = 0; i < this.formTabs.length; i++) {
-            if (i !== index) {
-              const otherTab = this.formTabs[i];
-              const otherFormValue = otherTab.form.value;
-              if (otherFormValue.Overnight === true) {
-                hasOtherOvernight = true;
-                break;
-              }
-            }
-          }
-
+          /*
           if (!hasOtherOvernight) {
             if (dateRegister) {
               const dateRegisterDate = new Date(dateRegister);
@@ -2402,6 +2415,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
               }
             }
           }
+          */
         }
       }
 
@@ -2437,10 +2451,17 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       defaultTimeStart.setHours(18, 0, 0, 0);
     }
 
+    const now = new Date();
+    const defaultEndTime = new Date(defaultTimeStart.getFullYear(), defaultTimeStart.getMonth(), defaultTimeStart.getDate(), now.getHours(), now.getMinutes(), 0, 0);
+
+    const dReg = dateRegister ? new Date(dateRegister) : new Date();
+    const dateCheck = new Date(dReg.getFullYear(), dReg.getMonth(), dReg.getDate(), 20, 0, 0);
+    const isOvernight = defaultEndTime.getTime() >= dateCheck.getTime();
+
     const newForm = this.fb.group({
       ID: [0],
       TimeStart: [defaultTimeStart, Validators.required],
-      EndTime: [null, Validators.required],
+      EndTime: [defaultEndTime, Validators.required],
       TotalHour: [null],
       Location: [1, [
         Validators.required,
@@ -2454,7 +2475,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       ]],
       TypeID: [null, Validators.required],
       ProjectID: [null],
-      Overnight: [false],
+      Overnight: [isOvernight],
       Reason: ['', Validators.required]
     });
 
@@ -2472,11 +2493,17 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     // Subscription cho Overnight checkbox
     form.get('Overnight')?.valueChanges.subscribe((value) => {
       if (value) {
-        if (!this.checkOvernightAllowedForForm(form)) {
-          form.patchValue({ Overnight: false }, { emitEvent: false });
-          return;
+        const endTimeValue = form.get('EndTime')?.value;
+        const dateRegister = this.commonForm.get('DateRegister')?.value;
+        const dReg = dateRegister ? new Date(dateRegister) : new Date();
+        const dateCheck = new Date(dReg.getFullYear(), dReg.getMonth(), dReg.getDate(), 20, 0, 0);
+
+        if (!endTimeValue || new Date(endTimeValue).getTime() < dateCheck.getTime()) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn không thể chọn phụ cấp ăn tối trước 20h. Vui lòng kiểm tra lại!');
+          setTimeout(() => {
+            form.patchValue({ Overnight: false }, { emitEvent: false });
+          });
         }
-        this.validateOvernight(form);
       }
     });
 
@@ -2489,47 +2516,33 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       }
     });
 
+    // State để theo dõi ngưỡng thời gian 20:00
+    let prevIsOvernightTime: boolean | null = null;
+
     // Subscription cho EndTime
     form.get('EndTime')?.valueChanges.subscribe((endTimeValue) => {
       this.validateTimeRange(form);
 
       if (endTimeValue) {
         const endTime = new Date(endTimeValue);
-        const timeStart = form.get('TimeStart')?.value;
         const dateRegister = this.commonForm.get('DateRegister')?.value;
+        const dReg = dateRegister ? new Date(dateRegister) : new Date();
+        const dateCheck = new Date(dReg.getFullYear(), dReg.getMonth(), dReg.getDate(), 20, 0, 0);
 
-        if (dateRegister && timeStart) {
-          const dateRegisterDate = new Date(dateRegister);
-          const dateCheck = new Date(dateRegisterDate.getFullYear(), dateRegisterDate.getMonth(), dateRegisterDate.getDate(), 20, 0, 0);
+        const isOvernightTime = endTime.getTime() >= dateCheck.getTime();
 
-          if (endTime.getTime() >= dateCheck.getTime()) {
-            const currentOvernight = form.get('Overnight')?.value;
-            if (!currentOvernight) {
-              form.patchValue({
-                Overnight: true
-              }, { emitEvent: false });
-            }
-          }
-        } else {
-          const hours = endTime.getHours();
-          if (hours >= 20) {
-            const currentOvernight = form.get('Overnight')?.value;
-            if (!currentOvernight) {
-              form.patchValue({
-                Overnight: true
-              }, { emitEvent: false });
-            }
+        // Chỉ tự động thay đổi khi vượt qua ngưỡng (chuyển từ < 20h sang >= 20h hoặc ngược lại)
+        if (prevIsOvernightTime !== null) {
+          if (isOvernightTime && !prevIsOvernightTime) {
+            // Chuyển từ < 20:00 sang >= 20:00 -> Tự động tích
+            form.patchValue({ Overnight: true }, { emitEvent: false });
+          } else if (!isOvernightTime && prevIsOvernightTime) {
+            // Chuyển từ >= 20:00 xuống < 20:00 -> Tự động bỏ tích
+            form.patchValue({ Overnight: false }, { emitEvent: false });
           }
         }
-      }
 
-      if (form.get('Overnight')?.value) {
-        const dateRegister = this.commonForm.get('DateRegister')?.value;
-        const timeStart = form.get('TimeStart')?.value;
-        const endTime = form.get('EndTime')?.value;
-        if (dateRegister && timeStart && endTime) {
-          this.validateOvernight(form);
-        }
+        prevIsOvernightTime = isOvernightTime;
       }
     });
   }

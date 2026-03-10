@@ -1,6 +1,6 @@
 <div id="top-anchor"></div>
 <div id="top-anchor"></div>
-<nav class="navbar sticky-top p-0 candidate-navbar">
+<nav *ngIf="!isEmbedded" class="navbar sticky-top p-0 candidate-navbar">
     <div class="container-fluid px-2">
         <a class="navbar-brand p-0 navbar-logo" routerLink="/home-candidate">
             <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="RTC" width="100%">
@@ -55,7 +55,7 @@
                     tiếng Anh.</p>
                 <p><i>Thank you for your choosing our company. Application form is an important part in our
                         recruitment process of RTC. Please fill in it clearly in Vietnamese or English.</i></p>
-                <p class="text-danger mt-2"><span class="fw-bold">(*)</span>:Bắt buộc/Mandatory</p>
+                <p class="text-danger mt-2"><span class="fw-bold">(*)</span>:Bắt buộc/Required</p>
             </div>
 
             <!-- Vị trí dự tuyển -->
@@ -181,7 +181,8 @@
                                 Số CMND/CCCD/<i>ID</i>
                             </nz-form-label>
                             <nz-form-control>
-                                <input nz-input formControlName="NumberCCCD" />
+                                <input nz-input formControlName="NumberCCCD"
+                                    (keypress)="$event.charCode >= 48 && $event.charCode <= 57 || $event.charCode === 0 ? true : $event.preventDefault()" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -806,7 +807,7 @@
             </div>
 
             <!-- ===== NÚT LƯU ===== -->
-            <div class="text-center mt-5 mb-5">
+            <div *ngIf="!isEmbedded" class="text-center mt-5 mb-5">
                 <button nz-button nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading"
                     style="font-size: 14px; padding: 8px 64px; height: auto; border-radius: 4px; font-weight: bold;">
                     <span nz-icon nzType="save"></span> LƯU TỜ KHAI
@@ -848,7 +849,7 @@
 </nz-footer> -->
 <div id="bottom-anchor"></div>
 
-<div class="scroll-buttons-container">
+<div *ngIf="!isEmbedded" class="scroll-buttons-container">
     <button nz-button nzType="default" nzShape="circle" class="scroll-btn top" (click)="scrollTo('top-anchor')"
         title="Lên đầu trang">
         <span nz-icon nzType="up"></span>

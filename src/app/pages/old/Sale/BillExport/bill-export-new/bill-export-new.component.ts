@@ -485,6 +485,18 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     initDetailGrid() {
         this.columnDefinitionsDetail = [
             {
+                id: 'STT',
+                name: 'STT',
+                field: 'STT',
+                sortable: true,
+                cssClass: 'text-center',
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+                maxWidth: 80,
+            },
+            {
                 id: 'ProductNewCode',
                 name: 'Mã nội bộ',
                 field: 'ProductNewCode',
@@ -554,11 +566,14 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             {
                 id: 'Qty',
                 name: 'Số lượng',
+                cssClass: 'text-end',
                 field: 'Qty',
                 sortable: true,
                 filterable: true,
                 type: FieldType.number,
                 minWidth: 100,
+                formatter: (row: number, cell: number, value: any) =>
+                    this.formatNumberEnUS(value),
             },
             {
                 id: 'ProductGroupName',
@@ -597,6 +612,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 id: 'UnitPricePOKH',
                 name: 'Đơn giá bán',
                 field: 'UnitPricePOKH',
+                cssClass: 'text-end',
                 sortable: true,
                 filterable: true,
                 type: FieldType.number,
@@ -608,6 +624,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 id: 'UnitPricePurchase',
                 name: 'Đơn giá mua',
                 field: 'UnitPricePurchase',
+                cssClass: 'text-end',
                 sortable: true,
                 filterable: true,
                 type: FieldType.number,

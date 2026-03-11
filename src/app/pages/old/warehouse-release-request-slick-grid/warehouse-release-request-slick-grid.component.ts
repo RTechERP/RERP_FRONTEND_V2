@@ -352,7 +352,18 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
           }));
 
           // Cập nhật filter collection động cho các cột multiselect
-          setTimeout(() => this.applyDistinctFiltersToGrid(this.dataset), 200);
+          setTimeout(() => {
+            this.applyDistinctFiltersToGrid(this.dataset);
+
+            // Apply grouping by PONumber
+            if (this.angularGrid && this.angularGrid.dataView) {
+              this.angularGrid.dataView.setGrouping({
+                getter: 'PONumber',
+                formatter: (g) => `Số PO: ${g.value}  <span style="color:green">(${g.count} items)</span>`,
+                collapsed: false,
+              });
+            }
+          }, 200);
 
           // Select lại các dòng có trong selectedRowsAll
           if (this.angularGrid && this.angularGrid.slickGrid) {
@@ -385,7 +396,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
               setTimeout(() => {
                 this.isRestoringSelection = false; // Tắt flag sau khi restore xong
               }, 50);
-            }, 100);
+            }, 500); // Tăng delay xíu để grouping hoàn tất
           }
         } else {
           this.notification.error(
@@ -955,7 +966,18 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
           }));
 
           // Cập nhật filter collection động cho các cột multiselect
-          setTimeout(() => this.applyDistinctFiltersToGrid(this.dataset), 200);
+          setTimeout(() => {
+            this.applyDistinctFiltersToGrid(this.dataset);
+
+            // Apply grouping by PONumber
+            if (this.angularGrid && this.angularGrid.dataView) {
+              this.angularGrid.dataView.setGrouping({
+                getter: 'PONumber',
+                formatter: (g) => `Số PO: ${g.value}  <span style="color:green">(${g.count} items)</span>`,
+                collapsed: false,
+              });
+            }
+          }, 200);
 
           // Select lại các dòng có trong selectedRowsAll
           if (this.angularGrid && this.angularGrid.slickGrid) {
@@ -988,7 +1010,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
               setTimeout(() => {
                 this.isRestoringSelection = false; // Tắt flag sau khi restore xong
               }, 50);
-            }, 100);
+            }, 500); // Tăng delay xíu để grouping hoàn tất
           }
         } else {
           this.notification.error(
@@ -1312,7 +1334,10 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       enableSorting: true,
       multiColumnSort: false, // Required for Tree Data
       enableFiltering: true,
-      enableGrouping: false,
+      enableGrouping: true,
+      createPreHeaderPanel: true,
+      showPreHeaderPanel: true,
+      preHeaderPanelHeight: 40,
       enableRowSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {

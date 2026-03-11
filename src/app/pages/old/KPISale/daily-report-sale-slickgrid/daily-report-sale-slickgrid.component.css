@@ -62,3 +62,10 @@ angular-slickgrid,
 :host ::ng-deep .slick-header-column {
     font-size: 0.75rem;
 }
+
+/* Mobile: filter bar is hidden, so grid gets more height */
+@media (max-width: 767px) {
+    .grid-container-daily-report {
+        height: calc(100vh - 125px) !important;
+    }
+}

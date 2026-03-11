@@ -97,7 +97,7 @@ export class PONCCService {
     });
   }
 
-  requestImport(warehouseID: number, ids: number[]): Observable<any> {
+  requestImport(warehouseID: number, ids: string): Observable<any> {
     return this.http.post<any>(
       `${this.baseUrl}create-warehouse-import-request`,
       {
@@ -277,6 +277,12 @@ export class PONCCService {
       {
         responseType: 'blob'
       }
+    );
+  }
+
+  getRulePayByPONCC(ponccId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}get-rulepay-by-poncc?ponccId=${ponccId}`
     );
   }
 }

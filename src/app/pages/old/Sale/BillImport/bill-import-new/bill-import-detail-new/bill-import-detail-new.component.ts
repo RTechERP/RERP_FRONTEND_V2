@@ -1655,7 +1655,7 @@ export class BillImportDetailNewComponent
             WarehouseID: data.WarehouseID,
             BillTypeNew: data.BillTypeNew,
             SupplierID: data.SupplierID,
-            CreatDate: data.CreatDate ? new Date(data.CreatDate) : null,
+            CreatDate: data.CreatDate,
             DateRequest: data.DateRequestImport
               ? new Date(data.DateRequestImport)
               : null,

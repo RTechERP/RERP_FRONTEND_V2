@@ -391,7 +391,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 } else {
                     if (item.DepartmentID === 22 && departmentId === 0) return;
                     // Removed Level 4 restriction so "Project Team 2" shows up
-
+                    if (item.Level >= 4 && departmentId === 0) return;
                     nodeDataArray.push({
                         key: item.ID,
                         parent: item.ParentID,

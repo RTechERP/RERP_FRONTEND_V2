@@ -360,7 +360,10 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
 
                 const totalForThisNode = calculateTotal(item.ID);
-                const displayCount = (departmentId === 0 || item.Level === 1) ? totalForThisNode : 0;
+                const hasSubDepartments = (childrenMapFull.get(item.ID) || []).length > 0;
+                const hasEmployees = dataDetail.some((x: any) => x.OrganizationalChartID === item.ID);
+                const hasChildren = hasSubDepartments || hasEmployees;
+                const displayCount = (hasChildren && (departmentId === 0 || item.Level === 1 || item.Level === 2 || item.Level === 3 || item.Level === 4 || item.Level === 5)) ? totalForThisNode : 0;
 
                 if (item.ParentID === 0 && departmentId === 0) {
                     if (!nodeDataArray.some((n: any) => n.key === 0)) {

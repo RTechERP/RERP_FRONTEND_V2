@@ -923,6 +923,11 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             enableCellNavigation: true,
             enableRowSelection: true,
             frozenColumn: 2,
+
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
     }
 
@@ -1014,6 +1019,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         // Manually resize grid to ensure proper display
         setTimeout(() => {
             this.resizeGrids();
+            this.updateDetailFooterRow();
         }, 100);
     }
 
@@ -1045,6 +1051,10 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             this.datasetDetail = [];
             this.selectBillImport = [];
         }
+
+        setTimeout(() => {
+            this.updateDetailFooterRow();
+        }, 100);
     }
 
     onMasterCellClicked(event: Event, args: OnClickEventArgs): void {
@@ -1137,6 +1147,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     if (this.angularGridDetail?.resizerService) {
                         this.angularGridDetail.resizerService.resizeGrid();
                     }
+                    this.updateDetailFooterRow();
                 }, 100);
             },
             error: (err) => {
@@ -2320,6 +2331,47 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         const footerCell = this.angularGridMaster.slickGrid.getFooterRowColumn('BillImportCode' + this.wareHouseCode);
         if (footerCell) {
             footerCell.textContent = `${this.formatNumber(count, 0)}`;
+        }
+    }
+
+    updateDetailFooterRow(): void {
+        if (this.angularGridDetail && this.angularGridDetail.slickGrid) {
+            const dataView = this.angularGridDetail.dataView;
+            const filteredItems = dataView.getFilteredItems() || [];
+            console.log(filteredItems);
+            // Đếm số lượng sản phẩm (đã bỏ qua group)
+            const codeCount = filteredItems.length;
+
+            // Tính tổng các cột số liệu
+            const totals = (filteredItems || []).reduce(
+                (acc, item) => {
+                    acc.Qty += Number(item.Qty) || 0;
+                    return acc;
+                },
+                {
+                    Qty: 0,
+                }
+            );
+
+            // Set footer values cho từng column
+            const columns = this.angularGridDetail.slickGrid.getColumns();
+            columns.forEach((col: any) => {
+                const footerCell = this.angularGridDetail.slickGrid.getFooterRowColumn(
+                    col.id
+                );
+                if (!footerCell) return;
+
+                // Đếm cho cột Code
+                if (col.id === 'ProductCode' + this.wareHouseCode) {
+                    footerCell.innerHTML = `<b>${codeCount.toLocaleString('en-US')}</b>`;
+                }
+                // Tổng các cột số liệu
+                else if (col.id === 'Qty' + this.wareHouseCode) {
+                    footerCell.innerHTML = `<b>${totals.Qty.toLocaleString(
+                        'en-US'
+                    )}</b>`;
+                }
+            });
         }
     }
 

@@ -449,11 +449,12 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             enableRowMoveManager: false,
             checkboxSelector: {
                 hideSelectAllCheckbox: false,
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
             },
             rowSelectionOptions: {
-                selectActiveRow: true,
+                selectActiveRow: false,
             },
-            multiSelect: false,
             enableColumnPicker: true,
             enableGridMenu: true,
             autoHeight: false,
@@ -600,6 +601,8 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 filterable: true,
                 type: FieldType.number,
                 minWidth: 120,
+                formatter: (row: number, cell: number, value: any) =>
+                    this.formatNumberEnUS(value),
             },
             {
                 id: 'UnitPricePurchase',
@@ -609,6 +612,8 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 filterable: true,
                 type: FieldType.number,
                 minWidth: 120,
+                formatter: (row: number, cell: number, value: any) =>
+                    this.formatNumberEnUS(value),
             },
             {
                 id: 'BillCode',
@@ -666,6 +671,10 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             enableGridMenu: true,
             autoHeight: false,
             gridHeight: 300,
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
     }
 
@@ -683,7 +692,32 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                     this.onMasterRowSelectionChanged(e, args);
                 }
             );
-            // Double click đã được xử lý qua (onDblClick) trong HTML template
+
+            // Click cell (không phải checkbox) → auto select 1 dòng
+            angularGrid.slickGrid.onClick.subscribe((e: any, args: any) => {
+                const cell = args.cell;
+                const row = args.row;
+                const column = angularGrid.slickGrid.getColumns()[cell];
+
+                // Bỏ qua click vào checkbox column
+                if (column?.id === '_checkbox_selector') return;
+
+                const currentSelectedRows = angularGrid.slickGrid.getSelectedRows() || [];
+                const rowIndex = currentSelectedRows.indexOf(row);
+
+                if (e.ctrlKey || e.metaKey) {
+                    // Ctrl+click: toggle
+                    if (rowIndex >= 0) {
+                        currentSelectedRows.splice(rowIndex, 1);
+                    } else {
+                        currentSelectedRows.push(row);
+                    }
+                    angularGrid.slickGrid.setSelectedRows(currentSelectedRows);
+                } else {
+                    // Click thường: chọn 1 dòng
+                    angularGrid.slickGrid.setSelectedRows([row]);
+                }
+            });
         }
 
         // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi
@@ -701,6 +735,17 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
 
     angularGridDetailReady(angularGrid: AngularGridInstance) {
         this.angularGridDetail = angularGrid;
+
+        // Subscribe để update footer khi filter detail grid
+        if (angularGrid.dataView) {
+            angularGrid.dataView.onRowCountChanged.subscribe(() => {
+                this.updateDetailFooterRow();
+            });
+        }
+
+        setTimeout(() => {
+            this.updateDetailFooterRow();
+        }, 100);
     }
 
     onMasterRowSelectionChanged(e: Event, args: any) {
@@ -731,6 +776,10 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 this.angularGridDetail.slickGrid?.invalidate();
             }
         }
+
+        setTimeout(() => {
+            this.updateDetailFooterRow();
+        }, 100);
     }
 
     onMasterCellClick(e: Event, args: OnEventArgs) {
@@ -950,7 +999,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                         ...item,
                         id: item.ID
                     }));
-                    
+
                     this.applyDistinctFiltersToMaster();
                     this.updateMasterFooterRow();
                 }
@@ -999,6 +1048,9 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
 
                     // Apply distinct filters to detail grid
                     this.applyDistinctFiltersToDetail();
+                    setTimeout(() => {
+                        this.updateDetailFooterRow();
+                    }, 150);
                 } else {
                     this.datasetDetail = [];
                     this.sizeTbDetail = 0;
@@ -2335,9 +2387,73 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         }
     }
 
+    updateDetailFooterRow(): void {
+        if (this.angularGridDetail && this.angularGridDetail.slickGrid) {
+            const dataView = this.angularGridDetail.dataView;
+            const filteredItems = dataView.getFilteredItems() || [];
+            console.log(filteredItems);
+            // Đếm số lượng sản phẩm (đã bỏ qua group)
+            const codeCount = filteredItems.length;
+
+            // Tính tổng các cột số liệu
+            const totals = (filteredItems || []).reduce(
+                (acc, item) => {
+                    acc.Qty += Number(item.Qty) || 0;
+                    acc.UnitPricePOKH += Number(item.UnitPricePOKH) || 0;
+                    acc.UnitPricePurchase += Number(item.UnitPricePurchase) || 0;
+                    return acc;
+                },
+                {
+                    Qty: 0,
+                    UnitPricePOKH: 0,
+                    UnitPricePurchase: 0,
+                }
+            );
+
+            // Set footer values cho từng column
+            const columns = this.angularGridDetail.slickGrid.getColumns();
+            columns.forEach((col: any) => {
+                const footerCell = this.angularGridDetail.slickGrid.getFooterRowColumn(
+                    col.id
+                );
+                if (!footerCell) return;
+
+                // Đếm cho cột Code
+                if (col.id === 'ProductCode') {
+                    footerCell.innerHTML = `<b>${codeCount.toLocaleString('en-US')}</b>`;
+                }
+                // Tổng các cột số liệu
+                else if (col.id === 'Qty') {
+                    footerCell.innerHTML = `<b>${totals.Qty.toLocaleString(
+                        'en-US'
+                    )}</b>`;
+                }
+                else if (col.id === 'UnitPricePOKH') {
+                    footerCell.innerHTML = `<b>${totals.UnitPricePOKH.toLocaleString(
+                        'en-US'
+                    )}</b>`;
+                }
+                else if (col.id === 'UnitPricePurchase') {
+                    footerCell.innerHTML = `<b>${totals.UnitPricePurchase.toLocaleString(
+                        'en-US'
+                    )}</b>`;
+                }
+            });
+        }
+    }
+
     formatNumber(num: number, digits: number = 0): string {
         num = num || 0;
         return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        });
+    }
+
+    private formatNumberEnUS(v: any, digits: number = 2): string {
+        const n = Number(v);
+        if (!isFinite(n)) return '';
+        return n.toLocaleString('en-US', {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits,
         });

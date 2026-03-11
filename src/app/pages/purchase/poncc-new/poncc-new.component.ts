@@ -1594,18 +1594,20 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (this.lastMasterId && this.masterDetailsMap.has(this.lastMasterId)) {
         const currentSelectedDetails = this.getSelectedDetailRows();
-        const selectedDetailIds = new Set(
-          currentSelectedDetails.map((d: any) => d.ID)
-        );
+        if (currentSelectedDetails.length > 0) {
+          const selectedDetailIds = new Set(
+            currentSelectedDetails.map((d: any) => d.ID)
+          );
 
-        const oldDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
-        const filtered = oldDetails.filter((d) => selectedDetailIds.has(d.ID));
+          const oldDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
+          const filtered = oldDetails.filter((d) => selectedDetailIds.has(d.ID));
 
-        if (filtered.length > 0) {
-          this.masterDetailsMap.set(this.lastMasterId, filtered);
-        } else {
-          this.masterDetailsMap.delete(this.lastMasterId);
+          if (filtered.length > 0) {
+            this.masterDetailsMap.set(this.lastMasterId, filtered);
+          }
+          // Nếu filtered rỗng → giữ nguyên toàn bộ detail của master cũ
         }
+        // Nếu không có row nào được chọn (do timing auto-select chưa chạy) → giữ nguyên
       }
       this.lastMasterId = latestMasterId;
 
@@ -3772,14 +3774,24 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     clearTimeout(this.clickTimer);
     if (row == null) return;
     this.clickTimer = setTimeout(() => {
-      let rowData;
-      if (this.activeTabIndex === 0) {
-        rowData = this.angularGridPoThuongMai?.dataView.getItem(row);
-      } else if (this.activeTabIndex === 1) {
-        rowData = this.angularGridPoMuon?.dataView.getItem(row);
-      }
+      const currentGrid =
+        this.activeTabIndex === 0
+          ? this.angularGridPoThuongMai
+          : this.angularGridPoMuon;
+      if (!currentGrid) return;
 
-      this.handleMasterSelectionChange([rowData]);
+      // Lấy toàn bộ các row đang được chọn thay vì chỉ lấy active row
+      const selectedRowIndexes = currentGrid.slickGrid.getSelectedRows();
+      if (selectedRowIndexes && selectedRowIndexes.length > 0) {
+        const selectedRows = selectedRowIndexes
+          .map((idx: number) => currentGrid.dataView.getItem(idx))
+          .filter((item: any) => item);
+        this.handleMasterSelectionChange(selectedRows);
+      } else {
+        // Fallback: chỉ dùng active row khi chưa có row nào được chọn
+        const rowData = currentGrid.dataView.getItem(row);
+        if (rowData) this.handleMasterSelectionChange([rowData]);
+      }
     }, 300);
   }
   //#endregion

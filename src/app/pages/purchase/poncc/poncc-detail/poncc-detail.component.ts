@@ -1728,23 +1728,38 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   }
 
   // Hàm validate form
+  private readonly fieldNameMap: Record<string, string> = {
+    SupplierSaleID: 'Nhà cung cấp',
+    POCode: 'Mã PO',
+    RulePayID: 'Điều khoản thanh toán',
+    EmployeeID: 'Nhân viên phụ trách',
+    POType: 'Loại PO',
+    Company: 'Công ty',
+    RequestDate: 'Ngày yêu cầu',
+    DeliveryDate: 'Ngày giao hàng',
+    BillCode: 'Số bill',
+    Status: 'Trạng thái',
+    TotalMoneyPO: 'Tổng tiền PO',
+    CurrencyID: 'Loại tiền tệ',
+    CurrencyRate: 'Tỷ giá',
+    ExpectedDate: 'Ngày về dự kiến',
+  };
+
   private validateForm(form: FormGroup, formName: string = ''): boolean {
-    // Mark all fields as touched để hiển thị lỗi
     const invalidFields: string[] = [];
     Object.keys(form.controls).forEach(key => {
       const control = form.get(key);
       control?.markAsTouched();
       control?.updateValueAndValidity();
       if (control?.invalid) {
-        invalidFields.push(key);
+        invalidFields.push(this.fieldNameMap[key] ?? key);
       }
     });
 
     if (form.invalid) {
-      const fieldNames = invalidFields.join(', ');
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        `${formName ? '[' + formName + '] ' : ''}Vui lòng kiểm tra lại các trường: ${fieldNames}`
+        `${formName ? '[' + formName + '] ' : ''}Vui lòng kiểm tra lại các trường: ${invalidFields.join(', ')}`
       );
       return false;
     }

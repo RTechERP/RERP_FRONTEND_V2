@@ -429,7 +429,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                             category: tagGroup,
                             isGroup: true,
                             stt: item.STT,
-                            totalCount: 0
+                            totalCount: child.length
                         });
 
                         linkDataArray.push({

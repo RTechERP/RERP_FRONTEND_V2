@@ -316,6 +316,15 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
             symbol: '',
             symbolAfter: true,
           },
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
+          bottomCalcFormatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Số tiền còn lại',
@@ -325,6 +334,15 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
           hozAlign: 'right',
           formatter: 'money',
           formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
+          bottomCalcFormatterParams: {
             precision: 0,
             decimal: '.',
             thousand: ',',

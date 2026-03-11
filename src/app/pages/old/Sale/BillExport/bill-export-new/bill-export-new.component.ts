@@ -1,6 +1,6 @@
 
 
-import { Component, OnInit, OnDestroy, ViewChild, Inject, Optional } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, Inject, Optional, HostListener } from '@angular/core';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
@@ -131,11 +131,21 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
 
     // PrimeNG MenuBar
     menuItems: MenuItem[] = [];
-    maxVisibleItems = 9;
+    maxVisibleItems = 20;
 
     // Để cleanup subscriptions
     private destroy$ = new Subject<void>();
     private isInitialized = false;
+
+    isMobile: boolean = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
+    isShowModal: boolean = false;
+
+    @HostListener('window:resize', ['$event'])
+    onResize(event: any) {
+        if (typeof window !== 'undefined') {
+            this.isMobile = event.target.innerWidth <= 768;
+        }
+    }
 
     constructor(
         private billExportService: BillExportService,
@@ -940,7 +950,9 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                         ...item,
                         id: item.ID
                     }));
+                    
                     this.applyDistinctFiltersToMaster();
+                    this.updateMasterFooterRow();
                 }
                 this.id = 0;
                 this.selectedRow = null;
@@ -2115,7 +2127,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             command: () => this.openModalBillExportReportNCC()
         });
 
-        // Filter visible items
+        //Filter visible items
         const visibleItems = allItems.filter(item => item.visible !== false);
 
         // Create menu with More if needed

@@ -360,6 +360,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
 
                 const totalForThisNode = calculateTotal(item.ID);
+                const displayCount = (departmentId === 0 || item.Level === 1) ? totalForThisNode : 0;
 
                 if (item.ParentID === 0 && departmentId === 0) {
                     if (!nodeDataArray.some((n: any) => n.key === 0)) {
@@ -381,7 +382,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                         name: name,
                         color: TAGS_COLORS[item.Level] || "#fff",
                         colorStroke: "black",
-                        totalCount: totalForThisNode
+                        totalCount: displayCount
                     });
 
                     linkDataArray.push({
@@ -400,7 +401,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                         color: TAGS_COLORS[item.Level] || "#fff",
                         colorStroke: "black",
                         stt: item.STT,
-                        totalCount: totalForThisNode
+                        totalCount: displayCount
                     });
 
                     linkDataArray.push({
@@ -425,7 +426,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                             category: tagGroup,
                             isGroup: true,
                             stt: item.STT,
-                            totalCount: child.length
+                            totalCount: 0
                         });
 
                         linkDataArray.push({

@@ -632,9 +632,9 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 },
             },
             {
-                id: 'CreatedDate' + this.wareHouseCode,
+                id: 'CreatDate' + this.wareHouseCode,
                 name: 'Ngày tạo',
-                field: 'CreatedDate',
+                field: 'CreatDate',
                 sortable: true,
                 filterable: true,
                 width: 150,

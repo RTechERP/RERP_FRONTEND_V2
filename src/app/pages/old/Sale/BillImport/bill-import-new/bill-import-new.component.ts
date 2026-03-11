@@ -425,7 +425,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'Status',
                 sortable: true,
                 filterable: true,
-                width: 120,
+                minWidth: 80,
                 formatter: Formatters.checkmarkMaterial,
                 filter: {
                     model: Filters['singleSelect'], collectionOptions: {
@@ -443,7 +443,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'DateStatus',
                 sortable: true,
                 filterable: true,
-                width: 130,
+                minWidth: 130,
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
@@ -457,7 +457,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'BillTypeText',
                 sortable: true,
                 filterable: true,
-                width: 150,
+                minWidth: 150,
                 filter: {
                     model: Filters['compoundInput'],
                 },
@@ -468,7 +468,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'DateRequestImport',
                 sortable: true,
                 filterable: true,
-                width: 130,
+                minWidth: 130,
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
@@ -486,7 +486,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'BillImportCode',
                 sortable: true,
                 filterable: true,
-                width: 180,
+                minWidth: 180,
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
@@ -505,8 +505,12 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'Suplier',
                 sortable: true,
                 filterable: true,
-                width: 400,
-                formatter: this.formatTextWithTooltip.bind(this),
+                minWidth: 400,
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const text = String(value);
+                    return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
+                },
                 filter: {
                     model: Filters['compoundInput'],
                 },
@@ -517,7 +521,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'DepartmentName',
                 sortable: true,
                 filterable: true,
-                width: 150,
+                minWidth: 150,
                 formatter: this.formatTextWithTooltip.bind(this),
                 filter: {
                     model: Filters['compoundInput'],
@@ -540,7 +544,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'Deliver',
                 sortable: true,
                 filterable: true,
-                width: 180,
+                minWidth: 180,
                 formatter: this.formatTextWithTooltip.bind(this),
                 filter: {
                     collection: [],
@@ -560,7 +564,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'Reciver',
                 sortable: true,
                 filterable: true,
-                width: 150,
+                minWidth: 150,
                 formatter: this.formatTextWithTooltip.bind(this),
                 filter: {
                     collection: [],
@@ -735,6 +739,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sanitizeDataExport: true,
                 exportWithFormatter: true,
             },
+            autoFitColumnsOnFirstLoad: false,
+            enableAutoSizeColumns: false,
             // Footer row configuration
             createFooterRow: true,
             showFooterRow: true,
@@ -744,6 +750,18 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
 
     initDetailGrid(): void {
         this.columnDefinitionsDetail = [
+            {
+                id: 'STT',
+                name: 'STT',
+                field: 'STT',
+                sortable: true,
+                cssClass: 'text-center',
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+                maxWidth: 80,
+            },
             {
                 id: 'ProductNewCode' + this.wareHouseCode,
                 name: 'Mã nội bộ',
@@ -922,7 +940,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             enableFiltering: true,
             enableCellNavigation: true,
             enableRowSelection: true,
-            frozenColumn: 2,
+            frozenColumn: 3,
 
             // Footer row configuration
             createFooterRow: true,

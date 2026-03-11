@@ -5,15 +5,19 @@
     </div>
   </div>
 
-  <div class="modal-body p-2" style="height: 60vh;">
+  <div class="modal-body p-2" style="height: 60vh">
     <form nz-form>
       <div nz-col [nzSpan]="24">
         <nz-form-item>
-          <nz-form-label [nzSpan]="24" class="fw-semibold">
-            Tên
-          </nz-form-label>
+          <nz-form-label [nzSpan]="24" class="fw-semibold"> Tên </nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <input nz-input [(ngModel)]="ProductName" name="ProductName" [disabled]="true" type="text" />
+            <input
+              nz-input
+              [(ngModel)]="ProductName"
+              name="ProductName"
+              [disabled]="true"
+              type="text"
+            />
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -23,7 +27,13 @@
             Mã sản phẩm
           </nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <input nz-input [(ngModel)]="ProductCode" name="ProductCode" [disabled]="true" type="text" />
+            <input
+              nz-input
+              [(ngModel)]="ProductCode"
+              name="ProductCode"
+              [disabled]="true"
+              type="text"
+            />
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -33,9 +43,19 @@
             Người mượn cũ
           </nz-form-label>
           <nz-form-control>
-            <nz-select [nzDisabled]="true" [(ngModel)]="PeopleID" name="PeopleID" nzShowSearch nzAllowClear
-              nzPlaceHolder="Chọn người dùng">
-              <nz-option *ngFor="let item of oldEmployees" [nzLabel]="item.title" [nzValue]="item.value">
+            <nz-select
+              [nzDisabled]="true"
+              [(ngModel)]="PeopleID"
+              name="PeopleID"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn người dùng"
+            >
+              <nz-option
+                *ngFor="let item of oldEmployees"
+                [nzLabel]="item.title"
+                [nzValue]="item.value"
+              >
               </nz-option>
             </nz-select>
           </nz-form-control>
@@ -47,9 +67,19 @@
             Người mượn mới <span class="text-danger">(*)</span>
           </nz-form-label>
           <nz-form-control>
-            <nz-select nzShowSearch [(ngModel)]="NewPeopleID"  (ngModelChange)="onChangeUser($event)" name="NewPeopleID" nzAllowClear
-              nzPlaceHolder="Chọn người dùng">
-              <nz-option *ngFor="let item of employees" [nzLabel]="item.title" [nzValue]="item.value">
+            <nz-select
+              nzShowSearch
+              [(ngModel)]="NewPeopleID"
+              (ngModelChange)="onChangeUser($event)"
+              name="NewPeopleID"
+              nzAllowClear
+              nzPlaceHolder="Chọn người dùng"
+            >
+              <nz-option
+                *ngFor="let item of employees"
+                [nzLabel]="item.title"
+                [nzValue]="item.value"
+              >
               </nz-option>
             </nz-select>
           </nz-form-control>
@@ -72,10 +102,10 @@
           </nz-form-label>
           <nz-form-control>
             <nz-select [(ngModel)]="BillType" name="BillType" nzShowSearch>
-              <nz-option nzLabel="Trả" nzValue=0></nz-option>
-              <nz-option nzLabel="Cho mượn" nzValue=1></nz-option>
-              <nz-option nzLabel="Tặng/ Bán" nzValue=2></nz-option>
-              <nz-option nzLabel="Mất" nzValue=3></nz-option>
+              <nz-option nzLabel="Trả" nzValue="0"></nz-option>
+              <nz-option nzLabel="Cho mượn" nzValue="1"></nz-option>
+              <nz-option nzLabel="Tặng/ Bán" nzValue="2"></nz-option>
+              <nz-option nzLabel="Mất" nzValue="3"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -96,8 +126,12 @@
             Ngày trả dự kiến
           </nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <nz-date-picker name="dateExtend" [(ngModel)]="dateExtend" nzFormat="dd/MM/yyyy"
-              nzAllowClear="false"></nz-date-picker>
+            <nz-date-picker
+              name="dateExtend"
+              [(ngModel)]="dateExtend"
+              nzFormat="dd/MM/yyyy"
+              nzAllowClear="false"
+            ></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -107,7 +141,12 @@
             Nhà cung cấp
           </nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <input nz-input [(ngModel)]="supplier" name="supplier" type="text" />
+            <input
+              nz-input
+              [(ngModel)]="supplier"
+              name="supplier"
+              type="text"
+            />
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -117,7 +156,13 @@
             Note
           </nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <textarea nz-input [(ngModel)]="Note" name="Note" rows="6" placeholder="Nhập ghi chú..."></textarea>
+            <textarea
+              nz-input
+              [(ngModel)]="Note"
+              name="Note"
+              rows="6"
+              placeholder="Nhập ghi chú..."
+            ></textarea>
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -128,8 +173,29 @@
     <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
       Đóng
     </button>
-    <button nz-button nzType="primary" style="margin-left: 8px;" (click)="onSubmit()">
+    <button
+      nz-button
+      nzType="primary"
+      style="margin-left: 8px"
+      (click)="onSubmit()"
+    >
       Lưu
     </button>
   </div>
 </div>
+
+<!-- Template popup nhập ngày trả dự kiến -->
+<ng-template #dateReturnModal>
+  <div style="padding: 8px 0">
+    <label class="fw-semibold d-block mb-2"
+      >Ngày trả dự kiến <span class="text-danger">(*)</span></label
+    >
+    <nz-date-picker
+      name="dateExtendModal"
+      [(ngModel)]="dateExtend"
+      nzFormat="dd/MM/yyyy"
+      nzAllowClear="false"
+      style="width: 100%"
+    ></nz-date-picker>
+  </div>
+</ng-template>

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/newsletter/newsletter/newsletter-type/newsletter-type.component.css"],
+  "sourcesContent": [".tabulator {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.btn {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.ant-splitter {\r\n    height: 93vh !important;\r\n}\r\n\r\n/* Mobile: action buttons in header can overflow -> allow horizontal scroll */\r\n@media (max-width: 768px) {\r\n  .food-order-actions-scroll {\r\n    overflow-x: auto;\r\n    overflow-y: hidden;\r\n    -webkit-overflow-scrolling: touch;\r\n    width: 100%;\r\n  }\r\n\r\n  .food-order-actions {\r\n    flex-wrap: nowrap !important;\r\n    width: max-content;\r\n    padding-bottom: 4px; /* keep scrollbar from touching buttons */\r\n  }\r\n\r\n  .food-order-actions > * {\r\n    flex: 0 0 auto;\r\n  }\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,UAID,CAAC,MAID,CAAC,IAPC,UAAW,MACb,CAUA,CAAC,aACG,OAAQ,cACZ,CAGA,OAAO,CAAC,SAAS,EAAE,OACjB,CAAC,0BACC,WAAY,KACZ,WAAY,OACZ,2BAA4B,MAC5B,MAAO,IACT,CAEA,CAAC,mBACC,UAAW,iBACX,MAAO,YACP,eAAgB,GAClB,CAEA,CANC,kBAMmB,CAAE,EACpB,KAAM,EAAE,EAAE,IACZ,CACF",
+  "names": []
+}

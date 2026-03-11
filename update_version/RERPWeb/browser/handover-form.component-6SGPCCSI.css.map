@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/handover/handover-form/handover-form.component.css"],
+  "sourcesContent": [":host ::ng-deep .ant-tabs-card>.ant-tabs-nav .ant-tabs-tab-active {\r\n  background-color: #3b82f6;\r\n  /* blue-500 */\r\n  border-color: #3b82f6;\r\n}\r\n\r\n:host ::ng-deep .ant-tabs-card>.ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {\r\n  color: #fff !important;\r\n  /* bu\u1ED9c ch\u1EEF tr\u1EAFng */\r\n}\r\n\r\n:host ::ng-deep .modal-body {\r\n  height: 88vh;\r\n  overflow: auto;\r\n}\r\n\r\n/* CSS \u0111\u1EC3 b\u1EA3ng t\u00E0i s\u1EA3n c\u1EA5p ph\u00E1t c\u00F3 scroll ngang */\r\n#handoverAsset {\r\n  overflow-x: auto !important;\r\n}\r\n\r\n:host ::ng-deep #handoverAsset .tabulator {\r\n  overflow-x: auto !important;\r\n}\r\n\r\n:host ::ng-deep #handoverAsset .tabulator-tableholder {\r\n  overflow-x: auto !important;\r\n}"],
+  "mappings": "AAAA,MAAM,UAAU,CAAC,aAAa,CAAC,CAAC,aAAa,CAAC,oBAC5C,iBAAkB,QAElB,aAAc,OAChB,CAEA,MAAM,UAAU,CANC,aAMa,CAAC,CANC,aAMa,CANC,oBAMoB,CAAC,iBACjE,MAAO,cAET,CAEA,MAAM,UAAU,CAAC,WACf,OAAQ,KACR,SAAU,IACZ,CAGA,CAAC,cACC,WAAY,cACd,CAEA,MAAM,UAAU,CAJf,cAI8B,CAAC,UAC9B,WAAY,cACd,CAEA,MAAM,UAAU,CARf,cAQ8B,CAAC,sBAC9B,WAAY,cACd",
+  "names": []
+}

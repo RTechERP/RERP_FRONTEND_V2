@@ -394,7 +394,7 @@ export class HistoryProductRtcDetailComponent implements OnInit, AfterViewInit {
     // Search handler
     onSearch(event: any) {
         const keyword = (event.target.value || "").toLowerCase();
-        
+
         if (!this.angularGridMain || !this.angularGridMain.filterService) {
             return;
         }
@@ -501,7 +501,7 @@ export class HistoryProductRtcDetailComponent implements OnInit, AfterViewInit {
         }
 
         // Update datasets
-        this.datasetMain = this.datasetMain.filter(item => 
+        this.datasetMain = this.datasetMain.filter(item =>
             !itemsToRemove.some(removed => removed.ID === item.ID)
         );
 

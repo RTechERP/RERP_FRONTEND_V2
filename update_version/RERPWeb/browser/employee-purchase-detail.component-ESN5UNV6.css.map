@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/purchase/employee-purchase/employee-purchase-detail/employee-purchase-detail.component.css"],
+  "sourcesContent": [".reset {\r\n    all: revert;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n  border: 1px solid !important;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,MACG,IAAK,MACT,CAEA,CAAC,UACC,UAAW,OACX,OAAQ,IAAI,eACd,CAEA,CAAC,eATD,QAUW,CACX,CAEA,CAAC,MACC,UAAW,MACb",
+  "names": []
+}

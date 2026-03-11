@@ -1,22 +1,70 @@
 <ng-container class="w-100">
-    <nz-splitter>
-        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                        <button class="border-0 me-2" nz-button nzSize="default" nzType="default" nzDanger
-                            (click)="toggleSearchPanel()">
-                            <nz-icon nzType="close" nzTheme="outline" />
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <form nz-form nzLayout="vertical" [formGroup]="searchForm">
-                        <nz-form-item class="mb-0" class="mt-1">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Tình trạng</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+    <div class="card h-100 border-0 rounded-0">
+        <!-- Header -->
+        <div class="card-header bg-white p-1 border-bottom">
+            <div class="d-flex gap-1 align-items-center" style="overflow-x: auto">
+                <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                    <nz-icon nzType="search" />
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openAddModal()"
+                    *hasPermission="'N1,N2,N60'">
+                    <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " /> Thêm
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openEditModal()"
+                    *hasPermission="'N1,N2,N60'">
+                    <img src="assets/icon/action_edit_item_16.png" alt="Sửa thiết bị" /> Sửa
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="openDeleteModal()"
+                    *hasPermission="'N1,N2,N60'">
+                    <img src="assets/icon/action_delete_item_16.png" alt="Xóa thiết bị" /> Xóa
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openImportExcelForm()"
+                    *hasPermission="'N2,N1'">
+                    <img src="assets/icon/action_import_16.png" alt="Nhập Excel"
+                        style="width:16px; height:16px; object-fit:contain" /> Nhập excel
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="exportToExcel()">
+                    <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel"
+                        style="width:16px; height:16px; object-fit:contain" /> Xuất excel
+                </button>
+
+                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openEmployeeApproveForm()"
+                    *hasPermission="'N1'">
+                    <img src="assets/icon/action_confirm_tbp_16.png" alt="Quản lý người duyệt"
+                        style="width:16px; height:16px; object-fit:contain" /> Quản lý người duyệt
+                </button>
+
+                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openLoginManagerForm()"
+                    *hasPermission="'N1,N2,N60'">
+                    <img src="assets/icon/add_employee_16.png" alt="Quản lý đăng nhập"
+                        style="width:16px; height:16px; object-fit:contain" /> Quản lý đăng nhập
+                </button>
+
+                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openEmployeeContract()"
+                    *hasPermission="'N1,N2,N60'">
+                    <img src="assets/icon/action_confirm_bgd_16.png" alt="Hợp đồng"
+                        style="width:16px; height:16px; object-fit:contain" /> Hợp đồng
+                </button>
+
+                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openEmployeeTeamForm()"
+                    *hasPermission="'N1,N2,N60'">
+                    <img src="assets/icon/action_team_16.png" alt="Team"
+                        style="width:16px; height:16px; object-fit:contain" /> Team
+                </button>
+                <label nz-checkbox [formControl]="endContractControl" class="fs-12">Sắp hết HĐ</label>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar bg-light border-bottom p-2" *ngIf="isSearchVisible">
+            <form nz-form [formGroup]="searchForm">
+                <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+                    <!-- Tình trạng -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Tình trạng</nz-form-label>
+                            <nz-form-control>
+                                <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
                                     formControlName="status">
                                     <nz-option [nzValue]="0" nzLabel="Đang làm việc"></nz-option>
                                     <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
@@ -24,113 +72,52 @@
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mb-0" class="mt-1">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select [(ngModel)]="department" nzPlaceHolder="Tất cả phòng ban" style="width: 100%"
-                                    nzAllowClear nzShowSearch formControlName="department">
+                    </nz-col>
+
+                    <!-- Phòng ban -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
+                            <nz-form-control>
+                                <nz-select nzPlaceHolder="Tất cả phòng ban" class="w-100" nzAllowClear nzShowSearch
+                                    formControlName="department" nzSize="small">
                                     <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
                                         [nzLabel]="dept.Name"></nz-option>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mb-0" class="mt-1">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <input nz-input placeholder="Nhập từ khóa" nzSize="default" formControlName="keyword" />
+                    </nz-col>
+
+                    <!-- Từ khóa -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="10">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
+                            <nz-form-control>
+                                <div class="d-flex gap-1">
+                                    <input nz-input placeholder="Nhập từ khóa..." formControlName="keyword"
+                                        nzSize="small" class="flex-grow-1" (keyup.enter)="onSearch()" />
+                                    <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                                        <nz-icon nzType="search" />
+                                    </button>
+                                    <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
+                                        Đặt lại
+                                    </button>
+                                </div>
                             </nz-form-control>
                         </nz-form-item>
-                    </form>
-                </div>
-                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-                    <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
-                        Đặt lại
-                    </button>
-                    <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
-                        Tìm kiếm
-                    </button>
-                </div>
+                    </nz-col>
+                </nz-row>
+            </form>
+        </div>
+
+        <!-- Table Content -->
+        <div class="card-body p-0 position-relative flex-grow-1">
+            <div *ngIf="isLoading" class="loading-overlay">
+                <nz-spin [nzSpinning]="isLoading" nzSimple></nz-spin>
             </div>
-        </nz-splitter-panel>
-        <nz-splitter-panel nzDefaultSize="100%" nzResizable="true">
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-1">
-                    <div class="d-flex gap-1 align-items-center" style="overflow-x: auto">
-                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-                            <nz-icon nzType="search" />
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openAddModal()"
-                            *hasPermission="'N1,N2,N60'">
-                            <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " /> Thêm
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openEditModal()"
-                            *hasPermission="'N1,N2,N60'">
-                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa thiết bị" /> Sửa
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-delete "
-                            (click)="openDeleteModal()" *hasPermission="'N1,N2,N60'">
-                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa thiết bị" /> Xóa
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openImportExcelForm()"
-                            *hasPermission="'N2,N1'">
-                            <img src="assets/icon/action_import_16.png" alt="Nhập Excel"
-                                style="width:16px; height:16px; object-fit:contain" /> Nhập excel
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="exportToExcel()">
-                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel"
-                                style="width:16px; height:16px; object-fit:contain" /> Xuất excel
-                        </button>
-
-                        <button nz-button nzType="default" nzSize="small" class="me-1"
-                            (click)="openEmployeeApproveForm()" *hasPermission="'N1'">
-                            <img src="assets/icon/action_confirm_tbp_16.png" alt="Quản lý người duyệt"
-                                style="width:16px; height:16px; object-fit:contain" /> Quản lý người duyệt
-                        </button>
-
-                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openLoginManagerForm()"
-                            *hasPermission="'N1,N2,N60'">
-                            <img src="assets/icon/add_employee_16.png" alt="Quản lý đăng nhập"
-                                style="width:16px; height:16px; object-fit:contain" /> Quản lý đăng nhập
-                        </button>
-
-                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openEmployeeContract()"
-                            *hasPermission="'N1,N2,N60'">
-                            <img src="assets/icon/action_confirm_bgd_16.png" alt="Hợp đồng"
-                                style="width:16px; height:16px; object-fit:contain" /> Hợp đồng
-                        </button>
-
-                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openEmployeeTeamForm()"
-                            *hasPermission="'N1,N2,N60'">
-                            <img src="assets/icon/action_team_16.png" alt="Team"
-                                style="width:16px; height:16px; object-fit:contain" /> Team
-                        </button>
-                        <label nz-checkbox [formControl]="endContractControl" class="fs-12">Sắp hết HĐ</label><br />
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <nz-splitter>
-                        <nz-splitter-panel [nzSize]="" [nzCollapsible]="true" nzResizable="true">
-                            <div *ngIf="isLoading">
-                                <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
-                    position: 'absolute',
-                    top: '0',
-                    left: '0',
-                    width: '100%',
-                    height: '100%',
-                    background: 'rgba(255,255,255,0.4)',
-                    zIndex: '999',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }"></nz-spin>
-                            </div>
-                            <div id="tb_employee"></div>
-                        </nz-splitter-panel>
-                    </nz-splitter>
-                </div>
-            </div>
-        </nz-splitter-panel>
-    </nz-splitter>
+            <div id="tb_employee" style="height: 100%;"></div>
+        </div>
+    </div>
 </ng-container>
 
 <!-- region modal -->
@@ -196,9 +183,8 @@
                                         <nz-form-label [nzSpan]="24">Phòng ban<span
                                                 class="text-danger ps-1">*</span></nz-form-label>
                                         <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn phòng ban">
-                                            <nz-select [(ngModel)]="department" formControlName="DepartmentID"
-                                                nzPlaceHolder="Tất cả phòng ban" style="width: 100%" nzAllowClear
-                                                nzShowSearch>
+                                            <nz-select formControlName="DepartmentID" nzPlaceHolder="Tất cả phòng ban"
+                                                style="width: 100%" nzAllowClear nzShowSearch>
                                                 <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
                                                     [nzLabel]="dept.Name"></nz-option>
                                             </nz-select>
@@ -209,7 +195,7 @@
                                         <nz-form-label [nzSpan]="24">Chức vụ (Theo nội bộ)
                                             <span class="text-danger ps-1">*</span></nz-form-label>
                                         <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn chức vụ (Theo nội bộ)">
-                                            <nz-select [(ngModel)]="positionInternal" formControlName="ChuVuID"
+                                            <nz-select formControlName="ChuVuID"
                                                 nzPlaceHolder="Nhập chức vụ (Theo nội bộ)" style="width: 90%"
                                                 nzAllowClear nzShowSearch>
                                                 <nz-option *ngFor="let pi of positionInternalList" [nzValue]="pi.ID"
@@ -656,7 +642,7 @@
                                 </nz-col>
                             </nz-row>
                         </nz-tab>
-                        <nz-tab nzTitle="Thông tin lương">
+                        <nz-tab nzTitle="Thông tin lương" *ngIf="isSalaryVisible">
                             <nz-row nzGutter="24">
                                 <nz-col nzSpan="12" class="p-0">
                                     <fieldset class="reset">

@@ -13,7 +13,7 @@ import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { EmployeeService } from '../employee-service/employee.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
@@ -92,10 +92,27 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                 this.isLoading = false;
             },
             error: (err: any) => {
+
+                // console.log('err:', err);
                 this.isLoading = false;
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    'Lỗi khi tải dữ liệu: ' + (err?.error?.message || err?.message)
+
+                // this.notification.error(
+                //     NOTIFICATION_TITLE.error,
+                //     'Lỗi khi tải dữ liệu: ' + (err?.error?.message || err?.message)
+                // );/
+
+                // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                //     {
+                //         nzStyle: { whiteSpace: 'pre-line' }
+                //     });
+
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
                 );
             }
         });
@@ -114,9 +131,18 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                 this.departments = res?.data || [];
             },
             error: (err: any) => {
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    'Lỗi khi tải danh sách phòng ban: ' + (err?.error?.message || err?.message)
+                // this.notification.error(
+                //     NOTIFICATION_TITLE.error,
+                //     'Lỗi khi tải danh sách phòng ban: ' + (err?.error?.message || err?.message)
+                // );
+
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
                 );
             }
         });

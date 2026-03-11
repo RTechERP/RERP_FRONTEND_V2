@@ -84,3 +84,26 @@
   background-color: transparent !important;
   border: none !important;
 }
+
+/* Bell icon animation */
+.bell-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.bell-icon.has-notif {
+  animation: bell-ring 1s ease infinite;
+  transform-origin: top center;
+}
+
+@keyframes bell-ring {
+  0%   { transform: rotate(0deg); }
+  10%  { transform: rotate(15deg); }
+  20%  { transform: rotate(-12deg); }
+  30%  { transform: rotate(10deg); }
+  40%  { transform: rotate(-8deg); }
+  50%  { transform: rotate(5deg); }
+  60%  { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}

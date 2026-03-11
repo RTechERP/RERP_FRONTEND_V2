@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/employee/employee-contract/employee-contract.component.css"],
+  "sourcesContent": [".ant-form-item-label {\r\n  padding: 0px !important;\r\n}\r\n\r\n/* Ho\u1EB7c target c\u1EE5 th\u1EC3 h\u01A1n */\r\nnz-form-label .ant-form-item-label {\r\n  padding: 0px !important;\r\n}\r\n\r\n.modal-backdrop {\r\n  background-color: rgba(0, 0, 0, 0.5);\r\n  backdrop-filter: blur(5px);\r\n  -webkit-backdrop-filter: blur(5px);\r\n}\r\n\r\n.modal-backdrop.show {\r\n  opacity: 1;\r\n}\r\n\r\n.modal {\r\n  background-color: rgba(0, 0, 0, 0.5);\r\n}\r\n\r\n::ng-deep .cdk-overlay-container {\r\n  z-index: 9999999999 !important;\r\n}"],
+  "mappings": "AAAA,CAAC,oBAAD,QACW,WACX,CAGA,cAAc,CALb,oBAAD,QAMW,WACX,CAEA,CAAC,eACC,iBAAkB,UAClB,gBAAiB,KAAK,KACtB,wBAAyB,KAAK,IAChC,CAEA,CANC,cAMc,CAAC,KACd,QAAS,CACX,CAEA,CAAC,MACC,iBAAkB,SACpB,CAEA,UAAU,CAAC,sBACT,QAAS,oBACX",
+  "names": []
+}

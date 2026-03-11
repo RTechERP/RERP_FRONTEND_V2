@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/project/project-item-person/project-item-person.component.css"],
+  "sourcesContent": [":host {\r\n  font-size: 12px !important;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n  all: revert;\r\n}\r\n\r\n.ant-splitter-panel{\r\n  position: relative;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n  position: absolute;\r\n  width: 100%;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.inner-content {\r\n  padding: 0 !important;\r\n}\r\n\r\n.ant-tabs-tab-btn {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.ant-splitter {\r\n  height: 93vh !important;\r\n}\r\n\r\n/* Button styles for toolbar */\r\n.btn-approve {\r\n  background-color: #28a745;\r\n  border-color: #28a745;\r\n  color: white;\r\n}\r\n\r\n.btn-approve:hover {\r\n  background-color: #218838;\r\n  border-color: #1e7e34;\r\n}\r\n.table-action-btn {\r\n  font-size: 10px;      /* nh\u1ECF text + icon */\r\n  padding: 2px 4px;     /* thu g\u1ECDn n\u00FAt h\u01A1n btn-sm */\r\n}\r\n\r\n.table-action-btn i {\r\n  font-size: 10px;      /* icon nh\u1ECF theo */\r\n}\r\n"],
+  "mappings": "AAAA,MACE,UAAW,cACb,CAEA,CAAC,MACC,UAAW,MACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,mBACC,SAAU,QACZ,CAEA,CAAC,UACC,UAAW,OACX,SAAU,SACV,MAAO,IACT,CAEA,CAAC,eAtBD,QAuBW,CACX,CAEA,CAAC,cA1BD,QA2BW,WACX,CAEA,CAAC,iBACC,UAAW,MACb,CAEA,CAAC,aACC,OAAQ,cACV,CAGA,CAAC,YACC,iBAAkB,QAClB,aAAc,QACd,MAAO,IACT,CAEA,CANC,WAMW,OACV,iBAAkB,QAClB,aAAc,OAChB,CACA,CAAC,iBACC,UAAW,KAlDb,QAmDW,IAAI,GACf,CAEA,CALC,iBAKiB,EAChB,UAAW,IACb",
+  "names": []
+}

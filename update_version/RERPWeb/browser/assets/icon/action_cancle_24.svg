@@ -1,0 +1,9 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g id="d560bbd7">
+    <path id="997b00ff" d="M12 24C18.6274 24 24 18.6274 24 12C24 5.37258 18.6274 0 12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24Z" fill="#FF2323"></path>
+    <g id="20757cb1">
+      <path d="M9 9L15 15ZM15 9L9 15Z" fill="#FF2323"></path>
+      <path d="M9 9L15 15M15 9L9 15" stroke="white" stroke-linecap="round" stroke-linejoin="round"></path>
+    </g>
+  </g>
+</svg>

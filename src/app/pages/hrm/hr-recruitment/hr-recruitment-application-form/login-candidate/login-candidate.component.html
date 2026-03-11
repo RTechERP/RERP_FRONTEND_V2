@@ -1,0 +1,64 @@
+<!-- [ auth-signin ] start -->
+<div class="auth-wrapper">
+    <div class="auth-content container">
+        <div class="card">
+            <div class="row align-items-center">
+                <div class="col-md-6 d-none d-md-block">
+                    <img src="assets/images/banner01.png" alt="" class="img-fluid">
+                </div>
+                <div class="col-md-6">
+                    <div class="card-body">
+                        <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="" class="img-fluid mb-4">
+                        <h4 class="mb-4 f-w-400">ĐĂNG NHẬP ỨNG VIÊN</h4>
+
+                        <form [formGroup]="loginForm" (ngSubmit)="onLogin()" novalidate>
+                            <!-- Tên đăng nhập -->
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">
+                                    <img src="assets/icon/user-black.png" alt="user" style="width:18px; height:18px;">
+                                </span>
+                                <input type="text" class="form-control" formControlName="UserName"
+                                    placeholder="Tên đăng nhập"
+                                    [ngClass]="{'is-invalid': submitted && loginForm.get('UserName')?.invalid}" />
+                                <div *ngIf="submitted && loginForm.get('UserName')?.errors?.['required']"
+                                    class="invalid-feedback">
+                                    Vui lòng nhập tên đăng nhập
+                                </div>
+                            </div>
+
+                            <!-- Mật khẩu -->
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">
+                                    <img src="assets/icon/password.png" alt="password" style="width:18px; height:18px;">
+                                </span>
+                                <input type="password" class="form-control" formControlName="PasswordHash"
+                                    placeholder="Mật khẩu"
+                                    [ngClass]="{'is-invalid': submitted && loginForm.get('PasswordHash')?.invalid}" />
+                                <div *ngIf="submitted && loginForm.get('PasswordHash')?.errors?.['required']"
+                                    class="invalid-feedback">
+                                    Vui lòng nhập mật khẩu
+                                </div>
+                            </div>
+
+                            <div class="form-check text-left mt-2 mb-4">
+                                <input class="form-check-input" type="checkbox" id="rememberMeCandidate"
+                                    formControlName="rememberMe">
+                                <label class="form-check-label" for="rememberMeCandidate">Nhớ mật khẩu</label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary mb-2" [disabled]="isLoading">ĐĂNG NHẬP</button>
+                            <p class="text-danger" *ngIf="errorMessage">{{ errorMessage }}</p>
+                        </form>
+
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fullscreen spinner overlay -->
+<div *ngIf="isLoading" class="fullscreen-spinner-overlay">
+    <nz-spin [nzSize]="'default'"></nz-spin>
+</div>

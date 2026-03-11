@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/crm/customers/customer-specialization/customer-major/customer-major.component.css"],
+  "sourcesContent": [".modal-scroll {\r\n    max-height: 80vh;\r\n    overflow-y: auto;\r\n    overflow-x: hidden;\r\n  }"],
+  "mappings": "AAAA,CAAC,aACG,WAAY,KACZ,WAAY,KACZ,WAAY,MACd",
+  "names": []
+}

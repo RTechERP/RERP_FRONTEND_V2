@@ -831,7 +831,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
                         if (this.isWareHouseDP) {
                             mappedData = mappedData.filter(
-                                (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 || item.ParentID === 4 || item.ParentID === 13);
+                                (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 || item.ProductGroupID === 83 ||
+                                    item.ParentID === 4 || item.ParentID === 13 || item.ParentID === 83);
                         }
 
                         this.datasetInventory = mappedData;

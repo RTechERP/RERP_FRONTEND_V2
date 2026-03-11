@@ -1,0 +1,48 @@
+<div class="selection-container">
+    <div class="background-overlay"></div>
+    <div class="content">
+        <div class="header">
+            <h1 class="title">Chào mừng Ứng viên</h1>
+            <p class="subtitle">Vui lòng lựa chọn bước tiếp theo để hoàn tất hồ sơ</p>
+        </div>
+
+        <div class="selection-grid">
+            <!-- Card 1: Điền tờ khai -->
+            <div class="selection-card glass-card" (click)="navigateToApplication()">
+                <div class="card-icon">
+                    <span nz-icon nzType="form" nzTheme="outline"></span>
+                </div>
+                <div class="card-info">
+                    <h2>Điền tờ khai thông tin</h2>
+                    <p>Cập nhật thông tin cá nhân, kinh nghiệm và kỹ năng của bạn.</p>
+                </div>
+                <div class="card-action">
+                    <span>Bắt đầu</span>
+                    <span nz-icon nzType="arrow-right" nzTheme="outline"></span>
+                </div>
+            </div>
+
+            <!-- Card 2: Test IQ -->
+            <div class="selection-card glass-card secondary" (click)="navigateToIQTest()">
+                <div class="card-icon">
+                    <span nz-icon nzType=" bulb" nzTheme="outline"></span>
+                </div>
+                <div class="card-info">
+                    <h2>Test IQ ứng viên</h2>
+                    <p>Tham gia bài kiểm tra tư duy và năng lực logic.</p>
+                </div>
+                <div class="card-action">
+                    <span>Khám phá</span>
+                    <span nz-icon nzType="arrow-right" nzTheme="outline"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <button class="logout-btn" (click)="logout()">
+                <span nz-icon nzType="logout" nzTheme="outline"></span>
+                Đăng xuất
+            </button>
+        </div>
+    </div>
+</div>

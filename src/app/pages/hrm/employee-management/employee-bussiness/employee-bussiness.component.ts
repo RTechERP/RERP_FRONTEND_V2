@@ -303,6 +303,9 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
           title: 'Loại', field: 'TypeName', hozAlign: 'left', headerHozAlign: 'center', width: 220, headerSort: false,
         },
         {
+          title: 'Dự án', field: 'ProjectName', hozAlign: 'left', headerHozAlign: 'center', width: 220, headerSort: false,
+        },
+        {
           title: 'Phương tiện', field: 'VehicleName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
         },
         {

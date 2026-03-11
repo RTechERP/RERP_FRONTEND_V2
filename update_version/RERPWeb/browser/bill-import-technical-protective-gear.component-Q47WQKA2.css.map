@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/product-protective-gear/bill-import-technical-protective-gear/bill-import-technical-protective-gear.component.css"],
+  "sourcesContent": ["/* Detail legend title - smaller font */\r\n.detail-legend {\r\n    font-size: 13px;\r\n    font-weight: 500;\r\n    color: #333;\r\n}\r\n\r\n/* Master grid - push down a bit */\r\n.grid-container-master-import {\r\n    margin-top: 8px;\r\n    height: 40vh;\r\n}\r\n\r\n/* Detail grid height */\r\n.grid-container-detail-import {\r\n    height: 35vh;\r\n}\r\n\r\n/* Detail fieldset styling */\r\n.detail-fieldset {\r\n    border: 1px solid #e8e8e8;\r\n    border-radius: 4px;\r\n    padding: 12px;\r\n}\r\n\r\n\r\n.grid-sparepartgroup-container,\r\n.grid-sparepart-container {\r\n    height: 100%;\r\n    width: 100%;\r\n}\r\n\r\nangular-slickgrid,\r\n.angular-slickgrid-container {\r\n    height: 100% !important;\r\n    width: 100%;\r\n    display: flex;\r\n}\r\n\r\n:host ::ng-deep .slickgrid-container {\r\n    height: 100% !important;\r\n}"],
+  "mappings": "AACA,CAAC,cACG,UAAW,KACX,YAAa,IACb,MAAO,IACX,CAGA,CAAC,6BACG,WAAY,IACZ,OAAQ,IACZ,CAGA,CAAC,6BACG,OAAQ,IACZ,CAGA,CAAC,gBACG,OAAQ,IAAI,MAAM,QApBtB,cAqBmB,IArBnB,QAsBa,IACb,CAGA,CAAC,8BACD,CAAC,yBACG,OAAQ,KACR,MAAO,IACX,CAEA,kBACA,CAAC,4BACG,OAAQ,eACR,MAAO,KACP,QAAS,IACb,CAEA,MAAM,UAAU,CAAC,oBACb,OAAQ,cACZ",
+  "names": []
+}

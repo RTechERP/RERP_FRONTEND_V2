@@ -61,10 +61,11 @@ import { EmployeeTeamComponent } from './employee-team/employee-team.component';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { ProjectService } from '../../project/project-service/project.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TeamComponent } from '../team/team.component';
+import { PermissionService } from '../../../services/permission.service';
 
 @Component({
   selector: 'app-employee',
@@ -122,24 +123,22 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   positionContractList: any[] = [];
   positionInternalList: any[] = [];
   educationCreate: any[] = [];
-  sizeSearch: string = '0';
   isEditMode: boolean = false;
   employeeForm!: FormGroup;
-  department: any = null;
-  positionContract: any = null;
-  positionInternal: any = null;
   avatarUrl: string = '';
   fileList: NzUploadFile[] = [];
 
-  isSearchVisible: boolean = false;
+  isSearchVisible: boolean = true;
   sizeTbDetail: any = '0';
   selectedEmployee: any = null;
   deleteForm!: FormGroup;
   searchForm!: FormGroup;
+  lastSearchPayload: any = { status: 0, department: 0, keyword: '' };
   endContractControl = new FormControl(false);
   positionForm!: FormGroup;
   isLoading = false;
   employeeTeam: any[] = [];
+  isSalaryVisible: boolean = false;
 
   constructor(
     private employeeService: EmployeeService,
@@ -150,6 +149,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private projectService: ProjectService,
     private modalService: NgbModal,
+    private permissionService: PermissionService
   ) {
     // Subscribe to EndContract changes
     this.endContractControl.valueChanges.subscribe((checked) => {
@@ -335,6 +335,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.isSalaryVisible = this.permissionService.hasPermission('N1,N2');
     this.initForm();
     this.initSearchForm();
     this.initFormPosition();
@@ -449,7 +450,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   // }
 
   toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+    this.isSearchVisible = !this.isSearchVisible;
   }
 
   onTabChange(index: number) {
@@ -462,23 +463,36 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   }
 
   //#region Hàm load dữ liệu từ API
-  loadEmployees(): void {
+  loadEmployees(payload?: any): void {
     if (!this.tabulatorEmployee) {
-      console.warn('Tabulator chưa được khởi tạo');
       return;
     }
 
+    const searchData = payload || this.searchForm.value || {};
+    this.lastSearchPayload = { ...searchData };
+
+    const status = searchData.status ?? 0;
+    const department = searchData.department ?? 0;
+    const keyword = searchData.keyword ?? '';
+
     this.isLoading = true;
-    this.employeeService.getEmployees().subscribe({
+    this.employeeService.filterEmployee(status, department, keyword).subscribe({
       next: (data) => {
-        this.employees = data.data || [];
+        this.employees = Array.isArray(data.data) ? data.data : (data.data ? [data.data] : []);
         this.tabulatorEmployee.setData(this.employees).then(() => {
           this.isLoading = false;
         });
       },
       error: (err) => {
         this.isLoading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Không thể tải danh sách nhân viên');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -487,10 +501,14 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       next: (data: any) => {
         this.departmentList = data.data;
       },
-      error: (error) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          error.error?.message || 'Lỗi khi tải danh sách phòng ban'
+      error: (err) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -500,10 +518,14 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       next: (data: any) => {
         this.taxCompanyList = data.data;
       },
-      error: (error) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          error.error?.message || error.message || 'Lỗi khi tải danh sách thuế doanh nghiệp'
+      error: (err) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -513,10 +535,14 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       next: (data: any) => {
         this.positionContractList = data;
       },
-      error: (error) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          error.error?.message || 'Lỗi khi tải danh sách chức vụ theo hợp đồng'
+      error: (err) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -526,10 +552,14 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       next: (data: any) => {
         this.positionInternalList = data;
       },
-      error: (error) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          error.error?.message || 'Lỗi khi tải danh sách chức vụ theo nội bộ'
+      error: (err) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -570,18 +600,23 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       columnCalcs: false,
       paginationMode: "local",
       selectableRows: 1,
-      groupBy: 'DepartmentName',
+      groupBy: ["DepartmentName", "EmployeeTeamName"],
       columnDefaults: {
         headerWordWrap: false,
         resizable: false,
       },
       rowHeader: false,
       groupHeader: function (value, count, data, group) {
+
+        // Nếu là group team mà rỗng thì không hiển thị
+        if (group.getField() === "EmployeeTeamName" && (!value || value === "")) {
+          return "Không có team";
+        }
         return (
-          value ?? 'Không có thông tin' +
+          (value || "Không có thông tin") +
           "<span style='color:#d00; margin-left:10px;'>(" +
           count +
-          ' thành viên)</span>'
+          " thành viên)</span>"
         );
       },
       columns: [
@@ -1172,11 +1207,13 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
               field: 'MucDongBHXHHienTai',
               hozAlign: 'left',
               headerHozAlign: 'center',
+              visible: this.isSalaryVisible,
             },
           ],
         },
         {
           title: 'LƯƠNG',
+          visible: this.isSalaryVisible,
           columns: [
             {
               title: '',
@@ -1186,7 +1223,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'LuongThuViec',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1200,7 +1238,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'LuongCoBan',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1219,7 +1258,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'AnCa',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1233,7 +1273,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'XangXe',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1247,7 +1288,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'DienThoai',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1261,7 +1303,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'NhaO',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1275,7 +1318,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'TrangPhuc',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1289,7 +1333,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'ChuyenCan',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1303,7 +1348,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'Khac',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1317,7 +1363,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'TongPhuCap',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1336,7 +1383,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   field: 'TongLuong',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-                  formatter(cell) {
+                  visible: this.isSalaryVisible,
+                  formatter(cell: any) {
                     const value = cell.getValue();
                     if (value === null || value === undefined) return 'đ0';
                     return (
@@ -1351,13 +1399,15 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         },
         {
           title: '',
+          visible: this.isSalaryVisible,
           columns: [
             {
               title: 'Giảm trừ bản thân',
               field: 'GiamTruBanThan',
               hozAlign: 'left',
               headerHozAlign: 'center',
-              formatter(cell) {
+              visible: this.isSalaryVisible,
+              formatter(cell: any) {
                 const value = cell.getValue();
                 if (value === null || value === undefined) return 'đ0';
                 return (
@@ -1370,13 +1420,15 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'GIẢM TRỪ GIA CẢNH',
+          visible: this.isSalaryVisible,
           columns: [
             {
               title: 'Số người PT',
               field: 'SoNguoiPT',
               hozAlign: 'left',
               headerHozAlign: 'center',
-              formatter(cell) {
+              visible: this.isSalaryVisible,
+              formatter(cell: any) {
                 const value = cell.getValue();
                 if (value === null || value === undefined) return 'đ0';
                 return (
@@ -1390,7 +1442,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
               field: 'TongTien',
               hozAlign: 'left',
               headerHozAlign: 'center',
-              formatter(cell) {
+              visible: this.isSalaryVisible,
+              formatter(cell: any) {
                 const value = cell.getValue();
                 if (value === null || value === undefined) return 'đ0';
                 return (
@@ -1403,18 +1456,21 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         },
         {
           title: '',
+          visible: this.isSalaryVisible,
           columns: [
             {
               title: 'MST cá nhân',
               field: 'MST',
               hozAlign: 'left',
               headerHozAlign: 'center',
+              visible: this.isSalaryVisible,
             },
             {
               title: 'STK chuyển lương',
               field: 'STKChuyenLuong',
               hozAlign: 'left',
               headerHozAlign: 'center',
+              visible: this.isSalaryVisible,
             },
           ],
         },
@@ -2009,7 +2065,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
             .getEmployeeEducationLevelByEmployeeID(this.selectedEmployee.ID)
             .subscribe((data) => {
               if (this.tabulatorEducation) {
-                console.log('Education data from API:', data);
+
                 this.educationCreate = data.data;
                 this.tabulatorEducation.setData(data.data);
               }
@@ -2397,12 +2453,16 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
             'Cập nhật trạng thái nhân viên thành công!'
           );
           this.closeDeleteModal();
-          this.loadEmployees();
+          this.loadEmployees(this.lastSearchPayload);
         },
-        error: (error) => {
-          this.notification.error(
-            'Lỗi',
-            error.error.message || 'Có lỗi xảy ra khi cập nhật trạng thái nhân viên!'
+        error: (err) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
         },
       });
@@ -2597,7 +2657,27 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       })),
     };
 
-    console.log("hihi", employeeData)
+    if (!this.isSalaryVisible) {
+      delete (employeeData as any).MucDongBHXHHienTai;
+      delete (employeeData as any).LuongThuViec;
+      delete (employeeData as any).LuongCoBan;
+      delete (employeeData as any).AnCa;
+      delete (employeeData as any).XangXe;
+      delete (employeeData as any).DienThoai;
+      delete (employeeData as any).NhaO;
+      delete (employeeData as any).TrangPhuc;
+      delete (employeeData as any).ChuyenCan;
+      delete (employeeData as any).Khac;
+      delete (employeeData as any).TongPhuCap;
+      delete (employeeData as any).TongLuong;
+      delete (employeeData as any).GiamTruBanThan;
+      delete (employeeData as any).SoNguoiPT;
+      delete (employeeData as any).TongTien;
+      delete (employeeData as any).MST;
+      delete (employeeData as any).STKChuyenLuong;
+    }
+
+
     // Lấy dữ liệu từ bảng education
     if (this.tabulatorEducation) {
       formData.educations = this.tabulatorEducation.getData();
@@ -2612,12 +2692,16 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
             'Cập nhật nhân viên thành công'
           );
           this.closeModal();
-          this.loadEmployees();
+          this.loadEmployees(this.lastSearchPayload);
         },
-        error: (error) => {
-          this.notification.error(
-            'Lỗi',
-            error.error?.message || 'Cập nhật nhân viên thất bại'
+        error: (err) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
         },
       });
@@ -2626,13 +2710,17 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       this.employeeService.saveEmployee(employeeData).subscribe({
         next: (response) => {
           this.notification.success(NOTIFICATION_TITLE.success, 'Thêm nhân viên thành công');
-          this.loadEmployees();
+          this.loadEmployees(this.lastSearchPayload);
           this.closeModal();
         },
-        error: (error) => {
-          this.notification.error(
-            'Lỗi',
-            error.error?.message || 'Thêm nhân viên thất bại'
+        error: (err) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
         },
       });
@@ -2664,19 +2752,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   //#endregion
 
   onSearch() {
-    const searchData = this.searchForm.value;
-    this.employeeService
-      .filterEmployee(
-        searchData.status || 0,
-        searchData.department || 0,
-        searchData.keyword || ''
-      )
-      .subscribe({
-        next: (data: any) => {
-          const result = Array.isArray(data.data) ? data.data : [data.data];
-          this.tabulatorEmployee.setData(result);
-        },
-      });
+    this.loadEmployees();
   }
 
   resetSearch() {
@@ -2715,8 +2791,15 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
           this.closeModalPosition(status);
           this.loadPositionContract();
         },
-        error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Thêm mới chức vụ theo hợp đồng thất bại');
+        error: (err) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
         },
         complete: () => {
         }
@@ -2728,8 +2811,15 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
           this.closeModalPosition(status);
           this.loadPositionInternal();
         },
-        error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Thêm mới chức vụ theo nội bộ thất bại');
+        error: (err) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
         },
         complete: () => {
         }
@@ -2749,8 +2839,15 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       next: (data: any) => {
         this.employeeTeam = data.data;
       },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Không thể tải danh sách team phòng ban');
+      error: (err) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     })
   }

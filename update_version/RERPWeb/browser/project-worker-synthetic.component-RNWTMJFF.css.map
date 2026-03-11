@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/project/project-department-summary/project-department-summary-form/project-worker-synthetic/project-worker-synthetic.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.ant-splitter-panel {\r\n  position: relative;\r\n  overflow: hidden;\r\n}\r\n\r\n.ant-splitter {\r\n  height: 100%;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n  height: 100% !important;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 4px;\r\n}\r\n\r\n.card {\r\n  height: 100%;\r\n  display: flex;\r\n  flex-direction: column;\r\n  overflow: hidden;\r\n}\r\n\r\n.card-body {\r\n  flex: 1;\r\n  min-height: 0;\r\n  overflow-y: auto;\r\n  overflow-x: hidden;\r\n}\r\n\r\n.card-footer {\r\n  flex-shrink: 0;\r\n}\r\n\r\n.card-header {\r\n  flex-shrink: 0;\r\n}\r\n\r\n"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CAEA,CAAC,mBACC,SAAU,SACV,SAAU,MACZ,CAEA,CAAC,aACC,OAAQ,IACV,CAEA,CAAC,UACC,UAAW,OACX,OAAQ,cACV,CAEA,CAAC,eAlBD,QAmBW,GACX,CAEA,CAAC,KACC,OAAQ,KACR,QAAS,KACT,eAAgB,OAChB,SAAU,MACZ,CAEA,CAAC,UACC,KAAM,EACN,WAAY,EACZ,WAAY,KACZ,WAAY,MACd,CAEA,CAAC,YAID,CAAC,YAHC,YAAa,CACf",
+  "names": []
+}

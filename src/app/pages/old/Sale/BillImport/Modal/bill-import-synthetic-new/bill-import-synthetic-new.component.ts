@@ -154,6 +154,15 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService
   ) { }
 
+  private formatNumberEnUS(v: any, digits: number = 2): string {
+    const n = Number(v);
+    if (!isFinite(n)) return '';
+    return n.toLocaleString('en-US', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    });
+  }
+
   ngOnInit(): void {
     this.isAdmin = this.appUserService.isAdmin;
     this.currentUserID = this.appUserService.id || 0;
@@ -275,7 +284,15 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['compoundInputText'],
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
         },
       },
       // {
@@ -433,10 +450,8 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         type: FieldType.number,
         filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
-        formatter: (_row, _cell, value) => {
-          if (!value) return '0';
-          return Number(value).toLocaleString('en-US');
-        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
       },
       {
         id: 'Maker',
@@ -507,10 +522,8 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filter: { model: Filters['compoundInputNumber'] },
         editor: { model: Editors['integer'] },
         cssClass: 'text-right',
-        formatter: (_row, _cell, value) => {
-          if (!value) return '0';
-          return Number(value).toLocaleString('en-US');
-        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
       },
       {
         id: 'DueDate',
@@ -534,10 +547,8 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         type: FieldType.number,
-        formatter: (_row, _cell, value) => {
-          if (!value) return '0';
-          return Number(value).toLocaleString('en-US');
-        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
         filter: { model: Filters['compoundInputNumber'] },
         editor: { model: Editors['float'] },
         cssClass: 'text-right',
@@ -550,10 +561,8 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         type: FieldType.number,
-        formatter: (_row, _cell, value) => {
-          if (!value) return '0';
-          return Number(value).toLocaleString('en-US');
-        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
         filter: { model: Filters['compoundInputNumber'] },
         editor: { model: Editors['float'] },
         cssClass: 'text-right',
@@ -636,10 +645,8 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        formatter: (_row, _cell, value) => {
-          if (!value) return '0';
-          return Number(value).toLocaleString('en-US');
-        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
       },
       {
         id: 'TotalPricePO',

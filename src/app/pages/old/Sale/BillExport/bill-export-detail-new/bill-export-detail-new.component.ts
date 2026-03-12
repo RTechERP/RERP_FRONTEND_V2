@@ -1610,7 +1610,7 @@ export class BillExportDetailNewComponent
                     this.validateForm.get('Code')?.disable();
                     this.validateForm.get('Address')?.disable();
 
-                    if (this.newBillExport.IsApproved) {
+          if (this.newBillExport.IsApproved && !this.appUserService.isAdmin) {
                         this.isFormDisabled = true;
                         this.validateForm.disable();
                     }

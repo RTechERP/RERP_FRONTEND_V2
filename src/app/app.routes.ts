@@ -278,6 +278,11 @@ import { HRRecruitmentCandidateComponent } from './pages/hrm/hr-recruitment-cand
 import { HRRecruitmentApplicationComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/hr-recruitment-application/hr-recruitment-application.component';
 import { HistoryBorrowSalePersonalComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale-personal/history-borrow-sale-personal.component';
 import { HistoryProductRtcPersonalComponent } from './pages/old/inventory-demo/borrow/borrow-product-history/history-product-rtc-personal/history-product-rtc-personal.component';
+import { DashboardComponent } from './pages/ems/components/managers/dashboard/dashboard.component';
+import { DeviceDetailsChartsComponent } from './pages/ems/components/managers/device-details-charts/device-details-charts.component';
+import { AreasComponent } from './pages/ems/components/managers/areas/areas.component';
+import { DevicesComponent } from './pages/ems/components/managers/devices/devices.component';
+import { CommunicationComponent } from './pages/ems/components/managers/communication/communication.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -1088,6 +1093,11 @@ export const routes: Routes = [
             { path: 'hr-recruitment-application', component: HRRecruitmentApplicationComponent, canActivate: [authGuard] },
             { path: 'history-borrow-sale-personal', component: HistoryBorrowSalePersonalComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-personal', component: HistoryProductRtcPersonalComponent, canActivate: [authGuard] },
+            { path: 'ems/dashboard', component: DashboardComponent, canActivate: [authGuard] },
+            { path: 'ems/details', component: DeviceDetailsChartsComponent, canActivate: [authGuard] },
+            { path: 'ems/areas', component: AreasComponent, canActivate: [authGuard] },
+            { path: 'ems/devices', component: DevicesComponent, canActivate: [authGuard] },
+            { path: 'ems/communication-types', component: CommunicationComponent, canActivate: [authGuard] },
         ],
     },
 ];

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/employee/employee-team/employee-team.component.css"],
-  "sourcesContent": ["::ng-deep nz-splitter {\r\n  height: 95vh !important;\r\n}\r\n\r\n::ng-deep .ant-splitter {\r\n  height: 95vh !important;\r\n}\r\n\r\n/* Fix nested modal z-index issue */\r\n#addEmployeeTeamModal {\r\n  z-index: 9999 !important;\r\n}\r\n\r\n#addEmployeeTeamModal .modal-dialog {\r\n  z-index: 10000 !important;\r\n}\r\n\r\n/* Ensure modal content is always on top */\r\n#addEmployeeTeamModal .modal-content {\r\n  z-index: 10001 !important;\r\n  position: relative;\r\n}\r\n/* ::ng-deep .tabulator .tabulator-header .tabulator-col{\r\n  height: auto !important;\r\n} */"],
-  "mappings": "AAAA,UAAU,YACR,OAAQ,cACV,CAEA,UAAU,CAAC,aACT,OAAQ,cACV,CAGA,CAAC,qBACC,QAAS,cACX,CAEA,CAJC,qBAIqB,CAAC,aACrB,QAAS,eACX,CAGA,CATC,qBASqB,CAAC,cACrB,QAAS,gBACT,SAAU,QACZ",
-  "names": []
-}

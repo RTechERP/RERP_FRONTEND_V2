@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/kpi-error-employee-summary-max/kpi-error-employee-summary-max.component.css"],
-  "sourcesContent": [":host {\r\n    display: flex;\r\n    flex-direction: column;\r\n    height: calc(100vh - 60px);\r\n}\r\n\r\n.fs-12 {\r\n    font-size: 12px !important;\r\n}\r\n\r\n::ng-deep .grid-container-main .slick-header-menu-button {\r\n    display: none !important;\r\n}"],
-  "mappings": "AAAA,MACI,QAAS,KACT,eAAgB,OAChB,OAAQ,KAAK,MAAM,EAAE,KACzB,CAEA,CAAC,MACG,UAAW,cACf,CAEA,UAAU,CAAC,oBAAoB,CAAC,yBAC5B,QAAS,cACb",
-  "names": []
-}

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/asset/asset/ts-asset-management/ts-asset-management-form/ts-asset-management-form.component.css"],
-  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n/* Th\u00EAm margin-bottom cho c\u00E1c form control \u0111\u1EC3 error tip kh\u00F4ng \u0111\u00E8 l\u00EAn label row d\u01B0\u1EDBi */\r\n::ng-deep nz-form-control {\r\n  margin-bottom: 0.5rem;\r\n  min-height: auto;\r\n}\r\n\r\n/* \u0110\u1EA3m b\u1EA3o error tip c\u00F3 \u0111\u1EE7 kh\u00F4ng gian v\u00E0 kh\u00F4ng \u0111\u00E8 l\u00EAn n\u1ED9i dung b\u00EAn d\u01B0\u1EDBi */\r\n::ng-deep .ant-form-item-explain-error {\r\n  margin-top: 0.25rem;\r\n  margin-bottom: 0.5rem;\r\n  display: block;\r\n  line-height: 1.5;\r\n}\r\n\r\n/* \u0110\u1EA3m b\u1EA3o c\u00E1c row c\u00F3 \u0111\u1EE7 kho\u1EA3ng c\u00E1ch */\r\n::ng-deep .ant-row {\r\n  margin-bottom: 1rem;\r\n}"],
-  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CAGA,UAAU,gBACR,cAAe,MACf,WAAY,IACd,CAGA,UAAU,CAAC,4BACT,WAAY,OACZ,cAAe,MACf,QAAS,MACT,YAAa,GACf,CAGA,UAAU,CAAC,QACT,cAAe,IACjB",
-  "names": []
-}

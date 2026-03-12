@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/kpi-position-employee/kpi-position-type-detail/kpi-position-type-detail.component.css"],
-  "sourcesContent": [".modal-header {\r\n    border-bottom: 1px solid #dee2e6;\r\n}\r\n\r\n.modal-footer {\r\n    border-top: 1px solid #dee2e6;\r\n    gap: 8px;\r\n}\r\n\r\n.form-group label {\r\n    font-weight: 500;\r\n    margin-bottom: 4px;\r\n    display: block;\r\n}"],
-  "mappings": "AAAA,CAAC,aACG,cAAe,IAAI,MAAM,OAC7B,CAEA,CAAC,aACG,WAAY,IAAI,MAAM,QACtB,IAAK,GACT,CAEA,CAAC,WAAW,MACR,YAAa,IACb,cAAe,IACf,QAAS,KACb",
-  "names": []
-}

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/org-chart-rtc/org-chart-rtc-management-form/org-chart-rtc-management-form.component.css"],
-  "sourcesContent": [".modal-header {\r\n    border-bottom: 1px solid #dee2e6;\r\n    padding: 1rem;\r\n}\r\n\r\n.modal-body {\r\n    padding: 1rem;\r\n}\r\n\r\n.modal-footer {\r\n    border-top: 1px solid #dee2e6;\r\n    padding: 1rem;\r\n    display: flex;\r\n    justify-content: flex-end;\r\n    gap: 8px;\r\n}\r\n\r\n\r\n"],
-  "mappings": "AAAA,CAAC,aACG,cAAe,IAAI,MAAM,QAD7B,QAEa,IACb,CAEA,CAAC,WALD,QAMa,IACb,CAEA,CAAC,aACG,WAAY,IAAI,MAAM,QAV1B,QAWa,KACT,QAAS,KACT,gBAAiB,SACjB,IAAK,GACT",
-  "names": []
-}

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness-form/vehicle-select-modal/vehicle-select-modal.component.css"],
-  "sourcesContent": [".table th {\r\n  font-size: 12px;\r\n  padding: 0.5rem;\r\n}\r\n\r\n.table td {\r\n  font-size: 12px;\r\n  padding: 0.5rem;\r\n  vertical-align: middle;\r\n}\r\n\r\n.form-group {\r\n  margin-bottom: 0.5rem;\r\n}\r\n\r\n.form-group:last-child {\r\n  margin-bottom: 0;\r\n}\r\n\r\n"],
-  "mappings": "AAAA,CAAC,MAAM,GACL,UAAW,KADb,QAEW,KACX,CAEA,CALC,MAKM,GACL,UAAW,KANb,QAOW,MACT,eAAgB,MAClB,CAEA,CAAC,WACC,cAAe,KACjB,CAEA,CAJC,UAIU,YACT,cAAe,CACjB",
-  "names": []
-}

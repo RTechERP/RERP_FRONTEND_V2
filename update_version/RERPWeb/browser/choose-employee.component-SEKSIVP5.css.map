@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/kpi-employee-team/choose-employee/choose-employee.component.css"],
-  "sourcesContent": [".modal-header {\r\n    border-bottom: 1px solid #dee2e6;\r\n}\r\n\r\n.modal-footer {\r\n    border-top: 1px solid #dee2e6;\r\n}\r\n\r\n.modal-body {\r\n    overflow: hidden;\r\n}\r\n\r\n.employee-grid-container {\r\n    height: 100%;\r\n    overflow: hidden;\r\n}\r\n\r\n.filter-bar {\r\n    flex-shrink: 0;\r\n}"],
-  "mappings": "AAAA,CAAC,aACG,cAAe,IAAI,MAAM,OAC7B,CAEA,CAAC,aACG,WAAY,IAAI,MAAM,OAC1B,CAEA,CAAC,WACG,SAAU,MACd,CAEA,CAAC,wBACG,OAAQ,KACR,SAAU,MACd,CAEA,CAAC,WACG,YAAa,CACjB",
-  "names": []
-}

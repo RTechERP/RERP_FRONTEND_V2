@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Sale/HistoryImportExport/history-import-export-new/history-import-export-new.component.css"],
-  "sourcesContent": [".history-import-export-new-history-container {\r\n    display: flex;\r\n    flex-direction: column;\r\n}\r\n\r\n.history-import-export-new-header-section {\r\n    flex-shrink: 0;\r\n}\r\n\r\n.history-import-export-new-content-section {\r\n    flex: 1;\r\n    overflow: hidden;\r\n}\r\n\r\n.history-import-export-new-date-picker-input {\r\n    width: 120px;\r\n}\r\n\r\n.history-import-export-new-keyword-input {\r\n    width: 150px;\r\n}\r\n\r\n.history-import-export-new-status-select {\r\n    width: 120px;\r\n}\r\n\r\n.history-import-export-new-grid-wrapper {\r\n    height: 100%;\r\n}\r\n:host ::ng-deep div[id^=\"historyImportExport-\"] {\r\n    height: 91vh !important;\r\n}"],
-  "mappings": "AAAA,CAAC,4CACG,QAAS,KACT,eAAgB,MACpB,CAEA,CAAC,yCACG,YAAa,CACjB,CAEA,CAAC,0CACG,KAAM,EACN,SAAU,MACd,CAEA,CAAC,4CACG,MAAO,KACX,CAEA,CAAC,wCACG,MAAO,KACX,CAEA,CAAC,wCACG,MAAO,KACX,CAEA,CAAC,uCACG,OAAQ,IACZ,CACA,MAAM,UAAU,GAAG,CAAC,0BAChB,OAAQ,cACZ",
-  "names": []
-}

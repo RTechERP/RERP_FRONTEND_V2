@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/kpi-error/kpi-error-type/kpi-error-type.component.css"],
-  "sourcesContent": ["#grid-container {\r\n    width: 100%;\r\n    height: 400px;\r\n}\r\n\r\n:host ::ng-deep .slick-cell {\r\n    padding: 4px 8px;\r\n}\r\n\r\n:host ::ng-deep .slick-header-column {\r\n    font-weight: bold;\r\n}\r\n\r\n:host ::ng-deep .p-menubar {\r\n    padding: 0.25rem 0.5rem;\r\n}"],
-  "mappings": "AAAA,CAAC,eACG,MAAO,KACP,OAAQ,KACZ,CAEA,MAAM,UAAU,CAAC,WALjB,QAMa,IAAI,GACjB,CAEA,MAAM,UAAU,CAAC,oBACb,YAAa,GACjB,CAEA,MAAM,UAAU,CAAC,UAbjB,QAca,OAAQ,KACrB",
-  "names": []
-}

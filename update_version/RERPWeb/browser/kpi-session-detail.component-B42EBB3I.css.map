@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/kpi-evaluation-rule/kpi-session-detail/kpi-session-detail.component.css"],
-  "sourcesContent": [".fs-xs {\r\n    font-size: 0.75rem;\r\n}\r\n\r\n.modal-body {\r\n    max-height: 70vh;\r\n    overflow-y: auto;\r\n}\r\n\r\n:host ::ng-deep .ant-card-head {\r\n    min-height: 36px;\r\n    padding: 0 12px;\r\n    background-color: #f5f5f5;\r\n}\r\n\r\n:host ::ng-deep .ant-card-head-title {\r\n    padding: 8px 0;\r\n    font-size: 13px;\r\n    font-weight: 600;\r\n}\r\n\r\n:host ::ng-deep .ant-input-number {\r\n    width: 100%;\r\n}\r\n\r\n:host ::ng-deep .ant-select {\r\n    width: 100%;\r\n}\r\n\r\nlabel {\r\n    font-size: 13px;\r\n    margin-bottom: 0;\r\n}"],
-  "mappings": "AAAA,CAAC,MACG,UAAW,MACf,CAEA,CAAC,WACG,WAAY,KACZ,WAAY,IAChB,CAEA,MAAM,UAAU,CAAC,cACb,WAAY,KAVhB,QAWa,EAAE,KACX,iBAAkB,OACtB,CAEA,MAAM,UAAU,CAAC,oBAfjB,QAgBa,IAAI,EACb,UAAW,KACX,YAAa,GACjB,CAEA,MAAM,UAAU,CAAC,iBACb,MAAO,IACX,CAEA,MAAM,UAAU,CAAC,WACb,MAAO,IACX,CAEA,MACI,UAAW,KACX,cAAe,CACnB",
-  "names": []
-}

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/kpi-position-employee/kpi-position-employee-detail/kpi-position-employee-detail.component.css"],
-  "sourcesContent": [".modal-body {\r\n    padding: 0 !important;\r\n}\r\n\r\n.modal-header {\r\n    border-bottom: 1px solid #dee2e6;\r\n}\r\n\r\n.modal-footer {\r\n    border-top: 1px solid #dee2e6;\r\n    gap: 8px;\r\n}\r\n\r\n:host ::ng-deep .slick-header-column {\r\n    font-weight: bold !important;\r\n}\r\n\r\n:host ::ng-deep .slick-cell.text-center {\r\n    text-align: center !important;\r\n}"],
-  "mappings": "AAAA,CAAC,WAAD,QACa,WACb,CAEA,CAAC,aACG,cAAe,IAAI,MAAM,OAC7B,CAEA,CAAC,aACG,WAAY,IAAI,MAAM,QACtB,IAAK,GACT,CAEA,MAAM,UAAU,CAAC,oBACb,YAAa,aACjB,CAEA,MAAM,UAAU,CAAC,UAAU,CAAC,YACxB,WAAY,gBAChB",
-  "names": []
-}

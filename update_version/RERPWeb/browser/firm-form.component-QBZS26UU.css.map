@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/general-category/firm/firm-form/firm-form.component.css"],
-  "sourcesContent": [".modal-header {\r\n  background-color: #1890ff !important;\r\n  border-bottom: 1px solid #dee2e6;\r\n  padding: 0.5rem;\r\n}\r\n\r\n.modal-title {\r\n  margin: 0;\r\n  font-weight: 600;\r\n  color: white !important;\r\n}\r\n\r\n.modal-body {\r\n  padding: 1.5rem;\r\n}\r\n\r\n.modal-footer {\r\n  border-top: 1px solid #dee2e6;\r\n  padding: 1rem;\r\n  display: flex;\r\n  justify-content: flex-end;\r\n  gap: 0.5rem;\r\n}\r\n\r\nnz-form-item {\r\n  margin-bottom: 1rem;\r\n}\r\n\r\nnz-form-label {\r\n  font-weight: 500;\r\n}\r\n\r\ninput[nz-input], nz-select {\r\n  width: 100%;\r\n}\r\n\r\n.btn-close {\r\n  outline: none !important;\r\n  box-shadow: none !important;\r\n}\r\n\r\n.btn-close:focus {\r\n  outline: none !important;\r\n  box-shadow: none !important;\r\n}"],
-  "mappings": "AAAA,CAAC,aACC,iBAAkB,kBAClB,cAAe,IAAI,MAAM,QAF3B,QAGW,KACX,CAEA,CAAC,YAND,OAOU,EACR,YAAa,IACb,MAAO,cACT,CAEA,CAAC,WAZD,QAaW,MACX,CAEA,CAAC,aACC,WAAY,IAAI,MAAM,QAjBxB,QAkBW,KACT,QAAS,KACT,gBAAiB,SACjB,IAAK,KACP,CAEA,aACE,cAAe,IACjB,CAEA,cACE,YAAa,GACf,CAEA,KAAK,CAAC,UAAW,UACf,MAAO,IACT,CAEA,CAAC,UACC,QAAS,eACT,WAAY,cACd,CAEA,CALC,SAKS,OACR,QAAS,eACT,WAAY,cACd",
-  "names": []
-}

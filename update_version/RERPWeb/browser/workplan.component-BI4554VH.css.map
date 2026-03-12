@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/person/workplan/workplan.component.css"],
-  "sourcesContent": [".card {\r\n    height: 100%;\r\n}\r\n\r\n.card-header {\r\n    flex-shrink: 0;\r\n}\r\n\r\n.card-body {\r\n    flex-grow: 1;\r\n    overflow: hidden;\r\n}\r\n\r\nnz-form-label {\r\n    font-size: 12px;\r\n    font-weight: 500;\r\n}\r\n\r\n.btn-sm {\r\n    padding: 2px 6px;\r\n    font-size: 11px;\r\n}\r\n\r\n.btn-edit, .btn-delete {\r\n    padding: 2px 6px;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,KACG,OAAQ,IACZ,CAEA,CAAC,YACG,YAAa,CACjB,CAEA,CAAC,UACG,UAAW,EACX,SAAU,MACd,CAEA,cACI,UAAW,KACX,YAAa,GACjB,CAEA,CAAC,OAlBD,QAmBa,IAAI,IACb,UAAW,IACf,CAEA,CAAC,SAAU,CAAC,WAvBZ,QAwBa,IAAI,GACjB",
-  "names": []
-}

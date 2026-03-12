@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["angular:styles/component:css;e754ca055b23f1d4fd253ea2cdd189884ca8d7706dff5550ed9515bc5ae80c07;D:/LeTheAnh/RTC/Project/2025/SourceCode/RTC.25.008/FontEnd/RERP/RERP_FRONTEND_V2/src/app/pages/old/view-pokh-slickgrid/row-detail-preload.component.ts"],
-  "sourcesContent": ["\n    .row-detail-preload {\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      gap: 8px;\n      padding: 20px;\n      color: #666;\n    }\n    .loading-text {\n      font-size: 13px;\n    }\n  "],
-  "mappings": "AACI,CAAC,mBACC,QAAS,KACT,YAAa,OACb,gBAAiB,OACjB,IAAK,IALX,QAMe,KACT,MAAO,IACT,CACA,CAAC,aACC,UAAW,IACb",
-  "names": []
-}

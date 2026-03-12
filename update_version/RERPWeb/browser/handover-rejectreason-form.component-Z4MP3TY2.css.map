@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/handover/handover-rejectreason-form/handover-rejectreason-form.component.css"],
-  "sourcesContent": ["::ng-deep .ant-modal-body {\r\n    padding: 16px;\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n::ng-deep .ant-modal-header {\r\n    background-color: #096dd9;\r\n}\r\n\r\n::ng-deep .ant-modal-title {\r\n    color: white;\r\n}"],
-  "mappings": "AAAA,UAAU,CAAC,eAAX,QACa,KACT,iBAAkB,OACtB,CAEA,UAAU,CAAC,iBACP,iBAAkB,OACtB,CAEA,UAAU,CAAC,gBACP,MAAO,IACX",
-  "names": []
-}

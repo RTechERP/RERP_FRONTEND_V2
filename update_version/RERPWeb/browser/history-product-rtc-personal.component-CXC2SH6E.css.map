@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/inventory-demo/borrow/borrow-product-history/history-product-rtc-personal/history-product-rtc-personal.component.css"],
-  "sourcesContent": ["::ng-deep div[id^=\"historyProductRtcPersonalGrid-\"] {\r\n  height: 86.5vh !important;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem !important;\r\n}\r\n"],
-  "mappings": "AAAA,UAAU,GAAG,CAAC,oCACZ,OAAQ,gBACV,CAEA,CAAC,MACC,UAAW,gBACb",
-  "names": []
-}

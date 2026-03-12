@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/general-category/wearhouse/warehouse/warehouse.component.css"],
-  "sourcesContent": [".card {\r\n  height: 100%;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.btn {\r\n  font-weight: bold;\r\n  height: 2.5vh;\r\n  font-size: 0.75rem;\r\n  border: none;\r\n}\r\n\r\n\r\n"],
-  "mappings": "AAAA,CAAC,KACC,OAAQ,IACV,CAEA,CAAC,MAID,CAAC,UAHC,UAAW,MACb,CAMA,CAAC,eAZD,QAaW,CACX,CAEA,CAAC,IACC,YAAa,IACb,OAAQ,MACR,UAAW,OACX,OAAQ,IACV",
-  "names": []
-}

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/payroll/payroll-detail/payroll-detail.component.css"],
-  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}"],
-  "mappings": "AAAA,CAAC,MACC,UAAW,MACb",
-  "names": []
-}

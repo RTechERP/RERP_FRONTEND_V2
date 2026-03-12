@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/positions/position-internal/position-internal.component.css"],
-  "sourcesContent": [".tabulator {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.btn {\r\n  height: 2.5vh;\r\n  font-size: 0.75rem;\r\n  border: none;\r\n  font-weight: bold;\r\n}\r\n\r\n.modal-header {\r\n  padding: 0.5rem;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,UAID,CAAC,MAHC,UAAW,MACb,CAMA,CAAC,IACC,OAAQ,MACR,UAAW,OACX,OAAQ,KACR,YAAa,GACf,CAEA,CAAC,aAfD,QAgBW,KACX",
-  "names": []
-}

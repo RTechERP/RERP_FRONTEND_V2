@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/purchase/supplier-sale/supplier-sale-import-excel/supplier-sale-import-excel.component.css"],
-  "sourcesContent": [".modal-header {\r\n  border-top-left-radius: 0 !important;\r\n  border-top-right-radius: 0 !important;\r\n}"],
-  "mappings": "AAAA,CAAC,aACC,uBAAwB,YACxB,wBAAyB,WAC3B",
-  "names": []
-}

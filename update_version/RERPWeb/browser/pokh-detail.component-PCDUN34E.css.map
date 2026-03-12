@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/pokh-detail/pokh-detail.component.css"],
-  "sourcesContent": [":host {\r\n  display: block;\r\n  height: 99.8vh;\r\n}\r\n\r\n.pokh-modal-content {\r\n  flex: 1;\r\n  overflow-y: auto;\r\n  overflow-x: hidden;\r\n}\r\n\r\n.modal-header,\r\n.modal-footer {\r\n  flex-shrink: 0;\r\n}"],
-  "mappings": "AAAA,MACE,QAAS,MACT,OAAQ,MACV,CAEA,CAAC,mBACC,KAAM,EACN,WAAY,KACZ,WAAY,MACd,CAEA,CAAC,aACD,CAAC,aACC,YAAa,CACf",
-  "names": []
-}

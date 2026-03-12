@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component.css"],
-  "sourcesContent": [":host {\r\n  font-size: 12px !important;\r\n}\r\n\r\n:host * {\r\n  font-size: 12px !important;\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 12px !important;\r\n}\r\n\r\n::ng-deep .ant-form-inline .ant-form-item {\r\n  margin-right: 4px !important; \r\n  margin-bottom: 0 !important;  \r\n}\r\n\r\n.modalborrow {\r\n  height: 95vh;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 12px !important;\r\n}\r\n\r\n.tabulator-cell {\r\n  font-size: 12px !important;\r\n}\r\n\r\n.tabulator-header {\r\n  font-size: 12px !important;\r\n}\r\n\r\n.tabulator-header-cell {\r\n  font-size: 12px !important;\r\n}\r\n\r\n"],
-  "mappings": "AAAA,MACE,UAAW,cACb,CAEA,MAAM,EACJ,UAAW,cACb,CAEA,CAAC,MACC,UAAW,cACb,CAEA,UAAU,CAAC,gBAAgB,CAAC,cAC1B,aAAc,cACd,cAAe,WACjB,CAEA,CAAC,YACC,OAAQ,IACV,CAEA,CAAC,UAID,CAAC,eAID,CAAC,iBAID,CAAC,sBAXC,UAAW,cACb",
-  "names": []
-}

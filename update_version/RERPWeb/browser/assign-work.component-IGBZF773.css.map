@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/purchase/assign-work/assign-work.component.css"],
-  "sourcesContent": [".ant-splitter {\r\n    height: 89vh !important;\r\n}\r\n\r\n.fs-12 {\r\n    font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n    all: revert;\r\n}\r\n\r\n.tabulator {\r\n    font-size: 0.75rem !important;\r\n    width: 100% !important;\r\n}\r\n\r\n.tabulator-cell {\r\n    padding: 0px;\r\n}\r\n\r\n.inner-content {\r\n    padding: 0 !important;\r\n}"],
-  "mappings": "AAAA,CAAC,aACG,OAAQ,cACZ,CAEA,CAAC,MACG,UAAW,MACf,CAEA,CAAC,MACG,IAAK,MACT,CAEA,CAAC,UACG,UAAW,iBACX,MAAO,cACX,CAEA,CAAC,eAjBD,QAkBa,CACb,CAEA,CAAC,cArBD,QAsBa,WACb",
-  "names": []
-}

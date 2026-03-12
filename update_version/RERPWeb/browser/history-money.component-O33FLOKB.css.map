@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/history-money/history-money.component.css"],
-  "sourcesContent": [".ant-splitter {\r\n    height: 70vh !important;\r\n}"],
-  "mappings": "AAAA,CAAC,aACG,OAAQ,cACZ",
-  "names": []
-}

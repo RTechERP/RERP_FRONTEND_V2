@@ -1,0 +1,65 @@
+<div class="card h-100" refreshable (refreshCallback)="onRefresh()">
+  <div class="card-header">
+    <div class="my-1 d-flex gap-1">
+      <button class="btn" (click)="openModal(content, false)" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faPlus" style="color: green;"></fa-icon>
+        <span class="ms-2 custom-btn">Thêm</span>
+      </button>
+      <button class="btn" (click)="openModal(content, true)" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faPenToSquare" style="color: blue;"></fa-icon>
+        <span class="ms-2 custom-btn">Sửa</span>
+      </button>
+      <button #btnDelete class="btn" (click)="onDelete()" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faTrash" style="color: red;"></fa-icon>
+        <span class="ms-2 custom-btn">Xóa</span>
+      </button>
+    </div>
+  </div>
+  <!-- <p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
+  </p-menubar> -->
+  <div class="card-body">
+    <tabulator-table-single #tblComp [columnNames]="columnNames" [tableData]="areas" [dataTree]="true"
+      [hasSelection]="false" [height]="'100%'"></tabulator-table-single>
+  </div>
+</div>
+<ng-template #content let-modal>
+  <div class="modal-header bg-primary">
+    <h5 class="modal-title text-light" id="modal-area">Khu vực</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <form>
+      <input type="text" class="form-control form-id-input" id="area_id" name="area_id" [(ngModel)]="areaFormValue.Id">
+      <div class="mb-3 row">
+        <label for="area_code" class="col-sm-3 col-form-label">Mã khu vực</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" id="area_code" name="area_code" [(ngModel)]="areaFormValue.AreaCode"
+            ngbAutofocus>
+        </div>
+      </div>
+      <div class="mb-3 row">
+        <label for="area_name" class="col-sm-3 col-form-label">Tên khu vực</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" id="area_name" name="area_name" maxlength="200"
+            [(ngModel)]="areaFormValue.AreaName">
+        </div>
+      </div>
+      <div class="mb-3 row">
+        <label for="area_parent_id" class="col-sm-3 col-form-label">Khu vực</label>
+        <div class="col-sm-9">
+          <ngx-select id="area_parent_id" [items]="areasParent" [optionValueField]="'Id'" [optionTextField]="'AreaName'"
+            placeholder="Chọn khu vực" [(ngModel)]="areaFormValue.ParentId" name="area_parent_id"></ngx-select>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="save(modal)">Lưu</button>
+  </div>
+</ng-template>

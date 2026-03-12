@@ -1,0 +1,124 @@
+<div class="header d-flex mb-2 align-items-center">
+  <div class="d-flex align-items-center">
+    <label class="px-1 fs-14">Khu vực:</label>
+    <nz-select class="me-2 fs-14" [(ngModel)]="deviceId" (ngModelChange)="loadData()" style="width: 250px">
+      @for (device of devices; track device.Id) {
+      <nz-option [nzValue]="device.Id" [nzLabel]="device.DeviceName"></nz-option>
+      }
+    </nz-select>
+  </div>
+  <div class="spacer flex-grow-1"></div>
+  <div class="btn-group btn-group-sm" role="group">
+    <button type="button" class="btn" [class.btn-primary]="viewType === 'grid'"
+      [class.btn-outline-primary]="viewType !== 'grid'" (click)="viewType = 'grid'">
+      <i class="bi bi-bar-chart"></i>
+      <span class="ms-1">Biểu đồ</span>
+    </button>
+    <button type="button" class="btn" [class.btn-primary]="viewType === 'list'"
+      [class.btn-outline-primary]="viewType !== 'list'" (click)="viewType = 'list'">
+      <i class="bi bi-list-task"></i>
+      <span class="ms-1">Danh sách</span>
+    </button>
+  </div>
+</div>
+<div class="card position-relative">
+  @if (isLoading) {
+  <div class="loading-overlay d-flex justify-content-center align-items-center">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  }
+  <div class="card-body">
+    @if (viewType === "grid") {
+    <div class="row h-50">
+      <div class="col-12 h-100 position-relative">
+        <div class="chart-filters d-flex gap-2 position-absolute top-0 start-0 m-2" style="z-index: 10">
+          <nz-date-picker nzMode="year" [(ngModel)]="monthlyChartDate"
+            (ngModelChange)="onMonthlyChartInputChange($event)" nzSize="small" style="width: 80px" nzPlaceHolder="Năm"
+            [nzAllowClear]="false"></nz-date-picker>
+        </div>
+        <div #monthlyPowerChart class="h-100 w-100" echarts [options]="monthlyPowerChartOption"></div>
+      </div>
+    </div>
+    <div class="row h-50">
+      <div class="col-12 h-100 position-relative">
+        <div class="chart-filters d-flex gap-2 position-absolute top-0 start-0 m-2" style="z-index: 10">
+          <nz-date-picker nzMode="month" [(ngModel)]="dailyChartDate" (ngModelChange)="onDailyChartInputChange($event)"
+            nzSize="small" nzFormat="MM/yyyy" style="width: 120px" [nzAllowClear]="false"></nz-date-picker>
+        </div>
+        <div #dailyPowerChart class="h-100 w-100" echarts [options]="dailyPowerChartOption"></div>
+      </div>
+    </div>
+    } @else {
+    <div class="row h-100">
+      <div class="col-6 h-100 d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Công suất theo tháng</h5>
+          <div class="d-flex align-items-center">
+            <nz-date-picker nzMode="year" [(ngModel)]="monthlyChartDate"
+              (ngModelChange)="onMonthlyChartInputChange($event)" nzSize="small" style="width: 80px" nzPlaceHolder="Năm"
+              [nzAllowClear]="false"></nz-date-picker>
+            <button nz-button nzType="default" nzSize="small" (click)="exportMonthlyToExcel()" class="ms-1"
+              title="Xuất Excel">
+              <i class="bi bi-file-earmark-excel"></i>
+            </button>
+          </div>
+        </div>
+        <div class="flex-grow-1 overflow-auto">
+          <nz-table #monthlyTable [nzData]="monthlyEnergyData" nzSize="small" [nzFrontPagination]="false"
+            [nzShowPagination]="false" [nzScroll]="{ y: 'calc(100vh - 350px)' }">
+            <thead>
+              <tr>
+                <th>Tháng</th>
+                <th>Công suất (kWh)</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (data of monthlyTable.data; track data.XAxisValue) {
+              <tr>
+                <td>{{ data.XAxisValue }}</td>
+                <td>{{ data.YAxisValue | number: "1.2-2" }}</td>
+              </tr>
+              }
+            </tbody>
+          </nz-table>
+        </div>
+      </div>
+      <div class="col-6 h-100 d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Công suất theo ngày</h5>
+          <div class="d-flex align-items-center">
+            <nz-date-picker nzMode="month" [(ngModel)]="dailyChartDate"
+              (ngModelChange)="onDailyChartInputChange($event)" nzSize="small" nzFormat="MM/yyyy" style="width: 120px"
+              [nzAllowClear]="false"></nz-date-picker>
+            <button nz-button nzType="default" nzSize="small" (click)="exportDailyToExcel()" class="ms-1"
+              title="Xuất Excel">
+              <i class="bi bi-file-earmark-excel"></i>
+            </button>
+          </div>
+        </div>
+        <div class="flex-grow-1 overflow-auto">
+          <nz-table #dailyTable [nzData]="dailyEnergyData" nzSize="small" [nzFrontPagination]="false"
+            [nzShowPagination]="false" [nzScroll]="{ y: 'calc(100vh - 350px)' }">
+            <thead>
+              <tr>
+                <th>Ngày</th>
+                <th>Công suất (kWh)</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (data of dailyTable.data; track data.XAxisValue) {
+              <tr>
+                <td>{{ data.XAxisValue }}</td>
+                <td>{{ data.YAxisValue | number: "1.2-2" }}</td>
+              </tr>
+              }
+            </tbody>
+          </nz-table>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+</div>

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/employee/employee.component.css"],
-  "sourcesContent": [".tabulator {\r\n    font-size: 0.75rem;\r\n  }\r\n  \r\n  .fs-12 {\r\n    font-size: 0.75rem;\r\n  }\r\n\r\n  .btn {\r\n    font-size: 0.75rem;\r\n  }\r\n\r\n  .reset {\r\n    all: revert;\r\n}\r\n\r\n.modal-body {\r\n  position: static !important;\r\n  padding-top: 0 !important;\r\n}\r\n\r\n.ant-form-item-label {\r\n  padding: 0px !important;\r\n}\r\n\r\n/* Ho\u1EB7c target c\u1EE5 th\u1EC3 h\u01A1n */\r\nnz-form-label .ant-form-item-label {\r\n  padding: 0px !important;\r\n}\r\n\r\n.ant-modal-footer .ant-btn:first-child {    \r\n  border-color: red;\r\n  color: red;\r\n}\r\n\r\n.ant-modal-footer .ant-btn:first-child:hover{    \r\n  background: red;\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n/* #employeeApprove {\r\n  z-index: 1000;\r\n} */\r\n\r\n/* #positionContractModal{\r\n  z-index: 10000;\r\n} */\r\n\r\n/* ::ng-deep .modal-backdrop{\r\n  z-index: 1000 !important;\r\n} */\r\n\r\n\r\n/* ::ng-deep .tabulator-col-content{\r\n  height: auto !important;\r\n} */\r\n\r\n"],
-  "mappings": "AAAA,CAAC,UAIC,CAAC,MAID,CAAC,IAPC,UAAW,MACb,CAUA,CAAC,MACC,IAAK,MACT,CAEA,CAAC,WACC,SAAU,iBACV,YAAa,WACf,CAEA,CAAC,oBArBD,QAsBW,WACX,CAGA,cAAc,CALb,oBArBD,QA2BW,WACX,CAEA,CAAC,iBAAiB,CAAC,OAAO,aACxB,aAAc,IACd,MAAO,GACT,CAEA,CALC,iBAKiB,CALC,OAKO,YAAY,OACpC,WAAY,IACZ,MAAO,IACT",
-  "names": []
-}

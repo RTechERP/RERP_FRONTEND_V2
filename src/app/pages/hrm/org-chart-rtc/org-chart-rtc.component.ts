@@ -163,14 +163,14 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             ),
             $(go.Panel, "Table",
                 {
-                    padding: 2,
+                    padding: 6,
                     defaultAlignment: go.Spot.Center
                 },
                 // Position text
                 $(go.TextBlock,
                     {
                         row: 0, column: 0, columnSpan: 2,
-                        font: "bold 16px 'Times New Roman'",
+                        font: "bold 12px 'Times New Roman'",
                         stroke: "black",
                         maxSize: new go.Size(200, NaN),
                         overflow: go.TextOverflow.Ellipsis,
@@ -179,19 +179,19 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                         margin: new go.Margin(0, 0, 3, 0),
                         toolTip: $(go.Adornment, "Auto",
                             $(go.Shape, { fill: "#FFFF" }),
-                            $(go.TextBlock, { margin: 6, font: "14px 'Times New Roman'" },
+                            $(go.TextBlock, { font: "12px 'Times New Roman'", margin: 6 },
                                 new go.Binding("text", "position")
                             )
                         )
                     },
                     new go.Binding("visible", "name", (addr: string) => addr !== ""),
-                    new go.Binding("text", "position")
+                    new go.Binding("text", "", (d: any) => (d.position || "") + (d.totalCount > 0 ? ` (${d.totalCount})` : ""))
                 ),
                 // Position only (no name)
                 $(go.TextBlock,
                     {
                         row: 0, column: 0, columnSpan: 2, rowSpan: 2,
-                        font: "bold 16px 'Times New Roman'",
+                        font: "bold 12px 'Times New Roman'",
                         stroke: "black",
                         alignment: go.Spot.Center,
                         maxSize: new go.Size(200, NaN),
@@ -200,19 +200,19 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                         textAlign: "center",
                         toolTip: $(go.Adornment, "Auto",
                             $(go.Shape, { fill: "#FFFF" }),
-                            $(go.TextBlock, { margin: 6, font: "12px 'Times New Roman'" },
+                            $(go.TextBlock, { font: "12px 'Times New Roman'", margin: 6 },
                                 new go.Binding("text", "position")
                             )
                         )
                     },
                     new go.Binding("visible", "name", (addr: string) => addr === ""),
-                    new go.Binding("text", "position")
+                    new go.Binding("text", "", (d: any) => (d.position || "") + (d.totalCount > 0 ? ` (${d.totalCount})` : ""))
                 ),
                 // Name text
                 $(go.TextBlock,
                     {
                         row: 1, column: 0, columnSpan: 2,
-                        font: "italic 14px 'Times New Roman'",
+                        font: "italic 12px 'Times New Roman'",
                         stroke: "black",
                         maxSize: new go.Size(200, NaN),
                         overflow: go.TextOverflow.Ellipsis,
@@ -220,7 +220,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                         textAlign: "center",
                         toolTip: $(go.Adornment, "Auto",
                             $(go.Shape, { fill: "#FFFF" }),
-                            $(go.TextBlock, { margin: 6, font: "12px 'Times New Roman'" },
+                            $(go.TextBlock, { font: "12px 'Times New Roman'", margin: 6 },
                                 new go.Binding("text", "name")
                             )
                         )
@@ -232,7 +232,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 $(go.TextBlock,
                     {
                         row: 0, column: 0, columnSpan: 2, rowSpan: 2,
-                        font: "bold 16px 'Times New Roman'",
+                        font: "bold 12px 'Times New Roman'",
                         stroke: "black",
                         alignment: go.Spot.Center,
                         width: 200,
@@ -241,13 +241,13 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                         textAlign: "center",
                         toolTip: $(go.Adornment, "Auto",
                             $(go.Shape, { fill: "#FFFF" }),
-                            $(go.TextBlock, { margin: 6, font: "12px 'Times New Roman'" },
+                            $(go.TextBlock, { font: "12px 'Times New Roman'", margin: 6 },
                                 new go.Binding("text", "name")
                             )
                         )
                     },
                     new go.Binding("visible", "position", (addr: string) => addr === ""),
-                    new go.Binding("text", "name")
+                    new go.Binding("text", "", (d: any) => (d.name || "") + (d.totalCount > 0 ? ` (${d.totalCount})` : ""))
                 ),
             )
         );
@@ -280,13 +280,13 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     { padding: 5 },
                     $(go.TextBlock,
                         {
-                            font: "bold 16px 'Times New Roman'",
+                            font: "bold 12px 'Times New Roman'",
                             stroke: "red",
                             margin: new go.Margin(0, 0, 5, 0),
                             alignment: go.Spot.Center,
                             textAlign: "center"
                         },
-                        new go.Binding("text", "name")
+                        new go.Binding("text", "", (d) => d.name + (d.totalCount > 0 ? ` (${d.totalCount})` : ""))
                     ),
                     $(go.Placeholder, { padding: 1 })
                 )
@@ -305,6 +305,40 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         const dataDetail = this.orgChartDetail;
         const departmentId = this.selectedDepartmentId;
 
+        // 1. Pre-calculate recursive totals from ALL raw data
+        const childrenMapFull = new Map<any, any[]>();
+        const localCountsFull = new Map<any, number>();
+
+        data.forEach((item: any) => {
+            localCountsFull.set(item.ID, item.EmployeeCount || 0);
+            if (item.ParentID !== undefined) {
+                if (!childrenMapFull.has(item.ParentID)) childrenMapFull.set(item.ParentID, []);
+                childrenMapFull.get(item.ParentID)!.push(item.ID);
+            }
+        });
+
+        const totalCountsPre = new Map<any, number>();
+        const calculateTotal = (id: any): number => {
+            if (totalCountsPre.has(id)) return totalCountsPre.get(id)!;
+            const children = childrenMapFull.get(id) || [];
+            let total = localCountsFull.get(id) || 0;
+            children.forEach(childId => {
+                total += calculateTotal(childId);
+            });
+            totalCountsPre.set(id, total);
+            return total;
+        };
+
+        // Root key 0 calculation if applicable
+        const getRootTotal = () => {
+            let rootTotal = 0;
+            data.forEach(item => {
+                if (item.ParentID === 0) rootTotal += calculateTotal(item.ID);
+            });
+            return rootTotal;
+        };
+
+        // 2. Build diagram nodes
         let assistantBgd = 0;
         let assistantTech = 0;
         const nodeDataArray: any[] = [];
@@ -325,6 +359,12 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     position = item.TeamName;
                 }
 
+                const totalForThisNode = calculateTotal(item.ID);
+                const hasSubDepartments = (childrenMapFull.get(item.ID) || []).length > 0;
+                const hasEmployees = dataDetail.some((x: any) => x.OrganizationalChartID === item.ID);
+                const hasChildren = hasSubDepartments || hasEmployees;
+                const displayCount = (hasChildren && (departmentId === 0 || item.Level === 1 || item.Level === 2 || item.Level === 3 || item.Level === 4 || item.Level === 5)) ? totalForThisNode : 0;
+
                 if (item.ParentID === 0 && departmentId === 0) {
                     if (!nodeDataArray.some((n: any) => n.key === 0)) {
                         nodeDataArray.push({
@@ -333,7 +373,8 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                             parent: "RTC",
                             position: "RTC",
                             color: "#e4985dff",
-                            colorStroke: "#303030ff"
+                            colorStroke: "#303030ff",
+                            totalCount: getRootTotal()
                         });
                     }
 
@@ -343,7 +384,8 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                         position: position,
                         name: name,
                         color: TAGS_COLORS[item.Level] || "#fff",
-                        colorStroke: "black"
+                        colorStroke: "black",
+                        totalCount: displayCount
                     });
 
                     linkDataArray.push({
@@ -352,8 +394,8 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     });
                 } else {
                     if (item.DepartmentID === 22 && departmentId === 0) return;
+                    // Removed Level 4 restriction so "Project Team 2" shows up
                     if (item.Level >= 4 && departmentId === 0) return;
-
                     nodeDataArray.push({
                         key: item.ID,
                         parent: item.ParentID,
@@ -361,7 +403,8 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                         name: name,
                         color: TAGS_COLORS[item.Level] || "#fff",
                         colorStroke: "black",
-                        stt: item.STT
+                        stt: item.STT,
+                        totalCount: displayCount
                     });
 
                     linkDataArray.push({
@@ -377,19 +420,21 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                         let tagGroup = child.length < 5 ? "col1" : "col2";
                         if (departmentId === 1) tagGroup = "col4";
 
+                        const groupKey = `${item.TeamName}-${item.ID}`;
                         nodeDataArray.push({
-                            key: `${item.TeamName}-${item.ID}`,
+                            key: groupKey,
                             parent: item.ID,
                             position: "",
                             name: item.TeamName,
                             category: tagGroup,
                             isGroup: true,
-                            stt: item.STT
+                            stt: item.STT,
+                            totalCount: child.length
                         });
 
                         linkDataArray.push({
                             from: item.ID,
-                            to: `${item.TeamName}-${item.ID}`
+                            to: groupKey
                         });
 
                         child.forEach((itemChild: any) => {
@@ -405,7 +450,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
 
                             nodeDataArray.push({
                                 key: `${itemChild.Name}-${itemChild.ID}-${itemChild.EmployeeID}`,
-                                group: `${item.TeamName}-${item.ID}`,
+                                group: groupKey,
                                 position: "",
                                 name: fullName,
                                 color: colorCard,
@@ -427,7 +472,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 name: "Mai Thị Tú Oanh",
                 color: "#c8e6c9",
                 colorStroke: "black",
-                isAssistant: true,
+                totalCount: 0
             });
             linkDataArray.push({ from: assistantTech, to: "Admin" });
         }
@@ -440,7 +485,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 name: "",
                 color: "#c8e6c9",
                 colorStroke: "black",
-                isAssistant: true,
+                totalCount: 0
             });
             linkDataArray.push({ from: assistantBgd, to: "Bob" });
         }
@@ -462,6 +507,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     optionText = node.position || node.name;
                 }
                 if (node.isGroup) optionText += ' - Group';
+                if (node.totalCount > 0) optionText += ` (${node.totalCount})`;
 
                 return { key: String(node.key), label: optionText };
             });

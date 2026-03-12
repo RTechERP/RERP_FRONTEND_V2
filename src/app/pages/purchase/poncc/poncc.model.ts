@@ -70,6 +70,7 @@ export interface PONCCMaster {
   Status?: number;
   IsApproved?: boolean;
   IsDeleted?: boolean;
+  ExpectedDate?: string;
 }
 
 // Detail line item for create/edit

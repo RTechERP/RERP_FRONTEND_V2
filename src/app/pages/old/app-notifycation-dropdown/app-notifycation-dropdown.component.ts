@@ -12,6 +12,7 @@ export interface NotifyItem {
   detail?: string;
   group?: 'today' | 'yesterday' | 'other';
   icon?: string;
+  route?: string;
 }
 @Component({
   selector: 'app-app-notifycation-dropdown',
@@ -25,10 +26,10 @@ export class AppNotifycationDropdownComponent {
   @Input() items: NotifyItem[] = [];
   @Output() itemClick = new EventEmitter<NotifyItem>();
 
-  get today()     { return this.items.filter(x => x.group === 'today'); }
+  get today() { return this.items.filter(x => x.group === 'today'); }
   get yesterday() { return this.items.filter(x => x.group === 'yesterday'); }
-  get other()     { return this.items.filter(x => !x.group || x.group === 'other'); }
-  get count()     { return this.today.length + this.yesterday.length + this.other.length; }
+  get other() { return this.items.filter(x => !x.group || x.group === 'other'); }
+  get count() { return this.today.length + this.yesterday.length + this.other.length; }
 
   onPick(n: NotifyItem) { this.itemClick.emit(n); }
   trackById(_: number, it: NotifyItem) { return it.id; }

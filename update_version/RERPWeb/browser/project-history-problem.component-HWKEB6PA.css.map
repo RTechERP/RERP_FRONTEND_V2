@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/project/project-history-problem/project-history-problem.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.ant-splitter-panel {\r\n  position: relative;\r\n  overflow: hidden;\r\n}\r\n\r\n.ant-splitter {\r\n  height: 100%;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n  height: 100% !important;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 4px;\r\n}\r\n\r\n.card {\r\n  height: 100%;\r\n  display: flex;\r\n  flex-direction: column;\r\n  overflow: hidden;\r\n}\r\n\r\n.card-body {\r\n  flex: 1;\r\n  min-height: 0;\r\n  overflow: hidden;\r\n  display: flex;\r\n  flex-direction: column;\r\n}\r\n\r\n/* \u0110\u1EA3m b\u1EA3o Tabulator c\u00F3 th\u1EC3 scroll ngang */\r\n:host ::ng-deep .tabulator-tableHolder {\r\n  overflow-x: auto !important;\r\n  overflow-y: auto !important;\r\n}\r\n\r\n:host ::ng-deep .tabulator {\r\n  overflow: visible !important;\r\n}\r\n\r\n"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CAEA,CAAC,mBACC,SAAU,SACV,SAAU,MACZ,CAEA,CAAC,aACC,OAAQ,IACV,CAEA,CAAC,UACC,UAAW,OACX,OAAQ,cACV,CAEA,CAAC,eAlBD,QAmBW,GACX,CAEA,CAAC,KACC,OAAQ,KACR,QAAS,KACT,eAAgB,OAChB,SAAU,MACZ,CAEA,CAAC,UACC,KAAM,EACN,WAAY,EACZ,SAAU,OACV,QAAS,KACT,eAAgB,MAClB,CAGA,MAAM,UAAU,CAAC,sBACf,WAAY,eACZ,WAAY,cACd,CAEA,MAAM,UAAU,CA9Bf,UA+BC,SAAU,iBACZ",
+  "names": []
+}

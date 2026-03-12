@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/project/project-field/project-field/project-field.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n  all: revert;\r\n}\r\n\r\n.ant-splitter-panel {\r\n  position: relative;\r\n}\r\n\r\n/* Standardized loading indicator */\r\n.loading-overlay {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  width: 100%;\r\n  height: 100%;\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  background-color: rgba(255, 255, 255, 0.75);\r\n  z-index: 1000;\r\n}\r\n\r\n.position-relative {\r\n  position: relative !important;\r\n  height: 100%;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem !important;\r\n  /* position: absolute !important; */\r\n  width: 100% !important;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.inner-content {\r\n  padding: 0 !important;\r\n}\r\n\r\n.ant-tabs-tab-btn {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.ant-splitter {\r\n  height: 100% !important;\r\n}"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,mBACC,SAAU,QACZ,CAGA,CAAC,gBACC,SAAU,SACV,IAAK,EACL,KAAM,EACN,MAAO,KACP,OAAQ,KACR,QAAS,KACT,YAAa,OACb,gBAAiB,OACjB,iBAAkB,UAClB,QAAS,IACX,CAEA,CAAC,kBACC,SAAU,mBACV,OAAQ,IACV,CAEA,CAAC,UACC,UAAW,iBAEX,MAAO,cACT,CAEA,CAAC,eArCD,QAsCW,CACX,CAEA,CAAC,cAzCD,QA0CW,WACX,CAEA,CAAC,iBACC,UAAW,MACb,CAEA,CAAC,aACC,OAAQ,cACV",
+  "names": []
+}

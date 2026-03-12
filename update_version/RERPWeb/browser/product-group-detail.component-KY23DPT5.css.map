@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/Sale/ProductSale/product-group-detail/product-group-detail.component.css"],
+  "sourcesContent": ["::ng-deep .ant-select-item-group {\r\n    color: #4a5568 !important;\r\n    font-weight: bold;\r\n    font-size: 15px !important;\r\n    background-color: rgb(232, 234, 235) !important; /* n\u1EC1n x\u00E1m r\u1EA5t nh\u1EA1t */\r\n  }"],
+  "mappings": "AAAA,UAAU,CAAC,sBACP,MAAO,kBACP,YAAa,IACb,UAAW,eACX,iBAAkB,iBACpB",
+  "names": []
+}

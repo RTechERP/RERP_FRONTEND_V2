@@ -1,7 +1,38 @@
-:host ::ng-deep div[id^="gridMaster-"][id*="billimport"]{
+:host ::ng-deep div[id^="gridMaster-"][id*="billimport"] {
   height: 45vh !important;
 }
 
-:host ::ng-deep div[id^="gridDetail-"][id*="billimport"]{
+:host ::ng-deep div[id^="gridDetail-"][id*="billimport"] {
   height: 34vh !important;
+}
+
+::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  justify-content: end !important;
+}
+
+/* Multiline cell - wrap up to 3 lines with ellipsis */
+::ng-deep .cell-multiline {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.4;
+  max-height: calc(1.4em * 3);
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+::ng-deep div[id^="gridMaster-"][id*="billimport"] .slick-cell {
+  overflow: visible !important;
+  white-space: normal !important;
 }

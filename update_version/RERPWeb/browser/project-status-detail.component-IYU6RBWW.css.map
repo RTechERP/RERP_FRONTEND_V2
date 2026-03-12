@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/project/project-status-detail/project-status-detail.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,MACb",
+  "names": []
+}

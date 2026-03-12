@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/project/price-history-partlist/price-history-partlist.component.css"],
+  "sourcesContent": [".fs-12 {\r\n    font-size: 0.75rem;\r\n  }\r\n  \r\n  .reset {\r\n    all: revert;\r\n  }\r\n  \r\n  .tabulator {\r\n    font-size: 0.75rem;\r\n    position: absolute;\r\n    width: 100%;\r\n  }\r\n  \r\n  .tabulator-cell {\r\n    padding: 0px;\r\n  }\r\n  \r\n  .inner-content {\r\n    padding: 0 !important;\r\n  }\r\n  \r\n  .ant-tabs-tab-btn {\r\n    font-size: 0.75rem;\r\n  }\r\n  .ant-splitter {\r\n    height: 93vh !important;\r\n  }"],
+  "mappings": "AAAA,CAAC,MACG,UAAW,MACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,UACC,UAAW,OACX,SAAU,SACV,MAAO,IACT,CAEA,CAAC,eAdH,QAea,CACX,CAEA,CAAC,cAlBH,QAmBa,WACX,CAEA,CAAC,iBACC,UAAW,MACb,CACA,CAAC,aACC,OAAQ,cACV",
+  "names": []
+}

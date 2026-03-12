@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/project/project-employee/project-employee.component.css"],
+  "sourcesContent": [".modal-content {\r\n  height: 85vh !important;\r\n  display: flex;\r\n  flex-direction: column;\r\n}\r\n\r\n.modal-body {\r\n  flex: 1 1 auto;\r\n  overflow: hidden !important;\r\n}\r\n\r\nnz-splitter {\r\n  height: 100% !important;\r\n}\r\n\r\n#tb_employeeMain,\r\n#tb_employeeSuggest {\r\n  height: 100% !important;\r\n  overflow: hidden;\r\n}\r\n\r\n.tabulator {\r\n  height: 100% !important;\r\n}"],
+  "mappings": "AAAA,CAAC,cACC,OAAQ,eACR,QAAS,KACT,eAAgB,MAClB,CAEA,CAAC,WACC,KAAM,EAAE,EAAE,KACV,SAAU,gBACZ,CAEA,YACE,OAAQ,cACV,CAEA,CAAC,gBACD,CAAC,mBACC,OAAQ,eACR,SAAU,MACZ,CAEA,CAAC,UACC,OAAQ,cACV",
+  "names": []
+}

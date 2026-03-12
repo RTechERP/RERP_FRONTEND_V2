@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/hrm/economic-contract/econimic-contract-term/econimic-contract-term-form/econimic-contract-term-form.component.css"],
+  "sourcesContent": [".modal-body {\r\n    font-size: 12px;\r\n}\r\n\r\n.modal-header h6 {\r\n    font-size: 14px;\r\n    margin: 0;\r\n}\r\n\r\nnz-form-label {\r\n    font-size: 12px;\r\n}\r\n\r\ninput,\r\ntextarea {\r\n    font-size: 12px;\r\n}"],
+  "mappings": "AAAA,CAAC,WACG,UAAW,IACf,CAEA,CAAC,aAAa,GACV,UAAW,KALf,OAMY,CACZ,CAEA,cACI,UAAW,IACf,CAEA,MACA,SACI,UAAW,IACf",
+  "names": []
+}

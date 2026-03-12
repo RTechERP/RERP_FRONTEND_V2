@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/purchase/supplier-sale/supplier-sale.component.css"],
+  "sourcesContent": [".fs-12 {\r\n    font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n    all: revert;\r\n}\r\n\r\n.inner-content {\r\n    padding: 0 !important;\r\n}\r\n\r\n.ant-tabs-tab-btn {\r\n    font-size: 0.75rem;\r\n}\r\n\r\n.ant-splitter {\r\n    height: 89vh !important;\r\n}\r\n\r\n::ng-deep [id^=\"gridSupplierSale-\"] {\r\n  height: 84vh !important;\r\n}\r\n\r\n::ng-deep [id^=\"gridSupplierSaleDetail-\"] {\r\n  height: 85.5vh !important;\r\n}\r\n\r\n::ng-deep\r\n  .slickgrid-container\r\n  .slick-footerrow\r\n  .slick-footerrow-columns\r\n  .slick-footerrow-column {\r\n  border-right: 1px solid #ddd !important;\r\n  justify-content: end !important;\r\n}\r\n\r\n/* C\u0103n ph\u1EA3i pagination */\r\n::ng-deep .slick-pagination {\r\n  display: flex;\r\n  justify-content: end;\r\n}\r\n\r\n::ng-deep .slick-pagination-count,\r\n::ng-deep .text-item-per-page {\r\n  display: none !important;\r\n}\r\n\r\n"],
+  "mappings": "AAAA,CAAC,MACG,UAAW,MACf,CAEA,CAAC,MACG,IAAK,MACT,CAEA,CAAC,cARD,QASa,WACb,CAEA,CAAC,iBACG,UAAW,MACf,CAEA,CAAC,aACG,OAAQ,cACZ,CAEA,UAAU,CAAC,uBACT,OAAQ,cACV,CAEA,UAAU,CAAC,6BACT,OAAQ,gBACV,CAEA,UACE,CAAC,oBACD,CAAC,gBACD,CAAC,wBACD,CAAC,uBACD,aAAc,IAAI,MAAM,eACxB,gBAAiB,aACnB,CAGA,UAAU,CAAC,iBACT,QAAS,KACT,gBAAiB,GACnB,CAEA,UAAU,CAAC,uBACX,UAAU,CAAC,mBACT,QAAS,cACX",
+  "names": []
+}

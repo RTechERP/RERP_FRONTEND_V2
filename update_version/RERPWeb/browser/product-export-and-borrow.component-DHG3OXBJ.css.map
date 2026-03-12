@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/Technical/product-export-and-borrow/product-export-and-borrow.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.reset {\r\n  all: revert;\r\n}\r\n\r\n.ant-splitter-panel{\r\n  position: relative;\r\n}\r\n\r\n.tabulator {\r\n  font-size: 0.75rem;\r\n  position: absolute;\r\n  width: 100%;\r\n}\r\n\r\n.tabulator-cell {\r\n  padding: 0px;\r\n}\r\n\r\n.inner-content {\r\n  padding: 0 !important;\r\n}\r\n\r\n.ant-tabs-tab-btn {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n/* \u1EA8n scrollbar ngang c\u1EE7a splitter */\r\n:host ::ng-deep nz-splitter,\r\n:host ::ng-deep .ant-splitter {\r\n  overflow-x: hidden !important;\r\n}\r\n\r\n/* \u1EA8n scrollbar ngang c\u1EE7a b\u1EA3ng Tabulator */\r\n:host ::ng-deep .tabulator,\r\n:host ::ng-deep #dataProductTableExportAndBorrow .tabulator {\r\n  overflow-x: hidden !important;\r\n}\r\n\r\n:host ::ng-deep .tabulator-tableHolder {\r\n  overflow-x: hidden !important;\r\n}\r\n\r\n/* \u1EA8n scrollbar ngang c\u1EE7a card-body */\r\n.card-body {\r\n  overflow-x: hidden !important;\r\n}\r\n\r\n"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,mBACC,SAAU,QACZ,CAEA,CAAC,UACC,UAAW,OACX,SAAU,SACV,MAAO,IACT,CAEA,CAAC,eAlBD,QAmBW,CACX,CAEA,CAAC,cAtBD,QAuBW,WACX,CAEA,CAAC,iBACC,UAAW,MACb,CAGA,MAAM,UAAU,YAChB,MAAM,UAAU,CAAC,aACf,WAAY,gBACd,CAGA,MAAM,UAAU,CAzBf,UA0BD,MAAM,UAAU,CAAC,gCAAgC,CA1BhD,UA2BC,WAAY,gBACd,CAEA,MAAM,UAAU,CAAC,sBACf,WAAY,gBACd,CAGA,CAAC,UACC,WAAY,gBACd",
+  "names": []
+}

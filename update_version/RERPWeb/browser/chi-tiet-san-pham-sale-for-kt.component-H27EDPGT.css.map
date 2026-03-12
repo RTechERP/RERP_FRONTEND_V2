@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/KETOAN/inventory-by-date/chi-tiet-san-pham-sale-for-kt/chi-tiet-san-pham-sale-for-kt.component.css"],
+  "sourcesContent": [".ant-splitter {\r\n  height: 75vh !important;\r\n}\r\n.tabulator {\r\n  font-size: 0.75rem !important;\r\n  /* position: absolute !important; */\r\n  width: 100% !important;\r\n}\r\n.ant-tabs-tab-btn {\r\n  font-size: 0.75rem;\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,aACC,OAAQ,cACV,CACA,CAAC,UACC,UAAW,iBAEX,MAAO,cACT,CACA,CAAC,iBACC,UAAW,MACb",
+  "names": []
+}

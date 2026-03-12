@@ -13,6 +13,14 @@ export class TabServiceService {
     private tabCompRequestSource = new Subject<TabCompPayload>();
     tabCompRequest$ = this.tabCompRequestSource.asObservable();
 
+    // Subject for closing a tab by key
+    private closeTabByKeySource = new Subject<string>();
+    closeTabByKey$ = this.closeTabByKeySource.asObservable();
+
+    // Subject to notify other tabs that data was saved (emits a domain key, e.g. 'poncc')
+    private dataSavedSource = new Subject<string>();
+    dataSaved$ = this.dataSavedSource.asObservable();
+
     constructor() { }
 
     openTab(payload: TabPayload) {
@@ -23,6 +31,16 @@ export class TabServiceService {
     openTabComp(payload: TabCompPayload) {
         console.log('[TabService] openTabComp called:', payload);
         this.tabCompRequestSource.next(payload);
+    }
+
+    // Close a component tab by its key
+    closeTabByKey(key: string) {
+        this.closeTabByKeySource.next(key);
+    }
+
+    // Notify subscribers that data was saved for a given domain key
+    notifyDataSaved(key: string) {
+        this.dataSavedSource.next(key);
     }
 }
 

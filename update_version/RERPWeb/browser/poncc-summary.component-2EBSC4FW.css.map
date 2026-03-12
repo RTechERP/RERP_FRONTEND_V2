@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/purchase/poncc/poncc-summary/poncc-summary.component.css"],
+  "sourcesContent": [".fs-12 {\r\n  font-size: 12px !important;\r\n}\r\n\r\n.reset {\r\n  all: revert;\r\n}\r\n\r\n.modal-header {\r\n  border-top-left-radius: 0 !important;\r\n  border-top-right-radius: 0 !important;\r\n}\r\n\r\n::ng-deep .full-screen-modal {\r\n  height: auto !important;\r\n}\r\n\r\n::ng-deep #gridSummaryPoncc {\r\n  height: 86vh !important;\r\n}\r\n\r\n::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {\r\n  border-right: 1px solid #ddd !important;\r\n}"],
+  "mappings": "AAAA,CAAC,MACC,UAAW,cACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,aACC,uBAAwB,YACxB,wBAAyB,WAC3B,CAEA,UAAU,CAAC,kBACT,OAAQ,cACV,CAEA,UAAU,CAAC,iBACT,OAAQ,cACV,CAEA,UAAU,CAAC,oBAAoB,CAAC,gBAAgB,CAAC,wBAAwB,CAAC,uBACxE,aAAc,IAAI,MAAM,cAC1B",
+  "names": []
+}

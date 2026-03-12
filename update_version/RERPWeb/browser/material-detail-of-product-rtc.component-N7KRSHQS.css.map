@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/inventory-demo/material-detail-of-product-rtc/material-detail-of-product-rtc.component.css"],
+  "sourcesContent": [".full-card {\r\n  height: 100%;\r\n}\r\n\r\n.full-card ::ng-deep .ant-card-body {\r\n  height: calc(100% - 42px); /* tr\u1EEB chi\u1EC1u cao header */\r\n  overflow: auto;\r\n}\r\n\r\n::ng-deep .ant-card-head {\r\n  min-height: unset !important;\r\n  padding-left: 0 !important;\r\n}\r\n\r\n.ant-splitter {\r\n  height: 84vh !important;\r\n}\r\n\r\n::ng-deep .ant-card-head {\r\n  padding-left: 12px;\r\n  text-transform: uppercase;\r\n}\r\n\r\n::ng-deep .ant-card-body {\r\n  padding: 0px !important;\r\n}\r\n::ng-deep #gridBorrow {\r\n  height: 79vh !important;\r\n}\r\n::ng-deep #gridExport {\r\n  height: 37vh !important;\r\n}\r\n::ng-deep #gridImport {\r\n  height: 37vh !important;\r\n}\r\n"],
+  "mappings": "AAAA,CAAC,UACC,OAAQ,IACV,CAEA,CAJC,UAIU,UAAU,CAAC,cACpB,OAAQ,KAAK,KAAK,EAAE,MACpB,SAAU,IACZ,CAEA,UAAU,CAAC,cACT,WAAY,gBACZ,aAAc,WAChB,CAEA,CAAC,aACC,OAAQ,cACV,CAEA,UAAU,CATC,cAUT,aAAc,KACd,eAAgB,SAClB,CAEA,UAAU,CAnBY,cAJtB,QAwBW,WACX,CACA,UAAU,CAAC,WACT,OAAQ,cACV,CACA,UAAU,CAAC,WACT,OAAQ,cACV,CACA,UAAU,CAAC,WACT,OAAQ,cACV",
+  "names": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/Sale/BillExport/Modal/bill-export-synthetic/bill-export-synthetic.component.css"],
+  "sourcesContent": ["/* Chu\u1EA9n h\u00F3a thanh l\u1ECDc theo UX ERP */\r\n.filter-bar {\r\n  gap: 8px;\r\n}\r\n.filter-bar .ant-form-item {\r\n  margin-bottom: 0;\r\n}\r\n.filter-item--date {\r\n  width: 160px;\r\n}\r\n.filter-item--kho {\r\n  width: 240px;\r\n}\r\n.filter-item--status {\r\n  width: 180px;\r\n}\r\n.filter-item--keyword {\r\n  width: 200px;\r\n}\r\n.filter-item--button {\r\n  width: 100px;\r\n}\r\n.filter-item--auto {\r\n  width: auto;\r\n}\r\n.filter-bar .ant-select,\r\n.filter-bar .ant-picker,\r\n.filter-bar input[nz-input] {\r\n  width: 100%;\r\n}"],
+  "mappings": "AACA,CAAC,WACC,IAAK,GACP,CACA,CAHC,WAGW,CAAC,cACX,cAAe,CACjB,CACA,CAAC,kBACC,MAAO,KACT,CACA,CAAC,iBACC,MAAO,KACT,CACA,CAAC,oBACC,MAAO,KACT,CACA,CAAC,qBACC,MAAO,KACT,CACA,CAAC,oBACC,MAAO,KACT,CACA,CAAC,kBACC,MAAO,IACT,CACA,CAxBC,WAwBW,CAAC,WACb,CAzBC,WAyBW,CAAC,WACb,CA1BC,WA0BW,KAAK,CAAC,UAChB,MAAO,IACT",
+  "names": []
+}

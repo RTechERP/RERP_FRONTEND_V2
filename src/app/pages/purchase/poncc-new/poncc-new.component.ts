@@ -4,9 +4,11 @@ import {
   Component,
   AfterViewInit,
   OnInit,
+  OnDestroy,
   ElementRef,
   ChangeDetectorRef,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -55,6 +57,8 @@ import { PaymentOrderDetailComponent } from '../../general-category/payment-orde
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
+import { TabServiceService } from '../../../layouts/tab-service.service';
+
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
   Times: {
@@ -93,7 +97,7 @@ import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-imp
   templateUrl: './poncc-new.component.html',
   styleUrls: ['./poncc-new.component.css'],
 })
-export class PonccNewComponent implements OnInit, AfterViewInit {
+export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
   activeTabIndex: number = 0;
   lastMasterId: number | null = null;
   isTabReady: boolean = false; // Flag để track khi tab đã render
@@ -121,6 +125,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
   suppliers: any[] = [];
   employees: any[] = [];
   isLoading: boolean = false;
+  private tabOpenedSub?: Subscription;
   listAllID: string[] = [];
   checkList: boolean[] = [];
   listDetail: any[] = [];
@@ -184,7 +189,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     private supplierSaleService: SupplierSaleService,
     private modalService: NgbModal,
     private cdr: ChangeDetectorRef,
-    public appUserService: AppUserService
+    public appUserService: AppUserService,
+    private tabService: TabServiceService
   ) {
     this.employeeId = this.appUserService.employeeID || 0;
   }
@@ -194,6 +200,16 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     this.initGridColumns();
     this.initGridOptions();
     this.initMenuItems();
+
+    this.tabOpenedSub = this.tabService.dataSaved$.subscribe((key: string) => {
+      if (key === 'poncc') {
+        this.onSearch();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.tabOpenedSub?.unsubscribe();
   }
 
   ngAfterViewInit(): void {
@@ -1578,18 +1594,20 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
       if (this.lastMasterId && this.masterDetailsMap.has(this.lastMasterId)) {
         const currentSelectedDetails = this.getSelectedDetailRows();
-        const selectedDetailIds = new Set(
-          currentSelectedDetails.map((d: any) => d.ID)
-        );
+        if (currentSelectedDetails.length > 0) {
+          const selectedDetailIds = new Set(
+            currentSelectedDetails.map((d: any) => d.ID)
+          );
 
-        const oldDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
-        const filtered = oldDetails.filter((d) => selectedDetailIds.has(d.ID));
+          const oldDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
+          const filtered = oldDetails.filter((d) => selectedDetailIds.has(d.ID));
 
-        if (filtered.length > 0) {
-          this.masterDetailsMap.set(this.lastMasterId, filtered);
-        } else {
-          this.masterDetailsMap.delete(this.lastMasterId);
+          if (filtered.length > 0) {
+            this.masterDetailsMap.set(this.lastMasterId, filtered);
+          }
+          // Nếu filtered rỗng → giữ nguyên toàn bộ detail của master cũ
         }
+        // Nếu không có row nào được chọn (do timing auto-select chưa chạy) → giữ nguyên
       }
       this.lastMasterId = latestMasterId;
 
@@ -1734,149 +1752,45 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         .sort((a, b) => a.label.localeCompare(b.label));
     };
 
-    // List of all text fields that should have multipleSelect filter for Master grid
-    const masterTextFields = [
-      'StatusText',
-      'CurrencyText',
-      'FullName',
-      'CompanyText',
-      'RuleIncoterm',
-      'SupplierVoucher',
-      'OriginItem',
-      'POTypeText',
-    ];
+    // Helper to update a single grid - giống project-slick-grid2
+    const updateGrid = (
+      angularGrid: AngularGridInstance | undefined,
+      columnDefs: Column[]
+    ): void => {
+      if (!angularGrid?.slickGrid || !angularGrid.dataView) return;
+      // Lấy toàn bộ data (không phải chỉ filtered view) - giống project-slick-grid2
+      const data = angularGrid.dataView.getItems() as any[];
+      if (!data || data.length === 0) return;
 
-    // Update filters for PO Thương mại grid (tab 0)
-    if (this.angularGridPoThuongMai && this.angularGridPoThuongMai.slickGrid) {
-      const dataView = this.angularGridPoThuongMai.dataView;
-      if (dataView) {
-        // Lấy dữ liệu đã được filter từ view (không phải tất cả data gốc)
-        const data: any[] = [];
-        for (let i = 0; i < dataView.getLength(); i++) {
-          const item = dataView.getItem(i);
-          if (item) {
-            data.push(item);
-          }
+      const columns = angularGrid.slickGrid.getColumns();
+      if (!columns) return;
+
+      // Update runtime columns
+      columns.forEach((column: any) => {
+        if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+          const field = column.field;
+          if (!field) return;
+          column.filter.collection = getUniqueValues(data, field);
         }
+      });
 
-        if (data.length > 0) {
-          const columns = this.angularGridPoThuongMai.slickGrid.getColumns();
-          columns.forEach((column: any) => {
-            if (
-              column.filter &&
-              column.filter.model === Filters['multipleSelect']
-            ) {
-              const field = column.field;
-              if (field && masterTextFields.includes(field)) {
-                const collection = getUniqueValues(data, field);
-                if (column.filter) {
-                  column.filter.collection = collection;
-                }
-              }
-            }
-          });
-
-          // Force refresh columns
-          const updatedColumns =
-            this.angularGridPoThuongMai.slickGrid.getColumns();
-          this.angularGridPoThuongMai.slickGrid.setColumns(updatedColumns);
-          this.angularGridPoThuongMai.slickGrid.invalidate();
-          this.angularGridPoThuongMai.slickGrid.render();
+      // Update column definitions
+      columnDefs.forEach((colDef: any) => {
+        if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+          const field = colDef.field;
+          if (!field) return;
+          colDef.filter.collection = getUniqueValues(data, field);
         }
-      }
-    }
+      });
 
-    // Update filters for PO Mượn grid (tab 1)
-    if (this.angularGridPoMuon && this.angularGridPoMuon.slickGrid) {
-      const dataView = this.angularGridPoMuon.dataView;
-      if (dataView) {
-        // Lấy dữ liệu đã được filter từ view (không phải tất cả data gốc)
-        const data: any[] = [];
-        for (let i = 0; i < dataView.getLength(); i++) {
-          const item = dataView.getItem(i);
-          if (item) {
-            data.push(item);
-          }
-        }
+      angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+      angularGrid.slickGrid.invalidate();
+      angularGrid.slickGrid.render();
+    };
 
-        if (data.length > 0) {
-          const columns = this.angularGridPoMuon.slickGrid.getColumns();
-          columns.forEach((column: any) => {
-            if (
-              column.filter &&
-              column.filter.model === Filters['multipleSelect']
-            ) {
-              const field = column.field;
-              if (field && masterTextFields.includes(field)) {
-                const collection = getUniqueValues(data, field);
-                if (column.filter) {
-                  column.filter.collection = collection;
-                }
-              }
-            }
-          });
-
-          // Force refresh columns
-          const updatedColumns = this.angularGridPoMuon.slickGrid.getColumns();
-          this.angularGridPoMuon.slickGrid.setColumns(updatedColumns);
-          this.angularGridPoMuon.slickGrid.invalidate();
-          this.angularGridPoMuon.slickGrid.render();
-        }
-      }
-    }
-
-    // List of all text fields that should have multipleSelect filter for Detail grid
-    const detailTextFields = [
-      'ProductCode',
-      'ProductName',
-      'ProductNewCode',
-      'ProductGroupName',
-      'ProductCodeOfSupplier',
-      'ParentProductCode',
-      'ProjectCode',
-      'ProjectName',
-      'UnitName',
-      'Note',
-    ];
-
-    // Update filters for Detail grid
-    if (this.angularGridDetail && this.angularGridDetail.slickGrid) {
-      const dataView = this.angularGridDetail.dataView;
-      if (dataView) {
-        // Lấy dữ liệu đã được filter từ view (không phải tất cả data gốc)
-        const data: any[] = [];
-        for (let i = 0; i < dataView.getLength(); i++) {
-          const item = dataView.getItem(i);
-          if (item) {
-            data.push(item);
-          }
-        }
-
-        if (data.length > 0) {
-          const columns = this.angularGridDetail.slickGrid.getColumns();
-          columns.forEach((column: any) => {
-            if (
-              column.filter &&
-              column.filter.model === Filters['multipleSelect']
-            ) {
-              const field = column.field;
-              if (field && detailTextFields.includes(field)) {
-                const collection = getUniqueValues(data, field);
-                if (column.filter) {
-                  column.filter.collection = collection;
-                }
-              }
-            }
-          });
-
-          // Force refresh columns
-          const updatedColumns = this.angularGridDetail.slickGrid.getColumns();
-          this.angularGridDetail.slickGrid.setColumns(updatedColumns);
-          this.angularGridDetail.slickGrid.invalidate();
-          this.angularGridDetail.slickGrid.render();
-        }
-      }
-    }
+    updateGrid(this.angularGridPoThuongMai, this.columnDefinitionsMaster);
+    updateGrid(this.angularGridPoMuon, this.columnDefinitionsMaster);
+    updateGrid(this.angularGridDetail, this.columnDefinitionsDetail);
 
     // Update footer row sau khi grid đã được refresh
     setTimeout(() => {
@@ -2186,14 +2100,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
   }
 
   onAddPoncc() {
-    const modalRef = this.modalService.open(PonccDetailComponent, {
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-      windowClass: 'full-screen-modal',
-    });
-    modalRef.result.finally(() => {
-      this.onSearch();
+    this.tabService.openTabComp({
+      comp: PonccDetailComponent,
+      title: 'Tạo PO NCC mới',
+      key: `poncc-detail-new-${Date.now()}`,
+      data: {}
     });
   }
 
@@ -2215,20 +2126,16 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       next: (detailResponse: any) => {
         this.isLoading = false;
 
-        const modalRef = this.modalService.open(PonccDetailComponent, {
-          backdrop: 'static',
-          keyboard: false,
-          centered: true,
-          windowClass: 'full-screen-modal',
-        });
-
-        modalRef.componentInstance.poncc = selectedPO;
-        modalRef.componentInstance.dtRef = detailResponse.data.dtRef || [];
-        modalRef.componentInstance.ponccDetail = detailResponse.data.data || [];
-        modalRef.componentInstance.isEditMode = true;
-
-        modalRef.result.finally(() => {
-          this.onSearch();
+        this.tabService.openTabComp({
+          comp: PonccDetailComponent,
+          title: `Chi tiết PONCC - ${selectedPO.POCode || 'Chưa có'}`,
+          key: `poncc-detail-${selectedPO.ID}`,
+          data: {
+            poncc: selectedPO,
+            dtRef: detailResponse.data.dtRef || [],
+            ponccDetail: detailResponse.data.data || [],
+            isEditMode: true
+          }
         });
       },
       error: (err) => {
@@ -2411,13 +2318,6 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
           next: (res: any) => {
             this.isLoading = false;
 
-            const modalRef = this.modalService.open(PonccDetailComponent, {
-              backdrop: 'static',
-              keyboard: false,
-              centered: true,
-              windowClass: 'full-screen-modal',
-            });
-
             const details = (detailResponse.data.data || []).map((row: any) => ({
               ...row,
               ID: 0,
@@ -2435,13 +2335,16 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             };
             console.log('copyPO:', copiedPO);
 
-            modalRef.componentInstance.poncc = copiedPO;
-            modalRef.componentInstance.isCopy = true;
-            modalRef.componentInstance.dtRef = [];
-            modalRef.componentInstance.ponccDetail = details;
-
-            modalRef.result.finally(() => {
-              this.onSearch();
+            this.tabService.openTabComp({
+              comp: PonccDetailComponent,
+              title: `Copy PO - ${copiedPO.POCode || 'Mới'}`,
+              key: `poncc-copy-${selectedPO.ID}-${Date.now()}`,
+              data: {
+                poncc: copiedPO,
+                isCopy: true,
+                dtRef: [],
+                ponccDetail: details
+              }
             });
           },
           error: (err) => {
@@ -3871,14 +3774,24 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     clearTimeout(this.clickTimer);
     if (row == null) return;
     this.clickTimer = setTimeout(() => {
-      let rowData;
-      if (this.activeTabIndex === 0) {
-        rowData = this.angularGridPoThuongMai?.dataView.getItem(row);
-      } else if (this.activeTabIndex === 1) {
-        rowData = this.angularGridPoMuon?.dataView.getItem(row);
-      }
+      const currentGrid =
+        this.activeTabIndex === 0
+          ? this.angularGridPoThuongMai
+          : this.angularGridPoMuon;
+      if (!currentGrid) return;
 
-      this.handleMasterSelectionChange([rowData]);
+      // Lấy toàn bộ các row đang được chọn thay vì chỉ lấy active row
+      const selectedRowIndexes = currentGrid.slickGrid.getSelectedRows();
+      if (selectedRowIndexes && selectedRowIndexes.length > 0) {
+        const selectedRows = selectedRowIndexes
+          .map((idx: number) => currentGrid.dataView.getItem(idx))
+          .filter((item: any) => item);
+        this.handleMasterSelectionChange(selectedRows);
+      } else {
+        // Fallback: chỉ dùng active row khi chưa có row nào được chọn
+        const rowData = currentGrid.dataView.getItem(row);
+        if (rowData) this.handleMasterSelectionChange([rowData]);
+      }
     }, 300);
   }
   //#endregion

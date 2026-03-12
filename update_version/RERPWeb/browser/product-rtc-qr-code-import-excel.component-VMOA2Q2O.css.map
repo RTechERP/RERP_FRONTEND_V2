@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/old/product-rtc-qr-code/product-rtc-qr-code-import-excel/product-rtc-qr-code-import-excel.component.css"],
+  "sourcesContent": [".tabulator {\r\n    width: 100% !important;\r\n}\r\n\r\n.table-excel-container {\r\n    width: 100%;\r\n    border: 1px solid #dee2e6;\r\n}"],
+  "mappings": "AAAA,CAAC,UACG,MAAO,cACX,CAEA,CAAC,sBACG,MAAO,KACP,OAAQ,IAAI,MAAM,OACtB",
+  "names": []
+}

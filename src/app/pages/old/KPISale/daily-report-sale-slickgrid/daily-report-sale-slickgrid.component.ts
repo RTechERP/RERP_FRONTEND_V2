@@ -8,6 +8,7 @@ import {
     IterableDiffers,
     Optional,
     Inject,
+    HostListener,
     CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -145,6 +146,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     isTeamLoaded: boolean = false;
     needLoadTeam: boolean = false;
     isMobile: boolean = false;
+    isShowModal: boolean = false;
 
     // Pagination
     totalPage: number = 1;
@@ -202,8 +204,13 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
+    @HostListener('window:resize')
+    onResize(): void {
+        this.isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
     ngOnInit(): void {
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        this.isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         this.initMenuBar();
         this.initGrid();
 

@@ -1,0 +1,75 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.fs-12 {
+    font-size: 12px;
+}
+
+::ng-deep .ant-form-item-label>label {
+    height: 24px;
+}
+
+::ng-deep .ant-picker-input>input {
+    font-size: 12px;
+}
+
+.select-dropdown {
+    font-size: 12px;
+}
+
+::ng-deep .p-menubar {
+    border: none;
+    border-radius: 0;
+    padding: 0.25rem 0.5rem;
+}
+
+::ng-deep .p-menuitem-link {
+    padding: 0.5rem 0.75rem !important;
+}
+
+::ng-deep .p-menuitem-text {
+    font-size: 14px;
+    margin-left: 0.5rem;
+}
+
+/* SlickGrid base style overrides / adjustments */
+::ng-deep .slick-header-columns {
+    height: 35px !important;
+}
+
+::ng-deep .slick-header-column.ui-state-default {
+    height: 35px !important;
+    line-height: 14px !important;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid #e8e8e8 !important;
+    border-bottom: 1px solid #e8e8e8 !important;
+    background: #fafafa !important;
+    padding: 8px !important;
+}
+
+::ng-deep .slick-pane-header {
+    background-color: #fafafa;
+}
+
+::ng-deep .slick-row .slick-cell {
+    font-size: 12px;
+    padding: 4px;
+    line-height: unset;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e8e8e8;
+    border-right: 1px solid #e8e8e8;
+}
+
+/* nz-spin height fix: đảm bảo nz-spin và các phần tử con chiếm 100% chiều cao */
+:host ::ng-deep .grid-container-daily-report-acc nz-spin,
+:host ::ng-deep .grid-container-daily-report-acc .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-daily-report-acc .ant-spin-container,
+:host ::ng-deep .grid-container-daily-report-acc angular-slickgrid,
+:host ::ng-deep .grid-container-daily-report-acc .slickgrid-container,
+:host ::ng-deep .grid-container-daily-report-acc .gridPane {
+    height: 100% !important;
+}

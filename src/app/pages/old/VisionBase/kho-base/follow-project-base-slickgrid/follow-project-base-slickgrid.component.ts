@@ -223,7 +223,7 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
         this.filters.startDate = startDate.toFormat('yyyy-MM-dd');
         this.filters.endDate = endDate.toFormat('yyyy-MM-dd');
 
-        this.isAdmin = this.appUserService.isAdmin;
+        this.isAdmin = this.appUserService.isAdmin || this.appUserService.hasPermission('N1');
         this.currentUser = this.appUserService.currentUser;
         this.isAdminSale = this.currentUser?.IsAdminSale || 0;
         this.currentUserId = this.currentUser?.ID || 0;
@@ -518,7 +518,7 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
 
                 this.isLoadingFollowProject = false;
                 setTimeout(() => {
-                    this.applyDistinctFiltersToGrid(this.angularGridFollowProject, this.columnDefinitionsFollowProject, ['FullName', 'ProjectManager', 'CustomerName', 'EndUser', 'ProjectStatusName', 'ProjectTypeName', 'FirmName', 'FirmPossibilityPOName']);
+                    this.applyDistinctFiltersToGrid(this.angularGridFollowProject, this.columnDefinitionsFollowProject, ['FullName', 'ProjectManager', 'CustomerName', 'EndUser', 'ProjectStatusName', 'ProjectTypeName', 'FirmName', 'FirmPossibilityPOName'], this.datasetFollowProject);
                 }, 0);
             },
             error: (error: any) => {
@@ -890,11 +890,12 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
     private applyDistinctFiltersToGrid(
         angularGrid: AngularGridInstance,
         columnDefinitions: Column[],
-        fieldsToFilter: string[]
+        fieldsToFilter: string[],
+        freshData?: any[]
     ): void {
-        if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+        if (!angularGrid?.slickGrid) return;
 
-        const data = angularGrid.dataView.getItems();
+        const data = freshData ?? angularGrid.dataView?.getItems() ?? [];
         if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {

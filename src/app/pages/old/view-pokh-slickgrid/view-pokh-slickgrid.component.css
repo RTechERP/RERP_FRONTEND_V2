@@ -6,7 +6,10 @@
 
 :host ::ng-deep .grid-container-viewpokh nz-spin,
 :host ::ng-deep .grid-container-viewpokh .ant-spin-nested-loading,
-:host ::ng-deep .grid-container-viewpokh .ant-spin-container {
+:host ::ng-deep .grid-container-viewpokh .ant-spin-container,
+:host ::ng-deep .grid-container-viewpokh angular-slickgrid,
+:host ::ng-deep .grid-container-viewpokh .slickgrid-container,
+:host ::ng-deep .grid-container-viewpokh .gridPane {
   height: 100% !important;
 }
 

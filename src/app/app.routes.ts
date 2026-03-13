@@ -1093,11 +1093,14 @@ export const routes: Routes = [
             { path: 'hr-recruitment-application', component: HRRecruitmentApplicationComponent, canActivate: [authGuard] },
             { path: 'history-borrow-sale-personal', component: HistoryBorrowSalePersonalComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-personal', component: HistoryProductRtcPersonalComponent, canActivate: [authGuard] },
+
+            //#region EMS
             { path: 'ems/dashboard', component: DashboardComponent, canActivate: [authGuard] },
             { path: 'ems/details', component: DeviceDetailsChartsComponent, canActivate: [authGuard] },
             { path: 'ems/areas', component: AreasComponent, canActivate: [authGuard] },
             { path: 'ems/devices', component: DevicesComponent, canActivate: [authGuard] },
             { path: 'ems/communication-types', component: CommunicationComponent, canActivate: [authGuard] },
+            //#endregion
         ],
     },
 ];

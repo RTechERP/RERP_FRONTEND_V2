@@ -6,6 +6,6 @@ export const environment = {
     host: 'https://localhost:44365/',
     hostwebold: 'https://localhost:44365/',
     baseHref: '/',
-    ems_baseURL: 'http://10.20.30.162:8836/api',
+    ems_baseURL: 'http://192.168.1.3:9092/api/api',
     title: 'R-ERP',
 };

@@ -856,9 +856,9 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 // }
             },
             {
-                id: 'CurrentSituation',
+                id: 'CurrentState',
                 name: 'Hiện trạng',
-                field: 'CurrentSituation',
+                field: 'CurrentState',
                 width: 200,
                 sortable: true,
                 filterable: true,

@@ -24,6 +24,7 @@ import { AngularSlickgridModule } from 'angular-slickgrid';
 import { TranslateModule } from '@ngx-translate/core';
 import { CustomRouteReuseStrategy } from './custom-route-reuse.strategy';
 import { ExcelExportService } from '@slickgrid-universal/common';
+import { provideToastr } from 'ngx-toastr';
 
 registerLocaleData(vi);
 
@@ -54,10 +55,14 @@ export const appConfig: ApplicationConfig = {
             defaultLanguage: 'vi',
         })),
 
-        // { provide: RouteReuseStrategy, useClass: CustomRouteReuseStrategy },
-
-
-
+        provideToastr({
+            preventDuplicates: true,
+            resetTimeoutOnDuplicate: true,
+            includeTitleDuplicates: true,
+            enableHtml: true,
+            progressAnimation: 'decreasing',
+            tapToDismiss: false,
+        }),
     ],
 };
 // export const APP_LOGIN_NAME = 'admin';
@@ -98,3 +103,9 @@ export const NOTIFICATION_TYPE_MAP: any = {
 export const ID_ADMIN_DEMO_LIST: number[] = [24, 1434, 88, 1534, 1700];
 export const USER_ALL_REPORT_TECH: number[] = [1, 23, 24, 78, 88, 1221, 1313, 1434, 1431, 53, 51, 1534, 1700];
 export const ID_ADMIN_SALE_LIST: number[] = [1, 2, 1293, 1177, 1313, 23, 1380, 1132, 11, 17, 1185, 1463, 1431, 1604];
+
+
+//#region Config EMS
+
+
+

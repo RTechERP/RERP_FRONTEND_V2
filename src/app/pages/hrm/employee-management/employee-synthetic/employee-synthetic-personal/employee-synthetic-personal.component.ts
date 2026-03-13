@@ -10,12 +10,15 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
 import { EmployeeSyntheticService } from '../employee-synthetic.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { AuthService } from '../../../../../auth/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-employee-synthetic-personal',
@@ -35,6 +38,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
     NzFormModule,
     NzInputModule,
     NzSpinModule,
+    NzModalModule,
   ]
 })
 export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit {
@@ -58,18 +62,39 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
   payrollData: any[] = [];
   totalWorkdayStandard: number = 0;
 
+  // Re-authentication members
+  showReAuthModal = false;
+  reAuthPassword = '';
+  isVerifying = false;
+  errorMessage = '';
+  showErrorPopup = false;
+  failedAttempts = 0;
+  passwordVisible = false;
+  private pendingTabIndex = -1;
+
   constructor(
     private fb: FormBuilder,
     private notification: NzNotificationService,
-    private syntheticService: EmployeeSyntheticService
+    private syntheticService: EmployeeSyntheticService,
+    public authService: AuthService,
+    private router: Router
   ) { }
 
   ngOnInit() {
     this.initializeForm();
-    // Subscribe to form value changes for auto-loading (optional)
-    // this.searchForm.valueChanges.subscribe(() => {
-    //   // Auto-load can be enabled here if needed
-    // });
+
+    // Check current route to set default tab
+    const url = this.router.url;
+    if (url.includes('person-summary-payroll')) {
+      this.selectedTabIndex = 3;
+    } else {
+      this.selectedTabIndex = 0;
+    }
+
+    // Trigger re-auth if starting on payroll tab
+    if (this.selectedTabIndex === 3 && !this.authService.isReAuthenticated()) {
+      this.showReAuthModal = true;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -136,6 +161,21 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
   }
 
   onTabChange(index: number): void {
+    // Intercept Payroll tab to check for re-authentication
+    if (index === 3 && !this.authService.isReAuthenticated()) {
+      this.pendingTabIndex = index;
+      this.showReAuthModal = true;
+      this.reAuthPassword = '';
+      this.errorMessage = '';
+
+      // Delay resetting the index to visual stay on the current tab
+      const currentTab = this.selectedTabIndex;
+      setTimeout(() => {
+        this.selectedTabIndex = currentTab;
+      }, 0);
+      return;
+    }
+
     this.selectedTabIndex = index;
     // Wait for DOM to render the tab content, then initialize table
     setTimeout(() => {
@@ -225,7 +265,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
               }
               break;
             case 3: // BẢNG LƯƠNG
-              if (data.payroll) {
+              if (data.payroll && this.authService.isReAuthenticated()) {
                 // Handle both array and object cases
                 if (Array.isArray(data.payroll)) {
                   this.payrollData = data.payroll;
@@ -683,6 +723,12 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     const year = formValue.year || new Date().getFullYear();
     const month = formValue.month || new Date().getMonth() + 1;
 
+    // Prevent loading payroll data if not re-authenticated
+    if (this.selectedTabIndex === 3 && !this.authService.isReAuthenticated()) {
+      this.showReAuthModal = true;
+      return;
+    }
+
     this.isLoadTable = true;
 
     this.syntheticService.getPersonalSyntheticByMonth(year, month).subscribe({
@@ -725,8 +771,8 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
             this.loadTimekeepingTable(data.listChamcong);
           }
 
-          // Load payroll data
-          if (data.payroll) {
+          // Load payroll data - only if re-authenticated
+          if (data.payroll && this.authService.isReAuthenticated()) {
             // Handle both array and object cases
             if (Array.isArray(data.payroll)) {
               this.payrollData = data.payroll;
@@ -868,6 +914,78 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     if (value) {
       this.loadData();
     }
+  }
+
+  // --- Re-authentication Handlers ---
+  handleReAuth(): void {
+    if (!this.reAuthPassword) {
+      this.errorMessage = 'Vui lòng nhập mật khẩu';
+      return;
+    }
+
+    this.isVerifying = true;
+    this.errorMessage = '';
+
+    this.authService.verifyPassword(this.reAuthPassword).subscribe({
+      next: (res) => {
+        this.isVerifying = false;
+        if (res && (res.status === 1 || res.access_token)) {
+          this.authService.setReAuthenticated(true);
+          this.showReAuthModal = false;
+          this.failedAttempts = 0;
+
+          if (this.pendingTabIndex !== -1) {
+            this.selectedTabIndex = this.pendingTabIndex;
+            this.onTabChange(this.selectedTabIndex);
+            this.pendingTabIndex = -1;
+          }
+        } else {
+          this.reAuthPassword = ''; // Clear password on failure
+          this.handleReAuthError(res?.message || 'Mật khẩu không chính xác. Vui lòng thử lại.');
+        }
+      },
+      error: (err) => {
+        this.isVerifying = false;
+        this.reAuthPassword = ''; // Clear password on error
+        this.handleReAuthError(err?.error?.message || 'Lỗi xác thực. Vui lòng thử lại.');
+      },
+    });
+  }
+
+  private handleReAuthError(message: string): void {
+    this.failedAttempts++;
+
+    if (this.failedAttempts >= 3) {
+      this.showReAuthModal = false;
+      this.errorMessage = 'Cảnh báo bảo mật: Bạn đã nhập sai mật khẩu quá 3 lần. Hệ thống sẽ tự động đăng xuất để bảo vệ thông tin cá nhân của bạn.';
+      this.showErrorPopup = true;
+    } else {
+      this.errorMessage = `${message} (Còn ${3 - this.failedAttempts} lần thử)`;
+    }
+  }
+
+  cancelReAuth(): void {
+    this.showReAuthModal = false;
+    this.reAuthPassword = '';
+    this.errorMessage = '';
+    this.pendingTabIndex = -1;
+
+    // If cancel on the dedicated payroll route, go back or to summary
+    const url = this.router.url;
+    if (url.includes('person-summary-payroll')) {
+      this.router.navigate(['/home']);
+    } else {
+      this.selectedTabIndex = 0;
+      this.initializeTableForTab(0);
+      this.loadData();
+    }
+  }
+
+  closeErrorPopup(): void {
+    this.showErrorPopup = false;
+    this.authService.logout();
+    // Use the base path for login
+    this.router.navigate(['/login']);
   }
 }
 

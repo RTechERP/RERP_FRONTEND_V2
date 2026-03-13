@@ -1187,6 +1187,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       Reason: '',
       IsProblem: false
     }, { emitEvent: false });
+    this.calculateTotalHour(this.overTimeForm);
     this.isProblemValue = false;
     this.attachFileName = '';
     this.selectedFile = null;
@@ -2481,6 +2482,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
 
     this.attachMinutePrecisionForForm(newForm);
     this.attachFormValidationSubscriptions(newForm);
+    this.calculateTotalHour(newForm);
 
     return newForm;
   }

@@ -27,13 +27,15 @@ import { BillExportService } from '../../BillExport/bill-export-service/bill-exp
 import { BillImportTabsComponent } from '../../BillImport/Modal/bill-import-tabs/bill-import-tabs.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { SummaryReturnDetailComponent } from '../../BillImport/Modal/summary-return-detail/summary-return-detail.component';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { ActivatedRoute } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { PermissionService } from '../../../../../services/permission.service';
+import { AppUserService } from '../../../../../services/app-user.service';
 
 @Component({
     selector: 'app-history-borrow-sale-new',
@@ -66,6 +68,9 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         private modalService: NgbModal,
         private billExportService: BillExportService,
         private route: ActivatedRoute,
+        private permissionService: PermissionService,
+        private appUserService: AppUserService,
+        private modal: NzModalService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -73,9 +78,12 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         { ID: 0, Name: '--Tất cả--' },
         { ID: 1, Name: 'Chưa trả' },
         { ID: 2, Name: 'Đã trả' },
+        { ID: 3, Name: 'Đăng ký gia hạn' },
+        { ID: 4, Name: 'Yêu cầu mượn' },
     ];
     dateFormat = 'dd/MM/yyyy';
 
+    productGroupWarehouse: any[] = [];
     cbbProductGroup: any[] = [];
     cbbEmployee: any[] = [];
     warehouseCode: string = 'HN';
@@ -107,6 +115,11 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
 
     excelExportService = new ExcelExportService();
 
+    extendModalVisible = false;
+    extendDate: Date = new Date(new Date().setMonth(new Date().getMonth() + 1));
+    extendMinDate: Date = new Date(new Date().setDate(new Date().getDate() + 1));
+    private _extendSelectedIds: number[] = [];
+
     ngOnInit(): void {
         this.route.queryParams.subscribe(params => {
             // this.warehouseCode = params['warehouseCode'] || 'HN';
@@ -129,6 +142,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         this.initMenuItems();
         this.getCbbEmployee();
         this.getCbbProductGroup();
+        this.getProductGroupWarehouse();
         this.initGrid();
     }
 
@@ -136,24 +150,34 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         this.menuItems = [
             {
                 label: 'Tạo phiếu trả',
-                icon: 'pi pi-plus',
+                icon: 'fa fa-plus text-success',
                 command: () => this.createImport()
             },
             {
                 label: 'Đã trả',
-                icon: 'pi pi-check',
+                icon: 'fa-solid fa-circle-check text-success',
                 command: () => this.IsApprovedReturned(true)
             },
             {
                 label: 'Hủy trả',
-                icon: 'pi pi-times',
+                icon: 'fa-solid fa-circle-xmark text-danger',
                 command: () => this.IsApprovedReturned(false)
             },
             {
                 label: 'Xuất Excel',
-                icon: 'pi pi-file-excel',
+                icon: 'fa-solid fa-file-excel text-success',
                 command: () => this.exportExcel()
-            }
+            },
+            {
+                label: 'Gia hạn',
+                icon: 'fa-solid fa-calendar-days text-warning',
+                command: () => this.onExtend()
+            },
+            {
+                label: 'Duyệt gia hạn',
+                icon: 'fa-solid fa-circle-check text-success',
+                command: () => this.onApproveExtend(true)
+            },
         ];
     }
 
@@ -168,8 +192,13 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                     }))
                 ];
             },
-            error: (_err: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu nhân viên');
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
             },
         });
     }
@@ -177,13 +206,36 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
     getCbbProductGroup() {
         this.billExportService.getCbbProductGroup().subscribe({
             next: (res: any) => {
+                console.log(res.data);
+
                 this.cbbProductGroup = [
                     { ID: 0, ProductGroupName: '--Chọn--' },
                     ...res.data
                 ];
             },
-            error: (_err: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu kho');
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+            },
+        });
+    }
+
+    getProductGroupWarehouse() {
+        this.historyBorrowSaleService.getProductGroupWarehouse().subscribe({
+            next: (res: any) => {
+                this.productGroupWarehouse = res.data;
+            },
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
             },
         });
     }
@@ -236,6 +288,17 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 id: 'ExpectReturnDate',
                 name: 'Ngày dự kiến trả',
                 field: 'ExpectReturnDate',
+                sortable: true,
+                filterable: true,
+                width: 140,
+                formatter: this.dateFormatter,
+                filter: { model: Filters['compoundDate'] },
+                cssClass: 'text-center'
+            },
+            {
+                id: 'ExpectedReturnDate',
+                name: 'Ngày đăng ký gia hạn',
+                field: 'ExpectedReturnDate',
                 sortable: true,
                 filterable: true,
                 width: 140,
@@ -720,15 +783,8 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                         if (item.DualDate === 1) {
                             rowClass = 'row-dual';
                         }
-                        if (item.ExpectReturnDate) {
-                            const expectDate = new Date(item.ExpectReturnDate);
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            expectDate.setHours(0, 0, 0, 0);
-
-                            if (expectDate < today) {
-                                rowClass = 'row-overdue';
-                            }
+                        if (item.DualDate === 2) {
+                            rowClass = 'row-overdue';
                         }
 
                         return {
@@ -740,8 +796,6 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
 
                     // Update filter collections from dataset
                     this.updateFilterCollections();
-
-                    console.log('this dataset:', this.dataset);
                     this.loading = false;
                 },
                 error: (_err: any) => {
@@ -959,4 +1013,130 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             this.loadData();
         });
     }
+
+    //#region Duyệt gia hạn
+    onApproveExtend(isApproved: boolean) {
+        const angularGrid = this.angularGrid;
+        if (!angularGrid) return;
+
+        const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+        const selectedRows = selectedRowIndexes
+            .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+            .filter((item: any) => item);
+
+        if (selectedRows.length <= 0) {
+            this.notification.info('Thông báo', 'Vui lòng chọn ít nhất 1 sản phẩm để duyệt gia hạn!');
+            return;
+        }
+
+        const personInChargeID = this.appUserService.employeeID;
+
+        const groupSet = new Set(
+            this.productGroupWarehouse
+                .filter(x => x.EmployeeID === personInChargeID)
+                .map(x => x.ProductGroupID)
+        );
+
+        const filteredRows = selectedRows.filter(row =>
+            groupSet.has(row.ProductGroupID) && row.BorrowReturnStatus === 2 && row.WarehouseID === this.warehouseID
+        );
+
+        if (filteredRows.length === 0) {
+            this.notification.info('Thông báo', 'Không có sản phẩm phù hợp để duyệt gia hạn!');
+            return;
+        }
+
+        let selectedIds = filteredRows.map((item: any) => item.BorrowID);
+
+        this.modal.confirm({
+            nzTitle: `Xác nhận duyệt gia hạn`,
+            nzContent: `Bạn có chắc chắn muốn duyệt các sản phẩm đã chọn không?`,
+            nzOkText: 'OK',
+            nzOkType: 'primary',
+            nzCancelText: 'Hủy',
+            nzOnOk: () => {
+                this.historyBorrowSaleService.approvedExtendProduct(selectedIds, isApproved).subscribe({
+                    next: (res) => {
+                        this.loadData();
+                        this.notification.success('Thành công', 'Duyệt gia hạn thành công!');
+                    },
+                    error: (err: any) => {
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            {
+                                nzStyle: { whiteSpace: 'pre-line' }
+                            }
+                        );
+                    },
+                });
+            },
+        });
+    }
+    //#endregion
+
+    //#region Gia hạn
+    disabledExtendDate = (current: Date): boolean => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const maxDate = new Date(today);
+        maxDate.setMonth(maxDate.getMonth() + 1);
+
+        return current <= today || current > maxDate;
+    };
+
+    onExtend() {
+        const angularGrid = this.angularGrid;
+        if (!angularGrid) return;
+
+        const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+        const selectedRows = selectedRowIndexes
+            .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+            .filter((item: any) => item);
+
+        if (selectedRows.length <= 0) {
+            this.notification.info('Thông báo', 'Vui lòng chọn ít nhất 1 sản phẩm để gia hạn!');
+            return;
+        }
+
+        const employeeID = this.appUserService.id;
+        const filteredRows = selectedRows
+            .filter((item: any) => item.UserID === employeeID
+                && item.DualDate == 2
+                && item.StatusApprovedExpected != 0);
+
+        if (filteredRows.length === 0 && !this.appUserService.isAdmin) {
+            this.notification.info('Thông báo', 
+                'Không có dữ liệu hợp lệ để gia hạn. Bạn chỉ có thể gia hạn sản phẩm do bạn mượn và quá hạn!');
+            return;
+        }
+
+        this._extendSelectedIds = !this.appUserService.isAdmin ?
+            filteredRows.map((item: any) => item.BorrowID) :
+            selectedRows.map((item: any) => item.BorrowID);
+        this.extendDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
+        this.extendModalVisible = true;
+    }
+
+    submitExtend() {
+        const extendDateTime = DateTime.fromJSDate(this.extendDate).toFormat("yyyy-MM-dd'T'HH:mm:ss");
+        this.historyBorrowSaleService.extendProduct(this._extendSelectedIds, extendDateTime).subscribe({
+            next: () => {
+                this.extendModalVisible = false;
+                this.notification.success(NOTIFICATION_TITLE.success, 'Gia hạn thành công!');
+                this.loadData();
+            },
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+            },
+        });
+    }
+    //#endregion
 }

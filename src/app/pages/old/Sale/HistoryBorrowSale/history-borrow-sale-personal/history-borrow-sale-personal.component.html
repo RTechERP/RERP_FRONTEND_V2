@@ -1,214 +1,201 @@
-<div
-  class="card h-100 border-0 rounded-0 history-borrow-sale-new-card history-borrow-sale-new-h-100 history-borrow-sale-new-border-0 history-borrow-sale-new-rounded-0"
->
-  <!-- Toolbar -->
-  <div
-    class="card-header bg-white p-0 history-borrow-sale-new-card-header history-borrow-sale-new-bg-white history-borrow-sale-new-p-0"
-  >
-    <p-menubar [model]="menuItems">
-      <ng-template #end>
-        <div
-          class="d-flex gap-2 align-items-center history-borrow-sale-new-d-flex history-borrow-sale-new-gap-2 history-borrow-sale-new-align-items-center"
-        >
-          <div class="color-legend history-borrow-sale-new-color-legend">
-            <span
-              class="color-box color-dual history-borrow-sale-new-color-box history-borrow-sale-new-color-dual"
-            ></span>
-            <span class="fs-12 history-borrow-sale-new-fs-12">Sắp hết hạn</span>
-          </div>
-          <div class="color-legend history-borrow-sale-new-color-legend">
-            <span
-              class="color-box color-overdue history-borrow-sale-new-color-box history-borrow-sale-new-color-overdue"
-            ></span>
-            <span class="fs-12 history-borrow-sale-new-fs-12">Quá hạn</span>
-          </div>
-        </div>
-      </ng-template>
-    </p-menubar>
-  </div>
-
-  <!-- Filter Form - Ngang -->
-  <div
-    class="card-body p-2 bg-light history-borrow-sale-new-card-body history-borrow-sale-new-p-2 history-borrow-sale-new-bg-light"
-  >
-    <form nz-form nzLayout="inline" class="w-100 history-borrow-sale-new-w-100">
-      <nz-form-item class="mb-2 history-borrow-sale-new-mb-2 me-2">
-        <label
-          class="fs-12 me-2 mt-1 history-borrow-sale-new-fs-12 history-borrow-sale-new-me-2 history-borrow-sale-new-mt-1"
-          >Từ ngày</label
-        >
-        <nz-form-control>
-          <nz-date-picker
-            [nzFormat]="dateFormat"
-            nzSize="small"
-            [(ngModel)]="searchParams.dateStart"
-            name="dateStart"
-            (keyup.enter)="searchData()"
-          >
-          </nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item class="mb-2 history-borrow-sale-new-mb-2 me-2">
-        <label
-          class="fs-12 me-2 mt-1 history-borrow-sale-new-fs-12 history-borrow-sale-new-me-2 history-borrow-sale-new-mt-1"
-          >Đến ngày</label
-        >
-        <nz-form-control>
-          <nz-date-picker
-            [nzFormat]="dateFormat"
-            nzSize="small"
-            [(ngModel)]="searchParams.dateEnd"
-            name="dateEnd"
-            (keyup.enter)="searchData()"
-          >
-          </nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item class="me-2">
-        <nz-form-label class="fs-12 history-borrow-sale-new-fs-12"
-          >Lọc kho</nz-form-label
-        >
-        <nz-form-control>
-          <nz-select
-            class="w-100 history-borrow-sale-new-w-100"
-            nzShowSearch
-            nzAllowClear
-            nzSize="small"
-            nzPlaceHolder="Chọn kho"
-            style="width: 200px !important"
-            [(ngModel)]="searchParams.productGroupID"
-            name="productGroupID"
-            (ngModelChange)="onProductGroupChange($event)"
-          >
-            <nz-option
-              *ngFor="let item of cbbProductGroup"
-              [nzValue]="item.ID"
-              [nzLabel]="item.ProductGroupName"
-            ></nz-option>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item class="mb-2 history-borrow-sale-new-mb-2 me-2">
-        <label
-          class="fs-12 me-2 mt-1 history-borrow-sale-new-fs-12 history-borrow-sale-new-me-2 history-borrow-sale-new-mt-1"
-          >Trạng thái</label
-        >
-        <nz-form-control>
-          <nz-select
-            class="select-status history-borrow-sale-new-select-status"
-            nzShowSearch
-            nzSize="small"
-            [(ngModel)]="searchParams.status"
-            name="status"
-            (ngModelChange)="onStatusChange($event)"
-            style="width: 150px !important"
-          >
-            <nz-option
-              *ngFor="let item of cbbStatus"
-              [nzValue]="item.ID"
-              [nzLabel]="item.Name"
-            ></nz-option>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item class="mb-2 history-borrow-sale-new-mb-2 me-2">
-        <label
-          class="fs-12 me-2 mt-1 history-borrow-sale-new-fs-12 history-borrow-sale-new-me-2 history-borrow-sale-new-mt-1"
-          >Từ khóa</label
-        >
-        <nz-form-control>
-          <input
-            (keyup.enter)="searchData()"
-            class="input-keyword history-borrow-sale-new-input-keyword"
-            nz-input
-            placeholder="Nhập từ khóa"
-            [(ngModel)]="searchParams.keyword"
-            name="keyword"
-            nzSize="small"
-          />
-        </nz-form-control>
-      </nz-form-item>
-
-      <!-- Nút tìm kiếm với dropdown cho filter bổ sung -->
-      <nz-form-item class="mb-2 history-borrow-sale-new-mb-2">
-        <nz-form-control>
-          <div class="btn-group history-borrow-sale-new-btn-group">
-            <button
-              type="button"
-              nz-button
-              nzType="primary"
-              nzSize="small"
-              (click)="searchData()"
-            >
-              Tìm kiếm
-            </button>
-            <!-- <button
-              type="button"
-              nz-button
-              nzType="primary"
-              nzSize="small"
-              nz-dropdown
-              [nzDropdownMenu]="advancedFiltersMenu"
-              nzTrigger="click"
-              nzPlacement="bottomRight"
-              title="Bộ lọc nâng cao"
-              class="ps-2 pe-2 history-borrow-sale-new-ps-2 history-borrow-sale-new-pe-2"
-            >
-              <i nz-icon nzType="down"></i>
-            </button>
-            <nz-dropdown-menu #advancedFiltersMenu="nzDropdownMenu">
-              <div
-                class="p-3 advanced-filters-container history-borrow-sale-new-p-3 history-borrow-sale-new-advanced-filters-container"
-              >
-                <ng-container
-                  [ngTemplateOutlet]="advancedFiltersTemplate"
-                ></ng-container>
-              </div>
-            </nz-dropdown-menu> -->
-          </div>
-        </nz-form-control>
-      </nz-form-item>
-    </form>
-    <!-- Grid Container -->
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0" style="background: transparent">
     <div
-      class="p-0 position-relative history-borrow-sale-new-p-0 history-borrow-sale-new-position-relative"
-      [ngClass]="'grid-container' + warehouseCode"
+      class="card-header bg-white p-0 history-borrow-sale-new-card-header history-borrow-sale-new-bg-white history-borrow-sale-new-p-0"
     >
-      <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu...">
-        <angular-slickgrid
-          [gridId]="'historyBorrowSalePersonalGrid-' + warehouseCode"
-          [columns]="columnDefinitions"
-          [options]="gridOptions"
-          [dataset]="dataset"
-          (onAngularGridCreated)="angularGridReady($event.detail)"
-        >
-        </angular-slickgrid>
-      </nz-spin>
+      <p-menubar [model]="menuItems" class="p-1">
+        <ng-template #end>
+          <div
+            class="d-flex gap-2 align-items-center history-borrow-sale-new-d-flex history-borrow-sale-new-gap-2 history-borrow-sale-new-align-items-center"
+          >
+            <div class="color-legend history-borrow-sale-new-color-legend">
+              <span
+                class="color-box color-dual history-borrow-sale-new-color-box history-borrow-sale-new-color-dual"
+              ></span>
+              <span class="fs-12 history-borrow-sale-new-fs-12"
+                >Sắp hết hạn</span
+              >
+            </div>
+            <div class="color-legend history-borrow-sale-new-color-legend">
+              <span
+                class="color-box color-overdue history-borrow-sale-new-color-box history-borrow-sale-new-color-overdue"
+              ></span>
+              <span class="fs-12 history-borrow-sale-new-fs-12">Quá hạn</span>
+            </div>
+          </div>
+        </ng-template>
+      </p-menubar>
+    </div>
+    <div
+      class="filter-bar bg-light border-bottom p-2 py-0"
+      *ngIf="shouldShowSearchBar"
+      [class.mobile-modal]="true"
+    >
+      <form
+        nz-form
+        nzLayout="inline"
+        class="w-100 history-borrow-sale-new-w-100"
+      >
+        <nz-form-item class="history-borrow-sale-new-mb-2 me-2">
+          <label
+            class="fs-12 me-2 mt-1 history-borrow-sale-new-fs-12 history-borrow-sale-new-me-2 history-borrow-sale-new-mt-1"
+            >Từ ngày</label
+          >
+          <nz-form-control>
+            <nz-date-picker
+              [nzFormat]="dateFormat"
+              nzSize="small"
+              [(ngModel)]="searchParams.dateStart"
+              name="dateStart"
+              (keyup.enter)="searchData()"
+            >
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="history-borrow-sale-new-mb-2 me-2">
+          <label
+            class="fs-12 me-2 mt-1 history-borrow-sale-new-fs-12 history-borrow-sale-new-me-2 history-borrow-sale-new-mt-1"
+            >Đến ngày</label
+          >
+          <nz-form-control>
+            <nz-date-picker
+              [nzFormat]="dateFormat"
+              nzSize="small"
+              [(ngModel)]="searchParams.dateEnd"
+              name="dateEnd"
+              (keyup.enter)="searchData()"
+            >
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item class="me-2">
+          <nz-form-label class="fs-12 history-borrow-sale-new-fs-12"
+            >Lọc kho</nz-form-label
+          >
+          <nz-form-control>
+            <nz-select
+              class="w-100 history-borrow-sale-new-w-100"
+              nzShowSearch
+              nzAllowClear
+              nzSize="small"
+              nzPlaceHolder="Chọn kho"
+              [(ngModel)]="searchParams.productGroupID"
+              name="productGroupID"
+              (ngModelChange)="onProductGroupChange($event)"
+              style="width: 180px !important"
+            >
+              <nz-option
+                *ngFor="let item of cbbProductGroup"
+                [nzValue]="item.ID"
+                [nzLabel]="item.ProductGroupName"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="history-borrow-sale-new-mb-2 me-2">
+          <label
+            class="fs-12 me-2 mt-1 history-borrow-sale-new-fs-12 history-borrow-sale-new-me-2 history-borrow-sale-new-mt-1"
+            >Trạng thái</label
+          >
+          <nz-form-control>
+            <nz-select
+              class="select-status history-borrow-sale-new-select-status"
+              nzShowSearch
+              nzSize="small"
+              [(ngModel)]="searchParams.status"
+              name="status"
+              (ngModelChange)="onStatusChange($event)"
+              style="width: 180px"
+            >
+              <nz-option
+                *ngFor="let item of cbbStatus"
+                [nzValue]="item.ID"
+                [nzLabel]="item.Name"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="history-borrow-sale-new-mb-2 me-2">
+          <label
+            class="fs-12 me-2 mt-1 history-borrow-sale-new-fs-12 history-borrow-sale-new-me-2 history-borrow-sale-new-mt-1"
+            >Từ khóa</label
+          >
+          <nz-form-control>
+            <input
+              (keyup.enter)="searchData()"
+              class="input-keyword history-borrow-sale-new-input-keyword"
+              nz-input
+              placeholder="Nhập từ khóa"
+              [(ngModel)]="searchParams.keyword"
+              name="keyword"
+              nzSize="small"
+            />
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Nút tìm kiếm với dropdown cho filter bổ sung -->
+        <nz-form-item class="history-borrow-sale-new-mb-2">
+          <nz-form-control>
+            <div class="btn-group history-borrow-sale-new-btn-group">
+              <button
+                type="button"
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                (click)="searchData()"
+              >
+                Tìm kiếm
+              </button>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </div>
+    <div class="card-body p-0" style="height: calc(100vh - 200px)">
+      <div
+        class="p-0 position-relative history-borrow-sale-new-p-0 history-borrow-sale-new-position-relative"
+        [ngClass]="'grid-container' + warehouseCode"
+      >
+        <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu...">
+          <angular-slickgrid
+            [gridId]="'historyBorrowSalePersonalGrid-' + warehouseCode"
+            [columns]="columnDefinitions"
+            [options]="gridOptions"
+            [dataset]="dataset"
+            (onAngularGridCreated)="angularGridReady($event.detail)"
+          >
+          </angular-slickgrid>
+        </nz-spin>
+      </div>
     </div>
   </div>
-</div>
+</ng-container>
 
-<!-- Advanced Filters Template -->
-<ng-template #advancedFiltersTemplate>
-  <div
-    class="advanced-filters-content history-borrow-sale-new-advanced-filters-content"
-  >
-    <form nz-form nzLayout="vertical">
-      <!-- <nz-form-item class="mt-1 history-borrow-sale-new-mt-1">
-                <nz-form-label class="fs-12 history-borrow-sale-new-fs-12">Nhân viên</nz-form-label>
-                <nz-form-control>
-                    <nz-select class="w-100 history-borrow-sale-new-w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn nhân viên"
-                        [(ngModel)]="searchParams.employeeID" name="employeeID"
-                        (ngModelChange)="onEmployeeChange($event)">
-                        <nz-option *ngFor="let item of cbbEmployee" [nzValue]="item.ID"
-                            [nzLabel]="item.FullName"></nz-option>
-                    </nz-select>
-                </nz-form-control>
-            </nz-form-item> -->
-    </form>
-  </div>
-</ng-template>
+<nz-modal
+  [(nzVisible)]="extendModalVisible"
+  nzTitle="Gia hạn ngày trả"
+  [nzOkText]="'Xác nhận'"
+  [nzCancelText]="'Hủy'"
+  (nzOnOk)="submitExtend()"
+  (nzOnCancel)="extendModalVisible = false"
+  [nzWidth]="360"
+>
+  <ng-container *nzModalContent>
+    <div class="d-flex flex-column gap-2 px-2 py-1">
+      <label class="fs-12 fw-semibold"
+        >Chọn ngày gia hạn <span class="text-danger">(*)</span></label
+      >
+      <nz-date-picker
+        [(ngModel)]="extendDate"
+        [nzFormat]="'dd/MM/yyyy'"
+        [nzDisabledDate]="disabledExtendDate"
+        [nzShowToday]="false"
+        nzSize="default"
+        class="w-100"
+      ></nz-date-picker>
+    </div>
+  </ng-container>
+</nz-modal>

@@ -16,7 +16,7 @@ import { PermissionService } from '../../../services/permission.service';
 import { GroupItem, LeafItem, MenuItem, MenuService } from '../../../pages/systems/menus/menu-service/menu.service';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { FormsModule } from '@angular/forms';
 import { MenuAppService } from '../../../pages/systems/menu-app/menu-app.service';
 import { environment } from '../../../../environments/environment';
@@ -45,6 +45,7 @@ import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newslet
 import { DateTime } from 'luxon';
 import { UpdateVersionDetailComponent } from '../../../pages/systems/update-version/update-version-detail/update-version-detail.component';
 import { NzButtonModule } from "ng-zorro-antd/button";
+import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -108,6 +109,10 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     quantityApprove: any = {};
     quantityBorrow: any = {};
     quantityBorrowExpried: any = {};
+    quantityBorrowSale: any = {};
+    quantityBorrowExpriedSale: any = {};
+    hasBorrowSale: boolean = true;
+    hasBorrowDemo: boolean = true;
 
     isHoliday(date: Date): boolean {
         let isHoliday = this.holidays.some(
@@ -153,6 +158,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         private approveTpService: ApproveTpService,
         private modalService: NgbModal,
         private borrowService: BorrowService,
+        private historyBorrowSaleService: HistoryBorrowSaleService,
         private updateVersionService: UpdateVersionService,
         private nzModal: NzModalService,
         public notifService: NotificationService,
@@ -204,38 +210,92 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
 
     getQuantityBorrow() {
+        // Lấy dữ liệu số lượng mượn vật tư kho demo
         this.borrowService.getQuantityBorrow().subscribe({
             next: (res: any) => {
                 this.quantityBorrow = res.data.QuantitySemiExpired;
                 this.quantityBorrowExpried = res.data.QuantityExpired;
-
+                if (this.quantityBorrow > 0 || this.quantityBorrowExpried > 0) {
+                    this.hasBorrowDemo = false;
+                }
                 if (this.quantityBorrow > 0) {
                     this.notifService.addItem({
                         id: 1,
                         time: new Date().toISOString(),
-                        title: 'Vật tư sắp hết hạn',
+                        title: 'Vật tư sắp hết hạn kho demo',
                         text: `Bạn đang có ${this.quantityBorrow} vật tư mượn sắp hết hạn`,
                         group: 'today',
                         icon: 'clock-circle',
-                        route: 'history-product-rtc-personal'
+                        route: 'summary-asset-persional'
                     });
                 }
                 if (this.quantityBorrowExpried > 0) {
                     this.notifService.addItem({
                         id: 2,
                         time: new Date().toISOString(),
-                        title: 'Vật tư quá hạn',
+                        title: 'Vật tư quá hạn kho demo',
                         text: `Bạn đang có ${this.quantityBorrowExpried} vật tư mượn quá hạn`,
                         group: 'today',
                         icon: 'warning',
-                        route: 'history-product-rtc-personal'
+                        route: 'summary-asset-persional'
                     });
                 }
             },
             error: (err: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         });
+
+        this.historyBorrowSaleService.getQuantityBorrow().subscribe({
+            next: (res: any) => {
+                this.quantityBorrowSale = res.data.quantityBorrowSale;
+                this.quantityBorrowExpriedSale = res.data.quantityBorrowExpriedSale;
+
+                if (this.quantityBorrowSale > 0 || this.quantityBorrowExpriedSale > 0) {
+                    this.hasBorrowSale = false;
+                }
+                if (this.quantityBorrowSale > 0) {
+                    this.notifService.addItem({
+                        id: 3,
+                        time: new Date().toISOString(),
+                        title: 'Vật tư sắp hết hạn kho sale',
+                        text: `Bạn đang có ${this.quantityBorrowSale} vật tư mượn sắp hết hạn`,
+                        group: 'today',
+                        icon: 'clock-circle',
+                        route: 'summary-asset-persional'
+                    });
+                }
+                if (this.quantityBorrowExpriedSale > 0) {
+                    this.notifService.addItem({
+                        id: 4,
+                        time: new Date().toISOString(),
+                        title: 'Vật tư quá hạn kho sale',
+                        text: `Bạn đang có ${this.quantityBorrowExpriedSale} vật tư mượn quá hạn`,
+                        group: 'today',
+                        icon: 'warning',
+                        route: 'summary-asset-persional'
+                    });
+                }
+            },
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
+            }
+        });
+
     }
 
     newTabApprove() {
@@ -348,7 +408,11 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     }
 
     onPickHistoryProduct() {
-        this.newTab('history-product-rtc-personal', '');
+        this.newTab('summary-asset-persional', '');
+    }
+
+    onPickHistoryProductSale() {
+        this.newTab('summary-asset-persional', '');
     }
 
 

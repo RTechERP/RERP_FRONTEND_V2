@@ -495,6 +495,9 @@ export class BillExportDetailNewComponent
         });
         this.newBillExport.Status = this.newBillExport.Status || 6;
 
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
         // Bind selectedList vào dataDetail
         if (this.selectedList && this.selectedList.length > 0) {
             this.dataDetail = this.selectedList.map((item: any, index: number) => ({
@@ -514,7 +517,7 @@ export class BillExportDetailNewComponent
                 Note: item.Note || '',
                 ExpectReturnDate: item.ExpectReturnDate
                     ? new Date(item.ExpectReturnDate)
-                    : new Date(),
+                    : expectReturnDate,
                 UnitPricePOKH: item.UnitPricePOKH || 0,
                 UnitPricePurchase: item.UnitPricePurchase || 0,
                 BillCode: item.BillCode || '',
@@ -578,6 +581,9 @@ export class BillExportDetailNewComponent
             this.getNewCode();
         }
 
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
         // Bind selectedList vào dataDetail
         if (this.selectedList && this.selectedList.length > 0) {
             this.dataDetail = this.selectedList.map((item: any, index: number) => ({
@@ -598,7 +604,7 @@ export class BillExportDetailNewComponent
                 ProjectCode: item.ProjectCode || '',
                 ExpectReturnDate: item.ExpectReturnDate
                     ? new Date(item.ExpectReturnDate)
-                    : new Date(),
+                    : expectReturnDate,
                 UnitPricePOKH: item.UnitPricePOKH || 0,
                 UnitPricePurchase: item.UnitPricePurchase || 0,
                 BillCode: item.BillCode || '',
@@ -678,6 +684,9 @@ export class BillExportDetailNewComponent
 
         this.getNewCode();
 
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
         if (this.selectedList && this.selectedList.length > 0) {
             this.dataDetail = this.selectedList.map((item: any, index: number) => ({
                 ID: -(index + 1),
@@ -696,7 +705,7 @@ export class BillExportDetailNewComponent
                 Note: item.Note || '',
                 ExpectReturnDate: item.ExpectReturnDate
                     ? new Date(item.ExpectReturnDate)
-                    : new Date(),
+                    : expectReturnDate,
                 POKHID: item.POKHID || 0,
                 SerialNumber: item.SerialNumber || '',
             }));
@@ -1053,7 +1062,13 @@ export class BillExportDetailNewComponent
                     const year = date.getFullYear();
                     return `${day}/${month}/${year}`;
                 },
-                editor: { model: Editors['date'] },
+                editor: {
+                    model: Editors['date'],
+                    editorOptions: {
+                        minDate: 'today',
+                        maxDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+                    },
+                },
             },
             {
                 id: 'UnitPricePOKH',
@@ -1419,6 +1434,9 @@ export class BillExportDetailNewComponent
             .map((x) => Math.abs(Number(x?.ID)));
         const nextTempId = tempIds.length > 0 ? Math.max(...tempIds) + 1 : 1;
 
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
         const newRow = {
             ID: -nextTempId,
             ProductID: 0,
@@ -1434,7 +1452,7 @@ export class BillExportDetailNewComponent
             ProjectCodeExport: '',
             ProjectNameText: '',
             Note: '',
-            ExpectReturnDate: new Date(),
+            ExpectReturnDate: expectReturnDate,
             UnitPricePOKH: 0,
             UnitPricePurchase: 0,
             BillCode: '',

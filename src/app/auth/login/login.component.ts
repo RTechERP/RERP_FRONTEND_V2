@@ -44,6 +44,10 @@ export class LoginComponent {
     }
 
     ngOnInit(): void {
+        if (this.authService.isLoggedIn()) {
+            this.router.navigate(['/home']);
+            return;
+        }
         this.loadRememberLogin();
         this.returnUrl =
             this.route.snapshot.queryParamMap.get('returnUrl') || '/home';

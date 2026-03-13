@@ -100,16 +100,17 @@
 
             <!-- Tab: BẢNG LƯƠNG (Payroll) -->
             <div [hidden]="selectedTabIndex !== 3" class="w-100 payroll-tab-container">
-                <div id="group_btn_action_payroll" class="p-2" style="border:none !important"
-                    *ngIf="payrollData && payrollData.length > 0">
-                    <button nz-button nzType="default" nzSize="small" class="me-1" (click)="onConfirmPayroll()">
-                        <span nz-icon nzType="check"></span> Confirm
-                    </button>
-                    <button nz-button nzType="default" nzSize="small" nzDanger (click)="onCancelPayroll()">
-                        <span nz-icon nzType="close"></span> Cancel
-                    </button>
-                </div>
-                <div class="table-responsive-xl">
+                <ng-container *ngIf="authService.isReAuthenticated()">
+                    <div id="group_btn_action_payroll" class="p-2" style="border:none !important"
+                        *ngIf="payrollData && payrollData.length > 0">
+                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="onConfirmPayroll()">
+                            <span nz-icon nzType="check"></span> Confirm
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" nzDanger (click)="onCancelPayroll()">
+                            <span nz-icon nzType="close"></span> Cancel
+                        </button>
+                    </div>
+                    <div class="table-responsive-xl">
                     <table class="table table-bordered table-sm m-0" id="tbl_employee_payroll"
                         [class.payroll-confirmed]="payrollData && payrollData.length > 0 && payrollData[0]?.Sign">
                         <thead class="text-center">
@@ -311,7 +312,73 @@
                         </tbody>
                     </table>
                 </div>
+                </ng-container>
             </div>
         </div>
     </div>
 </ng-container>
+
+<!-- Re-authentication Modal -->
+<nz-modal [(nzVisible)]="showReAuthModal" [nzClosable]="false" [nzMaskClosable]="false" [nzFooter]="null"
+    nzCentered [nzWidth]="400" nzClassName="reauth-modal">
+    <ng-container *nzModalContent>
+        <div class="reauth-container">
+            <div class="reauth-header">
+                <div class="lock-icon">
+                    <span nz-icon nzType="lock" nzTheme="outline"></span>
+                </div>
+                <h3>Xác thực bảo mật</h3>
+                <p>Vì lý do bảo mật, vui lòng nhập lại mật khẩu của bạn để truy cập thông tin Công & Lương.</p>
+            </div>
+
+            <div class="reauth-body">
+                <div class="input-wrapper">
+                    <label>Mật khẩu xác nhận</label>
+                    <nz-input-group [nzSuffix]="suffixTemplate" nzSize="large" [class.input-error]="errorMessage">
+                        <input [type]="passwordVisible ? 'text' : 'password'" nz-input placeholder="••••••••"
+                            [(ngModel)]="reAuthPassword" (keyup.enter)="handleReAuth()" />
+                    </nz-input-group>
+                    <ng-template #suffixTemplate>
+                        <span nz-icon [nzType]="passwordVisible ? 'eye-invisible' : 'eye'"
+                            (click)="passwordVisible = !passwordVisible" class="password-toggle"></span>
+                    </ng-template>
+                    
+                    <div class="error-helper" *ngIf="errorMessage">
+                        <span nz-icon nzType="close-circle" nzTheme="fill"></span>
+                        <span>{{errorMessage}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reauth-footer">
+                <button nz-button nzType="text" (click)="cancelReAuth()" class="btn-cancel">
+                    Quay lại
+                </button>
+                <button nz-button nzType="primary" (click)="handleReAuth()" [nzLoading]="isVerifying" nzSize="large"
+                    class="btn-confirm">
+                    Xác nhận
+                </button>
+            </div>
+        </div>
+    </ng-container>
+</nz-modal>
+
+<!-- Error Popup for multiple failed attempts -->
+<div *ngIf="showErrorPopup" class="error-popup-overlay" (click)="closeErrorPopup()">
+    <div class="error-popup-container" (click)="$event.stopPropagation()">
+        <div class="error-popup-header">
+            <h5 class="error-popup-title">
+                <nz-icon nzType="warning" nzTheme="fill" class="text-warning me-2"></nz-icon>
+                Thông báo
+            </h5>
+        </div>
+        <div class="error-popup-body">
+            <div class="error-popup-message">{{ errorMessage }}</div>
+        </div>
+        <div class="error-popup-footer">
+            <button type="button" class="fs-12 btn" nz-button nzType="primary" (click)="closeErrorPopup()">
+                OK
+            </button>
+        </div>
+    </div>
+</div>

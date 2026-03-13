@@ -55,6 +55,16 @@ export class AuthService {
         );
     }
 
+    verifyPassword(password: string): Observable<any> {
+        const user = this.userService.getUser();
+        if (!user) return of({ status: 0, message: 'User not found' });
+
+        return this.http.post(this.apiUrl + 'login', {
+            loginname: user.LoginName,
+            passwordhash: password
+        });
+    }
+
     loginCandidate(credentials: any): Observable<any> {
         return this.http.post(environment.host + 'api/HRRecruitmentApplicationForm/login-candidate', credentials).pipe(
             tap((response: any) => {
@@ -203,5 +213,17 @@ export class AuthService {
 
     isCandidateLoggedIn(): boolean {
         return !!this.getCandidateToken();
+    }
+
+    setReAuthenticated(status: boolean): void {
+        if (status) {
+            sessionStorage.setItem('is_reauthenticated', 'true');
+        } else {
+            sessionStorage.removeItem('is_reauthenticated');
+        }
+    }
+
+    isReAuthenticated(): boolean {
+        return sessionStorage.getItem('is_reauthenticated') === 'true';
     }
 }

@@ -310,7 +310,7 @@
 }
 
 .reauth-body ::ng-deep .ant-input-lg {
-  font-size: 14px;
+  font-size: 12px;
   border-radius: 8px;
 }
 
@@ -324,7 +324,7 @@
   flex: 1;
   height: 40px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
 }
 

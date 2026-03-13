@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -41,7 +41,7 @@ import { Router } from '@angular/router';
     NzModalModule,
   ]
 })
-export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit {
+export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('tb_summary', { static: false }) tbSummaryRef!: ElementRef<HTMLDivElement>;
   @ViewChild('tb_fingerprint', { static: false }) tbFingerprintRef!: ElementRef<HTMLDivElement>;
   @ViewChild('tb_timekeeping', { static: false }) tbTimekeepingRef!: ElementRef<HTMLDivElement>;
@@ -108,6 +108,11 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         this.loadData();
       }, 100);
     }, 100);
+  }
+
+  ngOnDestroy(): void {
+    // Reset re-authentication status when navigating away
+    this.authService.setReAuthenticated(false);
   }
 
   private initializeForm(): void {

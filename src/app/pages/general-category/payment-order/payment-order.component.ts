@@ -111,7 +111,7 @@ export class PaymentOrderComponent implements OnInit {
         typeOrder: 0,
         paymentOrderTypeID: 0,
 
-        dateStart: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+        dateStart: new Date(new Date().getFullYear(), new Date().getMonth() - 6, 1),
         dateEnd: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
 
         departmentID: 0,

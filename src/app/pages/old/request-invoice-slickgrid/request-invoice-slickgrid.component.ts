@@ -723,7 +723,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     }));
                     // Apply distinct filters after data is loaded
                     setTimeout(() => {
-                        this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name', 'StatusText']);
+                        this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name', 'StatusText'], this.datasetMain);
                     }, 500);
                     this.isLoadingMain = false;
                 } else {
@@ -789,7 +789,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     }));
 
                     setTimeout(() => {
-                        this.applyDistinctFiltersToGrid(this.angularGridDetail, this.columnDefinitionsDetail, ['Unit', 'CompanyText']);
+                        this.applyDistinctFiltersToGrid(this.angularGridDetail, this.columnDefinitionsDetail, ['Unit', 'CompanyText'], this.datasetDetail);
                         this.updateFooterRow();
                     }, 500);
                     this.isLoadingDetail = false;
@@ -1303,11 +1303,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     private applyDistinctFiltersToGrid(
         angularGrid: AngularGridInstance,
         columnDefinitions: Column[],
-        fieldsToFilter: string[]
+        fieldsToFilter: string[],
+        freshData?: any[]
     ): void {
         if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
 
-        const data = angularGrid.dataView.getItems();
+        const data = freshData ?? angularGrid.dataView.getItems();
         if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {

@@ -455,7 +455,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
 
                 this.isLoadingPOKH = false;
                 setTimeout(() => {
-                    this.applyDistinctFiltersToGrid(this.angularGridPOKH, this.columnDefinitionsPOKH, ['MainIndex', 'CurrencyCode', 'AccountTypeText']);
+                    this.applyDistinctFiltersToGrid(this.angularGridPOKH, this.columnDefinitionsPOKH, ['MainIndex', 'CurrencyCode', 'AccountTypeText'], this.datasetPOKH);
                 }, 0);
             },
             error: (error: any) => {
@@ -644,7 +644,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
 
                     this.isLoadingPOKHProduct = false;
                     setTimeout(() => {
-                        this.applyDistinctFiltersToGrid(this.angularGridPOKHProduct, this.columnDefinitionsPOKHProduct, ['Maker', 'Unit']);
+                        this.applyDistinctFiltersToGrid(this.angularGridPOKHProduct, this.columnDefinitionsPOKHProduct, ['Maker', 'Unit'], this.datasetPOKHProduct);
                         this.updateProductFooterRow();
                     }, 500);
                 } else {
@@ -2101,11 +2101,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     private applyDistinctFiltersToGrid(
         angularGrid: AngularGridInstance,
         columnDefinitions: Column[],
-        fieldsToFilter: string[]
+        fieldsToFilter: string[],
+        freshData?: any[]
     ): void {
         if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
 
-        const data = angularGrid.dataView.getItems();
+        const data = freshData ?? angularGrid.dataView.getItems();
         if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {

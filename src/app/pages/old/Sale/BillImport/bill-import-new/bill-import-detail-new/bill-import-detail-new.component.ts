@@ -809,11 +809,12 @@ export class BillImportDetailNewComponent
               layout: 'twoRows',
               templateCallback: (item: any) => {
                 const code = item?.ProductCode || '';
+                const newCode = item?.ProductNewCode || '';
                 const name = item?.ProductName || '';
-                const tooltipText = `Mã: ${code}\nTên: ${name}`;
+                const tooltipText = `Mã: ${code}\nMã nội bộ: ${newCode}\nTên: ${name}`;
                 return `<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 4px 0; gap: 8px;" title="${tooltipText.replace(/"/g, '&quot;')}">
                   <div style="flex: 1; min-width: 0; overflow: hidden;">
-                    <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${code}</div>
+                    <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${code}${newCode ? ` <span style="color: #fa8c16; font-size: 11px;">(${newCode})</span>` : ''}</div>
                     <div style="font-size: 12px; color: #666; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; max-height: 4.2em;">${name}</div>
                   </div>
                 </div>`;

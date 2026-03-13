@@ -117,6 +117,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   isShowSeal = true;
   isMerge = false;
   isLoadingExcel: boolean = false;
+  isSaving: boolean = false;
   ponccType: any[] = [
     { value: 0, label: 'PO Thương mại' },
     { value: 1, label: 'PO mượn' },
@@ -1626,6 +1627,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     if (!isInformationValid || !isCompanyValid) {
       return;
     }
+    this.isSaving = true;
     const tableData = this.tabulatorHangTien?.getData() || [];
     for (let i = 0; i < tableData.length; i++) {
       const row = tableData[i];
@@ -1662,14 +1664,19 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                   ponccData.poncc.BillCode = res.data;
                   this.save(ponccData, closeAfterSave);
                 }, error: (error) => {
+                  this.isSaving = false;
                   this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
                 }
               });
+            },
+            nzOnCancel: () => {
+              this.isSaving = false;
             },
           });
         }
       },
       error: (err) => {
+        this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
       }
     });
@@ -1678,6 +1685,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   save(data: any, closeAfterSave: boolean = true) {
     this.ponccService.saveData(data).subscribe({
       next: (res) => {
+        this.isSaving = false;
         // Check if response indicates success
         if (res && (res.status === 1 || res.success === true || res.status === true)) {
           this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công!');
@@ -1706,6 +1714,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
+        this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || err.message);
         // Don't close modal on error
       }

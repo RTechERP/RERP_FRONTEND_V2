@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Sale/Inventory/inventory.component.css"],
-  "sourcesContent": [".tabulator{\r\n  font-size: 12px !important;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,UACC,UAAW,cACb",
-  "names": []
-}

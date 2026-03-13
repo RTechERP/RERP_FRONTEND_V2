@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/document/document-sale-admin-form/document-sale-admin-form.component.css"],
-  "sourcesContent": [":host {\r\n    font-size: 12px !important;\r\n}"],
-  "mappings": "AAAA,MACI,UAAW,cACf",
-  "names": []
-}

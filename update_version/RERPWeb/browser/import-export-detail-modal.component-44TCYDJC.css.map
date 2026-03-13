@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["angular:styles/component:css;fef32625e09ab05f585033ab235693b12973f04f038aa0a5e67a74fbe21214f7;D:\\LeTheAnh\\RTC\\Project\\2025\\SourceCode\\RTC.25.008\\FontEnd\\RERP\\RERP_FRONTEND_V2\\src\\app\\pages\\old\\Sale\\ReportImportExport\\detail-modal\\import-export-detail-modal.component.html"],
-  "sourcesContent": ["\n    .form-control-like {\n  border: 1px solid #d9d9d9;\n  background-color: #fff;\n  font-size: 12px;\n  height: 28px;\n  padding: 0 6px;\n  border-radius: 2px;\n}\n\n.small-input-row label {\n  font-size: 12px;\n  white-space: nowrap;\n}\n\n  "],
-  "mappings": "AACI,CAAC,kBACH,OAAQ,IAAI,MAAM,QAClB,iBAAkB,KAClB,UAAW,KACX,OAAQ,KALV,QAMW,EAAE,IANb,cAOiB,GACjB,CAEA,CAAC,gBAAgB,MACf,UAAW,KACX,YAAa,MACf",
-  "names": []
-}

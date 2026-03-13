@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/job-requirement/job-requirement-purchase-request-view/job-requirement-purchase-request-view.component.css"],
-  "sourcesContent": [".modal-dialog-scrollable {\r\n  height: 100vh;\r\n  display: flex;\r\n  flex-direction: column;\r\n}\r\n\r\n.modal-header {\r\n  flex-shrink: 0;\r\n}\r\n\r\n.modal-body {\r\n  flex: 1;\r\n  min-height: 0;\r\n  overflow: hidden;\r\n}\r\n\r\n.card {\r\n  height: 100%;\r\n  display: flex;\r\n  flex-direction: column;\r\n}\r\n\r\n.card-body {\r\n  flex: 1;\r\n  min-height: 0;\r\n}\r\n\r\n"],
-  "mappings": "AAAA,CAAC,wBACC,OAAQ,MACR,QAAS,KACT,eAAgB,MAClB,CAEA,CAAC,aACC,YAAa,CACf,CAEA,CAAC,WACC,KAAM,EACN,WAAY,EACZ,SAAU,MACZ,CAEA,CAAC,KACC,OAAQ,KACR,QAAS,KACT,eAAgB,MAClB,CAEA,CAAC,UACC,KAAM,EACN,WAAY,CACd",
-  "names": []
-}

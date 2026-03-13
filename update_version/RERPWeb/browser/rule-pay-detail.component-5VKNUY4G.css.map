@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/purchase/rulepay/rule-pay-detail/rule-pay-detail.component.css"],
-  "sourcesContent": [".modal-dialog-scrollable {\r\n  max-height: 90vh;\r\n}\r\n\r\n.modal-header {\r\n  background-color: #1890ff !important;\r\n  color: white !important;\r\n}\r\n\r\n.modal-title {\r\n  font-weight: bold;\r\n  font-size: 14px;\r\n}\r\n\r\n.btn-close {\r\n  filter: invert(1);\r\n}\r\n\r\n.fs-12 {\r\n  font-size: 12px;\r\n}\r\n\r\n.pb-3 {\r\n  padding-bottom: 1rem;\r\n}\r\n\r\n.modal-footer {\r\n  border-top: 1px solid #dee2e6;\r\n  padding: 1rem;\r\n}\r\n\r\n.modal-body {\r\n  padding: 1.5rem;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,wBACC,WAAY,IACd,CAEA,CAAC,aACC,iBAAkB,kBAClB,MAAO,cACT,CAEA,CAAC,YACC,YAAa,IACb,UAAW,IACb,CAEA,CAAC,UACC,OAAQ,OAAO,EACjB,CAEA,CAAC,MACC,UAAW,IACb,CAEA,CAAC,KACC,eAAgB,IAClB,CAEA,CAAC,aACC,WAAY,IAAI,MAAM,QA3BxB,QA4BW,IACX,CAEA,CAAC,WA/BD,QAgCW,MACX",
-  "names": []
-}

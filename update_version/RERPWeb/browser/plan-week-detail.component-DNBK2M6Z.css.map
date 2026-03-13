@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/VisionBase/plan-week-detail/plan-week-detail/plan-week-detail.component.css"],
-  "sourcesContent": ["/* Gi\u1EDBi h\u1EA1n chi\u1EC1u cao modal body v\u00E0 th\u00EAm scroll */\r\n.modal-body {\r\n    max-height: 70vh;\r\n    overflow-y: auto;\r\n}\r\n\r\n/* C\u1ED1 \u0111\u1ECBnh ph\u1EA7n filter khi scroll */\r\n.modal-body .container-fluid>.row:first-child {\r\n    position: sticky;\r\n    top: 0;\r\n    background-color: #fff;\r\n    z-index: 10;\r\n    padding-top: 0.5rem;\r\n    padding-bottom: 0.5rem;\r\n}\r\n\r\n/* C\u1ED1 \u0111\u1ECBnh footer \u1EDF d\u01B0\u1EDBi c\u00F9ng */\r\n.modal-footer {\r\n    position: sticky;\r\n    bottom: 0;\r\n    background-color: #fff;\r\n    border-top: 1px solid #dee2e6;\r\n    z-index: 10;\r\n}"],
-  "mappings": "AACA,CAAC,WACG,WAAY,KACZ,WAAY,IAChB,CAGA,CANC,WAMW,CAAC,eAAe,CAAC,CAAC,GAAG,aAC7B,SAAU,OACV,IAAK,EACL,iBAAkB,KAClB,QAAS,GACT,YAAa,MACb,eAAgB,KACpB,CAGA,CAAC,aACG,SAAU,OACV,OAAQ,EACR,iBAAkB,KAClB,WAAY,IAAI,MAAM,QACtB,QAAS,EACb",
-  "names": []
-}

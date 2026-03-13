@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/asset/asset/asset-personal/asset-personal.component.css"],
-  "sourcesContent": [".card {\r\n    height: 100%;\r\n}\r\n\r\n.card-header {\r\n    flex-shrink: 0;\r\n}\r\n\r\n.card-body {\r\n    flex-grow: 1;\r\n    overflow: hidden;\r\n}\r\n\r\nnz-form-label {\r\n    font-size: 12px;\r\n    font-weight: 500;\r\n}\r\n\r\n:host ::ng-deep .ant-tabs-content {\r\n    height: calc(100% - 46px);\r\n}\r\n\r\n:host ::ng-deep .ant-tabs-tabpane {\r\n    height: 100%;\r\n}\r\n\r\n/* Custom tab title styling */\r\n/* .custom-tab-title {\r\n    padding: 8px 16px;\r\n    font-weight: 500;\r\n    font-size: 14px;\r\n    color: #1890ff;\r\n    border-radius: 4px;\r\n    transition: all 0.3s ease;\r\n}\r\n\r\n:host ::ng-deep .ant-tabs-tab-active .custom-tab-title {\r\n    color: #1890ff;\r\n    background-color: #e6f7ff;\r\n    font-weight: 600;\r\n}\r\n\r\n:host ::ng-deep .ant-tabs-tab:hover .custom-tab-title {\r\n    color: #40a9ff;\r\n    background-color: #f0f8ff;\r\n} */\r\n:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {\r\n\r\n  padding: 4px !important;\r\n  padding-left: 12px !important;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,KACG,OAAQ,IACZ,CAEA,CAAC,YACG,YAAa,CACjB,CAEA,CAAC,UACG,UAAW,EACX,SAAU,MACd,CAEA,cACI,UAAW,KACX,YAAa,GACjB,CAEA,MAAM,UAAU,CAAC,iBACb,OAAQ,KAAK,KAAK,EAAE,KACxB,CAEA,MAAM,UAAU,CAAC,iBACb,OAAQ,IACZ,CAsBA,MAAM,UAAU,SAAS,CAAC,cAAc,CAAC,iBA9CzC,QAgDW,YACK,cAChB",
-  "names": []
-}

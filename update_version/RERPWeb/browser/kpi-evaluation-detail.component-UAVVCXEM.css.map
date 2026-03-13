@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/kpi-evaluation/kpi-evaluation-detail/kpi-evaluation-detail.component.css"],
-  "sourcesContent": [".error-grid-container {\r\n    width: 100%;\r\n    border: 1px solid #ddd;\r\n}\r\n\r\n.error-checkbox {\r\n    cursor: pointer;\r\n    width: 16px;\r\n    height: 16px;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,qBACG,MAAO,KACP,OAAQ,IAAI,MAAM,IACtB,CAEA,CAAC,eACG,OAAQ,QACR,MAAO,KACP,OAAQ,IACZ",
-  "names": []
-}

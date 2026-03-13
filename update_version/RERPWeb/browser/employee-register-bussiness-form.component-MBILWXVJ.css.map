@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness-form/employee-register-bussiness-form.component.css"],
-  "sourcesContent": [":host {\r\n  font-size: 12px;\r\n}\r\n\r\n.modal-dialog-scrollable {\r\n  display: flex;\r\n  flex-direction: column;\r\n  height: 100%;\r\n}\r\n\r\n.modal-header {\r\n  flex-shrink: 0;\r\n}\r\n\r\n.modal-body {\r\n  flex: 1;\r\n  overflow-y: auto;\r\n}\r\n\r\n.modal-footer {\r\n  flex-shrink: 0;\r\n}"],
-  "mappings": "AAAA,MACE,UAAW,IACb,CAEA,CAAC,wBACC,QAAS,KACT,eAAgB,OAChB,OAAQ,IACV,CAEA,CAAC,aACC,YAAa,CACf,CAEA,CAAC,WACC,KAAM,EACN,WAAY,IACd,CAEA,CAAC,aACC,YAAa,CACf",
-  "names": []
-}

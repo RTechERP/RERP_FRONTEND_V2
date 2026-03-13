@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/kpi-evaluation-rule/kpi-evaluation-rule-detail/kpi-evaluation-rule-detail.component.css"],
-  "sourcesContent": [".modal-header {\r\n    border-bottom: none;\r\n}\r\n\r\n.modal-footer {\r\n    border-top: 1px solid #dee2e6;\r\n}\r\n\r\n.fs-xs {\r\n    font-size: 0.75rem;\r\n}\r\n\r\nnz-card {\r\n    margin-bottom: 1rem;\r\n}\r\n\r\nnz-card:last-child {\r\n    margin-bottom: 0;\r\n}"],
-  "mappings": "AAAA,CAAC,aACG,cAAe,IACnB,CAEA,CAAC,aACG,WAAY,IAAI,MAAM,OAC1B,CAEA,CAAC,MACG,UAAW,MACf,CAEA,QACI,cAAe,IACnB,CAEA,OAAO,YACH,cAAe,CACnB",
-  "names": []
-}

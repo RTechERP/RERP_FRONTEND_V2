@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/general-category/wearhouse/warehouse-form/warehouse-form.component.css"],
-  "sourcesContent": [".fs-12 {\r\n  font-size: 0.75rem;\r\n}\r\n\r\n.modal-header {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n}\r\n\r\n.modal-title {\r\n  margin: 0;\r\n}\r\n\r\n"],
-  "mappings": "AAAA,CAAC,MACC,UAAW,MACb,CAEA,CAAC,aACC,QAAS,KACT,gBAAiB,cACjB,YAAa,MACf,CAEA,CAAC,YAVD,OAWU,CACV",
-  "names": []
-}

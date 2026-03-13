@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["angular:styles/component:css;a54a5dd8f7aa89d745fa784250a2a988002047b2dc8ff2cebddbad60582648e2;D:/LeTheAnh/RTC/Project/2025/SourceCode/RTC.25.008/FontEnd/RERP/RERP_FRONTEND_V2/src/app/pages/project/project-control/select-project-type.component.ts"],
-  "sourcesContent": ["\n      #cdk-overlay-1 {\n        width: 18% !important;\n      }\n    "],
-  "mappings": "AACM,CAAC,cACC,MAAO,aACT",
-  "names": []
-}

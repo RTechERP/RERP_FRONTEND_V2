@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/employee-management/employee-error/employee-error.component.css"],
-  "sourcesContent": [":host {\r\n  font-size: 12px;\r\n}\r\n\r\n.btn-add,\r\n.btn-edit,\r\n.btn-delete {\r\n  display: inline-flex;\r\n  align-items: center;\r\n  gap: 4px;\r\n  font-size: 12px;\r\n}\r\n\r\n.btn-add img,\r\n.btn-edit img,\r\n.btn-delete img {\r\n  width: 16px;\r\n  height: 16px;\r\n}\r\n\r\nfs-12 {\r\n  font-size: 12px;\r\n}\r\n\r\n.card-header h6 {\r\n  font-size: 12px;\r\n}\r\n\r\n.card-body {\r\n  font-size: 12px;\r\n}\r\n\r\n:host ::ng-deep .tabulator {\r\n  font-size: 12px;\r\n}\r\n\r\n:host ::ng-deep .tabulator .tabulator-cell {\r\n  font-size: 12px;\r\n}\r\n\r\n:host ::ng-deep .tabulator .tabulator-header .tabulator-col {\r\n  font-size: 12px;\r\n}\r\n\r\n"],
-  "mappings": "AAAA,MACE,UAAW,IACb,CAEA,CAAC,QACD,CAAC,SACD,CAAC,WACC,QAAS,YACT,YAAa,OACb,IAAK,IACL,UAAW,IACb,CAEA,CATC,QASQ,IACT,CATC,SASS,IACV,CATC,WASW,IACV,MAAO,KACP,OAAQ,IACV,CAEA,MACE,UAAW,IACb,CAEA,CAAC,YAAY,GAIb,CAAC,UAHC,UAAW,IACb,CAMA,MAAM,UAAU,CAAC,UACf,UAAW,IACb,CAEA,MAAM,UAAU,CAJC,UAIU,CAAC,eAC1B,UAAW,IACb,CAEA,MAAM,UAAU,CARC,UAQU,CAAC,iBAAiB,CAAC,cAC5C,UAAW,IACb",
-  "names": []
-}

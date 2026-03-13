@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/asset/asset/ts-asset-transfer/ts-asset-transfer-form/ts-asset-transfer-form.component.css"],
-  "sourcesContent": [":host {\r\n  font-size: 12px !important;\r\n}"],
-  "mappings": "AAAA,MACE,UAAW,cACb",
-  "names": []
-}

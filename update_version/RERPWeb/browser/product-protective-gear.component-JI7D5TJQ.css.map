@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/product-protective-gear/product-protective-gear/product-protective-gear.component.css"],
-  "sourcesContent": ["::ng-deep #grid-container-product-rtc {\r\n    height: 89vh !important;\r\n}\r\n\r\n::ng-deep #grid-container-product-group {\r\n    height: 89vh !important;\r\n}\r\n\r\n.ant-splitter {\r\n    height: 89vh !important;\r\n    overflow: hidden !important;\r\n}"],
-  "mappings": "AAAA,UAAU,CAAC,2BACP,OAAQ,cACZ,CAEA,UAAU,CAAC,6BACP,OAAQ,cACZ,CAEA,CAAC,aACG,OAAQ,eACR,SAAU,gBACd",
-  "names": []
-}

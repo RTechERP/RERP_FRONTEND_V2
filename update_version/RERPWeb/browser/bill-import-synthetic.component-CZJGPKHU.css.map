@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Sale/BillImport/Modal/bill-import-synthetic/bill-import-synthetic.component.css"],
-  "sourcesContent": ["::ng-deep .ant-form-inline .ant-form-item {\r\n    margin-right: 4px !important;\r\n    margin-bottom: 0 !important;\r\n  }\r\n\r\n  .table-spinner{\r\n    height: 100% !important;\r\n  }\r\n  .tabulator {\r\n    font-size: 0.75 rem;\r\n  }\r\n  .btn-close,\r\n  .modal-header .btn-close {\r\n    background-color: lightcyan !important;\r\n    /* background-image: none !important; */\r\n    font-weight: bold;\r\n  }"],
-  "mappings": "AAAA,UAAU,CAAC,gBAAgB,CAAC,cACxB,aAAc,cACd,cAAe,WACjB,CAEA,CAAC,cACC,OAAQ,cACV,CACA,CAAC,UACC,UAAW,IAAK,GAClB,CACA,CAAC,UACD,CAAC,aAAa,CADb,UAEC,iBAAkB,kBAElB,YAAa,GACf",
-  "names": []
-}

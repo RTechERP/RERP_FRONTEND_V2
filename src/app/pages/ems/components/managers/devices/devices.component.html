@@ -1,0 +1,138 @@
+<div class="card h-100" refreshable (refreshCallback)="onRefresh()">
+  <div class="card-header">
+    <div class="my-1 d-flex gap-1">
+      <button class="btn" (click)="openModal(content, false)" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faPlus" style="color: green;"></fa-icon>
+        <span class="ms-2" style="font-size: 12px; font-weight: 700; color: #334155;">Thêm</span>
+      </button>
+      <button class="btn" (click)="openModal(content, true)" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faPenToSquare" style="color: blue;"></fa-icon>
+        <span class="ms-2" style="font-size: 12px; font-weight: 700; color: #334155;">Sửa</span></button>
+      <button #btnDelete class="btn" (click)="onDelete()" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faTrash" style="color: red;"></fa-icon>
+        <span class="ms-2" style="font-size: 12px; font-weight: 700; color: #334155;">Xóa</span></button>
+    </div>
+  </div>
+  <div class="card-body">
+    <tabulator-table-single #tblComp [columnNames]="deviceColumns" [tableData]="devices" [hasSelection]="false"
+      [height]="'100%'"></tabulator-table-single>
+  </div>
+</div>
+<ng-template #content let-modal>
+  <div class="modal-header bg-primary">
+    <h5 class="modal-title text-light" id="modal-area">Thiết bị</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <div class="d-flex flex-column h-100">
+      <div class="d-flex justify-content-center">
+        <input type="text" class="form-control form-id-input" id="device_id" name="device_id"
+          [(ngModel)]="deviceFormValue.Id">
+        <div class="modal-div-master">
+          <div class="mb-3 row">
+            <label for="device_name" class="col-1 col-form-label fw-bold">Tên thiết bị</label>
+            <div class="col-11">
+              <input type="text" class="form-control" id="device_name" name="device_name"
+                [(ngModel)]="deviceFormValue.DeviceName" ngbAutofocus>
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <label for="device_decription" class="col-1 col-form-label fw-bold">Mô tả</label>
+            <div class="col-11">
+              <textarea class="form-control" id="device_decription" name="device_decription"
+                [(ngModel)]="deviceFormValue.Description"></textarea>
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <label for="area_id" class="col-1 col-form-label fw-bold">Khu vực</label>
+            <div class="col-11">
+              <ngx-select id="area_id" [items]="areas" [optionValueField]="'Id'" [optionTextField]="'AreaName'"
+                placeholder="Chọn khu vực" [(ngModel)]="deviceFormValue.AreaId" name="area_id"></ngx-select>
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <label for="device_active" class="col-1 col-form-label fw-bold">Trạng thái</label>
+            <div class="col-11 form-check form-switch d-flex align-items-center">
+              <input class="form-check-input ms-0 mt-0" type="checkbox" role="switch" id="device_active"
+                name="device_active" [(ngModel)]="deviceFormValue.IsActive">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex justify-content-center flex-grow-1">
+        <div class="modal-div-detail">
+          <div class="card h-100" refreshable (refreshCallback)="onRefreshDetail()">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-4 pe-1my-1 d-flex gap-1">
+                  <button class="btn btn-primary-alt" (click)="onAddRow()">
+                    <fa-icon [icon]="faPlus"></fa-icon>
+                    <span class="ms-1">Thêm</span>
+                  </button>
+                  <button class="btn btn-success-alt">
+                    <fa-icon [icon]="faPenToSquare"></fa-icon>
+                    <span class="ms-1">Sửa</span></button>
+                  <button #btnDeleteDetail class="btn btn-danger-alt" (click)="onDeleteRow()">
+                    <fa-icon [icon]="faTrash"></fa-icon>
+                    <span class="ms-1">Xóa</span></button>
+                </div>
+                <div class="col-8 ps-1">
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <tabulator-table-single #tblModalDetail [columnNames]="deviceParamsColumns" [tableData]="deviceParams"
+                [selectableRow]="true" [hasSelection]="true" [height]="'452px'"
+                (tableBuildt)="onTableBuildt()"></tabulator-table-single>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="save(modal)">Lưu</button>
+  </div>
+</ng-template>
+<ng-template #paramValues let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-area">Cài đặt</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <div class="row">
+      <div class="col-6">
+        @for (d of deviceCommParamConfig; track d.SortOrder) {
+        <div class="mb-3 row">
+          <label [attr.for]="'param_key_' + d.Id" class="col-4 col-form-label fw-bold">Tên Param</label>
+          <div class="col-8">
+            <input type="text" class="form-control" [id]="'param_key_' + d.Id" [name]="'param_key_' + d.Id"
+              [(ngModel)]="d.ParamKey">
+          </div>
+        </div>
+        }
+      </div>
+      <div class="col-6">
+        @for (d of deviceCommParamConfig; track d.SortOrder; let i = $index) {
+        <div class="mb-3 row">
+          <label [attr.for]="'config_value_' + i" class="col-4 col-form-label fw-bold">Giá trị</label>
+          <div class="col-8">
+            <input type="text" class="form-control" [id]="'config_value_' + i" [name]="'config_value_' + i"
+              [(ngModel)]="d.ConfigValue">
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer" style="justify-content: normal;">
+    <button #btnCopy type="button" class="btn btn-info" (click)="copyValues()">
+      <fa-icon [icon]="faCopy"></fa-icon>
+      <span class="ms-1">Copy</span></button>
+    <button #btnPaste type="button" class="btn btn-light" (click)="pasteValues()">
+      <fa-icon [icon]="faClipboard"></fa-icon>
+      <span class="ms-1">Paste</span></button>
+    <div class="spacer"></div>
+    <button type="button" class="btn btn-primary" (click)="modal.close();">Lưu</button>
+  </div>
+</ng-template>

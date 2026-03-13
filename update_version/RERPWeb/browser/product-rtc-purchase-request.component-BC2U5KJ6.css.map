@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/purchase/project-partlist-purchase-request/product-rtc-purchase-request/product-rtc-purchase-request.component.css"],
-  "sourcesContent": [".modal-body {\r\n    max-height: calc(100vh - 200px);\r\n    overflow-y: auto;\r\n    overflow-x: hidden;\r\n}\r\n\r\n.modal-dialog-scrollable {\r\n    max-height: calc(100vh - 100px);\r\n}\r\n\r\n"],
-  "mappings": "AAAA,CAAC,WACG,WAAY,KAAK,MAAM,EAAE,OACzB,WAAY,KACZ,WAAY,MAChB,CAEA,CAAC,wBACG,WAAY,KAAK,MAAM,EAAE,MAC7B",
-  "names": []
-}

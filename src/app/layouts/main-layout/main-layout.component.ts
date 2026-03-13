@@ -297,6 +297,14 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
 
+        // Subscribe to TabService for closing component tabs by key
+        this.tabService.closeTabByKey$.subscribe((key: string) => {
+            const idx = this.dynamicTabComps.findIndex(t => t.key === key);
+            if (idx >= 0) {
+                this.closeTabComp({ index: idx });
+            }
+        });
+
         // Trì hoãn SSE và version check để các API quan trọng cho UI load trước
         // (tránh SSE chiếm slot kết nối HTTP của trình duyệt)
         // setTimeout(() => {
@@ -373,7 +381,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         const currentTabKey = `${key}_${normalize(data)}`;
 
         const injector = Injector.create({
-            providers: [{ provide: 'tabData', useValue: data }],
+            providers: [{ provide: 'tabData', useValue: { ...data, _tabKey: key } }],
             parent: this.injector,
         });
 

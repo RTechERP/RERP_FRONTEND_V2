@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["angular:styles/component:css;f8a08729a1a31a8010673c362dcf3d1a8f024aff306030deb84f562b4e7e0d9e;D:\\LeTheAnh\\RTC\\Project\\2025\\SourceCode\\RTC.25.008\\FontEnd\\RERP\\RERP_FRONTEND_V2\\src\\app\\pages\\old\\pokh\\pokh.component.html"],
-  "sourcesContent": ["\n  .pokh-modal-content {\n    height: calc(100vh - 200px);\n    overflow-y: auto;\n  }\n\n  .pokh-tabset {\n    height: 100%;\n  }\n\n  .pokh-tab-content {\n    height: calc(100vh - 300px);\n    overflow-y: auto;\n  }\n\n  /* Ensure these styles only apply to the POKH modal */\n  ::ng-deep .pokh-modal .ant-modal {\n    width: 90% !important;\n    max-width: 1400px;\n  }\n\n  ::ng-deep .pokh-modal .ant-modal-body {\n    height: calc(100vh - 200px);\n    overflow: hidden;\n  }\n\n  ::ng-deep .pokh-modal .ant-tabs-content {\n    height: 100%;\n  }\n\n  ::ng-deep .pokh-modal .ant-tabs-tabpane {\n    height: 100%;\n  }\n"],
-  "mappings": "AACE,CAAC,mBACC,OAAQ,KAAK,MAAM,EAAE,OACrB,WAAY,IACd,CAEA,CAAC,YACC,OAAQ,IACV,CAEA,CAAC,iBACC,OAAQ,KAAK,MAAM,EAAE,OACrB,WAAY,IACd,CAGA,UAAU,CAAC,WAAW,CAAC,UACrB,MAAO,cACP,UAAW,MACb,CAEA,UAAU,CALC,WAKW,CAAC,eACrB,OAAQ,KAAK,MAAM,EAAE,OACrB,SAAU,MACZ,CAEA,UAAU,CAVC,WAUW,CAAC,iBACrB,OAAQ,IACV,CAEA,UAAU,CAdC,WAcW,CAAC,iBACrB,OAAQ,IACV",
-  "names": []
-}

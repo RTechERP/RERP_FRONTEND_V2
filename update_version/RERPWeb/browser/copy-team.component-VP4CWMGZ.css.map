@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/old/Technical/kpi-employee-team/copy-team/copy-team.component.css"],
-  "sourcesContent": [".modal-header {\r\n    border-bottom: 1px solid #dee2e6;\r\n}\r\n\r\n.modal-footer {\r\n    border-top: 1px solid #dee2e6;\r\n}\r\n\r\n.modal-body {\r\n    max-height: 70vh;\r\n    overflow-y: auto;\r\n}"],
-  "mappings": "AAAA,CAAC,aACG,cAAe,IAAI,MAAM,OAC7B,CAEA,CAAC,aACG,WAAY,IAAI,MAAM,OAC1B,CAEA,CAAC,WACG,WAAY,KACZ,WAAY,IAChB",
-  "names": []
-}

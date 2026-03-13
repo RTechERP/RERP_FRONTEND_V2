@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/phase-allocation-person/phase-allocation-person-form/phase-allocation-person-form.component.css"],
-  "sourcesContent": [".fs-7 {\r\n  font-size: 0.875rem;\r\n}\r\n\r\n.cursor-pointer {\r\n  cursor: pointer;\r\n}\r\n\r\n::ng-deep .tabulator-header-filter input {\r\n  color: #000000 !important;\r\n}\r\n\r\n::ng-deep .tabulator-header-filter select {\r\n  color: #000000 !important;\r\n}"],
-  "mappings": "AAAA,CAAC,KACC,UAAW,OACb,CAEA,CAAC,eACC,OAAQ,OACV,CAEA,UAAU,CAAC,wBAAwB,MACjC,MAAO,cACT,CAEA,UAAU,CAJC,wBAIwB,OACjC,MAAO,cACT",
-  "names": []
-}

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/project/project-department-summary/project-department-summary-form/project-woker/project-worker.component.css"],
-  "sourcesContent": [".fs-12 {\r\n    font-size: 0.75rem;\r\n  }\r\n  \r\n  .reset {\r\n    all: revert;\r\n  }\r\n  \r\n  .ant-splitter-panel {\r\n    position: relative;\r\n  }\r\n  \r\n  .tabulator {\r\n    font-size: 0.75rem !important;\r\n    /* position: absolute !important; */\r\n    width: 100% !important;\r\n  }\r\n  \r\n  .tabulator-cell {\r\n    padding: 0px;\r\n  }\r\n  \r\n  .inner-content {\r\n    padding: 0 !important;\r\n  }\r\n  \r\n  .ant-tabs-tab-btn {\r\n    font-size: 0.75rem;\r\n  }\r\n  .ant-splitter {\r\n    height: 100% !important;\r\n  }\r\n  "],
-  "mappings": "AAAA,CAAC,MACG,UAAW,MACb,CAEA,CAAC,MACC,IAAK,MACP,CAEA,CAAC,mBACC,SAAU,QACZ,CAEA,CAAC,UACC,UAAW,iBAEX,MAAO,cACT,CAEA,CAAC,eAlBH,QAmBa,CACX,CAEA,CAAC,cAtBH,QAuBa,WACX,CAEA,CAAC,iBACC,UAAW,MACb,CACA,CAAC,aACC,OAAQ,cACV",
-  "names": []
-}

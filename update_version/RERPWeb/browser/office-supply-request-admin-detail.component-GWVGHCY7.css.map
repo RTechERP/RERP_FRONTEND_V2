@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/hrm/office-supply/OfficeSupplyRequests/office-supply-request-admin-detail/office-supply-request-admin-detail.component.css"],
-  "sourcesContent": [":host ::ng-deep {\r\n  font-size: 12px !important;\r\n}\r\n\r\n:host ::ng-deep * {\r\n  font-size: 12px !important;\r\n}\r\n\r\n:host ::ng-deep .tabulator {\r\n  font-size: 12px !important;\r\n}\r\n\r\n:host ::ng-deep .tabulator-cell {\r\n  font-size: 12px !important;\r\n}\r\n\r\n:host ::ng-deep .tabulator-header {\r\n  font-size: 12px !important;\r\n}\r\n\r\n:host ::ng-deep .ant-form-item-label>label {\r\n  font-size: 12px !important;\r\n}\r\n\r\n:host ::ng-deep .ant-input,\r\n:host ::ng-deep .ant-select-selector,\r\n:host ::ng-deep .ant-picker {\r\n  font-size: 12px !important;\r\n}\r\n\r\n:host ::ng-deep .ant-btn {\r\n  font-size: 12px !important;\r\n}\r\n\r\n:host ::ng-deep .ant-tabs-tab {\r\n  font-size: 12px !important;\r\n}\r\n\r\n.ant-splitter {\r\n  height: 70vh !important;\r\n}"],
-  "mappings": "AAAA,MAAM,UACJ,UAAW,cACb,CAEA,MAAM,UAAU,EACd,UAAW,cACb,CAEA,MAAM,UAAU,CAAC,UACf,UAAW,cACb,CAEA,MAAM,UAAU,CAAC,eACf,UAAW,cACb,CAEA,MAAM,UAAU,CAAC,iBACf,UAAW,cACb,CAEA,MAAM,UAAU,CAAC,mBAAmB,CAAC,MACnC,UAAW,cACb,CAEA,MAAM,UAAU,CAAC,UACjB,MAAM,UAAU,CAAC,oBACjB,MAAM,UAAU,CAAC,WACf,UAAW,cACb,CAEA,MAAM,UAAU,CAAC,QACf,UAAW,cACb,CAEA,MAAM,UAAU,CAAC,aACf,UAAW,cACb,CAEA,CAAC,aACC,OAAQ,cACV",
-  "names": []
-}

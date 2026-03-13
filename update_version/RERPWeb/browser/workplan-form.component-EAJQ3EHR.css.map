@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/person/workplan/workplan-form/workplan-form.component.css"],
-  "sourcesContent": [".modal-header {\r\n    flex-shrink: 0;\r\n}\r\n\r\n.modal-body {\r\n    max-height: 70vh;\r\n    overflow-y: auto;\r\n}\r\n\r\n.modal-footer {\r\n    flex-shrink: 0;\r\n}\r\n\r\n.text-end {\r\n    text-align: right;\r\n}\r\n\r\nnz-form-label {\r\n    font-size: 12px;\r\n    font-weight: 500;\r\n}\r\n\r\ninput[disabled] {\r\n    background-color: #f5f5f5;\r\n}\r\n"],
-  "mappings": "AAAA,CAAC,aACG,YAAa,CACjB,CAEA,CAAC,WACG,WAAY,KACZ,WAAY,IAChB,CAEA,CAAC,aACG,YAAa,CACjB,CAEA,CAAC,SACG,WAAY,KAChB,CAEA,cACI,UAAW,KACX,YAAa,GACjB,CAEA,KAAK,CAAC,UACF,iBAAkB,OACtB",
-  "names": []
-}

@@ -560,11 +560,11 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
 
         try {
             if (!this.diagram) return;
-            
+
             const bounds = this.diagram.documentBounds;
             let width = bounds.width;
             let height = bounds.height;
-            
+
             if (width <= 0 || height <= 0) {
                 this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể tạo ảnh từ sơ đồ trống');
                 return;
@@ -573,7 +573,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             // Tăng scale để PDF hiển thị ảnh sắc nét khi Zoom
             // (Chụp ảnh gốc nét gấp 3-4 lần rồi chèn vào khung tài liệu bé đi 3-4 lần để có mật độ pixel siêu đặc)
             const maxDim = Math.max(width, height);
-            let scale = 4; 
+            let scale = 4;
             if (maxDim > 2000) scale = 3;
             if (maxDim > 4000) scale = 2; // Giới hạn scale nếu diagram quá to để tránh overload memory của trình duyệt
             if (maxDim > 8000) scale = 1.5;
@@ -603,7 +603,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             // Chèn ảnh vào PDF với size thật nhưng mật độ Pixel (do scale) là 4x
             pdf.addImage(imgData, "PNG", padding, padding, width, height, undefined, 'FAST');
             pdf.save("sodo_tochuc.pdf");
-            
+
             this.notification.success(NOTIFICATION_TITLE.success, 'Xuất PDF Độ nét cao (HD) thành công!');
         } catch (error: any) {
             console.error('Lỗi khi xuất PDF:', error);

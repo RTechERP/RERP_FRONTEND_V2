@@ -553,23 +553,61 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     exportToPDF(): void {
-        const diagramDiv = document.getElementById("myDiagramDiv");
-        if (!diagramDiv) return;
+        if (typeof jspdf === 'undefined') {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Thư viện xuất PDF (jsPDF) chưa được tải');
+            return;
+        }
 
-        if (typeof html2canvas !== 'undefined' && typeof jspdf !== 'undefined') {
-            html2canvas(diagramDiv).then((canvas: any) => {
-                const imgData = canvas.toDataURL("image/png");
-                const pdf = new jspdf.jsPDF({
-                    orientation: "landscape",
-                    unit: "pt",
-                    format: [canvas.width, canvas.height]
-                });
+        try {
+            if (!this.diagram) return;
+            
+            const bounds = this.diagram.documentBounds;
+            let width = bounds.width;
+            let height = bounds.height;
+            
+            if (width <= 0 || height <= 0) {
+                this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể tạo ảnh từ sơ đồ trống');
+                return;
+            }
 
-                pdf.addImage(imgData, "PNG", 0, 0);
-                pdf.save("diagram.pdf");
+            // Tăng scale để PDF hiển thị ảnh sắc nét khi Zoom
+            // (Chụp ảnh gốc nét gấp 3-4 lần rồi chèn vào khung tài liệu bé đi 3-4 lần để có mật độ pixel siêu đặc)
+            const maxDim = Math.max(width, height);
+            let scale = 4; 
+            if (maxDim > 2000) scale = 3;
+            if (maxDim > 4000) scale = 2; // Giới hạn scale nếu diagram quá to để tránh overload memory của trình duyệt
+            if (maxDim > 8000) scale = 1.5;
+
+            const imgData = this.diagram.makeImageData({
+                scale: scale,
+                background: "white",
+                type: "image/png",
+                maxSize: new go.Size(Infinity, Infinity) // Cho phép export ảnh lớn
             });
-        } else {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Thư viện xuất PDF chưa được tải');
+
+            if (!imgData) {
+                this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể sinh mã vẽ đồ thị');
+                return;
+            }
+
+            const padding = 20;
+            const finalWidth = width + padding * 2;
+            const finalHeight = height + padding * 2;
+
+            const pdf = new jspdf.jsPDF({
+                orientation: finalWidth > finalHeight ? "landscape" : "portrait",
+                unit: "pt",
+                format: [finalWidth, finalHeight]
+            });
+
+            // Chèn ảnh vào PDF với size thật nhưng mật độ Pixel (do scale) là 4x
+            pdf.addImage(imgData, "PNG", padding, padding, width, height, undefined, 'FAST');
+            pdf.save("sodo_tochuc.pdf");
+            
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xuất PDF Độ nét cao (HD) thành công!');
+        } catch (error: any) {
+            console.error('Lỗi khi xuất PDF:', error);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi xuất file: ' + error.message);
         }
     }
 }

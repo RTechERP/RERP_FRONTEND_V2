@@ -283,6 +283,7 @@ import { DeviceDetailsChartsComponent } from './pages/ems/components/managers/de
 import { AreasComponent } from './pages/ems/components/managers/areas/areas.component';
 import { DevicesComponent } from './pages/ems/components/managers/devices/devices.component';
 import { CommunicationComponent } from './pages/ems/components/managers/communication/communication.component';
+import { DailyReportAccountingSlickgridComponent } from './pages/old/KETOAN/daily-report-accounting/daily-report-accounting-slickgrid/daily-report-accounting-slickgrid.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -331,6 +332,7 @@ export const routes: Routes = [
             //#region kế toán
             { path: 'paymentorder', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'kt-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'daily-report-accounting', component: DailyReportAccountingSlickgridComponent, canActivate: [authGuard] },
 
             //#endregion
 

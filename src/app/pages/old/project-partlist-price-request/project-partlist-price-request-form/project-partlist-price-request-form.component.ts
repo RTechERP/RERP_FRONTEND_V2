@@ -761,12 +761,11 @@ export class ProjectPartlistPriceRequestFormComponent
 
     if (
       !this.isAdmin &&
-      rowData['EmployeeID'] &&
-      Number(rowData['EmployeeID']) !== this.currentUserId
+      this.requester &&
+      this.requester !== this.currentUserId
     ) {
       return false;
     }
-
     return true;
   }
 
@@ -1054,15 +1053,15 @@ export class ProjectPartlistPriceRequestFormComponent
           title: 'Ghi chú chung',
           headerSort: false,
           field: 'RequestNote',
-          // editor: this.jobRequirementID > 0 ? undefined : 'input',
+          editor: 'input',
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 200,
-          // editable: (cell: any) => {
-          //   const rowData = cell.getRow().getData();
-          //   if (this.jobRequirementID > 0) return false;
-          //   return this.canEditCell(rowData);
-          // },
+          editable: (cell: any) => {
+            const rowData = cell.getRow().getData();
+            if (this.jobRequirementID > 0) return false;
+            return this.canEditCell(rowData);
+          },
         },
       ],
       height: '30vh',
@@ -1491,7 +1490,7 @@ export class ProjectPartlistPriceRequestFormComponent
         return;
       }
 
-      const note = (data['RequestNote'] || data['Note'] || '').toString();
+      const note = (data['RequestNote']|| '').toString();
       const projectPartlistId =
         Number(data['ProjectPartlistID'] ?? baseProjectPartlistId) || 0;
       const jobRequirementId =
@@ -1613,8 +1612,8 @@ export class ProjectPartlistPriceRequestFormComponent
 
     this.priceRequestService.saveData(recordsToSave).subscribe({
       next: (response) => {
-        // Lưu ghi chú HR nếu là loại HR (typeID = 3)
-        if (this.priceRequestTypeID === 3) {
+        // Lưu ghi chú nếu là loại HR (typeID = 3) hoặc loại 4, 6 (dùng RequestNote)
+        if (this.priceRequestTypeID === 3 || this.priceRequestTypeID === 4 || this.priceRequestTypeID === 6) {
           this.saveHRNotes(recordsToSave, response);
         } else {
           this.notification.success(
@@ -1681,7 +1680,9 @@ export class ProjectPartlistPriceRequestFormComponent
 
     rows.forEach((row, index) => {
       const data = row.getData();
-      const noteHR = (data['NoteHR'] || '').toString().trim();
+      const noteHR = (this.priceRequestTypeID === 4 || this.priceRequestTypeID === 6)
+        ? (data['RequestNote'] || '').toString().trim()
+        : (data['NoteHR'] || '').toString().trim();
       const requestID = data['ID'] || 0;
 
       let finalRequestID = requestID;

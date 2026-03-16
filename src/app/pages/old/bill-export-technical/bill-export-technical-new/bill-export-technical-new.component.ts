@@ -938,13 +938,13 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
             return;
         }
         const selectedRow = selectedRows[0];
-        if (selectedRow.Status === true || selectedRow.Status === 1) {
-            this.notification.warning(
-                'Không thể sửa',
-                'Biên bản đã duyệt, không thể sửa!'
-            );
-            return;
-        }
+        // if (selectedRow.Status === true || selectedRow.Status === 1) {
+        //     this.notification.warning(
+        //         'Không thể sửa',
+        //         'Biên bản đã duyệt, không thể sửa!'
+        //     );
+        //     return;
+        // }
         // Mở modal và truyền dữ liệu vào
         const modalRef = this.ngbModal.open(BillExportTechnicalFormComponent, {
             centered: true,

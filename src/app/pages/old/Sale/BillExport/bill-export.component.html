@@ -1,87 +1,87 @@
-<ng-container class="w-100">
+<ng-container class="w-100 bill-export-w-100">
   <nz-splitter>
    
       
     
 
     <nz-splitter-panel nzSize="100%">
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex gap-1">
+      <div class="card h-100 border-0 rounded-0 bill-export-card bill-export-h-100 bill-export-border-0 bill-export-rounded-0">
+        <div class="card-header bg-white p-1 bill-export-card-header bill-export-bg-white bill-export-p-1">
+          <div class="d-flex gap-1 bill-export-d-flex bill-export-gap-1">
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
-            <button class="btn-add" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'"
+            <button class="btn-add bill-export-btn-add" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'"
               (click)=" openModalBillExportDetail(false)">
-              <img class="btn-action-icon" src="assets/icon/action_add_item_16.png" alt="Thêm" /> Thêm
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/action_add_item_16.png" alt="Thêm" /> Thêm
             </button>
-            <button class="btn-edit" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'"
+            <button class="btn-edit bill-export-btn-edit" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'"
               (click)=" openModalBillExportDetail(true)">
-              <img class="btn-action-icon" src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
             </button>
-            <button class="btn-delete" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'" (click)="deleteBillExport()">
-              <img class="btn-action-icon" src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
+            <button class="btn-delete bill-export-btn-delete" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'" (click)="deleteBillExport()">
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
             </button>
             |
-            <button class="btn fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N11,N50,N1'" (click)="IsApproved(true)">
-              <img class="btn-action-icon" src="assets/icon/contract.png" alt="Nhận chứng từ" /> Nhận chứng từ
+            <button class="btn fs-12 bill-export-btn bill-export-fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N11,N50,N1'" (click)="IsApproved(true)">
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/contract.png" alt="Nhận chứng từ" /> Nhận chứng từ
             </button>
-            <button class="btn fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N11,N1,N18'" (click)="IsApproved(false)">
-              <img class="btn-action-icon" src="assets/icon/reject.png" alt="Hủy chứng từ" /> Hủy chứng từ
+            <button class="btn fs-12 bill-export-btn bill-export-fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N11,N1,N18'" (click)="IsApproved(false)">
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/reject.png" alt="Hủy chứng từ" /> Hủy chứng từ
             </button>
-            <button class="fs-12 btn" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1'" (click)="shippedOut()">
-              <img class="btn-action-icon" src="assets/icon/export_warehouse.png" alt="Đã xuất kho" /> Đã xuất kho
+            <button class="fs-12 btn bill-export-fs-12 bill-export-btn" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1'" (click)="shippedOut()">
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/export_warehouse.png" alt="Đã xuất kho" /> Đã xuất kho
             </button>
-            <button class="fs-12 btn" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menu">
-              <img class="btn-action-icon" src="assets/icon/export_document.png" alt="Xuất phiếu" /> Xuất phiếu
+            <button class="fs-12 btn bill-export-fs-12 bill-export-btn" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menu">
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/export_document.png" alt="Xuất phiếu" /> Xuất phiếu
               <nz-icon nzType="down" />
             </button>
             <nz-dropdown-menu #menu="nzDropdownMenu">
               <ul nz-menu>
                 <li nz-menu-item>
-                  <a nzType="default" nzSize="small" class="fs-12" (click)="onExportGroupItem(1)">
+                  <a nzType="default" nzSize="small" class="fs-12 bill-export-fs-12" (click)="onExportGroupItem(1)">
                     Xuất gộp
                   </a>
                 </li>
                 <li nz-menu-item>
-                  <a nzType="default" nzSize="small" class="fs-12" (click)="onExportGroupItem(2)">
+                  <a nzType="default" nzSize="small" class="fs-12 bill-export-fs-12" (click)="onExportGroupItem(2)">
                     Xuất tất cả các mã
                   </a>
                 </li>
               </ul>
             </nz-dropdown-menu>
 
-            <button class="fs-12 btn" nz-button nzType="default" nzSize="small" *hasPermission="'N10,N11,N27,N29,N1'" (click)="exportExcelKT()">
-              <img class="btn-action-icon" src="assets/icon/excel.png" alt="Excel KT" /> Excel KT
+            <button class="fs-12 btn bill-export-fs-12 bill-export-btn" nz-button nzType="default" nzSize="small" *hasPermission="'N10,N11,N27,N29,N1'" (click)="exportExcelKT()">
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/excel.png" alt="Excel KT" /> Excel KT
             </button>
-            <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-              <img class="btn-action-icon" src="assets/icon/export_list.png" alt="Xuất danh sách" /> Xuất danh sách
+            <button class="fs-12 btn bill-export-fs-12 bill-export-btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/export_list.png" alt="Xuất danh sách" /> Xuất danh sách
             </button>
-            <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
-              <img class="btn-action-icon" src="assets/icon/folder.png" alt="Cây thư mục" /> Cây thư mục
+            <button class="fs-12 btn bill-export-fs-12 bill-export-btn" nz-button nzType="default" nzSize="small">
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/folder.png" alt="Cây thư mục" /> Cây thư mục
             </button>
-            <button class="fs-12 btn" nz-button nzType="default" nzSize="small"
+            <button class="fs-12 btn bill-export-fs-12 bill-export-btn" nz-button nzType="default" nzSize="small"
               (click)=" openModalBillDocumentExport()">
-              <img class="btn-action-icon" src="assets/icon/document.png" alt="Hồ sơ chứng từ" /> Hồ sơ chứng từ
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/document.png" alt="Hồ sơ chứng từ" /> Hồ sơ chứng từ
             </button>
-            <!-- <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="openModalScanBill()">
+            <!-- <button class="fs-12 btn bill-export-fs-12 bill-export-btn" nz-button nzType="default" nzSize="small" (click)="openModalScanBill()">
                             <nz-icon nzType="scan" nzTheme="outline" /> QR Code Phiếu
                         </button> -->
-            <button class="fs-12 btn" nz-button nzType="default" nzSize="small"
+            <button class="fs-12 btn bill-export-fs-12 bill-export-btn" nz-button nzType="default" nzSize="small"
               (click)=" openModalBillExportSynthetic()">
-              <img class="btn-action-icon" src="assets/icon/summary.png" alt="Tổng hợp" /> Tổng hợp
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/summary.png" alt="Tổng hợp" /> Tổng hợp
             </button>
-                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small"
+                        <button class="fs-12 btn bill-export-fs-12 bill-export-btn" nz-button nzType="default" nzSize="small"
               >
-              <img class="btn-action-icon" src="assets/icon/summary.png" alt="Báo cáo nhà cung cấp" /> Báo cáo NCC
+              <img class="btn-action-icon bill-export-btn-action-icon" src="assets/icon/summary.png" alt="Báo cáo nhà cung cấp" /> Báo cáo NCC
             </button>
           </div>
         </div>
-        <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+        <div class="card h-100 border-0 rounded-0 bill-export-card bill-export-h-100 bill-export-border-0 bill-export-rounded-0">
+        <div class="card-header bg-white p-1 bill-export-card-header bill-export-bg-white bill-export-p-1">
+          <div class="d-flex justify-content-between align-items-center bill-export-d-flex bill-export-justify-content-between bill-export-align-items-center">
+            <h6 class="m-0 ms-2 bill-export-m-0 bill-export-ms-2">Tìm kiếm</h6>
+            <button class="border-0 me-2 bill-export-border-0 bill-export-me-2" nz-button nzSize="small" nzType="default" nzDanger
               (click)="toggleSearchPanel()">
               <nz-icon nzType="close" nzTheme="outline" />
             </button>
@@ -90,25 +90,25 @@
           <form nz-form nzLayout="horizontal" (keyup.enter)="searchData()">
             <!-- Date range -->
             <nz-form-item>
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+              <nz-form-label class="fs-12 bill-export-fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small"
+                <nz-date-picker [nzFormat]="dateFormat" class="w-100 bill-export-w-100" nzSize="small"
                   [(ngModel)]="searchParams.dateStart" name="dateStart" [nzDisabled]="checked">
 
                 </nz-date-picker>
 
               </nz-form-control>
             </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+            <nz-form-item class="mt-2 bill-export-mt-2">
+              <nz-form-label class="fs-12 bill-export-fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd"
+                <nz-date-picker [nzFormat]="dateFormat" class="w-100 bill-export-w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd"
                   name="dateEnd" [nzDisabled]="checked"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
             <!-- cbb kho -->
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Lọc kho</nz-form-label>
+            <nz-form-item class="mt-2 bill-export-mt-2">
+              <nz-form-label class="fs-12 bill-export-fs-12" [nzSpan]="24">Lọc kho</nz-form-label>
               <nz-form-control [nzSpan]="24">
                 <nz-select [(ngModel)]="selectedKhoTypes" (ngModelChange)="onKhoTypeChange($event)"
                   [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn nhóm kho'" [nzMaxTagCount]="3" style="width: 100%"
@@ -119,40 +119,40 @@
                 <ng-template #tagPlaceHolder let-selectedList>và {{ selectedList.length }} kho được chọn</ng-template>
               </nz-form-control>
             </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Lọc phiếu</nz-form-label>
+            <nz-form-item class="mt-2 bill-export-mt-2">
+              <nz-form-label class="fs-12 bill-export-fs-12" [nzSpan]="24">Lọc phiếu</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status"
+                <nz-select class="w-100 bill-export-w-100" nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status"
                   name="status">
                   <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
-                    <div class="d-flex align-items-center">
-                      <span class="me-2">{{ item.ID }}</span>
+                    <div class="d-flex align-items-center bill-export-d-flex bill-export-align-items-center">
+                      <span class="me-2 bill-export-me-2">{{ item.ID }}</span>
                       <span>{{ item.Name }}</span>
                     </div>
                   </nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+            <nz-form-item class="mt-2 bill-export-mt-2">
+              <nz-form-label class="fs-12 bill-export-fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <input class="w-100" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword"
+                <input class="w-100 bill-export-w-100" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword"
                   name="keyword" nzSize="small" />
               </nz-form-control>
             </nz-form-item>
-            <nz-form-item class="mt-2">
+            <nz-form-item class="mt-2 bill-export-mt-2">
               <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">Tìm kiếm tất cả các ngày</label>
             </nz-form-item>
-            <nz-form-item class="mt-2">
+            <nz-form-item class="mt-2 bill-export-mt-2">
                <!-- <button nz-button nzType="default" nzSize="small" (click)="resetform()">Đặt lại</button> -->
           <button nz-button nzType="primary" nzSize="small" (click)="searchData()">Tìm kiếm</button>
             </nz-form-item>
           </form>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-0 bill-export-card-body bill-export-p-0">
           <nz-splitter nzLayout="vertical">
             <nz-splitter-panel nzResizable="true">
-                <div class="position-relative h-100">
+                <div class="position-relative h-100 bill-export-position-relative bill-export-h-100">
                   <div #tableBillExportRef></div>
 
                 </div>
@@ -162,14 +162,14 @@
               <!-- bảng chi tiết -->
 
               <ng-template #tabClose>
-                <button nz-button nzType="text" class="btn-close-panel" style="color: red;" (click)="closePanel()">
+                <button nz-button nzType="text" class="btn-close-panel bill-export-btn-close-panel" style="color: red;" (click)="closePanel()">
                   <i nz-icon nzType="close"></i>
                 </button>
               </ng-template>
-              <nz-tabset class="main-tab" style=" padding-left: 10px !important;height: 100%;" [nzTabBarExtraContent]="tabClose">
+              <nz-tabset class="main-tab bill-export-main-tab" style=" padding-left: 10px !important;height: 100%;" [nzTabBarExtraContent]="tabClose">
 
                 <nz-tab style="height: 100%;" [nzTitle]="tabDetailTitle">
-                  <div class="position-relative h-100">
+                  <div class="position-relative h-100 bill-export-position-relative bill-export-h-100">
                     <div #tableBillExportDetailRef></div>
 
                   </div>

@@ -1,19 +1,19 @@
-<ng-container class="w-100">
-  <div class="card h-100 border-0 rounded-0">
-    <div class="card-header bg-white p-1">
-      <div class="d-flex gap-1 align-items-center">
+<ng-container class="w-100 search-product-serial-number-w-100">
+  <div class="card h-100 border-0 rounded-0 search-product-serial-number-card search-product-serial-number-h-100 search-product-serial-number-border-0 search-product-serial-number-rounded-0">
+    <div class="card-header bg-white p-1 search-product-serial-number-card-header search-product-serial-number-bg-white search-product-serial-number-p-1">
+      <div class="d-flex gap-1 align-items-center search-product-serial-number-d-flex search-product-serial-number-gap-1 search-product-serial-number-align-items-center">
         <input
           type="text"
           [(ngModel)]="keyword"
           name="keyword"
           nz-input
-          class="fs-12"
+          class="fs-12 search-product-serial-number-fs-12"
           style="font-style: italic; flex: 1 1 auto; max-width: 350px"
           placeholder="Tìm kiếm"
           (keyup.enter)="loadData()"
         />
         <button
-          class="fs-12"
+          class="fs-12 search-product-serial-number-fs-12"
           nz-button
           nzType="primary"
           nzSize="small"
@@ -23,11 +23,11 @@
         </button>
       </div>
     </div>
-    <div class="card-body p-0 w-100">
+    <div class="card-body p-0 w-100 search-product-serial-number-card-body search-product-serial-number-p-0 search-product-serial-number-w-100">
       <nz-splitter>
         <nz-splitter-panel nzDefaultSize="50%">
           <nz-spin [nzSpinning]="isLoadingTableImport">
-            <nz-card nzTitle="Danh sách phiếu nhập" class="full-card">
+            <nz-card nzTitle="Danh sách phiếu nhập" class="full-card search-product-serial-number-full-card">
               <div class="grid-container-import-{{idTable}}">
                 <angular-slickgrid
                   gridId="gridImport_{{idTable}}"
@@ -43,7 +43,7 @@
         </nz-splitter-panel>
         <nz-splitter-panel>
           <nz-spin [nzSpinning]="isLoadingTableExport">
-            <nz-card nzTitle="Danh sách phiếu xuất" class="full-card">
+            <nz-card nzTitle="Danh sách phiếu xuất" class="full-card search-product-serial-number-full-card">
               <div class="grid-container-export-{{idTable}}">
                 <angular-slickgrid
                   gridId="gridExport_{{idTable}}"

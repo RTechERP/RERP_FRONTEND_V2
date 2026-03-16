@@ -1,24 +1,24 @@
-::ng-deep div[id^="billExportSyntheticGrid-"] {
+:host ::ng-deep div[id^="billExportSyntheticGrid-"] {
   height: 82vh !important;
 }
 
 /* Grid container */
-.grid-container {
+.bill-export-synthetic-new-grid-container {
   height: 78vh;
   width: 100%;
 }
 
 /* Right align for numeric columns */
-::ng-deep .text-right {
+:host ::ng-deep .text-right {
   text-align: right !important;
 }
 
 /* Center align */
-::ng-deep .text-center {
+:host ::ng-deep .text-center {
   text-align: center !important;
 }
 
-::ng-deep .slick-headerrow-column input {
+:host ::ng-deep .slick-headerrow-column input {
   font-family: 'Roboto', sans-serif !important;
   font-size: 12px !important;
 }

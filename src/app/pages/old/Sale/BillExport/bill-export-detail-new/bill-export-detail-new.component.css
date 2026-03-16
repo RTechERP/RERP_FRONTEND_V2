@@ -1,10 +1,10 @@
-.grid-container-detail {
+.bill-export-detail-new-grid-container-detail {
   min-height: 300px;
   height: 36vh;
   flex-shrink: 0;
 }
 
-.reference-links-container {
+.bill-export-detail-new-reference-links-container {
   min-height: 32px;
   max-height: 80px;
   overflow-y: auto;
@@ -14,74 +14,74 @@
   background-color: #f5f5f5;
 }
 
-.reference-links-container .no-ref {
+.bill-export-detail-new-reference-links-container .bill-export-detail-new-no-ref {
   color: #999;
   font-size: 12px;
   margin-top: 0.4rem;
 }
 
-.reference-links-container a {
+.bill-export-detail-new-reference-links-container a {
   color: #1890ff;
   text-decoration: none;
   font-size: 12px;
 }
 
-.fs-12 {
+.bill-export-detail-new-fs-12 {
   font-size: 12px;
 }
 
 /* SlickGrid styling */
-::ng-deep .slick-cell {
+:host ::ng-deep .slick-cell {
   font-size: 12px;
 }
 
-::ng-deep .slick-header-column {
+:host ::ng-deep .slick-header-column {
   font-size: 12px;
   font-weight: 600;
 }
 
-::ng-deep .slick-footerrow-columns .slick-footerrow-column {
+:host ::ng-deep .slick-footerrow-columns .slick-footerrow-column {
   font-size: 12px;
   background-color: #fafafa;
   border-top: 1px solid #e8e8e8;
 }
 
-::ng-deep .slick-row.odd {
+:host ::ng-deep .slick-row.odd {
   background-color: #fafafa;
 }
 
-::ng-deep .slick-row:hover {
+:host ::ng-deep .slick-row:hover {
   background-color: #e6f7ff;
 }
 
-::ng-deep .slick-cell.editable {
+:host ::ng-deep .slick-cell.editable {
   background-color: #fff8e6;
 }
 
-::ng-deep .slick-cell.selected {
+:host ::ng-deep .slick-cell.selected {
   background-color: #bae7ff;
 }
 
-::ng-deep .fa-trash {
+:host ::ng-deep .fa-trash {
   cursor: pointer;
   color: #ff4d4f;
 }
 
-::ng-deep .fa-trash:hover {
+:host ::ng-deep .fa-trash:hover {
   color: #ff7875;
 }
 
-::ng-deep .fa-plus {
+:host ::ng-deep .fa-plus {
   cursor: pointer;
   color: #1890ff;
 }
 
-::ng-deep .fa-plus:hover {
+:host ::ng-deep .fa-plus:hover {
   color: #40a9ff;
 }
 
 /* Error Popup Styles */
-.error-popup-overlay {
+.bill-export-detail-new-error-popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -94,7 +94,7 @@
   z-index: 10000;
 }
 
-.error-popup-container {
+.bill-export-detail-new-error-popup-container {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -104,13 +104,13 @@
   overflow: hidden;
 }
 
-.error-popup-header {
+.bill-export-detail-new-error-popup-header {
   padding: 16px 24px;
   border-bottom: 1px solid #f0f0f0;
   background-color: #fafafa;
 }
 
-.error-popup-title {
+.bill-export-detail-new-error-popup-title {
   margin: 0;
   font-size: 16px;
   font-weight: 500;
@@ -118,42 +118,48 @@
   align-items: center;
 }
 
-.error-popup-body {
+.bill-export-detail-new-error-popup-body {
   padding: 24px;
   max-height: 400px;
   overflow-y: auto;
 }
 
-.error-popup-message {
+.bill-export-detail-new-error-popup-message {
   white-space: pre-line;
   font-size: 14px;
   line-height: 1.6;
   color: #333;
 }
 
-.error-popup-footer {
+.bill-export-detail-new-error-popup-footer {
   padding: 12px 24px;
   border-top: 1px solid #f0f0f0;
   text-align: right;
   background-color: #fafafa;
 }
-::ng-deep div[id^="billExportDetail_"]{
-  height: 54vh !important;;
+
+:host ::ng-deep div[id^="billExportDetail_"] {
+  height: 52vh !important;
+  ;
 }
-::ng-deep .modal-body{
+
+:host ::ng-deep .bill-export-detail-new-modal-body {
   height: 91vh !important;
 }
-::ng-deep .modal-footer{
+
+:host ::ng-deep .bill-export-detail-new-modal-footer {
   border-top: none !important;
   padding: 0 1rem 0 0 !important;
 }
+
 .ant-form-item-label {
   padding-bottom: 0 !important;
 }
 
-.ant-form-item-label > label {
+.ant-form-item-label>label {
   font-size: 12px;
 }
+
 
 /* Đảm bảo modal footer ở dưới cùng */
 /* :host ::ng-deep .modal-content {
@@ -162,17 +168,17 @@
   max-height: 90vh;
 }
 
-:host ::ng-deep .modal-header {
+:host ::ng-deep .bill-export-detail-new-modal-header {
   flex-shrink: 0;
 }
 
-:host ::ng-deep .modal-body {
+:host ::ng-deep .bill-export-detail-new-modal-body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-:host ::ng-deep .modal-footer {
+:host ::ng-deep .bill-export-detail-new-modal-footer {
   flex-shrink: 0;
   border-top: 1px solid #e8e8e8;
   padding: 12px 16px;

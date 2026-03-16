@@ -57,6 +57,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     projects: any[] = [];
     typeBankTransfers: any[] = [];
     units: any[] = [];
+    @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
     @Input() ponccID: number = 0;
     @Input() paymentOrder = new PaymentOrder();
     @Input() isCopy = false;
@@ -694,17 +696,17 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         this.columnFileDefinitions = [
             {
                 id: 'deletete',
-                name: '',
+                name: '<i class="mdi mdi-plus text-primary" title="Chọn file" style="cursor:pointer;font-size:16px"></i>',
                 field: 'ID',
                 type: 'number',
                 width: 50, maxWidth: 50,
                 sortable: false, filterable: false,
                 formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer text-danger' },
-                // filter: { model: Filters['compoundDate'] }
                 onCellClick: (e: Event, args: OnEventArgs) => {
                     this.deleteFile(e, args)
                 },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                headerCssClass: 'text-center'
             },
             {
                 id: 'FileName',
@@ -720,14 +722,11 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             },
         ]
         this.gridFileOptions = {
-            enableAutoResize: true,
-            autoResize: {
-                container: '.grid-container-file',
-            },
+            enableAutoResize: false,
+            gridHeight: 150,
             gridWidth: '100%',
             frozenColumn: 0,
             autoFitColumnsOnFirstLoad: false,
-            // enableGridMenu: false,
             enableHeaderMenu: false,
         }
 
@@ -881,6 +880,11 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     angularGridReadyFile(angularGrid: AngularGridInstance) {
         this.angularGridFile = angularGrid;
         this.grdFile = this.angularGridFile?.slickGrid || {};
+        this.grdFile.onHeaderClick?.subscribe((_e: Event, args: any) => {
+            if (args?.column?.id === 'deletete') {
+                this.fileInput?.nativeElement?.click();
+            }
+        });
     }
 
     onCellChanged(e: Event, args: any) {
@@ -912,6 +916,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 // console.log('control.invalid:', control.invalid);
                 if (control.invalid) {
                     control.markAsDirty();
+                    control.markAsTouched();
                     control.updateValueAndValidity({ onlySelf: true });
                 }
             });

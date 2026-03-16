@@ -130,7 +130,7 @@ export class ProjectPartlistPurchaseRequestService {
   private productRTCUrl = environment.host + 'api/ProductRTC/';
 
   getProductRTC(): Observable<any[]> {
-    return this.http.get<any>(this.baseUrl + 'product-group_rtc').pipe(
+    return this.http.get<any>(this.baseUrl + 'product-group-rtc').pipe(
       map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
     );
   }
@@ -173,11 +173,15 @@ export class ProjectPartlistPurchaseRequestService {
   }
 
   // Get ProductGroupsRTC (same as getProductRTC for now, but can be separated if needed)
-  getProductGroupsRTC(warehouseType: number): Observable<any[]> {
-    return this.http.get<any>(`${this.productGroupUrl}/get-productgroup-purchase`).pipe(
-      map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
+getProductGroupsRTC(warehouseType: number): Observable<any[]> {
+  return this.http
+    .get<any>(`${this.baseUrl}product-group-rtc?warehouseType=${warehouseType}`)
+    .pipe(
+      map((res: any) =>
+        Array.isArray(res?.data) ? res.data : res?.data || res
+      )
     );
-  }
+}
 
   // Tải file PDF từ URL
   downloadFiles(data: any[]): Observable<Blob> {

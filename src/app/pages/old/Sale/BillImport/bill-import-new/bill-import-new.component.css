@@ -1,38 +1,66 @@
-:host ::ng-deep div[id^="gridMaster-"][id*="billimport"] {
-  height: 45vh !important;
-}
+/* ===== HOST fills parent tab/router container ===== */
+/* :host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+} */
 
-:host ::ng-deep div[id^="gridDetail-"][id*="billimport"] {
-  height: 34vh !important;
-}
+/* ===== p-card fills host ===== */
+/* :host ::ng-deep .bi-p-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+    height: 100%;
+    border: none !important;
+    border-radius: 0 !important;
+} */
+/* 
+:host ::ng-deep .bi-p-card .p-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+    padding: 0 !important;
+} */
 
-::ng-deep
-  .slickgrid-container
-  .slick-footerrow
-  .slick-footerrow-columns
-  .slick-footerrow-column {
-  border-right: 1px solid #ddd !important;
-  padding: 4px 6px;
-  font-size: 0.75rem;
-  justify-content: end !important;
-}
+/* :host ::ng-deep .bi-p-card .p-card-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+    padding: 0 !important;
+} */
 
-/* Multiline cell - wrap up to 3 lines with ellipsis */
-::ng-deep .cell-multiline {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: normal;
-  line-height: 1.4;
-  max-height: calc(1.4em * 3);
-  word-wrap: break-word;
-  word-break: break-word;
-}
+/* ===== Splitter ===== */
+/* :host ::ng-deep .bi-splitter.p-splitter {
+    border: none !important;
+    border-radius: 0 !important;
+} */
 
-::ng-deep div[id^="gridMaster-"][id*="billimport"] .slick-cell {
-  overflow: visible !important;
-  white-space: normal !important;
+/* :host ::ng-deep .bi-splitter .p-splitter-panel {
+    display: flex !important;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+} */
+
+/* ===== Detail panel title bar ===== */
+/* .bi-detail-title {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #555;
+    padding: 4px 8px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+} */
+
+
+app-custom-table {
+    height: 100%;
+}
+::ng-deep .p-card-body{
+    padding: 0 !important;
 }

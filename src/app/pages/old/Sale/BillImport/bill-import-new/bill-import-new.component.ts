@@ -488,15 +488,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 filterable: true,
                 minWidth: 180,
                 filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    collectionOptions: {
-                        addBlankEntry: true
-                    },
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
             {

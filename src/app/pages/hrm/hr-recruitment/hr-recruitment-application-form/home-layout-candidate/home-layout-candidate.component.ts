@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { forkJoin, interval, of, Subject, timer } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -16,7 +16,8 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentApplicationFormService } from './hr-recruitment-application-form.service';
 
@@ -39,6 +40,7 @@ import { HRRecruitmentApplicationFormService } from './hr-recruitment-applicatio
         NzFormModule,
         NzGridModule,
         NzModalModule,
+        NzSpinModule,
     ],
     templateUrl: './home-layout-candidate.component.html',
     styleUrl: './home-layout-candidate.component.css'
@@ -47,8 +49,10 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     @Input() candidateId: number | null = null;
     @Input() isEmbedded = false;
     private destroy$ = new Subject<void>();
+    private cancelLoad$ = new Subject<void>();
     form!: FormGroup;
     isLoading = false;
+    isComplete = false;
     private isSaving = false;
     private sanitizeData(obj: any): any {
         if (!obj || typeof obj !== 'object') return obj;
@@ -59,14 +63,45 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
         return newObj;
     }
 
+    private requiredTrim(): ValidatorFn {
+        return (control: AbstractControl): ValidationErrors | null => {
+            const v = control.value;
+            if (v === null || v === undefined) return { required: true };
+            if (typeof v === 'string' && v.trim().length === 0) return { required: true };
+            return null;
+        };
+    }
+
     private formatDateForInput(date: any): string | null {
         if (!date) return null;
+        // Handle common API formats safely (avoid timezone shifts)
+        if (typeof date === 'string') {
+            // ISO like 2026-03-12 or 2026-03-12T00:00:00...
+            const iso = date.match(/^(\d{4}-\d{2}-\d{2})/);
+            if (iso) return iso[1];
+            // dd/MM/yyyy
+            const vn = date.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            if (vn) return `${vn[3]}-${vn[2]}-${vn[1]}`;
+        }
+
         const d = new Date(date);
         if (isNaN(d.getTime())) return null;
         const month = '' + (d.getMonth() + 1);
         const day = '' + d.getDate();
         const year = d.getFullYear();
         return [year, month.padStart(2, '0'), day.padStart(2, '0')].join('-');
+    }
+
+    private normalizeGender(val: any): number | null {
+        if (val === null || val === undefined || val === '') return null;
+        // Numeric/string codes
+        const n = Number(val);
+        if (n === 1 || n === 2) return n;
+        // Text fallback
+        const s = String(val).trim().toLowerCase();
+        if (s === 'nam' || s === 'male' || s === 'm') return 1;
+        if (s === 'nữ' || s === 'nu' || s === 'female' || s === 'f') return 2;
+        return null;
     }
 
     imagePreview: string | null = null;
@@ -104,6 +139,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
         private cdr: ChangeDetectorRef,
         private router: Router,
         private hrService: HRRecruitmentApplicationFormService,
+        private modal: NzModalService,
     ) { }
 
     ngOnInit(): void {
@@ -115,14 +151,24 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['candidateId'] && !changes['candidateId'].firstChange && this.form) {
-            this.loadInitialData();
+        if (changes['candidateId'] && this.form) {
+            // Luôn gọi loadInitialData khi candidateId thay đổi (ngay cả lần đầu)
+            // nhưng ngOnInit cũng đã gọi rồi, nên ta chỉ gọi nếu không phải firstChange
+            // để tránh gọi 2 lần lúc init.
+            if (!changes['candidateId'].firstChange) {
+                this.loadInitialData();
+            }
         }
     }
 
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
+        this.cancelLoad$.next();
+        this.cancelLoad$.complete();
+        if (this.imagePreview && this.imagePreview.startsWith('blob:')) {
+            URL.revokeObjectURL(this.imagePreview);
+        }
     }
 
     private startTimers() {
@@ -145,6 +191,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
 
     private autoSave() {
         if (this.isEmbedded) return;
+        if (this.isComplete) return; // Không auto-save nếu đã hoàn thành
         // Gỡ bỏ kiểm tra form.valid để lưu tiến độ tự động ngay cả khi chưa nhập đủ
         if (!this.isLoading && !this.isSaving) {
             console.log('Auto saving at:', new Date().toLocaleTimeString());
@@ -155,6 +202,15 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     }
 
     loadInitialData() {
+        this.cancelLoad$.next(); // Hủy các request đang chạy trước đó
+
+        // Reset image preview and file state when loading new data (switching candidates)
+        if (this.imagePreview && this.imagePreview.startsWith('blob:')) {
+            URL.revokeObjectURL(this.imagePreview);
+        }
+        this.imagePreview = null;
+        this.selectedFile = null;
+
         this.isLoading = true;
         let hRRecruitmentCandidateID = 0;
 
@@ -186,7 +242,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             observables.candidateInfo = this.hrService.getCandidateInformation(hRRecruitmentCandidateID);
         }
 
-        forkJoin(observables).subscribe({
+        forkJoin(observables).pipe(takeUntil(this.cancelLoad$), takeUntil(this.destroy$)).subscribe({
             next: (res: any) => {
                 this.isLoading = false;
                 // 1. Load Chuc Vu
@@ -206,110 +262,167 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     }
 
     patchForm(data: any) {
-        if (!data) return;
+        if (!data) data = {};
 
-        // Normalize main form data (Initial load uses 'applicationForm' array, Save result uses 'HRRecruitmentApplicationForm' object)
-        let mainForm = null;
-        if (data.applicationForm && data.applicationForm.length > 0) {
-            mainForm = data.applicationForm[0];
-        } else if (data.HRRecruitmentApplicationForm) {
-            mainForm = data.HRRecruitmentApplicationForm;
-        }
+        // 1. Hard Reset delete list
+        this.deletedList = {
+            emergencyContacts: [],
+            educations: [],
+            foreignLanguages: [],
+            otherCertificates: [],
+            workExperiences: []
+        };
 
+        // 2. Lấy dữ liệu tờ khai chính
+        const mainForm = (data.applicationForm && data.applicationForm.length > 0) ? data.applicationForm[0] : (data.HRRecruitmentApplicationForm || null);
+        const masterID = mainForm ? (mainForm.ID || 0) : 0;
+
+        // 3. Reset toàn bộ Form về trạng thái trống (bao gồm cả recruitmentInfo)
+        this.form.reset();
+        this.form.patchValue({
+            ID: masterID,
+            HRRecruitmentCandidateID: this.candidateId || 0,
+            IsComplete: false,
+            InjuriesOrSeriousIll: false,
+            CurrentlyPregnant: false,
+            IsPlanPregnant: false,
+            HasRelativeOrFriendInCompany: false,
+            HasSocialInsurance: false,
+            HasTaxCode: false
+        }, { emitEvent: false });
+
+        this.form.get('recruitmentInfo')?.reset({
+            ID: 0,
+            HRRecruitmentApplicationFormID: masterID,
+            JobWebsites: false,
+            Newspapers: false,
+            SocialNetwork: false,
+            Headhunters: false,
+            Relatives: false,
+            Others: false,
+        }, { emitEvent: false });
+
+        // 4. Patch dữ liệu tờ khai chính
         if (mainForm) {
-            if (mainForm.CreatedDate) {
-                this.createdDate = new Date(mainForm.CreatedDate);
-            }
+            if (mainForm.CreatedDate) this.createdDate = new Date(mainForm.CreatedDate);
+            this.isComplete = !this.isEmbedded && mainForm.IsComplete === true;
+
             this.form.patchValue({
                 ...mainForm,
                 DateOfBirth: this.formatDateForInput(mainForm.DateOfBirth),
                 IssuedOn: this.formatDateForInput(mainForm.IssuedOn),
                 DateSign: this.formatDateForInput(mainForm.DateSign),
                 DateOfStart: this.formatDateForInput(mainForm.DateOfStart),
-                HasRelativeOrFriendInCompany: mainForm.HasRelativeOrFriendInCompany ?? false,
-                HasSocialInsurance: mainForm.HasSocialInsurance ?? false,
-                HasTaxCode: mainForm.HasTaxCode ?? false,
-                InjuriesOrSeriousIll: mainForm.InjuriesOrSeriousIll ?? false,
-                CurrentlyPregnant: mainForm.CurrentlyPregnant ?? false,
-                IsPlanPregnant: mainForm.IsPlanPregnant ?? false,
-            });
+                Gender: this.normalizeGender(mainForm.Gender),
+            }, { emitEvent: false });
 
-            // Bind position info
-            if (mainForm.ChucVuHDID) {
-                this.onPositionChange(mainForm.ChucVuHDID);
-            }
+            if (mainForm.ChucVuHDID) this.onPositionChange(mainForm.ChucVuHDID);
 
-            // Image preview
+            // Ảnh chân dung
             if (mainForm.FileName && !this.imagePreview) {
-                this.hrService.downloadFile(mainForm.FileName).subscribe({
+                this.hrService.downloadFile(mainForm.FileName).pipe(takeUntil(this.cancelLoad$), takeUntil(this.destroy$)).subscribe({
                     next: (blob) => {
                         this.imagePreview = URL.createObjectURL(blob);
                         this.cdr.markForCheck();
-                    },
-                    error: (err) => console.error('Error downloading image:', err)
-                });
-            }
-        } else {
-            // Form chưa có dữ liệu trong DB → Patch thông tin cơ bản từ session ứng viên (chỉ khi ứng viên tự điền)
-            if (!this.isEmbedded) {
-                try {
-                    const candidateStr = localStorage.getItem('CurrentUserCandidate');
-                    if (candidateStr) {
-                        const candidate = JSON.parse(candidateStr);
-                        this.form.patchValue({
-                            FullName: candidate.FullName || null,
-                            DateOfBirth: this.formatDateForInput(candidate.DateOfBirth) || null,
-                            Email: candidate.Email || candidate.UserName || null,
-                            Gender: candidate.Gender ?? null,
-                            Mobile: candidate.PhoneNumber || null,
-                            ChucVuHDID: candidate.EmployeeChucVuHDID || null,
-                        });
-                        if (candidate.EmployeeChucVuHDID) {
-                            this.onPositionChange(candidate.EmployeeChucVuHDID);
-                        }
                     }
-                } catch (e) {
-                    console.error('Error reading CurrentUserCandidate for default values', e);
-                }
+                });
+            } else if (!mainForm.FileName) {
+                this.imagePreview = null;
             }
         }
 
-        // Populate lists - handle both lowercase and PascalCase keys
-        const arraysMapping = [
-            { key: 'emergencyContacts', data: data.emergencyContacts || data.EmergencyContacts, defaultCount: 2, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], FullName: [item.FullName, [Validators.required]], Relation: [item.Relation, [Validators.required]], Tel: [item.Tel, [Validators.required]], Address: [item.Address, [Validators.required]] }) },
-            { key: 'educations', data: data.educations || data.Educations, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], NameOfSchool: [item.NameOfSchool, [Validators.required]], Major: [item.Major, [Validators.required]], GraduatedTime: [item.GraduatedTime, [Validators.required]], QualificationLevel: [item.QualificationLevel, [Validators.required]] }) },
-            { key: 'foreignLanguages', data: data.foreignLanguageSkills || data.ForeignLanguageSkills, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], ForeignLanguage: [item.ForeignLanguage], Listening: [item.Listening], Speaking: [item.Speaking], Reading: [item.Reading], Writing: [item.Writing] }) },
-            { key: 'otherCertificates', data: data.otherCertificates || data.OtherCertificates, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], DateOfIssue: [this.formatDateForInput(item.DateOfIssue)], Certificates: [item.Certificates, [Validators.maxLength(550)]], IssuedBy: [item.IssuedBy, [Validators.maxLength(550)]], QualificationLevel: [item.QualificationLevel] }) },
-            { key: 'workExperiences', data: data.workingExperiences || data.WorkingExperiences, defaultCount: 1, formGroupFn: (item: any) => this.fb.group({ ID: [item.ID || 0], CompanyName: [item.CompanyName, [Validators.maxLength(250)]], PositionName: [item.PositionName, [Validators.maxLength(250)]], DateStart: [this.formatDateForInput(item.DateStart)], DateEnd: [this.formatDateForInput(item.DateEnd)], Leader: [item.Leader, [Validators.maxLength(550)]], Mission: [item.Mission, [Validators.maxLength(550)]], Achievement: [item.Achievement, [Validators.maxLength(550)]], Salary: [item.Salary], WorkingStatus: [item.WorkingStatus], ReasonQuit: [item.ReasonQuit, [Validators.maxLength(550)]], }) }
+        // 5. Xử lý các FormArray bằng setControl (Ép giao diện vẽ lại hoàn toàn)
+        const getID = (item: any) => item.HRRecruitmentApplicationFormID || item.HRHiringCandidateInformationFormID || masterID;
+
+        const arrayConfigs = [
+            {
+                key: 'emergencyContacts',
+                data: data.emergencyContacts || data.EmergencyContacts,
+                count: 2,
+                groupFn: (item?: any) => this.fb.group({
+                    ID: [item?.ID || 0],
+                    HRRecruitmentApplicationFormID: [getID(item || {})],
+                    FullName: [item?.FullName || null, [Validators.required, Validators.maxLength(250)]],
+                    Relation: [item?.Relation || null, [Validators.required, Validators.maxLength(250)]],
+                    Tel: [item?.Tel || null, [Validators.required, Validators.maxLength(150), Validators.pattern(/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/)]],
+                    Address: [item?.Address || null, [Validators.required, Validators.maxLength(550)]]
+                })
+            },
+            {
+                key: 'educations',
+                data: data.educations || data.Educations,
+                count: 1,
+                groupFn: (item?: any) => this.fb.group({
+                    ID: [item?.ID || 0],
+                    HRRecruitmentApplicationFormID: [getID(item || {})],
+                    NameOfSchool: [item?.NameOfSchool || null, [this.requiredTrim(), Validators.maxLength(550)]],
+                    Major: [item?.Major || null, [this.requiredTrim(), Validators.maxLength(550)]],
+                    GraduatedTime: [item?.GraduatedTime || null, [this.requiredTrim(), Validators.maxLength(150)]],
+                    QualificationLevel: [item?.QualificationLevel ? Number(item.QualificationLevel) : null, [Validators.required]]
+                })
+            },
+            {
+                key: 'foreignLanguages',
+                data: data.foreignLanguageSkills || data.ForeignLanguageSkills || data.foreignLanguages,
+                count: 1,
+                groupFn: (item?: any) => this.fb.group({
+                    ID: [item?.ID || 0],
+                    HRRecruitmentApplicationFormID: [getID(item || {})],
+                    ForeignLanguage: [item?.ForeignLanguage || null, [Validators.maxLength(550)]],
+                    Listening: [item?.Listening || null],
+                    Speaking: [item?.Speaking || null],
+                    Reading: [item?.Reading || null],
+                    Writing: [item?.Writing || null]
+                })
+            },
+            {
+                key: 'otherCertificates',
+                data: data.otherCertificates || data.OtherCertificates,
+                count: 1,
+                groupFn: (item?: any) => this.fb.group({
+                    ID: [item?.ID || 0],
+                    HRRecruitmentApplicationFormID: [getID(item || {})],
+                    DateOfIssue: [this.formatDateForInput(item?.DateOfIssue)],
+                    Certificates: [item?.Certificates || null, [Validators.maxLength(550)]],
+                    IssuedBy: [item?.IssuedBy || null, [Validators.maxLength(550)]],
+                    QualificationLevel: [item?.QualificationLevel || null]
+                })
+            },
+            {
+                key: 'workExperiences',
+                data: data.workingExperiences || data.WorkingExperiences || data.workExperiences || data.workExperiences,
+                count: 1,
+                groupFn: (item?: any) => this.fb.group({
+                    ID: [item?.ID || 0],
+                    HRRecruitmentApplicationFormID: [getID(item || {})],
+                    CompanyName: [item?.CompanyName || null, [Validators.maxLength(250)]],
+                    PositionName: [item?.PositionName || null, [Validators.maxLength(250)]],
+                    DateStart: [this.formatDateForInput(item?.DateStart)],
+                    DateEnd: [this.formatDateForInput(item?.DateEnd)],
+                    Leader: [item?.Leader || null, [Validators.maxLength(550)]],
+                    Mission: [item?.Mission || null, [Validators.maxLength(550)]],
+                    Achievement: [item?.Achievement || null, [Validators.maxLength(550)]],
+                    Salary: [item?.Salary || null],
+                    WorkingStatus: [item?.WorkingStatus || null],
+                    ReasonQuit: [item?.ReasonQuit || null, [Validators.maxLength(550)]]
+                })
+            }
         ];
 
-        arraysMapping.forEach(m => {
-            const fa = this.form.get(m.key) as FormArray;
-            if (fa) {
-                fa.clear();
-                if (m.data && m.data.length > 0) {
-                    m.data.forEach((item: any) => {
-                        fa.push(m.formGroupFn(item));
-                    });
-                } else {
-                    for (let i = 0; i < (m.defaultCount || 1); i++) {
-                        if (m.key === 'emergencyContacts') this.addEmergencyContact();
-                        else if (m.key === 'educations') this.addEducation();
-                        else if (m.key === 'foreignLanguages') this.addForeignLanguage();
-                        else if (m.key === 'otherCertificates') this.addOtherCertificate();
-                        else if (m.key === 'workExperiences') this.addWorkExperience();
-                    }
-                }
+        arrayConfigs.forEach(conf => {
+            const newArray = this.fb.array<AbstractControl>([]);
+            if (conf.data && conf.data.length > 0) {
+                conf.data.forEach((item: any) => newArray.push(conf.groupFn(item) as AbstractControl));
+            } else {
+                for (let i = 0; i < (conf.count || 1); i++) newArray.push(conf.groupFn() as AbstractControl);
             }
+            this.form.setControl(conf.key, newArray, { emitEvent: false });
         });
 
-        // RecruitmentInfo
-        const recInfo = data.recruitmentInfo || data.RecruitmentInfo;
+        // 6. Tuyển dụng qua kênh nào
+        const recInfo = (data.recruitmentInfo && data.recruitmentInfo.length > 0) ? data.recruitmentInfo[0] : (data.RecruitmentInfo || null);
         if (recInfo) {
-            const info = Array.isArray(recInfo) ? recInfo[0] : recInfo;
-            if (info) {
-                this.form.get('recruitmentInfo')?.patchValue(info);
-            }
+            this.form.get('recruitmentInfo')?.patchValue(recInfo, { emitEvent: false });
         }
 
         this.updateSurveyValidators();
@@ -395,6 +508,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             TaxCode: [null, [Validators.maxLength(100)]],
             IsSignature: [false],
             DateSign: [null],
+            IsComplete: [false],
             // === Bảng phụ ===
             emergencyContacts: this.fb.array([], [Validators.minLength(2)]),
             educations: this.fb.array([]),
@@ -417,8 +531,10 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     // ===== Emergency Contacts =====
     get emergencyContacts(): FormArray { return this.form.get('emergencyContacts') as FormArray; }
     addEmergencyContact() {
+        const masterID = this.form?.get('ID')?.value || 0;
         this.emergencyContacts.push(this.fb.group({
             ID: [0],
+            HRRecruitmentApplicationFormID: [masterID],
             FullName: [null, [Validators.required, Validators.maxLength(250)]],
             Relation: [null, [Validators.required, Validators.maxLength(250)]],
             Tel: [null, [Validators.required, Validators.maxLength(150), Validators.pattern(/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/)]],
@@ -436,11 +552,13 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     // ===== Education =====
     get educations(): FormArray { return this.form.get('educations') as FormArray; }
     addEducation() {
+        const masterID = this.form?.get('ID')?.value || 0;
         this.educations.push(this.fb.group({
             ID: [0],
-            NameOfSchool: [null, [Validators.required, Validators.maxLength(550)]],
-            Major: [null, [Validators.required, Validators.maxLength(550)]],
-            GraduatedTime: [null, [Validators.required, Validators.maxLength(150)]],
+            HRRecruitmentApplicationFormID: [masterID],
+            NameOfSchool: [null, [this.requiredTrim(), Validators.maxLength(550)]],
+            Major: [null, [this.requiredTrim(), Validators.maxLength(550)]],
+            GraduatedTime: [null, [this.requiredTrim(), Validators.maxLength(150)]],
             QualificationLevel: [null, [Validators.required]]
         }));
     }
@@ -455,8 +573,10 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     // ===== Foreign Languages =====
     get foreignLanguages(): FormArray { return this.form.get('foreignLanguages') as FormArray; }
     addForeignLanguage() {
+        const masterID = this.form?.get('ID')?.value || 0;
         this.foreignLanguages.push(this.fb.group({
             ID: [0],
+            HRRecruitmentApplicationFormID: [masterID],
             ForeignLanguage: [null, [Validators.maxLength(550)]],
             Listening: [null],
             Speaking: [null],
@@ -475,8 +595,10 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     // ===== Other Certificates =====
     get otherCertificates(): FormArray { return this.form.get('otherCertificates') as FormArray; }
     addOtherCertificate() {
+        const masterID = this.form?.get('ID')?.value || 0;
         this.otherCertificates.push(this.fb.group({
             ID: [0],
+            HRRecruitmentApplicationFormID: [masterID],
             DateOfIssue: [null],
             Certificates: [null, [Validators.maxLength(550)]],
             IssuedBy: [null, [Validators.maxLength(550)]],
@@ -494,8 +616,10 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     // ===== Work Experiences =====
     get workExperiences(): FormArray { return this.form.get('workExperiences') as FormArray; }
     addWorkExperience() {
+        const masterID = this.form?.get('ID')?.value || 0;
         this.workExperiences.push(this.fb.group({
             ID: [0],
+            HRRecruitmentApplicationFormID: [masterID],
             CompanyName: [null, [Validators.maxLength(250)]],
             PositionName: [null, [Validators.maxLength(250)]],
             DateStart: [null],
@@ -569,14 +693,67 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
         });
     }
 
+    private collectInvalidControls(control: AbstractControl, path: string = ''): Array<{ path: string; errors: any; value: any }> {
+        const invalids: Array<{ path: string; errors: any; value: any }> = [];
+        if (control instanceof FormGroup) {
+            Object.keys(control.controls).forEach(key => {
+                const child = control.get(key);
+                if (!child) return;
+                const nextPath = path ? `${path}.${key}` : key;
+                invalids.push(...this.collectInvalidControls(child, nextPath));
+            });
+            if (control.invalid && control.errors) {
+                invalids.push({ path, errors: control.errors, value: control.value });
+            }
+        } else if (control instanceof FormArray) {
+            control.controls.forEach((child, idx) => {
+                const nextPath = `${path}[${idx}]`;
+                invalids.push(...this.collectInvalidControls(child, nextPath));
+            });
+            if (control.invalid && control.errors) {
+                invalids.push({ path, errors: control.errors, value: control.value });
+            }
+        } else {
+            if (control.invalid) {
+                invalids.push({ path, errors: control.errors, value: control.value });
+            }
+        }
+        return invalids;
+    }
+
     onSubmit() {
         this.markControlsDirty(this.form);
 
         if (this.form.invalid) {
+            // Debug: log invalid controls to quickly identify what is still "required"
+            const invalids = this.collectInvalidControls(this.form);
+            console.groupCollapsed('[HRRecruitmentApplicationForm] Form invalid - controls');
+            console.table(invalids.map(x => ({ path: x.path, errors: JSON.stringify(x.errors), value: x.value })));
+            console.groupEnd();
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin!');
             return;
         }
 
+        // Ứng viên tự điền: hiện confirm trước khi lưu, set IsComplete = true
+        if (!this.isEmbedded) {
+            this.modal.confirm({
+                nzTitle: NOTIFICATION_TITLE.warning,
+                nzContent: 'Sau khi lưu, bạn sẽ <b>không thể chỉnh sửa</b> tờ khai này nữa. Bạn có chắc chắn muốn lưu?',
+                nzOkText: 'Đồng ý lưu',
+                nzOkDanger: true,
+                nzCancelText: 'Hủy',
+                nzOnOk: () => {
+                    this.form.patchValue({ IsComplete: true });
+                    this.doSave();
+                }
+            });
+        } else {
+            // HR: lưu trực tiếp, không set IsComplete
+            this.doSave();
+        }
+    }
+
+    private doSave() {
         this.isLoading = true;
 
         // Nếu có file mới được chọn, upload trước rồi mới save form
@@ -646,6 +823,13 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             RecruitmentInfo: this.sanitizeData(recruitmentInfo)
         };
 
+        // Debug: log payload (manual save only, to avoid spamming console during autosave)
+        if (!isAuto) {
+            console.groupCollapsed('[HRRecruitmentApplicationForm] Save payload');
+            console.log(payload);
+            console.groupEnd();
+        }
+
         const saveObs = isAuto ? this.hrService.saveFormAuto(payload) : this.hrService.saveForm(payload);
 
         saveObs.subscribe({
@@ -655,9 +839,61 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                     // Xóa danh sách chờ sau khi lưu thành công
                     Object.keys(this.deletedList).forEach(k => this.deletedList[k] = []);
 
-                    if (isAuto && res.data) {
-                        // Nếu là lưu tự động và có data trả về (chứa ID mới), patch form luôn
-                        this.patchForm(res.data);
+                    if (res.data) {
+                        const data = res.data;
+                        let mainForm = null;
+                        if (data.applicationForm && data.applicationForm.length > 0) {
+                            mainForm = data.applicationForm[0];
+                        } else if (data.HRRecruitmentApplicationForm) {
+                            mainForm = data.HRRecruitmentApplicationForm;
+                        }
+
+                        // Update master ID if it was 0
+                        if (mainForm && mainForm.ID) {
+                            const currentID = this.form.get('ID')?.value;
+                            if (!currentID || currentID === 0) {
+                                this.form.patchValue({ ID: mainForm.ID }, { emitEvent: false });
+                            }
+                        }
+
+                        // Update RecruitmentInfo IDs
+                        const recInfo = data.recruitmentInfo || data.RecruitmentInfo;
+                        if (recInfo) {
+                            const info = Array.isArray(recInfo) ? recInfo[0] : recInfo;
+                            if (info) {
+                                if (info.ID) this.form.get('recruitmentInfo.ID')?.setValue(info.ID, { emitEvent: false });
+                                if (info.HRRecruitmentApplicationFormID) this.form.get('recruitmentInfo.HRRecruitmentApplicationFormID')?.setValue(info.HRRecruitmentApplicationFormID, { emitEvent: false });
+                            }
+                        }
+
+                        // Update child array IDs by index matching (safe since isSaving guards concurrent saves)
+                        const arrayKeys = [
+                            { formKey: 'emergencyContacts', resKey: 'EmergencyContacts' },
+                            { formKey: 'educations', resKey: 'Educations' },
+                            { formKey: 'foreignLanguages', resKey: 'ForeignLanguageSkills' },
+                            { formKey: 'otherCertificates', resKey: 'OtherCertificates' },
+                            { formKey: 'workExperiences', resKey: 'WorkingExperiences' }
+                        ];
+
+                        arrayKeys.forEach(mapping => {
+                            const fa = this.form.get(mapping.formKey) as FormArray;
+                            const resArray = data[mapping.resKey] || data[mapping.formKey];
+                            if (fa && Array.isArray(resArray) && resArray.length === fa.length) {
+                                resArray.forEach((item, idx) => {
+                                    if (item.ID) {
+                                        const ctrl = fa.at(idx).get('ID');
+                                        if (ctrl && (!ctrl.value || ctrl.value === 0)) {
+                                            ctrl.setValue(item.ID, { emitEvent: false });
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    if (isAuto) {
+                        // Lưu tự động: KHÔNG patchForm(res.data) vì patchForm sẽ clear/rebuild FormArray
+                        // có thể ghi đè giá trị người dùng đang nhập (DOM hiển thị nhưng control bị reset).
                         this.isSaving = false;
                         if (!isSilent) {
                             //    this.notification.success(NOTIFICATION_TITLE.success, 'Đã lưu tờ khai thành công!');

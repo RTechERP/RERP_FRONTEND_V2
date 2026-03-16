@@ -336,6 +336,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     ];
 
     this.gridOptions = {
+      enableAutoResize: true,
       autoResize: {
         container: '.grid-container-viewpokh',
         calculateAvailableSizeBy: 'container',
@@ -1385,6 +1386,10 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
 
     // Sheet 1: View POKH (dữ liệu chính)
     const worksheet = workbook.addWorksheet('View POKH');
+    worksheet.properties.outlineProperties = {
+      summaryBelow: false,
+      summaryRight: false,
+    };
 
     const columnDefs = [
       { field: 'PONumber', title: 'Số POKH', width: 20 },
@@ -1422,8 +1427,33 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
     headerRow.height = 25;
 
-    this.dataset.forEach((rowData: any, idx: number) => {
-      const excelRow = worksheet.getRow(idx + 2);
+    // Sort dataset by PONumber for grouping
+    const sortedDataset = [...this.dataset].sort((a, b) => {
+      const poA = a.PONumber || '';
+      const poB = b.PONumber || '';
+      return poA.localeCompare(poB);
+    });
+
+    let currentRowIdx = 2;
+    let currentPONumber: string | null = null;
+
+    sortedDataset.forEach((rowData: any) => {
+      // Create group header if PONumber changes
+      if (rowData.PONumber !== currentPONumber) {
+        currentPONumber = rowData.PONumber;
+
+        const groupRow = worksheet.getRow(currentRowIdx);
+        groupRow.getCell(1).value = `Số POKH: ${currentPONumber || 'N/A'}`;
+        groupRow.font = { bold: true, color: { argb: 'FF000000' } };
+        groupRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
+
+        worksheet.mergeCells(currentRowIdx, 1, currentRowIdx, columnDefs.length);
+        currentRowIdx++;
+      }
+
+      const excelRow = worksheet.getRow(currentRowIdx);
+      excelRow.outlineLevel = 1; // Grouping level
+
       columnDefs.forEach((col: any, colIndex: number) => {
         let value = rowData[col.field];
         if (col.isDate && value) {
@@ -1437,10 +1467,17 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
           excelRow.getCell(colIndex + 1).numFmt = '#,##0';
         }
       });
+
+      currentRowIdx++;
     });
 
     // Sheet 2: Chi tiết Xuất hàng (Export Details)
     const exportSheet = workbook.addWorksheet('Chi tiết xuất hàng');
+    exportSheet.properties.outlineProperties = {
+      summaryBelow: false,
+      summaryRight: false,
+    };
+
     const exportColumnDefs = [
       { field: 'PONumber', title: 'Số POKH', width: 20 },
       { field: 'ProductCode', title: 'Mã sản phẩm', width: 18 },
@@ -1463,10 +1500,26 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     exportHeaderRow.height = 25;
 
     let exportRowIndex = 2;
-    this.dataset.forEach((parentRow: any) => {
+    let currentExportPONumber: string | null = null;
+
+    sortedDataset.forEach((parentRow: any) => {
       if (parentRow.exportDetails && parentRow.exportDetails.length > 0) {
+        if (parentRow.PONumber !== currentExportPONumber) {
+          currentExportPONumber = parentRow.PONumber;
+
+          const groupRow = exportSheet.getRow(exportRowIndex);
+          groupRow.getCell(1).value = `Số POKH: ${currentExportPONumber || 'N/A'}`;
+          groupRow.font = { bold: true, color: { argb: 'FF000000' } };
+          groupRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
+
+          exportSheet.mergeCells(exportRowIndex, 1, exportRowIndex, exportColumnDefs.length);
+          exportRowIndex++;
+        }
+
         parentRow.exportDetails.forEach((exportItem: any) => {
           const excelRow = exportSheet.getRow(exportRowIndex);
+          excelRow.outlineLevel = 1;
+
           excelRow.getCell(1).value = parentRow.PONumber ?? '';
           excelRow.getCell(2).value = parentRow.ProductCode ?? '';
           excelRow.getCell(3).value = parentRow.CustomerName ?? '';
@@ -1480,6 +1533,11 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
 
     // Sheet 3: Chi tiết Hóa đơn (Invoice Details)
     const invoiceSheet = workbook.addWorksheet('Chi tiết hóa đơn');
+    invoiceSheet.properties.outlineProperties = {
+      summaryBelow: false,
+      summaryRight: false,
+    };
+
     const invoiceColumnDefs = [
       { field: 'PONumber', title: 'Số POKH', width: 20 },
       { field: 'ProductCode', title: 'Mã sản phẩm', width: 18 },
@@ -1503,10 +1561,26 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     invoiceHeaderRow.height = 25;
 
     let invoiceRowIndex = 2;
-    this.dataset.forEach((parentRow: any) => {
+    let currentInvoicePONumber: string | null = null;
+
+    sortedDataset.forEach((parentRow: any) => {
       if (parentRow.invoiceDetails && parentRow.invoiceDetails.length > 0) {
+        if (parentRow.PONumber !== currentInvoicePONumber) {
+          currentInvoicePONumber = parentRow.PONumber;
+
+          const groupRow = invoiceSheet.getRow(invoiceRowIndex);
+          groupRow.getCell(1).value = `Số POKH: ${currentInvoicePONumber || 'N/A'}`;
+          groupRow.font = { bold: true, color: { argb: 'FF000000' } };
+          groupRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
+
+          invoiceSheet.mergeCells(invoiceRowIndex, 1, invoiceRowIndex, invoiceColumnDefs.length);
+          invoiceRowIndex++;
+        }
+
         parentRow.invoiceDetails.forEach((invoiceItem: any) => {
           const excelRow = invoiceSheet.getRow(invoiceRowIndex);
+          excelRow.outlineLevel = 1;
+
           excelRow.getCell(1).value = parentRow.PONumber ?? '';
           excelRow.getCell(2).value = parentRow.ProductCode ?? '';
           excelRow.getCell(3).value = parentRow.CustomerName ?? '';

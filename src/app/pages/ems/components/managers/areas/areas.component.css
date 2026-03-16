@@ -1,0 +1,14 @@
+.areas {
+  max-width: 500px;
+}
+
+.custom-btn {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.custom-btn:hover {
+  cursor: pointer;
+  color: rgb(0, 119, 255);
+}

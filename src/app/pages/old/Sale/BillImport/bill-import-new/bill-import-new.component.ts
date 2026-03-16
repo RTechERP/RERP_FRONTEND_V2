@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, OnDestroy, AfterViewInit, Optional, ElementRef, NgZone } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, AfterViewInit, Optional, ElementRef, NgZone, HostListener } from '@angular/core';
 import * as ExcelJS from 'exceljs';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -33,6 +33,8 @@ import { BillImportDetailComponent } from '../Modal/bill-import-detail/bill-impo
 import { HistoryDeleteBillComponent } from '../../BillExport/Modal/history-delete-bill/history-delete-bill.component';
 import { ScanBillImportComponent } from '../Modal/scan-bill-import/scan-bill-import.component';
 import { environment } from '../../../../../../environments/environment';
+// import { ClipboardService } from '../../../../../services/clipboard.service';
+// import { BillImportDetailNewComponent } from './bill-import-detail-new/bill-import-detail-new.component';
 // import { ClipboardService } from '../../../../../services/clipboard.service';
 // import { BillImportDetailNewComponent } from './bill-import-detail-new/bill-import-detail-new.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -134,6 +136,15 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     private savedSelectedRows: number[] = []; // Lưu các row đã chọn
 
     isLoading: boolean = false;
+    isMobile: boolean = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
+    isShowModal: boolean = false;
+
+    @HostListener('window:resize', ['$event'])
+    onResize(event: any) {
+        if (typeof window !== 'undefined') {
+            this.isMobile = event.target.innerWidth <= 768;
+        }
+    }
 
     searchParams = {
         dateStart: (() => {
@@ -360,31 +371,25 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 },
             },
             {
-                label: 'More',
-                icon: 'fa-solid fa-ellipsis fa-lg text-secondary',
-                items: [
-                    {
-                        label: 'Cây thư mục',
-                        icon: 'fa-solid fa-folder-tree fa-lg text-warning',
-                        command: () => {
-                            this.openFolderTree();
-                        },
-                    },
-                    {
-                        label: 'QR Code Phiếu',
-                        icon: 'fa-solid fa-qrcode fa-lg text-dark',
-                        command: () => {
-                            this.openModalScanBill();
-                        },
-                    },
-                    {
-                        label: 'Tổng hợp',
-                        icon: 'fa-solid fa-chart-pie fa-lg text-primary',
-                        command: () => {
-                            this.openModalBillImportSynthetic();
-                        },
-                    },
-                ],
+                label: 'Cây thư mục',
+                icon: 'fa-solid fa-folder-tree fa-lg text-warning',
+                command: () => {
+                    this.openFolderTree();
+                },
+            },
+            {
+                label: 'QR Code Phiếu',
+                icon: 'fa-solid fa-qrcode fa-lg text-dark',
+                command: () => {
+                    this.openModalScanBill();
+                },
+            },
+            {
+                label: 'Tổng hợp',
+                icon: 'fa-solid fa-chart-pie fa-lg text-primary',
+                command: () => {
+                    this.openModalBillImportSynthetic();
+                },
             },
         ];
     }
@@ -420,7 +425,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'Status',
                 sortable: true,
                 filterable: true,
-                width: 120,
+                minWidth: 80,
                 formatter: Formatters.checkmarkMaterial,
                 filter: {
                     model: Filters['singleSelect'], collectionOptions: {
@@ -438,7 +443,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'DateStatus',
                 sortable: true,
                 filterable: true,
-                width: 130,
+                minWidth: 130,
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
@@ -452,7 +457,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'BillTypeText',
                 sortable: true,
                 filterable: true,
-                width: 150,
+                minWidth: 150,
                 filter: {
                     model: Filters['compoundInput'],
                 },
@@ -463,7 +468,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'DateRequestImport',
                 sortable: true,
                 filterable: true,
-                width: 130,
+                minWidth: 130,
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
@@ -481,9 +486,17 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'BillImportCode',
                 sortable: true,
                 filterable: true,
-                width: 180,
+                minWidth: 180,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
             },
             {
@@ -492,8 +505,12 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'Suplier',
                 sortable: true,
                 filterable: true,
-                width: 400,
-                formatter: this.formatTextWithTooltip.bind(this),
+                minWidth: 400,
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const text = String(value);
+                    return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
+                },
                 filter: {
                     model: Filters['compoundInput'],
                 },
@@ -504,7 +521,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'DepartmentName',
                 sortable: true,
                 filterable: true,
-                width: 150,
+                minWidth: 150,
                 formatter: this.formatTextWithTooltip.bind(this),
                 filter: {
                     model: Filters['compoundInput'],
@@ -527,7 +544,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'Deliver',
                 sortable: true,
                 filterable: true,
-                width: 180,
+                minWidth: 180,
                 formatter: this.formatTextWithTooltip.bind(this),
                 filter: {
                     collection: [],
@@ -547,7 +564,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 field: 'Reciver',
                 sortable: true,
                 filterable: true,
-                width: 150,
+                minWidth: 150,
                 formatter: this.formatTextWithTooltip.bind(this),
                 filter: {
                     collection: [],
@@ -619,9 +636,9 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 },
             },
             {
-                id: 'CreatedDate' + this.wareHouseCode,
+                id: 'CreatDate' + this.wareHouseCode,
                 name: 'Ngày tạo',
-                field: 'CreatedDate',
+                field: 'CreatDate',
                 sortable: true,
                 filterable: true,
                 width: 150,
@@ -701,19 +718,19 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
 
             frozenColumn: 2,
             enableCellMenu: true,
-            //   cellMenu: {
-            //     commandItems: [
-            //       {
-            //         command: 'copy',
-            //         title: 'Sao chép (Copy)',
-            //         iconCssClass: 'fa fa-copy',
-            //         positionOrder: 1,
-            //         action: (_e, args) => {
-            //           this.clipboardService.copy(args.value);
-            //         },
-            //       },
-            //     ],
-            //   },
+            cellMenu: {
+                commandItems: [
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            //this.clipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
 
             // Excel export configuration
             externalResources: [this.excelExportService],
@@ -722,6 +739,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sanitizeDataExport: true,
                 exportWithFormatter: true,
             },
+            autoFitColumnsOnFirstLoad: false,
+            enableAutoSizeColumns: false,
             // Footer row configuration
             createFooterRow: true,
             showFooterRow: true,
@@ -731,6 +750,18 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
 
     initDetailGrid(): void {
         this.columnDefinitionsDetail = [
+            {
+                id: 'STT',
+                name: 'STT',
+                field: 'STT',
+                sortable: true,
+                cssClass: 'text-center',
+                filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
+                maxWidth: 80,
+            },
             {
                 id: 'ProductNewCode' + this.wareHouseCode,
                 name: 'Mã nội bộ',
@@ -909,7 +940,12 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             enableFiltering: true,
             enableCellNavigation: true,
             enableRowSelection: true,
-            frozenColumn: 2,
+            frozenColumn: 3,
+
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
     }
 
@@ -1001,6 +1037,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         // Manually resize grid to ensure proper display
         setTimeout(() => {
             this.resizeGrids();
+            this.updateDetailFooterRow();
         }, 100);
     }
 
@@ -1032,6 +1069,10 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             this.datasetDetail = [];
             this.selectBillImport = [];
         }
+
+        setTimeout(() => {
+            this.updateDetailFooterRow();
+        }, 100);
     }
 
     onMasterCellClicked(event: Event, args: OnClickEventArgs): void {
@@ -1089,6 +1130,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     // Defer filter update sau khi Angular change detection cập nhật dataView
                     setTimeout(() => {
                         this.applyDistinctFiltersToMaster();
+                        this.updateMasterFooterRow();
                     }, 100);
 
                     // Resize grids after data is loaded
@@ -1123,6 +1165,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     if (this.angularGridDetail?.resizerService) {
                         this.angularGridDetail.resizerService.resizeGrid();
                     }
+                    this.updateDetailFooterRow();
                 }, 100);
             },
             error: (err) => {
@@ -1852,24 +1895,6 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     openModalBillImportSynthetic() {
-        // OLD CODE - using BillImportSyntheticComponent
-        // import('../Modal/bill-import-synthetic/bill-import-synthetic.component').then(m => {
-        //     const modalRef = this.modalService.open(m.BillImportSyntheticComponent, {
-        //         centered: true,
-        //         backdrop: 'static',
-        //         keyboard: false,
-        //         fullscreen: true,
-        //     });
-        //     modalRef.componentInstance.warehouseCode = this.wareHouseCode;
-        //     modalRef.result.catch((result) => {
-        //         if (result == true) {
-        //             // this.id=0;
-        //             // this.loadDataBillImport();
-        //         }
-        //     });
-        // });
-
-        // NEW CODE - using BillImportSyntheticNewComponent
         import('../Modal/bill-import-synthetic-new/bill-import-synthetic-new.component').then(m => {
             const modalRef = this.modalService.open(m.BillImportSyntheticNewComponent, {
                 centered: true,
@@ -2324,6 +2349,47 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         const footerCell = this.angularGridMaster.slickGrid.getFooterRowColumn('BillImportCode' + this.wareHouseCode);
         if (footerCell) {
             footerCell.textContent = `${this.formatNumber(count, 0)}`;
+        }
+    }
+
+    updateDetailFooterRow(): void {
+        if (this.angularGridDetail && this.angularGridDetail.slickGrid) {
+            const dataView = this.angularGridDetail.dataView;
+            const filteredItems = dataView.getFilteredItems() || [];
+            console.log(filteredItems);
+            // Đếm số lượng sản phẩm (đã bỏ qua group)
+            const codeCount = filteredItems.length;
+
+            // Tính tổng các cột số liệu
+            const totals = (filteredItems || []).reduce(
+                (acc, item) => {
+                    acc.Qty += Number(item.Qty) || 0;
+                    return acc;
+                },
+                {
+                    Qty: 0,
+                }
+            );
+
+            // Set footer values cho từng column
+            const columns = this.angularGridDetail.slickGrid.getColumns();
+            columns.forEach((col: any) => {
+                const footerCell = this.angularGridDetail.slickGrid.getFooterRowColumn(
+                    col.id
+                );
+                if (!footerCell) return;
+
+                // Đếm cho cột Code
+                if (col.id === 'ProductCode' + this.wareHouseCode) {
+                    footerCell.innerHTML = `<b>${codeCount.toLocaleString('en-US')}</b>`;
+                }
+                // Tổng các cột số liệu
+                else if (col.id === 'Qty' + this.wareHouseCode) {
+                    footerCell.innerHTML = `<b>${totals.Qty.toLocaleString(
+                        'en-US'
+                    )}</b>`;
+                }
+            });
         }
     }
 

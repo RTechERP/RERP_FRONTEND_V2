@@ -1,0 +1,91 @@
+<div class="card h-100" refreshable (refreshCallback)="onRefresh()">
+  <div class="card-header">
+    <div class="my-1 d-flex gap-1">
+      <button class="btn" (click)="openModal(content, false)" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faPlus" style="color: green;"></fa-icon>
+        <span class="ms-2 custom-btn">Thêm</span>
+      </button>
+      <button class="btn" (click)="openModal(content, true)" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faPenToSquare" style="color: blue;"></fa-icon>
+        <span class="ms-2 custom-btn">Sửa</span></button>
+      <button #btnDelete class="btn" (click)="onDelete()" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faTrash" style="color: red;"></fa-icon>
+        <span class="ms-2 custom-btn">Xóa</span></button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row h-100">
+      <div class="col-5 pe-1">
+        <tabulator-table-single #tblMaster [columnNames]="masterColumns" [tableData]="commMaster" [height]="'100%'"
+          [hasSelection]="false" (rowSelectionChanged)="onMasterRowChanged()"></tabulator-table-single>
+      </div>
+      <div class="col-7 ps-1">
+        <tabulator-table-single #tblDetail [columnNames]="detailColumns" [tableData]="commDetail" [height]="'100%'"
+          [hasSelection]="false"></tabulator-table-single>
+      </div>
+    </div>
+  </div>
+</div>
+<ng-template #content let-modal>
+  <div class="modal-header bg-primary">
+    <h5 class="modal-title text-light" id="modal-area">Truyền thông</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <div class="d-flex flex-column h-100">
+      <input type="text" class="form-control form-id-input" id="comm_id" name="comm_id" [(ngModel)]="commFormValue.Id">
+      <div class="d-flex justify-content-center">
+        <div class="modal-div-master">
+          <div class="row">
+            <div class="mb-3 col-3 row">
+              <label for="comm_name" class="col-2 col-form-label fw-bold">Tên</label>
+              <div class="col-10">
+                <input type="text" class="form-control" id="comm_name" name="comm_name"
+                  [(ngModel)]="commFormValue.CommunicationName" ngbAutofocus>
+              </div>
+            </div>
+            <div class="mb-3 col-9 row">
+              <label for="comm_description" class="col-1 col-form-label fw-bold">Mô tả</label>
+              <div class="col-11">
+                <input class="form-control" id="comm_description" name="comm_description" maxlength="200"
+                  [(ngModel)]="commFormValue.Description">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex justify-content-center flex-grow-1">
+        <div class="modal-div-detail">
+          <div class="card h-100" refreshable (refreshCallback)="onRefreshDetail()">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-4 pe-1my-1 d-flex gap-1">
+                  <button class="btn btn-primary-alt" (click)="addRow()">
+                    <fa-icon [icon]="faPlus"></fa-icon>
+                    <span class="ms-1">Thêm</span>
+                  </button>
+                  <button class="btn btn-success-alt">
+                    <fa-icon [icon]="faPenToSquare"></fa-icon>
+                    <span class="ms-1">Sửa</span></button>
+                  <button #btnDeleteDetail class="btn btn-danger-alt" (click)="onCellsDelete()">
+                    <fa-icon [icon]="faTrash"></fa-icon>
+                    <span class="ms-1">Xóa</span></button>
+                </div>
+                <div class="col-8 ps-1">
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <tabulator-table-single #tblModalDetail [columnNames]="modalDetailColumns" [tableData]="commModalDetail"
+                [selectableRow]="true" [height]="'100%'" [maxHeight]="'100%'"
+                [hasSelection]="true"></tabulator-table-single>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="save(modal)">Lưu</button>
+  </div>
+</ng-template>

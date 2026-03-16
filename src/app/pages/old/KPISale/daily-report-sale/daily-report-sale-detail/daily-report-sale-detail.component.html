@@ -3,7 +3,7 @@
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
 </div>
 
-<div class="modal-body p-2" style="height: calc(100vh - 120px); overflow-y: auto;">
+<div class="modal-body p-2" style="height: calc(100vh - 90px); overflow-y: auto;">
     <form [formGroup]="dailyReportSaleForm">
         <div formArrayName="reports">
             <div *ngFor="let report of reports.controls; let i = index" [formGroupName]="i" class="mb-3">
@@ -197,7 +197,7 @@
 
                         <!-- Các văn bản dài dàn 5 cột -->
                         <div class="row g-1 mt-1">
-                            <div class="col">
+                            <div class="col-12 col-md">
                                 <label class="mb-0 fs-12 d-inline">
                                     <span>Việc đã làm</span>
                                     <span class="text-danger">*</span>
@@ -208,7 +208,7 @@
                                     Vui lòng nhập việc đã làm
                                 </small>
                             </div>
-                            <div class="col">
+                            <div class="col-12 col-md">
                                 <label class="mb-0 fs-12 d-inline">
                                     <span>Kết quả mong đợi</span>
                                     <span class="text-danger">*</span>
@@ -219,12 +219,12 @@
                                     Vui lòng nhập kết quả
                                 </small>
                             </div>
-                            <div class="col">
+                            <div class="col-12 col-md">
                                 <label class="mb-0 fs-12">Vấn đề tồn đọng</label>
                                 <textarea nz-input formControlName="problemBacklog" rows="2" class="w-100 fs-12"
                                     placeholder="Nhập vấn đề"></textarea>
                             </div>
-                            <div class="col">
+                            <div class="col-12 col-md">
                                 <label class="mb-0 fs-12 d-inline">
                                     <span>Kế hoạch tiếp theo</span>
                                     <span class="text-danger">*</span>
@@ -235,7 +235,7 @@
                                     Vui lòng nhập kế hoạch
                                 </small>
                             </div>
-                            <div class="col">
+                            <div class="col-12 col-md">
                                 <label class="mb-0 fs-12 d-inline">
                                     <span>Sản phẩm của KH</span>
                                     <span class="text-danger">*</span>

@@ -39,6 +39,7 @@ import {
     AppNotifycationDropdownComponent,
     NotifyItem,
 } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
+import { NotificationService } from '../../services/notification.service';
 import { MenusComponent } from '../../pages/old/menus/menus.component';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { ɵɵRouterOutlet } from "@angular/router/testing";
@@ -152,8 +153,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         private updateVersionService: UpdateVersionService,
         private nzModal: NzModalService,
         private modalService: NgbModal,
+        private notifService: NotificationService,
     ) {
-
         // this.menuComps = this.menuService.getMenus();
     }
     notificationComponent = AppNotifycationDropdownComponent;
@@ -243,6 +244,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     tabOpens: string[] = [];
 
     ngOnInit(): void {
+        this.notifService.items$.subscribe(items => this.notifItems = items);
 
         const tabOpenedsRaw = localStorage.getItem('tabOpeneds');
         this.tabOpens = tabOpenedsRaw ? JSON.parse(tabOpenedsRaw) : []
@@ -293,6 +295,14 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         this.tabService.tabCompRequest$.subscribe((payload: TabCompPayload) => {
             // console.log('[MainLayout] Received tabCompRequest:', payload);
             this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
+        });
+
+        // Subscribe to TabService for closing component tabs by key
+        this.tabService.closeTabByKey$.subscribe((key: string) => {
+            const idx = this.dynamicTabComps.findIndex(t => t.key === key);
+            if (idx >= 0) {
+                this.closeTabComp({ index: idx });
+            }
         });
 
         // Trì hoãn SSE và version check để các API quan trọng cho UI load trước
@@ -371,7 +381,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         const currentTabKey = `${key}_${normalize(data)}`;
 
         const injector = Injector.create({
-            providers: [{ provide: 'tabData', useValue: data }],
+            providers: [{ provide: 'tabData', useValue: { ...data, _tabKey: key } }],
             parent: this.injector,
         });
 
@@ -1132,8 +1142,14 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         this.auth.logout();
     }
     onPick(n: NotifyItem) {
-        console.log('picked:', n);
-        // TODO: điều hướng/đánh dấu đã đọc...
+        if (!n.route) return;
+        const route = n.route.replace(/^\//, '');
+        const menu = this.findMenuByRouter(this.menuComps, route) as LeafItem;
+        if (menu?.comp) {
+            this.newTabComp(menu.comp, menu.title, route, menu.data);
+        } else {
+            this.newTab(route, n.title || route);
+        }
     }
     // toggleMenu(key: string) {
     //   const m = this.menus.find((x) => x.key === key);

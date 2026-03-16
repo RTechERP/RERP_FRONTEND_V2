@@ -879,6 +879,7 @@ export class BillExportDetailNewComponent
                             templateCallback: (item: any) => {
                                 // Custom template: mã bên trên, tên bên dưới, số lượng tồn bên phải
                                 const code = item?.ProductCode || '';
+                const newCode = item?.ProductNewCode || '';
                                 const name = item?.ProductName || '';
                                 const inventory = item?.TotalInventory ?? 0;
                                 const formattedInventory = new Intl.NumberFormat('vi-VN', {
@@ -888,10 +889,10 @@ export class BillExportDetailNewComponent
                                 // Màu đỏ nếu tồn kho < 0, màu xanh nếu >= 0
                                 const inventoryColor = inventory < 0 ? '#ff4d4f' : '#52c41a';
                                 // Tooltip hiển thị đầy đủ thông tin
-                                const tooltipText = `Mã: ${code}\nTên: ${name}\nTồn kho: ${formattedInventory}`;
+                const tooltipText = `Mã: ${code}\nMã nội bộ: ${newCode}\nTên: ${name}\nTồn kho: ${formattedInventory}`;
                                 return `<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 4px 0; gap: 8px;" title="${tooltipText.replace(/"/g, '&quot;')}">
                   <div style="flex: 1; min-width: 0; overflow: hidden;">
-                    <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${code}</div>
+                    <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${code}${newCode ? ` <span style="color: #fa8c16; font-size: 11px;">(${newCode})</span>` : ''}</div>
                     <div style="font-size: 12px; color: #666; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; max-height: 4.2em;">${name}</div>
                   </div>
                   <div style="text-align: right; min-width: 70px; flex-shrink: 0; font-weight: 500; color: ${inventoryColor}; padding-top: 2px;">${formattedInventory}</div>
@@ -1610,7 +1611,7 @@ export class BillExportDetailNewComponent
                     this.validateForm.get('Code')?.disable();
                     this.validateForm.get('Address')?.disable();
 
-                    if (this.newBillExport.IsApproved) {
+          if (this.newBillExport.IsApproved && !this.appUserService.isAdmin) {
                         this.isFormDisabled = true;
                         this.validateForm.disable();
                     }

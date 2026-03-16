@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, input, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, input, Input, ChangeDetectorRef, Optional, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -43,6 +43,8 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { FormsModule } from '@angular/forms';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { BillImportDetailNewComponent } from '../../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { forkJoin } from 'rxjs';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -115,6 +117,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   isShowSeal = true;
   isMerge = false;
   isLoadingExcel: boolean = false;
+  isSaving: boolean = false;
   ponccType: any[] = [
     { value: 0, label: 'PO Thương mại' },
     { value: 1, label: 'PO mượn' },
@@ -233,7 +236,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
   constructor(
     private fb: FormBuilder,
-    public activeModal: NgbActiveModal,
+    @Optional() public activeModal: NgbActiveModal,
     private supplierSaleService: SupplierSaleService,
     private notification: NzNotificationService,
     private projectService: ProjectService,
@@ -244,17 +247,37 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService,
     private billImportService: BillImportServiceService,
     private tabulatorPopupService: TabulatorPopupService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private tabService: TabServiceService,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
 
   ngOnInit(): void {
+    // Nếu mở từ tab, nhận data từ tabData
+    if (this.tabData) {
+      if (this.tabData.poncc) this.poncc = this.tabData.poncc;
+      if (this.tabData.ponccDetail) this.ponccDetail = this.tabData.ponccDetail;
+      if (this.tabData.dtRef) this.dtRef = this.tabData.dtRef;
+      if (this.tabData.isCopy !== undefined) this.isCopy = this.tabData.isCopy;
+      if (this.tabData.isEditMode !== undefined) this.isEditMode = this.tabData.isEditMode;
+      if (this.tabData.isAddPoYCMH !== undefined) this.isAddPoYCMH = this.tabData.isAddPoYCMH;
+      if (this.tabData.skipBillCodeGeneration !== undefined) this.skipBillCodeGeneration = this.tabData.skipBillCodeGeneration;
+      if (this.tabData.warehouseType !== undefined) this.warehouseType = this.tabData.warehouseType;
+      if (this.tabData.lstPrjPartlistPurchaseRequest) this.lstPrjPartlistPurchaseRequest = this.tabData.lstPrjPartlistPurchaseRequest;
+      if (this.tabData.lstBillImportId) this.lstBillImportId = this.tabData.lstBillImportId;
+    }
 
     this.isAdmin = this.appUserService.isAdmin;
     if (this.poncc && this.poncc.ID > 0) {
-      this.ponccService.getPoncc(this.poncc.ID).subscribe({
-        next: (response: any) => {
-          this.rupayId = this.poncc.RulePayID;
-          this.poncc = response.data;
+      forkJoin({
+        poncc: this.ponccService.getPoncc(this.poncc.ID),
+        rulePay: this.ponccService.getRulePayByPONCC(this.poncc.ID)
+      }).subscribe({
+        next: ({ poncc: ponccRes, rulePay: rulePayRes }) => {
+          if (rulePayRes?.data) {
+            this.rupayId = rulePayRes.data;
+          }
+          this.poncc = ponccRes.data;
           if (this.isCopy) {
             this.poncc.ID = 0;
           }
@@ -275,7 +298,19 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       });
     }
     else if (this.isCopy && this.poncc) {
-      this.rupayId = this.poncc.RulePayID;
+      // Load RulePayID từ bảng PONCCRulePay cho trường hợp copy
+      if (this.poncc.ID > 0) {
+        this.ponccService.getRulePayByPONCC(this.poncc.ID).subscribe({
+          next: (res: any) => {
+            if (res?.data) {
+              this.rupayId = res.data;
+            }
+          },
+          error: (error) => {
+            this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+          }
+        });
+      }
       Promise.all([
         this.getSupplierSale(),
         this.getRulePay(),
@@ -382,7 +417,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       Status: this.poncc.Status ?? 0,
       TotalMoneyPO: this.poncc.TotalMoneyPO || 0,
       CurrencyID: this.poncc.CurrencyID || null,
-      CurrencyRate: this.poncc.CurrencyRate || 0
+      CurrencyRate: this.poncc.CurrencyRate || 0,
+      ExpectedDate: this.poncc.ExpectedDate || null
     }, { emitEvent: false });
 
 
@@ -486,7 +522,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       Status: [{ value: 0, disabled: !this.isAdmin }, Validators.required],
       TotalMoneyPO: [0, Validators.required],
       CurrencyID: [null, Validators.required],
-      CurrencyRate: [0, Validators.required]
+      CurrencyRate: [0, Validators.required],
+      ExpectedDate: [null, Validators.required]
     });
   }
 
@@ -512,18 +549,18 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         next: (response: any) => {
           this.informationForm.patchValue({
             POCode: response.data || '',
-            AddressSupplier: selectedSupplier.AddressNCC || this.poncc.AddressNCC || '',
-            MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc.MaSoThueNCC || '',
-            Note: selectedSupplier.Description || this.poncc.Note || '',
+            AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
+            MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
+            Note: selectedSupplier.Description || this.poncc?.Note || '',
             RulePayID: this.rupayId || selectedSupplier.RulePayID || null,
           });
         },
         error: (error) => {
           this.informationForm.patchValue({
-            POCode: this.poncc.CodeNCC || selectedSupplier.CodeNCC || '',
-            AddressSupplier: selectedSupplier.AddressNCC || this.poncc.AddressNCC || '',
-            MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc.MaSoThueNCC || '',
-            Note: selectedSupplier.Description || this.poncc.Note || '',
+            POCode: this.poncc?.CodeNCC || selectedSupplier.CodeNCC || '',
+            AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
+            MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
+            Note: selectedSupplier.Description || this.poncc?.Note || '',
             RulePayID: this.rupayId || selectedSupplier.RulePayID || null,
           });
         },
@@ -531,30 +568,30 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
       // udpate ở đây - update thông tin supplier vào các form
       this.extraForm.patchValue({
-        AccountNumberSupplier: selectedSupplier.SoTK || this.poncc.SoTK || '',
-        BankSupplier: selectedSupplier.NganHang || this.poncc.NganHang || '',
-        FedexAccount: selectedSupplier.FedexAccount || this.poncc.FedexAccount || '',
-        OriginItem: selectedSupplier.OriginItem || this.poncc.OriginItem || '',
-        BankCharge: selectedSupplier.BankCharge || this.poncc.BankCharge || '',
-        DeptSupplier: selectedSupplier.IsDebt || this.poncc.IsDebt || false,
-        RuleIncoterm: selectedSupplier.RuleIncoterm || this.poncc.RuleIncoterm || ''
+        AccountNumberSupplier: selectedSupplier.SoTK || this.poncc?.SoTK || '',
+        BankSupplier: selectedSupplier.NganHang || this.poncc?.NganHang || '',
+        FedexAccount: selectedSupplier.FedexAccount || this.poncc?.FedexAccount || '',
+        OriginItem: selectedSupplier.OriginItem || this.poncc?.OriginItem || '',
+        BankCharge: selectedSupplier.BankCharge || this.poncc?.BankCharge || '',
+        DeptSupplier: selectedSupplier.IsDebt || this.poncc?.IsDebt || false,
+        RuleIncoterm: selectedSupplier.RuleIncoterm || this.poncc?.RuleIncoterm || ''
       });
 
       this.diffForm.patchValue({
-        AddressDelivery: selectedSupplier.AddressDelivery || this.poncc.AddressDelivery || ''
+        AddressDelivery: selectedSupplier.AddressDelivery || this.poncc?.AddressDelivery || ''
       });
 
       // Update Note vào informationForm (nếu chưa có)
       if (!this.informationForm.get('Note')?.value) {
         this.informationForm.patchValue({
-          Note: selectedSupplier.Description || this.poncc.Note || ''
+          Note: selectedSupplier.Description || this.poncc?.Note || ''
         })
       }
 
       // Update Company vào informationForm nếu supplier có
       if (selectedSupplier.Company !== null && selectedSupplier.Company !== undefined) {
         this.informationForm.patchValue({
-          Company: selectedSupplier.Company || this.poncc.Company
+          Company: selectedSupplier.Company || this.poncc?.Company
         });
       }
 
@@ -982,15 +1019,15 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           headerSort: false,
           formatter: dateFormatter
         },
-        {
-          title: 'Ngày về dự kiến',
-          field: 'ExpectedDate',
-          editor: "date",
-          width: 150,
-          headerSort: false,
-          hozAlign: 'center',
-          formatter: dateFormatter
-        },
+        // {
+        //   title: 'Ngày về dự kiến',
+        //   field: 'ExpectedDate',
+        //   editor: "date",
+        //   width: 150,
+        //   headerSort: false,
+        //   hozAlign: 'center',
+        //   formatter: dateFormatter
+        // },
         {
           title: 'Ngày về thực tế',
           field: 'ActualDate',
@@ -1179,6 +1216,39 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           BillCode: res.data
         })
       }, error: (error: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+      }
+    });
+  }
+
+  /** Refresh Số đơn hàng (BillCode) bằng cách gọi lại API */
+  refreshBillCode(): void {
+    const poTypeId = this.informationForm.get('POType')?.value ?? 0;
+    this.ponccService.getBillCode(poTypeId).subscribe({
+      next: (res: any) => {
+        this.companyForm.patchValue({ BillCode: res.data });
+        this.notification.success(NOTIFICATION_TITLE.success, 'Đã cập nhật số đơn hàng!');
+      },
+      error: (error: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+      }
+    });
+  }
+
+  /** Refresh Mã PO NCC bằng cách gọi lại API */
+  refreshPOCode(): void {
+    const supplierID = this.informationForm.get('SupplierSaleID')?.value;
+    const selectedSupplier = this.supplierSales.find(s => s.ID === supplierID);
+    if (!selectedSupplier) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn nhà cung cấp trước!');
+      return;
+    }
+    this.ponccService.getPOCode(selectedSupplier.CodeNCC).subscribe({
+      next: (res: any) => {
+        this.informationForm.patchValue({ POCode: res.data || '' });
+        this.notification.success(NOTIFICATION_TITLE.success, 'Đã cập nhật mã PO NCC!');
+      },
+      error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
       }
     });
@@ -1551,12 +1621,13 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
   private saveData(closeAfterSave: boolean = true) {
     // Bước 1: Validate tất cả các form
-    const isInformationValid = this.validateForm(this.informationForm);
-    const isCompanyValid = this.validateForm(this.companyForm);
+    const isInformationValid = this.validateForm(this.informationForm, 'Thông tin chung');
+    const isCompanyValid = this.validateForm(this.companyForm, 'Hàng');
 
     if (!isInformationValid || !isCompanyValid) {
       return;
     }
+    this.isSaving = true;
     const tableData = this.tabulatorHangTien?.getData() || [];
     for (let i = 0; i < tableData.length; i++) {
       const row = tableData[i];
@@ -1593,14 +1664,19 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                   ponccData.poncc.BillCode = res.data;
                   this.save(ponccData, closeAfterSave);
                 }, error: (error) => {
+                  this.isSaving = false;
                   this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
                 }
               });
+            },
+            nzOnCancel: () => {
+              this.isSaving = false;
             },
           });
         }
       },
       error: (err) => {
+        this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
       }
     });
@@ -1609,9 +1685,11 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   save(data: any, closeAfterSave: boolean = true) {
     this.ponccService.saveData(data).subscribe({
       next: (res) => {
+        this.isSaving = false;
         // Check if response indicates success
         if (res && (res.status === 1 || res.success === true || res.status === true)) {
           this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công!');
+          this.tabService.notifyDataSaved('poncc');
 
           // Reload data after save to get latest info including ID for new records
           if (res.data && res.data.ID) {
@@ -1621,7 +1699,12 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           }
 
           if (closeAfterSave) {
-            this.activeModal.close(res.data); // Close modal only if requested
+            // Đóng tab nếu mở dạng tab, hoặc đóng modal nếu mở dạng modal
+            if (this.tabData?._tabKey) {
+              this.tabService.closeTabByKey(this.tabData._tabKey);
+            } else {
+              this.activeModal?.close(res.data);
+            }
           }
         } else {
           // API returned but with failure status
@@ -1631,6 +1714,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
+        this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || err.message);
         // Don't close modal on error
       }
@@ -1653,15 +1737,41 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   }
 
   // Hàm validate form
-  private validateForm(form: FormGroup): boolean {
-    // Mark all fields as touched để hiển thị lỗi
+  private readonly fieldNameMap: Record<string, string> = {
+    SupplierSaleID: 'Nhà cung cấp',
+    POCode: 'Mã PO',
+    RulePayID: 'Điều khoản thanh toán',
+    EmployeeID: 'Nhân viên phụ trách',
+    POType: 'Loại PO',
+    Company: 'Công ty',
+    RequestDate: 'Ngày yêu cầu',
+    DeliveryDate: 'Ngày giao hàng',
+    BillCode: 'Số bill',
+    Status: 'Trạng thái',
+    TotalMoneyPO: 'Tổng tiền PO',
+    CurrencyID: 'Loại tiền tệ',
+    CurrencyRate: 'Tỷ giá',
+    ExpectedDate: 'Ngày về dự kiến',
+  };
+
+  private validateForm(form: FormGroup, formName: string = ''): boolean {
+    const invalidFields: string[] = [];
     Object.keys(form.controls).forEach(key => {
       const control = form.get(key);
       control?.markAsTouched();
       control?.updateValueAndValidity();
+      if (control?.invalid) {
+        invalidFields.push(this.fieldNameMap[key] ?? key);
+      }
     });
 
-    if (form.invalid) return false;
+    if (form.invalid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `${formName ? '[' + formName + '] ' : ''}Vui lòng kiểm tra lại các trường: ${invalidFields.join(', ')}`
+      );
+      return false;
+    }
     return true;
   }
 
@@ -1697,7 +1807,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       ParentProductCode: row.ParentProductCode || '',
       IsPurchase: row.IsPurchase || false,
       DeadlineDelivery: row.DeadlineDelivery || null,
-      ExpectedDate: row.ExpectedDate || null,
+      // ExpectedDate: row.ExpectedDate || null,
       ActualDate: row.ActualDate || null,
       PriceSale: row.PriceSale || 0,
       DateReturnEstimated: row.DateReturnEstimated || null,
@@ -1748,6 +1858,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       Note: this.informationForm.get('Note')?.value,
 
       OtherTerms: this.diffForm.get('OtherTerms')?.value,
+
+      ExpectedDate: this.companyForm.get('ExpectedDate')?.value,
 
     };
 

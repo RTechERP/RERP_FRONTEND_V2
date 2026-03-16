@@ -119,6 +119,15 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
         private appUserService: AppUserService
     ) { }
 
+    private formatNumberEnUS(v: any, digits: number = 2): string {
+        const n = Number(v);
+        if (!isFinite(n)) return '';
+        return n.toLocaleString('en-US', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        });
+    }
+
     ngOnInit(): void {
         this.gridId = 'billExportSyntheticGrid-' + this.warehouseCode;
         this.searchParams.warehousecode = this.warehouseCode;
@@ -246,7 +255,15 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInputText'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
             },
             {
@@ -318,7 +335,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
             },
-                        {
+            {
                 id: 'Address',
                 name: 'Địa chỉ',
                 field: 'Address',
@@ -397,6 +414,8 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 cssClass: 'text-right',
+                formatter: (row: number, cell: number, value: any) =>
+                    this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
@@ -444,7 +463,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
             },
-                        {
+            {
                 id: 'ProductTypeText',
                 name: 'Hàng xuất',
                 field: 'ProductTypeText',
@@ -509,7 +528,51 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
             },
             frozenColumn: 7,
             gridHeight: 600,
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
+    }
+
+    updateMasterFooterRow() {
+        if (this.angularGrid && this.angularGrid.slickGrid) {
+            const dataView = this.angularGrid.dataView;
+            const filteredItems = dataView.getFilteredItems() || [];
+            console.log(filteredItems);
+            // Đếm số lượng sản phẩm (đã bỏ qua group)
+            const codeCount = filteredItems.length;
+
+            // Tính tổng các cột số liệu
+            const totals = (filteredItems || []).reduce(
+                (acc, item) => {
+                    acc.Qty += Number(item.Qty) || 0;
+                    return acc;
+                },
+                {
+                    Qty: 0,
+                }
+            );
+
+            // Set footer values cho từng column
+            const columns = this.angularGrid.slickGrid.getColumns();
+            columns.forEach((col: any) => {
+                const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(
+                    col.id
+                );
+                if (!footerCell) return;
+
+                // Đếm cho cột Code
+                if (col.id === 'Code') {
+                    footerCell.innerHTML = `<b>${codeCount.toLocaleString('en-US')}</b>`;
+                }
+                // Tổng các cột số liệu
+                else if (col.id === 'Qty') {
+                    footerCell.innerHTML = `<b>${totals.Qty.toLocaleString(
+                        'en-US'
+                    )}</b>`;
+                }
+            });
+        }
     }
     // #endregion
 
@@ -919,7 +982,10 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                         }));
 
                         if (this.angularGrid) {
-                            setTimeout(() => this.applyDistinctFilters(), 100);
+                            setTimeout(() => {
+                                this.applyDistinctFilters();
+                                this.updateMasterFooterRow();
+                            }, 100);
                         }
                     }
                 },

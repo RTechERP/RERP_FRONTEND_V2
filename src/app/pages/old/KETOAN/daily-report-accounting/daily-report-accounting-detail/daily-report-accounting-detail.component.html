@@ -23,11 +23,11 @@
                                     <span class="text-danger">*</span>
                                 </label>
                                 <nz-select nzShowSearch nzPlaceHolder="Chọn người phụ trách" nzAllowClear nzSize="small"
-                                    nzDropdownClassName="select-dropdown" class="w-100" formControlName="userId">
-                                    <nz-option *ngFor="let item of users" [nzValue]="item.UserID"
-                                        [nzLabel]="item.FullName"></nz-option>
+                                    nzDropdownClassName="select-dropdown" class="w-100" formControlName="employeeId">
+                                    <nz-option *ngFor="let item of users" [nzValue]="item.ID"
+                                        [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
                                 </nz-select>
-                                <small class="text-danger" *ngIf="isSubmitted && report.get('userId')?.invalid">
+                                <small class="text-danger" *ngIf="isSubmitted && report.get('employeeId')?.invalid">
                                     Vui lòng chọn người phụ trách
                                 </small>
                             </div>

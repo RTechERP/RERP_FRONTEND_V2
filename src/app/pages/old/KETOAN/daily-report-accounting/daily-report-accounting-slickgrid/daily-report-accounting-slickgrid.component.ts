@@ -238,7 +238,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
     }
 
     exportExcel(): void {
-        const userId = this.isAdmin ? (this.filters.employeeId || 0) : (this.appUserService.id || 0);
+        const employeeId = this.isAdmin ? (this.filters.employeeId || 0) : (this.appUserService.employeeID || 0);
 
         const dateStart = DateTime.fromISO(this.filters.dateStart || DateTime.local().toFormat('yyyy-MM-dd')).startOf('day').toJSDate();
         const dateEnd = DateTime.fromISO(this.filters.dateEnd || DateTime.local().toFormat('yyyy-MM-dd')).endOf('day').toJSDate();
@@ -248,7 +248,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
         this.dailyReportAccountingService.getDailyReportAccounting(
             1,
             999999,
-            userId,
+            employeeId,
             dateStart,
             dateEnd,
             (this.filterTextSearch && this.filterTextSearch.trim()) ? this.filterTextSearch.trim() : ''

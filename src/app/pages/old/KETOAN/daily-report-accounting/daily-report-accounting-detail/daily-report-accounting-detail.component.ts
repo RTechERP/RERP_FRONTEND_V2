@@ -78,7 +78,7 @@ export class DailyReportAccountingDetailComponent implements OnInit {
   createReportGroup(): FormGroup {
     return this.fb.group({
       id: [0],
-      userId: [null, Validators.required],
+      employeeId: [null, Validators.required],
       reportDate: [new Date(), Validators.required],
       content: ['', Validators.required],
       result: ['', Validators.required],
@@ -108,16 +108,16 @@ export class DailyReportAccountingDetailComponent implements OnInit {
 
   addReport(): void {
     const reportGroup = this.createReportGroup();
-    
+
     // Always set to current user initially
-    const currentUserId = this.appUserService.id;
-    if (currentUserId) {
-      reportGroup.patchValue({ userId: currentUserId });
+    const currentEmployeeId = this.appUserService.employeeID;
+    if (currentEmployeeId) {
+      reportGroup.patchValue({ employeeId: currentEmployeeId });
     }
-    
+
     // Disable if not admin
     if (!this.isAdmin) {
-      reportGroup.get('userId')?.disable();
+      reportGroup.get('employeeId')?.disable();
     }
 
     this.reports.push(reportGroup);
@@ -139,12 +139,12 @@ export class DailyReportAccountingDetailComponent implements OnInit {
 
           // Disable if not admin
           if (!this.isAdmin) {
-            reportGroup.get('userId')?.disable();
+            reportGroup.get('employeeId')?.disable();
           }
 
           reportGroup.patchValue({
             id: data.Id || data.ID || 0,
-            userId: data.UserID || null,
+            employeeId: data.EmployeeID || null,
             reportDate: data.ReportDate ? new Date(data.ReportDate) : null,
             content: data.Content || '',
             result: data.Result || '',
@@ -196,7 +196,7 @@ export class DailyReportAccountingDetailComponent implements OnInit {
       const formValue = control.getRawValue();
       return {
         Id: formValue.id || 0,
-        UserID: formValue.userId,
+        EmployeeID: formValue.employeeId,
         ReportDate: formatDate(formValue.reportDate).split('T')[0], // Backend expects DateOnly format theoretically, or string
         Content: formValue.content,
         Result: formValue.result,
@@ -228,7 +228,7 @@ export class DailyReportAccountingDetailComponent implements OnInit {
     this.dailyReportAccountingService.save(dataToSave).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.notification.success('Thành công', 'Lưu báo cáo hàng ngày (Kế toán) thành công!');
+          this.notification.success('Thành công', 'Lưu báo cáo thành công!');
           this.activeModal.close({ success: true, reloadData: true });
         } else {
           this.notification.error('Lỗi', response.message || 'Lưu thất bại!');

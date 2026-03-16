@@ -52,8 +52,8 @@ import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { UpdateVersionDetailComponent } from '../../pages/systems/update-version/update-version-detail/update-version-detail.component';
 // import { LayoutEventService } from '../layout-event.service';
-import { take, filter } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
+import { take, filter, tap, catchError } from 'rxjs/operators';
+import { Subscription, forkJoin, of } from 'rxjs';
 import { TabServiceService, TabCompPayload } from '../tab-service.service';
 
 type TabItem = {
@@ -256,39 +256,20 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.menuCompKey = x;
             this.isCollapsed = x == '';
         });
-        // this.menuComps = this.menuService.getCompMenus(this.menuCompKey);
-        this.menuService.getCompMenus(this.menuCompKey).subscribe(menus => {
-            this.menuComps = menus;
-            const router = this.router.url.split('?')[0].replace('/', '');
-
-            this.toggleMenuComp(this.findRootKeyByRouter(this.menuComps, router) || '');
-
-
-            // if (!window.name) {
-            //     // window.name = 'APP_WINDOW';
-            //     console.log('🆕 New window', window.name);
-            // } else {
-            //     console.log('♻ Existing window');
-            // }
-
-
-            // if (this.tabOpens.length > 0) {
-            //     this.tabOpens.forEach((item, i) => {
-            //         const menu = this.findMenuByRouter(menus, item) as LeafItem;
-            //         if (menu) {
-            //             this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
-            //         }
-            //     })
-            // } else 
-            {
-                const menu = this.findMenuByRouter(menus, router) as LeafItem;
-                // console.log('menu:', menu, router);
-                // console.log('menus:', menus);
-                if (menu) {
-                    this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
-                }
+        // Gom các API load UI vào forkJoin để biết khi nào tất cả đã xong
+        forkJoin([
+            this.getCompMenus()
+        ]).subscribe({
+            next: () => {
+                // console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
+                this.loadCurrentVersion();
+                this.initSseConnection();
+            },
+            error: (err) => {
+                console.error('Có lỗi khi load API quan trọng, vẫn khởi tạo SSE...', err);
+                this.loadCurrentVersion();
+                this.initSseConnection();
             }
-
         });
 
         // Subscribe to TabService for opening component tabs from other components
@@ -296,21 +277,26 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             // console.log('[MainLayout] Received tabCompRequest:', payload);
             this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
+    }
 
-        // Subscribe to TabService for closing component tabs by key
-        this.tabService.closeTabByKey$.subscribe((key: string) => {
-            const idx = this.dynamicTabComps.findIndex(t => t.key === key);
-            if (idx >= 0) {
-                this.closeTabComp({ index: idx });
-            }
-        });
+    getCompMenus() {
+        return this.menuService.getCompMenus(this.menuCompKey).pipe(
+            tap(menus => {
+                this.menuComps = menus;
+                const router = this.router.url.split('?')[0].replace('/', '');
 
-        // Trì hoãn SSE và version check để các API quan trọng cho UI load trước
-        // (tránh SSE chiếm slot kết nối HTTP của trình duyệt)
-        // setTimeout(() => {
-        //     this.loadCurrentVersion();
-        //     this.initSseConnection();
-        // }, 3000);
+                this.toggleMenuComp(this.findRootKeyByRouter(this.menuComps, router) || '');
+
+                const menu = this.findMenuByRouter(menus, router) as LeafItem;
+                if (menu) {
+                    this.newTabComp(menu.comp, menu.title, (menu.router ?? ''), menu.data);
+                }
+            }),
+            catchError(err => {
+                // this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                return of(null);
+            })
+        );
     }
 
     ngOnDestroy(): void {

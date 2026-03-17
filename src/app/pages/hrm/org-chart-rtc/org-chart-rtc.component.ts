@@ -8,7 +8,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { FormsModule } from '@angular/forms';
 import { OrgChartService } from './service/org-chart.service';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TYPE_MAP, NOTIFICATION_TITLE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { WorkplanService } from '../../person/workplan/workplan.service';
 import * as go from 'gojs';
 
@@ -74,8 +74,15 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.loadOrgChart();
                 }
             },
-            error: (error: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách phòng ban: ' + error.message);
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         });
     }
@@ -111,9 +118,16 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.notification.warning(NOTIFICATION_TITLE.warning, response?.message || 'Không có dữ liệu');
                 }
             },
-            error: (error: any) => {
+            error: (err: any) => {
                 this.isLoading = false;
-                this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải sơ đồ tổ chức: ' + error.message);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         });
     }
@@ -604,7 +618,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             pdf.addImage(imgData, "PNG", padding, padding, width, height, undefined, 'FAST');
             pdf.save("sodo_tochuc.pdf");
 
-            this.notification.success(NOTIFICATION_TITLE.success, 'Xuất PDF Độ nét cao (HD) thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xuất file thành công!');
         } catch (error: any) {
             console.error('Lỗi khi xuất PDF:', error);
             this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi xuất file: ' + error.message);

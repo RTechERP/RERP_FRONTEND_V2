@@ -1,6 +1,8 @@
 import {
     Component,
     CUSTOM_ELEMENTS_SCHEMA,
+    HostListener,
+    OnInit
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -20,7 +22,6 @@ import {
     GridOption,
     MultipleSelectOption,
 } from 'angular-slickgrid';
-import { OnInit } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -82,6 +83,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
     isGridReady: boolean = false;
     isLoadingData: boolean = false;
     isShowModal: boolean = false;
+    isMobile: boolean = false;
 
     // Pagination
     totalPage: number = 1;
@@ -129,6 +131,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.checkIfMobile();
         this.initMenuBar();
         this.initGrid();
 
@@ -149,6 +152,15 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
         }
 
         this.loadEmployees();
+    }
+
+    @HostListener('window:resize')
+    onResize() {
+        this.checkIfMobile();
+    }
+
+    private checkIfMobile(): void {
+        this.isMobile = window.innerWidth <= 768;
     }
 
     searchData(): void {
@@ -396,7 +408,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
                         ...item,
                         id: `${item.Id || item.ID}_${index}`
                     }));
-                    this.totalPage = response.data.totalPage?.[0]?.TotalPage || 1;
+                    this.totalPage = response.data.totalPages?.[0]?.TotalPage || 1;
 
                     this.applyDistinctFiltersToGrid(
                         this.angularGrid,

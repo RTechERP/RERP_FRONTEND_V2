@@ -185,19 +185,12 @@ export class DailyReportAccountingDetailComponent implements OnInit {
   }
 
   getFormData(): any[] {
-    const formatDate = (date: any): string => {
-      if (!date) return '';
-      if (date instanceof Date) return date.toISOString();
-      if (typeof date === 'string') return new Date(date).toISOString();
-      return '';
-    };
-
     return this.reports.controls.map(control => {
       const formValue = control.getRawValue();
       return {
         Id: formValue.id || 0,
         EmployeeID: formValue.employeeId,
-        ReportDate: formatDate(formValue.reportDate).split('T')[0], // Backend expects DateOnly format theoretically, or string
+        ReportDate: this.formatLocalDate(formValue.reportDate),
         Content: formValue.content,
         Result: formValue.result,
         NextPlan: formValue.nextPlan,
@@ -246,4 +239,14 @@ export class DailyReportAccountingDetailComponent implements OnInit {
   closeModal(): void {
     this.activeModal.close({ success: false, reloadData: false });
   }
+
+  formatLocalDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  };
 }

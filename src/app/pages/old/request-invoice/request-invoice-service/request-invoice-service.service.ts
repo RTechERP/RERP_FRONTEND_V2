@@ -93,4 +93,7 @@ export class RequestInvoiceService {
     });
   }
 
+  downloadBatchFiles(payload: any[]): Observable<any> {
+    return this.http.post<any>(this._urlSummary + 'download-batch-files', payload);
+  }
 }

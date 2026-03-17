@@ -22,7 +22,7 @@ export class DailyReportAccountingService {
   getDailyReportAccounting(
     page: number,
     size: number,
-    userId: number | null,
+    employeeId: number | null,
     dateStart: Date,
     dateEnd: Date,
     filterText: string = ''
@@ -44,8 +44,8 @@ export class DailyReportAccountingService {
       .set('dateEnd', formatLocalDate(dateEnd))
       .set('filterText', filterText || '');
 
-    if (userId && userId > 0) {
-      params = params.set('userId', userId.toString());
+    if (employeeId && employeeId > 0) {
+      params = params.set('employeeId', employeeId.toString());
     }
 
     return this.http.get(this._url + 'get-data', { params });

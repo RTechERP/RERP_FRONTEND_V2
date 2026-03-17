@@ -616,7 +616,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
 
             // Chèn ảnh vào PDF với size thật nhưng mật độ Pixel (do scale) là 4x
             pdf.addImage(imgData, "PNG", padding, padding, width, height, undefined, 'FAST');
-            pdf.save("sodo_tochuc.pdf");
+            pdf.save("SĐTC_RTC.pdf");
 
             this.notification.success(NOTIFICATION_TITLE.success, 'Xuất file thành công!');
         } catch (error: any) {

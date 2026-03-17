@@ -89,11 +89,11 @@ import { BonusCoefficientComponent } from './pages/old/bonus-coefficient/bonus-c
 import { BorrowProductHistoryComponent } from './pages/old/inventory-demo/borrow/borrow-product-history/borrow-product-history.component';
 import { InventoryDemoComponent } from './pages/old/inventory-demo/inventory-demo.component';
 import { UnitCountKtComponent } from './pages/old/inventory-demo/unit-count-kt/unit-count-kt.component';
-import { AccountingContractTypeMasterComponent } from './pages/old/KETOAN/accounting-contract-type-master/accounting-contract-type-master.component';
-import { AccountingContractComponent } from './pages/old/KETOAN/accounting-contract/accounting-contract.component';
-import { HistoryApprovedBillLogComponent } from './pages/old/KETOAN/history-approved-bill-log/history-approved-bill-log.component';
-import { HistoryExportAccountantComponent } from './pages/old/KETOAN/history-export-accountant/history-export-accountant.component';
-import { InventoryByDateComponent } from './pages/old/KETOAN/inventory-by-date/inventory-by-date.component';
+import { AccountingContractTypeMasterComponent } from './pages/accounting/accounting-contract-type-master/accounting-contract-type-master.component';
+import { AccountingContractComponent } from './pages/accounting/accounting-contract/accounting-contract.component';
+import { HistoryApprovedBillLogComponent } from './pages/accounting/history-approved-bill-log/history-approved-bill-log.component';
+import { HistoryExportAccountantComponent } from './pages/accounting/history-export-accountant/history-export-accountant.component';
+import { InventoryByDateComponent } from './pages/accounting/inventory-by-date/inventory-by-date.component';
 import { DailyReportSaleAdminComponent } from './pages/old/KPISale/daily-report-sale-admin/daily-report-sale-admin.component';
 import { DailyReportSaleComponent } from './pages/old/KPISale/daily-report-sale/daily-report-sale.component';
 import { EmployeeSaleManagerComponent } from './pages/old/KPISale/employee-sale-manager/employee-sale-manager.component';
@@ -175,14 +175,14 @@ import { VehicleRepairTypeComponent } from './pages/hrm/vehicle/vehicle-repair/v
 import { OfficeSupplyUnitComponent } from './pages/hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
 import { ProjectItemPersonComponent } from './pages/project/project-item-person/project-item-person.component';
 import { DailyReportMarComponent } from './pages/daily-report-mar/daily-report-mar.component';
-import { DocumentImportExportComponent } from './pages/old/KETOAN/document-import-export/document-import-export.component';
+import { DocumentImportExportComponent } from './pages/accounting/document-import-export/document-import-export.component';
 import { DocumentCommonComponent } from './pages/hrm/document/document-common/document-common.component';
 // import { ProjectPartlistPurchaseRequestVer2Component } from './pages/purchase/project-partlist-purchase-request/project-partlist-purchase-request-ver2/project-partlist-purchase-request-ver2.component';
 import { ProjectPartlistPriceRequestComponent } from './pages/old/project-partlist-price-request/project-partlist-price-request.component';
-import { BillDocumentImportTypeComponent } from './pages/old/KETOAN/bill-document-import-type/bill-document-import-type.component';
+import { BillDocumentImportTypeComponent } from './pages/accounting/bill-document-import-type/bill-document-import-type.component';
 import { BillImportQcComponent } from './pages/old/Sale/bill-import-qc/bill-import-qc.component';
 import { OrgChartRtcManagementComponent } from './pages/hrm/org-chart-rtc/org-chart-rtc-management/org-chart-rtc-management.component';
-import { TaxCompanyComponent } from './pages/old/KETOAN/tax-company/tax-company.component';
+import { TaxCompanyComponent } from './pages/accounting/tax-company/tax-company.component';
 import { SummaryProjectJoinComponent } from './pages/person/summary-project-join/summary-project-join.component';
 import { ProjectSlickGrid2Component } from './pages/project-slick-grid2/project-slick-grid2.component';
 import { ProjectPartListSlickGridComponent } from './pages/project-part-list-slick-grid/project-part-list-slick-grid.component';
@@ -283,7 +283,7 @@ import { DeviceDetailsChartsComponent } from './pages/ems/components/managers/de
 import { AreasComponent } from './pages/ems/components/managers/areas/areas.component';
 import { DevicesComponent } from './pages/ems/components/managers/devices/devices.component';
 import { CommunicationComponent } from './pages/ems/components/managers/communication/communication.component';
-import { DailyReportAccountingSlickgridComponent } from './pages/old/KETOAN/daily-report-accounting/daily-report-accounting-slickgrid/daily-report-accounting-slickgrid.component';
+import { DailyReportAccountingSlickgridComponent } from './pages/accounting/daily-report-accounting/daily-report-accounting-slickgrid/daily-report-accounting-slickgrid.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {

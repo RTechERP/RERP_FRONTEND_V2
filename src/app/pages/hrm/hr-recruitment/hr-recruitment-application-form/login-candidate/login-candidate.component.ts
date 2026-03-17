@@ -45,6 +45,10 @@ export class LoginCandidateComponent {
     }
 
     ngOnInit(): void {
+        if (this.authService.isCandidateLoggedIn()) {
+            this.router.navigate(['/main-candidate']);
+            return;
+        }
         this.loadRememberLogin();
         this.returnUrl =
             this.route.snapshot.queryParamMap.get('returnUrl') || '/main-candidate';

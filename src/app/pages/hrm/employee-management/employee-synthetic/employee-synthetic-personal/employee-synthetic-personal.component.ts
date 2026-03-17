@@ -941,9 +941,15 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
 
           if (this.pendingTabIndex !== -1) {
             this.selectedTabIndex = this.pendingTabIndex;
-            this.onTabChange(this.selectedTabIndex);
             this.pendingTabIndex = -1;
+            // Initialize table for the tab
+            setTimeout(() => {
+              this.initializeTableForTab(this.selectedTabIndex);
+              this.redrawTableForTab(this.selectedTabIndex);
+            }, 150);
           }
+          // Load data from API after successful verification
+          this.loadData();
         } else {
           this.reAuthPassword = ''; // Clear password on failure
           this.handleReAuthError(res?.message || 'Mật khẩu không chính xác. Vui lòng thử lại.');

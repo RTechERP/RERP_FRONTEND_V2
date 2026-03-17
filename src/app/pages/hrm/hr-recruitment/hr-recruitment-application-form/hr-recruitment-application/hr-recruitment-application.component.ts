@@ -24,7 +24,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { PermissionService } from '../../../../../services/permission.service';
 import { HRRecruitmentApplicationService } from './hr-recruitment-application.service';
 import { HRRecruitmentApplicationFormService } from '../home-layout-candidate/hr-recruitment-application-form.service';
@@ -355,8 +355,14 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             },
             error: (err: any) => {
                 this.isLoading = false;
-                const msg = err?.error?.message || err?.message || 'Lỗi khi lấy dữ liệu';
-                this.notification.error(NOTIFICATION_TITLE.error, msg);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
                 console.error('Lỗi lấy dữ liệu:', err);
             },
         });
@@ -460,7 +466,14 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                     },
                     error: (err: any) => {
                         this.isLoading = false;
-                        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lỗi khi xóa dữ liệu');
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            {
+                                nzStyle: { whiteSpace: 'pre-line' }
+                            }
+                        );
                     }
                 });
             },
@@ -582,7 +595,14 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             },
             error: (err: any) => {
                 this.isLoading = false;
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lỗi khi lấy dữ liệu ứng viên');
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         });
     }

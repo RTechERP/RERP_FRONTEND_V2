@@ -1,4 +1,6 @@
 import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, Type } from '@angular/core';
+import { forkJoin, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { AppNotifycationDropdownComponent, NotifyItem } from "../../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component";
 import { AppUserDropdownComponent } from "../../../pages/systems/app-user/app-user-dropdown.component";
 import { NzBadgeComponent } from "ng-zorro-antd/badge";
@@ -16,7 +18,7 @@ import { PermissionService } from '../../../services/permission.service';
 import { GroupItem, LeafItem, MenuItem, MenuService } from '../../../pages/systems/menus/menu-service/menu.service';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TYPE_MAP, NOTIFICATION_TITLE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { FormsModule } from '@angular/forms';
 import { MenuAppService } from '../../../pages/systems/menu-app/menu-app.service';
 import { environment } from '../../../../environments/environment';
@@ -33,6 +35,11 @@ import { HostListener } from '@angular/core';
 import { UpdateVersionService } from '../../../pages/systems/update-version/update-version.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NotificationService } from '../../../services/notification.service';
+import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newsletter/newsletter-detail/newsletter-detail.component';
+import { DateTime } from 'luxon';
+import { UpdateVersionDetailComponent } from '../../../pages/systems/update-version/update-version-detail/update-version-detail.component';
+import { NzButtonModule } from "ng-zorro-antd/button";
+
 interface LiXi {
     id: number;
     left: number;
@@ -41,10 +48,7 @@ interface LiXi {
     rotation: number;
     icon: string;
 }
-import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newsletter/newsletter-detail/newsletter-detail.component';
-import { DateTime } from 'luxon';
-import { UpdateVersionDetailComponent } from '../../../pages/systems/update-version/update-version-detail/update-version-detail.component';
-import { NzButtonModule } from "ng-zorro-antd/button";
+
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -175,37 +179,50 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
             // this.isAdmin = (this.appUserService.currentUser?.IsAdmin) || false;
         });
-        this.getMenus();
-        this.getHoliday(this.today.getFullYear(), this.today.getMonth());
-        this.getEmployeeOnleaveAndWFH();
-        this.getQuantityApprove();
-        this.getQuantityBorrow();
-        this.loadNewsletters();
-
-        // Trì hoãn SSE và version check để các API quan trọng cho UI load trước
-        // (tránh SSE chiếm slot kết nối HTTP của trình duyệt)
-        // setTimeout(() => {
-        //     this.loadCurrentVersion();
-        //     this.initSseConnection();
-        // }, 3000);
+        // Gom các API load UI vào forkJoin để biết khi nào tất cả đã xong
+        forkJoin([
+            this.getMenus(),
+            this.getHoliday(this.today.getFullYear(), this.today.getMonth()),
+            this.getEmployeeOnleaveAndWFH(),
+            this.getQuantityApprove(),
+            this.getQuantityBorrow(),
+            this.loadNewsletters()
+        ]).subscribe({
+            next: () => {
+                console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
+                // this.loadCurrentVersion();
+                // this.initSseConnection();
+            },
+            error: (err) => {
+                console.error('Có lỗi khi load API quan trọng, vẫn khởi tạo SSE...', err);
+                // this.loadCurrentVersion();
+                // this.initSseConnection();
+            }
+        });
     }
     getQuantityApprove() {
-        this.approveTpService.getQuantityApprove().subscribe({
-            next: (res: any) => {
+        return this.approveTpService.getQuantityApprove().pipe(
+            tap((res: any) => {
                 // console.log('API Response:', res); // Debug log
                 this.quantityApprove = res.data;
                 // console.log('Assigned quantityApprove:', this.quantityApprove); // Debug log
-            },
-            error: (err: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-            }
-        })
+            }),
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+                return of(null);
+            })
+        );
     }
 
 
     getQuantityBorrow() {
-        this.borrowService.getQuantityBorrow().subscribe({
-            next: (res: any) => {
+        return this.borrowService.getQuantityBorrow().pipe(
+            tap((res: any) => {
                 this.quantityBorrow = res.data.QuantitySemiExpired;
                 this.quantityBorrowExpried = res.data.QuantityExpired;
 
@@ -231,11 +248,17 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                         route: 'history-product-rtc-personal'
                     });
                 }
-            },
-            error: (err: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-            }
-        });
+            }),
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+                return of(null);
+            })
+        );
     }
 
     newTabApprove() {
@@ -266,47 +289,55 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         this.newTab(route, title);
     }
     getMenus() {
-
         const menuPersonCodes: any[] = ['registerpayroll', 'dailyreport', 'registercommon'];
-        this.menuService.getCompMenus('').subscribe(menus => {
+        return this.menuService.getCompMenus('').pipe(
+            tap(menus => {
+                // this.menuComps = menus;
 
-            // this.menuComps = menus;
+                this.menus = menus;
+                // console.log('this.menus:', this.menus);
 
-            this.menus = menus;
-            // console.log('this.menus:', this.menus);
+                this.menuApproves = this.menus.find((x) => x.key == 'appvovedperson');
+                // console.log('this.menuApproves:', this.menuApproves);
 
-            this.menuApproves = this.menus.find((x) => x.key == 'appvovedperson');
-            // console.log('this.menuApproves:', this.menuApproves);
+                this.hasMenuApprovePermission = this.menuApproves?.children?.every(
+                    (item: any) => (item.isPermission || false) === false
+                );
+                // console.log('hasMenuApprovePermission', this.hasMenuApprovePermission);
 
-            this.hasMenuApprovePermission = this.menuApproves?.children?.every(
-                (item: any) => (item.isPermission || false) === false
-            );
-            // console.log('hasMenuApprovePermission', this.hasMenuApprovePermission);
-
-            var pesons = this.menus.find((x) => x.key == 'person');
-            this.menuPersons = pesons.children.filter((x: any) => menuPersonCodes.includes(x.key));
-            this.menuWeekplans = pesons.children.find((x: any) => x.key == 'planweek');
-            this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
-        });
+                var pesons = this.menus.find((x) => x.key == 'person');
+                this.menuPersons = pesons.children.filter((x: any) => menuPersonCodes.includes(x.key));
+                this.menuWeekplans = pesons.children.find((x: any) => x.key == 'planweek');
+                this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
+            }),
+            catchError((err) => {
+                return of(null);
+            })
+        );
     }
 
 
-    getHoliday(year: number, month: number): void {
-        this.holidayService.getHolidays(month + 1, year).subscribe({
-            next: (response) => {
+    getHoliday(year: number, month: number) {
+        return this.holidayService.getHolidays(month + 1, year).pipe(
+            tap((response) => {
                 this.holidays = response.data.holidays;
                 this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
-            },
-            error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-            },
-        });
+            }),
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+                return of(null);
+            }),
+        );
     }
 
-    getEmployeeOnleaveAndWFH(): void {
-
-        this.homepageService.getEmployeeOnleaveAndWFH().subscribe({
-            next: (response) => {
+    getEmployeeOnleaveAndWFH() {
+        return this.homepageService.getEmployeeOnleaveAndWFH().pipe(
+            tap((response) => {
                 this.employeeOnleaves = response.data.employeeOnleaves || [];
                 this.employeeWfhs = response.data.employeeWfhs || [];
 
@@ -320,25 +351,36 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 );
 
                 // console.log('employeeWfhs:', this.employeeWfhs);
-            },
-            error: (error: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
-            }
-        })
-
+            }),
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+                return of(null);
+            })
+        );
     }
 
-    loadNewsletters(): void {
-        this.homepageService.getNewsletters().subscribe({
-            next: (response) => {
+    loadNewsletters() {
+        return this.homepageService.getNewsletters().pipe(
+            tap((response) => {
                 const data = response.data || [];
                 // Sort by CreatedDate descending and take top 10
                 this.newsletters = data;
-            },
-            error: (error: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
-            }
-        });
+            }),
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+                return of(null);
+            })
+        );
     }
 
     onPick(n: NotifyItem) {
@@ -445,7 +487,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         if (route == '') return;
         if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
             event.preventDefault(); // chặn reload
-            this.newTab(route, title, queryParams);
+            this.newTab(route, title);
 
             localStorage.removeItem('tabOpeneds');
         }
@@ -453,7 +495,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
     onSelectChangeCalendar(value: Date): void {
         // this.calendarDate = value;
-        this.getHoliday(value.getFullYear(), value.getMonth());
+        this.getHoliday(value.getFullYear(), value.getMonth()).subscribe();
     }
 
     openNewsletterDetail(newsletterId: number): void {

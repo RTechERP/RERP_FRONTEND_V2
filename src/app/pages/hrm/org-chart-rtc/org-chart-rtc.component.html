@@ -12,11 +12,13 @@
         <nz-option *ngFor="let node of nodeOptions" [nzValue]="node.key" [nzLabel]="node.label">
         </nz-option>
       </nz-select>
-      <button nz-button nzType="primary" nzSize="small" (click)="exportToPDF()">
-        <i nz-icon nzType="file-pdf"></i>
+      <button nz-button nzType="primary" nzSize="small" (click)="exportToPDF()"
+        nzTooltipTitle="Xuất ảnh PDF (Zoom Nét Cao)" nzTooltipPlacement="bottomLeft" nz-tooltip>
+        <i nz-icon nzType="file-pdf"></i> Xuất đồ thị
       </button>
     </div>
   </div>
+
 
   <!-- Body -->
   <div class="card-body p-2">

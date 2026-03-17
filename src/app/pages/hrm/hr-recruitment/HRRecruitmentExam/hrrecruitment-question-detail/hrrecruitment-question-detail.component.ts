@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { TabServiceService } from '../../../layouts/tab-service.service';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -22,11 +22,11 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentExamService } from '../hr-recruitment-exam-service/hrrecruitment-exam.service';
 import { EditorModule } from 'primeng/editor';
 import Quill from 'quill';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../../../../environments/environment';
 import { forkJoin } from 'rxjs';
 
 @Component({

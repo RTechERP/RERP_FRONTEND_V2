@@ -15,7 +15,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentExamService } from '../hr-recruitment-exam-service/hrrecruitment-exam.service';
 
 @Component({

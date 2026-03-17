@@ -7,7 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { MessageService } from 'primeng/api';
-import { HRRecruitmentExamService } from '../../../../HRRecruitmentExam/hr-recruitment-exam-service/hrrecruitment-exam.service';
+import { HRRecruitmentExamService } from '../../../hr-recruitment/HRRecruitmentExam/hr-recruitment-exam-service/hrrecruitment-exam.service';
 import { HRHiringRequestExamService } from '../hrhiring-request-exam.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -85,7 +85,7 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
       } else {
         this.selectedHiringRequestId = this.editData.HiringRequestID;
       }
-      
+
       if (this.isEditMode) {
         this.loadAllExams(this.editData.ExamIDs);
       } else {
@@ -141,8 +141,8 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
             // Compare with ID from recruitment exam. 
             // The table value objects from recruitmentExamService.getExams(0, '') usually have ID as primary key.
             this.selectedExams = this.exams.filter(e => {
-                const examId = e.ID || e.ExamID || e.Id;
-                return selectedExamIds.includes(examId);
+              const examId = e.ID || e.ExamID || e.Id;
+              return selectedExamIds.includes(examId);
             });
             this.cdr.detectChanges();
           }
@@ -202,7 +202,7 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
 
     this.loading = true;
     const currentExamIds = this.selectedExams.map(exam => exam.ID || exam.ExamID || exam.Id);
-    
+
     // Calculate deleted exams: IDs that were initially present but are no longer selected
     const deletedExamIds = this.initialExamIds.filter(id => !currentExamIds.includes(id));
 

@@ -11,7 +11,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentApplicationFormService } from '../home-layout-candidate/hr-recruitment-application-form.service';
-import { CandidateTestComponent } from '../../../../candidate-test/candidate-test.component';
+import { CandidateTestComponent } from '../../candidate-test/candidate-test.component';
 
 @Component({
     selector: 'app-main-layout-candidate',
@@ -99,7 +99,7 @@ export class MainLayoutCandidateComponent implements OnInit {
 
         // Truyền danh sách bài thi đầy đủ
         modalRef.componentInstance.examList = [...this.examList];
-        
+
         // Truyền các đề thi đã hoàn thành vào Set để modal biết mà khóa
         modalRef.componentInstance.completedExamIds = new Set(
             this.examList.filter(e => e.StatusResult === 1 || e.StatusResult === 2).map(e => e.ID)

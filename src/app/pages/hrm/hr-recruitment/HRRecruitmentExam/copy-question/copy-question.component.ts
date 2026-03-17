@@ -23,7 +23,7 @@ import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TooltipModule } from 'primeng/tooltip';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentExamService } from '../hr-recruitment-exam-service/hrrecruitment-exam.service';
 
 @Component({

@@ -28,13 +28,13 @@ import { TooltipModule } from 'primeng/tooltip';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { PermissionService } from '../../../services/permission.service';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { PermissionService } from '../../../../../services/permission.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentExamService } from '../hr-recruitment-exam-service/hrrecruitment-exam.service';
 import { HRRecruitmentExamDetailComponent } from '../hrrecruitment-exam-detail/hrrecruitment-exam-detail.component';
 import { HRRecruitmentQuestionDetailComponent } from '../hrrecruitment-question-detail/hrrecruitment-question-detail.component';
 import { CopyQuestionComponent } from '../copy-question/copy-question.component';
-import { TabServiceService } from '../../../layouts/tab-service.service';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
 
 @Component({
   selector: 'app-hrrecruitment-exam',

@@ -542,14 +542,38 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public loadElectricUsageChart() {
     this.dashboardService.getElectricUsageChartData().subscribe({
       next: (result) => {
-        const maxDays = Math.max(
-          ...result.Item1.map((x) => x.DayValue),
-          ...result.Item2.map((x) => x.DayValue)
-        );
+        const today = new Date();
+        const currentDay = today.getDate();
+        const currentMonth = today.getMonth() + 1;
+        const currentYear = today.getFullYear();
+
+        const item1 = result.Item1 ?? []; // expected: current month data
+        const item2 = result.Item2 ?? []; // expected: previous month data
+
+        const isCurrentMonth =
+          item1.length > 0 &&
+          item1[0].MonthValue === currentMonth &&
+          item1[0].YearValue === currentYear;
+
+        const maxDayItem1 = item1.length
+          ? Math.max(...item1.map((x) => x.DayValue))
+          : 0;
+        const maxDayItem2 = item2.length
+          ? Math.max(...item2.map((x) => x.DayValue))
+          : 0;
+
+        const maxDays = isCurrentMonth
+          ? currentDay
+          : Math.max(maxDayItem1, maxDayItem2, 0);
 
         const days = Array.from({ length: maxDays }, (_, i) => i + 1);
-        const data1Map = new Map(result.Item1.map((x) => [x.DayValue, x.LogValue]));
-        const data2Map = new Map(result.Item2.map((x) => [x.DayValue, x.LogValue]));
+
+        const data1Map = new Map<number, number>(
+          item1.map((x: any) => [x.DayValue, x.LogValue]),
+        );
+        const data2Map = new Map<number, number>(
+          item2.map((x: any) => [x.DayValue, x.LogValue]),
+        );
 
         const newOptions = {
           title: {
@@ -574,7 +598,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             left: '5%',
             right: '5%',
             bottom: '10%',
-            top: '20%', // Increased top margin for filters
+            top: '20%',
             containLabel: true,
           },
           xAxis: {
@@ -592,7 +616,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             },
             nameTextStyle: {
               fontSize: 13,
-              color: '#333'
+              color: '#333',
             },
           },
           series: [
@@ -622,7 +646,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.updateChartInstance(
           this.electricUsageChartInstance,
           this.electricUsageChart,
-          newOptions
+          newOptions,
         );
         this.topCenterChartOption = newOptions;
         this.cdr.markForCheck();

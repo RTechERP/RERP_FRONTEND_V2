@@ -1,0 +1,144 @@
+/* ===== Modal wrapper ===== */
+.copy-question-modal {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #f5f5f5;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* ===== Body ===== */
+.modal-body-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ===== Filter section ===== */
+.filter-section {
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 8px 14px 6px;
+    flex-shrink: 0;
+}
+
+.filter-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.filter-row-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 44px;
+    padding-top: 22px;
+}
+
+.filter-row-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1d39c4;
+    white-space: nowrap;
+}
+
+.from-icon {
+    color: #1d39c4;
+    font-size: 14px;
+}
+
+.filter-controls {
+    flex: 1;
+}
+
+.filter-label {
+    font-size: 11px !important;
+    color: #666 !important;
+    padding: 0 !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+}
+
+/* ===== Guide bar ===== */
+.guide-bar {
+    background: #e6f7ff;
+    border-bottom: 1px solid #91d5ff;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: #333;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* PrimeNG Table Tweaks */
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    background-color: #f8f9fa;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 8px;
+    border: 1px solid #e8e8e8;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    font-size: 11px;
+    padding: 6px 8px;
+    border: 1px solid #e8e8e8;
+}
+
+:host ::ng-deep .p-datatable-rowgroup-header {
+    background: #f9f9f9 !important;
+}
+
+/* Modal Title bar Tweak */
+:host ::ng-deep .p-dialog .p-dialog-header {
+    padding: 10px 15px;
+    background: #1d39c4;
+    color: #fff;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header .p-dialog-title {
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header .p-dialog-header-icon {
+    color: #fff;
+}
+
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-datatable-inline-filter {
+    justify-content: space-between !important;
+}
+
+:host ::ng-deep .p-component .p-inputtext .ng-star-inserted {
+    width: 100% !important;
+}
+
+:host::ng-deep .p-fluid {
+    width: 100% !important;
+}
+
+:host::ng-deep .p-component .p-inputtext {
+    width: 100% !important;
+}
+
+:host ::ng-deep .p-inputtext {
+    font-size: 10px !important;
+}

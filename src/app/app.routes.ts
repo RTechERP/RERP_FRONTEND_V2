@@ -275,6 +275,8 @@ import { SummaryKpiEmployeePointComponent } from './pages/old/Technical/summary-
 import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-base/follow-project-base-slickgrid/follow-project-base-slickgrid.component';
 import { DailyReportSaleAdminSlickgridComponent } from './pages/old/KPISale/daily-report-sale-admin-slickgrid/daily-report-sale-admin-slickgrid.component';
 import { HRRecruitmentCandidateComponent } from './pages/hrm/hr-recruitment-candidate/hr-recruitment-candidate.component';
+import { HRRecruitmentExamComponent } from './pages/HRRecruitmentExam/hrrecruitment-exam/hrrecruitment-exam.component';
+import { HRHiringRequestExamComponent } from './pages/hrm/hrhiring-request/hrhiring-request-exam/hrhiring-request-exam.component';
 import { HRRecruitmentApplicationComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/hr-recruitment-application/hr-recruitment-application.component';
 import { HistoryBorrowSalePersonalComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale-personal/history-borrow-sale-personal.component';
 import { HistoryProductRtcPersonalComponent } from './pages/old/inventory-demo/borrow/borrow-product-history/history-product-rtc-personal/history-product-rtc-personal.component';
@@ -376,6 +378,7 @@ export const routes: Routes = [
             // { path: 'product-sale', component: ProductSaleComponent, canActivate: [authGuard] },
             { path: 'tb-product-rtc', component: TbProductRtcComponent, canActivate: [authGuard] },
             { path: 'hrhiring-request', component: HrhiringRequestComponent, canActivate: [authGuard] },
+            { path: 'hrhiring-request-exam', component: HRHiringRequestExamComponent, canActivate: [authGuard] },
             { path: 'job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
             { path: 'approve-job-requirement', component: ApproveJobRequirementComponent, canActivate: [authGuard] },
             { path: 'job-requirement-bgd', component: ApproveJobRequirementComponent, canActivate: [authGuard] },
@@ -1092,6 +1095,7 @@ export const routes: Routes = [
 
             { path: 'daily-report-bod', component: DailyReportThrComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-candidate', component: HRRecruitmentCandidateComponent, canActivate: [authGuard] },
+            { path: 'hr-recruitment-exam', component: HRRecruitmentExamComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-application', component: HRRecruitmentApplicationComponent, canActivate: [authGuard] },
             { path: 'history-borrow-sale-personal', component: HistoryBorrowSalePersonalComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-personal', component: HistoryProductRtcPersonalComponent, canActivate: [authGuard] },

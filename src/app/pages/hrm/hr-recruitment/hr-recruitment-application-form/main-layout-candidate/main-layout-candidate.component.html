@@ -2,38 +2,98 @@
     <div class="background-overlay"></div>
     <div class="content">
         <div class="header">
-            <h1 class="title">Chào mừng Ứng viên</h1>
+            <h1 class="title">Chào mừng {{ candidate?.FullName }}</h1>
             <p class="subtitle">Vui lòng lựa chọn bước tiếp theo để hoàn tất hồ sơ</p>
         </div>
 
-        <div class="selection-grid">
+        <div class="selection-grid" nz-row [nzGutter]="[24, 24]" nzJustify="center">
             <!-- Card 1: Điền tờ khai -->
-            <div class="selection-card glass-card" (click)="navigateToApplication()">
-                <div class="card-icon">
-                    <span nz-icon nzType="form" nzTheme="outline"></span>
-                </div>
-                <div class="card-info">
-                    <h2>Điền tờ khai thông tin</h2>
-                    <p>Cập nhật thông tin cá nhân, kinh nghiệm và kỹ năng của bạn.</p>
-                </div>
-                <div class="card-action">
-                    <span>Bắt đầu</span>
-                    <span nz-icon nzType="arrow-right" nzTheme="outline"></span>
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="11" [nzXl]="11">
+                <div class="selection-card glass-card" (click)="navigateToApplication()">
+                    <div class="card-icon">
+                        <span nz-icon nzType="form" nzTheme="outline"></span>
+                    </div>
+                    <div class="card-info">
+                        <h2>Điền tờ khai thông tin</h2>
+                        <p>Cập nhật thông tin cá nhân, kinh nghiệm và kỹ năng của bạn.</p>
+                    </div>
+                    <div class="card-action">
+                        <span>Bắt đầu</span>
+                        <span nz-icon nzType="arrow-right" nzTheme="outline"></span>
+                    </div>
                 </div>
             </div>
 
             <!-- Card 2: Test IQ -->
-            <div class="selection-card glass-card secondary" (click)="navigateToIQTest()">
-                <div class="card-icon">
-                    <span nz-icon nzType=" bulb" nzTheme="outline"></span>
-                </div>
-                <div class="card-info">
-                    <h2>Test IQ ứng viên</h2>
-                    <p>Tham gia bài kiểm tra tư duy và năng lực logic.</p>
-                </div>
-                <div class="card-action">
-                    <span>Khám phá</span>
-                    <span nz-icon nzType="arrow-right" nzTheme="outline"></span>
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="11" [nzXl]="11">
+                <div class="selection-card glass-card secondary exam-card" [class.is-disabled]="allExamsDisabled"
+                    (click)="navigateToIQTest()">
+                    <div class="card-icon">
+                        <span nz-icon nzType="bulb" nzTheme="outline"></span>
+                    </div>
+                    <div class="card-info">
+                        <h2>Test IQ ứng viên</h2>
+                        <p>Tham gia bài kiểm tra tư duy và năng lực logic.</p>
+                    </div>
+
+                    <!-- Loading -->
+                    <div *ngIf="loadingExam" class="exam-loading">
+                        <nz-spin nzSimple></nz-spin>
+                    </div>
+
+                    <!-- Summary + Start button -->
+                    <div *ngIf="!loadingExam" class="exam-list">
+                        <!-- Không có bài thi -->
+                        <div *ngIf="examList.length === 0" class="no-exam">
+                            <span nz-icon nzType="inbox" nzTheme="outline"></span>
+                            <span>Chưa có bài thi nào</span>
+                        </div>
+
+                        <!-- Mini Cards cho từng đề thi - 2 cột -->
+                        <div *ngIf="examList.length > 0" class="exam-mini-cards-grid">
+                            <div *ngFor="let exam of examList" class="exam-mini-card horizontal-card"
+                                [class.status-completed]="exam.StatusResult === 2"
+                                [class.status-pending]="exam.StatusResult === 1"
+                                [class.status-inprogress]="exam.StatusResult === 0">
+
+                                <div class="card-left">
+                                    <div class="exam-icon-wrapper">
+                                        <span nz-icon [nzType]="exam.StatusResult === 2 ? 'check-circle' : 'file-text'"
+                                            nzTheme="outline"></span>
+                                    </div>
+                                    <div class="exam-info-text">
+                                        <h3 class="exam-mini-name" [nzTooltipTitle]="exam.NameExam" nz-tooltip>{{
+                                            exam.NameExam }}</h3>
+                                        <div class="exam-status-badge">{{ exam.StatusText }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="card-right">
+                                    <div class="exam-specs" *ngIf="exam.StatusResult === 2">
+                                        <div class="spec-item score">
+                                            <span class="value">{{ exam.TotalScore || 0 }}đ</span>
+                                            <span class="percent">({{ exam.PercentageCorrect || 0 }}%)</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="exam-specs" *ngIf="exam.StatusResult !== 2">
+                                        <div class="spec-item time">
+                                            <span class="value">{{ exam.TestTime }}'</span>
+                                        </div>
+                                        <div class="spec-item count">
+                                            <span class="value">{{ exam.TotalQuestion }} câu</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div *ngIf="examList.length > 0" class="exam-start-btn" [class.btn-disabled]="allExamsDisabled">
+                            <span>{{ allExamsDisabled ? 'Đã hoàn tất bài thi' : 'Bắt đầu thi' }}</span>
+                            <span nz-icon [nzType]="allExamsDisabled ? 'check' : 'arrow-right'"
+                                nzTheme="outline"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

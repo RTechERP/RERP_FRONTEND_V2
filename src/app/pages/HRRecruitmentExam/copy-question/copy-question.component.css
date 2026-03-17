@@ -1,0 +1,301 @@
+/* ===== Modal wrapper ===== */
+.copy-question-modal {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #f5f5f5;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* ===== Header ===== */
+.modal-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #1d39c4 0%, #2f54eb 100%);
+    color: #fff;
+    padding: 8px 16px;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-icon {
+    font-size: 20px;
+}
+
+.header-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-save {
+    background: #52c41a;
+    border-color: #52c41a;
+    color: #fff !important;
+    font-weight: 600;
+}
+
+.btn-save:hover {
+    background: #389e0d !important;
+    border-color: #389e0d !important;
+}
+
+.btn-close-modal {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: #fff !important;
+}
+
+.btn-close-modal:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* ===== Body ===== */
+.modal-body-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ===== Filter section ===== */
+.filter-section {
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 8px 14px 6px;
+    flex-shrink: 0;
+}
+
+.filter-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.filter-row+.filter-row {
+    border-top: 1px dashed #e0e0e0;
+    margin-top: 4px;
+    padding-top: 6px;
+}
+
+.filter-row-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 44px;
+    padding-top: 22px;
+}
+
+.filter-row-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1d39c4;
+    white-space: nowrap;
+}
+
+.to-title {
+    color: #389e0d;
+}
+
+.from-icon {
+    color: #1d39c4;
+    font-size: 13px;
+}
+
+.to-icon {
+    color: #389e0d;
+    font-size: 13px;
+}
+
+.filter-controls {
+    flex: 1;
+}
+
+.filter-label {
+    font-size: 11px !important;
+    color: #666 !important;
+    padding: 0 !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+}
+
+/* ===== Target row (Đến) ===== */
+.target-row {
+    background: #f6ffed;
+    border-radius: 4px;
+    padding: 4px 8px !important;
+}
+
+.input-readonly {
+    background: #f5f5f5 !important;
+    color: #333 !important;
+    border-color: #d9d9d9 !important;
+    cursor: default !important;
+}
+
+/* ===== Guide bar ===== */
+.guide-bar {
+    background: #e6f7ff;
+    border-bottom: 1px solid #91d5ff;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: #333;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* ===== Grid area ===== */
+.grid-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-area>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.grid-container {
+    height: 100%;
+    position: relative;
+}
+
+/* ===== Empty state ===== */
+.empty-state {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #aaa;
+    pointer-events: none;
+}
+
+.empty-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    opacity: 0.4;
+}
+
+.empty-text {
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+::ng-deep .type-select-dropdown {
+    min-width: 60vh !important;
+}
+
+::ng-deep .type-select-dropdown .ant-select-item-option-content {
+    white-space: normal !important;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+/* ===== PrimeNG Table styling (In Modal) ===== */
+:host ::ng-deep .p-datatable table {
+    width: 100%;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    font-size: 11px;
+    font-weight: 600;
+    background: #fafafa;
+    padding: 6px 8px;
+    text-align: center;
+    border: 1px solid #e8e8e8;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    font-size: 11px;
+    padding: 6px 8px;
+    border: 1px solid #e8e8e8;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+    background: #e6f7ff !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight {
+    background: #bae7ff !important;
+    color: #000;
+}
+
+/* Header group (CourseExam) */
+:host ::ng-deep .p-datatable-rowgroup-header {
+    background: #f9f9f9 !important;
+}
+
+:host ::ng-deep .p-datatable-rowgroup-header td {
+    padding: 6px 12px !important;
+}
+
+/* Filter inputs */
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+}
+
+:host ::ng-deep .p-inputtext {
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+    width: 100% !important;
+}
+
+:host ::ng-deep p-columnfilter {
+    display: block;
+    width: 100%;
+}
+
+/* Alignment utilities */
+:host ::ng-deep .text-center {
+    text-align: center;
+}
+
+:host ::ng-deep .text-right {
+    text-align: right;
+}
+
+/* Spin center */
+:host ::ng-deep .ant-spin-nested-loading {
+    height: 100%;
+}
+
+:host ::ng-deep .ant-spin-container {
+    height: 100%;
+}
+
+:host ::ng-deep .p-component .p-inputtext .ng-star-inserted {
+    width: 100% !important;
+}
+
+:host::ng-deep .p-fluid {
+    width: 100% !important;
+}
+
+:host::ng-deep .p-component .p-inputtext {
+    width: 100% !important;
+}

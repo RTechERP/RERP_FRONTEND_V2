@@ -1,0 +1,128 @@
+<div class="modal-header bg-primary">
+    <h5 class="modal-title text-white">
+        {{ isEditMode ? 'CHỈNH SỬA THIẾT LẬP BÀI THI' : 'THIẾT LẬP BÀI THI CHO YÊU CẦU TUYỂN DỤNG' }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="closeModal()"></button>
+</div>
+
+<div class="modal-body p-3">
+    <div class="copy-question-modal">
+        <!-- ===== Filter Section ===== -->
+        <div class="filter-section mb-3">
+            <div class="row">
+                <!-- Phòng ban -->
+                <div class="col-md-5">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label class="font-weight-bold">Phòng ban <span
+                                class="text-danger">*</span></nz-form-label>
+                        <nz-form-control>
+                            <nz-select id="department" [(ngModel)]="selectedDepartmentId" nzShowSearch nzAllowClear
+                                nzPlaceHolder="-- Chọn phòng ban --" (ngModelChange)="onDepartmentChange($event)"
+                                [nzDisabled]="isEditMode" nzSize="small" class="w-100">
+                                <nz-option *ngFor="let item of departments" [nzValue]="item.value"
+                                    [nzLabel]="item.label"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <!-- Yêu cầu tuyển dụng -->
+                <div class="col-md-5">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label class="font-weight-bold">Yêu cầu tuyển dụng <span
+                                class="text-danger">*</span></nz-form-label>
+                        <nz-form-control>
+                            <nz-select id="hiringRequest" [(ngModel)]="selectedHiringRequestId" nzShowSearch
+                                nzAllowClear nzPlaceHolder="-- Chọn yêu cầu tuyển dụng --"
+                                [nzDisabled]="isEditMode || (selectedDepartmentId === null)" nzSize="small"
+                                class="w-100">
+                                <nz-option *ngFor="let item of hiringRequests" [nzValue]="item.value"
+                                    [nzLabel]="item.label"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <!-- Hoạt động -->
+                <div class="col-md-2 d-flex align-items-end mb-1">
+                    <label nz-checkbox [(ngModel)]="isActive" class="font-weight-bold">Hoạt động</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guide Bar -->
+        <div class="guide-bar mb-3 p-2 bg-light border-start border-primary border-4 d-flex align-items-center">
+            <nz-icon nzType="info-circle" nzTheme="outline" class="text-primary me-2"></nz-icon>
+            <small>Dưới đây là danh sách các bài thi. Vui lòng chọn (tích) các bài thi bạn muốn thiết lập cho yêu cầu
+                tuyển dụng đã chọn ở trên.</small>
+        </div>
+
+        <!-- Exams Table Section -->
+        <div class="exams-table">
+            <h6 class="font-weight-bold mb-2">Danh sách bài thi</h6>
+            <p-table [value]="exams" [(selection)]="selectedExams" dataKey="ID" rowGroupMode="subheader"
+                groupRowsBy="DepartmentName" [scrollable]="true" scrollHeight="400px"
+                styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
+
+                <ng-template pTemplate="header">
+                    <tr class="bg-light">
+                        <th style="width: 3rem" class="text-center">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th pResizableColumn style="width: 150px">Mã bài thi</th>
+                        <th pResizableColumn>Tên bài thi</th>
+                        <th pResizableColumn style="width: 150px">Loại đề</th>
+                        <th pResizableColumn style="width: 100px" class="text-center">Thời gian</th>
+                        <th pResizableColumn style="width: 100px" class="text-center">Điểm đạt</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th><p-columnFilter type="text" field="CodeExam" display="row"></p-columnFilter></th>
+                        <th><p-columnFilter type="text" field="NameExam" display="row"></p-columnFilter></th>
+                        <th><p-columnFilter type="text" field="ExamTypeText" display="row"></p-columnFilter></th>
+                        <th style="width: 100px" class="text-right"><p-columnFilter type="numeric" field="TestTime"
+                                display="row"></p-columnFilter></th>
+                        <th style="width: 100px" class="text-right"><p-columnFilter type="numeric" field="Goal"
+                                display="row"></p-columnFilter></th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="groupheader" let-exam let-rowIndex="rowIndex" let-expanded="expanded">
+                    <tr>
+                        <td colspan="7" class="bg-light text-primary font-weight-bold p-2">
+                            <span>Phòng ban: {{ exam.DepartmentName || 'Không xác định' }}</span>
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-exam let-rowIndex="rowIndex">
+                    <tr>
+                        <td class="text-center">
+                            <p-tableCheckbox [value]="exam"></p-tableCheckbox>
+                        </td>
+                        <td>{{ exam.CodeExam }}</td>
+                        <td>{{ exam.NameExam }}</td>
+                        <td>{{ exam.ExamTypeText }}</td>
+                        <td class="text-center">{{ exam.TestTime }}</td>
+                        <td class="text-center">{{ exam.Goal }}</td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="7" class="text-center text-muted p-3">
+                            Không có dữ liệu bài thi.
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer">
+    <button pButton type="button" label="Đóng" icon="fa-solid fa-times" class="p-button-secondary p-button-sm"
+        (click)="closeModal()" [disabled]="loading"></button>
+    <button pButton *ngIf="!isEditMode" type="button" label="Lưu và thêm mới" icon="fa-solid fa-plus"
+        class="p-button-success p-button-sm" (click)="onSave(true)" [loading]="loading"></button>
+    <button pButton type="button" label="Lưu" icon="fa-solid fa-save" class="p-button-primary p-button-sm"
+        (click)="onSave(false)" [loading]="loading"></button>
+</div>

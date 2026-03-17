@@ -11,12 +11,12 @@
   <div class="btn-group btn-group-sm" role="group">
     <button type="button" class="btn" [class.btn-primary]="viewType === 'grid'"
       [class.btn-outline-primary]="viewType !== 'grid'" (click)="viewType = 'grid'">
-      <i class="bi bi-bar-chart"></i>
+      <img src="assets/icon/partlist_16.png" class="me-1" />
       <span class="ms-1">Biểu đồ</span>
     </button>
     <button type="button" class="btn" [class.btn-primary]="viewType === 'list'"
       [class.btn-outline-primary]="viewType !== 'list'" (click)="viewType = 'list'">
-      <i class="bi bi-list-task"></i>
+      <img src="assets/icon/list_project_report_16.png" class="me-1" />
       <span class="ms-1">Danh sách</span>
     </button>
   </div>
@@ -61,7 +61,7 @@
               [nzAllowClear]="false"></nz-date-picker>
             <button nz-button nzType="default" nzSize="small" (click)="exportMonthlyToExcel()" class="ms-1"
               title="Xuất Excel">
-              <i class="bi bi-file-earmark-excel"></i>
+              <img src="assets/icon/action_export_excel_16.png" />
             </button>
           </div>
         </div>
@@ -94,7 +94,7 @@
               [nzAllowClear]="false"></nz-date-picker>
             <button nz-button nzType="default" nzSize="small" (click)="exportDailyToExcel()" class="ms-1"
               title="Xuất Excel">
-              <i class="bi bi-file-earmark-excel"></i>
+              <img src="assets/icon/action_export_excel_16.png" />
             </button>
           </div>
         </div>

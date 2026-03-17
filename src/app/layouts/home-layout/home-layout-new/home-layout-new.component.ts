@@ -18,7 +18,7 @@ import { PermissionService } from '../../../services/permission.service';
 import { GroupItem, LeafItem, MenuItem, MenuService } from '../../../pages/systems/menus/menu-service/menu.service';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TYPE_MAP, NOTIFICATION_TITLE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { FormsModule } from '@angular/forms';
 import { MenuAppService } from '../../../pages/systems/menu-app/menu-app.service';
 import { environment } from '../../../../environments/environment';
@@ -208,7 +208,12 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 // console.log('Assigned quantityApprove:', this.quantityApprove); // Debug log
             }),
             catchError((err: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
                 return of(null);
             })
         );
@@ -245,7 +250,12 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 }
             }),
             catchError((err: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
                 return of(null);
             })
         );
@@ -313,8 +323,13 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 this.holidays = response.data.holidays;
                 this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
             }),
-            catchError((err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
                 return of(null);
             }),
         );
@@ -337,8 +352,13 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
                 // console.log('employeeWfhs:', this.employeeWfhs);
             }),
-            catchError((error: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
                 return of(null);
             })
         );
@@ -351,8 +371,13 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 // Sort by CreatedDate descending and take top 10
                 this.newsletters = data;
             }),
-            catchError((error: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
                 return of(null);
             })
         );

@@ -190,13 +190,13 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         ]).subscribe({
             next: () => {
                 console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
-                this.loadCurrentVersion();
-                this.initSseConnection();
+                // this.loadCurrentVersion();
+                // this.initSseConnection();
             },
             error: (err) => {
                 console.error('Có lỗi khi load API quan trọng, vẫn khởi tạo SSE...', err);
-                this.loadCurrentVersion();
-                this.initSseConnection();
+                // this.loadCurrentVersion();
+                // this.initSseConnection();
             }
         });
     }

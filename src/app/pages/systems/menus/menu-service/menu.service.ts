@@ -164,11 +164,11 @@ import { DailyReportMarComponent } from '../../../daily-report-mar/daily-report-
 import { EmployeeContactComponent } from '../../../hrm/employee/employee-contact/employee-contact.component';
 import { OverTimeSummaryPersonComponent } from '../../../hrm/over-time/over-time-summary-person/over-time-summary-person.component';
 import { MenuAppComponent } from '../../menu-app/menu-app.component';
-import { HistoryExportAccountantComponent } from '../../../old/KETOAN/history-export-accountant/history-export-accountant.component';
-import { HistoryApprovedBillLogComponent } from '../../../old/KETOAN/history-approved-bill-log/history-approved-bill-log.component';
-import { InventoryByDateComponent } from '../../../old/KETOAN/inventory-by-date/inventory-by-date.component';
-import { AccountingContractTypeMasterComponent } from '../../../old/KETOAN/accounting-contract-type-master/accounting-contract-type-master.component';
-import { AccountingContractComponent } from '../../../old/KETOAN/accounting-contract/accounting-contract.component';
+import { HistoryExportAccountantComponent } from '../../../accounting/history-export-accountant/history-export-accountant.component';
+import { HistoryApprovedBillLogComponent } from '../../../accounting/history-approved-bill-log/history-approved-bill-log.component';
+import { InventoryByDateComponent } from '../../../accounting/inventory-by-date/inventory-by-date.component';
+import { AccountingContractTypeMasterComponent } from '../../../accounting/accounting-contract-type-master/accounting-contract-type-master.component';
+import { AccountingContractComponent } from '../../../accounting/accounting-contract/accounting-contract.component';
 import { MenuAppService } from '../../menu-app/menu-app.service';
 import { WelcomeComponent } from '../../../old/welcome/welcome.component';
 import { buildComponentRegistry } from '../component-registry';

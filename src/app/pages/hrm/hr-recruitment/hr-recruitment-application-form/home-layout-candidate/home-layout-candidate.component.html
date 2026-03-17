@@ -10,7 +10,9 @@
         </div>
     </div>
 </nav>
-
+<div *ngIf="isLoading" class="loading-overlay">
+    <nz-spin [nzSpinning]="isLoading" nzSize="large"></nz-spin>
+</div>
 <div class="application-form-wrapper">
     <div class="form-paper">
         <form [formGroup]="form">
@@ -807,8 +809,15 @@
             </div>
 
             <!-- ===== NÚT LƯU ===== -->
-            <div *ngIf="!isEmbedded" class="text-center mt-5 mb-5">
+            <div class="text-center mt-5 mb-5">
+                @if (!isEmbedded && isComplete) {
+                <div style="color: #52c41a; font-size: 14px; font-weight: bold; margin-bottom: 12px;">
+                    <span nz-icon nzType="check-circle" nzTheme="fill" style="margin-right: 6px;"></span>
+                    Tờ khai đã được lưu hoàn tất. Bạn không thể chỉnh sửa.
+                </div>
+                }
                 <button nz-button nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading"
+                    [disabled]="!isEmbedded && isComplete"
                     style="font-size: 14px; padding: 8px 64px; height: auto; border-radius: 4px; font-weight: bold;">
                     <span nz-icon nzType="save"></span> LƯU TỜ KHAI
                 </button>

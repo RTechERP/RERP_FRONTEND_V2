@@ -918,23 +918,20 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
 
     this.isSaving = true;
 
-    const saveObservables = this.reports.controls.map((group, index) => {
-      const dto = this.getFormData(group as FormGroup, index);
-      return this.dailyReportSaleService.save(dto);
-    });
+    const dtos = this.reports.controls.map((group, index) =>
+      this.getFormData(group as FormGroup, index)
+    );
 
-    forkJoin(saveObservables).pipe(
+    this.dailyReportSaleService.save(dtos).pipe(
       finalize(() => this.isSaving = false)
     ).subscribe({
-      next: (responses) => {
-        const hasError = responses.some(res => res.status !== 1);
-        if (hasError) {
-          this.notification.warning('Cảnh báo', 'Một số bản ghi không thể lưu dữ liệu thành công.');
-          this.activeModal.close({ success: true, reloadData: true });
-        } else {
+      next: (response) => {
+        if (response.status === 1) {
           this.notification.success('Thành công', 'Lưu dữ liệu thành công toàn bộ bản ghi');
-          this.activeModal.close({ success: true, reloadData: true });
+        } else {
+          this.notification.warning('Cảnh báo', response.message || 'Lưu dữ liệu không thành công.');
         }
+        this.activeModal.close({ success: true, reloadData: true });
       },
       error: (error) => {
         console.error('Error saving daily report sales:', error);

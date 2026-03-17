@@ -57,6 +57,7 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 import { PlanWeekService } from './plan-week-services/plan-week.service';
+import { KhoBaseService } from '../kho-base/kho-base-service/kho-base.service';
 import { Title } from '@angular/platform-browser';
 import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/plan-week-detail.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
@@ -137,7 +138,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private planWeekService: PlanWeekService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private khoBaseService: KhoBaseService
   ) { }
 
   ngOnInit(): void {
@@ -161,15 +163,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     this.configureUserFilterByRole(); //config kiểm tra quyền admin và disable filter user
 
     this.loadDepartment();
-    this.loadTeam();
+    this.getGroupSaleUser();
     this.loadUser();
-    this.loadMainData(
-      this.filters.startDate,
-      this.filters.endDate,
-      this.filters.departmentId,
-      this.filters.userId,
-      this.filters.teamId
-    );
   }
 
   ngAfterViewInit(): void {
@@ -315,20 +310,77 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     });
   }
 
-  loadTeam() {
-    this.planWeekService.getTeam().subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          this.filterTeamData = this.transformFlatDataToTreeData(response.data);
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, response.message);
+  toNzTree(data: any[]): any[] {
+    return data.map(item => ({
+      title: `${item.FullName} - ${item.GroupSalesName}  `,
+      key: item.ID.toString(),
+      value: item.ID,
+      expanded: true,
+      children: item._children ? this.toNzTree(item._children) : []
+    }));
+  }
+
+  getGroupSaleUser() {
+    const currentUserId = this.appUserService.id || 0;
+    const isAdmin = this.appUserService.isAdmin;
+    const currentUser = this.appUserService.currentUser;
+    const isAdminSale = currentUser?.IsAdminSale === 1;
+    const hasN1Permission = this.appUserService.hasPermission('N1');
+    console.log("Check N1 Permission", hasN1Permission);
+
+    this.khoBaseService.getGroupSalesUserByUserId(currentUserId).subscribe({
+      next: (response: any) => {
+        const model = response.data || {};
+        let groupID = 0;
+        let teamID = 0;
+
+        if (model.ID > 0) {
+          groupID = model.GroupSalesID || 0;
         }
+
+        if (model.ParentID === 0) {
+          teamID = model.ID || 0;
+        } else {
+          teamID = model.ParentID || 0;
+        }
+
+        if (isAdminSale || isAdmin || hasN1Permission) {
+          groupID = 0;
+          teamID = 0;
+        }
+
+        this.khoBaseService.getGroupSaleUser({ groupID, teamID }).subscribe({
+          next: (res: any) => {
+            this.filterTeamData = this.toNzTree(this.khoBaseService.setDataTree(res.data, "ID"));
+
+            if (model.ParentID === 0 && model.ID > 0) {
+              this.filters.teamId = model.ID.toString();
+            } else if (model.ParentID > 0) {
+              const found = res.data?.find((x: any) => x.ID === model.ParentID);
+              if (found) {
+                this.filters.teamId = found.ID.toString();
+              }
+            }
+            this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.departmentId, this.filters.userId, this.filters.teamId);
+          },
+          error: () => {
+            this.notification.error('Lỗi', 'Không thể tải dữ liệu nhóm!');
+            this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.departmentId, this.filters.userId, this.filters.teamId);
+          }
+        });
       },
-      error: (error) => {
-        const errorMessage =
-          error?.error?.message || error?.message || 'Không thể tải dữ liệu';
-        this.notification.error('Lỗi', errorMessage);
-      },
+      error: () => {
+        this.khoBaseService.getGroupSaleUser({ groupID: 0, teamID: 0 }).subscribe({
+          next: (res: any) => {
+            this.filterTeamData = this.toNzTree(this.khoBaseService.setDataTree(res.data, "ID"));
+            this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.departmentId, this.filters.userId, this.filters.teamId);
+          },
+          error: () => {
+            this.notification.error('Lỗi', 'Không thể tải dữ liệu nhóm!');
+            this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.departmentId, this.filters.userId, this.filters.teamId);
+          }
+        });
+      }
     });
   }
 
@@ -376,33 +428,6 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
           this.notification.error('Lỗi', errorMessage);
         },
       });
-  }
-
-  private transformFlatDataToTreeData(flatData: any[]): any[] {
-    const map = new Map<number, any>();
-    const roots: any[] = [];
-
-    flatData.forEach((item) => {
-      map.set(item.ID, {
-        title: `${item.FullName} - ${item.GroupSalesName}`,
-        key: item.ID.toString(),
-        children: [],
-        isLeaf: true,
-      });
-    });
-
-    flatData.forEach((item) => {
-      const node = map.get(item.ID);
-      if (item.ParentID && map.has(item.ParentID)) {
-        const parentNode = map.get(item.ParentID);
-        parentNode.children.push(node);
-        parentNode.isLeaf = false;
-      } else {
-        roots.push(node);
-      }
-    });
-
-    return roots;
   }
 
   onDelete() {
@@ -497,7 +522,10 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         return value;
       });
 
-      worksheet.addRow(row);
+      const addedRow = worksheet.addRow(row);
+      addedRow.eachCell((cell) => {
+        cell.alignment = { wrapText: true, vertical: 'middle' };
+      });
     });
 
     // Auto-fit columns
@@ -603,17 +631,18 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     const currentUser = this.appUserService.currentUser;
     const isAdmin = this.appUserService.isAdmin;
     const isAdminSale = currentUser?.IsAdminSale === 1;
+    const hasN1Permission = this.appUserService.hasPermission('N1');
 
-    // Set departmentId từ user đang đăng nhập
-    const currentDepartmentId = this.appUserService.departmentID;
-    if (currentDepartmentId) {
-      this.filters.departmentId = currentDepartmentId;
-    }
+    // // Set departmentId từ user đang đăng nhập
+    // const currentDepartmentId = this.appUserService.departmentID;
+    // if (currentDepartmentId) {
+    //   this.filters.departmentId = currentDepartmentId;
+    // }
 
     const specialUserIds = [1177, 1313, 23, 1380];
     const isSpecialUser = specialUserIds.includes(currentUserId);
 
-    const shouldLockUserFilter = !isAdmin && !isAdminSale && !isSpecialUser;
+    const shouldLockUserFilter = !isAdmin && !isAdminSale && !isSpecialUser && !hasN1Permission;
 
     if (shouldLockUserFilter) {
       this.isUserFilterDisabled = true;

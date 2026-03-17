@@ -1322,12 +1322,12 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
     ];
 
     this.gridOptions = {
-      // autoResize: {
-      //   container: '#gridContainer',
-      //   rightPadding: 10,
-      //   bottomPadding: 20,
-      // },
-      // enableAutoResize: false, // Tắt auto resize để sử dụng width cố định
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container',
+        rightPadding: 0,
+        bottomPadding: 10,
+      },
       gridWidth: '100%', // Đặt chiều rộng tổng thể của grid
       enableCellNavigation: true,
       enableColumnReorder: true,

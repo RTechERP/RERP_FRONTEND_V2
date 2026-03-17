@@ -127,8 +127,8 @@ export class DailyReportSaleService {
     });
   }
 
-  save(dto: any): Observable<any> {
-    return this.http.post(this._url + 'save-data', dto);
+  save(dtos: any[]): Observable<any> {
+    return this.http.post(this._url + 'save-data', dtos);
   }
 
   getLatestDailyReportSale(userId: number, projectId: number): Observable<any> {

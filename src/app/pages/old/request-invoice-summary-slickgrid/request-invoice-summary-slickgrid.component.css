@@ -54,3 +54,12 @@
 :host ::ng-deep .slick-row.urgent-row {
     background-color: #FFA500 !important;
 }
+
+:host ::ng-deep .grid-container nz-spin,
+:host ::ng-deep .grid-container .ant-spin-nested-loading,
+:host ::ng-deep .grid-container .ant-spin-container,
+:host ::ng-deep .grid-container angular-slickgrid,
+:host ::ng-deep .grid-container .slickgrid-container,
+:host ::ng-deep .grid-container .gridPane {
+    height: 90vh !important;
+}

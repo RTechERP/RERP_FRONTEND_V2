@@ -106,7 +106,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
     this.form = this.fb.group({
       // Basic info - TẤT CẢ REQUIRED
       DepartmentID: [null, Validators.required],
-      PositionID: [null, Validators.required], // THÊM required
+      PositionName: ['', Validators.required],
       QuantityHiring: [
         1,
         [Validators.required, Validators.min(1), Validators.max(50)],
@@ -222,7 +222,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
       // Load basic fields
       this.form.patchValue({
         DepartmentID: this.data.DepartmentID,
-        PositionID: this.data.EmployeeChucVuHDID,
+        PositionName: this.data.PositionName || '',
         QuantityHiring: this.data.QuantityHiring || 1,
         SalaryMin: this.data.SalaryMin || 0,
         SalaryMax: this.data.SalaryMax || 0,
@@ -903,7 +903,7 @@ if(value>this.form.value.AgeMax){
     const hiringRequestData = {
       ID: this.data?.ID || 0,
       DepartmentID: formData.DepartmentID || 0,
-      EmployeeChucVuHDID: formData.PositionID || 0,
+      PositionName: formData.PositionName || '',
       QuantityHiring: formData.QuantityHiring || 1,
       SalaryMin: formData.SalaryMin || null,
       SalaryMax: formData.SalaryMax || null,
@@ -972,8 +972,8 @@ if(value>this.form.value.AgeMax){
       isValid = false;
     }
 
-    if (!this.form.get('PositionID')?.value) {
-      errors.push('• Vui lòng chọn vị trí tuyển dụng');
+    if (!this.form.get('PositionName')?.value?.trim()) {
+      errors.push('• Vui lòng nhập vị trí tuyển dụng');
       isValid = false;
     }
 

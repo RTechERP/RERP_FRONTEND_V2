@@ -40,11 +40,15 @@ export class LoginCandidateComponent {
             UserName: ['', [Validators.required]],
             PasswordHash: ['', [Validators.required]],
             rememberMe: [false],
-            expiry: [10], // Mặc định 10 phút
+            expiry: [180], // Mặc định 180 phút
         });
     }
 
     ngOnInit(): void {
+        if (this.authService.isCandidateLoggedIn()) {
+            this.router.navigate(['/main-candidate']);
+            return;
+        }
         this.loadRememberLogin();
         this.returnUrl =
             this.route.snapshot.queryParamMap.get('returnUrl') || '/main-candidate';

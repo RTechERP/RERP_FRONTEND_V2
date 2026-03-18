@@ -24,7 +24,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { PermissionService } from '../../../../../services/permission.service';
 import { HRRecruitmentApplicationService } from './hr-recruitment-application.service';
 import { HRRecruitmentApplicationFormService } from '../home-layout-candidate/hr-recruitment-application-form.service';
@@ -90,7 +90,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
     gridIdMain = 'grvApplicationForm';
 
     filterTimeout: any;
-    chucVuID = 0;
+    chucVu = '';
     filterText = '';
     //#endregion
 
@@ -119,6 +119,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             {
                 label: 'Tải lại',
                 icon: 'fa-solid fa-rotate fa-lg text-primary',
+                visible: this.permissionService.hasPermission('N1,N2'),
                 command: () => {
                     this.loadData();
                 },
@@ -126,6 +127,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             {
                 label: 'Xem phiếu',
                 icon: 'fa-solid fa-file-lines fa-lg text-success',
+                visible: this.permissionService.hasPermission('N1,N2'),
                 command: () => {
                     this.viewApplicationForm();
                 },
@@ -133,6 +135,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             {
                 label: 'In phiếu',
                 icon: 'fa-solid fa-print fa-lg text-info',
+                visible: this.permissionService.hasPermission('N1,N2'),
                 command: () => {
                     this.printApplicationForm();
                 },
@@ -140,6 +143,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
+                visible: this.permissionService.hasPermission('N1,N2'),
                 command: () => {
                     this.onDelete();
                 },
@@ -147,7 +151,6 @@ export class HRRecruitmentApplicationComponent implements OnInit {
         ];
     }
     //#endregion
-
     //#region Grid chính - Danh sách tờ khai
     initGrid() {
         this.columnDefinitions = [
@@ -191,7 +194,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                 filter: { model: Filters['compoundInputText'] },
             },
             {
-                id: 'PositionName', field: 'ChucVu', name: 'Vị trí ứng tuyển',
+                id: 'PositionName', field: 'PositionName', name: 'Vị trí ứng tuyển',
                 width: 200, sortable: true, filterable: true,
                 filter: {
                     model: Filters['multipleSelect'],
@@ -301,7 +304,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                     if (candidateID > 0) {
                         this.selectedCandidateID = candidateID;
                         this.selectedCandidateName = rowItem.FullName || '';
-                        this.selectedChucVu = rowItem.ChucVu || '';
+                        this.selectedChucVu = rowItem.PositionName || '';
 
                         // Nếu đang mở detail thì panel bên phải sẽ tự cập nhật nhờ ngOnChanges trong child component
                     }
@@ -332,7 +335,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
     loadData() {
         this.isLoading = true;
         this.selectedRowItem = null;
-        this.applicationService.getAllApplicationForm(this.chucVuID, this.filterText).subscribe({
+        this.applicationService.getAllApplicationForm(this.chucVu, this.filterText).subscribe({
             next: (res: any) => {
                 this.isLoading = false;
                 if (res?.status === 1) {
@@ -355,8 +358,14 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             },
             error: (err: any) => {
                 this.isLoading = false;
-                const msg = err?.error?.message || err?.message || 'Lỗi khi lấy dữ liệu';
-                this.notification.error(NOTIFICATION_TITLE.error, msg);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
                 console.error('Lỗi lấy dữ liệu:', err);
             },
         });
@@ -414,7 +423,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
         if (this.selectedRowItem) {
             this.selectedCandidateID = this.selectedRowItem.HRRecruitmentCandidateID || 0;
             this.selectedCandidateName = this.selectedRowItem.FullName || '';
-            this.selectedChucVu = this.selectedRowItem.ChucVu || '';
+            this.selectedChucVu = this.selectedRowItem.PositionName || '';
         }
 
         if (this.selectedCandidateID > 0) {
@@ -460,7 +469,14 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                     },
                     error: (err: any) => {
                         this.isLoading = false;
-                        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lỗi khi xóa dữ liệu');
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            {
+                                nzStyle: { whiteSpace: 'pre-line' }
+                            }
+                        );
                     }
                 });
             },
@@ -564,12 +580,14 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                     const mainForm = data.applicationForm?.[0] || data.HRRecruitmentApplicationForm || {};
                     if (mainForm.FileName) {
                         this.hrFormService.downloadFile(mainForm.FileName).subscribe({
-                            next: (blob: any) => {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                    this.drawPDF(data, reader.result as string);
-                                };
-                                reader.readAsDataURL(blob);
+                            next: async (blob: any) => {
+                                try {
+                                    const base64 = await this.convertBlobToDataUrl(blob);
+                                    this.drawPDF(data, base64);
+                                } catch (error) {
+                                    console.error('Lỗi chuyển đổi ảnh:', error);
+                                    this.drawPDF(data, null);
+                                }
                             },
                             error: () => this.drawPDF(data, null)
                         });
@@ -582,8 +600,40 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             },
             error: (err: any) => {
                 this.isLoading = false;
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lỗi khi lấy dữ liệu ứng viên');
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
+        });
+    }
+
+    private convertBlobToDataUrl(blob: Blob): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                        ctx.drawImage(img, 0, 0);
+                        resolve(canvas.toDataURL('image/png'));
+                    } else {
+                        resolve(reader.result as string); // Fallback to original if canvas fails
+                    }
+                };
+                img.onerror = () => resolve(reader.result as string); // Fallback to original if image load fails
+                img.src = reader.result as string;
+            };
+            reader.onerror = () => reject('Could not read blob');
+            reader.readAsDataURL(blob);
         });
     }
 
@@ -608,21 +658,19 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                 // outer border slightly thicker, inner borders thin & light
                 hLineWidth: (i: number, node: any) => {
                     const isOuter = i === 0 || i === node.table.body.length;
-                    return isOuter ? 0.35 : 0.15;
+                    return isOuter ? 0.75 : 0.5;
                 },
                 vLineWidth: (i: number, node: any) => {
                     if (hideIdx !== undefined && i === hideIdx) return 0;
                     const isOuter = i === 0 || i === node.table.widths.length;
-                    return isOuter ? 0.35 : 0.15;
+                    return isOuter ? 0.75 : 0.5;
                 },
                 hLineColor: (i: number, node: any) => {
-                    const isOuter = i === 0 || i === node.table.body.length;
-                    return isOuter ? '#777777' : '#B5B5B5';
+                    return '#000000';
                 },
                 vLineColor: (i: number, node: any) => {
                     if (hideIdx !== undefined && i === hideIdx) return '#FFFFFF';
-                    const isOuter = i === 0 || i === node.table.widths.length;
-                    return isOuter ? '#777777' : '#B5B5B5';
+                    return '#000000';
                 },
                 paddingLeft: () => pad,
                 paddingRight: () => pad,
@@ -647,9 +695,10 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                         },
                         {
                             stack: [
-                                { text: 'THÔNG TIN ỨNG VIÊN', bold: true, alignment: 'center', fontSize: 16, margin: [0, 5, 0, 2] },
+                                { text: 'CÔNG TY CỔ PHẦN RTC TECHNOLOGY VIỆT NAM', bold: true, alignment: 'center', fontSize: 13, margin: [0, 5, 0, 5] },
+                                { text: 'PHIẾU THÔNG TIN ỨNG VIÊN', bold: true, alignment: 'center', fontSize: 18, margin: [0, 0, 0, 2] },
                                 { text: 'Application Form', italic: true, alignment: 'center', fontSize: 12 },
-                                { text: '(BM03-RTC.HR-QT01)', alignment: 'center', fontSize: 10 }
+                                { text: '(BM03-RTC.HR-QT01)', alignment: 'center', fontSize: 9 }
                             ], width: '*'
                         },
                         {
@@ -675,7 +724,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                 {
                     columns: [
                         { text: 'Vị trí /Position: ', width: 'auto', bold: true },
-                        { text: dot(mf.ChucVu || mf.Position || mf.ChucVuName, 60), margin: [5, 0, 0, 0] }
+                        { text: dot(mf.PositionName || mf.Position || mf.ChucVuName, 60), margin: [5, 0, 0, 0], bold: true }
                     ], margin: [0, 0, 0, 10]
                 },
                 // === I. PERSONAL DETAILS ===

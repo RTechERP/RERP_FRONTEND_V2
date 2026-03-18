@@ -1,0 +1,277 @@
+/* ===== Card header ===== */
+.card-header {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    min-height: 36px;
+}
+
+/* ===== Filter bar ===== */
+.filter-bar {
+    /* padding: 8px 12px; */
+    background: #fafafa;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.filter-bar .ant-form-item-label {
+    padding-bottom: 0;
+}
+
+/* ===== Dynamic content height ===== */
+.with-search-bar {
+    height: calc(100vh - 140px) !important;
+}
+
+.without-search-bar {
+    height: calc(100vh - 80px) !important;
+}
+
+/* ===== Container chính ===== */
+.exam-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* ===== Panel header / tiêu đề bảng ===== */
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background: #f0f5ff;
+    border-bottom: 1px solid #d6e4ff;
+    min-height: 32px;
+}
+
+.panel-header .panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d39c4;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ===== Toolbar nút hành động ===== */
+.toolbar {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 4px 8px;
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    flex-wrap: wrap;
+}
+
+/* ===== Toolbar Menubar (PrimeNG) ===== */
+.toolbar-menubar {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    min-height: 32px;
+}
+
+:host ::ng-deep .toolbar-menubar .p-menubar {
+    font-size: 11px;
+}
+
+:host ::ng-deep .toolbar-menubar .p-menubar .p-menubar-button {
+    display: none !important;
+}
+
+:host ::ng-deep .toolbar-menubar .p-menuitem-link {
+    padding: 4px 8px !important;
+}
+
+:host ::ng-deep .toolbar-menubar .p-menuitem-text {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+:host ::ng-deep .toolbar-menubar i {
+    font-size: 14px;
+}
+
+/* ===== Grid container ===== */
+.grid-container {
+    height: 100%;
+    min-height: 200px;
+    width: 100%;
+}
+
+/* ===== PrimeNG Table styling ===== */
+:host ::ng-deep .p-datatable table {
+    width: 100%;
+}
+
+/* Header cells */
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    font-size: 12px;
+    font-weight: 600;
+    background: #fafafa;
+    padding: 8px;
+    text-align: center;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    font-size: 12px;
+    padding: 6px 8px;
+}
+
+/* PrimeNG filter inputs: lock to 100% of the header TH */
+:host ::ng-deep .p-inputtext {
+    font-size: 10px !important;
+}
+
+/* Filter wrapper takes full width of column */
+:host ::ng-deep p-columnFilter {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+:host ::ng-deep .p-column-filter {
+    display: flex !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Input fills the flex container */
+:host ::ng-deep .p-column-filter .p-inputtext,
+:host ::ng-deep .p-column-filter input {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:nth-child(even) {
+    background: #fafafa;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+    background: #e6f7ff;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight {
+    background: #bae7ff !important;
+    color: #000;
+}
+
+:host ::ng-deep .text-center {
+    text-align: center;
+}
+
+:host ::ng-deep .text-right {
+    text-align: right;
+}
+
+/* ===== Splitter styling ===== */
+:host ::ng-deep .ant-splitter-bar {
+    background: #e8e8e8;
+}
+
+:host ::ng-deep .ant-splitter-bar:hover {
+    background: #1890ff;
+}
+
+/* ===== Spin loading ===== */
+:host ::ng-deep .ant-spin-nested-loading {
+    height: 100%;
+}
+
+:host ::ng-deep .ant-spin-container {
+    height: 100%;
+}
+
+/* ===== PrimeNG Full height ===== */
+:host ::ng-deep .p-datatable {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+    flex: 1 1 auto;
+}
+
+/* ===== Button styling ===== */
+button[nz-button] {
+    font-size: 12px;
+}
+
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+/* ===== Splitter chiều cao ===== */
+:host ::ng-deep .ant-splitter {
+    height: 88vh !important;
+}
+
+/* ===== Panel bên trong ===== */
+.panel-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    :host ::ng-deep .ant-splitter {
+        height: calc(100vh - 120px) !important;
+    }
+}
+
+::ng-deep .type-select-dropdown {
+    min-width: 35vh !important;
+}
+
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-datatable-inline-filter {
+    justify-content: space-between !important;
+}
+
+:host ::ng-deep .p-component .p-inputtext .ng-star-inserted {
+    width: 100% !important;
+}
+
+:host::ng-deep .p-fluid {
+    width: 100% !important;
+}
+
+:host::ng-deep .p-component .p-inputtext {
+    width: 100% !important;
+}
+
+:host::ng-deep .toolbar-menubar .p-menubar {
+    display: flex;
+    align-items: center;
+    background: var(--p-menubar-background);
+    border: 1px solid var(--p-menubar-border-color);
+    border-radius: var(--p-menubar-border-radius);
+    color: var(--p-menubar-color);
+    padding: 10px !important;
+    gap: var(--p-menubar-gap);
+}

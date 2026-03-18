@@ -161,7 +161,7 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
       Validators.pattern(/^[^\s\u00C0-\u024F\u1E00-\u1EFF]+$/),
     ]),
     HrHiringRequestID: this.fb.control<number | null>(null, [Validators.required]),
-    EmployeeChucVuHDID: this.fb.control(null, [Validators.required]),
+    PositionName: this.fb.control({ value: '', disabled: true }, [Validators.required]),
     Status: this.fb.control(0, [Validators.required]),
     Note: this.fb.control(''),
     IsDeleted: this.fb.control(false),
@@ -233,10 +233,14 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
   }
 
   onHiringRequestChange(selectedId: number | null) {
-    if (!selectedId) return;
+    if (!selectedId) {
+      return;
+    }
     const found = this.hrHiringRequestRaw.find((item: any) => item.ID === selectedId);
-    if (found?.EmployeeChucVuHDID) {
-      this.validateForm.patchValue({ EmployeeChucVuHDID: found.EmployeeChucVuHDID });
+    if (found) {
+      const position = found.PositionName || found.EmployeeChucVuHDName || '';
+      this.validateForm.patchValue({ PositionName: position });
+      this.validateForm.get('PositionName')?.disable();
     }
   }
 
@@ -255,7 +259,7 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
       UserName: data.UserName ?? '',
       Password: data.Password ?? '',
       HrHiringRequestID: data.HrHiringRequestID ?? null,
-      EmployeeChucVuHDID: data.EmployeeChucVuHDID ?? null,
+      PositionName: data.PositionName || '',
       Status: data.Status ?? 0,
       Note: data.Note ?? '',
       IsDeleted: false,
@@ -266,6 +270,8 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
       Address: data.Address ?? '',
       Email: data.Email ?? '',
     });
+
+    this.validateForm.get('PositionName')?.disable();
 
     // Load file CV từ DB vào bảng file (khi sửa)
     if (data.FileCVName) {
@@ -320,7 +326,7 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
     this.hrRecruitmentCandidateService.saveData(formData, file).subscribe({
       next: (res: any) => {
         this.isSaving = false;
-        this.notification.success('Thành công', 'Lưu thông tin ứng viên thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thông tin ứng viên thành công');
         this.activeModal.close(res);
       },
       error: (err: any) => {

@@ -1,0 +1,415 @@
+/* ===== Form body ===== */
+.form-body {
+    padding: 16px;
+    /*max-height: 72vh;*/
+    overflow-y: auto;
+}
+
+/* ===== PrimeNG Editor ===== */
+:host ::ng-deep .p-editor-container .ql-editor {
+    min-height: 240px;
+    font-size: 13px;
+}
+
+/* ===== Image preview (câu hỏi) ===== */
+.image-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+}
+
+.image-preview-box {
+    position: relative;
+    width: 100%;
+    max-height: 260px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fafafa;
+}
+
+.preview-img {
+    max-width: 100%;
+    max-height: 260px;
+    object-fit: contain;
+}
+
+.btn-remove-img {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(255, 255, 255, .85);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    color: #ff4d4f;
+    padding: 2px;
+    line-height: 1;
+}
+
+.btn-remove-img:hover {
+    color: #cf1322;
+    background: #fff;
+}
+
+.image-placeholder {
+    width: 100%;
+    height: 88% !important;
+    border: 2px dashed #d9d9d9;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #bfbfbf;
+    background: #fafafa;
+}
+
+.image-placeholder p {
+    margin: 8px 0 0 0;
+    font-size: 12px;
+}
+
+.btn-browse-img {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 16px;
+    border: 1px solid #1890ff;
+    border-radius: 4px;
+    color: #1890ff;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all .2s;
+}
+
+.btn-browse-img:hover {
+    background: #e6f7ff;
+    border-color: #40a9ff;
+}
+
+/* ===== Answer section ===== */
+.answer-section {
+    margin-top: 12px;
+    border-top: 1px solid #e8e8e8;
+    padding-top: 12px;
+}
+
+.answer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.answer-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d39c4;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.answer-table-container {
+    overflow-x: auto;
+}
+
+.answer-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.answer-table th {
+    background: #fafafa;
+    border: 1px solid #e8e8e8;
+    padding: 6px 8px;
+    font-weight: 600;
+    text-align: center;
+    font-size: 12px;
+}
+
+.answer-table td {
+    border: 1px solid #e8e8e8;
+    padding: 4px 8px;
+    vertical-align: middle;
+}
+
+.answer-table tr:hover {
+    background: #e6f7ff;
+}
+
+.btn-delete-answer {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    font-size: 14px;
+}
+
+.no-answer-msg {
+    text-align: center;
+    color: #999;
+    padding: 12px;
+    font-size: 13px;
+    border: 1px dashed #d9d9d9;
+    border-radius: 4px;
+    background: #fafafa;
+}
+
+.no-answer-msg p {
+    margin: 0;
+}
+
+/* ===== Answer image cell ===== */
+.answer-image-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.answer-thumb {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border: 1px solid #d9d9d9;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: transform .15s;
+}
+
+.answer-thumb:hover {
+    transform: scale(1.1);
+    border-color: #ff4d4f;
+}
+
+.btn-browse-answer-img {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #1890ff;
+    border-radius: 4px;
+    color: #1890ff;
+    cursor: pointer;
+    font-size: 14px;
+    background: #fff;
+    transition: all .2s;
+}
+
+.btn-browse-answer-img:hover {
+    background: #e6f7ff;
+}
+
+/* ===== Loading ===== */
+.loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+}
+
+/* ===== Modal ===== */
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 14px;
+}
+
+.fw-bold {
+    font-weight: 600;
+}
+
+/* ===== Editor label (outside formGroup) ===== */
+.editor-label {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.88);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 32px; /* Consistent height for both columns */
+}
+
+/* ===== Multi-file attachment list ===== */
+.file-attachment-list {
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    background: #fafafa;
+    padding: 6px;
+    height: 305px; /* Matches editor total height (260px + toolbar) */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.file-attachment-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1; /* Fill the list container */
+    color: #bfbfbf;
+}
+
+.file-attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 5px 8px;
+    transition: background .15s;
+}
+
+.file-attachment-item:hover {
+    background: #e6f7ff;
+    border-color: #91d5ff;
+}
+
+.file-thumb {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e8e8e8;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+.file-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform .15s;
+}
+
+.file-thumb-img:hover {
+    transform: scale(1.05);
+}
+
+.file-thumb-placeholder {
+    font-size: 16px;
+    color: #bbb;
+}
+
+.file-thumb-icon {
+    background: #e8f4ff;
+}
+
+.file-attachment-name {
+    flex: 1 1 auto;
+    font-size: 12px;
+    word-break: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 140px;
+    color: #333;
+}
+
+.file-attachment-name.clickable {
+    color: #1890ff;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.file-attachment-remove {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    transition: transform .15s;
+}
+
+.file-attachment-remove:hover {
+    transform: scale(1.2);
+}
+
+/* ===== Image Overlay (xem ảnh to) ===== */
+.img-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn .15s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.img-overlay-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.img-overlay-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .5);
+}
+
+.img-overlay-close {
+    position: absolute;
+    top: -16px;
+    right: -16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+    transition: background .2s;
+    z-index: 1;
+}
+
+.img-overlay-close:hover {
+    background: #ff4d4f;
+    color: #fff;
+}

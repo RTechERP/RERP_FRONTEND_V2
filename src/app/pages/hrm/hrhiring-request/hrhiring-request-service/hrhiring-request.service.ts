@@ -37,7 +37,6 @@ export class HrhiringRequestService {
       DepartmentID: params.departmentID || 0,
       Keyword: params.keyword || params.findText || '',
       Id: params.id || 0,
-      ChucVuHDID: params.chucVuHDID || 0,
     };
 
     const headers = {
@@ -81,8 +80,7 @@ export class HrhiringRequestService {
     findText: string = '',
     dateStart: string = '',
     dateEnd: string = '',
-    id: number = 0,
-    chucVuHDID: number = 0
+    id: number = 0
   ): Observable<any[]> {
     const requestData = {
       DateStart: dateStart || null,
@@ -90,7 +88,6 @@ export class HrhiringRequestService {
       DepartmentID: departmentID,
       Keyword: findText,
       Id: 0, // Luôn = 0 để lấy danh sách
-      ChucVuHDID: chucVuHDID,
     };
 
     const headers = {
@@ -136,7 +133,6 @@ export class HrhiringRequestService {
       DepartmentID: 0,
       Keyword: '',
       Id: id, // SỬA: Capital case để match DTO
-      ChucVuHDID: 0,
     };
 
     return this.http.post<any>(this.apiUrl + 'getdata', params).pipe(
@@ -251,8 +247,7 @@ export class HrhiringRequestService {
     findText: string = '',
     dateStart: string = '',
     dateEnd: string = '',
-    id: number = 0,
-    chucVuHDID: number = 0
+    id: number = 0
   ): Observable<any> {
     let params = new HttpParams();
 
@@ -270,9 +265,6 @@ export class HrhiringRequestService {
     }
     if (id > 0) {
       params = params.set('id', id.toString());
-    }
-    if (chucVuHDID > 0) {
-      params = params.set('chucVuHDID', chucVuHDID.toString());
     }
 
     return this.http

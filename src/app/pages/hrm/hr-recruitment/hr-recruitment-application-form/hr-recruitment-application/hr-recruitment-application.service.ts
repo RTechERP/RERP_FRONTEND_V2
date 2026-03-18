@@ -10,8 +10,8 @@ export class HRRecruitmentApplicationService {
     constructor(private http: HttpClient) { }
     private apiUrl = `${environment.host}api/HRRecruitmentApplicationForm/`;
 
-    getAllApplicationForm(chucVuID: number, filterText: string): Observable<any> {
-        return this.http.get<any>(this.apiUrl + `get-all-application-form?chucVuID=${chucVuID}&filterText=${filterText || ''}`);
+    getAllApplicationForm(chucVu: string, filterText: string): Observable<any> {
+        return this.http.get<any>(this.apiUrl + `get-all-application-form?chucVu=${chucVu || ''}&filterText=${filterText || ''}`);
     }
 
     getApplicationFormDetail(hRRecruitmentCandidateID: number): Observable<any> {

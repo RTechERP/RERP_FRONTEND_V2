@@ -302,6 +302,20 @@
         background: #fff !important;
     }
 
+    .border-less-input {
+        border: none !important;
+        border-bottom: 1px dashed #d9d9d9 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .border-less-input:focus {
+        border-bottom-color: #1890ff !important;
+    }
+
     /* Validation Styles */
     .cell-input.ng-invalid.ng-dirty,
     .inline-input.ng-invalid.ng-dirty,

@@ -18,7 +18,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { HRRecruitmentApplicationFormService } from './hr-recruitment-application-form.service';
 
 @Component({
@@ -172,8 +172,8 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     }
 
     private startTimers() {
-        // Chạy lần đầu ngay lập tức và sau đó mỗi 30 giây
-        timer(0, 30000).pipe(takeUntil(this.destroy$)).subscribe(() => {
+        // Chạy sau 30 giây và sau đó mỗi 30 giây
+        timer(30000, 30000).pipe(takeUntil(this.destroy$)).subscribe(() => {
             console.log('--- Timer check ---');
             this.checkSession();
             this.autoSave();
@@ -213,6 +213,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
 
         this.isLoading = true;
         let hRRecruitmentCandidateID = 0;
+        let candidateFromStorage = null;
 
         // Ưu tiên dùng candidateId từ @Input (HR xem), nếu không có mới dùng localStorage (Ứng viên tự xem)
         if (this.isEmbedded && this.candidateId && this.candidateId > 0) {
@@ -223,6 +224,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                 try {
                     const candidate = JSON.parse(candidateStr);
                     hRRecruitmentCandidateID = candidate.ID || 0;
+                    candidateFromStorage = candidate;
                 } catch (e) {
                     console.error('Error parsing candidate from localStorage', e);
                 }
@@ -251,17 +253,24 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                 }
 
                 // 2. Patch Form - Always call to handle defaults if no data exists
-                this.patchForm(res.candidateInfo?.data || {});
+                this.patchForm(res.candidateInfo?.data || {}, candidateFromStorage);
                 this.cdr.detectChanges();
             },
-            error: (err) => {
+            error: (err: any) => {
                 this.isLoading = false;
-                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu ban đầu');
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         });
     }
 
-    patchForm(data: any) {
+    patchForm(data: any, candidateFromStorage?: any) {
         if (!data) data = {};
 
         // 1. Hard Reset delete list
@@ -303,30 +312,40 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
         }, { emitEvent: false });
 
         // 4. Patch dữ liệu tờ khai chính
-        if (mainForm) {
-            if (mainForm.CreatedDate) this.createdDate = new Date(mainForm.CreatedDate);
-            this.isComplete = !this.isEmbedded && mainForm.IsComplete === true;
+        if (mainForm || candidateFromStorage) {
+            if (mainForm?.CreatedDate) this.createdDate = new Date(mainForm.CreatedDate);
+            this.isComplete = !this.isEmbedded && mainForm?.IsComplete === true;
 
+            const position = mainForm?.PositionName || candidateFromStorage?.PositionName || null;
             this.form.patchValue({
-                ...mainForm,
-                DateOfBirth: this.formatDateForInput(mainForm.DateOfBirth),
-                IssuedOn: this.formatDateForInput(mainForm.IssuedOn),
-                DateSign: this.formatDateForInput(mainForm.DateSign),
-                DateOfStart: this.formatDateForInput(mainForm.DateOfStart),
-                Gender: this.normalizeGender(mainForm.Gender),
+                ...(mainForm || {}),
+                FullName: mainForm?.FullName || candidateFromStorage?.FullName || null,
+                Email: mainForm?.Email || candidateFromStorage?.Email || null,
+                Tel: mainForm?.Tel || candidateFromStorage?.PhoneNumber || null,
+                Mobile: mainForm?.Mobile || candidateFromStorage?.PhoneNumber || null,
+                PositionName: position,
+                DateOfBirth: this.formatDateForInput(mainForm?.DateOfBirth || candidateFromStorage?.DateOfBirth),
+                IssuedOn: this.formatDateForInput(mainForm?.IssuedOn),
+                DateSign: this.formatDateForInput(mainForm?.DateSign),
+                DateOfStart: this.formatDateForInput(mainForm?.DateOfStart),
+                Gender: this.normalizeGender(mainForm?.Gender ?? candidateFromStorage?.Gender),
             }, { emitEvent: false });
 
-            if (mainForm.ChucVuHDID) this.onPositionChange(mainForm.ChucVuHDID);
+            if (this.candidateId || mainForm?.HRRecruitmentCandidateID) {
+              this.form.get('PositionName')?.disable();
+            } else {
+              this.form.get('PositionName')?.enable();
+            }
 
             // Ảnh chân dung
-            if (mainForm.FileName && !this.imagePreview) {
+            if (mainForm?.FileName && !this.imagePreview) {
                 this.hrService.downloadFile(mainForm.FileName).pipe(takeUntil(this.cancelLoad$), takeUntil(this.destroy$)).subscribe({
                     next: (blob) => {
                         this.imagePreview = URL.createObjectURL(blob);
                         this.cdr.markForCheck();
                     }
                 });
-            } else if (!mainForm.FileName) {
+            } else if (!mainForm?.FileName) {
                 this.imagePreview = null;
             }
         }
@@ -449,17 +468,14 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             }
         });
     }
-    onPositionChange(id: any) {
-        const item = this.chucVuList.find(x => x.ID === id);
-        if (item) {
+    onPositionChange(name: string) {
+        if (name) {
             this.form.patchValue({
-                ChucVuHDID: item.ID,
-                Position: item.Name
+                PositionName: name
             });
         } else {
             this.form.patchValue({
-                ChucVuHDID: null,
-                Position: null
+                PositionName: null
             });
         }
     }
@@ -471,7 +487,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             HRRecruitmentCandidateID: [null],
             Image3x4: [null, [Validators.maxLength(550)]],
             Position: [null],
-            ChucVuHDID: [null, [Validators.required]],
+            PositionName: [null, [Validators.required]],
             FileName: [null],
             FullName: [null, [Validators.required, Validators.maxLength(250)]],
             Gender: [null, [Validators.required]],
@@ -650,12 +666,6 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                 this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn file ảnh!');
                 return;
             }
-            // Validate file size (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                this.notification.warning(NOTIFICATION_TITLE.warning, 'Ảnh không được vượt quá 5MB!');
-                return;
-            }
-
             this.selectedFile = file;
 
             // Preview local
@@ -772,9 +782,16 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                         this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Tải ảnh lên thất bại, không thể lưu tờ khai');
                     }
                 },
-                error: (err) => {
+                error: (err: any) => {
                     this.isLoading = false;
-                    this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải ảnh lên: ' + (err?.error?.message || err?.message));
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
             });
         } else {
@@ -940,10 +957,17 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                     }
                 }
             },
-            error: (err) => {
+            error: (err: any) => {
                 this.isLoading = false;
                 this.isSaving = false;
-                this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra: ' + (err?.error?.message || err?.message));
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         });
     }

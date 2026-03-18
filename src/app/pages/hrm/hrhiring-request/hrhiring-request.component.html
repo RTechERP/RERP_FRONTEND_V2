@@ -48,17 +48,6 @@
                                     </nz-form-control>
                                 </nz-form-item>
 
-                                <nz-form-item class="mt-2">
-                                    <nz-form-label class="fs-12" [nzSpan]="24">Chức vụ</nz-form-label>
-                                    <nz-form-control [nzSpan]="24">
-                                        <nz-select name="selectedChucVuFilter" class="w-100" nzShowSearch nzAllowClear
-                                            nzPlaceHolder="Chọn chức vụ" [(ngModel)]="selectedChucVuFilter"
-                                            (ngModelChange)="onChucVuFilterChange()">
-                                            <nz-option *ngFor="let chucVu of chucVuList" [nzValue]="chucVu.ID"
-                                                [nzLabel]="chucVu.Name">{{ chucVu.Name }}</nz-option>
-                                        </nz-select>
-                                    </nz-form-control>
-                                </nz-form-item>
 
                                 <nz-form-item class="mt-2">
                                     <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
@@ -218,6 +207,9 @@
                                 <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="viewForm()">
                                     <img src="assets/icon/action_print_16.png" /> In phiếu
                                 </button>
+                                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="linkTest()">
+                                    <img src="assets/icon/action_add_16.png" /> Liên kết bài thi
+                                </button>
                             </div>
                         </div>
 
@@ -289,8 +281,7 @@
                                         </div>
                                         <div class="col-6">
                                             <label>Vị trí tuyển dụng:</label>
-                                            <div class="detail-value">{{ selectedHRHIRING.EmployeeChucVuHDName || 'Chưa
-                                                có' }}
+                                            <div class="detail-value">{{ selectedHRHIRING.PositionName || selectedHRHIRING.EmployeeChucVuHDName || 'Chưa có' }}
                                             </div>
                                         </div>
                                         <div class="col-6">

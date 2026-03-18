@@ -1,0 +1,295 @@
+<div class="copy-question-modal" style="height: 100vh;">
+
+    <!-- Header -->
+    <div class="modal-header bg-primary p-2">
+        <h6 class="modal-title text-white text-uppercase">
+            <span class="header-title">SAO CHÉP CÂU HỎI VÀO ĐỀ THI</span>
+        </h6>
+        <button type="button" class="btn-close me-1" aria-label="Close" (click)="onClose()"></button>
+        <!-- <div class="header-actions">
+            <button nz-button nzType="primary" nzSize="small" [nzLoading]="isSaving" (click)="onSaveAndClose()"
+                class="btn-save">
+                <nz-icon nzType="save"></nz-icon> Cất &amp; Đóng
+            </button>
+            <button nz-button nzType="default" nzSize="small" (click)="onClose()" class="btn-close-modal">
+                <nz-icon nzType="close"></nz-icon> Đóng
+            </button>
+        </div> -->
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body-content">
+
+        <!-- ===== Filter Section ===== -->
+        <div class="filter-section">
+            <form nz-form>
+
+                <!-- Dòng 1: TỪ (Nguồn) -->
+                <div class="filter-row">
+                    <div class="filter-row-label">
+                        <nz-icon nzType="arrow-right" class="from-icon"></nz-icon>
+                        <span class="filter-row-title">Từ</span>
+                    </div>
+
+                    <nz-row [nzGutter]="[8, 4]" class="filter-controls">
+                        <!-- Phòng ban nguồn -->
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="filter-label">Phòng ban</nz-form-label>
+                                <nz-form-control>
+                                    <nz-select [(ngModel)]="fromDepartmentId" name="fromDepartmentId" nzShowSearch
+                                        nzAllowClear nzSize="small" nzPlaceHolder="Tất cả phòng ban" class="w-100"
+                                        (ngModelChange)="onFromDepartmentChange()">
+                                        <nz-option *ngFor="let d of departments" [nzValue]="d.ID"
+                                            [nzLabel]="d.Name"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+
+                        <!-- Vị trí tuyển dụng nguồn -->
+                        <!-- <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="filter-label">Vị trí tuyển dụng</nz-form-label>
+                                <nz-form-control>
+                                    <nz-select [(ngModel)]="fromRecruitmentBatchId" name="fromRecruitmentBatchId"
+                                        nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Tất cả vị trí"
+                                        class="w-100" (ngModelChange)="onFromBatchChange()"
+                                        nzDropdownClassName="type-select-dropdown"
+                                        style=" font-size: 0.75rem !important;" nzSize="small" class="fs-12">
+                                        <nz-option *ngFor="let b of fromRecruitmentBatches" [nzValue]="b.ID"
+                                            [nzLabel]="b.PositionName"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col> -->
+
+                        <!-- Đề thi nguồn -->
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="filter-label">Đề thi</nz-form-label>
+                                <nz-form-control>
+                                    <nz-select [(ngModel)]="fromExamId" name="fromExamId" nzShowSearch nzAllowClear
+                                        nzSize="small" nzPlaceHolder="Tất cả đề thi" class="w-100"
+                                        (ngModelChange)="onFromExamChange()" nzDropdownClassName="type-select-dropdown"
+                                        style="width: 250px; font-size: 0.75rem !important;" nzSize="small"
+                                        class="fs-12">
+                                        <nz-option *ngFor="let e of fromExams" [nzValue]="e.ID"
+                                            [nzLabel]="e.CodeExam + ' - ' + e.NameExam"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+
+                        <!-- Loại đề nguồn -->
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="4" [nzLg]="4">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="filter-label">Loại câu hỏi</nz-form-label>
+                                <nz-form-control>
+                                    <nz-select [(ngModel)]="fromExamType" name="fromExamType" nzSize="small"
+                                        class="w-100" (ngModelChange)="onFromExamTypeChange()">
+                                        <nz-option *ngFor="let t of examTypes" [nzValue]="t.value"
+                                            [nzLabel]="t.label"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+
+                        <!-- Từ khóa + nút Tìm kiếm -->
+                        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="5">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="filter-label">Từ khóa</nz-form-label>
+                                <nz-form-control>
+                                    <div class="d-flex gap-1">
+                                        <input nz-input nzSize="small" placeholder="Nhập từ khóa..."
+                                            [(ngModel)]="filterText" name="filterText" class="flex-grow-1"
+                                            (keyup.enter)="searchQuestions()" />
+                                        <button nz-button nzType="primary" nzSize="small" (click)="searchQuestions()"
+                                            style="width:36px;">
+                                            <nz-icon nzType="search"></nz-icon>
+                                        </button>
+                                    </div>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+                </div>
+
+                <!-- Dòng 2: ĐẾN (Đích - nhận từ form cha) -->
+                <div class="filter-row target-row">
+                    <div class="filter-row-label">
+                        <nz-icon nzType="arrow-down" class="to-icon"></nz-icon>
+                        <span class="filter-row-title to-title">Đến</span>
+                    </div>
+
+                    <nz-row [nzGutter]="[8, 4]" class="filter-controls">
+                        <!-- Phòng ban đích -->
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="filter-label">Phòng ban</nz-form-label>
+                                <nz-form-control>
+                                    <nz-select [(ngModel)]="toDepartmentId" name="toDepartmentId" nzShowSearch
+                                        nzAllowClear nzSize="small" nzPlaceHolder="Tất cả phòng ban" class="w-100"
+                                        (ngModelChange)="onToDepartmentChange()">
+                                        <nz-option *ngFor="let d of departments" [nzValue]="d.ID"
+                                            [nzLabel]="d.Name"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+
+                        <!-- Vị trí tuyển dụng đích -->
+                        <!-- <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="filter-label">Vị trí tuyển dụng</nz-form-label>
+                                <nz-form-control>
+                                    <nz-select [(ngModel)]="toRecruitmentBatchId" name="toRecruitmentBatchId"
+                                        nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Tất cả vị trí"
+                                        class="w-100" (ngModelChange)="onToBatchChange()"
+                                        nzDropdownClassName="type-select-dropdown"
+                                        style="font-size: 0.75rem !important;" nzSize="small" class="fs-12">
+                                        <nz-option *ngFor="let b of toRecruitmentBatches" [nzValue]="b.ID"
+                                            [nzLabel]="b.PositionName"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col> -->
+
+                        <!-- Đề thi đích -->
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="7">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="filter-label">Đề thi</nz-form-label>
+                                <nz-form-control>
+                                    <nz-select [(ngModel)]="toExamID" name="toExamID" nzShowSearch nzAllowClear
+                                        nzSize="small" nzPlaceHolder="Chọn đề thi đích" class="w-100"
+                                        (ngModelChange)="onToExamChange()" nzDropdownClassName="type-select-dropdown"
+                                        style="width: 100%; font-size: 0.75rem !important;" nzSize="small"
+                                        class="fs-12">
+                                        <nz-option *ngFor="let e of toExams" [nzValue]="e.ID"
+                                            [nzLabel]="e.CodeExam + ' - ' + e.NameExam"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+
+                        <!-- Loại đề đích (readonly) -->
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="4" [nzLg]="5">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="filter-label">Loại đề</nz-form-label>
+                                <nz-form-control>
+                                    <input nz-input nzSize="small" [value]="toExamTypeLabel"
+                                        class="w-100 input-readonly" readonly />
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- ===== Hướng dẫn ===== -->
+        <div class="guide-bar">
+            <nz-icon nzType="info-circle" class="me-1" style="color:#1677ff;"></nz-icon>
+            <span>Tick chọn các câu hỏi muốn sao chép, sau đó nhấn <b>Lưu</b>.</span>
+            <span class="ms-3 text-muted" *ngIf="datasetQuestion.length > 0">
+                Tổng: <b>{{ datasetQuestion.length }}</b> câu hỏi
+            </span>
+        </div>
+
+        <!-- ===== Grid câu hỏi nguồn (PrimeNG) ===== -->
+        <div class="grid-area">
+            <div id="grid-copy-question" class="grid-container w-100 h-100">
+                <nz-spin [nzSpinning]="isLoadingQuestion" style="height: 100%; display: block;">
+                    <p-table #dtQuestion [value]="datasetQuestion" [(selection)]="selectedQuestions"
+                        selectionMode="multiple" dataKey="ID" [scrollable]="true" scrollHeight="flex"
+                        [resizableColumns]="true" columnResizeMode="expand" rowGroupMode="subheader"
+                        groupRowsBy="CourseExam"
+                        [globalFilterFields]="['QuestionText', 'Point', 'CorrectAnswers']"
+                        styleClass="p-datatable-sm p-datatable-gridlines w-100 h-100">
+                        
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width: 40px">
+                                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                                </th>
+                                <th pResizableColumn style="width: 70px" class="text-center">STT</th>
+                                <th pResizableColumn *ngFor="let col of dynamicCols" [style.width]="col.width">
+                                    {{col.header}}
+                                </th>
+                            </tr>
+                            <!-- Filter row -->
+                            <tr>
+                                <th></th>
+                                <th>
+                                    <p-columnFilter type="text" field="STT" filterOn="input"></p-columnFilter>
+                                </th>
+                                <th *ngFor="let col of dynamicCols">
+                                    <p-columnFilter type="text" [field]="col.field" filterOn="input"></p-columnFilter>
+                                </th>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="groupheader" let-item>
+                            <tr pRowGroupHeader>
+                                <td [attr.colspan]="dynamicCols.length + 2">
+                                    <span style="font-weight:600; color:#389e0d; margin-left:20px;">
+                                        Đề thi: {{item.CourseExam || '(Chưa xác định)'}}
+                                    </span>
+                                </td>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                            <tr [pSelectableRow]="item" [style.cursor]="'pointer'">
+                                <td (click)="$event.stopPropagation()">
+                                    <p-tableCheckbox [value]="item"></p-tableCheckbox>
+                                </td>
+                                <td class="text-center">{{rowIndex + 1}}</td>
+                                <td *ngFor="let col of dynamicCols">
+                                    <div *ngIf="col.field === 'QuestionText'" style="word-break:break-word; white-space:normal;"
+                                        [innerHTML]="item[col.field]"></div>
+                                    <div *ngIf="col.field !== 'QuestionText'" 
+                                        [class.text-right]="col.align === 'right'"
+                                        style="word-break:break-word; white-space:normal;">
+                                        {{item[col.field]}}
+                                    </div>
+                                </td>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td [attr.colspan]="dynamicCols.length + 2" class="text-center p-4">
+                                    Không có dữ liệu
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </nz-spin>
+            </div>
+        </div>
+
+    </div>
+    <!-- ===== Footer: Nút hành động ===== -->
+    <div class="modal-footer bg-light p-2 mt-2">
+        <div class="d-flex gap-2 justify-content-end w-100">
+            <button nz-button nzType="primary" [nzLoading]="isSaving" (click)="onSaveAndClose()">
+                Lưu
+            </button>
+            <!-- <button nz-button nzType="default" nzSize="small" (click)="onClose()" class="btn-close-modal">
+                <nz-icon nzType="close"></nz-icon> Đóng
+            </button>
+
+            <button nz-button nzDanger nzType="default" (click)="onClose()" [disabled]="isSaving">
+                Đóng
+            </button>
+            <button nz-button nzType="primary" (click)="onSaveAndNew()" [nzLoading]="isSaving">
+                Lưu & Thêm mới
+            </button>
+            <button nz-button nzType="primary" (click)="onSaveAndClose()" [nzLoading]="isSaving">
+                Lưu & Đóng
+            </button> -->
+        </div>
+    </div>
+</div>

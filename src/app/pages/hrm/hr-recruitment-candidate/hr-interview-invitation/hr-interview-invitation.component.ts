@@ -77,8 +77,8 @@ export class HrInterviewInvitationComponent implements OnInit, AfterViewInit {
       candidateName: c.FullName || '...',
       position: c.PositionName || '...',
       toEmail: c.Email || '',
-      subject: this.round === 1 ? `RTC_THƯ MỜI PHỎNG VẤN VỊ TRÍ ${c.PositionName.toUpperCase() || '...'}_${c.FullName.toUpperCase() || '...'}`
-        : `RTC_THƯ MỜI PHỎNG VẤN VÒNG 2 VỊ TRÍ ${c.PositionName.toUpperCase() || '...'}_${c.FullName.toUpperCase() || '...'}`,
+      subject: this.round === 1 ? `RTC_THƯ MỜI PHỎNG VẤN VỊ TRÍ ${c.PositionName?.toUpperCase() || '...'}_${c.FullName?.toUpperCase() || '...'}`
+        : `RTC_THƯ MỜI PHỎNG VẤN VÒNG 2 VỊ TRÍ ${c.PositionName?.toUpperCase() || '...'}_${c.FullName?.toUpperCase() || '...'}`,
       interviewDate: null,
       interviewHour: '08',
       interviewMinute: '00',

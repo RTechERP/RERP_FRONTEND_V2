@@ -2826,7 +2826,7 @@ export class BillExportDetailNewComponent
                 Specifications: row.Specifications || '',
                 BillImportDetailID: row.ImportDetailID || row.BillImportDetailID || 0,
                 TotalInventory: row.TotalInventory || 0,
-                ExpectReturnDate: row.ExpectReturnDate || null,
+                ExpectReturnDate: this.toLocalISOString(row.ExpectReturnDate) || null,
                 CustomerResponse: row.CustomerResponse || '',
                 POKHDetailIDActual: row.POKHDetailIDActual || 0,
                 PONumber: row.PONumber || '',

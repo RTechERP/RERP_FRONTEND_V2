@@ -1,0 +1,100 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-header {
+    background: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+}
+
+.panel-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #495057;
+    text-transform: uppercase;
+}
+
+.toolbar-menubar {
+    padding: 0.5rem;
+    background: #fff;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.grid-container {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+/* PrimeNG Table Styles */
+::ng-deep .p-datatable-sm .p-datatable-tbody>tr>td {
+    padding: 0.4rem 0.5rem !important;
+    font-size: 13px;
+}
+
+::ng-deep .p-datatable-sm .p-datatable-thead>tr>th {
+    padding: 0.4rem 0.5rem !important;
+    font-size: 13px;
+    background-color: #f8f9fa !important;
+}
+
+::ng-deep .p-rowgroup-header td {
+    background-color: #e6f7ff !important;
+}
+
+.status-active {
+    color: #52c41a;
+    font-weight: 600;
+}
+
+.status-inactive {
+    color: #f5222d;
+    font-weight: 600;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-center {
+    text-align: center;
+}
+
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-datatable-inline-filter {
+    justify-content: space-between !important;
+}
+
+:host ::ng-deep .p-component .p-inputtext .ng-star-inserted {
+    width: 100% !important;
+}
+
+:host::ng-deep .p-fluid {
+    width: 100% !important;
+}
+
+:host::ng-deep .p-component .p-inputtext {
+    width: 100% !important;
+}
+
+:host ::ng-deep .p-inputtext {
+    font-size: 10px !important;
+}

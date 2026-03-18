@@ -8,6 +8,7 @@ import { environment } from '../../../../../../environments/environment';
 })
 export class HRRecruitmentApplicationFormService {
     private apiUrl = `${environment.host}api/HRRecruitmentApplicationForm`;
+    private apiUrlExam = `${environment.host}api/HRRecruitmentExam`;
 
     constructor(private http: HttpClient) { }
 
@@ -44,5 +45,9 @@ export class HRRecruitmentApplicationFormService {
         return this.http.get<any>(`${this.apiUrl}/get-candidate-infomation`, {
             params: { hRRecruitmentCandidateID }
         });
+    }
+
+    getDataExamByEmployee(): Observable<any> {
+        return this.http.get<any>(`${this.apiUrlExam}/get-data-exam-by-employee`);
     }
 }

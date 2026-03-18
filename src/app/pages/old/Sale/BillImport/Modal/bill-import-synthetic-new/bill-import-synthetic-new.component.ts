@@ -1211,7 +1211,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
           ProductNewCode: item.ProductNewCode || '',
           Qty: item.Qty || 0,
           Maker: item.Maker || '',
-          IsBill: item.IsBill ? 'V' : 'X',
+          IsBill: item.IsBill ? 'Checked' : 'Unchecked',
           SomeBill: item.SomeBill || '',
           DateSomeBill: item.DateSomeBill ? DateTime.fromISO(item.DateSomeBill).toFormat('dd/MM/yyyy') : '',
           DPO: item.DPO || 0,

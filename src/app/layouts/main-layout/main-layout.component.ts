@@ -456,6 +456,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         if (m) m.isOpen = !m.isOpen;
         if (m?.isOpen) this.menuCompKey = key;
         this.isCollapsed = false;
+        this.isAppMenuVisible = false;
+
     }
 
     // Hàm check và tạo tab từ current route (khi paste URL trực tiếp lần đầu)

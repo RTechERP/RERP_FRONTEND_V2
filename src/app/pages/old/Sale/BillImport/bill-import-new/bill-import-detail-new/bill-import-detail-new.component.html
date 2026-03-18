@@ -214,7 +214,7 @@
                                 class="text-danger bill-import-detail-new-text-danger">*</span></nz-form-label>
                         <nz-form-control [nzErrorTip]="">
                             <nz-select nzSize="small" formControlName="SupplierID" nzShowSearch [nzAllowClear]="false"
-                                [nzPlaceHolder]="placeholderSupplier">
+                                [nzPlaceHolder]="placeholderSupplier" nzDropdownClassName="select-dropdown">
                                 <nz-option *ngFor="let id of dataCbbSupplier" [nzValue]="id.ID" [nzLabel]="id.NameNCC"
                                     nzCustomContent>
                                     {{ id.CodeNCC }} - {{ id.NameNCC }}

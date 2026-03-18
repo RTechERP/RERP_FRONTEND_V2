@@ -11,6 +11,8 @@ import { HRRecruitmentExamService } from '../../../hr-recruitment/HRRecruitmentE
 import { HRHiringRequestExamService } from '../hrhiring-request-exam.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 
 @Component({
   selector: 'app-hrhiring-request-exam-detail',
@@ -52,7 +54,8 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
     private hiringRequestExamService: HRHiringRequestExamService,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef,
-    public activeModal: NgbActiveModal
+    public activeModal: NgbActiveModal,
+    private notification: NzNotificationService
   ) { }
 
   ngOnInit(): void {
@@ -113,8 +116,13 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
           this.cdr.detectChanges();
         }
       },
-      error: (err) => {
-        console.error('Error loading departments:', err);
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
       }
     });
   }
@@ -148,8 +156,13 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
           }
         }
       },
-      error: (err) => {
-        console.error('Error loading exams:', err);
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
       }
     });
   }
@@ -229,9 +242,14 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
           this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: res.message || 'Lưu thất bại' });
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
-        this.messageService.add({ severity: 'error', summary: 'Lỗi hệ thống', detail: err.message });
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
       }
     });
   }

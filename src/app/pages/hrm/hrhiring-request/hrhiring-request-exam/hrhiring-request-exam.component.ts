@@ -11,6 +11,9 @@ import { HRHiringRequestExamService } from './hrhiring-request-exam.service';
 import { HRHiringRequestExamDetailComponent } from './hrhiring-request-exam-detail/hrhiring-request-exam-detail.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ContextMenuModule } from 'primeng/contextmenu';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 
 @Component({
   selector: 'app-hrhiring-request-exam',
@@ -24,7 +27,8 @@ import { ContextMenuModule } from 'primeng/contextmenu';
     ToastModule,
     ConfirmDialogModule,
     CheckboxModule,
-    ContextMenuModule
+    ContextMenuModule,
+    HasPermissionDirective
   ],
   providers: [MessageService, ConfirmationService]
 })
@@ -43,7 +47,8 @@ export class HRHiringRequestExamComponent implements OnInit {
     private service: HRHiringRequestExamService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private notification: NzNotificationService
   ) { }
 
   ngOnInit(): void {
@@ -57,20 +62,22 @@ export class HRHiringRequestExamComponent implements OnInit {
       {
         label: 'Thêm',
         icon: 'fa-solid fa-plus text-success',
+        hasPermission: 'N1,N2,N20,N32,N33,N38,N51,N52,N56,N61,N78,N79,N81,N86',
         command: () => this.onAdd()
       },
       {
         label: 'Sửa',
         icon: 'fa-solid fa-pencil text-primary',
+        hasPermission: 'N1,N2,N20,N32,N33,N38,N51,N52,N56,N61,N78,N79,N81,N86',
         command: () => this.onEdit(),
         disabled: true
       },
-      {
-        label: 'Xóa',
-        icon: 'fa-solid fa-trash text-danger',
-        command: () => this.onDelete(),
-        disabled: true
-      },
+      // {
+      //   label: 'Xóa',
+      //   icon: 'fa-solid fa-trash text-danger',
+      //   command: () => this.onDelete(),
+      //   disabled: true
+      // },
       {
         label: 'Làm mới',
         icon: 'fa-solid fa-arrows-rotate text-info',
@@ -111,8 +118,13 @@ export class HRHiringRequestExamComponent implements OnInit {
         }
         this.loading = false;
       },
-      error: (err) => {
-        this.messageService.add({ severity: 'error', summary: 'Lỗi hệ thống', detail: err.message });
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
         this.loading = false;
       }
     });
@@ -156,9 +168,15 @@ export class HRHiringRequestExamComponent implements OnInit {
           }
           this.loading = false;
         },
-        error: () => {
+        error: (err: any) => {
           this.filteredExams = [];
           this.loading = false;
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
         }
       });
     } else {
@@ -200,7 +218,7 @@ export class HRHiringRequestExamComponent implements OnInit {
 
       // FilteredExams now contains the exams for this request
       const examsForRequest = this.filteredExams;
-      
+
       // Use the first record or the selection itself
       const mappingRecord = examsForRequest[0];
 
@@ -234,9 +252,9 @@ export class HRHiringRequestExamComponent implements OnInit {
         accept: () => {
           this.loading = true;
           const ids = this.selectedItems.map(item => item.HiringRequestExamID || item.ID);
-          
+
           const requests = ids.map(id => this.service.deleteData(id));
-          
+
           forkJoin(requests).subscribe({
             next: (results: any[]) => {
               this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Xóa dữ liệu thành công' });
@@ -245,7 +263,12 @@ export class HRHiringRequestExamComponent implements OnInit {
               this.updateMenuState();
             },
             error: (err: any) => {
-              this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Có lỗi xảy ra khi xóa dữ liệu' });
+              this.notification.create(
+                NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                err?.error?.message || `${err.error}\n${err.message}`,
+                { nzStyle: { whiteSpace: 'pre-line' } }
+              );
               this.loading = false;
             }
           });

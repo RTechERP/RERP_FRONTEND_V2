@@ -8,10 +8,11 @@
   height: 40vh;
 }
 
-:host ::ng-deep .bill-import-detail-new-modal-footer{
+:host ::ng-deep .bill-import-detail-new-modal-footer {
   border-top: none !important;
   padding: 0 1rem 0 0 !important;
 }
+
 .bill-import-detail-new-fs-12 {
   font-size: 12px;
 }
@@ -81,10 +82,11 @@
 }
 
 :host ::ng-deep div[id^="billImportDetail_"] {
-  height: 53vh !important;
+  height: 67vh !important;
 }
+
 :host ::ng-deep div[id^="billImportDocDetail_"] {
-  height: 53vh !important;
+  height: 67vh !important;
 }
 
 /* Multiline cell with max 3 lines and ellipsis */
@@ -102,5 +104,13 @@
 }
 
 :host ::ng-deep .ant-tabs.ant-tabs-top.ant-tabs-default {
-  height: 58vh !important;
+  height: 67vh !important;
+}
+
+:host ::ng-deep .ant-form-vertical .ant-form-item-label {
+  padding: 0px !important;
+}
+
+.ant-form-item {
+  margin-bottom: 10px !important;
 }

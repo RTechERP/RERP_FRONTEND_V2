@@ -103,14 +103,11 @@ export class HrhiringRequestComponent
 
   sizeSearch: string = '0';
   selectedDepartmentFilter: number | null = null;
-  // SỬA: Thay selectedStatusFilter thành selectedChucVuFilter
-  selectedChucVuFilter: number | null = null;
   searchValue: string = '';
   dateStart: Date = DateTime.local().startOf('month').toJSDate();
   dateEnd: Date = DateTime.local().endOf('month').toJSDate();
 
   departmentList: any[] = [];
-  chucVuList: any[] = []; // SỬA: Thêm danh sách chức vụ
 
   // Add properties for approval status
   approvalStatus: any = null;
@@ -135,7 +132,6 @@ export class HrhiringRequestComponent
 
   ngOnInit(): void {
     this.loadDepartments();
-    this.loadChucVuHD(); // SỬA: Thêm load chức vụ
   }
 
   ngAfterViewInit(): void {
@@ -165,8 +161,7 @@ export class HrhiringRequestComponent
         params.findText,
         params.dateStart,
         params.dateEnd,
-        params.id,
-        params.chucVuHDID
+        params.id
       )
       .subscribe({
         next: (rows) => {
@@ -220,23 +215,6 @@ export class HrhiringRequestComponent
     });
   }
 
-  // SỬA: Thêm method load chức vụ
-  private loadChucVuHD(): void {
-    this.service.getChucVuHD().subscribe({
-      next: (response: any) => {
-        if (response?.status === 1) {
-          this.chucVuList = response.data || [];
-        } else if (Array.isArray(response)) {
-          this.chucVuList = response;
-        } else {
-          this.chucVuList = [];
-        }
-      },
-      error: () => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách chức vụ');
-      },
-    });
-  }
 
   private getAjaxParams(): any {
     return {
@@ -245,7 +223,6 @@ export class HrhiringRequestComponent
       dateStart: this.toISODate(this.dateStart),
       dateEnd: this.toISODate(this.dateEnd),
       id: 0,
-      chucVuHDID: this.selectedChucVuFilter || 0, // SỬA: Sử dụng selectedChucVuFilter
     };
   }
 
@@ -337,7 +314,7 @@ export class HrhiringRequestComponent
       },
       {
         title: 'Vị trí tuyển dụng',
-        field: 'EmployeeChucVuHDName',
+        field: 'PositionName',
         width: 180,
         headerHozAlign: 'center',
         hozAlign: 'left',
@@ -518,7 +495,7 @@ export class HrhiringRequestComponent
     this.nzModal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: `Bạn có chắc chắn muốn xóa yêu cầu <strong>"${
-        selectedRow?.EmployeeChucVuHDName || 'N/A'
+        selectedRow?.PositionName || selectedRow?.EmployeeChucVuHDName || 'N/A'
       }"</strong> không?`,
       nzOkText: 'Xóa',
       nzOkType: 'primary',
@@ -620,10 +597,6 @@ export class HrhiringRequestComponent
     this.loadHrHiringRequestData();
   }
 
-  // SỬA: Thay onStatusFilterChange thành onChucVuFilterChange
-  onChucVuFilterChange(): void {
-    this.loadHrHiringRequestData();
-  }
 
   onSearch(): void {
     if (this.tb_HRHIRING && this.isTableReady) {
@@ -633,7 +606,6 @@ export class HrhiringRequestComponent
 
   resetSearch(): void {
     this.selectedDepartmentFilter = null;
-    this.selectedChucVuFilter = null; // SỬA: Reset chức vụ thay vì status
     this.searchValue = '';
     this.dateStart = DateTime.local().startOf('month').toJSDate();
     this.dateEnd = DateTime.local().endOf('month').toJSDate();
@@ -659,7 +631,7 @@ export class HrhiringRequestComponent
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận duyệt TBP',
-      nzContent: `Bạn có chắc chắn muốn duyệt TBP cho yêu cầu "${this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
+      nzContent: `Bạn có chắc chắn muốn duyệt TBP cho yêu cầu "${this.selectedHRHIRING?.PositionName || this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
       nzOkText: 'Duyệt',
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
@@ -711,7 +683,7 @@ export class HrhiringRequestComponent
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận duyệt HCNS',
-      nzContent: `Bạn có chắc chắn muốn duyệt HCNS cho yêu cầu "${this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
+      nzContent: `Bạn có chắc chắn muốn duyệt HCNS cho yêu cầu "${this.selectedHRHIRING?.PositionName || this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
       nzOkText: 'Duyệt',
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
@@ -763,7 +735,7 @@ export class HrhiringRequestComponent
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận duyệt BGĐ',
-      nzContent: `Bạn có chắc chắn muốn duyệt BGĐ cho yêu cầu "${this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
+      nzContent: `Bạn có chắc chắn muốn duyệt BGĐ cho yêu cầu "${this.selectedHRHIRING?.PositionName || this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
       nzOkText: 'Duyệt',
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
@@ -815,7 +787,7 @@ export class HrhiringRequestComponent
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận hủy duyệt HCNS',
-      nzContent: `Bạn có chắc chắn muốn hủy duyệt HCNS cho yêu cầu "${this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
+      nzContent: `Bạn có chắc chắn muốn hủy duyệt HCNS cho yêu cầu "${this.selectedHRHIRING?.PositionName || this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
       nzOkText: 'Hủy duyệt',
       nzOkType: 'primary',
       nzOkDanger: true,
@@ -871,7 +843,7 @@ export class HrhiringRequestComponent
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận hủy duyệt TBP',
-      nzContent: `Bạn có chắc chắn muốn hủy duyệt TBP cho yêu cầu "${this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
+      nzContent: `Bạn có chắc chắn muốn hủy duyệt TBP cho yêu cầu "${this.selectedHRHIRING?.PositionName || this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
       nzOkText: 'Hủy duyệt',
       nzOkType: 'primary',
       nzOkDanger: true,
@@ -924,7 +896,7 @@ export class HrhiringRequestComponent
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận hủy duyệt BGĐ',
-      nzContent: `Bạn có chắc chắn muốn hủy duyệt BGĐ cho yêu cầu "${this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
+      nzContent: `Bạn có chắc chắn muốn hủy duyệt BGĐ cho yêu cầu "${this.selectedHRHIRING?.PositionName || this.selectedHRHIRING?.EmployeeChucVuHDName}" không?`,
       nzOkText: 'Hủy duyệt',
       nzOkType: 'primary',
       nzOkDanger: true,

@@ -65,15 +65,10 @@
                 <label class="fw-bold">Vị trí dự tuyển tại RTC/ <i>Your desired position in RTC</i> <span
                         class="text-danger">(*)</span></label>
                 <div class="mt-1">
-                    <label>Vị trí /<i>Position:</i></label>
-                    <nz-select [ngModel]="form.get('ChucVuHDID')?.value" (ngModelChange)="onPositionChange($event)"
-                        [ngModelOptions]="{standalone: true}" class="inline-input border-less-select"
-                        style="width: 60%;" nzPlaceHolder="Chọn vị trí dự tuyển" nzShowSearch nzAllowClear
-                        [nzStatus]="(form.get('ChucVuHDID')?.invalid && form.get('ChucVuHDID')?.dirty) ? 'error' : ''">
-                        @for (item of chucVuList; track item.ID) {
-                        <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
-                        }
-                    </nz-select>
+                    <label>Vị trí /<i>Position:</i>&nbsp;</label>
+                    <input nz-input formControlName="PositionName" class="border-less-input" readonly
+                        style="width: 60%; font-weight: bold; color: black;" placeholder="Nhập vị trí dự tuyển"
+                        [nzStatus]="(form.get('PositionName')?.invalid && form.get('PositionName')?.dirty) ? 'error' : ''" />
                 </div>
             </div>
 

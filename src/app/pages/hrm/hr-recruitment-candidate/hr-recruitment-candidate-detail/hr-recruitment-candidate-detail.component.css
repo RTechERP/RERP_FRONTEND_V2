@@ -1,3 +1,10 @@
+.modal-dialog-scrollable {
+  font-size: 12px !important;
+}
+.modal-dialog-scrollable * {
+  font-size: 12px !important;
+}
+
 .ant-form-item-label {
   padding: 0 !important;
 }

@@ -1,0 +1,92 @@
+/* ===== Dialog chi tiết đề thi ===== */
+.exam-detail-form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* ===== Header dialog ===== */
+.form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f0f5ff;
+    border-bottom: 1px solid #d6e4ff;
+}
+
+.form-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1d39c4;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.btn-close-modal {
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    color: #999;
+    cursor: pointer;
+}
+
+.btn-close-modal:hover {
+    color: #333;
+}
+
+/* ===== Body form ===== */
+.form-body {
+    padding: 16px 20px;
+}
+
+/* ===== Footer dialog ===== */
+.form-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #e8e8e8;
+    background: #fafafa;
+}
+
+/* ===== Ẩn star mặc định của nzRequired vì đã dùng span (*) ===== */
+:host ::ng-deep .ant-form-item-required::before {
+    display: none !important;
+    content: none !important;
+}
+
+/* ===== Input styling ===== */
+:host ::ng-deep .ant-input {
+    font-size: 13px;
+}
+
+:host ::ng-deep .ant-select-selector {
+    font-size: 13px;
+}
+
+:host ::ng-deep .ant-input-number {
+    font-size: 13px;
+}
+
+/* ===== Button styling ===== */
+button[nz-button] {
+    font-size: 13px;
+}
+
+/* ===== Form item spacing ===== */
+:host ::ng-deep .ant-form-item {
+    margin-bottom: 12px;
+}
+
+:host ::ng-deep .ant-form-item-label {
+    padding-bottom: 2px;
+}
+
+:host ::ng-deep .ant-form-item-label>label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+}
+
+::ng-deep .type-select-dropdown {
+    min-width: 35vh !important;
+}

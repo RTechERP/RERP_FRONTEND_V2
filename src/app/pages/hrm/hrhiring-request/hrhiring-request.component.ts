@@ -68,8 +68,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
   styleUrls: ['./hrhiring-request.component.css'],
 })
 export class HrhiringRequestComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('tb_HRHIRING', { static: false }) tb_HRHIRINGRef!: ElementRef;
   @ViewChild('tb_approvals', { static: false }) tbApprovalsRef!: ElementRef;
   private tbApprovals!: Tabulator;
@@ -86,8 +85,8 @@ export class HrhiringRequestComponent
     return this.normBool(a.IsApprove)
       ? 'Đã duyệt'
       : a.DateApprove
-      ? 'Đã hủy'
-      : 'Chờ duyệt';
+        ? 'Đã hủy'
+        : 'Chờ duyệt';
   }
   private statusBadge(a: any) {
     const t = this.statusText(a);
@@ -131,7 +130,7 @@ export class HrhiringRequestComponent
     private ngbModal: NgbModal,
     private nzModal: NzModalService,
     private pdfGeneratorService: PdfGeneratorService // SỬA: Thêm PDF service
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadDepartments();
@@ -192,7 +191,7 @@ export class HrhiringRequestComponent
           this.notification.error(
             'Lỗi',
             'Không thể tải dữ liệu từ server: ' +
-              (error.message || 'Unknown error')
+            (error.message || 'Unknown error')
           );
         },
       });
@@ -477,7 +476,7 @@ export class HrhiringRequestComponent
           );
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   add(): void {
@@ -501,7 +500,7 @@ export class HrhiringRequestComponent
           );
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   deleteReq(): void {
@@ -517,9 +516,8 @@ export class HrhiringRequestComponent
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa yêu cầu <strong>"${
-        selectedRow?.EmployeeChucVuHDName || 'N/A'
-      }"</strong> không?`,
+      nzContent: `Bạn có chắc chắn muốn xóa yêu cầu <strong>"${selectedRow?.EmployeeChucVuHDName || 'N/A'
+        }"</strong> không?`,
       nzOkText: 'Xóa',
       nzOkType: 'primary',
       nzOkDanger: true,
@@ -1487,6 +1485,17 @@ export class HrhiringRequestComponent
       // tab “Thông tin duyệt”
       setTimeout(() => this.renderApprovals(), 0);
     }
+  }
+  //#endregion
+  //#region Liên kết bài thi
+  linkTest() {
+    const selectedRows = this.tb_HRHIRING.getSelectedRows();
+    if (selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 dòng!');
+      return;
+    }
+    const selectedData = selectedRows.map((row: any) => row.getData());
+    console.log(selectedData);
   }
   //#endregion
 }

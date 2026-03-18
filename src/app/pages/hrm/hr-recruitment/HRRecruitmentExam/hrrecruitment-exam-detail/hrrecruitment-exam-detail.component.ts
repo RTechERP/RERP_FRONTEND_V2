@@ -362,7 +362,7 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
   private resetForm(): void {
     this.examID = 0;
     this.isEditMode = false;
-    
+
     let defaultDeptId = this.departmentID || null;
     if (!this.isAdmin) {
       defaultDeptId = this.appUserService.departmentID || null;
@@ -384,7 +384,7 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
 
   /** Đóng dialog không lưu */
   onClose(): void {
-    this.activeModal.close({ success: false, reloadData: false });
+    this.activeModal.close({ success: false, reloadData: true });
   }
 
   //#endregion

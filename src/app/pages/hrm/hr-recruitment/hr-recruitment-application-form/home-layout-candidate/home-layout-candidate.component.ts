@@ -316,15 +316,14 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             if (mainForm?.CreatedDate) this.createdDate = new Date(mainForm.CreatedDate);
             this.isComplete = !this.isEmbedded && mainForm?.IsComplete === true;
 
-            const positionId = mainForm?.ChucVuHDID || candidateFromStorage?.EmployeeChucVuHDID;
-
+            const position = mainForm?.PositionName || candidateFromStorage?.PositionName || null;
             this.form.patchValue({
                 ...(mainForm || {}),
                 FullName: mainForm?.FullName || candidateFromStorage?.FullName || null,
                 Email: mainForm?.Email || candidateFromStorage?.Email || null,
                 Tel: mainForm?.Tel || candidateFromStorage?.PhoneNumber || null,
                 Mobile: mainForm?.Mobile || candidateFromStorage?.PhoneNumber || null,
-                ChucVuHDID: positionId || null,
+                PositionName: position,
                 DateOfBirth: this.formatDateForInput(mainForm?.DateOfBirth || candidateFromStorage?.DateOfBirth),
                 IssuedOn: this.formatDateForInput(mainForm?.IssuedOn),
                 DateSign: this.formatDateForInput(mainForm?.DateSign),
@@ -332,7 +331,11 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                 Gender: this.normalizeGender(mainForm?.Gender ?? candidateFromStorage?.Gender),
             }, { emitEvent: false });
 
-            if (positionId) this.onPositionChange(positionId);
+            if (this.candidateId || mainForm?.HRRecruitmentCandidateID) {
+              this.form.get('PositionName')?.disable();
+            } else {
+              this.form.get('PositionName')?.enable();
+            }
 
             // Ảnh chân dung
             if (mainForm?.FileName && !this.imagePreview) {
@@ -465,17 +468,14 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             }
         });
     }
-    onPositionChange(id: any) {
-        const item = this.chucVuList.find(x => x.ID === id);
-        if (item) {
+    onPositionChange(name: string) {
+        if (name) {
             this.form.patchValue({
-                ChucVuHDID: item.ID,
-                Position: item.Name
+                PositionName: name
             });
         } else {
             this.form.patchValue({
-                ChucVuHDID: null,
-                Position: null
+                PositionName: null
             });
         }
     }
@@ -487,7 +487,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             HRRecruitmentCandidateID: [null],
             Image3x4: [null, [Validators.maxLength(550)]],
             Position: [null],
-            ChucVuHDID: [null, [Validators.required]],
+            PositionName: [null, [Validators.required]],
             FileName: [null],
             FullName: [null, [Validators.required, Validators.maxLength(250)]],
             Gender: [null, [Validators.required]],

@@ -36,15 +36,8 @@
                             <label class="fs-12 p-0">
                                 Vị trí tuyển dụng <span class="text-danger fs-12">(*)</span>
                             </label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select name="PositionID" class="w-100" nzShowSearch nzAllowClear
-                                    nzPlaceHolder="Chọn vị trí" formControlName="PositionID">
-                                    @for (p of positionList; track $index) {
-                                    <nz-option [nzValue]="p.ID" [nzLabel]="p.Name">
-                                        {{ p.Name }}
-                                    </nz-option>
-                                    }
-                                </nz-select>
+                            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập vị trí tuyển dụng!">
+                                <input nz-input placeholder="Nhập vị trí" formControlName="PositionName" />
                             </nz-form-control>
                         </nz-form-item>
                     </div>

@@ -1,12 +1,8 @@
 <div class="modal-dialog-scrollable">
   <div class="modal-header bg-primary align-items-center ps-3">
     <h6 class="text-light text-uppercase m-0 fw-bold">Thông tin ứng viên</h6>
-    <button
-      type="button"
-      class="btn-close position-absolute end-0 m-3"
-      aria-label="Close"
-      (click)="activeModal.dismiss()"
-    ></button>
+    <button type="button" class="btn-close position-absolute end-0 m-3" aria-label="Close"
+      (click)="activeModal.dismiss()"></button>
   </div>
 
   <div class="modal-body p-0 px-3">
@@ -17,12 +13,7 @@
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">STT</nz-form-label>
             <nz-form-control [nzSpan]="24">
-              <input
-                nz-input
-                name="STT"
-                formControlName="STT"
-                placeholder="Nhập STT"
-              />
+              <input nz-input name="STT" formControlName="STT" placeholder="Nhập STT" />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -32,16 +23,8 @@
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Họ và tên <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
-            <nz-form-control
-              [nzSpan]="24"
-              nzErrorTip="Vui lòng nhập họ và tên!"
-            >
-              <input
-                nz-input
-                name="FullName"
-                formControlName="FullName"
-                placeholder="Nhập họ và tên"
-              />
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập họ và tên!">
+              <input nz-input name="FullName" formControlName="FullName" placeholder="Nhập họ và tên" />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -51,16 +34,9 @@
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Ngày sinh <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
-            <nz-form-control
-              [nzSpan]="24"
-              nzErrorTip="Vui lòng nhập ngày sinh!"
-            >
-              <nz-date-picker
-                name="DateOfBirth"
-                class="w-100"
-                formControlName="DateOfBirth"
-                nzFormat="dd/MM/yyyy"
-              ></nz-date-picker>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập ngày sinh!">
+              <nz-date-picker name="DateOfBirth" class="w-100" formControlName="DateOfBirth"
+                nzFormat="dd/MM/yyyy"></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -70,21 +46,9 @@
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Giới tính <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
-            <nz-form-control
-              [nzSpan]="24"
-              nzErrorTip="Vui lòng chọn giới tính!"
-            >
-              <nz-select
-                name="Gender"
-                formControlName="Gender"
-                placeholder="Chọn giới tính"
-                class="w-100"
-              >
-                <nz-option
-                  *ngFor="let item of genderList"
-                  [nzValue]="item.ID"
-                  [nzLabel]="item.GenderName"
-                ></nz-option>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn giới tính!">
+              <nz-select name="Gender" formControlName="Gender" placeholder="Chọn giới tính" class="w-100">
+                <nz-option *ngFor="let item of genderList" [nzValue]="item.ID" [nzLabel]="item.GenderName"></nz-option>
               </nz-select>
             </nz-form-control>
           </nz-form-item>
@@ -96,12 +60,7 @@
               Tên đăng nhập <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="userNameErrorTpl">
-              <input
-                nz-input
-                name="UserName"
-                formControlName="UserName"
-                placeholder="Nhập tên đăng nhập"
-              />
+              <input nz-input name="UserName" formControlName="UserName" placeholder="Nhập tên đăng nhập" />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -113,21 +72,12 @@
             </nz-form-label>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="passwordErrorTpl">
               <nz-input-group [nzSuffix]="eyeTpl">
-                <input
-                  nz-input
-                  [type]="showPassword ? 'text' : 'password'"
-                  name="Password"
-                  formControlName="Password"
-                  placeholder="Nhập mật khẩu"
-                />
+                <input nz-input [type]="showPassword ? 'text' : 'password'" name="Password" formControlName="Password"
+                  placeholder="Nhập mật khẩu" />
               </nz-input-group>
               <ng-template #eyeTpl>
-                <span
-                  nz-icon
-                  [nzType]="showPassword ? 'eye' : 'eye-invisible'"
-                  style="cursor: pointer; color: #999"
-                  (click)="showPassword = !showPassword"
-                ></span>
+                <span nz-icon [nzType]="showPassword ? 'eye' : 'eye-invisible'" style="cursor: pointer; color: #999"
+                  (click)="showPassword = !showPassword"></span>
               </ng-template>
             </nz-form-control>
           </nz-form-item>
@@ -136,43 +86,26 @@
 
       <!-- Error templates -->
       <ng-template #emailErrorTpl let-control>
-        <ng-container *ngIf="control.hasError('required')"
-          >Vui lòng nhập email!</ng-container
-        >
-        <ng-container *ngIf="control.hasError('email')"
-          >Email không đúng định dạng!</ng-container
-        >
+        <ng-container *ngIf="control.hasError('required')">Vui lòng nhập email!</ng-container>
+        <ng-container *ngIf="control.hasError('email')">Email không đúng định dạng!</ng-container>
       </ng-template>
       <ng-template #passwordErrorTpl let-control>
-        <ng-container *ngIf="control.hasError('required')"
-          >Vui lòng nhập mật khẩu!</ng-container
-        >
-        <ng-container *ngIf="control.hasError('pattern')"
-          >Mật khẩu không được chứa tiếng Việt hoặc khoảng trắng!</ng-container
-        >
+        <ng-container *ngIf="control.hasError('required')">Vui lòng nhập mật khẩu!</ng-container>
+        <ng-container *ngIf="control.hasError('pattern')">Mật khẩu không được chứa tiếng Việt hoặc khoảng
+          trắng!</ng-container>
       </ng-template>
       <ng-template #phoneErrorTpl let-control>
-        <ng-container *ngIf="control.hasError('required')"
-          >Vui lòng nhập sđt!</ng-container
-        >
-        <ng-container *ngIf="control.hasError('pattern')"
-          >Sai định dạng SĐT! (VD: 0123456789 hoặc +84123456789)</ng-container
-        >
+        <ng-container *ngIf="control.hasError('required')">Vui lòng nhập sđt!</ng-container>
+        <ng-container *ngIf="control.hasError('pattern')">Sai định dạng SĐT! (VD: 0123456789 hoặc
+          +84123456789)</ng-container>
       </ng-template>
       <ng-template #userNameErrorTpl let-control>
-        <ng-container *ngIf="control.hasError('required')"
-          >Vui lòng nhập tên đăng nhập!</ng-container
-        >
-        <ng-container *ngIf="control.hasError('minlength')"
-          >Tên đăng nhập tối thiểu 4 ký tự!</ng-container
-        >
-        <ng-container *ngIf="control.hasError('maxlength')"
-          >Tên đăng nhập tối đa 50 ký tự!</ng-container
-        >
-        <ng-container *ngIf="control.hasError('pattern')"
-          >Chỉ được dùng chữ, số, dấu chấm (.) và gạch dưới (_). Không có khoảng
-          trắng!</ng-container
-        >
+        <ng-container *ngIf="control.hasError('required')">Vui lòng nhập tên đăng nhập!</ng-container>
+        <ng-container *ngIf="control.hasError('minlength')">Tên đăng nhập tối thiểu 4 ký tự!</ng-container>
+        <ng-container *ngIf="control.hasError('maxlength')">Tên đăng nhập tối đa 50 ký tự!</ng-container>
+        <ng-container *ngIf="control.hasError('pattern')">Chỉ được dùng chữ, số, dấu chấm (.) và gạch dưới (_). Không có
+          khoảng
+          trắng!</ng-container>
       </ng-template>
 
       <!-- Hàng 2: Email, SĐT, Địa chỉ -->
@@ -183,12 +116,7 @@
               Email <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="emailErrorTpl">
-              <input
-                nz-input
-                name="Email"
-                formControlName="Email"
-                placeholder="Nhập email"
-              />
+              <input nz-input name="Email" formControlName="Email" placeholder="Nhập email" />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -199,28 +127,16 @@
               Số điện thoại <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="phoneErrorTpl">
-              <input
-                nz-input
-                name="PhoneNumber"
-                formControlName="PhoneNumber"
-                placeholder="Nhập số điện thoại"
-              />
+              <input nz-input name="PhoneNumber" formControlName="PhoneNumber" placeholder="Nhập số điện thoại" />
             </nz-form-control>
           </nz-form-item>
         </div>
 
         <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="13">
           <nz-form-item>
-            <nz-form-label [nzSpan]="24" class="fw-semibold"
-              >Địa chỉ</nz-form-label
-            >
+            <nz-form-label [nzSpan]="24" class="fw-semibold">Địa chỉ</nz-form-label>
             <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập địa chỉ!">
-              <input
-                nz-input
-                name="Address"
-                formControlName="Address"
-                placeholder="Nhập địa chỉ"
-              />
+              <input nz-input name="Address" formControlName="Address" placeholder="Nhập địa chỉ" />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -233,34 +149,19 @@
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Yêu cầu tuyển dụng <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
-            <nz-form-control
-              [nzSpan]="24"
-              nzErrorTip="Vui lòng chọn yêu cầu tuyển dụng!"
-            >
-              <nz-select
-                name="HrHiringRequestID"
-                formControlName="HrHiringRequestID"
-                placeholder="Chọn yêu cầu tuyển dụng"
-                nzAllowClear
-                nzShowSearch
-                class="w-100"
-                (ngModelChange)="onHiringRequestChange($event)"
-              >
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn yêu cầu tuyển dụng!">
+              <nz-select name="HrHiringRequestID" formControlName="HrHiringRequestID"
+                placeholder="Chọn yêu cầu tuyển dụng" nzAllowClear nzShowSearch class="w-100"
+                (ngModelChange)="onHiringRequestChange($event)">
                 <ng-container *ngFor="let group of hrHiringRequestList">
                   <nz-option-group [nzLabel]="group.label">
-                    <nz-option
-                      *ngFor="let option of group.options"
-                      [nzLabel]="option.item.Code"
-                      [nzValue]="option.item.ID"
-                      nzCustomContent
-                    >
-                      <span
-                        style="
+                    <nz-option *ngFor="let option of group.options" [nzLabel]="option.item.Code"
+                      [nzValue]="option.item.ID" nzCustomContent>
+                      <span style="
                           white-space: normal;
                           word-break: break-word;
                           display: block;
-                        "
-                      >
+                        ">
                         {{ option.item.Code }}
                       </span>
                     </nz-option>
@@ -276,16 +177,9 @@
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Ngày ứng tuyển <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
-            <nz-form-control
-              [nzSpan]="24"
-              nzErrorTip="Vui lòng nhập ngày ứng tuyển!"
-            >
-              <nz-date-picker
-                name="DateApply"
-                class="w-100"
-                formControlName="DateApply"
-                nzFormat="dd/MM/yyyy"
-              ></nz-date-picker>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập ngày ứng tuyển!">
+              <nz-date-picker name="DateApply" class="w-100" formControlName="DateApply"
+                nzFormat="dd/MM/yyyy"></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -295,21 +189,9 @@
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Vị trí ứng tuyển <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
-            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn chức vụ!">
-              <nz-select
-                name="EmployeeChucVuHDID"
-                formControlName="EmployeeChucVuHDID"
-                placeholder="Chọn chức vụ"
-                nzAllowClear
-                nzShowSearch
-                class="w-100"
-              >
-                <nz-option
-                  *ngFor="let item of employeeChucVuHDList"
-                  [nzValue]="item.ID"
-                  [nzLabel]="item.Name"
-                ></nz-option>
-              </nz-select>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập chức vụ!">
+              <input nz-input name="PositionName" formControlName="PositionName" placeholder="Nhập chức vụ"
+                [disabled]="true">
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -319,23 +201,10 @@
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Trạng thái <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
-            <nz-form-control
-              [nzSpan]="24"
-              nzErrorTip="Vui lòng chọn trạng thái!"
-            >
-              <nz-select
-                name="Status"
-                formControlName="Status"
-                placeholder="Chọn trạng thái"
-                nzAllowClear
-                nzShowSearch
-                class="w-100"
-              >
-                <nz-option
-                  *ngFor="let item of statusList"
-                  [nzValue]="item.value"
-                  [nzLabel]="item.label"
-                ></nz-option>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn trạng thái!">
+              <nz-select name="Status" formControlName="Status" placeholder="Chọn trạng thái" nzAllowClear nzShowSearch
+                class="w-100">
+                <nz-option *ngFor="let item of statusList" [nzValue]="item.value" [nzLabel]="item.label"></nz-option>
               </nz-select>
             </nz-form-control>
           </nz-form-item>
@@ -346,49 +215,27 @@
       <div nz-row [nzGutter]="[16, 0]">
         <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="16">
           <nz-form-item>
-            <nz-form-label [nzSpan]="24" class="fw-semibold"
-              >Ghi chú</nz-form-label
-            >
+            <nz-form-label [nzSpan]="24" class="fw-semibold">Ghi chú</nz-form-label>
             <nz-form-control [nzSpan]="24">
-              <textarea
-                nz-input
-                name="Note"
-                formControlName="Note"
-                [nzAutosize]="{ minRows: 5, maxRows: 6 }"
-                placeholder="Nhập ghi chú"
-              ></textarea>
+              <textarea nz-input name="Note" formControlName="Note" [nzAutosize]="{ minRows: 5, maxRows: 6 }"
+                placeholder="Nhập ghi chú"></textarea>
             </nz-form-control>
           </nz-form-item>
         </div>
         <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
-              <input
-                type="file"
-                #fileInput
-                hidden
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                (change)="handleChangeFile($event)"
-              />
-              <button
-                nz-button
-                nzSize="small"
-                nzType="primary"
-                (click)="fileInput.click()"
-              >
+              <input type="file" #fileInput hidden accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                (change)="handleChangeFile($event)" />
+              <button nz-button nzSize="small" nzType="primary" (click)="fileInput.click()">
                 <span nz-icon nzType="upload"></span>
                 Cập nhật CV
               </button>
             </nz-form-label>
             <nz-form-control [nzSpan]="24">
               <div class="grid-container-file-hr border">
-                <angular-slickgrid
-                  gridId="grdFileHr"
-                  [columns]="columnFileDefinitions"
-                  [options]="gridFileOptions"
-                  [dataset]="dataFiles"
-                  (onAngularGridCreated)="angularGridReadyFile($event.detail)"
-                >
+                <angular-slickgrid gridId="grdFileHr" [columns]="columnFileDefinitions" [options]="gridFileOptions"
+                  [dataset]="dataFiles" (onAngularGridCreated)="angularGridReadyFile($event.detail)">
                 </angular-slickgrid>
               </div>
             </nz-form-control>
@@ -403,13 +250,7 @@
       Đóng
     </button>
     <div>
-      <button
-        nz-button
-        nzType="primary"
-        (click)="onSubmit()"
-        [nzLoading]="isSaving"
-        [disabled]="isSaving"
-      >
+      <button nz-button nzType="primary" (click)="onSubmit()" [nzLoading]="isSaving" [disabled]="isSaving">
         <i class="fas fa-save me-1"></i> Lưu
       </button>
     </div>
@@ -419,13 +260,7 @@
 <!-- Template popup ghi chú chuyển trạng thái -->
 <ng-template #noteLogTpl>
   <div style="padding: 4px 0">
-    <textarea
-      nz-input
-      [(ngModel)]="tempNoteLog"
-      name="tempNoteLog"
-      [nzAutosize]="{ minRows: 4, maxRows: 6 }"
-      placeholder="Nhập ghi chú chuyển trạng thái..."
-      style="width: 100%"
-    ></textarea>
+    <textarea nz-input [(ngModel)]="tempNoteLog" name="tempNoteLog" [nzAutosize]="{ minRows: 4, maxRows: 6 }"
+      placeholder="Nhập ghi chú chuyển trạng thái..." style="width: 100%"></textarea>
   </div>
 </ng-template>

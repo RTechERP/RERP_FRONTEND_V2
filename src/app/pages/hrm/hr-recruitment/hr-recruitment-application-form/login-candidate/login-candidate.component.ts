@@ -40,7 +40,7 @@ export class LoginCandidateComponent {
             UserName: ['', [Validators.required]],
             PasswordHash: ['', [Validators.required]],
             rememberMe: [false],
-            expiry: [10], // Mặc định 10 phút
+            expiry: [180], // Mặc định 180 phút
         });
     }
 

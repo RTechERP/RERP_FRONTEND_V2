@@ -286,7 +286,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             },
             {
                 id: 'ExpectReturnDate',
-                name: 'Ngày dự kiến trả',
+                name: 'Ngày dự kiến trả thực tế',
                 field: 'ExpectReturnDate',
                 sortable: true,
                 filterable: true,
@@ -297,7 +297,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             },
             {
                 id: 'ExpectedReturnDate',
-                name: 'Ngày đăng ký gia hạn',
+                name: 'Ngày dự kiến trả',
                 field: 'ExpectedReturnDate',
                 sortable: true,
                 filterable: true,
@@ -1108,7 +1108,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 && item.StatusApprovedExpected != 0);
 
         if (filteredRows.length === 0 && !this.appUserService.isAdmin) {
-            this.notification.info('Thông báo', 
+            this.notification.info('Thông báo',
                 'Không có dữ liệu hợp lệ để gia hạn. Bạn chỉ có thể gia hạn sản phẩm do bạn mượn và quá hạn!');
             return;
         }

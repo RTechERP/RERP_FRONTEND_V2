@@ -42,14 +42,14 @@
             >Từ ngày</label
           >
           <nz-form-control>
-            <nz-date-picker
-              [nzFormat]="dateFormat"
+            <input
+              type="date"
+              nz-input
               nzSize="small"
               [(ngModel)]="searchParams.dateStart"
               name="dateStart"
               (keyup.enter)="searchData()"
-            >
-            </nz-date-picker>
+            />
           </nz-form-control>
         </nz-form-item>
 
@@ -59,14 +59,14 @@
             >Đến ngày</label
           >
           <nz-form-control>
-            <nz-date-picker
-              [nzFormat]="dateFormat"
+            <input
+              type="date"
+              nz-input
               nzSize="small"
               [(ngModel)]="searchParams.dateEnd"
               name="dateEnd"
               (keyup.enter)="searchData()"
-            >
-            </nz-date-picker>
+            />
           </nz-form-control>
         </nz-form-item>
         <nz-form-item class="me-2">

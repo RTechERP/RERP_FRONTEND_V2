@@ -315,7 +315,9 @@
           *ngIf="
             quantityApprove?.Count > 0 ||
             quantityBorrow > 0 ||
-            quantityBorrowExpried > 0
+            quantityBorrowExpried > 0 ||
+            quantityBorrowSale > 0 ||
+            quantityBorrowExpriedSale > 0
           "
         >
           <div
@@ -346,7 +348,7 @@
                   >
                 </ng-container>
               </div>
-              <!-- <ng-container
+              <ng-container
                 *ngIf="
                   quantityApprove?.Count > 0 &&
                   (quantityBorrow > 0 || quantityBorrowExpried > 0)
@@ -385,6 +387,7 @@
                   (click)="onPickHistoryProduct()"
                   >Tới lịch sử mượn kho demo</span
                 >
+                <br />
               </ng-container>
               <ng-container
                 *ngIf="quantityBorrowSale > 0 || quantityBorrowExpriedSale > 0"
@@ -421,7 +424,8 @@
                   (click)="onPickHistoryProductSale()"
                   >Tới lịch sử mượn kho sale</span
                 >
-              </ng-container> -->
+                <br />
+              </ng-container>
             </small>
           </div>
         </div>

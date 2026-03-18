@@ -94,9 +94,22 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
   // PrimeNG Menubar items
   menuItems: MenuItem[] = [];
 
-  searchParams = {
-    dateStart: new Date(`${new Date().getFullYear()}-01-01`),
-    dateEnd: new Date(),
+  searchParams: any = {
+    dateStart: (() => {
+      const d = new Date();
+      d.setFullYear(d.getFullYear() - 6);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    })(),
+    dateEnd: (() => {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    })(),
     keyword: '',
     status: 1,
     warehouseCode: 'HN',
@@ -289,7 +302,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
       },
       {
         id: 'ExpectReturnDate',
-        name: 'Ngày dự kiến trả',
+        name: 'Ngày dự kiến trả thực tế',
         field: 'ExpectReturnDate',
         sortable: true,
         filterable: true,
@@ -300,7 +313,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
       },
       {
         id: 'ExpectedReturnDate',
-        name: 'Ngày đăng ký gia hạn',
+        name: 'Ngày dự kiến trả',
         field: 'ExpectedReturnDate',
         sortable: true,
         filterable: true,
@@ -359,6 +372,22 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         id: 'BorrowCode',
         name: 'Mã phiếu mượn',
         field: 'BorrowCode',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'WarehouseName',
+        name: 'Kho',
+        field: 'WarehouseName',
         sortable: true,
         filterable: true,
         width: 150,
@@ -634,6 +663,8 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         maxDecimal: 2,
         thousandSeparator: ','
       },
+      showFooterRow: true,
+      createFooterRow: true,
 
       // Context menu
       enableContextMenu: true,
@@ -642,6 +673,22 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
     };
 
     this.loadData();
+  }
+
+  updateFooterRow() {
+    if (this.angularGrid && this.angularGrid.slickGrid) {
+      const items = (this.angularGrid.dataView?.getFilteredItems?.() as any[]) || this.dataset;
+      const count = (items || []).filter((item) => item.ProductCode).length;
+
+      const columns = this.angularGrid.slickGrid.getColumns();
+      columns.forEach((col: any) => {
+        const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(col.id);
+        if (!footerCell) return;
+        if (col.id === 'ProductCode') {
+          footerCell.innerHTML = `<b>${count}</b>`;
+        }
+      });
+    }
   }
 
   angularGridReady(angularGrid: any) {
@@ -658,15 +705,22 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
     const originalGetItemMetadata = this.angularGrid.dataView.getItemMetadata.bind(this.angularGrid.dataView);
     this.angularGrid.dataView.getItemMetadata = (row: number) => {
       const item = this.angularGrid.dataView.getItem(row);
+      const metadata = originalGetItemMetadata(row) || {};
+
       // Group rows có __group hoặc __groupTotals - trả về metadata gốc để grouping render đúng
       if (item && (item.__group || item.__groupTotals)) {
-        return originalGetItemMetadata(row);
+        return metadata;
       }
+
       // Data rows thường - apply màu
       if (item && item._rowClass) {
-        return { cssClasses: item._rowClass };
+        if (!metadata.cssClasses) {
+          metadata.cssClasses = item._rowClass;
+        } else {
+          metadata.cssClasses += ` ${item._rowClass}`;
+        }
       }
-      return {};
+      return metadata;
     };
 
     // Update filter collections after grid is ready
@@ -726,8 +780,8 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
 
   loadData() {
     this.loading = true;
-    const dateStart = DateTime.fromJSDate(this.searchParams.dateStart);
-    const dateEnd = DateTime.fromJSDate(this.searchParams.dateEnd);
+    const dateStart = typeof this.searchParams.dateStart === 'string' ? DateTime.fromISO(this.searchParams.dateStart).startOf('day') : DateTime.fromJSDate(this.searchParams.dateStart).startOf('day');
+    const dateEnd = typeof this.searchParams.dateEnd === 'string' ? DateTime.fromISO(this.searchParams.dateEnd).endOf('day') : DateTime.fromJSDate(this.searchParams.dateEnd).endOf('day');
     const employeeID = this.appUserService.id;
 
     this.historyBorrowSaleService
@@ -762,10 +816,13 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
             };
           });
 
-          // Update filter collections from dataset
-          this.updateFilterCollections();
-          this.groupingPending = true;
-          this.applyGrouping();
+          setTimeout(() => {
+            // Update filter collections from dataset
+            this.updateFilterCollections();
+            this.groupingPending = true;
+            this.applyGrouping();
+            this.updateFooterRow();
+          }, 200);
           this.loading = false;
         },
         error: (_err: any) => {
@@ -777,8 +834,21 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
 
   resetform() {
     this.searchParams = {
-      dateStart: new Date(`${new Date().getFullYear()}-01-01`),
-      dateEnd: new Date(),
+      dateStart: (() => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - 1);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      })(),
+      dateEnd: (() => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      })(),
       keyword: '',
       status: 1,
       warehouseCode: this.warehouseCode,
@@ -806,8 +876,10 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
   }
 
   exportExcel() {
-    const dateStart = DateTime.fromJSDate(this.searchParams.dateStart).toFormat('ddMMyyyy');
-    const dateEnd = DateTime.fromJSDate(this.searchParams.dateEnd).toFormat('ddMMyyyy');
+    const ds = typeof this.searchParams.dateStart === 'string' ? new Date(this.searchParams.dateStart) : this.searchParams.dateStart;
+    const de = typeof this.searchParams.dateEnd === 'string' ? new Date(this.searchParams.dateEnd) : this.searchParams.dateEnd;
+    const dateStart = DateTime.fromJSDate(ds).toFormat('ddMMyyyy');
+    const dateEnd = DateTime.fromJSDate(de).toFormat('ddMMyyyy');
     const now = DateTime.fromJSDate(new Date()).toFormat('HHmmss');
 
     this.excelExportService.exportToExcel({
@@ -928,12 +1000,12 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
     const employeeID = this.appUserService.id;
     const filteredRows = selectedRows
       .filter((item: any) => item.UserID === employeeID
-        && item.DualDate == 2
+        && (item.DualDate == 2 || item.DualDate == 1)
         && item.StatusApprovedExpected != 0);
 
     if (filteredRows.length === 0 && !this.appUserService.isAdmin) {
       this.notification.info('Thông báo',
-        'Không có dữ liệu hợp lệ để gia hạn. Bạn chỉ có thể gia hạn sản phẩm do bạn mượn và quá hạn!');
+        'Không có dữ liệu hợp lệ để gia hạn. Bạn chỉ có thể gia hạn sản phẩm do bạn mượn và sản phẩm quá hạn hoặc sắp hết hạn!');
       return;
     }
 
@@ -965,30 +1037,41 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
   //#endregion
 
   private applyGrouping(): void {
-    const angularGrid = this.angularGrid;
-    if (!angularGrid || !angularGrid.dataView) return;
+    // const angularGrid = this.angularGrid;
+    // if (!angularGrid || !angularGrid.dataView) return;
 
-    this.groupingPending = false;
+    // this.groupingPending = false;
 
-    setTimeout(() => {
-      angularGrid.dataView.setGrouping([
-        {
-          getter: 'WarehouseName',
-          comparer: () => 0,
-          formatter: (g: any) => {
-            const company = g.rows?.[0]?.WarehouseName || '';
-            return `Kho: <strong>${company}</strong> <span style="color:#ed502f; margin-left:0.5rem;">(${g.count} SP)</span>`;
-          },
-          aggregateCollapsed: false,
-          lazyTotalsCalculation: true,
-          collapsed: false,
-        },
-      ]);
+    // setTimeout(() => {
+    //   angularGrid.dataView.setGrouping([
+    //     {
+    //       getter: 'WarehouseName',
+    //       comparer: () => 0,
+    //       formatter: (g: any) => {
+    //         const name = g.rows?.[0]?.WarehouseName || '';
+    //         return `Kho: <strong>${name}</strong> <span style="color:#ed502f; margin-left:0.5rem;">(${g.count} SP)</span>`;
+    //       },
+    //       aggregateCollapsed: false,
+    //       lazyTotalsCalculation: true,
+    //       collapsed: false,
+    //     },
+    //     {
+    //       getter: 'ProductGroupName',
+    //       comparer: () => 0,
+    //       formatter: (g: any) => {
+    //         const name = g.rows?.[0]?.ProductGroupName || '(Chưa phân nhóm)';
+    //         return `&nbsp;&nbsp;&nbsp;Nhóm: <strong>${name}</strong> <span style="color:#ed502f; margin-left:0.5rem;">(${g.count} SP)</span>`;
+    //       },
+    //       aggregateCollapsed: false,
+    //       lazyTotalsCalculation: true,
+    //       collapsed: false,
+    //     },
+    //   ]);
 
-      angularGrid.dataView.refresh();
-      angularGrid.slickGrid?.invalidate();
-      angularGrid.slickGrid?.render();
-    }, 300);
+    //   angularGrid.dataView.refresh();
+    //   angularGrid.slickGrid?.invalidate();
+    //   angularGrid.slickGrid?.render();
+    // }, 300);
   }
 
 

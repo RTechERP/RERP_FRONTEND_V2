@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { NzTabSetComponent, NzTabComponent } from 'ng-zorro-antd/tabs';
 import { AssetPersonalComponent } from '../asset/asset-personal/asset-personal.component';
 import { HistoryProductRtcPersonalComponent } from '../../../old/inventory-demo/borrow/borrow-product-history/history-product-rtc-personal/history-product-rtc-personal.component';
@@ -21,6 +22,16 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
   templateUrl: './summary-asset-persional.component.html',
   styleUrl: './summary-asset-persional.component.css'
 })
-export class SummaryAssetPersionalComponent {
-  @Input() activeTabIndex: number = 0;
+export class SummaryAssetPersionalComponent implements OnInit {
+  activeTabIndex: number = 0;
+
+  constructor(private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['activeTab']) {
+        this.activeTabIndex = Number(params['activeTab']);
+      }
+    });
+  }
 }

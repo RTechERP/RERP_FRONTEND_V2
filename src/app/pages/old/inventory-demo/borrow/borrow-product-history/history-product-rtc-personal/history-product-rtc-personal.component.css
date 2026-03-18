@@ -5,3 +5,9 @@
 .fs-12 {
   font-size: 0.75rem !important;
 }
+
+::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+}

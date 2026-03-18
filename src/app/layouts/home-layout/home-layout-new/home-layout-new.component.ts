@@ -48,10 +48,6 @@ interface LiXi {
     rotation: number;
     icon: string;
 }
-import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newsletter/newsletter-detail/newsletter-detail.component';
-import { DateTime } from 'luxon';
-import { UpdateVersionDetailComponent } from '../../../pages/systems/update-version/update-version-detail/update-version-detail.component';
-import { NzButtonModule } from "ng-zorro-antd/button";
 import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
 @Component({
     selector: 'app-home-layout-new',
@@ -230,8 +226,10 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
 
     getQuantityBorrow() {
-        return this.borrowService.getQuantityBorrow().pipe(
-            tap((res: any) => {
+        this.notifService.setItems([]);
+        // Lấy dữ liệu số lượng mượn vật tư kho demo
+        this.borrowService.getQuantityBorrow().subscribe({
+            next: (res: any) => {
                 this.quantityBorrow = res.data.QuantitySemiExpired;
                 this.quantityBorrowExpried = res.data.QuantityExpired;
                 if (this.quantityBorrow > 0 || this.quantityBorrowExpried > 0) {
@@ -245,7 +243,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                         text: `Bạn đang có ${this.quantityBorrow} vật tư mượn sắp hết hạn`,
                         group: 'today',
                         icon: 'clock-circle',
-                        route: 'summary-asset-persional'
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 2 }
                     });
                 }
                 if (this.quantityBorrowExpried > 0) {
@@ -256,7 +255,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                         text: `Bạn đang có ${this.quantityBorrowExpried} vật tư mượn quá hạn`,
                         group: 'today',
                         icon: 'warning',
-                        route: 'summary-asset-persional'
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 2 }
                     });
                 }
             },
@@ -288,7 +288,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                         text: `Bạn đang có ${this.quantityBorrowSale} vật tư mượn sắp hết hạn`,
                         group: 'today',
                         icon: 'clock-circle',
-                        route: 'summary-asset-persional'
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 1 }
                     });
                 }
                 if (this.quantityBorrowExpriedSale > 0) {
@@ -299,7 +300,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                         text: `Bạn đang có ${this.quantityBorrowExpriedSale} vật tư mượn quá hạn`,
                         group: 'today',
                         icon: 'warning',
-                        route: 'summary-asset-persional'
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 1 }
                     });
                 }
             },
@@ -441,16 +443,16 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
     onPick(n: NotifyItem) {
         if (n.route) {
-            this.newTab(n.route, n.title || 'Thông báo');
+            this.newTab(n.route, n.title || 'Thông báo', n.queryParams);
         }
     }
 
     onPickHistoryProduct() {
-        this.newTab('summary-asset-persional', '');
+        this.newTab('summary-asset-persional', '', { activeTab: 2 });
     }
 
     onPickHistoryProductSale() {
-        this.newTab('summary-asset-persional', '');
+        this.newTab('summary-asset-persional', '', { activeTab: 1 });
     }
 
 

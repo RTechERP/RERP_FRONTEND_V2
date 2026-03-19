@@ -7,10 +7,6 @@
     font-size: 12px;
 }
 
-::ng-deep .ant-form-item-label>label {
-    height: 24px;
-}
-
 ::ng-deep .ant-picker-input>input {
     font-size: 12px;
 }

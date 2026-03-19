@@ -61,7 +61,7 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 24px;
-    padding: 2.5rem 2rem;
+    padding: 1.5rem 1rem;
     color: white;
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -69,7 +69,8 @@
     flex-direction: column;
     align-items: center;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-    height: 100%; /* Now that HTML style is gone, we can use this in CSS with min-height logic if needed, but let's try auto first if it's simpler. Actually, flex-container usually wants height: auto. Let's use min-height: 100%. */
+    height: 100%;
+    /* Now that HTML style is gone, we can use this in CSS with min-height logic if needed, but let's try auto first if it's simpler. Actually, flex-container usually wants height: auto. Let's use min-height: 100%. */
     min-height: 100%;
 }
 
@@ -82,7 +83,6 @@
         width: 60px !important;
         height: 60px !important;
         font-size: 2rem !important;
-        margin-bottom: 1rem !important;
     }
 
     .card-info h2 {
@@ -261,7 +261,7 @@
     align-items: center;
     gap: 12px;
     flex: 1;
-    min-width: 0; 
+    min-width: 0;
 }
 
 .exam-icon-wrapper {
@@ -278,25 +278,33 @@
 
 .exam-info-text {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
     min-width: 0;
+    flex: 1;
 }
 
 .exam-mini-name {
     color: white;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100%;
+    max-width: 70%;
 }
 
 .exam-status-badge {
     font-size: 0.65rem;
-    opacity: 0.7;
-    margin-top: 2px;
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .card-right {
@@ -339,20 +347,41 @@
 .status-completed {
     background: rgba(74, 222, 128, 0.1);
 }
-.status-completed .exam-icon-wrapper { color: #4ade80; }
-.status-completed .exam-status-badge { color: #4ade80; opacity: 1; }
+
+.status-completed .exam-icon-wrapper {
+    color: #4ade80;
+}
+
+.status-completed .exam-status-badge {
+    color: #4ade80;
+    opacity: 1;
+}
 
 .status-pending {
     background: rgba(251, 191, 36, 0.1);
 }
-.status-pending .exam-icon-wrapper { color: #fbbf24; }
-.status-pending .exam-status-badge { color: #fbbf24; opacity: 1; }
+
+.status-pending .exam-icon-wrapper {
+    color: #fbbf24;
+}
+
+.status-pending .exam-status-badge {
+    color: #fbbf24;
+    opacity: 1;
+}
 
 .status-inprogress {
     background: rgba(96, 165, 250, 0.1);
 }
-.status-inprogress .exam-icon-wrapper { color: #60a5fa; }
-.status-inprogress .exam-status-badge { color: #60a5fa; opacity: 1; }
+
+.status-inprogress .exam-icon-wrapper {
+    color: #60a5fa;
+}
+
+.status-inprogress .exam-status-badge {
+    color: #60a5fa;
+    opacity: 1;
+}
 
 .btn-disabled {
     opacity: 0.5;
@@ -416,4 +445,4 @@
 
 :host ::ng-deep .ant-row.selection-grid.ant-row-center {
     margin: 0 !important;
-}
+}

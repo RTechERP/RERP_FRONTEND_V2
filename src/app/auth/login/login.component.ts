@@ -26,6 +26,7 @@ export class LoginComponent {
     submitted = false;
     isLoading = false;
     token: any;
+    isAutoLogin = false;
 
     returnUrl = '/home';
 
@@ -44,7 +45,7 @@ export class LoginComponent {
     }
 
     ngOnInit(): void {
-        if (this.authService.isLoggedIn()) {
+        if (this.authService.isLoggedIn() && this.authService.isAutoLoginEnabled()) {
             this.router.navigate(['/home']);
             return;
         }
@@ -52,7 +53,7 @@ export class LoginComponent {
         this.returnUrl =
             this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
     }
-    // 🔹 Load username + password đã nhớ
+    // 🔹 Load username + password đã nhớ, tự động đăng nhập nếu bật tính năng
     private async loadRememberLogin(): Promise<void> {
         const saved = localStorage.getItem('remember_login');
         if (!saved) return;
@@ -66,6 +67,11 @@ export class LoginComponent {
                 passwordhash: data.password,
                 rememberMe: true,
             });
+
+            // 🔹 Tự động đăng nhập nếu người dùng đã bật tính năng
+            // if (localStorage.getItem('auto_login') === 'true') {
+            //     this.onLogin();
+            // }
         } catch {
             localStorage.removeItem('remember_login');
         }

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -16,6 +17,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     NzDropDownModule,
     NzMenuModule,
     NzIconModule,
@@ -29,13 +31,15 @@ export class AppUserDropdownComponent {
   employeeCode: string = '';
   fullName: string = '';
   positionName: string = '';
+  autoLogin: boolean = false;
   constructor(
     private auth: AuthService,
     private router: Router,
     private notification: NzNotificationService
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.decodeToken();
+    this.autoLogin = localStorage.getItem('auto_login') === 'true';
   }
 
   decodeToken() {
@@ -55,8 +59,17 @@ export class AppUserDropdownComponent {
   }
   onLogout() {
     this.auth.logout();
+    localStorage.removeItem('auto_login');
     this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 
-  profile() {}
+  profile() { }
+
+  onAutoLoginChange(value: boolean): void {
+    if (value) {
+      localStorage.setItem('auto_login', 'true');
+    } else {
+      localStorage.removeItem('auto_login');
+    }
+  }
 }

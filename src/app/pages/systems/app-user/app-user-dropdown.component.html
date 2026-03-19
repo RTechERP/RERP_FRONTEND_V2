@@ -30,6 +30,15 @@
                     <nz-switch></nz-switch>
                 </div>
             </li>
+            <li nz-menu-item>
+                <div class="menu-item-flex-row">
+                    <div class="label">
+                        <img src="assets/icon/menu_appvovedperson.svg" class="user-icon me-2" />
+                        <span>Tự động đăng nhập</span>
+                    </div>
+                    <nz-switch [ngModel]="autoLogin" (ngModelChange)="onAutoLoginChange($event)"></nz-switch>
+                </div>
+            </li>
             <li nz-menu-divider></li>
             <li nz-menu-item (click)="onLogout()">
                 <img src="assets/icon/power.png" class="user-icon me-2" />Đăng xuất

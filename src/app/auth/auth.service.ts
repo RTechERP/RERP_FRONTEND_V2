@@ -211,6 +211,10 @@ export class AuthService {
         return !!localStorage.getItem(this.tokenkey);
     }
 
+    isAutoLoginEnabled(): boolean {
+        return localStorage.getItem('auto_login') === 'true';
+    }
+
     isCandidateLoggedIn(): boolean {
         return !!this.getCandidateToken();
     }

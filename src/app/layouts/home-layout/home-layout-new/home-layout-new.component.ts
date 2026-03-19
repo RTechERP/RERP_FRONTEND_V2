@@ -487,7 +487,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         if (route == '') return;
         if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
             event.preventDefault(); // chặn reload
-            this.newTab(route, title);
+            this.newTab(route, title, queryParams);
 
             localStorage.removeItem('tabOpeneds');
         }

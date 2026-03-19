@@ -337,7 +337,6 @@ export const routes: Routes = [
             { path: 'kt-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'daily-report-accounting', component: DailyReportAccountingSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-accounting-person', component: DailyReportAccountingSlickgridComponent, canActivate: [authGuard] },
-
             //#endregion
 
 

@@ -5,7 +5,7 @@
         <p-menubar [model]="historyProductMenu" class="p-0 border-0">
         </p-menubar>
 
-        <span *ngIf="isAdminDemo" class="ms-auto d-flex align-items-center gap-1">
+        <!-- <span *ngIf="isAdminDemo" class="ms-auto d-flex align-items-center gap-1">
           <nz-form-label class="mb-0" style="text-align: right; padding-right: 5px"><span>Gia hạn đến:
             </span></nz-form-label>
           <nz-date-picker name="dateExtend" [(ngModel)]="dateExtend" class="fs-12" nzSize="small" nzFormat="dd/MM/yyyy"
@@ -13,28 +13,56 @@
           <button type="button" nz-button nzType="primary" nzSize="small" (click)="extendBorrowing()">
             Gia hạn
           </button>
-        </span>
+        </span> -->
         <!-- Nút đóng modal - chỉ hiển thị khi ở chế độ modal -->
-        <button *ngIf="isModalMode && activeModal" class="border-0 ms-2" nz-button nzSize="small" nzType="default"
-          nzDanger (click)="closeModal()" title="Đóng">
+        <button
+          *ngIf="isModalMode && activeModal"
+          class="border-0 ms-2"
+          nz-button
+          nzSize="small"
+          nzType="default"
+          nzDanger
+          (click)="closeModal()"
+          title="Đóng"
+        >
           <nz-icon nzType="close" nzTheme="outline" />
         </button>
       </div>
     </div>
-    <div class="filter-bar bg-light border-bottom p-2 py-0" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
-      <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+    <div
+      class="filter-bar bg-light border-bottom p-2 py-0"
+      *ngIf="shouldShowSearchBar"
+      [class.mobile-modal]="true"
+    >
+      <form
+        nz-form
+        nzLayout="inline"
+        class="d-flex flex-wrap gap-2 align-items-center"
+      >
         <nz-form-item class="m-0">
           <nz-form-label class="fs-12">Từ ngày</nz-form-label>
           <nz-form-control>
-            <nz-date-picker nzFormat="dd/MM/yyyy" class="w-100" [(ngModel)]="dateStart" nzAllowClear="false"
-              name="dateStart" nzSize="small"></nz-date-picker>
+            <input
+              type="date"
+              nz-input
+              class="w-100"
+              [(ngModel)]="dateStart"
+              name="dateStart"
+              nzSize="small"
+            />
           </nz-form-control>
         </nz-form-item>
         <nz-form-item class="m-0">
           <nz-form-label class="fs-12">Đến ngày</nz-form-label>
           <nz-form-control>
-            <nz-date-picker nzFormat="dd/MM/yyyy" class="w-100" [(ngModel)]="dateEnd" nzAllowClear="false"
-              name="dateEnd" nzSize="small"></nz-date-picker>
+            <input
+              type="date"
+              nz-input
+              class="w-100"
+              [(ngModel)]="dateEnd"
+              name="dateEnd"
+              nzSize="small"
+            />
           </nz-form-control>
         </nz-form-item>
 
@@ -56,9 +84,18 @@
         <nz-form-item class="m-0">
           <nz-form-label class="fs-12">Trạng thái</nz-form-label>
           <nz-form-control>
-            <nz-select [(ngModel)]="selectedStatus" nzAllowClear nzShowSearch (ngModelChange)="onStatusChange($event)"
-              [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn trạng thái'" [nzMaxTagCount]="1" style="width: 300px"
-              name="selectedStatus" nzSize="small">
+            <nz-select
+              [(ngModel)]="selectedStatus"
+              nzAllowClear
+              nzShowSearch
+              (ngModelChange)="onStatusChange($event)"
+              [nzMode]="'multiple'"
+              [nzPlaceHolder]="'Chọn trạng thái'"
+              [nzMaxTagCount]="1"
+              style="width: 300px"
+              name="selectedStatus"
+              nzSize="small"
+            >
               <nz-option nzLabel="Đã trả" nzValue="0"></nz-option>
               <nz-option nzLabel="Đang mượn" nzValue="1"></nz-option>
               <nz-option nzLabel="Thiết bị đã mất" nzValue="2"></nz-option>
@@ -74,7 +111,13 @@
         <nz-form-item class="m-0">
           <nz-form-label class="fs-12">Từ khóa</nz-form-label>
           <nz-form-control>
-            <input name="keyword" nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWords" nzSize="small" />
+            <input
+              name="keyword"
+              nz-input
+              placeholder="Nhập từ khóa"
+              [(ngModel)]="keyWords"
+              nzSize="small"
+            />
           </nz-form-control>
         </nz-form-item>
 
@@ -82,7 +125,12 @@
         <nz-form-item class="mb-0">
           <nz-form-control>
             <div class="btn-group">
-              <button nz-button nzType="primary" nzSize="small" (click)="filter()">
+              <button
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                (click)="filter()"
+              >
                 Tìm kiếm
               </button>
             </div>
@@ -91,7 +139,9 @@
       </form>
     </div>
     <div class="card-body p-0" style="height: calc(100vh - 200px)">
-      <div *ngIf="isLoading" style="
+      <div
+        *ngIf="isLoading"
+        style="
           position: absolute;
           top: 0;
           left: 0;
@@ -102,14 +152,21 @@
           display: flex;
           align-items: center;
           justify-content: center;
-        ">
+        "
+      >
         <nz-spin [nzSpinning]="isLoading"></nz-spin>
       </div>
       <div class="grid-container" style="height: 100%">
-        <angular-slickgrid [gridId]="gridId" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
-          (onAngularGridCreated)="angularGridReady($event.detail)" (onSelectedRowsChanged)="
+        <angular-slickgrid
+          [gridId]="gridId"
+          [columns]="columnDefinitions"
+          [options]="gridOptions"
+          [dataset]="dataset"
+          (onAngularGridCreated)="angularGridReady($event.detail)"
+          (onSelectedRowsChanged)="
             onRowSelectionChanged($event.detail.eventData, $event.detail.args)
-          " >
+          "
+        >
         </angular-slickgrid>
       </div>
     </div>

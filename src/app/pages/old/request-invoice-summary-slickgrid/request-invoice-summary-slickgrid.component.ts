@@ -584,12 +584,13 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 RequestInvoiceID: item.RequestInvoiceID ?? item.ID,
                 POKHId: item.POKHID ?? item.PokhId ?? item.POKHId,
                 CompanyText: companyText,
-                InvoiceNumber: item.InvoiceNumber || ''
+                InvoiceNumber: item.InvoiceNumber || '',
+                PONumber: item.PONumber || ''
             };
         });
 
-        // get unique payload by RequestInvoiceID
-        const uniquePayload = Array.from(new Map(payload.map((item: any) => [item.RequestInvoiceID, item])).values());
+        // get unique payload by RequestInvoiceID and POKHId
+        const uniquePayload = Array.from(new Map(payload.map((item: any) => [`${item.RequestInvoiceID}_${item.PONumber}`, item])).values());
 
         if (uniquePayload.length === 0) {
             this.notification.warning('Thông báo', 'Không tìm thấy dữ liệu hợp lệ trong các dòng đã chọn!');

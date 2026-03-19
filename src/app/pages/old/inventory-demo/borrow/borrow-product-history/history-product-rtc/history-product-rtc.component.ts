@@ -169,7 +169,7 @@ export class HistoryProductRtcComponent
         this.loadMenu();
         this.route.queryParams.subscribe((params) => {
             this.warehouseID = params['warehouseID'] || 1;
-            this.warehouseType = params['warehouseType'] || 1;
+            this.warehouseType = params['warehouseType'] || 0;
         });
         this.gridId += `${this.warehouseID}-${this.warehouseType}-${crypto.randomUUID()}`;
 
@@ -731,7 +731,6 @@ export class HistoryProductRtcComponent
 
     loadData() {
         this.isLoading = true;
-
         // Single API call with large pageSize to load all data at once
         const params = {
             keyWords: this.keyWords?.trim() || '',
@@ -748,11 +747,11 @@ export class HistoryProductRtcComponent
                     ? this.selectedStatus.join(',')
                     : '1',
             isDeleted: 0,
-            warehouseType: this.warehouseType ?? 1,
+            //warehouseType: this.warehouseType ?? 0,
+            warehouseType: 0,
             page: 1,
             size: 9999999, // Load all data in one call
         };
-
         const sub = this.borrowService.getProductHistory(params).subscribe({
             next: (response: any) => {
                 const data = response.data || [];

@@ -286,6 +286,7 @@ import { AreasComponent } from './pages/ems/components/managers/areas/areas.comp
 import { DevicesComponent } from './pages/ems/components/managers/devices/devices.component';
 import { CommunicationComponent } from './pages/ems/components/managers/communication/communication.component';
 import { DailyReportAccountingSlickgridComponent } from './pages/accounting/daily-report-accounting/daily-report-accounting-slickgrid/daily-report-accounting-slickgrid.component';
+import { SummaryAssetPersionalComponent } from './pages/hrm/asset/summary-asset-persional/summary-asset-persional.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -1099,6 +1100,8 @@ export const routes: Routes = [
             { path: 'hr-recruitment-application', component: HRRecruitmentApplicationComponent, canActivate: [authGuard] },
             { path: 'history-borrow-sale-personal', component: HistoryBorrowSalePersonalComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-personal', component: HistoryProductRtcPersonalComponent, canActivate: [authGuard] },
+
+            { path: 'summary-asset-persional', component: SummaryAssetPersionalComponent, canActivate: [authGuard] },
 
             //#region EMS
             { path: 'ems/dashboard', component: DashboardComponent, canActivate: [authGuard] },

@@ -34,6 +34,8 @@ export interface CandidateMail {
   extraHtml: string;
   signature: string;
   round1InterviewDate: any; // Ngày phỏng vấn vòng 1 (chỉ dùng cho round 2)
+  userName?: string;
+  password?: string;
 }
 
 @Component({
@@ -91,6 +93,8 @@ export class HrInterviewInvitationComponent implements OnInit, AfterViewInit {
       extraHtml: '',
       signature: '(Chữ ký chân email)',
       round1InterviewDate: c.DateInterview ? new Date(c.DateInterview) : null,
+      userName: c.UserName || '',
+      password: c.Password || '',
     }));
   }
 
@@ -132,7 +136,8 @@ export class HrInterviewInvitationComponent implements OnInit, AfterViewInit {
       ? `<p ${P}>Công ty Cổ phần RTC Technology Việt Nam chân thành cảm ơn Anh/Chị đã sắp xếp thời gian tham gia phỏng vấn vòng 1 vị trí <strong>${mail.position}</strong> ngày ${mail.round1InterviewDate ? this.formatDate(mail.round1InterviewDate) : '.../.../...'}.</p><p ${P}>Qua buổi phỏng vấn, chúng tôi đánh giá cao trình độ và kinh nghiệm của Anh/Chị về vị trí dự tuyển.</p>`
       : `<p ${P}>Công ty Cổ phần RTC Technology Việt Nam đã nhận được thư ứng tuyển vào vị trí <strong>${mail.position}</strong> của Anh/Chị.</p><p ${P}>Sau khi sơ tuyển, chúng tôi nhận thấy kiến thức chuyên môn và kinh nghiệm của Anh/Chị phù hợp để ứng tuyển vào vị trí này.</p>`;
 
-    return `<p ${P}>Kính gửi: Anh/Chị <strong>${mail.candidateName}</strong>,</p>${intro}<p ${P}>Bằng email này, chúng tôi kính mời Anh/Chị đến tham dự buổi phỏng vấn${this.round === 2 ? ' <strong>vòng 2</strong>' : ''} theo thời gian và địa điểm như sau:</p><p ${P}><strong>1. Thời gian:</strong> ${time}</p><p ${P}><strong>2. Địa chỉ:</strong> ${mail.interviewAddress}</p><p ${P}><strong>Mọi thông tin cần hỗ trợ vui lòng liên hệ Bộ phận Tuyển dụng: ${mail.contactPhone}</strong></p><p ${P}>Rất mong Anh/Chị sắp xếp thời gian tham dự buổi phỏng vấn đúng giờ. Khi đi mang theo 01 bộ hồ sơ photo.</p><p ${P}>Anh/chị vui lòng phản hồi về việc tham dự phỏng vấn muộn nhất trước <strong>${replyDeadline}</strong> với Bộ phận Tuyển dụng qua email: <em>${mail.contactEmail}</em></p>${mail.extraHtml ? `<div style="margin:8px 0">${mail.extraHtml}</div>` : ''}<p ${P}>Trân trọng cảm ơn!</p><p><em>${mail.signature.replace(/\n/g, '<br>')}</em></p>`;
+    const loginInfo = `<p ${P}><strong>Link làm tờ khai:</strong> <a href="https://erp.rtc.edu.vn/rerpweb/login-candidate">https://erp.rtc.edu.vn/rerpweb/login-candidate</a></p><p ${P}><strong>Tên đăng nhập:</strong> ${mail.userName}</p><p ${P}><strong>Mật khẩu:</strong> ${mail.password}</p>`;
+    return `<p ${P}>Kính gửi: Anh/Chị <strong>${mail.candidateName}</strong>,</p>${intro}<p ${P}>Bằng email này, chúng tôi kính mời Anh/Chị đến tham dự buổi phỏng vấn${this.round === 2 ? ' <strong>vòng 2</strong>' : ''} theo thời gian và địa điểm như sau:</p><p ${P}><strong>1. Thời gian:</strong> ${time}</p><p ${P}><strong>2. Địa chỉ:</strong> ${mail.interviewAddress}</p><p ${P}><strong>Mọi thông tin cần hỗ trợ vui lòng liên hệ Bộ phận Tuyển dụng: ${mail.contactPhone}</strong></p><p ${P}>Rất mong Anh/Chị sắp xếp thời gian tham dự buổi phỏng vấn đúng giờ. Khi đi mang theo 01 bộ hồ sơ photo.</p><p ${P}>Anh/chị vui lòng phản hồi về việc tham dự phỏng vấn muộn nhất trước <strong>${replyDeadline}</strong> với Bộ phận Tuyển dụng qua email: <em>${mail.contactEmail}</em></p>${loginInfo}${mail.extraHtml ? `<div style="margin:8px 0">${mail.extraHtml}</div>` : ''}<p ${P}>Trân trọng cảm ơn!</p><p><em>${mail.signature.replace(/\n/g, '<br>')}</em></p>`;
   }
 
   // Dùng cho preview trong UI

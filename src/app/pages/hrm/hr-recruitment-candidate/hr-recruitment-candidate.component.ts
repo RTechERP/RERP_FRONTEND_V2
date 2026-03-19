@@ -713,26 +713,26 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
 
             enableGrouping: true,
 
-      rowHeight: 30,
-      createFooterRow: true,
-      showFooterRow: true,
-      footerRowHeight: 28,
-      frozenColumn: 5,
-      contextMenu: {
-        hideCloseButton: false,
-        commandTitle: '',
-        commandItems: [
-          {
-            command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 10,
-            action: (e, args) => {
-              const filePath = args.dataContext?.ServerPath || '';
-              if (filePath) {
-                const host = environment.host + 'api/share';
-                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileCVName}`;
-                const newWindow = window.open(
-                  urlImg,
-                  '_blank',
-                );
+            rowHeight: 30,
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
+            frozenColumn: 5,
+            contextMenu: {
+                hideCloseButton: false,
+                commandTitle: '',
+                commandItems: [
+                    {
+                        command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 10,
+                        action: (e, args) => {
+                            const filePath = args.dataContext?.ServerPath || '';
+                            if (filePath) {
+                                const host = environment.host + 'api/share';
+                                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileCVName}`;
+                                const newWindow = window.open(
+                                    urlImg,
+                                    '_blank',
+                                );
 
                                 if (newWindow) {
                                     newWindow.onload = () => {

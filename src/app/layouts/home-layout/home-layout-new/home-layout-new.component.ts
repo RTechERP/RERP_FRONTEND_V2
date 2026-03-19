@@ -184,6 +184,14 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
             // this.isAdmin = (this.appUserService.currentUser?.IsAdmin) || false;
         });
+
+        // this.getMenus();
+        // this.getHoliday(this.today.getFullYear(), this.today.getMonth());
+        // this.getEmployeeOnleaveAndWFH();
+        // this.getQuantityApprove();
+        // this.getQuantityBorrow();
+        // this.loadNewsletters();
+
         // Gom các API load UI vào forkJoin để biết khi nào tất cả đã xong
         this.notifService.setItems([]);
         forkJoin([

@@ -50,7 +50,7 @@
                         viên</nz-form-label>
                     <nz-form-control>
                         <nz-select name="employeeId" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Nhân viên"
-                            nzDropdownClassName="select-dropdown" style="width: 180px;" [(ngModel)]="filters.employeeId"
+                            nzDropdownClassName="select-dropdown" style="width: 220px;" [(ngModel)]="filters.employeeId"
                             [nzDisabled]="isEmployeeIdDisabled">
                             <nz-option *ngFor="let item of employees" [nzValue]="item.ID"
                                 [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
@@ -64,7 +64,7 @@
                         khóa</nz-form-label>
                     <nz-form-control>
                         <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filterTextSearch"
-                            name="filterText" style="width: 150px; font-size: 12px;" (keyup.enter)="searchData()" />
+                            name="filterText" style="width: 200px; font-size: 12px;" (keyup.enter)="searchData()" />
                     </nz-form-control>
                 </nz-form-item>
 
@@ -87,8 +87,8 @@
                     <div nz-row [nzGutter]="16">
                         <div nz-col [nzSpan]="12">
                             <nz-form-item style="margin-bottom: 12px;">
-                                <nz-form-label [nzSpan]="24">Từ ngày</nz-form-label>
-                                <nz-form-control [nzSpan]="24">
+                                <nz-form-label>Từ ngày</nz-form-label>
+                                <nz-form-control>
                                     <input type="date" class="ant-input"
                                         style="width: 100%; font-size: 12px; height: 30px;"
                                         [(ngModel)]="filters.dateStart" name="modalStartDate" />
@@ -98,8 +98,8 @@
 
                         <div nz-col [nzSpan]="12">
                             <nz-form-item style="margin-bottom: 12px;">
-                                <nz-form-label [nzSpan]="24">Đến ngày</nz-form-label>
-                                <nz-form-control [nzSpan]="24">
+                                <nz-form-label>Đến ngày</nz-form-label>
+                                <nz-form-control>
                                     <input type="date" class="ant-input"
                                         style="width: 100%; font-size: 12px; height: 30px;"
                                         [(ngModel)]="filters.dateEnd" name="modalEndDate" />
@@ -109,8 +109,8 @@
 
                         <div nz-col [nzSpan]="24">
                             <nz-form-item style="margin-bottom: 12px;">
-                                <nz-form-label [nzSpan]="24">Nhân viên</nz-form-label>
-                                <nz-form-control [nzSpan]="24">
+                                <nz-form-label>Nhân viên</nz-form-label>
+                                <nz-form-control>
                                     <nz-select name="modalEmployeeId" nzShowSearch nzAllowClear nzSize="small"
                                         nzPlaceHolder="Chọn nhân viên" [(ngModel)]="filters.employeeId"
                                         nzDropdownClassName="select-dropdown" [nzDisabled]="isEmployeeIdDisabled"
@@ -124,8 +124,8 @@
 
                         <div nz-col [nzSpan]="24">
                             <nz-form-item style="margin-bottom: 12px;">
-                                <nz-form-label [nzSpan]="24">Từ khóa</nz-form-label>
-                                <nz-form-control [nzSpan]="24">
+                                <nz-form-label>Từ khóa</nz-form-label>
+                                <nz-form-control>
                                     <nz-input-group nzSearch nzSize="small" style="width: 100%;">
                                         <input type="text" nz-input placeholder="Nhập từ khóa"
                                             [(ngModel)]="filterTextSearch" name="modalFilterText"
@@ -172,8 +172,8 @@
                                 <nz-input-number *ngIf="isMobile" nzSize="small" style="width: 70px;"
                                     [ngModel]="filters.pageSize" [nzMin]="1" (ngModelChange)="onPageSizeChange($event)">
                                 </nz-input-number>
-                                <nz-select *ngIf="!isMobile" style="width: 80px;" nzSize="small" [ngModel]="filters.pageSize"
-                                    (ngModelChange)="onPageSizeChange($event)">
+                                <nz-select *ngIf="!isMobile" style="width: 80px;" nzSize="small"
+                                    [ngModel]="filters.pageSize" (ngModelChange)="onPageSizeChange($event)">
                                     <nz-option *ngFor="let s of pageSizeOptions" [nzValue]="s"
                                         [nzLabel]="s"></nz-option>
                                 </nz-select>

@@ -20,6 +20,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { HRRecruitmentApplicationFormService } from './hr-recruitment-application-form.service';
+import { DateTime } from 'luxon';
 
 @Component({
     selector: 'app-home-layout-candidate',
@@ -50,6 +51,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     @Input() isEmbedded = false;
     private destroy$ = new Subject<void>();
     private cancelLoad$ = new Subject<void>();
+    data: any; // Raw API data
     form!: FormGroup;
     isLoading = false;
     isComplete = false;
@@ -253,7 +255,9 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                 }
 
                 // 2. Patch Form - Always call to handle defaults if no data exists
-                this.patchForm(res.candidateInfo?.data || {}, candidateFromStorage);
+                const candidateData = res.candidateInfo?.data || {};
+                this.data = candidateData;
+                this.patchForm(candidateData, candidateFromStorage);
                 this.cdr.detectChanges();
             },
             error: (err: any) => {
@@ -332,14 +336,19 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             }, { emitEvent: false });
 
             if (this.candidateId || mainForm?.HRRecruitmentCandidateID) {
-              this.form.get('PositionName')?.disable();
+                this.form.get('PositionName')?.disable();
             } else {
-              this.form.get('PositionName')?.enable();
+                this.form.get('PositionName')?.enable();
             }
 
             // Ảnh chân dung
             if (mainForm?.FileName && !this.imagePreview) {
-                this.hrService.downloadFile(mainForm.FileName).pipe(takeUntil(this.cancelLoad$), takeUntil(this.destroy$)).subscribe({
+                const dateApply = mainForm.DateApply || mainForm.DateSign || mainForm.CreatedDate || new Date();
+                const positionName = mainForm.PositionName || 'NoPosition';
+                const yearStr = DateTime.fromJSDate(new Date(dateApply)).toFormat('yyyy');
+                const subPath = `/${yearStr}/${positionName}`;
+
+                this.hrService.downloadFile(mainForm.FileName, subPath).pipe(takeUntil(this.cancelLoad$), takeUntil(this.destroy$)).subscribe({
                     next: (blob) => {
                         this.imagePreview = URL.createObjectURL(blob);
                         this.cdr.markForCheck();
@@ -766,9 +775,17 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     private doSave() {
         this.isLoading = true;
 
+        const formData = this.form.getRawValue();
+        const mainForm = (this.data?.applicationForm && this.data.applicationForm.length > 0) ? this.data.applicationForm[0] : (this.data?.HRRecruitmentApplicationForm || {});
+
+        const dateApply = mainForm?.DateApply || formData.DateSign || mainForm?.CreatedDate || new Date();
+        const positionName = formData.PositionName || mainForm?.PositionName || 'NoPosition';
+        const yearStr = DateTime.fromJSDate(new Date(dateApply)).toFormat('yyyy');
+        const subPath = `/${yearStr}/${positionName}`;
+
         // Nếu có file mới được chọn, upload trước rồi mới save form
         if (this.selectedFile) {
-            this.hrService.uploadFile(this.selectedFile).subscribe({
+            this.hrService.uploadFile(this.selectedFile, subPath).subscribe({
                 next: (res) => {
                     if ((res.status === 1 || res.isSuccess) && res.data?.length > 0) {
                         const uploadedFile = res.data[0];

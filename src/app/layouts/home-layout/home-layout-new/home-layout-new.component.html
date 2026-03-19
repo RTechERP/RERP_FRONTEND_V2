@@ -98,7 +98,11 @@
             [nzCount]="notifItems.length"
             class="fs-7"
           >
-            <img src="assets/icon/notification_home.svg" class="bell-icon" [ngClass]="{'has-notif': notifItems.length > 0}" />
+            <img
+              src="assets/icon/notification_home.svg"
+              class="bell-icon"
+              [ngClass]="{ 'has-notif': notifItems.length > 0 }"
+            />
           </nz-badge>
         </button>
       </app-app-notifycation-dropdown>
@@ -311,7 +315,9 @@
           *ngIf="
             quantityApprove?.Count > 0 ||
             quantityBorrow > 0 ||
-            quantityBorrowExpried > 0
+            quantityBorrowExpried > 0 ||
+            quantityBorrowSale > 0 ||
+            quantityBorrowExpriedSale > 0
           "
         >
           <div
@@ -356,7 +362,7 @@
                 Bạn đang có
                 <ng-container *ngIf="quantityBorrow > 0">
                   <span class="text-danger fw-bold">{{ quantityBorrow }}</span>
-                  vật tư mượn sắp hết hạn
+                  vật tư sắp hết hạn
                 </ng-container>
                 <ng-container
                   *ngIf="quantityBorrow > 0 && quantityBorrowExpried > 0"
@@ -367,8 +373,9 @@
                   <span class="text-danger fw-bold">{{
                     quantityBorrowExpried
                   }}</span>
-                  vật tư mượn quá hạn!
+                  vật tư quá hạn
                 </ng-container>
+                kho demo!
                 <span
                   class="text-primary cursor-pointer fw-bold"
                   style="
@@ -378,8 +385,46 @@
                     font-weight: 600;
                   "
                   (click)="onPickHistoryProduct()"
-                  >Bấm vào đây để tới lịch sử mượn</span
+                  >Tới lịch sử mượn kho demo</span
                 >
+                <br />
+              </ng-container>
+              <ng-container
+                *ngIf="quantityBorrowSale > 0 || quantityBorrowExpriedSale > 0"
+              >
+                Bạn đang có
+                <ng-container *ngIf="quantityBorrowSale > 0">
+                  <span class="text-danger fw-bold">{{
+                    quantityBorrowSale
+                  }}</span>
+                  vật tư sắp hết hạn
+                </ng-container>
+                <ng-container
+                  *ngIf="
+                    quantityBorrowSale > 0 && quantityBorrowExpriedSale > 0
+                  "
+                >
+                  và
+                </ng-container>
+                <ng-container *ngIf="quantityBorrowExpriedSale > 0">
+                  <span class="text-danger fw-bold">{{
+                    quantityBorrowExpriedSale
+                  }}</span>
+                  vật tư quá hạn
+                </ng-container>
+                kho sale!
+                <span
+                  class="text-primary cursor-pointer fw-bold"
+                  style="
+                    color: #007bff !important;
+                    text-decoration: underline;
+                    cursor: pointer;
+                    font-weight: 600;
+                  "
+                  (click)="onPickHistoryProductSale()"
+                  >Tới lịch sử mượn kho sale</span
+                >
+                <br />
               </ng-container>
             </small>
           </div>

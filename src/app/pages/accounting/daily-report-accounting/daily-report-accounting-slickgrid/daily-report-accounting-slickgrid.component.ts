@@ -138,9 +138,10 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
         // Kiểm tra quyền admin và set employeeId
         const currentUser = this.appUserService.currentUser;
         const currentUserId = this.appUserService.id || 0;
-        const hasN1 = this.appUserService.hasPermission('N1') || (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false);
-        const hasN52 = this.appUserService.hasPermission('N52') || (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N52') : false);
-        this.isAdmin = hasN1 || hasN52 || ID_ADMIN_SALE_LIST.includes(currentUserId) || this.appUserService.isAdmin;
+        const currentEmployeeId = this.appUserService.employeeID || 0;
+        const hasN1 = (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false);
+        const hasN52 = (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N52') : false);
+        this.isAdmin = hasN1 || hasN52 || this.appUserService.isAdmin;
 
         if (this.isAdmin) {
             this.isEmployeeIdDisabled = false;
@@ -148,7 +149,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
         } else {
             // User thường: disable cả hai, tự điền employeeId
             this.isEmployeeIdDisabled = true;
-            this.filters.employeeId = currentUserId;
+            this.filters.employeeId = currentEmployeeId;
         }
 
         this.loadEmployees();
@@ -389,7 +390,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
 
     loadData(): void {
         this.isLoadingData = true;
-        const userId = this.isAdmin ? (this.filters.employeeId || 0) : (this.appUserService.id || 0);
+        const userId = this.isAdmin ? (this.filters.employeeId || 0) : (this.appUserService.employeeID || 0);
 
         const dateStart = DateTime.fromISO(this.filters.dateStart || DateTime.local().toFormat('yyyy-MM-dd')).startOf('day').toJSDate();
         const dateEnd = DateTime.fromISO(this.filters.dateEnd || DateTime.local().toFormat('yyyy-MM-dd')).endOf('day').toJSDate();

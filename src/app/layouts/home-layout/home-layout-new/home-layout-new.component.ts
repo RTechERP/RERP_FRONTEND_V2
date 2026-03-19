@@ -193,12 +193,14 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         // this.loadNewsletters();
 
         // Gom các API load UI vào forkJoin để biết khi nào tất cả đã xong
+        this.notifService.setItems([]);
         forkJoin([
             this.getMenus(),
             this.getHoliday(this.today.getFullYear(), this.today.getMonth()),
             this.getEmployeeOnleaveAndWFH(),
             this.getQuantityApprove(),
-            // this.getQuantityBorrow(),
+            this.getQuantityBorrow(),
+            this.getQuantityBorrowSale(),
             this.loadNewsletters()
         ]).subscribe({
             next: () => {
@@ -212,6 +214,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 // this.initSseConnection();
             }
         });
+
+        
     }
     getQuantityApprove() {
         return this.approveTpService.getQuantityApprove().pipe(
@@ -234,97 +238,95 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
 
     getQuantityBorrow() {
-        // this.notifService.setItems([]);
-        // Lấy dữ liệu số lượng mượn vật tư kho demo
-        // this.borrowService.getQuantityBorrow().subscribe({
-        //     next: (res: any) => {
-        //         this.quantityBorrow = res.data.QuantitySemiExpired;
-        //         this.quantityBorrowExpried = res.data.QuantityExpired;
-        //         if (this.quantityBorrow > 0 || this.quantityBorrowExpried > 0) {
-        //             this.hasBorrowDemo = false;
-        //         }
-        //         if (this.quantityBorrow > 0) {
-        //             this.notifService.addItem({
-        //                 id: 1,
-        //                 time: new Date().toISOString(),
-        //                 title: 'Vật tư sắp hết hạn kho demo',
-        //                 text: `Bạn đang có ${this.quantityBorrow} vật tư mượn sắp hết hạn`,
-        //                 group: 'today',
-        //                 icon: 'clock-circle',
-        //                 route: 'summary-asset-persional',
-        //                 queryParams: { activeTab: 2 }
-        //             });
-        //         }
-        //         if (this.quantityBorrowExpried > 0) {
-        //             this.notifService.addItem({
-        //                 id: 2,
-        //                 time: new Date().toISOString(),
-        //                 title: 'Vật tư quá hạn kho demo',
-        //                 text: `Bạn đang có ${this.quantityBorrowExpried} vật tư mượn quá hạn`,
-        //                 group: 'today',
-        //                 icon: 'warning',
-        //                 route: 'summary-asset-persional',
-        //                 queryParams: { activeTab: 2 }
-        //             });
-        //         }
-        //     },
-        //     error: (err: any) => {
-        //         this.notification.create(
-        //             NOTIFICATION_TYPE_MAP[err.status] || 'error',
-        //             NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-        //             err?.error?.message || `${err.error}\n${err.message}`,
-        //             {
-        //                 nzStyle: { whiteSpace: 'pre-line' }
-        //             }
-        //         );
-        //     }
-        // });
+        return this.borrowService.getQuantityBorrow().pipe(
+            tap((res: any) => {
+                this.quantityBorrow = res.data.QuantitySemiExpired;
+                this.quantityBorrowExpried = res.data.QuantityExpired;
+                if (this.quantityBorrow > 0 || this.quantityBorrowExpried > 0) {
+                    this.hasBorrowDemo = false;
+                }
+                if (this.quantityBorrow > 0) {
+                    this.notifService.addItem({
+                        id: 1,
+                        time: new Date().toISOString(),
+                        title: 'Vật tư sắp hết hạn kho demo',
+                        text: `Bạn đang có ${this.quantityBorrow} vật tư mượn sắp hết hạn`,
+                        group: 'today',
+                        icon: 'clock-circle',
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 2 }
+                    });
+                }
+                if (this.quantityBorrowExpried > 0) {
+                    this.notifService.addItem({
+                        id: 2,
+                        time: new Date().toISOString(),
+                        title: 'Vật tư quá hạn kho demo',
+                        text: `Bạn đang có ${this.quantityBorrowExpried} vật tư mượn quá hạn`,
+                        group: 'today',
+                        icon: 'warning',
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 2 }
+                    });
+                }
+            }),
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+                return of(null);
+            })
+        );
 
-        // this.historyBorrowSaleService.getQuantityBorrow().subscribe({
-        //     next: (res: any) => {
-        //         this.quantityBorrowSale = res.data.quantityBorrowSale;
-        //         this.quantityBorrowExpriedSale = res.data.quantityBorrowExpriedSale;
+    }
 
-        //         if (this.quantityBorrowSale > 0 || this.quantityBorrowExpriedSale > 0) {
-        //             this.hasBorrowSale = false;
-        //         }
-        //         if (this.quantityBorrowSale > 0) {
-        //             this.notifService.addItem({
-        //                 id: 3,
-        //                 time: new Date().toISOString(),
-        //                 title: 'Vật tư sắp hết hạn kho sale',
-        //                 text: `Bạn đang có ${this.quantityBorrowSale} vật tư mượn sắp hết hạn`,
-        //                 group: 'today',
-        //                 icon: 'clock-circle',
-        //                 route: 'summary-asset-persional',
-        //                 queryParams: { activeTab: 1 }
-        //             });
-        //         }
-        //         if (this.quantityBorrowExpriedSale > 0) {
-        //             this.notifService.addItem({
-        //                 id: 4,
-        //                 time: new Date().toISOString(),
-        //                 title: 'Vật tư quá hạn kho sale',
-        //                 text: `Bạn đang có ${this.quantityBorrowExpriedSale} vật tư mượn quá hạn`,
-        //                 group: 'today',
-        //                 icon: 'warning',
-        //                 route: 'summary-asset-persional',
-        //                 queryParams: { activeTab: 1 }
-        //             });
-        //         }
-        //     },
-        //     error: (err: any) => {
-        //         this.notification.create(
-        //             NOTIFICATION_TYPE_MAP[err.status] || 'error',
-        //             NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-        //             err?.error?.message || `${err.error}\n${err.message}`,
-        //             {
-        //                 nzStyle: { whiteSpace: 'pre-line' }
-        //             }
-        //         );
-        //     }
-        // });
+    getQuantityBorrowSale() {
+        return this.historyBorrowSaleService.getQuantityBorrow().pipe(
+            tap((res: any) => {
+                this.quantityBorrowSale = res.data.quantityBorrowSale;
+                this.quantityBorrowExpriedSale = res.data.quantityBorrowExpriedSale;
 
+                if (this.quantityBorrowSale > 0 || this.quantityBorrowExpriedSale > 0) {
+                    this.hasBorrowSale = false;
+                }
+                if (this.quantityBorrowSale > 0) {
+                    this.notifService.addItem({
+                        id: 3,
+                        time: new Date().toISOString(),
+                        title: 'Vật tư sắp hết hạn kho sale',
+                        text: `Bạn đang có ${this.quantityBorrowSale} vật tư mượn sắp hết hạn`,
+                        group: 'today',
+                        icon: 'clock-circle',
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 1 }
+                    });
+                }
+                if (this.quantityBorrowExpriedSale > 0) {
+                    this.notifService.addItem({
+                        id: 4,
+                        time: new Date().toISOString(),
+                        title: 'Vật tư quá hạn kho sale',
+                        text: `Bạn đang có ${this.quantityBorrowExpriedSale} vật tư mượn quá hạn`,
+                        group: 'today',
+                        icon: 'warning',
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 1 }
+                    });
+                }
+            }),
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+                return of(null);
+            })
+        );
     }
 
     newTabApprove() {

@@ -747,8 +747,8 @@ export class HistoryProductRtcComponent
                     ? this.selectedStatus.join(',')
                     : '1',
             isDeleted: 0,
-            //warehouseType: this.warehouseType ?? 0,
-            warehouseType: 0,
+            warehouseType: this.warehouseType ?? 1,
+            //warehouseType: 0,
             page: 1,
             size: 9999999, // Load all data in one call
         };

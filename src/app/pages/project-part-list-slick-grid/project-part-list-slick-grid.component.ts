@@ -5423,18 +5423,18 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     // Xuất Excel trước
     const exportSuccess = await this.exportExcelPartlist();
     // Sau khi xuất thành công, mở modal
-    if (exportSuccess) {
-      const modalRef = this.ngbModal.open(FormExportExcelPartlistComponent, {
-        centered: true,
-        windowClass: 'full-screen-modal',
-        keyboard: false,
-      });
-      modalRef.componentInstance.projectId = this.projectId;
-      modalRef.componentInstance.projectCode = this.projectCodex || '';
-      modalRef.componentInstance.projectName = this.projectNameX || '';
-      modalRef.componentInstance.versionPOID = this.versionPOID;
-      modalRef.componentInstance.partListData = this.dataProjectPartList || [];
-    }
+    // if (exportSuccess) {
+    //   const modalRef = this.ngbModal.open(FormExportExcelPartlistComponent, {
+    //     centered: true,
+    //     windowClass: 'full-screen-modal',
+    //     keyboard: false,
+    //   });
+    //   modalRef.componentInstance.projectId = this.projectId;
+    //   modalRef.componentInstance.projectCode = this.projectCodex || '';
+    //   modalRef.componentInstance.projectName = this.projectNameX || '';
+    //   modalRef.componentInstance.versionPOID = this.versionPOID;
+    //   modalRef.componentInstance.partListData = this.dataProjectPartList || [];
+    // }
   }
 
   /**
@@ -5515,7 +5515,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           data.push(item);
         }
       }
-      console.log(`[EXPORT] Lấy ${data.length} dòng từ dataView theo thứ tự hiển thị hiện tại`);
     } else {
       // Fallback: Sử dụng dữ liệu gốc với default sort
       let treeData = this.dataProjectPartList || [];
@@ -5523,7 +5522,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       treeData = this.sortTreeDataByTT(treeData);
       // Flatten tree data để export tất cả các node
       data = this.flattenTreeDataForExport(treeData);
-      console.log(`[EXPORT] Fallback: Lấy ${data.length} dòng từ dataProjectPartList`);
     }
 
     if (!data || data.length === 0) {
@@ -5645,10 +5643,43 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     });
 
+    // Chỉ hiển thị tổng tiền ở footer (không hiển thị tổng theo đầu mục 1/2/3...)
+    const hideTotalsOnParentFields = new Set<string>([
+      'TotalPriceQuote1',
+      'TotalPriceExchangeQuote',
+      'TotalPricePurchase',
+      'TotalPriceExchangePurchase',
+      'TotalPricePurchaseExport', // một số data nguồn dùng field này
+    ]);
+    const footerTotals: Record<string, number> = {
+      TotalPriceQuote1: 0,
+      TotalPriceExchangeQuote: 0,
+      TotalPricePurchase: 0,
+      TotalPriceExchangePurchase: 0,
+    };
+
     // Add data rows
     data.forEach((row: any, rowIndex: number) => {
+      const hasChildren = row._children && row._children.length > 0;
+      const isLeaf = row.IsLeaf === true;
+      const isParentRow = hasChildren || row.IsLeaf === false || (!isLeaf && hasChildren);
+
+      // Tổng toàn bộ tiền chỉ cộng các node lá
+      if (!isParentRow) {
+        footerTotals['TotalPriceQuote1'] += Number(row.TotalPriceQuote1) || 0;
+        footerTotals['TotalPriceExchangeQuote'] += Number(row.TotalPriceExchangeQuote) || 0;
+        // Ưu tiên TotalPricePurchase, fallback TotalPricePurchaseExport (nếu data đang dùng)
+        footerTotals['TotalPricePurchase'] += Number(row.TotalPricePurchase) || Number(row.TotalPricePurchaseExport) || 0;
+        footerTotals['TotalPriceExchangePurchase'] += Number(row.TotalPriceExchangePurchase) || 0;
+      }
+
       const rowData = exportColumns.map((col) => {
         let value = row[col.field];
+
+        // Với node cha (đầu mục 1/2/3...), không hiển thị tổng tiền ở các cột yêu cầu
+        if (isParentRow && hideTotalsOnParentFields.has(col.field)) {
+          value = '';
+        }
 
         // Format dates
         if (col.isDate && value) {
@@ -5672,7 +5703,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       const excelRow = worksheet.addRow(rowData);
 
       // === LOGIC VẼ MÀU GIỐNG WINFORM NodeCellStyle ===
-      const hasChildren = row._children && row._children.length > 0;
       const isDeleted = row.IsDeleted === true;
       const isProblem = row.IsProblem === true;
       // Parse QuantityReturn - giống logic trong rowFormatter
@@ -5696,9 +5726,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       else if (quantityReturn > 0) {
         rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF90EE90' } } as ExcelJS.Fill; // Xanh lá
       }
-      // 4. Node cha (có children) → Light yellow
-      else if (hasChildren) {
-        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFACD' } } as ExcelJS.Fill; // Light yellow
+      // 4. Node cha (đầu mục 1/2/3...) → Gray (yêu cầu: các đầu mục khi xuất màu xám)
+      else if (isParentRow) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'BBBBBB' } } as ExcelJS.Fill; // Gray
         rowFont = { name: 'Times New Roman', size: 11, bold: true };
       }
 
@@ -5738,6 +5768,37 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           horizontal: colDef?.isNumber ? 'right' : 'left'
         };
       });
+    });
+
+    // Footer tổng toàn bộ (chỉ cho 3 cột tiền yêu cầu)
+    const footerRowData = exportColumns.map((col) => {
+      if (col.field === 'GroupMaterial') return 'Tổng cộng';
+      if (col.field === 'TT') return '';
+      if (col.field === 'TotalPriceQuote1') return footerTotals['TotalPriceQuote1'];
+      if (col.field === 'TotalPriceExchangeQuote') return footerTotals['TotalPriceExchangeQuote'];
+      if (col.field === 'TotalPricePurchase') return footerTotals['TotalPricePurchase'];
+      if (col.field === 'TotalPriceExchangePurchase') return footerTotals['TotalPriceExchangePurchase'];
+      return '';
+    });
+    const footerRow = worksheet.addRow(footerRowData);
+    footerRow.eachCell((cell, colNumber) => {
+      cell.font = { name: 'Times New Roman', size: 11, bold: true };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F0F0' } };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+      const colDef = exportColumns[colNumber - 1];
+      cell.alignment = {
+        vertical: 'middle',
+        wrapText: true,
+        horizontal: colDef?.isNumber ? 'right' : 'left',
+      };
+      if (colDef?.isNumber && typeof cell.value === 'number') {
+        cell.numFmt = '#,##0.00';
+      }
     });
 
     // Generate and download file
@@ -5799,7 +5860,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
       return true;
     } catch (error) {
-      console.error('Error exporting Excel:', error);
       this.notification.error('Lỗi', 'Không thể xuất file Excel!');
       return false;
     }

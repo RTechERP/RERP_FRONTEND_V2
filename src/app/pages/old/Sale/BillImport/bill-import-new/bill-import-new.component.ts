@@ -129,6 +129,7 @@ export class BillImportNewComponent implements OnInit {
   isMobile: boolean =
     typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
   isShowModal: boolean = false;
+  showSearchBar: boolean = true;
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -359,11 +360,12 @@ export class BillImportNewComponent implements OnInit {
         header: 'Nhận chứng từ',
         width: '30px',
         sortable: true,
-        filterMode: 'dropdown',
+        // filterMode: 'dropdown',
         filterOptions: [
           { label: 'Đã nhận', value: true },
           { label: 'Chưa nhận', value: false },
         ],
+        filterMode: 'multiselect',
         format: (val) => (val === true ? '✓' : ''),
         cssClass: 'text-center',
         frozen: true,
@@ -600,19 +602,16 @@ export class BillImportNewComponent implements OnInit {
 
   onMasterSelectionChange(selection: any[]): void {
     this.selectedMasterRows = selection || [];
-    if (selection && selection.length > 0) {
-      const rowData = selection[0];
-      this.id = rowData?.ID || 0;
-      this.selectedRow = rowData;
-      this.updateTabDetailTitle();
-      if (this.id > 0) {
-        this.getBillImportDetail(this.id);
-        this.getBillImportByID(this.id);
-      }
+  }
+
+  onRowClick(rowData: any): void {
+    this.selectedRow = rowData;
+    this.id = rowData?.ID || 0;
+    this.updateTabDetailTitle();
+    if (this.id > 0) {
+      this.getBillImportDetail(this.id);
+      this.getBillImportByID(this.id);
     } else {
-      this.id = 0;
-      this.selectedRow = null;
-      this.updateTabDetailTitle();
       this.datasetDetail = [];
       this.selectBillImport = [];
     }

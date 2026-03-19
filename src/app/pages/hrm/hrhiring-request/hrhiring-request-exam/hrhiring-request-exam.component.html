@@ -1,0 +1,92 @@
+<div class="card border-0 rounded-0">
+    <!-- <div class="panel-header">
+        <h3 class="panel-title">Thiết lập bài thi cho yêu cầu tuyển dụng</h3>
+    </div> -->
+
+    <div class="toolbar-menubar p-2">
+        <p-menubar [model]="items"
+            [style]="{'border': 'none', 'padding': '0', 'background': 'transparent'}"></p-menubar>
+    </div>
+
+    <div class="row m-0" style="height: calc(100vh - 120px);">
+        <!-- Left Pane: 30% Hiring Requests -->
+        <div class="col-md-4 p-0 border-right h-100 overflow-auto">
+            <p-table [value]="uniqueHiringRequests" selectionMode="single" [(selection)]="selectedHiringRequest"
+                dataKey="HiringRequestID" (onRowSelect)="onHiringRequestSelect($event)"
+                styleClass="p-datatable-sm p-datatable-gridlines" [loading]="loading">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 100px">Trạng thái</th>
+                        <th>Mã YCTD</th>
+                        <th>Vị trí</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th><p-columnFilter type="text" field="HiringRequestCode" display="row"></p-columnFilter></th>
+                        <th><p-columnFilter type="text" field="ChucVu" display="row"></p-columnFilter>
+                        </th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item>
+                    <tr [pSelectableRow]="item">
+                        <td class="text-center">
+                            <span [class]="item.IsActiveExam ? 'status-active' : 'status-inactive'">
+                                {{item.IsActiveExam ? 'Hoạt động' : 'Khóa'}}
+                            </span>
+                        </td>
+                        <td class="font-weight-bold">{{item.HiringRequestCode}}</td>
+                        <td>{{item.EmployeeChucVuHDName}}</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <!-- Right Pane: 70% Exams -->
+        <div class="col-md-8 p-0 h-100 overflow-auto">
+            <p-table #dtRight [value]="filteredExams" [(selection)]="selectedItems" dataKey="ID" [loading]="loading"
+                styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
+                [resizableColumns]="true" columnResizeMode="expand" (onSelectionChange)="onSelectionChange($event)"
+                [contextMenu]="cm" (onRowContextMenu)="onRowContextMenu($event)">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <!-- <th style="width: 3rem">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th> -->
+                        <th pResizableColumn>Tên bài thi</th>
+                        <th style="width: 120px" pResizableColumn>Mã bài thi</th>
+                        <th style="width: 120px" pResizableColumn>Loại đề</th>
+                        <th style="width: 100px" class="text-right" pResizableColumn>Thời gian</th>
+                        <th style="width: 120px" class="text-right" pResizableColumn>Điểm đạt</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-item>
+                    <tr [pContextMenuRow]="item">
+                        <!-- <td>
+                            <p-tableCheckbox [value]="item"></p-tableCheckbox>
+                        </td> -->
+                        <td>{{item.NameExam}}</td>
+                        <td>{{item.CodeExam}}</td>
+                        <td>
+                            {{item.ExamType === 1 ? 'Trắc nghiệm' : item.ExamType === 2 ? 'Tự luận' : 'Trắc nghiệm & Tự
+                            luận'}}
+                        </td>
+                        <td class="text-right">{{item.TestTime}}</td>
+                        <td class="text-right font-bold">{{item.Goal}}</td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="6" class="text-center p-4">
+                            {{ selectedHiringRequest ? 'Không tìm thấy bài thi nào cho yêu cầu này.' : 'Vui lòng chọn
+                            yêu cầu tuyển dụng bên trái.' }}
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>
+
+<p-contextMenu #cm [model]="contextMenuItems"></p-contextMenu>

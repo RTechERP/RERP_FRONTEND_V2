@@ -1,518 +1,552 @@
-/* ===== NAVBAR ===== */
-.candidate-navbar {
-    background-color: #23458a;
-}
+    :host {
+        display: block;
+        position: relative;
+    }
 
-.navbar-logo {
-    width: 70px;
-}
+    /* ===== LOADING OVERLAY ===== */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        background-color: rgba(255, 255, 255, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(2px);
+    }
 
-.navbar-title {
-    font-size: 14px;
-}
+    /* ===== NAVBAR ===== */
+    .candidate-navbar {
+        background-color: #23458a;
+    }
 
-.application-form-wrapper {
-    display: flex;
-    justify-content: center;
-    padding: 16px;
-    background-color: rgb(230, 230, 230);
-    min-height: calc(100vh - 64px);
-}
-
-.form-paper {
-    background: #ffffff;
-    max-width: 900px;
-    width: 100%;
-    padding: 40px 48px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-    border-radius: 2px;
-}
-
-/* ===== HEADER ===== */
-.form-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 16px;
-}
-
-.header-left {
-    width: 120px;
-}
-
-.logo-img {
-    width: 100%;
-}
-
-.header-center {
-    text-align: center;
-    flex: 1;
-    padding: 0 16px;
-}
-
-.form-title {
-    font-size: 20px;
-    font-weight: bold;
-    margin: 0;
-    color: #000;
-}
-
-.form-subtitle {
-    font-size: 14px;
-    margin: 2px 0;
-}
-
-.form-code {
-    font-size: 12px;
-    margin: 0;
-}
-
-.header-right {
-    width: 120px;
-}
-
-.photo-box {
-    width: 150px;
-    height: 200px;
-    border: 1px solid #999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: #999;
-    cursor: pointer;
-    overflow: hidden;
-    position: relative;
-    transition: border-color 0.3s;
-}
-
-.photo-box:hover {
-    border-color: #1890ff;
-    border-style: dashed;
-}
-
-.photo-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-}
-
-.photo-preview {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: filter 0.3s ease;
-}
-
-.photo-box:hover .photo-preview {
-    filter: blur(2px);
-}
-
-.photo-box:hover .photo-clear-btn {
-    opacity: 1;
-}
-
-.photo-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-}
-
-.photo-box:hover .photo-overlay {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.photo-action-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    color: #fff;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 16px;
-}
-
-.photo-action-btn:hover {
-    background: rgba(255, 255, 255, 0.4);
-    transform: scale(1.1);
-}
-
-.photo-action-btn.delete:hover {
-    background: rgba(255, 77, 79, 0.8);
-    border-color: #ff4d4f;
-}
-
-/* ===== INTRO ===== */
-.form-intro {
-    margin-bottom: 16px;
-    font-size: 12px;
-    line-height: 1.6;
-}
-
-.form-intro p {
-    margin-bottom: 4px;
-}
-
-/* ===== SECTION ===== */
-.section-title {
-    font-size: 13px;
-    font-weight: bold;
-    margin-bottom: 8px;
-    text-decoration: underline;
-}
-
-.section-row label {
-    font-size: 12px;
-}
-
-/* ===== CONTACT CARD ===== */
-.contact-card {
-    border: 1px dashed #d9d9d9;
-    border-radius: 4px;
-    padding: 12px;
-    margin-bottom: 12px;
-    background: #fafafa;
-}
-
-.contact-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    font-size: 12px;
-}
-
-.contact-field {
-    margin-bottom: 8px;
-}
-
-.contact-field>label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    margin-bottom: 2px;
-    color: #333;
-}
-
-.contact-field input {
-    font-size: 12px !important;
-}
-
-/* ===== TABLE ===== */
-.table-responsive-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-.form-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-    min-width: 600px;
-}
-
-.form-table th,
-.form-table td {
-    border: 1px solid #999;
-    padding: 4px 8px;
-    vertical-align: middle;
-}
-
-.form-table th {
-    background-color: #f5f5f5;
-    font-weight: bold;
-    text-align: center;
-    font-size: 12px;
-}
-
-.label-cell {
-    font-weight: 500;
-    font-size: 12px;
-    background-color: #fafafa;
-}
-
-/* ===== INPUTS ===== */
-.cell-input {
-    border: 1px solid #d9d9d9 !important;
-    box-shadow: none !important;
-    background: #fff !important;
-    padding: 2px 8px !important;
-    font-size: 12px !important;
-    height: 30px !important;
-    line-height: 1.4 !important;
-    border-radius: 2px !important;
-}
-
-.cell-input:focus {
-    background: #fff !important;
-    border-color: #1890ff !important;
-}
-
-.inline-input {
-    border: 1px solid #d9d9d9 !important;
-    box-shadow: none !important;
-    background: #fff !important;
-    border-radius: 2px !important;
-    font-size: 12px !important;
-    padding: 2px 8px !important;
-    height: 30px !important;
-}
-
-.inline-input:focus {
-    border-color: #1890ff !important;
-    background: #fff !important;
-}
-
-/* Validation Styles */
-.cell-input.ng-invalid.ng-dirty,
-.inline-input.ng-invalid.ng-dirty,
-::ng-deep .form-paper .ant-select.ng-invalid.ng-dirty .ant-select-selector,
-::ng-deep .form-paper .ant-picker.ng-invalid.ng-dirty,
-::ng-deep .form-paper .ant-input-number.ng-invalid.ng-dirty {
-    border: 1px solid #ff4d4f !important;
-    background: #fff2f0 !important;
-}
-
-/* ===== NZ OVERRIDES ===== */
-::ng-deep .form-paper .ant-input {
-    font-size: 12px !important;
-}
-
-::ng-deep .form-paper .ant-select-selection-item {
-    font-size: 12px !important;
-}
-
-::ng-deep .form-paper .ant-input-number {
-    font-size: 12px !important;
-}
-
-::ng-deep .form-paper .ant-radio-wrapper {
-    font-size: 12px !important;
-}
-
-::ng-deep .form-paper .ant-checkbox-wrapper {
-    font-size: 12px !important;
-}
-
-::ng-deep .form-paper .ant-picker {
-    font-size: 12px !important;
-}
-
-::ng-deep .form-paper .ant-form-item {
-    margin-bottom: 0 !important;
-}
-
-::ng-deep .form-paper nz-form-label,
-::ng-deep .form-paper .ant-form-item-label>label {
-    padding: 0 !important;
-    font-size: 12px !important;
-}
-
-::ng-deep .form-paper .ant-select-selector,
-::ng-deep .form-paper .ant-picker,
-::ng-deep .form-paper .ant-input-number {
-    border: 1px solid #d9d9d9 !important;
-    background: #fff !important;
-    border-radius: 2px !important;
-}
-
-/* Các trường inline-input hoặc trong bảng cần border-none */
-::ng-deep .form-paper .nz-select.inline-input .ant-select-selector,
-::ng-deep .form-paper nz-select.inline-input .ant-select-selector,
-.form-table .ant-input-number,
-.form-table .ant-select-selector,
-.form-table .ant-picker {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-}
-
-/* Xóa hoàn toàn viền cho select có class border-less-select */
-::ng-deep .form-paper .border-less-select,
-::ng-deep .form-paper .border-less-select .ant-select-selector {
-    border: none !important;
-    border-bottom: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-}
-
-/* Giữ trạng thái không viền khi focus hoặc lỗi */
-::ng-deep .form-paper .border-less-select.ant-select-focused .ant-select-selector,
-::ng-deep .form-paper .border-less-select.ant-select-status-error .ant-select-selector {
-    border: none !important;
-    box-shadow: none !important;
-}
-
-::ng-deep .form-paper .ant-input-number-input {
-    font-size: 12px !important;
-    padding: 0 11px !important;
-    height: 30px !important;
-}
-
-::ng-deep .form-paper .ant-input-number-input {
-    font-size: 12px !important;
-    padding: 0 8px !important;
-    height: 30px !important;
-    text-align: left !important;
-}
-
-::ng-deep .form-paper textarea.ant-input {
-    font-size: 12px !important;
-}
-
-.error-container {
-    border: 1px solid #ff4d4f !important;
-    border-radius: 4px;
-    padding: 2px 8px;
-    background: #fff2f0 !important;
-    display: inline-block;
-}
-
-.error-card {
-    border: 1px solid #ff4d4f !important;
-    background: #fff2f0 !important;
-}
-
-.fs-11 {
-    font-size: 11px !important;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
     .navbar-logo {
-        width: 50px;
+        width: 70px;
     }
 
     .navbar-title {
-        font-size: 12px;
-    }
-
-    .application-form-wrapper {
-        padding: 8px;
-    }
-
-    .form-paper {
-        padding: 16px 12px;
-    }
-
-    .form-header {
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .header-left {
-        width: 80px;
-        margin-bottom: 0;
-    }
-
-    .header-center {
-        padding: 0 8px;
-    }
-
-    .form-title {
-        font-size: 16px;
-    }
-
-    .form-subtitle {
-        font-size: 12px;
-    }
-
-    .header-right {
-        margin-top: 0;
-    }
-
-    .section-title {
-        font-size: 12px;
-    }
-
-    .inline-input {
-        width: 100% !important;
-    }
-
-    /* Trên mobile nút xóa ảnh luôn hiện */
-    .photo-clear-btn {
-        opacity: 1;
-    }
-}
-
-@media (max-width: 480px) {
-    .application-form-wrapper {
-        padding: 4px;
-    }
-
-    .form-paper {
-        padding: 12px 8px;
-    }
-
-    .form-title {
         font-size: 14px;
     }
 
+    .application-form-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 16px;
+        background-color: rgb(230, 230, 230);
+        min-height: calc(100vh - 64px);
+    }
+
+    .form-paper {
+        background: #ffffff;
+        max-width: 900px;
+        width: 100%;
+        padding: 40px 48px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+        border-radius: 2px;
+    }
+
+    /* ===== HEADER ===== */
+    .form-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .header-left {
+        width: 120px;
+    }
+
+    .logo-img {
+        width: 100%;
+    }
+
+    .header-center {
+        text-align: center;
+        flex: 1;
+        padding: 0 16px;
+    }
+
+    .form-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin: 0;
+        color: #000;
+    }
+
+    .form-subtitle {
+        font-size: 14px;
+        margin: 2px 0;
+    }
+
+    .form-code {
+        font-size: 12px;
+        margin: 0;
+    }
+
+    .header-right {
+        width: 120px;
+    }
+
+    .photo-box {
+        width: 150px;
+        height: 200px;
+        border: 1px solid #999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #999;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+        transition: border-color 0.3s;
+    }
+
+    .photo-box:hover {
+        border-color: #1890ff;
+        border-style: dashed;
+    }
+
+    .photo-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+    }
+
+    .photo-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: filter 0.3s ease;
+    }
+
+    .photo-box:hover .photo-preview {
+        filter: blur(2px);
+    }
+
+    .photo-box:hover .photo-clear-btn {
+        opacity: 1;
+    }
+
+    .photo-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+
+    .photo-box:hover .photo-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .photo-action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 16px;
+    }
+
+    .photo-action-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.1);
+    }
+
+    .photo-action-btn.delete:hover {
+        background: rgba(255, 77, 79, 0.8);
+        border-color: #ff4d4f;
+    }
+
+    /* ===== INTRO ===== */
     .form-intro {
-        font-size: 11px;
+        margin-bottom: 16px;
+        font-size: 12px;
+        line-height: 1.6;
     }
 
-    .form-intro p i {
-        display: none;
+    .form-intro p {
+        margin-bottom: 4px;
     }
 
-    .section-row {
-        font-size: 11px;
+    /* ===== SECTION ===== */
+    .section-title {
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        text-decoration: underline;
     }
-}
 
-/* ===== SCROLL BUTTONS (Bottom-Left) ===== */
-.scroll-buttons-container {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    z-index: 1000;
-}
+    .section-row label {
+        font-size: 12px;
+    }
 
-.scroll-btn {
-    width: 32px !important;
-    height: 32px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    background-color: #23458a !important;
-    color: #ffffff !important;
-    border: none !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-    transition: all 0.3s ease !important;
-    opacity: 0.7;
-}
+    /* ===== CONTACT CARD ===== */
+    .contact-card {
+        border: 1px dashed #d9d9d9;
+        border-radius: 4px;
+        padding: 12px;
+        margin-bottom: 12px;
+        background: #fafafa;
+    }
 
-.scroll-btn:hover {
-    transform: scale(1.1);
-    opacity: 1;
-    background-color: #1a346a !important;
-}
+    .contact-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 12px;
+    }
 
-.scroll-btn span {
-    font-size: 14px;
-}
+    .contact-field {
+        margin-bottom: 8px;
+    }
+
+    .contact-field>label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 2px;
+        color: #333;
+    }
+
+    .contact-field input {
+        font-size: 12px !important;
+    }
+
+    /* ===== TABLE ===== */
+    .table-responsive-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .form-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        min-width: 600px;
+    }
+
+    .form-table th,
+    .form-table td {
+        border: 1px solid #999;
+        padding: 4px 8px;
+        vertical-align: middle;
+    }
+
+    .form-table th {
+        background-color: #f5f5f5;
+        font-weight: bold;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .label-cell {
+        font-weight: 500;
+        font-size: 12px;
+        background-color: #fafafa;
+    }
+
+    /* ===== INPUTS ===== */
+    .cell-input {
+        border: 1px solid #d9d9d9 !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        padding: 2px 8px !important;
+        font-size: 12px !important;
+        height: 30px !important;
+        line-height: 1.4 !important;
+        border-radius: 2px !important;
+    }
+
+    .cell-input:focus {
+        background: #fff !important;
+        border-color: #1890ff !important;
+    }
+
+    .inline-input {
+        border: 1px solid #d9d9d9 !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        border-radius: 2px !important;
+        font-size: 12px !important;
+        padding: 2px 8px !important;
+        height: 30px !important;
+    }
+
+    .inline-input:focus {
+        border-color: #1890ff !important;
+        background: #fff !important;
+    }
+
+    .border-less-input {
+        border: none !important;
+        border-bottom: 1px dashed #d9d9d9 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .border-less-input:focus {
+        border-bottom-color: #1890ff !important;
+    }
+
+    /* Validation Styles */
+    .cell-input.ng-invalid.ng-dirty,
+    .inline-input.ng-invalid.ng-dirty,
+    ::ng-deep .form-paper .ant-select.ng-invalid.ng-dirty .ant-select-selector,
+    ::ng-deep .form-paper .ant-picker.ng-invalid.ng-dirty,
+    ::ng-deep .form-paper .ant-input-number.ng-invalid.ng-dirty {
+        border: 1px solid #ff4d4f !important;
+        background: #fff2f0 !important;
+    }
+
+    /* ===== NZ OVERRIDES ===== */
+    ::ng-deep .form-paper .ant-input {
+        font-size: 12px !important;
+    }
+
+    ::ng-deep .form-paper .ant-select-selection-item {
+        font-size: 12px !important;
+    }
+
+    ::ng-deep .form-paper .ant-input-number {
+        font-size: 12px !important;
+    }
+
+    ::ng-deep .form-paper .ant-radio-wrapper {
+        font-size: 12px !important;
+    }
+
+    ::ng-deep .form-paper .ant-checkbox-wrapper {
+        font-size: 12px !important;
+    }
+
+    ::ng-deep .form-paper .ant-picker {
+        font-size: 12px !important;
+    }
+
+    ::ng-deep .form-paper .ant-form-item {
+        margin-bottom: 0 !important;
+    }
+
+    ::ng-deep .form-paper nz-form-label,
+    ::ng-deep .form-paper .ant-form-item-label>label {
+        padding: 0 !important;
+        font-size: 12px !important;
+    }
+
+    ::ng-deep .form-paper .ant-select-selector,
+    ::ng-deep .form-paper .ant-picker,
+    ::ng-deep .form-paper .ant-input-number {
+        border: 1px solid #d9d9d9 !important;
+        background: #fff !important;
+        border-radius: 2px !important;
+    }
+
+    /* Các trường inline-input hoặc trong bảng cần border-none */
+    ::ng-deep .form-paper .nz-select.inline-input .ant-select-selector,
+    ::ng-deep .form-paper nz-select.inline-input .ant-select-selector,
+    .form-table .ant-input-number,
+    .form-table .ant-select-selector,
+    .form-table .ant-picker {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    /* Xóa hoàn toàn viền cho select có class border-less-select */
+    ::ng-deep .form-paper .border-less-select,
+    ::ng-deep .form-paper .border-less-select .ant-select-selector {
+        border: none !important;
+        border-bottom: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+
+    /* Giữ trạng thái không viền khi focus hoặc lỗi */
+    ::ng-deep .form-paper .border-less-select.ant-select-focused .ant-select-selector,
+    ::ng-deep .form-paper .border-less-select.ant-select-status-error .ant-select-selector {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    ::ng-deep .form-paper .ant-input-number-input {
+        font-size: 12px !important;
+        padding: 0 11px !important;
+        height: 30px !important;
+    }
+
+    ::ng-deep .form-paper .ant-input-number-input {
+        font-size: 12px !important;
+        padding: 0 8px !important;
+        height: 30px !important;
+        text-align: left !important;
+    }
+
+    ::ng-deep .form-paper textarea.ant-input {
+        font-size: 12px !important;
+    }
+
+    .error-container {
+        border: 1px solid #ff4d4f !important;
+        border-radius: 4px;
+        padding: 2px 8px;
+        background: #fff2f0 !important;
+        display: inline-block;
+    }
+
+    .error-card {
+        border: 1px solid #ff4d4f !important;
+        background: #fff2f0 !important;
+    }
+
+    .fs-11 {
+        font-size: 11px !important;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .navbar-logo {
+            width: 50px;
+        }
+
+        .navbar-title {
+            font-size: 12px;
+        }
+
+        .application-form-wrapper {
+            padding: 8px;
+        }
+
+        .form-paper {
+            padding: 16px 12px;
+        }
+
+        .form-header {
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-left {
+            width: 80px;
+            margin-bottom: 0;
+        }
+
+        .header-center {
+            padding: 0 8px;
+        }
+
+        .form-title {
+            font-size: 16px;
+        }
+
+        .form-subtitle {
+            font-size: 12px;
+        }
+
+        .header-right {
+            margin-top: 0;
+        }
+
+        .section-title {
+            font-size: 12px;
+        }
+
+        .inline-input {
+            width: 100% !important;
+        }
+
+        /* Trên mobile nút xóa ảnh luôn hiện */
+        .photo-clear-btn {
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .application-form-wrapper {
+            padding: 4px;
+        }
+
+        .form-paper {
+            padding: 12px 8px;
+        }
+
+        .form-title {
+            font-size: 14px;
+        }
+
+        .form-intro {
+            font-size: 11px;
+        }
+
+        .form-intro p i {
+            display: none;
+        }
+
+        .section-row {
+            font-size: 11px;
+        }
+    }
+
+    /* ===== SCROLL BUTTONS (Bottom-Left) ===== */
+    .scroll-buttons-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 1000;
+    }
+
+    .scroll-btn {
+        width: 32px !important;
+        height: 32px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background-color: #23458a !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        transition: all 0.3s ease !important;
+        opacity: 0.7;
+    }
+
+    .scroll-btn:hover {
+        transform: scale(1.1);
+        opacity: 1;
+        background-color: #1a346a !important;
+    }
+
+    .scroll-btn span {
+        font-size: 14px;
+    }

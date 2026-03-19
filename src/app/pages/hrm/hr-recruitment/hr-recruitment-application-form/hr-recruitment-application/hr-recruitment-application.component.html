@@ -4,21 +4,90 @@
             <div class="d-flex gap-1 align-items-center">
                 <p-menubar [model]="menuBars" class="p-0 border-0" style="width: 100%">
                     <ng-template #end>
-                        <div class="d-flex gap-1 align-items-center pe-2">
-                            <nz-input-group [nzSuffix]="suffixIconSearch" nzSize="small" style="width: 300px;">
-                                <input type="text" nz-input placeholder="Nhập từ khóa tìm kiếm..."
-                                    [(ngModel)]="filterText" (keyup.enter)="loadData()" style="font-size: 12px;" />
-                            </nz-input-group>
-                            <ng-template #suffixIconSearch>
-                                <span nz-icon nzType="search" (click)="loadData()" style="cursor: pointer;"></span>
-                            </ng-template>
+                        <div style="margin-left: auto">
+                            <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile"
+                                (click)="isShowSearchModal = true; $event.stopPropagation()">
+                                <nz-icon nzType="search"></nz-icon>
+                            </button>
                         </div>
                     </ng-template>
                 </p-menubar>
             </div>
         </div>
 
-        <div class="card-body p-0 w-100" style="height: calc(95vh - 45px)">
+        <!-- Filter bar: chỉ hiện trên desktop -->
+        <div class="filter-bar bg-light border-bottom p-2" *ngIf="!isMobile">
+            <form nz-form>
+                <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+                    <!-- Phòng ban -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="6">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Phòng ban</nz-form-label>
+                            <nz-form-control>
+                                <nz-select name="departmentId" [(ngModel)]="departmentId"
+                                    nzPlaceHolder="Tất cả phòng ban" nzSize="small" class="w-100" nzAllowClear
+                                    nzShowSearch (ngModelChange)="loadData()">
+                                    <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
+                                        [nzLabel]="dept.Name"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Từ khóa -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="6">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                            <nz-form-control>
+                                <input nz-input placeholder="Nhập từ khóa tìm kiếm" nzSize="small"
+                                    [(ngModel)]="filterText" name="filterText" class="w-100" style="font-size: 12px"
+                                    (keyup.enter)="loadData()" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Nút tìm kiếm -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="4" [nzXl]="3">
+                        <nz-form-item class="mb-0">
+                            <nz-form-control>
+                                <button nz-button nzType="primary" nzSize="small" (click)="loadData()">
+                                    Tìm kiếm
+                                </button>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+            </form>
+        </div>
+
+        <!-- Modal tìm kiếm cho mobile -->
+        <nz-modal [(nzVisible)]="isShowSearchModal" nzTitle="Tìm kiếm" nzWidth="100vw" nzCentered
+            (nzOnCancel)="isShowSearchModal = false" (nzOnOk)="loadData(); isShowSearchModal = false"
+            nzOkText="Tìm kiếm">
+            <ng-container *nzModalContent>
+                <form nz-form nzLayout="vertical" class="mt-2">
+                    <nz-form-item>
+                        <nz-form-label>Phòng ban</nz-form-label>
+                        <nz-form-control>
+                            <nz-select name="departmentId_m" [(ngModel)]="departmentId" nzPlaceHolder="Tất cả phòng ban"
+                                class="w-100" nzAllowClear nzShowSearch>
+                                <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
+                                    [nzLabel]="dept.Name"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                    <nz-form-item>
+                        <nz-form-label>Từ khóa</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input placeholder="Nhập từ khóa tìm kiếm" [(ngModel)]="filterText"
+                                name="filterText_m" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </form>
+            </ng-container>
+        </nz-modal>
+
+        <div class="card-body p-0 w-100" style="height:81vh">
             <div *ngIf="isLoading" style="
           position: absolute;
           top: 0;
@@ -34,11 +103,11 @@
                 <nz-spin [nzSpinning]="isLoading"></nz-spin>
             </div>
 
-            <nz-splitter style="height: 100%">
+            <nz-splitter>
                 <!-- Panel trái: Grid danh sách tờ khai -->
                 <nz-splitter-panel [nzSize]="isShowDetail ? '50%' : '100%'" [nzMin]="'25%'">
                     <nz-card class="h-100 card-custom" [nzBordered]="false">
-                        <div class="grid-container-application" style="height: 100%">
+                        <div class="grid-container-application" style="height:80vh">
                             <angular-slickgrid [gridId]="gridIdMain" [columns]="columnDefinitions"
                                 [options]="gridOptions" [dataset]="dataset"
                                 (onAngularGridCreated)="angularGridReady($event.detail)"

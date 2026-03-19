@@ -114,6 +114,7 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
   filteredSuppliers: string[] = [];
   historicalUnitPrices: (string | number)[] = [];
   filteredUnitPrices: (string | number)[] = [];
+  filteredProductNames: string[] = [];
 
   ngOnInit(): void {
     this.loadHistoricalSuppliers();
@@ -903,6 +904,17 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
     ));
   }
 
+  onProductNameInput(value: string | any): void {
+    const valStr = (value || '').toString().toLowerCase();
+
+    // Suggest unique product names that match the input
+    this.filteredProductNames = Array.from(new Set(
+      this.historicalSuppliers
+        .filter(s => s.ProductName && s.ProductName.toString().toLowerCase().includes(valStr))
+        .map(s => s.ProductName)
+    ));
+  }
+
   onSelectSupplier(supplierName: string, product: ProductProposalRow, supplierIndex: number): void {
     // Find matching historical record
     const historical = this.historicalSuppliers.find(s => s.Supplier === supplierName);
@@ -910,10 +922,49 @@ export class RecommendSupplierFormComponent implements OnInit, AfterViewInit {
       const supplier = product.Suppliers[supplierIndex];
 
       // Auto-bind fields if they exist in historical record
-      if (historical.Contact) supplier.Contact = historical.Contact;
+      if (historical.Contact) {
+        supplier.Contact = historical.Contact;
+        this.validateField(product.rowID, supplierIndex, 'Contact', supplier.Contact);
+      }
       if (historical.Unit) supplier.Unit = historical.Unit;
 
+      // Auto-bind ProductName and trigger validation
+      if (historical.ProductName) {
+        product.ProductName = historical.ProductName;
+        this.validateField(product.rowID, 0, 'ProductName', product.ProductName);
+      }
+
       // Auto-bind UnitPrice and calculate total
+      if (historical.UnitPrice != null) {
+        supplier.UnitPrice = historical.UnitPrice;
+      }
+
+      this.calculateTotalAmount(product, supplier, supplierIndex);
+    }
+  }
+
+  onSelectProductName(productName: string, product: ProductProposalRow, supplierIndex: number): void {
+    const historical = this.historicalSuppliers.find(s => s.ProductName === productName);
+    if (historical) {
+      const supplier = product.Suppliers[supplierIndex];
+
+      if (historical.ProductName) {
+        product.ProductName = historical.ProductName;
+        this.validateField(product.rowID, 0, 'ProductName', product.ProductName);
+      }
+
+      if (historical.Supplier) {
+        supplier.Supplier = historical.Supplier;
+        this.validateField(product.rowID, supplierIndex, 'Supplier', supplier.Supplier);
+      }
+
+      if (historical.Contact) {
+        supplier.Contact = historical.Contact;
+        this.validateField(product.rowID, supplierIndex, 'Contact', supplier.Contact);
+      }
+
+      if (historical.Unit) supplier.Unit = historical.Unit;
+
       if (historical.UnitPrice != null) {
         supplier.UnitPrice = historical.UnitPrice;
       }

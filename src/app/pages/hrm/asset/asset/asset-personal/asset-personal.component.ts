@@ -140,8 +140,8 @@ export class AssetPersonalComponent implements OnInit, AfterViewInit {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn khoảng thời gian!');
             return;
         }
-   var minDate = new Date(1900, 0, 1); // 01/01/1900
-   var maxDate = new Date(2100, 11, 31); // 31/12/2100
+        var minDate = new Date(1900, 0, 1); // 01/01/1900
+        var maxDate = new Date(2100, 11, 31); // 31/12/2100
         this.isLoading = true;
         const params = {
             FilterText: this.keyword || '',
@@ -287,14 +287,14 @@ export class AssetPersonalComponent implements OnInit, AfterViewInit {
             `;
         };
 
-     const columns: any[] = [
+        const columns: any[] = [
             { title: 'STT', formatter: 'rownum', hozAlign: 'center', headerHozAlign: 'center', width: 60, frozen: true },
             { title: 'Thao tác', formatter: actionFormatter, hozAlign: 'center', headerHozAlign: 'center', width: 100, frozen: true },
             { title: 'Cá nhân', field: 'IsApprovedPersonalProperty', hozAlign: 'center', headerHozAlign: 'center', width: 80, formatter: checkboxFormatter },
             { title: 'HR duyệt', field: 'IsApproved', hozAlign: 'center', headerHozAlign: 'center', width: 90, formatter: checkboxFormatter },
             { title: 'Kế toán duyệt', field: 'IsApproveAccountant', hozAlign: 'center', headerHozAlign: 'center', width: 110, formatter: checkboxFormatter },
             { title: 'Mã biên bản', field: 'AssetCode', headerHozAlign: 'center', width: 150 },
-            { title: 'Loại biên bản', field: 'AssetCategorytext', headerHozAlign: 'center', width: 160},
+            { title: 'Loại biên bản', field: 'AssetCategorytext', headerHozAlign: 'center', width: 160 },
             { title: 'Ngày bàn giao', field: 'ImplementationDate', hozAlign: 'center', headerHozAlign: 'center', width: 120, formatter: dateFormatter },
             { title: 'Người nhận', field: 'DeliverName', headerHozAlign: 'center', width: 150, formatter: 'textarea' },
             { title: 'Phòng ban', field: 'DepartmentDeliver', headerHozAlign: 'center', width: 120 },
@@ -313,7 +313,7 @@ export class AssetPersonalComponent implements OnInit, AfterViewInit {
                 layout: 'fitDataStretch',
                 selectableRows: 1,
                 columns: columns,
-                rowHeader:false
+                rowHeader: false
             });
             this.recordsTable.on('rowClick', (e: any, row: any) => {
                 this.selectedRecord = row.getData();
@@ -326,16 +326,16 @@ export class AssetPersonalComponent implements OnInit, AfterViewInit {
             // Add click handlers for action buttons
             this.recordsTable.on('tableBuilt', () => {
                 const tableElement = this.recordsTableElement.nativeElement;
-                
+
                 tableElement.addEventListener('click', (e: any) => {
                     const target = e.target as HTMLElement;
                     const approveBtn = target.closest('.approve-btn');
                     const rejectBtn = target.closest('.reject-btn');
-                    
+
                     if (approveBtn) {
                         const assetIdStr = approveBtn.getAttribute('data-asset-id');
                         const categoryStr = approveBtn.getAttribute('data-category');
-                        
+
                         if (assetIdStr && categoryStr) {
                             const assetData = {
                                 AssetID: parseInt(assetIdStr),
@@ -346,7 +346,7 @@ export class AssetPersonalComponent implements OnInit, AfterViewInit {
                     } else if (rejectBtn) {
                         const assetIdStr = rejectBtn.getAttribute('data-asset-id');
                         const categoryStr = rejectBtn.getAttribute('data-category');
-                        
+
                         if (assetIdStr && categoryStr) {
                             const assetData = {
                                 AssetID: parseInt(assetIdStr),
@@ -364,7 +364,7 @@ export class AssetPersonalComponent implements OnInit, AfterViewInit {
             const value = cell.getValue();
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
         };
-        
+
         const columns: any[] = [
             {
                 title: "STT",
@@ -375,13 +375,13 @@ export class AssetPersonalComponent implements OnInit, AfterViewInit {
                 frozen: true
             },
             {
-                title: "Mã tài sản", 
-                field: "TSAssetCode", 
-                hozAlign: "left", 
+                title: "Mã tài sản",
+                field: "TSAssetCode",
+                hozAlign: "left",
                 bottomCalc: "count",
                 bottomCalcFormatter: (cell: any) => {
                     return `<div style="text-align:center; width: 100%;">${cell.getValue()}</div>`;
-                }, 
+                },
                 frozen: true
             },
             { title: "Tên tài sản", field: "TSAssetName", hozAlign: "left" },
@@ -437,8 +437,8 @@ export class AssetPersonalComponent implements OnInit, AfterViewInit {
         };
         const columns: any[] = [
             { title: 'STT', formatter: 'rownum', hozAlign: 'center', headerHozAlign: 'center', width: 60, frozen: true },
-            { title: 'Mã tài sản', field: 'TSAssetCode', headerHozAlign: 'center', width: 140, frozen: true },
-            { title: 'Tên tài sản', field: 'TSAssetName', headerHozAlign: 'center', width: 200, formatter: 'textarea' }, 
+            { title: 'Mã tài sản', field: 'TSCodeNCC', headerHozAlign: 'center', width: 140, frozen: true },
+            { title: 'Tên tài sản', field: 'TSAssetName', headerHozAlign: 'center', width: 200, formatter: 'textarea' },
             { title: 'Đơn vị', field: 'UnitName', headerHozAlign: 'center', width: 80 },
             { title: 'Tình trạng', field: 'Status', headerHozAlign: 'center', width: 100 },
             { title: 'Số lượng', field: 'Quantity', hozAlign: 'right', headerHozAlign: 'center', width: 80 },

@@ -63,4 +63,12 @@ app-custom-table {
 }
 ::ng-deep .p-card-body{
     padding: 0 !important;
+    height: 95% !important;
+}
+p-card{
+    height: 94vh;
+}
+::ng-deep .p-card-content{
+    padding: 0 !important;
+    height: 100% !important;
 }

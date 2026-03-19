@@ -4,7 +4,7 @@
   flex-shrink: 0;
 }
 
-.bill-export-detail-new-reference-links-container {
+.reference-links-container {
   min-height: 32px;
   max-height: 80px;
   overflow-y: auto;
@@ -17,7 +17,7 @@
 .bill-export-detail-new-reference-links-container .bill-export-detail-new-no-ref {
   color: #999;
   font-size: 12px;
-  margin-top: 0.4rem;
+  margin-top: 0.3rem;
 }
 
 .bill-export-detail-new-reference-links-container a {
@@ -137,17 +137,13 @@
   text-align: right;
   background-color: #fafafa;
 }
-
-:host ::ng-deep div[id^="billExportDetail_"] {
-  height: 52vh !important;
-  ;
+::ng-deep div[id^="billExportDetail_"]{
+  height: 54vh !important;;
 }
-
-:host ::ng-deep .bill-export-detail-new-modal-body {
+::ng-deep .modal-body{
   height: 91vh !important;
 }
-
-:host ::ng-deep .bill-export-detail-new-modal-footer {
+::ng-deep .modal-footer{
   border-top: none !important;
   padding: 0 1rem 0 0 !important;
 }

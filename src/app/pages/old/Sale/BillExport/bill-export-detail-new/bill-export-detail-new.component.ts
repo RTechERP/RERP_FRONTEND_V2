@@ -518,66 +518,74 @@ export class BillExportDetailNewComponent
     }
   }
 
-  /** Luồng tạo phiếu xuất từ danh sách vật tư dự án */
-  private handleProjectPartListFlow(): void {
-    this.validateForm.patchValue({
-      Code: this.newBillExport.Code || '',
-      Address: this.newBillExport.Address || '',
-      CustomerID: this.newBillExport.CustomerID || 0,
-      UserID: this.newBillExport.UserID || 0,
-      SenderID: this.newBillExport.SenderID || 0,
-      KhoTypeID: this.newBillExport.KhoTypeID || 0,
-      ProductType: this.newBillExport.ProductType || 0,
-      Status: this.newBillExport.Status || 6,
-      SupplierID: this.newBillExport.SupplierID || 0,
-      RequestDate: this.newBillExport.RequestDate || new Date(),
-      CreatDate: this.newBillExport.CreatDate || new Date(),
-      WarehouseID: this.newBillExport.WarehouseID || 0,
-      IsTransfer: this.newBillExport.IsTransfer || false,
-    });
-    this.newBillExport.Status = this.newBillExport.Status || 6;
+    /** Luồng tạo phiếu xuất từ danh sách vật tư dự án */
+    private handleProjectPartListFlow(): void {
+        console.log('🟢 [handleProjectPartListFlow] START');
+        console.log('🟢 [handleProjectPartListFlow] selectedList:', this.selectedList);
+        console.log('🟢 [handleProjectPartListFlow] newBillExport:', this.newBillExport);
 
-    // Bind selectedList vào dataDetail
-    if (this.selectedList && this.selectedList.length > 0) {
-      this.dataDetail = this.selectedList.map((item: any, index: number) => ({
-        ID: -(index + 1),
-        POKHDetailID: item.POKHDetailID || 0,
-        ProductID: item.ProductSaleID || item.ProductID || 0,
-        ProductNewCode: item.ProductNewCode || '',
-        ProductCode: item.ProductCode || '',
-        ProductName: item.ProductName || '',
-        Unit: item.Unit || '',
-        TotalInventory: item.TotalInventory || 0,
-        Qty: item.Qty || 0,
-        QuantityRemain: item.QuantityRemain || 0,
-        ProjectID: item.ProjectID || 0,
-        ProjectCodeExport: item.ProjectCodeExport || item.ProjectCode || '',
-        ProjectNameText: item.ProjectNameText || item.ProjectName || '',
-        Note: item.Note || '',
-        ExpectReturnDate: item.ExpectReturnDate
-          ? new Date(item.ExpectReturnDate)
-          : new Date(),
-        UnitPricePOKH: item.UnitPricePOKH || 0,
-        UnitPricePurchase: item.UnitPricePurchase || 0,
-        BillCode: item.BillCode || '',
-        Specifications: item.Specifications || '',
-        GroupExport: item.GroupExport || '',
-        UserReceiver: item.UserReceiver || '',
-        CustomerResponse: item.CustomerResponse || '',
-        SerialNumber: item.SerialNumber || '',
-        POKHID: item.POKHID || 0,
-        ProductFullName: item.ProductFullName || '',
-        ProductType: item.ProductType || 0,
-        IsInvoice: item.IsInvoice || false,
-        InvoiceNumber: item.InvoiceNumber || '',
-        ReturnedStatus: item.ReturnedStatus || false,
-        ProjectPartListID: item.ProjectPartListID || 0,
-        TradePriceDetailID: item.TradePriceDetailID || 0,
-        BillImportDetailID: item.BillImportDetailID || 0,
-        POKHDetailIDActual: item.POKHDetailIDActual || 0,
-        PONumber: item.PONumber || '',
-      }));
-    }
+        this.validateForm.patchValue({
+            Code: this.newBillExport.Code || '',
+            Address: this.newBillExport.Address || '',
+            CustomerID: this.newBillExport.CustomerID || 0,
+            UserID: this.newBillExport.UserID || 0,
+            SenderID: this.newBillExport.SenderID || 0,
+            KhoTypeID: this.newBillExport.KhoTypeID || 0,
+            ProductType: this.newBillExport.ProductType || 0,
+            Status: this.newBillExport.Status || 6,
+            SupplierID: this.newBillExport.SupplierID || 0,
+            RequestDate: this.newBillExport.RequestDate || new Date(),
+            CreatDate: this.newBillExport.CreatDate || new Date(),
+            WarehouseID: this.newBillExport.WarehouseID || 0,
+            IsTransfer: this.newBillExport.IsTransfer || false,
+        });
+        this.newBillExport.Status = this.newBillExport.Status || 6;
+
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
+        // Bind selectedList vào dataDetail
+        if (this.selectedList && this.selectedList.length > 0) {
+            this.dataDetail = this.selectedList.map((item: any, index: number) => ({
+                ID: -(index + 1),
+                POKHDetailID: item.POKHDetailID || 0,
+                ProductID: item.ProductSaleID || item.ProductID || 0,
+                ProductNewCode: item.ProductNewCode || '',
+                ProductCode: item.ProductCode || '',
+                ProductName: item.ProductName || '',
+                Unit: item.Unit || '',
+                TotalInventory: item.TotalInventory || 0,
+                Qty: item.Qty || 0,
+                QuantityRemain: item.QuantityRemain || 0,
+                ProjectID: item.ProjectID || 0,
+                ProjectCodeExport: item.ProjectCodeExport || item.ProjectCode || '',
+                ProjectNameText: item.ProjectNameText || item.ProjectName || '',
+                Note: item.Note || '',
+                ExpectReturnDate: item.ExpectReturnDate
+                    ? new Date(item.ExpectReturnDate)
+                    : expectReturnDate,
+                UnitPricePOKH: item.UnitPricePOKH || 0,
+                UnitPricePurchase: item.UnitPricePurchase || 0,
+                BillCode: item.BillCode || '',
+                Specifications: item.Specifications || '',
+                GroupExport: item.GroupExport || '',
+                UserReceiver: item.UserReceiver || '',
+                CustomerResponse: item.CustomerResponse || '',
+                SerialNumber: item.SerialNumber || '',
+                POKHID: item.POKHID || 0,
+                ProductFullName: item.ProductFullName || '',
+                ProductType: item.ProductType || 0,
+                IsInvoice: item.IsInvoice || false,
+                InvoiceNumber: item.InvoiceNumber || '',
+                ReturnedStatus: item.ReturnedStatus || false,
+                ProjectPartListID: item.ProjectPartListID || 0,
+                TradePriceDetailID: item.TradePriceDetailID || 0,
+                BillImportDetailID: item.BillImportDetailID || 0,
+                POKHDetailIDActual: item.POKHDetailIDActual || 0,
+                PONumber: item.PONumber || '',
+            }));
+            console.log('🟢 [handleProjectPartListFlow] dataDetail after mapping:', this.dataDetail);
+        }
 
     if (this.newBillExport.KhoTypeID > 0) {
       this.changeProductGroup(this.newBillExport.KhoTypeID);
@@ -614,52 +622,55 @@ export class BillExportDetailNewComponent
       this.validateForm.get('DeadlineTime')?.enable();
     }
 
-    if (!this.newBillExport.Code || this.newBillExport.Code === '') {
-      this.getNewCode();
-    }
+        if (!this.newBillExport.Code || this.newBillExport.Code === '') {
+            this.getNewCode();
+        }
 
-    // Bind selectedList vào dataDetail
-    if (this.selectedList && this.selectedList.length > 0) {
-      this.dataDetail = this.selectedList.map((item: any, index: number) => ({
-        ID: -(index + 1),
-        POKHDetailID: item.POKHDetailID || 0,
-        ProductID: item.ProductSaleID || item.ProductID || 0,
-        ProductNewCode: item.ProductNewCode || '',
-        ProductCode: item.ProductCode || '',
-        ProductName: item.ProductName || '',
-        Unit: item.Unit || '',
-        TotalInventory: item.TotalInventory || 0,
-        Qty: item.Qty || 0,
-        QuantityRemain: item.QuantityRemain || 0,
-        ProjectID: item.ProjectID || 0,
-        ProjectCodeExport: item.ProjectCodeExport || '',
-        ProjectNameText: item.ProjectNameText || item.ProjectName || '',
-        Note: item.Note || '',
-        ProjectCode: item.ProjectCode || '',
-        ExpectReturnDate: item.ExpectReturnDate
-          ? new Date(item.ExpectReturnDate)
-          : new Date(),
-        UnitPricePOKH: item.UnitPricePOKH || 0,
-        UnitPricePurchase: item.UnitPricePurchase || 0,
-        BillCode: item.BillCode || '',
-        Specifications: item.Specifications || '',
-        GroupExport: item.GroupExport || '',
-        UserReceiver: item.UserReceiver || '',
-        CustomerResponse: item.CustomerResponse || '',
-        SerialNumber: item.SerialNumber || '',
-        POKHID: item.POKHID || 0,
-        ProductFullName: item.ProductFullName || '',
-        ProductType: item.ProductType || 0,
-        IsInvoice: item.IsInvoice || false,
-        InvoiceNumber: item.InvoiceNumber || '',
-        ReturnedStatus: item.ReturnedStatus || false,
-        ProjectPartListID: item.ProjectPartListID || 0,
-        TradePriceDetailID: item.TradePriceDetailID || 0,
-        BillImportDetailID: item.BillImportDetailID || 0,
-        POKHDetailIDActual: item.POKHDetailIDActual || 0,
-        PONumber: item.PONumber || '',
-      }));
-    }
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
+        // Bind selectedList vào dataDetail
+        if (this.selectedList && this.selectedList.length > 0) {
+            this.dataDetail = this.selectedList.map((item: any, index: number) => ({
+                ID: -(index + 1),
+                POKHDetailID: item.POKHDetailID || 0,
+                ProductID: item.ProductSaleID || item.ProductID || 0,
+                ProductNewCode: item.ProductNewCode || '',
+                ProductCode: item.ProductCode || '',
+                ProductName: item.ProductName || '',
+                Unit: item.Unit || '',
+                TotalInventory: item.TotalInventory || 0,
+                Qty: item.Qty || 0,
+                QuantityRemain: item.QuantityRemain || 0,
+                ProjectID: item.ProjectID || 0,
+                ProjectCodeExport: item.ProjectCodeExport || '',
+                ProjectNameText: item.ProjectNameText || item.ProjectName || '',
+                Note: item.Note || '',
+                ProjectCode: item.ProjectCode || '',
+                ExpectReturnDate: item.ExpectReturnDate
+                    ? new Date(item.ExpectReturnDate)
+                    : expectReturnDate,
+                UnitPricePOKH: item.UnitPricePOKH || 0,
+                UnitPricePurchase: item.UnitPricePurchase || 0,
+                BillCode: item.BillCode || '',
+                Specifications: item.Specifications || '',
+                GroupExport: item.GroupExport || '',
+                UserReceiver: item.UserReceiver || '',
+                CustomerResponse: item.CustomerResponse || '',
+                SerialNumber: item.SerialNumber || '',
+                POKHID: item.POKHID || 0,
+                ProductFullName: item.ProductFullName || '',
+                ProductType: item.ProductType || 0,
+                IsInvoice: item.IsInvoice || false,
+                InvoiceNumber: item.InvoiceNumber || '',
+                ReturnedStatus: item.ReturnedStatus || false,
+                ProjectPartListID: item.ProjectPartListID || 0,
+                TradePriceDetailID: item.TradePriceDetailID || 0,
+                BillImportDetailID: item.BillImportDetailID || 0,
+                POKHDetailIDActual: item.POKHDetailIDActual || 0,
+                PONumber: item.PONumber || '',
+            }));
+        }
 
     if (this.newBillExport.KhoTypeID > 0) {
       this.changeProductGroup(this.newBillExport.KhoTypeID);
@@ -716,30 +727,33 @@ export class BillExportDetailNewComponent
       RequestDate: new Date(),
     });
 
-    this.getNewCode();
+        this.getNewCode();
 
-    if (this.selectedList && this.selectedList.length > 0) {
-      this.dataDetail = this.selectedList.map((item: any, index: number) => ({
-        ID: -(index + 1),
-        POKHDetailID: item.POKHDetailID || 0,
-        ProductID: item.ProductSaleID || item.ProductID || 0,
-        ProductNewCode: item.ProductNewCode || '',
-        ProductCode: item.ProductCode || '',
-        ProductName: item.ProductName || '',
-        Unit: item.Unit || '',
-        TotalInventory: 0,
-        Qty: item.Qty || 0,
-        QuantityRemain: 0,
-        ProjectID: item.ProjectID || 0,
-        ProjectCodeExport: item.ProjectCodeExport || item.ProjectCode || '',
-        ProjectNameText: item.ProjectNameText || item.ProjectName || '',
-        Note: item.Note || '',
-        ExpectReturnDate: item.ExpectReturnDate
-          ? new Date(item.ExpectReturnDate)
-          : new Date(),
-        POKHID: item.POKHID || 0,
-        SerialNumber: item.SerialNumber || '',
-      }));
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
+        if (this.selectedList && this.selectedList.length > 0) {
+            this.dataDetail = this.selectedList.map((item: any, index: number) => ({
+                ID: -(index + 1),
+                POKHDetailID: item.POKHDetailID || 0,
+                ProductID: item.ProductSaleID || item.ProductID || 0,
+                ProductNewCode: item.ProductNewCode || '',
+                ProductCode: item.ProductCode || '',
+                ProductName: item.ProductName || '',
+                Unit: item.Unit || '',
+                TotalInventory: 0,
+                Qty: item.Qty || 0,
+                QuantityRemain: 0,
+                ProjectID: item.ProjectID || 0,
+                ProjectCodeExport: item.ProjectCodeExport || item.ProjectCode || '',
+                ProjectNameText: item.ProjectNameText || item.ProjectName || '',
+                Note: item.Note || '',
+                ExpectReturnDate: item.ExpectReturnDate
+                    ? new Date(item.ExpectReturnDate)
+                    : expectReturnDate,
+                POKHID: item.POKHID || 0,
+                SerialNumber: item.SerialNumber || '',
+            }));
 
       if (this.KhoTypeID > 0) {
         this.changeProductGroup(this.KhoTypeID);
@@ -1493,12 +1507,15 @@ export class BillExportDetailNewComponent
     }
   }
 
-  /** Thêm dòng trống mới vào grid chi tiết */
-  addNewRow(): void {
-    const tempIds = this.dataDetail
-      .filter((x) => Number(x?.ID) < 0)
-      .map((x) => Math.abs(Number(x?.ID)));
-    const nextTempId = tempIds.length > 0 ? Math.max(...tempIds) + 1 : 1;
+    /** Thêm dòng trống mới vào grid chi tiết */
+    addNewRow(): void {
+        const tempIds = this.dataDetail
+            .filter((x) => Number(x?.ID) < 0)
+            .map((x) => Math.abs(Number(x?.ID)));
+        const nextTempId = tempIds.length > 0 ? Math.max(...tempIds) + 1 : 1;
+
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
 
     const newRow = {
       ID: -nextTempId,
@@ -1515,7 +1532,7 @@ export class BillExportDetailNewComponent
       ProjectCodeExport: '',
       ProjectNameText: '',
       Note: '',
-      ExpectReturnDate: new Date(),
+      ExpectReturnDate: expectReturnDate,
       UnitPricePOKH: 0,
       UnitPricePurchase: 0,
       BillCode: '',

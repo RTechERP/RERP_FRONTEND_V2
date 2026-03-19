@@ -1066,6 +1066,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         // console.log('this.fileUploads:', this.fileUploads);
         // console.log('this.dataFiles:', this.dataFiles);
+        input.value = '';
     }
 
     deleteFile(e: Event, args: OnEventArgs) {

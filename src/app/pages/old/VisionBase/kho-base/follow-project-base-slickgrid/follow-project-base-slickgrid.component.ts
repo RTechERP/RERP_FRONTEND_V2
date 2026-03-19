@@ -54,7 +54,7 @@ import { KhoBaseService } from '../kho-base-service/kho-base.service';
 import { FollowProjectBaseDetailComponent } from '../follow-project-base/follow-project-base-detail/follow-project-base-detail.component';
 import { ImportExcelComponent } from '../follow-project-base/import-excel/import-excel.component';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, ID_ADMIN_SALE_LIST } from '../../../../../app.config';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { IUser } from '../../../../../models/user.interface';
 import { ActivatedRoute } from '@angular/router';
@@ -223,10 +223,13 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
         this.filters.startDate = startDate.toFormat('yyyy-MM-dd');
         this.filters.endDate = endDate.toFormat('yyyy-MM-dd');
 
-        this.isAdmin = this.appUserService.isAdmin;
         this.currentUser = this.appUserService.currentUser;
-        this.isAdminSale = this.currentUser?.IsAdminSale || 0;
         this.currentUserId = this.currentUser?.ID || 0;
+
+        const hasN1 = this.currentUser?.Permissions ? this.currentUser.Permissions.split(',').includes('N1') : false;
+        this.isAdmin = this.appUserService.isAdmin || hasN1;
+
+        this.isAdminSale = this.currentUser?.IsAdminSale || ID_ADMIN_SALE_LIST.includes(this.currentUserId) ? 1 : 0;
 
         const warehouseId =
             this.tabData?.warehouseID
@@ -518,7 +521,7 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
 
                 this.isLoadingFollowProject = false;
                 setTimeout(() => {
-                    this.applyDistinctFiltersToGrid(this.angularGridFollowProject, this.columnDefinitionsFollowProject, ['FullName', 'ProjectManager', 'CustomerName', 'EndUser', 'ProjectStatusName', 'ProjectTypeName', 'FirmName', 'FirmPossibilityPOName']);
+                    this.applyDistinctFiltersToGrid(this.angularGridFollowProject, this.columnDefinitionsFollowProject, ['FullName', 'ProjectManager', 'CustomerName', 'EndUser', 'ProjectStatusName', 'ProjectTypeName', 'FirmName', 'FirmPossibilityPOName'], this.datasetFollowProject);
                 }, 0);
             },
             error: (error: any) => {
@@ -890,11 +893,12 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
     private applyDistinctFiltersToGrid(
         angularGrid: AngularGridInstance,
         columnDefinitions: Column[],
-        fieldsToFilter: string[]
+        fieldsToFilter: string[],
+        freshData?: any[]
     ): void {
-        if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+        if (!angularGrid?.slickGrid) return;
 
-        const data = angularGrid.dataView.getItems();
+        const data = freshData ?? angularGrid.dataView?.getItems() ?? [];
         if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {

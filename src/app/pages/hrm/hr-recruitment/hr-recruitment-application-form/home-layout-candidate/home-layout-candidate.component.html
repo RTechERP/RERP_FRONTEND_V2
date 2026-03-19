@@ -10,7 +10,9 @@
         </div>
     </div>
 </nav>
-
+<div *ngIf="isLoading" class="loading-overlay">
+    <nz-spin [nzSpinning]="isLoading" nzSize="large"></nz-spin>
+</div>
 <div class="application-form-wrapper">
     <div class="form-paper">
         <form [formGroup]="form">
@@ -63,15 +65,10 @@
                 <label class="fw-bold">Vị trí dự tuyển tại RTC/ <i>Your desired position in RTC</i> <span
                         class="text-danger">(*)</span></label>
                 <div class="mt-1">
-                    <label>Vị trí /<i>Position:</i></label>
-                    <nz-select [ngModel]="form.get('ChucVuHDID')?.value" (ngModelChange)="onPositionChange($event)"
-                        [ngModelOptions]="{standalone: true}" class="inline-input border-less-select"
-                        style="width: 60%;" nzPlaceHolder="Chọn vị trí dự tuyển" nzShowSearch nzAllowClear
-                        [nzStatus]="(form.get('ChucVuHDID')?.invalid && form.get('ChucVuHDID')?.dirty) ? 'error' : ''">
-                        @for (item of chucVuList; track item.ID) {
-                        <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
-                        }
-                    </nz-select>
+                    <label>Vị trí /<i>Position:</i>&nbsp;</label>
+                    <input nz-input formControlName="PositionName" class="border-less-input" readonly
+                        style="width: 60%; font-weight: bold; color: black;" placeholder="Nhập vị trí dự tuyển"
+                        [nzStatus]="(form.get('PositionName')?.invalid && form.get('PositionName')?.dirty) ? 'error' : ''" />
                 </div>
             </div>
 
@@ -807,8 +804,15 @@
             </div>
 
             <!-- ===== NÚT LƯU ===== -->
-            <div *ngIf="!isEmbedded" class="text-center mt-5 mb-5">
+            <div class="text-center mt-5 mb-5">
+                @if (!isEmbedded && isComplete) {
+                <div style="color: #52c41a; font-size: 14px; font-weight: bold; margin-bottom: 12px;">
+                    <span nz-icon nzType="check-circle" nzTheme="fill" style="margin-right: 6px;"></span>
+                    Tờ khai đã được lưu hoàn tất. Bạn không thể chỉnh sửa.
+                </div>
+                }
                 <button nz-button nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading"
+                    [disabled]="!isEmbedded && isComplete"
                     style="font-size: 14px; padding: 8px 64px; height: auto; border-radius: 4px; font-weight: bold;">
                     <span nz-icon nzType="save"></span> LƯU TỜ KHAI
                 </button>
@@ -853,6 +857,10 @@
     <button nz-button nzType="default" nzShape="circle" class="scroll-btn top" (click)="scrollTo('top-anchor')"
         title="Lên đầu trang">
         <span nz-icon nzType="up"></span>
+    </button>
+    <button nz-button nzType="primary" nzShape="circle" class="scroll-btn home" routerLink="/main-candidate"
+        title="Về trang chủ (Chọn tờ khai và thi)">
+        <span nz-icon nzType="home"></span>
     </button>
     <button nz-button nzType="default" nzShape="circle" class="scroll-btn bottom" (click)="scrollTo('bottom-anchor')"
         title="Xuống cuối trang">

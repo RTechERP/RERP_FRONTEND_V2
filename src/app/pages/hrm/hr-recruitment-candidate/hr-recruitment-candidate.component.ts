@@ -135,7 +135,6 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         0
     );
     status: any = -1;
-    employeeChucVuHDId: any = -1;
     positionContract: any[] = [];
 
     isMobile = window.innerWidth <= 768;
@@ -466,10 +465,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: { filter: true } as MultipleSelectOption,
-                    collectionOptions: { addBlankEntry: true },
+                    model: Filters['compoundInputText'],
                 },
                 excelExportOptions: { width: 25 },
             },
@@ -717,26 +713,26 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
 
             enableGrouping: true,
 
-      rowHeight: 30,
-      createFooterRow: true,
-      showFooterRow: true,
-      footerRowHeight: 28,
-      frozenColumn: 5,
-      contextMenu: {
-        hideCloseButton: false,
-        commandTitle: '',
-        commandItems: [
-          {
-            command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 10,
-            action: (e, args) => {
-              const filePath = args.dataContext?.ServerPath || '';
-              if (filePath) {
-                const host = environment.host + 'api/share';
-                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileCVName}`;
-                const newWindow = window.open(
-                  urlImg,
-                  '_blank',
-                );
+            rowHeight: 30,
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
+            frozenColumn: 5,
+            contextMenu: {
+                hideCloseButton: false,
+                commandTitle: '',
+                commandItems: [
+                    {
+                        command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 10,
+                        action: (e, args) => {
+                            const filePath = args.dataContext?.ServerPath || '';
+                            if (filePath) {
+                                const host = environment.host + 'api/share';
+                                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileCVName}`;
+                                const newWindow = window.open(
+                                    urlImg,
+                                    '_blank',
+                                );
 
                                 if (newWindow) {
                                     newWindow.onload = () => {
@@ -892,7 +888,6 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             this.status ?? -1,
             this.employeeRequestId ?? -1,
             this.departmentId ?? -1,
-            this.employeeChucVuHDId ?? -1,
             toLocalISO(new Date(this.dateStart.getFullYear(), this.dateStart.getMonth(), this.dateStart.getDate(), 0, 0, 0)),
             toLocalISO(new Date(this.dateEnd.getFullYear(), this.dateEnd.getMonth(), this.dateEnd.getDate(), 23, 59, 59)),
             this.keyword ?? ""

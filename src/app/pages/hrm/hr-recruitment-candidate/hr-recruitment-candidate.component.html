@@ -17,103 +17,94 @@
 
     <!-- Filter bar: chỉ hiện trên desktop -->
     <div class="filter-bar bg-light border-bottom p-2" *ngIf="!isMobile">
-      <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
-        <nz-form-item class="mb-0">
-          <nz-form-label class="fs-12">Từ ngày</nz-form-label>
-          <nz-form-control>
-            <input type="date" class="form-control form-control-sm date-input-sm"
-              [ngModel]="dateStart | date: 'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateStart', $event)"
-              name="dateStart2" title="Từ ngày" />
-          </nz-form-control>
-        </nz-form-item>
+      <form nz-form>
+        <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+          <!-- Từ ngày -->
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="3" [nzXl]="3">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+              <nz-form-control>
+                <input type="date" class="form-control form-control-sm date-input-sm w-100"
+                  [ngModel]="dateStart | date: 'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateStart', $event)"
+                  name="dateStart2" title="Từ ngày" />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-        <nz-form-item class="mb-0">
-          <nz-form-label class="fs-12">Đến ngày</nz-form-label>
-          <nz-form-control>
-            <input type="date" class="form-control form-control-sm date-input-sm"
-              [ngModel]="dateEnd | date: 'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateEnd', $event)" name="dateEnd2"
-              title="Đến ngày" />
-          </nz-form-control>
-        </nz-form-item>
+          <!-- Đến ngày -->
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="3" [nzXl]="3">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+              <nz-form-control>
+                <input type="date" class="form-control form-control-sm date-input-sm w-100"
+                  [ngModel]="dateEnd | date: 'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateEnd', $event)"
+                  name="dateEnd2" title="Đến ngày" />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-        <nz-form-item class="mb-0">
-          <nz-form-label class="fs-12">Phòng ban</nz-form-label>
-          <nz-form-control>
-            <nz-select name="departmentId" [(ngModel)]="departmentId" nzPlaceHolder="Tất cả phòng ban" nzSize="small"
-              style="width: 250px" nzAllowClear nzShowSearch nzCustomContent>
-              <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
-                <span style="
-                    white-space: normal;
-                    word-break: break-word;
-                    display: block;
-                  ">
-                  {{ dept.Name }}
-                </span>
-              </nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
+          <!-- Phòng ban -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="5">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12">Phòng ban</nz-form-label>
+              <nz-form-control>
+                <nz-select name="departmentId" [(ngModel)]="departmentId" nzPlaceHolder="Tất cả phòng ban"
+                  nzSize="small" class="w-100" nzAllowClear nzShowSearch nzCustomContent>
+                  <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
+                    <span style="white-space: normal; word-break: break-word; display: block;">
+                      {{ dept.Name }}
+                    </span>
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-        <nz-form-item class="mb-0">
-          <nz-form-label class="fs-12">Vị trí</nz-form-label>
-          <nz-form-control>
-            <nz-select [(ngModel)]="employeeChucVuHDId" name="employeeChucVuHDId" nzPlaceHolder="Vị trí" nzSize="small"
-              style="width: 250px" nzAllowClear nzShowSearch>
-              <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
-              <nz-option *ngFor="let item of positionContract" [nzValue]="item.ID" [nzLabel]="item.Name"
-                nzCustomContent>
-                <span style="
-                    white-space: normal;
-                    word-break: break-word;
-                    display: block;
-                  ">
-                  {{ item.Name }}
-                </span>
-              </nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
+          <!-- Từ khóa -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="5">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+              <nz-form-control>
+                <input nz-input placeholder="Nhập từ khóa tìm kiếm" nzSize="small" [(ngModel)]="keyword" name="keyword"
+                  class="w-100" style="font-size: 12px" (keyup.enter)="onSearch()" />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-        <nz-form-item class="mb-0">
-          <nz-form-label class="fs-12">Từ khóa</nz-form-label>
-          <nz-form-control>
-            <input nz-input placeholder="Nhập từ khóa tìm kiếm" nzSize="small" [(ngModel)]="keyword" name="keyword"
-              style="width: 200px; font-size: 12px" (keyup.enter)="onSearch()" />
-          </nz-form-control>
-        </nz-form-item>
-
-        <!-- Nút tìm kiếm + filter nâng cao -->
-        <nz-form-item class="mb-0">
-          <nz-form-control>
-            <div class="btn-group">
-              <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
-                Tìm kiếm
-              </button>
-              <button nz-button nzType="primary" nzSize="small" nz-dropdown [nzDropdownMenu]="searchMenu"
-                nzTrigger="click" nzPlacement="bottomRight" style="padding-left: 8px; padding-right: 8px">
-                <i nz-icon nzType="down"></i>
-              </button>
-              <nz-dropdown-menu #searchMenu="nzDropdownMenu">
-                <div class="p-3 advanced-filters-container" style="
-                    min-width: 300px;
-                    background-color: #ffffff;
-                    border: 1px solid #d9d9d9;
-                    border-radius: 4px;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-                  ">
-                  <ng-container *ngTemplateOutlet="advancedFiltersTemplate"></ng-container>
+          <!-- Nút tìm kiếm + filter nâng cao -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="4">
+            <nz-form-item class="mb-0">
+              <nz-form-control>
+                <div class="btn-group">
+                  <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                    Tìm kiếm
+                  </button>
+                  <button nz-button nzType="primary" nzSize="small" nz-dropdown [nzDropdownMenu]="searchMenu"
+                    nzTrigger="click" nzPlacement="bottomRight" style="padding-left: 8px; padding-right: 8px">
+                    <i nz-icon nzType="down"></i>
+                  </button>
+                  <nz-dropdown-menu #searchMenu="nzDropdownMenu">
+                    <div class="p-3 advanced-filters-container" style="
+                        min-width: 300px;
+                        background-color: #ffffff;
+                        border: 1px solid #d9d9d9;
+                        border-radius: 4px;
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                      ">
+                      <ng-container *ngTemplateOutlet="advancedFiltersTemplate"></ng-container>
+                    </div>
+                  </nz-dropdown-menu>
                 </div>
-              </nz-dropdown-menu>
-            </div>
-          </nz-form-control>
-        </nz-form-item>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
       </form>
     </div>
 
     <!-- Modal tìm kiếm cho mobile -->
     <nz-modal [(nzVisible)]="isShowModal" nzTitle="Tìm kiếm" nzWidth="100vw" nzCentered
-      [nzBodyStyle]="{ padding: '0px 16px' }" (nzOnCancel)="isShowModal = false"
-      (nzOnOk)="onSearch(); isShowModal = false" nzOkText="Tìm kiếm">
+      (nzOnCancel)="isShowModal = false" (nzOnOk)="onSearch(); isShowModal = false" nzOkText="Tìm kiếm">
       <ng-container *nzModalContent>
         <form nz-form nzLayout="vertical" class="mt-2">
           <div nz-row [nzGutter]="12">
@@ -172,18 +163,7 @@
               <nz-form-item>
                 <nz-form-label>Vị trí</nz-form-label>
                 <nz-form-control>
-                  <nz-select [(ngModel)]="employeeChucVuHDId" name="employeeChucVuHDId_m" nzPlaceHolder="Vị trí"
-                    class="w-100" nzAllowClear nzShowSearch>
-                    <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
-                    <nz-option *ngFor="let item of positionContract" [nzValue]="item.ID" [nzLabel]="item.Name">
-                      <span style="
-                          white-space: normal;
-                          word-break: break-word;
-                          display: block;
-                        ">
-                        {{ item.Name }}
-                      </span></nz-option>
-                  </nz-select>
+
                 </nz-form-control>
               </nz-form-item>
             </div>

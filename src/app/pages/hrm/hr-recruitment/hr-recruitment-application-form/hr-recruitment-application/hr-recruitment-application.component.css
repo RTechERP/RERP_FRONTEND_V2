@@ -81,9 +81,13 @@
 }
 
 .ant-splitter {
-    height: 90vh !important;
+    height: 84vh !important;
+}
+
+.fs-12 {
+    font-size: 12px !important;
 }
 
 ::ng-deep #grvApplicationForm {
-    height: calc(95vh - 55px) !important;
+    height: calc(90vh - 55px) !important;
 }

@@ -634,7 +634,9 @@ export class HistoryProductRtcDetailComponent implements OnInit, AfterViewInit {
                         DateBorrow: this.DateBorrow.toISOString(),
                         Quantity: item.NumberBorrow,
                         SerialNumber: item.SerialNumber || '',
-                        IsDelete: false
+                        IsDelete: false,
+                        WarehouseID: this.warehouseID
+
                     };
                     const IDAdminDemo = ID_ADMIN_DEMO_LIST || [];
                     const userId = this.appUserService?.id || 0;

@@ -23,8 +23,9 @@
 .content {
     position: relative;
     z-index: 2;
-    max-width: 900px;
     width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 2rem;
     text-align: center;
 }
@@ -50,16 +51,8 @@
 }
 
 .selection-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
     margin-bottom: 3rem;
-}
-
-@media (max-width: 768px) {
-    .selection-grid {
-        grid-template-columns: 1fr;
-    }
+    width: 100%;
 }
 
 .glass-card {
@@ -68,7 +61,7 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 24px;
-    padding: 3rem 2rem;
+    padding: 2.5rem 2rem;
     color: white;
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -76,6 +69,62 @@
     flex-direction: column;
     align-items: center;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    height: 100%; /* Now that HTML style is gone, we can use this in CSS with min-height logic if needed, but let's try auto first if it's simpler. Actually, flex-container usually wants height: auto. Let's use min-height: 100%. */
+    min-height: 100%;
+}
+
+@media (max-width: 768px) {
+    .glass-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .card-icon {
+        width: 60px !important;
+        height: 60px !important;
+        font-size: 2rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .card-info h2 {
+        font-size: 1.1rem !important;
+    }
+
+    .card-info p {
+        font-size: 0.85rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    .exam-item {
+        padding: 0.75rem !important;
+    }
+
+    .exam-name {
+        font-size: 0.85rem !important;
+        white-space: normal !important;
+        word-break: break-word;
+    }
+
+    .exam-header-row {
+        align-items: flex-start !important;
+    }
+
+    .exam-meta {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.3rem !important;
+    }
+
+    .exam-start-btn {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.7rem !important;
+        align-self: flex-start !important;
+        margin-top: 0.3rem !important;
+    }
+
+    .card-action {
+        padding: 0.6rem 1.2rem !important;
+        font-size: 0.7rem !important;
+    }
 }
 
 .glass-card:hover {
@@ -86,16 +135,17 @@
 }
 
 .card-icon {
-    font-size: 4rem;
-    margin-bottom: 1.5rem;
+    font-size: 3.5rem;
+    margin-bottom: 1.2rem;
     background: rgba(255, 255, 255, 0.2);
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     transition: all 0.3s ease;
+    flex-shrink: 0;
 }
 
 .glass-card:hover .card-icon {
@@ -164,3 +214,206 @@
     border-color: rgba(255, 255, 255, 0.4);
     transform: scale(1.05);
 }
+
+/* Mini Exam Cards Grid - 2 columns */
+.exam-mini-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    width: 100%;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.exam-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.exam-mini-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 60px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.exam-mini-card:hover {
+    transform: translateX(5px);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.card-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0; 
+}
+
+.exam-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.exam-info-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.exam-mini-name {
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.exam-status-badge {
+    font-size: 0.65rem;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+.card-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.exam-specs {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+}
+
+.spec-item {
+    font-size: 0.7rem;
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.spec-item.score {
+    background: rgba(74, 222, 128, 0.2);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.spec-item .value {
+    font-weight: 700;
+}
+
+.spec-item .percent {
+    opacity: 0.7;
+    margin-left: 2px;
+}
+
+/* Status variants */
+.status-completed {
+    background: rgba(74, 222, 128, 0.1);
+}
+.status-completed .exam-icon-wrapper { color: #4ade80; }
+.status-completed .exam-status-badge { color: #4ade80; opacity: 1; }
+
+.status-pending {
+    background: rgba(251, 191, 36, 0.1);
+}
+.status-pending .exam-icon-wrapper { color: #fbbf24; }
+.status-pending .exam-status-badge { color: #fbbf24; opacity: 1; }
+
+.status-inprogress {
+    background: rgba(96, 165, 250, 0.1);
+}
+.status-inprogress .exam-icon-wrapper { color: #60a5fa; }
+.status-inprogress .exam-status-badge { color: #60a5fa; opacity: 1; }
+
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+}
+
+.exam-start-btn {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.8rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.exam-start-btn:not(.btn-disabled):hover {
+    background: white;
+    color: #764ba2;
+    transform: scale(1.02);
+}
+
+@media (max-width: 1200px) {
+    .exam-mini-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .exam-mini-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem;
+        gap: 12px;
+    }
+
+    .card-right {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .exam-specs {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .spec-item {
+        flex: 1;
+        justify-content: center;
+        display: flex;
+        font-size: 0.65rem;
+    }
+}
+
+:host ::ng-deep .ant-row.selection-grid.ant-row-center {
+    margin: 0 !important;
+}

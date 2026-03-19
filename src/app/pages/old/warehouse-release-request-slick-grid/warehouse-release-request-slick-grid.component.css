@@ -77,6 +77,8 @@
 
   .grid-container {
     margin-top: 1rem;
+    height: calc(100vh - 210px) !important;
+    width: 100% !important;
 
     ::ng-deep {
       .ag-header-cell {
@@ -93,6 +95,16 @@
       }
     }
   }
+}
+
+/* nz-spin height fix: đảm bảo nz-spin và các phần tử con chiếm 100% chiều cao */
+:host ::ng-deep .grid-container nz-spin,
+:host ::ng-deep .grid-container .ant-spin-nested-loading,
+:host ::ng-deep .grid-container .ant-spin-container,
+:host ::ng-deep .grid-container angular-slickgrid,
+:host ::ng-deep .grid-container .slickgrid-container,
+:host ::ng-deep .grid-container .gridPane {
+  height: 100% !important;
 }
 
 .modal-footer {
@@ -130,9 +142,6 @@
 }
 
 /* SlickGrid Styles */
-#gridContainer {
-  height: 73.8vh;
-}
 
 ::ng-deep .slick-header-column {
   font-weight: bold;

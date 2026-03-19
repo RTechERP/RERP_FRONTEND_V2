@@ -162,18 +162,13 @@ export class HistoryProductRtcComponent
     this.isAdminDemo = ID_ADMIN_DEMO_LIST.includes(this.appUserService.id ?? 0);
   }
 
-  ngOnInit(): void {
-    this.loadMenu();
-    this.route.queryParams.subscribe((params) => {
-      console.log('params', params['warehouseID']);
-
-      this.warehouseID = params['warehouseID'] || 1;
-      console.log('warehouseID', this.warehouseID);
-
-      this.warehouseType = params['warehouseType'] || 1;
-    });
-
-    this.gridId += `${this.warehouseID}-${this.warehouseType}-${crypto.randomUUID()}`;
+    ngOnInit(): void {
+        this.loadMenu();
+        this.route.queryParams.subscribe((params) => {
+            this.warehouseID = params['warehouseID'] || 1;
+            this.warehouseType = params['warehouseType'] || 0;
+        });
+        this.gridId += `${this.warehouseID}-${this.warehouseType}-${crypto.randomUUID()}`;
 
     this.loadDate();
     this.loadEmployee();
@@ -713,33 +708,32 @@ export class HistoryProductRtcComponent
     });
   }
 
-  loadData() {
-    this.isLoading = true;
-
-    // Single API call with large pageSize to load all data at once
-    const params = {
-      keyWords: this.keyWords?.trim() || '',
-      dateStart: this.dateStart
-        ? this.borrowService.formatDateVN(new Date(this.dateStart as any))
-        : '',
-      dateEnd: this.dateEnd
-        ? this.borrowService.formatDateVN(new Date(this.dateEnd as any))
-        : '',
-      warehouseID: this.warehouseID ?? 0,
-      userID: this.userID ?? 0,
-      status:
-        this.selectedStatus && this.selectedStatus.length > 0
-          ? this.selectedStatus.join(',')
-          : '1',
-      isDeleted: 0,
-      warehouseType: this.warehouseType ?? 1,
-      page: 1,
-      size: 9999999, // Load all data in one call
-    };
-
-    const sub = this.borrowService.getProductHistory(params).subscribe({
-      next: (response: any) => {
-        const data = response.data || [];
+    loadData() {
+        this.isLoading = true;
+        // Single API call with large pageSize to load all data at once
+        const params = {
+            keyWords: this.keyWords?.trim() || '',
+            dateStart: this.dateStart
+                ? this.borrowService.formatDateVN(new Date(this.dateStart as any))
+                : '',
+            dateEnd: this.dateEnd
+                ? this.borrowService.formatDateVN(new Date(this.dateEnd as any))
+                : '',
+            warehouseID: this.warehouseID ?? 0,
+            userID: this.userID ?? 0,
+            status:
+                this.selectedStatus && this.selectedStatus.length > 0
+                    ? this.selectedStatus.join(',')
+                    : '1',
+            isDeleted: 0,
+            //warehouseType: this.warehouseType ?? 0,
+            warehouseType: 0,
+            page: 1,
+            size: 9999999, // Load all data in one call
+        };
+        const sub = this.borrowService.getProductHistory(params).subscribe({
+            next: (response: any) => {
+                const data = response.data || [];
 
         // Map data with unique id for SlickGrid
         // Ensure each item has a unique id (handle duplicate IDs)

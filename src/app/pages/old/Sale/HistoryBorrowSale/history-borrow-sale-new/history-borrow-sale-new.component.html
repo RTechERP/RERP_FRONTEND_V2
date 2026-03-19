@@ -5,7 +5,7 @@
   <div
     class="card-header bg-white p-0 history-borrow-sale-new-card-header history-borrow-sale-new-bg-white history-borrow-sale-new-p-0"
   >
-    <p-menubar [model]="menuItems">
+    <p-menubar [model]="menuItems" class="p-1">
       <ng-template #end>
         <div
           class="d-flex gap-2 align-items-center history-borrow-sale-new-d-flex history-borrow-sale-new-gap-2 history-borrow-sale-new-align-items-center"
@@ -97,6 +97,7 @@
             [(ngModel)]="searchParams.status"
             name="status"
             (ngModelChange)="onStatusChange($event)"
+            style="width: 180px"
           >
             <nz-option
               *ngFor="let item of cbbStatus"
@@ -222,3 +223,30 @@
     </form>
   </div>
 </ng-template>
+
+<!-- Modal Gia hạn -->
+<nz-modal
+  [(nzVisible)]="extendModalVisible"
+  nzTitle="Gia hạn ngày trả"
+  [nzOkText]="'Xác nhận'"
+  [nzCancelText]="'Hủy'"
+  (nzOnOk)="submitExtend()"
+  (nzOnCancel)="extendModalVisible = false"
+  [nzWidth]="360"
+>
+  <ng-container *nzModalContent>
+    <div class="d-flex flex-column gap-2 px-2 py-1">
+      <label class="fs-12 fw-semibold"
+        >Chọn ngày gia hạn <span class="text-danger">(*)</span></label
+      >
+      <nz-date-picker
+        [(ngModel)]="extendDate"
+        [nzFormat]="'dd/MM/yyyy'"
+        [nzDisabledDate]="disabledExtendDate"
+        [nzShowToday]="false"
+        nzSize="default"
+        class="w-100"
+      ></nz-date-picker>
+    </div>
+  </ng-container>
+</nz-modal>

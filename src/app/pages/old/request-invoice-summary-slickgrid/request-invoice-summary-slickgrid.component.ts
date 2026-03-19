@@ -194,6 +194,13 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 }
             },
             {
+                label: 'Tải file',
+                icon: 'fa-solid fa-download fa-lg text-primary',
+                command: () => {
+                    this.downloadBatchFiles();
+                }
+            },
+            {
                 label: 'Quản lý trạng thái',
                 icon: 'fa-solid fa-list-check fa-lg text-warning',
 
@@ -418,6 +425,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             { key: 'InvoiceNumber', width: 20 },
             { key: 'InvoiceDate', width: 15 },
             { key: 'PONumber', width: 20 },
+            { key: 'UnitPrice', width: 20 },
+            { key: 'IntoMoney', width: 20 },
             { key: 'POCode', width: 20 },
             { key: 'RequestDate', width: 15 },
             { key: 'DateRequestImport', width: 15 },
@@ -429,13 +438,13 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         ];
 
         // Add Band Row (Row 1)
-        const bandValues = new Array(25).fill('');
+        const bandValues = new Array(27).fill('');
         bandValues.push('Thông tin đầu vào');
         const bandRow = worksheet.addRow(bandValues);
 
         // Merge cells for Band
-        worksheet.mergeCells('A1:Y1');
-        worksheet.mergeCells('Z1:AF1');
+        worksheet.mergeCells('A1:AA1');
+        worksheet.mergeCells('AB1:AH1');
 
         // Add Header Row (Row 2)
         const headerRow = worksheet.addRow([
@@ -443,7 +452,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             'Lý do yêu cầu bổ sung', 'Người yêu cầu', 'Khách hàng', 'Địa chỉ', 'Công ty bán',
             'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã theo khách', 'Tên sản phẩm',
             'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (Chi tiết)',
-            'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Mã PO',
+            'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Đơn giá trước VAT', 'Tổng tiền trước VAT', 'Mã PO',
             'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK', 'Công ty nhập'
         ]);
 
@@ -508,6 +517,8 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 InvoiceNumber: item.InvoiceNumber,
                 InvoiceDate: item.InvoiceDate ? DateTime.fromISO(item.InvoiceDate).toFormat('dd/MM/yyyy') : '',
                 PONumber: item.PONumber,
+                UnitPrice: item.UnitPrice,
+                IntoMoney: item.IntoMoney,
                 POCode: item.POCode,
                 RequestDate: item.RequestDate ? DateTime.fromISO(item.RequestDate).toFormat('dd/MM/yyyy') : '',
                 DateRequestImport: item.DateRequestImport ? DateTime.fromISO(item.DateRequestImport).toFormat('dd/MM/yyyy') : '',
@@ -549,6 +560,58 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             a.download = 'TongHopYeuCauXuatHoaDon.xlsx';
             a.click();
             window.URL.revokeObjectURL(url);
+        });
+    }
+
+    downloadBatchFiles(): void {
+        if (!this.angularGrid || !this.angularGrid.slickGrid) {
+            return;
+        }
+
+        const selectedRows = this.angularGrid.slickGrid.getSelectedRows();
+        if (!selectedRows || selectedRows.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một dòng để tải file!');
+            return;
+        }
+
+        const payload = selectedRows.map((index: number) => {
+            const item = this.angularGrid.dataView.getItem(index);
+
+            let companyText = item.Name || '';
+            companyText = companyText.replace(/[\s,]+$/, '');
+
+            return {
+                RequestInvoiceID: item.RequestInvoiceID ?? item.ID,
+                POKHId: item.POKHID ?? item.PokhId ?? item.POKHId,
+                CompanyText: companyText,
+                InvoiceNumber: item.InvoiceNumber || ''
+            };
+        });
+
+        // get unique payload by RequestInvoiceID
+        const uniquePayload = Array.from(new Map(payload.map((item: any) => [item.RequestInvoiceID, item])).values());
+
+        if (uniquePayload.length === 0) {
+            this.notification.warning('Thông báo', 'Không tìm thấy dữ liệu hợp lệ trong các dòng đã chọn!');
+            return;
+        }
+
+        const loadingMsg = this.message.loading('Đang xử lý tải xuống hàng loạt...', { nzDuration: 0 }).messageId;
+
+        this.requestInvoiceService.downloadBatchFiles(uniquePayload).subscribe({
+            next: (response) => {
+                this.message.remove(loadingMsg);
+                if (response && response.status === 1) {
+                    this.notification.success('Thông báo', 'Đã lưu file thành công!');
+                } else {
+                    this.notification.error('Thông báo', response?.message || 'Có lỗi xảy ra!');
+                }
+            },
+            error: (error) => {
+                this.message.remove(loadingMsg);
+                console.error('Lỗi khi tải file hàng loạt:', error);
+                this.notification.error('Thông báo', 'Lỗi kết nối khi tải file hàng loạt!');
+            }
         });
     }
 
@@ -1158,9 +1221,14 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             enableFiltering: true,
             enableRowSelection: true,
             rowSelectionOptions: {
-                selectActiveRow: true,
+                selectActiveRow: false,
             },
-            multiSelect: false,
+            enableCheckboxSelector: true,
+            checkboxSelector: {
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: false,
+            },
+            multiSelect: true,
             rowHeight: 35,
             headerRowHeight: 40,
             enablePagination: false,

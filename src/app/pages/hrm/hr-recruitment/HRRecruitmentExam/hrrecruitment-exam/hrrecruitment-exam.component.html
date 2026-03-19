@@ -1,0 +1,297 @@
+﻿<ng-container class="w-100">
+    <div class="card border-0 rounded-0 h-100">
+
+
+        <!-- ===== Filter bar ===== -->
+        <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar">
+            <form nz-form class="mobile-filter-form">
+                <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+                    <!-- Phòng ban -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="7">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
+                            <nz-form-control>
+                                <nz-select [(ngModel)]="departmentId" name="departmentId" nzShowSearch nzAllowClear
+                                    nzSize="small" nzPlaceHolder="Chọn phòng ban" class="w-100"
+                                    nzDropdownClassName="type-select-dropdown" style="font-size: 0.75rem !important;"
+                                    nzSize="small" class="fs-12" (ngModelChange)="onDepartmentChange()">
+                                    <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
+                                        [nzLabel]="item.Name">
+                                    </nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Đợt tuyển dụng -->
+                    <!-- <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="9">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Vị trí tuyển dụng</nz-form-label>
+                            <nz-form-control>
+                                <nz-select [(ngModel)]="recruitmentBatchId" name="recruitmentBatchId" nzShowSearch
+                                    nzAllowClear nzSize="small" nzPlaceHolder="Chọn đợt tuyển dụng" class="w-100"
+                                    nzDropdownClassName="type-select-dropdown" style="font-size: 0.75rem !important;"
+                                    nzSize="small" class="fs-12">
+                                    <nz-option *ngFor="let item of recruitmentBatches" [nzValue]="item.ID"
+                                        [nzLabel]="item.ID === 0 ? 'Tất cả' : (item.Code + ' - ' + item.PositionName)">
+                                    </nz-option>
+                                </nz-select> 
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col> -->
+
+                    <!-- Từ khóa và nút tìm kiếm -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6" [nzXl]="7">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
+                            <nz-form-control>
+                                <div class="d-flex gap-1">
+                                    <input nz-input placeholder="Nhập từ khóa..." nzSize="small" [(ngModel)]="keyword"
+                                        name="keyword" class="flex-grow-1" (keyup.enter)="searchExams()" />
+                                    <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
+                                        (click)="searchExams()">
+                                        <nz-icon nzType="search" />
+                                    </button>
+                                </div>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+            </form>
+        </div>
+
+        <!-- ===== Nội dung chính: 3 bảng ===== -->
+        <div class="card-body p-0" [class.with-search-bar]="shouldShowSearchBar"
+            [class.without-search-bar]="!shouldShowSearchBar">
+            <!-- Splitter ngang: Trái (Đề thi) | Phải (Câu hỏi + Đáp án) -->
+            <nz-splitter style="height: 100%;">
+                <!-- ========== BẢNG BÊN TRÁI: ĐỀ THI ========== -->
+                <nz-splitter-panel nzDefaultSize="40%" nzMin="25%" nzMax="60%">
+                    <div class="panel-content">
+                        <!-- Tiêu đề -->
+                        <div class="panel-header">
+                            <span class="panel-title">ĐỀ THI ỨNG TUYỂN</span>
+                        </div>
+                        <!-- Toolbar đề thi -->
+                        <div class="toolbar-menubar">
+                            <p-menubar [model]="menuBarsExam"
+                                [style]="{'border': 'none', 'padding': '0', 'background': 'transparent'}"></p-menubar>
+                        </div>
+                        <!-- Grid đề thi -->
+                        <div class="grid-container" id="grid-exam">
+                            <nz-spin [nzSpinning]="isLoadingExam">
+                                <p-table #dtExam [value]="datasetExam" selectionMode="single"
+                                    [(selection)]="selectedExam" dataKey="ID" rowGroupMode="subheader"
+                                    groupRowsBy="DepartmentName" sortField="DepartmentName" sortMode="single"
+                                    [scrollable]="false" scrollHeight="flex" [resizableColumns]="true"
+                                    columnResizeMode="expand"
+                                    [globalFilterFields]="['CodeExam', 'NameExam', 'ExamTypeText', 'CreatedBy']"
+                                    [tableStyle]="{ 'width': '100%', 'table-layout': 'auto'}" styleClass="w-100"
+                                    (onRowSelect)="onExamRowSelect($event)" (onRowUnselect)="onExamRowUnselect($event)"
+                                    styleClass="p-datatable-sm p-datatable-gridlines w-100">
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th pResizableColumn>Mã đề thi</th>
+                                            <th pResizableColumn>Tên đề thi</th>
+                                            <th pResizableColumn>Điểm cần đạt (%)</th>
+                                            <th pResizableColumn>Thời gian (Phút)</th>
+                                            <th pResizableColumn>Loại đề</th>
+                                        </tr>
+                                        <!-- Filter row -->
+                                        <tr>
+                                            <th>
+                                                <p-columnFilter type="text" field="CodeExam" placeholder="Tìm mã..."
+                                                    filterOn="input"></p-columnFilter>
+                                            </th>
+                                            <th>
+                                                <p-columnFilter type="text" field="NameExam" placeholder="Tìm tên..."
+                                                    filterOn="input"></p-columnFilter>
+                                            </th>
+                                            <th>
+                                            </th>
+                                            <th>
+                                            </th>
+                                            <th>
+                                            </th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="groupheader" let-exam>
+                                        <tr pRowGroupHeader>
+                                            <td colspan="7">
+                                                <span class="fw-bold" style="color:#1d39c4;">Phòng ban:
+                                                    {{exam.DepartmentName || '(Chưa phân)'}}</span>
+                                            </td>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="body" let-exam>
+                                        <tr [pSelectableRow]="exam" [style.cursor]="'pointer'">
+                                            <td>{{exam.CodeExam}}</td>
+                                            <td>
+                                                <div style="word-break:break-word;white-space:normal;">
+                                                    {{exam.NameExam}}</div>
+                                            </td>
+                                            <td class="text-right">{{exam.Goal}}</td>
+                                            <td class="text-right">{{exam.TestTime}}</td>
+                                            <td>{{exam.ExamTypeText}}</td>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="emptymessage">
+                                        <tr>
+                                            <td colspan="7" class="text-center p-4">Không có dữ liệu</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </nz-spin>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+
+                <!-- ========== BẢNG BÊN PHẢI: CÂU HỎI + ĐÁP ÁN ========== -->
+                <nz-splitter-panel nzDefaultSize="60%" nzMin="40%" nzMax="75%">
+                    <!-- Splitter dọc: Trên (Câu hỏi) | Dưới (Đáp án đúng) -->
+                    <nz-splitter nzLayout="vertical" style="height: 100%;">
+                        <!-- ===== BẢNG CÂU HỎI ===== -->
+                        <nz-splitter-panel nzDefaultSize="60%" nzMin="30%" nzMax="80%">
+                            <div class="panel-content">
+                                <!-- Tiêu đề -->
+                                <div class="panel-header">
+                                    <span class="panel-title">CÂU HỎI</span>
+                                </div>
+                                <!-- Toolbar câu hỏi -->
+                                <div class="toolbar-menubar">
+                                    <p-menubar [model]="menuBarsQuestion"
+                                        [style]="{'border': 'none', 'padding': '0', 'background': 'transparent'}"></p-menubar>
+                                </div>
+                                <!-- Grid câu hỏi -->
+                                <div class="grid-container" id="grid-question">
+                                    <nz-spin [nzSpinning]="isLoadingQuestion">
+                                        <p-table #dtQuestion [value]="datasetQuestion" [(selection)]="selectedQuestions"
+                                            selectionMode="multiple" dataKey="ID" [scrollable]="true"
+                                            scrollHeight="flex" [resizableColumns]="true" columnResizeMode="expand"
+                                            [globalFilterFields]="['QuestionText', 'EssayGuidance']"
+                                            (onRowSelect)="onQuestionRowSelect($event)"
+                                            styleClass="p-datatable-sm p-datatable-gridlines w-100 h-100">
+                                            <ng-template pTemplate="header">
+                                                <tr>
+                                                    <th style="width: 40px">
+                                                        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                                                    </th>
+                                                    <th pResizableColumn class="text-center" style="width: 70px">STT
+                                                    </th>
+                                                    <th pResizableColumn style="width: 350px">Nội dung câu hỏi</th>
+                                                    <th pResizableColumn class="text-right" style="width: 70px">Điểm
+                                                    </th>
+                                                    <!-- <th pResizableColumn style="width: 100px">Ảnh</th> -->
+                                                    <th pResizableColumn style="width: 120px"
+                                                        *ngFor="let col of dynamicAnswerCols">
+                                                        {{col.header}}</th>
+                                                    <th pResizableColumn>Đáp án số/ Hướng dẫn chấm</th>
+                                                </tr>
+                                                <!-- Filter row -->
+                                                <tr>
+                                                    <th></th>
+                                                    <th><p-columnFilter type="text" field="STT"
+                                                            filterOn="input"></p-columnFilter></th>
+                                                    <th>
+                                                        <p-columnFilter type="text" field="QuestionText"
+                                                            placeholder="Tìm nội dung..."
+                                                            filterOn="input"></p-columnFilter>
+                                                    </th>
+                                                    <th></th>
+                                                    <!-- <th>
+                                                        <p-columnFilter type="text" field="Image"
+                                                            placeholder="Tìm ảnh..." filterOn="input"></p-columnFilter>
+                                                    </th> -->
+                                                    <th *ngFor="let col of dynamicAnswerCols"></th>
+                                                    <th></th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="body" let-q>
+                                                <tr [pSelectableRow]="q" [style.cursor]="'pointer'"
+                                                    (click)="onQuestionRowClick(q)">
+                                                    <td (click)="$event.stopPropagation()"><p-tableCheckbox
+                                                            [value]="q"></p-tableCheckbox></td>
+                                                    <td class="text-center">{{q.STT}}</td>
+                                                    <td>
+                                                        <div style="word-break:break-word;white-space:normal;"
+                                                            [innerHTML]="q.QuestionText"></div>
+                                                    </td>
+                                                    <td class="text-right">{{q.Point}}</td>
+                                                    <!-- <td (dblclick)="downloadFileFromGrid(q.Image)"
+                                                        [style.cursor]="q.Image ? 'pointer' : 'default'">
+                                                        <div style="word-break:break-word;white-space:normal;"
+                                                            [title]="q.Image">{{q.Image}}</div>
+                                                    </td> -->
+                                                    <td *ngFor="let col of dynamicAnswerCols">
+                                                        <div style="word-break:break-word;white-space:normal;"
+                                                            [innerHTML]="q[col.field]"></div>
+                                                    </td>
+                                                    <td>
+                                                        <div style="word-break:break-word;white-space:normal;"
+                                                            [innerHTML]="q.EssayGuidance"></div>
+                                                    </td>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="emptymessage">
+                                                <tr>
+                                                    <td [attr.colspan]="6 + dynamicAnswerCols.length"
+                                                        class="text-center p-4">Không có dữ liệu</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </nz-spin>
+                                </div>
+                            </div>
+                        </nz-splitter-panel>
+
+                        <!-- ===== BẢNG ĐÁP ÁN ĐÚNG ===== -->
+                        <nz-splitter-panel nzDefaultSize="40%" nzMin="20%" nzMax="70%">
+                            <div class="panel-content">
+                                <!-- Tiêu đề -->
+                                <div class="panel-header">
+                                    <span class="panel-title">ĐÁP ÁN ĐÚNG</span>
+                                </div>
+                                <!-- Grid đáp án đúng -->
+                                <div class="grid-container" id="grid-right-answer">
+                                    <nz-spin [nzSpinning]="isLoadingRightAnswer">
+                                        <p-table #dtAnswer [value]="datasetRightAnswer" dataKey="ID" [scrollable]="true"
+                                            scrollHeight="flex" [resizableColumns]="true" columnResizeMode="expand"
+                                            [globalFilterFields]="['AnswerCaption', 'AnswersText']"
+                                            styleClass="p-datatable-sm p-datatable-gridlines w-100 h-100">
+                                            <ng-template pTemplate="header">
+                                                <tr>
+                                                    <th pResizableColumn class="text-center">Đáp án</th>
+                                                    <th pResizableColumn>Nội dung đáp án</th>
+                                                    <th pResizableColumn class="text-center">Ảnh</th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="body" let-ans>
+                                                <tr>
+                                                    <td class="text-center">{{ans.AnswerCaption}}</td>
+                                                    <td>
+                                                        <div style="word-break:break-word;white-space:normal;"
+                                                            [innerHTML]="ans.AnswersText"></div>
+                                                    </td>
+                                                    <td (dblclick)="downloadFileFromGrid(ans.ImageLink)"
+                                                        [style.cursor]="ans.ImageLink ? 'pointer' : 'default'">
+                                                        <div style="word-break:break-word;white-space:normal;"
+                                                            [title]="ans.ImageLink">{{ans.ImageLink}}</div>
+                                                    </td>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="emptymessage">
+                                                <tr>
+                                                    <td colspan="3" class="text-center p-4">Không có dữ liệu</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </nz-spin>
+                                </div>
+                            </div>
+                        </nz-splitter-panel>
+                    </nz-splitter>
+                </nz-splitter-panel>
+            </nz-splitter>
+        </div>
+    </div>
+</ng-container>

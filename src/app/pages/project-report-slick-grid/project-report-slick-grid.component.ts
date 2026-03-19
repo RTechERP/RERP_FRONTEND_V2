@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input, OnDestroy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -15,15 +15,9 @@ import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
-import {
-  AngularGridInstance,
-  AngularSlickgridModule,
-  Column,
-  Filters,
-  GridOption,
-  Formatter,
-  MultipleSelectOption,
-} from 'angular-slickgrid';
+import { Table, TableModule } from 'primeng/table';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { InputTextModule } from 'primeng/inputtext';
 import { ProjectService } from '../project/project-service/project.service';
 import { ProjectChangeComponent } from '../project/project-change/project-change.component';
 import { EmployeeService } from '../hrm/employee/employee-service/employee.service';
@@ -46,12 +40,16 @@ import { EmployeeService } from '../hrm/employee/employee-service/employee.servi
     NzModalModule,
     NzFormModule,
     CommonModule,
-    AngularSlickgridModule,
+    TableModule,
+    MultiSelectModule,
+    InputTextModule,
   ],
 })
 export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() projectId: number = 0;
   @Input() teamId: number = 0;
+
+  @ViewChild('dt') dt!: Table;
 
   constructor(
     private projectService: ProjectService,
@@ -61,12 +59,16 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
     public activeModal: NgbActiveModal
   ) { }
 
-  // SlickGrid variables
-  angularGrid!: AngularGridInstance;
-  columnDefinitions: Column[] = [];
-  gridOptions: GridOption = {};
+  // Table data
   dataset: any[] = [];
   isLoading = false;
+  selectedRows: any[] = [];
+
+  // Filter options cho multiselect
+  employeeCodeOptions: any[] = [];
+  fullNameOptions: any[] = [];
+  departmentNameOptions: any[] = [];
+  teamNameOptions: any[] = [];
 
   // Data variables
   dataProject: any[] = [];
@@ -75,6 +77,11 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   keyword: string = '';
   totalTime: number = 0;
   projectCode: string = '';
+
+  // Column definitions cho PrimeNG
+  columns: any[] = [];
+  frozenCols: any[] = [];
+  scrollableCols: any[] = [];
 
   // Biến lưu tổng từ tất cả dữ liệu
   totalAllData: {
@@ -90,7 +97,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
     };
 
   ngOnInit() {
-    this.initGrid();
+    this.initColumns();
     this.getProject();
     this.getTeam();
   }
@@ -103,42 +110,56 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
 
   ngOnDestroy() { }
 
-  //#region Formatters
-  // Date formatter
-  dateFormatter: Formatter = (_row, _cell, value) => {
+  //#region Column Initialization
+  initColumns() {
+    this.frozenCols = [
+      { field: 'EmployeeCode', header: 'Mã nhân viên', width: '100px', type: 'multiselect', align: 'center' },
+      { field: 'FullName', header: 'Họ tên', width: '150px', type: 'multiselect', align: 'left' },
+      { field: 'DepartmentName', header: 'Phòng ban', width: '120px', type: 'multiselect', align: 'left' },
+      { field: 'TeamName', header: 'Team', width: '100px', type: 'multiselect', align: 'left' },
+      { field: 'DateReport', header: 'Ngày', width: '100px', type: 'date', align: 'center' },
+    ];
+
+    this.scrollableCols = [
+      { field: 'Content', header: 'Nội dung', width: '350px', type: 'text', align: 'left', wrap: true },
+      { field: 'TimeReality', header: 'Số giờ', width: '80px', type: 'number', align: 'right' },
+      { field: 'Ratio', header: 'Hệ số', width: '70px', type: 'numberDefault', align: 'right' },
+      { field: 'TotalHours', header: 'Tổng số giờ', width: '100px', type: 'numberDefault', align: 'right' },
+      { field: 'Results', header: 'Kết quả', width: '300px', type: 'text', align: 'left', wrap: true },
+      { field: 'Problem', header: 'Vấn đề phát sinh', width: '200px', type: 'text', align: 'left', wrap: true },
+      { field: 'ProblemSolve', header: 'Giải pháp', width: '200px', type: 'text', align: 'left', wrap: true },
+      { field: 'Backlog', header: 'Tồn đọng', width: '200px', type: 'text', align: 'left', wrap: true },
+      { field: 'PlanNextDay', header: 'Kế hoạch ngày tiếp theo', width: '250px', type: 'text', align: 'left', wrap: true },
+      { field: 'Note', header: 'Ghi chú', width: '200px', type: 'text', align: 'left', wrap: true },
+    ];
+
+    this.columns = [...this.frozenCols, ...this.scrollableCols];
+  }
+  //#endregion
+
+  //#region Formatters (as helper methods)
+  formatDate(value: any): string {
     if (!value) return '';
     const dateTime = DateTime.fromISO(value);
     return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-  };
+  }
 
-  // Number formatter với 2 chữ số thập phân
-  numberFormatter: Formatter = (_row, _cell, value) => {
+  formatNumber(value: any): string {
     if (value === null || value === undefined || value === '') return '';
     const num = Number(value);
     if (isNaN(num)) return '';
     return num.toFixed(2);
-  };
+  }
 
-  // Number formatter với default 0.00
-  numberFormatterDefault: Formatter = (_row, _cell, value) => {
+  formatNumberDefault(value: any): string {
     if (value === null || value === undefined || value === '') return '0.00';
     const num = Number(value);
     if (isNaN(num)) return '0.00';
     return num.toFixed(2);
-  };
+  }
 
-  // Text formatter với wrap và linkify
-  textWrapFormatter: Formatter = (_row, _cell, value) => {
-    if (!value || (typeof value === 'string' && value.trim() === '')) return '';
-    const text = String(value);
-    // Linkify URLs
-    const linkedText = this.linkifyText(text);
-    return `<div class="cell-wrap-content" title="${text.replace(/"/g, '&quot;')}">${linkedText}</div>`;
-  };
-  //#endregion
-
-  //#region Chuyển đổi URLs thành clickable links
-  private linkifyText(text: string): string {
+  linkifyText(text: string): string {
+    if (!text || (typeof text === 'string' && text.trim() === '')) return '';
     const urlPattern = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^\s]*)/gi;
 
     const escapeHtml = (str: string): string => {
@@ -171,244 +192,72 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
 
     return parts.join('');
   }
-  //#endregion
 
-  //#region Grid Initialization
-  initGrid() {
-    this.columnDefinitions = [
-      {
-        id: 'EmployeeCode',
-        name: 'Mã nhân viên',
-        field: 'EmployeeCode',
-        width: 100,
-        sortable: true,
-        filterable: true,
-        cssClass: 'text-center',
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
-      },
-      {
-        id: 'FullName',
-        name: 'Họ tên',
-        field: 'FullName',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
-      },
-      {
-        id: 'DepartmentName',
-        name: 'Phòng ban',
-        field: 'DepartmentName',
-        width: 120,
-        sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
-      },
-      {
-        id: 'TeamName',
-        name: 'Team',
-        field: 'TeamName',
-        width: 100,
-        sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
-      },
-      {
-        id: 'DateReport',
-        name: 'Ngày',
-        field: 'DateReport',
-        width: 100,
-        sortable: true,
-        filterable: true,
-        cssClass: 'text-center',
-        formatter: this.dateFormatter,
-        filter: { model: Filters['compoundDate'] },
-      },
-      {
-        id: 'Content',
-        name: 'Nội dung',
-        field: 'Content',
-        width: 350,
-        sortable: true,
-        filterable: true,
-        cssClass: 'cell-wrap',
-        formatter: this.textWrapFormatter,
-      },
-      {
-        id: 'TimeReality',
-        name: 'Số giờ',
-        field: 'TimeReality',
-        width: 80,
-        sortable: true,
-        filterable: true,
-        cssClass: 'text-right',
-        formatter: this.numberFormatter,
-      },
-      {
-        id: 'Ratio',
-        name: 'Hệ số',
-        field: 'Ratio',
-        width: 70,
-        sortable: true,
-        filterable: true,
-        cssClass: 'text-right',
-        formatter: this.numberFormatterDefault,
-      },
-      {
-        id: 'TotalHours',
-        name: 'Tổng số giờ',
-        field: 'TotalHours',
-        width: 100,
-        sortable: true,
-        filterable: true,
-        cssClass: 'text-right',
-        formatter: this.numberFormatterDefault,
-      },
-      {
-        id: 'Results',
-        name: 'Kết quả',
-        field: 'Results',
-        width: 300,
-        sortable: true,
-        filterable: true,
-        cssClass: 'cell-wrap',
-        formatter: this.textWrapFormatter,
-      },
-      {
-        id: 'Problem',
-        name: 'Vấn đề phát sinh',
-        field: 'Problem',
-        width: 200,
-        sortable: true,
-        filterable: true,
-        cssClass: 'cell-wrap',
-        formatter: this.textWrapFormatter,
-      },
-      {
-        id: 'ProblemSolve',
-        name: 'Giải pháp',
-        field: 'ProblemSolve',
-        width: 200,
-        sortable: true,
-        filterable: true,
-        cssClass: 'cell-wrap',
-        formatter: this.textWrapFormatter,
-      },
-      {
-        id: 'Backlog',
-        name: 'Tồn đọng',
-        field: 'Backlog',
-        width: 200,
-        sortable: true,
-        filterable: true,
-        cssClass: 'cell-wrap',
-        formatter: this.textWrapFormatter,
-      },
-      {
-        id: 'PlanNextDay',
-        name: 'Kế hoạch ngày tiếp theo',
-        field: 'PlanNextDay',
-        width: 250,
-        sortable: true,
-        filterable: true,
-        cssClass: 'cell-wrap',
-        formatter: this.textWrapFormatter,
-      },
-      {
-        id: 'Note',
-        name: 'Ghi chú',
-        field: 'Note',
-        width: 200,
-        sortable: true,
-        filterable: true,
-        cssClass: 'cell-wrap',
-        formatter: this.textWrapFormatter,
-        //filter: { model: Filters['compoundInputText'] },
-      },
-    ];
-
-    this.gridOptions = {
-      autoResize: {
-        container: '#grid-container-report',
-        calculateAvailableSizeBy: 'container',
-      },
-      enableAutoResize: true,
-      gridWidth: '100%',
-      forceFitColumns: false,
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: true },
-      enableCellNavigation: true,
-      enableFiltering: true,
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false,
-      frozenColumn: 4, // Freeze 6 cột đầu (EmployeeCode, FullName, DepartmentName, TeamName, DateReport, Content)
-      rowHeight: 80,
-      autoHeight: false,
-      createFooterRow: true,
-      showFooterRow: true,
-      footerRowHeight: 30,
-    };
-  }
-  //#endregion
-
-  //#region Grid Events
-  angularGridReady(angularGrid: AngularGridInstance) {
-    this.angularGrid = angularGrid;
-
-    // Lắng nghe khi filter thay đổi để tính lại footer
-    if (angularGrid.dataView) {
-      angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        this.recalcFilteredTotals();
-      });
-      angularGrid.dataView.onRowsChanged.subscribe(() => {
-        this.recalcFilteredTotals();
-      });
+  getCellValue(row: any, col: any): string {
+    const value = row[col.field];
+    switch (col.type) {
+      case 'date':
+        return this.formatDate(value);
+      case 'number':
+        return this.formatNumber(value);
+      case 'numberDefault':
+        return this.formatNumberDefault(value);
+      default:
+        return value != null ? String(value) : '';
     }
   }
 
-  /** Tính lại tổng dựa trên dữ liệu đã lọc (sau khi filter) */
-  recalcFilteredTotals() {
-    if (!this.angularGrid?.dataView) return;
+  getCellHtml(row: any, col: any): string {
+    const value = row[col.field];
+    if (col.wrap && value) {
+      return this.linkifyText(String(value));
+    }
+    return this.getCellValue(row, col);
+  }
+  //#endregion
 
-    // Lấy dữ liệu đã lọc trên view
-    const filteredItems =
-      (this.angularGrid.dataView?.getFilteredItems?.() as any[]) ||
-      this.dataset;
+  //#region Filter Options
+  buildFilterOptions() {
+    this.employeeCodeOptions = this.getUniqueOptions(this.dataset, 'EmployeeCode');
+    this.fullNameOptions = this.getUniqueOptions(this.dataset, 'FullName');
+    this.departmentNameOptions = this.getUniqueOptions(this.dataset, 'DepartmentName');
+    this.teamNameOptions = this.getUniqueOptions(this.dataset, 'TeamName');
+  }
 
-    this.calculateTotals(filteredItems);
-    this.updateFooterRow();
+  getFilterOptions(field: string): any[] {
+    switch (field) {
+      case 'EmployeeCode': return this.employeeCodeOptions;
+      case 'FullName': return this.fullNameOptions;
+      case 'DepartmentName': return this.departmentNameOptions;
+      case 'TeamName': return this.teamNameOptions;
+      default: return [];
+    }
+  }
+
+  private getUniqueOptions(data: any[], field: string): any[] {
+    const map = new Map<string, string>();
+    data.forEach((row: any) => {
+      const value = row?.[field];
+      if (value !== null && value !== undefined && value !== '') {
+        const key = String(value);
+        if (!map.has(key)) {
+          map.set(key, key);
+        }
+      }
+    });
+    return Array.from(map.entries())
+      .map(([value, label]) => ({ label, value }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }
+  //#endregion
+
+  //#region Table Events
+  onTableFilter(event: any) {
+    // Recalculate totals based on filtered data
+    if (this.dt) {
+      const filteredData = this.dt.filteredValue || this.dataset;
+      this.calculateTotals(filteredData);
+    }
   }
   //#endregion
 
@@ -432,24 +281,20 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
             data = response.data.dt;
           }
 
-          // Map data với id cho SlickGrid
+          // Map data với id
           this.dataset = data.map((item: any, index: number) => ({
             ...item,
             id: item.ID || index,
           }));
 
-          // Áp dụng bộ lọc distinct cho dropdowns
-          setTimeout(() => {
-            this.applyDistinctFilters();
-          }, 0);
+          // Build filter options
+          this.buildFilterOptions();
 
           // Tính tổng
-          this.calculateTotals(data);
-          setTimeout(() => this.updateFooterRow(), 100);
+          this.calculateTotals(this.dataset);
         } else {
           this.dataset = [];
           this.resetTotals();
-          setTimeout(() => this.updateFooterRow(), 100);
         }
       },
       error: (error) => {
@@ -458,7 +303,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         this.notification.error('Lỗi', error?.message || error?.error?.message || 'Không thể tải dữ liệu danh sách báo cáo công việc!');
         this.dataset = [];
         this.resetTotals();
-        setTimeout(() => this.updateFooterRow(), 100);
       },
     });
   }
@@ -488,35 +332,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       totalDays: 0,
     };
     this.totalTime = 0;
-  }
-
-  updateFooterRow() {
-    const grid = this.angularGrid?.slickGrid;
-    if (!grid) return;
-
-    const columns = grid.getColumns();
-    columns.forEach((col: any) => {
-      const footerCell = grid.getFooterRowColumn(col.id);
-      if (!footerCell) return;
-
-      switch (col.id) {
-        case 'Content':
-          footerCell.innerHTML = `<div style="text-align:right; width: 100%">${this.totalAllData.count}</div>`;
-          break;
-        case 'TimeReality':
-          footerCell.innerHTML = `<div style="text-align:right; width: 100%">${this.totalAllData.sumTimeReality.toFixed(2)}</div>`;
-          break;
-        case 'TotalHours':
-          footerCell.innerHTML = `<div style="text-align:right; width: 100%">${this.totalAllData.sumTotalHours.toFixed(2)}</div>`;
-          break;
-        case 'Results':
-          footerCell.innerHTML = `<div style="text-align:right; width: 100%">Tổng số ngày: ${this.totalAllData.totalDays.toFixed(1)}</div>`;
-          break;
-        default:
-          footerCell.innerHTML = '';
-          break;
-      }
-    });
   }
 
   getProject() {
@@ -591,14 +406,12 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       return;
     }
 
-    // Lấy selected rows từ SlickGrid
+    // Lấy selected rows từ PrimeNG selection
     let selectedIDs: number[] = [];
-    if (this.angularGrid) {
-      const selectedRows = this.angularGrid.slickGrid?.getSelectedRows() || [];
-      selectedIDs = selectedRows.map((rowIndex: number) => {
-        const item = this.angularGrid.dataView?.getItem(rowIndex);
-        return item?.ID;
-      }).filter((id: number) => id !== undefined);
+    if (this.selectedRows && this.selectedRows.length > 0) {
+      selectedIDs = this.selectedRows
+        .map((row: any) => row.ID)
+        .filter((id: number) => id !== undefined);
     }
 
     if (selectedIDs.length <= 0) {
@@ -626,10 +439,8 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
 
   //#region Export Excel
   async exportExcel() {
-    // Lấy dữ liệu đã lọc thay vì toàn bộ dataset
-    const exportData: any[] =
-      (this.angularGrid?.dataView?.getFilteredItems?.() as any[]) ||
-      this.dataset;
+    // Lấy dữ liệu đã lọc từ PrimeNG Table
+    const exportData: any[] = this.dt?.filteredValue || this.dataset;
 
     if (!exportData || exportData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
@@ -641,12 +452,12 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       const worksheet = workbook.addWorksheet('Danh sách báo cáo công việc');
 
       // Headers
-      const headers = this.columnDefinitions.map((col) => col.name || col.id);
+      const headers = this.columns.map((col) => col.header);
       worksheet.addRow(headers);
 
       // Data rows - dùng dữ liệu đã lọc
       exportData.forEach((row: any) => {
-        const rowData = this.columnDefinitions.map((col) => {
+        const rowData = this.columns.map((col) => {
           const field = col.field as string;
           let value = row[field];
 
@@ -664,7 +475,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       });
 
       // Bottom row với tổng (đã tính theo filter)
-      const bottomRow: any[] = this.columnDefinitions.map((col) => {
+      const bottomRow: any[] = this.columns.map((col) => {
         const field = col.field as string;
         if (field === 'Content') {
           return `Số báo cáo = ${this.totalAllData.count}`;
@@ -714,7 +525,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         PlanNextDay: 40,
       };
 
-      this.columnDefinitions.forEach((col, index) => {
+      this.columns.forEach((col, index) => {
         const field = col.field as string;
         if (fixedWidths[field]) {
           const excelCol = worksheet.getColumn(index + 1);
@@ -740,7 +551,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       // Auto filter
       worksheet.autoFilter = {
         from: { row: 1, column: 1 },
-        to: { row: 1, column: this.columnDefinitions.length },
+        to: { row: 1, column: this.columns.length },
       };
 
       // Export file
@@ -769,159 +580,4 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
     }
   }
   //#endregion
-
-  private applyDistinctFilters(): void {
-    const fieldsToFilter = ['EmployeeCode', 'FullName', 'DepartmentName', 'TeamName'];
-    this.applyDistinctFiltersToGrid();
-  }
-
-  // private applyDistinctFiltersToGrid(
-  //   angularGrid: AngularGridInstance | undefined,
-  //   columnDefs: Column[],
-  //   fieldsToFilter: string[]
-  // ): void {
-  //   if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
-
-  //   const data = angularGrid.dataView.getItems();
-  //   if (!data || data.length === 0) return;
-
-  //   const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
-  //     const map = new Map<string, string>();
-  //     dataArray.forEach((row: any) => {
-  //       const value = String(row?.[field] ?? '');
-  //       if (value && !map.has(value)) {
-  //         map.set(value, value);
-  //       }
-  //     });
-  //     return Array.from(map.entries())
-  //       .map(([value, label]) => ({ value, label }))
-  //       .sort((a, b) => a.label.localeCompare(b.label));
-  //   };
-
-  //   const columns = angularGrid.slickGrid.getColumns();
-  //   if (!columns) return;
-
-  //   // Update runtime columns
-  //   columns.forEach((column: any) => {
-  //     if (column?.filter && column.filter.model === Filters['multipleSelect']) {
-  //       const field = column.field;
-  //       if (!field || !fieldsToFilter.includes(field)) return;
-  //       column.filter.collection = getUniqueValues(data, field);
-  //     }
-  //   });
-
-  //   // Update column definitions
-  //   columnDefs.forEach((colDef: any) => {
-  //     if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
-  //       const field = colDef.field;
-  //       if (!field || !fieldsToFilter.includes(field)) return;
-  //       colDef.filter.collection = getUniqueValues(data, field);
-  //     }
-  //   });
-
-  //   angularGrid.slickGrid.setColumns(columns);
-  //   angularGrid.slickGrid.invalidate();
-  //   angularGrid.slickGrid.render();
-  // }
-  applyDistinctFiltersToGrid(): void {
-    const angularGrid = this.angularGrid;
-    if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
-
-    const data = angularGrid.dataView.getItems() as any[];
-    if (!data || data.length === 0) return;
-
-    const getUniqueValues = (
-      items: any[],
-      field: string
-    ): Array<{ value: any; label: string }> => {
-      const map = new Map<string, { value: any; label: string }>();
-      items.forEach((row: any) => {
-        const value = row?.[field];
-        if (value === null || value === undefined || value === '') return;
-        const key = `${typeof value}:${String(value)}`;
-        if (!map.has(key)) {
-          map.set(key, { value, label: String(value) });
-        }
-      });
-      return Array.from(map.values()).sort((a, b) =>
-        a.label.localeCompare(b.label)
-      );
-    };
-
-    const booleanCollection = [
-      { value: true, label: 'Có' },
-      { value: false, label: 'Không' },
-    ];
-    const booleanFields = new Set([
-      'IsApprovedPurchase',
-      'IsCheckPrice',
-      'IsApprovedTBPNewCode',
-      'IsNewCode',
-      'IsApprovedTBPText',
-      'IsFix',
-    ]);
-
-    const columns = angularGrid.slickGrid.getColumns();
-    if (columns) {
-      columns.forEach((column: any) => {
-        if (
-          column.filter &&
-          column.filter.model === Filters['multipleSelect']
-        ) {
-          const field = column.field;
-          if (!field) return;
-
-          if (booleanFields.has(field)) {
-            // For boolean fields: only "Có"/"Không" without Select All
-            column.filter.collection = booleanCollection;
-            column.filter.collectionOptions = {
-              addBlankEntry: false, // Không có option trống
-              enableSelectAllOption: false, // Không có Select All
-              maxSelectAllItems: 0 // Không cho phép select all
-            };
-            column.filter.filterOptions = {
-              enableSelectAllOption: false, // Disable Select All trong filter options
-              maxSelectAllItems: 0,
-              selectAllText: null // Không hiển thị text Select All
-            };
-          } else {
-            // For other fields: normal behavior
-            column.filter.collection = getUniqueValues(data, field);
-          }
-        }
-      });
-    }
-
-    if (this.columnDefinitions) {
-      this.columnDefinitions.forEach((colDef: any) => {
-        if (
-          colDef.filter &&
-          colDef.filter.model === Filters['multipleSelect']
-        ) {
-          const field = colDef.field;
-          if (!field) return;
-
-          if (booleanFields.has(field)) {
-            // For boolean fields: only "Có"/"Không" without Select All
-            colDef.filter.collection = booleanCollection;
-            colDef.filter.collectionOptions = {
-              addBlankEntry: false, // Không có option trống
-              enableSelectAllOption: false // Không có Select All
-            };
-            colDef.filter.filterOptions = {
-              enableSelectAllOption: false // Disable Select All trong filter options
-            };
-          } else {
-            // For other fields: normal behavior
-            colDef.filter.collection = getUniqueValues(data, field);
-          }
-        }
-      });
-    }
-
-    const updatedColumns = angularGrid.slickGrid.getColumns();
-    angularGrid.slickGrid.setColumns(updatedColumns);
-    angularGrid.slickGrid.invalidate();
-    angularGrid.slickGrid.render();
-  }
 }

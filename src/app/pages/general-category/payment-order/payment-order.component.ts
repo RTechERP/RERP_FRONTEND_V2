@@ -59,6 +59,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { NzResizeObserverDirective } from "ng-zorro-antd/cdk/resize-observer";
+import { PaymentOrderDetailNewComponent } from './payment-order-detail-new/payment-order-detail-new.component';
 // import { SlickGlobalEditorLock } from 'angular-slickgrid';
 
 // (SlickGlobalEditorLock as any).Logger = {
@@ -141,6 +142,7 @@ export class PaymentOrderComponent implements OnInit {
     defaultSizeSplit = '100%';
 
     isAdvandShow = true;
+    isSearchAreaVisible = true;
 
     departments: any = [];
     employees: any = [];
@@ -3093,7 +3095,7 @@ export class PaymentOrderComponent implements OnInit {
 
         // console.log('paymentOrder.IsSpecialOrder:', paymentOrder.IsSpecialOrder);
         if (!paymentOrder.IsSpecialOrder) {
-            const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
+            const modalRef = this.modalService.open(PaymentOrderDetailNewComponent, {
                 centered: true,
                 size: 'xl',
                 backdrop: 'static',

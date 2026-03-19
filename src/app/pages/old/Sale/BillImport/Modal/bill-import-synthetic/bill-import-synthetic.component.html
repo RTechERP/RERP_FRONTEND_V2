@@ -1,15 +1,15 @@
-<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
-    <h6 class="modal-title text-white">Tổng hợp chi tiết phiếu nhập</h6>
-    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0 bill-import-synthetic-modal-header bill-import-synthetic-bg-primary bill-import-synthetic-text-uppercase bill-import-synthetic-py-2 bill-import-synthetic-flex-shrink-0">
+    <h6 class="modal-title text-white bill-import-synthetic-modal-title bill-import-synthetic-text-white">Tổng hợp chi tiết phiếu nhập</h6>
+    <button type="button" class="btn-close bill-import-synthetic-btn-close" (click)="closeModal()" aria-label="Close"></button>
   </div>
-  <div class="modal-body p-1 flex-grow-1 overflow-hidden">
-        <div class="p-2 border-bottom">
+  <div class="modal-body p-1 flex-grow-1 overflow-hidden bill-import-synthetic-modal-body bill-import-synthetic-p-1 bill-import-synthetic-flex-grow-1 bill-import-synthetic-overflow-hidden">
+        <div class="p-2 border-bottom bill-import-synthetic-p-2 bill-import-synthetic-border-bottom">
             <form nz-form nzLayout="vertical">
               <div nz-row [nzGutter]="8">
                 <!-- Từ ngày -->
                 <div nz-col [nzXs]="12" [nzSm]="6" [nzMd]="5" [nzLg]="3">
-                  <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Từ</nz-form-label>
+                  <nz-form-item class="mb-0 bill-import-synthetic-mb-0">
+                    <nz-form-label class="fs-12 bill-import-synthetic-fs-12">Từ</nz-form-label>
                     <nz-form-control>
                       <nz-date-picker
                         [nzFormat]="dateFormat"
@@ -17,7 +17,7 @@
                         [(ngModel)]="searchParams.dateStart"
                         name="dateStart"
                         [nzDisabled]="checked"
-                        class="w-100"
+                        class="w-100 bill-import-synthetic-w-100"
                       ></nz-date-picker>
                     </nz-form-control>
                   </nz-form-item>
@@ -25,8 +25,8 @@
 
                 <!-- Đến ngày -->
                 <div nz-col [nzXs]="12" [nzSm]="6" [nzMd]="5" [nzLg]="3">
-                  <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Đến</nz-form-label>
+                  <nz-form-item class="mb-0 bill-import-synthetic-mb-0">
+                    <nz-form-label class="fs-12 bill-import-synthetic-fs-12">Đến</nz-form-label>
                     <nz-form-control>
                       <nz-date-picker
                         [nzFormat]="dateFormat"
@@ -34,7 +34,7 @@
                         [(ngModel)]="searchParams.dateEnd"
                         name="dateEnd"
                         [nzDisabled]="checked"
-                        class="w-100"
+                        class="w-100 bill-import-synthetic-w-100"
                       ></nz-date-picker>
                     </nz-form-control>
                   </nz-form-item>
@@ -42,8 +42,8 @@
 
                 <!-- Checkbox -->
                 <div nz-col [nzXs]="8" [nzSm]="4" [nzMd]="3" [nzLg]="2">
-                  <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">&nbsp;</nz-form-label>
+                  <nz-form-item class="mb-0 bill-import-synthetic-mb-0">
+                    <nz-form-label class="fs-12 bill-import-synthetic-fs-12">&nbsp;</nz-form-label>
                     <nz-form-control>
                       <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">
                         Tất cả
@@ -54,8 +54,8 @@
 
                 <!-- Lọc kho -->
                 <div nz-col [nzXs]="16" [nzSm]="12" [nzMd]="6" [nzLg]="4">
-                  <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Lọc kho</nz-form-label>
+                  <nz-form-item class="mb-0 bill-import-synthetic-mb-0">
+                    <nz-form-label class="fs-12 bill-import-synthetic-fs-12">Lọc kho</nz-form-label>
                     <nz-form-control>
                       <nz-select
                         [(ngModel)]="selectedKhoTypes"
@@ -64,7 +64,7 @@
                         [nzPlaceHolder]="'Chọn nhóm kho'"
                         [nzMaxTagCount]="1"
                         nzSize="small"
-                        class="w-100"
+                        class="w-100 bill-import-synthetic-w-100"
                         name="selectedKhoTypes"
                       >
                         <nz-option
@@ -79,8 +79,8 @@
 
                 <!-- Lọc phiếu -->
                 <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="3">
-                  <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Lọc phiếu</nz-form-label>
+                  <nz-form-item class="mb-0 bill-import-synthetic-mb-0">
+                    <nz-form-label class="fs-12 bill-import-synthetic-fs-12">Lọc phiếu</nz-form-label>
                     <nz-form-control>
                       <nz-select
                         nzShowSearch
@@ -88,11 +88,11 @@
                         nzSize="small"
                         [(ngModel)]="searchParams.status"
                         name="status"
-                        class="w-100"
+                        class="w-100 bill-import-synthetic-w-100"
                       >
                         <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
-                          <div class="d-flex align-items-center">
-                            <span class="me-2">{{ item.ID }}</span>
+                          <div class="d-flex align-items-center bill-import-synthetic-d-flex bill-import-synthetic-align-items-center">
+                            <span class="me-2 bill-import-synthetic-me-2">{{ item.ID }}</span>
                             <span>{{ item.Name }}</span>
                           </div>
                         </nz-option>
@@ -103,8 +103,8 @@
 
                 <!-- Từ khóa -->
                 <div nz-col [nzXs]="12" [nzSm]="8" [nzMd]="5" [nzLg]="3">
-                  <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                  <nz-form-item class="mb-0 bill-import-synthetic-mb-0">
+                    <nz-form-label class="fs-12 bill-import-synthetic-fs-12">Từ khóa</nz-form-label>
                     <nz-form-control>
                       <input
                         nz-input
@@ -112,7 +112,7 @@
                         [(ngModel)]="searchParams.keyword"
                         name="keyword"
                         nzSize="small"
-                        class="w-100"
+                        class="w-100 bill-import-synthetic-w-100"
                       />
                     </nz-form-control>
                   </nz-form-item>
@@ -120,10 +120,10 @@
 
                 <!-- Nút tìm kiếm -->
                 <div nz-col [nzXs]="6" [nzSm]="4" [nzMd]="4" [nzLg]="2">
-                  <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">&nbsp;</nz-form-label>
+                  <nz-form-item class="mb-0 bill-import-synthetic-mb-0">
+                    <nz-form-label class="fs-12 bill-import-synthetic-fs-12">&nbsp;</nz-form-label>
                     <nz-form-control>
-                      <button class="fs-12 btn w-100" nz-button nzType="default" nzSize="small" (click)="loadDataBillImportSynthetic()">
+                      <button class="fs-12 btn w-100 bill-import-synthetic-fs-12 bill-import-synthetic-btn bill-import-synthetic-w-100" nz-button nzType="default" nzSize="small" (click)="loadDataBillImportSynthetic()">
                         Tìm kiếm
                       </button>
                     </nz-form-control>
@@ -132,10 +132,10 @@
 
                 <!-- Nút Xuất Excel -->
                 <div nz-col [nzXs]="6" [nzSm]="4" [nzMd]="4" [nzLg]="2">
-                  <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">&nbsp;</nz-form-label>
+                  <nz-form-item class="mb-0 bill-import-synthetic-mb-0">
+                    <nz-form-label class="fs-12 bill-import-synthetic-fs-12">&nbsp;</nz-form-label>
                     <nz-form-control>
-                      <button class="fs-12 btn w-100" nz-button nzType="default" nzSize="small" title="Xuất Excel" (click)="exportExcel()">
+                      <button class="fs-12 btn w-100 bill-import-synthetic-fs-12 bill-import-synthetic-btn bill-import-synthetic-w-100" nz-button nzType="default" nzSize="small" title="Xuất Excel" (click)="exportExcel()">
                         <nz-icon nzType="file-excel"></nz-icon> Excel
                       </button>
                     </nz-form-control>
@@ -144,10 +144,10 @@
 
                 <!-- Nút Lưu -->
                 <div nz-col [nzXs]="12" [nzSm]="4" [nzMd]="4" [nzLg]="2">
-                  <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">&nbsp;</nz-form-label>
+                  <nz-form-item class="mb-0 bill-import-synthetic-mb-0">
+                    <nz-form-label class="fs-12 bill-import-synthetic-fs-12">&nbsp;</nz-form-label>
                     <nz-form-control>
-                      <button class="fs-12 btn w-100" nz-button nzType="primary" *hasPermission="'N35'" nzSize="small" (click)="saveData()">
+                      <button class="fs-12 btn w-100 bill-import-synthetic-fs-12 bill-import-synthetic-btn bill-import-synthetic-w-100" nz-button nzType="primary" *hasPermission="'N35'" nzSize="small" (click)="saveData()">
                         Lưu
                       </button>
                     </nz-form-control>
@@ -156,10 +156,10 @@
               </div>
             </form>
             </div>
-        <div class="card-body w-100 position-relative" style="height:89vh;">
+        <div class="card-body w-100 position-relative bill-import-synthetic-card-body bill-import-synthetic-w-100 bill-import-synthetic-position-relative" style="height:89vh;">
             <div id="table_BillImportSynthetic"></div>
             <div *ngIf="isLoading"
-                class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bill-import-synthetic-position-absolute bill-import-synthetic-top-0 bill-import-synthetic-start-0 bill-import-synthetic-w-100 bill-import-synthetic-h-100 bill-import-synthetic-d-flex bill-import-synthetic-align-items-center bill-import-synthetic-justify-content-center"
                 style="background: rgba(255, 255, 255, 0.8); z-index: 1000;">
                 <nz-spin [nzSpinning]="true" nzTip="Đang tải dữ liệu..."></nz-spin>
             </div>

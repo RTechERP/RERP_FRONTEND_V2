@@ -24,7 +24,7 @@
     transform: translateX(0);
   }
   
-  .card {
+  .product-sale-card {
     height: 100%;
   }
   .row > * {
@@ -41,7 +41,7 @@
     width: calc(100% - 300px);
   }
   
-  ::ng-deep ng-select .ng-value-container {
+  :host ::ng-deep ng-select .ng-value-container {
     display: flex !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
@@ -56,21 +56,21 @@
     padding: 0px;
   }
   
-  .fs-12 {
+  .product-sale-fs-12 {
     font-size: 0.75rem;
   }
   
   
   
-  ::ng-deep ng-select.form-control .ng-clear-wrapper {
+  :host ::ng-deep ng-select.form-control .ng-clear-wrapper {
     display: flex;
     align-items: center;}
     
-  ::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
+  :host ::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
     color: #d9363e;
   }
   
-  ::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+  :host ::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
       margin-top: 3px;
       margin-right: 1px;
       font-size: .75rem;
@@ -93,7 +93,7 @@
   /* Optional: Đảm bảo vùng chứa progress bar có đủ không gian và nền rõ ràng */
 
   /* ProductSale action bar - bỏ border radius, căn icon cho dropdown */
-  .card-header.action-bar {
+  .product-sale-card-header.action-bar {
     background-color: #ecedf0 !important;
     padding: 6px;
     border-radius: 0; /* bỏ bo tròn để khớp style Ant */
@@ -117,7 +117,7 @@
 
   
   /* Nếu dùng SCSS trong component Angular */
-  ::ng-deep .tabulator-row.row-disabled {
+  :host ::ng-deep .tabulator-row.row-disabled {
     pointer-events: none !important;
     opacity: 0.5 !important;
     background-color: #f0f0f0 !important;
@@ -126,27 +126,27 @@
   }
 
   /* Đồng bộ góc vuông cho nút và dropdown trong action bar */
-  .action-bar button[nz-button],
-  .action-bar .btn {
+  .product-sale-action-bar button[nz-button],
+  .product-sale-action-bar .product-sale-btn {
     border-radius: 0 !important;
   }
   
-  .action-bar .dropdown-menu {
+  .product-sale-action-bar .product-sale-dropdown-menu {
     border-radius: 0 !important;
     padding: 4px 0;
   }
   
-  .action-bar .dropdown-item {
+  .product-sale-action-bar .dropdown-item {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 12px;
     padding: 6px 12px;
   }
-  .btn-primary {
+  .product-sale-btn-primary {
     padding: 3px 6px;
   }
-  .action-bar .dropdown-item img {
+  .product-sale-action-bar .dropdown-item img {
     width: 16px;
     height: 16px;
   }

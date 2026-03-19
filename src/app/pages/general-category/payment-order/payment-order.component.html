@@ -18,8 +18,8 @@
 </p-menubar>
 
 
-<nz-card class="w-100 p-0">
-    <form nz-form class="ant-advanced-search-form" *ngIf="!isMobile">
+<nz-card class="w-100 p-0" style="position: relative;">
+    <form nz-form class="ant-advanced-search-form" [class.d-none]="isMobile || !isSearchAreaVisible">
         <div nz-row [nzGutter]="16">
             <div nz-col [nzSpan]="4">
                 <nz-form-item>
@@ -154,6 +154,16 @@
             </div>
         </div>
     </form>
+
+    <!-- Nút Ẩn/Hiện form tìm kiếm (Style nổi) -->
+    <div style="position: absolute; right: 24px; top: 10px; z-index: 10;" [class.d-none]="isMobile">
+        <button nz-button nzType="text" nzSize="small" nzShape="circle"
+            (click)="isSearchAreaVisible = !isSearchAreaVisible"
+            [title]="isSearchAreaVisible ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'">
+            <i class="fa-solid text-secondary"
+                [ngClass]="isSearchAreaVisible ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+        </button>
+    </div>
 
     <nz-modal [(nzVisible)]="isShowModal" nzTitle="Tìm kiếm" nzWidth="100vw" nzCentered
         [nzBodyStyle]="{padding: '0px 24px' }" (nzOnCancel)="isShowModal = false">

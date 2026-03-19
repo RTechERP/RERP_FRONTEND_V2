@@ -1,14 +1,14 @@
 
-<div class="modal-content">
-  <div class="modal-header bg-primary text-uppercase py-2 ">
-    <h6 class="modal-title text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
-    <button type="button" class="btn-close" (click)="closeExcelModal()" [disabled]="isBusy" aria-label="Close"></button>
+<div class="modal-content import-excel-product-sale-modal-content">
+  <div class="modal-header bg-primary text-uppercase py-2 import-excel-product-sale-modal-header import-excel-product-sale-bg-primary import-excel-product-sale-text-uppercase import-excel-product-sale-py-2">
+    <h6 class="modal-title text-white import-excel-product-sale-modal-title import-excel-product-sale-text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
+    <button type="button" class="btn-close import-excel-product-sale-btn-close" (click)="closeExcelModal()" [disabled]="isBusy" aria-label="Close"></button>
   </div>
-  <div class="modal-body">
-    <div class="d-flex gap-2 align-items-center p-2">
-      <div class="flex-grow-1">
-        <div class="progress-wrapper">
-          <div style="text-align: center;" class="progress-text">{{ formatProgressText(displayProgress) }}</div>
+  <div class="modal-body import-excel-product-sale-modal-body">
+    <div class="d-flex gap-2 align-items-center p-2 import-excel-product-sale-d-flex import-excel-product-sale-gap-2 import-excel-product-sale-align-items-center import-excel-product-sale-p-2">
+      <div class="flex-grow-1 import-excel-product-sale-flex-grow-1">
+        <div class="progress-wrapper import-excel-product-sale-progress-wrapper">
+          <div style="text-align: center;" class="progress-text import-excel-product-sale-progress-text">{{ formatProgressText(displayProgress) }}</div>
           <nz-progress
             [nzPercent]="displayProgress"
             [nzStrokeColor]="{ '0%': '#108ee9', '100%': '#87d068' }"
@@ -17,38 +17,38 @@
         </div>
       </div>
     </div>
-    <form class="needs-validation" novalidate>
-      <div class="d-flex flex-column gap-2 p-2">
-        <div class="d-flex gap-2 align-items-center">
-          <div class="d-flex align-items-center gap-2" style="flex: 2;">
-            <label class="mb-0 fs-12" style="white-space: nowrap;">Đường dẫn:</label>
-            <div class="d-flex gap-2 flex-grow-1">
-              <input nz-input [style.width.%]="100" class="fs-12" name="path" id="pathInput" [(ngModel)]="filePath" [disabled]="true">
-              <input type="file" class="d-none fs-12" id="fileInput" accept=".xlsx,.xls" (change)="onFileSelected($event)">
-              <button type="button" class="btn btn-warning  btn-sm" (click)="openFileExplorer()" style="height: auto;">
-                <i class="fas fa-folder-open"></i>
+    <form class="needs-validation import-excel-product-sale-needs-validation" novalidate>
+      <div class="d-flex flex-column gap-2 p-2 import-excel-product-sale-d-flex import-excel-product-sale-flex-column import-excel-product-sale-gap-2 import-excel-product-sale-p-2">
+        <div class="d-flex gap-2 align-items-center import-excel-product-sale-d-flex import-excel-product-sale-gap-2 import-excel-product-sale-align-items-center">
+          <div class="d-flex align-items-center gap-2 import-excel-product-sale-d-flex import-excel-product-sale-align-items-center import-excel-product-sale-gap-2" style="flex: 2;">
+            <label class="mb-0 fs-12 import-excel-product-sale-mb-0 import-excel-product-sale-fs-12" style="white-space: nowrap;">Đường dẫn:</label>
+            <div class="d-flex gap-2 flex-grow-1 import-excel-product-sale-d-flex import-excel-product-sale-gap-2 import-excel-product-sale-flex-grow-1">
+              <input nz-input [style.width.%]="100" class="fs-12 import-excel-product-sale-fs-12" name="path" id="pathInput" [(ngModel)]="filePath" [disabled]="true">
+              <input type="file" class="d-none fs-12 import-excel-product-sale-d-none import-excel-product-sale-fs-12" id="fileInput" accept=".xlsx,.xls" (change)="onFileSelected($event)">
+              <button type="button" class="btn btn-warning btn-sm import-excel-product-sale-btn import-excel-product-sale-btn-warning import-excel-product-sale-btn-sm" (click)="openFileExplorer()" style="height: auto;">
+                <i class="fas fa-folder-open import-excel-product-sale-fas import-excel-product-sale-fa-folder-open"></i>
               </button>
             </div>
           </div>
-          <div class="d-flex align-items-center gap-2" style="flex: 1;">
-            <label class="mb-0 fs-12" style="white-space: nowrap;">Tên Sheet:</label>
-            <select class="form-select form-select-sm fs-12" name="sheet" id="sheetSelect" [(ngModel)]="selectedSheet" (change)="onSheetChange()">
+          <div class="d-flex align-items-center gap-2 import-excel-product-sale-d-flex import-excel-product-sale-align-items-center import-excel-product-sale-gap-2" style="flex: 1;">
+            <label class="mb-0 fs-12 import-excel-product-sale-mb-0 import-excel-product-sale-fs-12" style="white-space: nowrap;">Tên Sheet:</label>
+            <select class="form-select form-select-sm fs-12 import-excel-product-sale-form-select import-excel-product-sale-form-select-sm import-excel-product-sale-fs-12" name="sheet" id="sheetSelect" [(ngModel)]="selectedSheet" (change)="onSheetChange()">
               <option value="">Chọn Sheet</option>
               <option *ngFor="let sheet of excelSheets" [value]="sheet">{{sheet}}</option>
             </select>
           </div>
         </div>
       </div>
-      <div class="card-body p-2">
+      <div class="card-body p-2 import-excel-product-sale-card-body import-excel-product-sale-p-2">
         <div id="datatableExcel" style="height: 300px; overflow-y: auto;">
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="fs-12 btn" nz-button nzDanger (click)="closeExcelModal()" [disabled]="isBusy">Đóng</button>
-        <button  class="fs-12 btn" nz-button (click)="downloadTemplate()" >
+      <div class="modal-footer import-excel-product-sale-modal-footer">
+        <button class="fs-12 btn import-excel-product-sale-fs-12 import-excel-product-sale-btn" nz-button nzDanger (click)="closeExcelModal()" [disabled]="isBusy">Đóng</button>
+        <button  class="fs-12 btn import-excel-product-sale-fs-12 import-excel-product-sale-btn" nz-button (click)="downloadTemplate()" >
           <nz-icon nzType="download" nzTheme="outline" /> Mẫu
         </button>
-        <button class="fs-12 btn" nz-button nzType="primary" (click)="saveExcelData()">Lưu</button>   
+        <button class="fs-12 btn import-excel-product-sale-fs-12 import-excel-product-sale-btn" nz-button nzType="primary" (click)="saveExcelData()">Lưu</button>   
       </div>
     </form>
   </div>   

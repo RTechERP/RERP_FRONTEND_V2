@@ -1223,6 +1223,10 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
   /** Refresh Số đơn hàng (BillCode) bằng cách gọi lại API */
   refreshBillCode(): void {
+    if (this.isEditMode && (!this.isCopy)) {
+      return;
+    }
+
     const poTypeId = this.informationForm.get('POType')?.value ?? 0;
     this.ponccService.getBillCode(poTypeId).subscribe({
       next: (res: any) => {
@@ -1237,6 +1241,10 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
   /** Refresh Mã PO NCC bằng cách gọi lại API */
   refreshPOCode(): void {
+    if (this.isEditMode && (!this.isCopy)) {
+      return;
+    }
+
     const supplierID = this.informationForm.get('SupplierSaleID')?.value;
     const selectedSupplier = this.supplierSales.find(s => s.ID === supplierID);
     if (!selectedSupplier) {
@@ -1313,12 +1321,25 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     const data = row.getData();
 
     const quantity = Number(data['QtyRequest']) || 0;
-    const unitPrice = Number(data['UnitPrice']) || 0;
+    let unitPrice = Number(data['UnitPrice']) || 0;
+    let thanhTien = Number(data['ThanhTien']) || 0;
+
+    if (editedField === 'ThanhTien') {
+      // Nếu user edit ThanhTien trực tiếp, tính ngược lại UnitPrice
+      if (quantity > 0) {
+        unitPrice = thanhTien / quantity;
+      } else {
+        unitPrice = 0;
+      }
+    } else {
+      // Tính ThanhTien = quantity * unitPrice
+      thanhTien = quantity * unitPrice;
+    }
+
     const discountPercent = Number(data['DiscountPercent']) || 0;
     const feeShip = Number(data['FeeShip']) || 0;
     const currencyRate = this.companyForm.get('CurrencyRate')?.value || 0;
 
-    const thanhTien = quantity * unitPrice;
     const discount = thanhTien * (discountPercent / 100);
 
     let vatMoney: number;
@@ -1342,6 +1363,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     const isBill = vatMoney > 0;
 
     row.update({
+      UnitPrice: unitPrice,
       ThanhTien: thanhTien,
       VAT: vat,
       VATMoney: vatMoney,
@@ -1555,16 +1577,16 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           }
 
           // Tính lại nếu là trường ảnh hưởng đến tổng tiền
-          if (['QtyRequest', 'UnitPrice', 'VAT', 'DiscountPercent', 'FeeShip', 'VATMoney'].includes(field)) {
-            this.recalculateRow(selectedRow);
+          if (['QtyRequest', 'UnitPrice', 'ThanhTien', 'VAT', 'DiscountPercent', 'FeeShip', 'VATMoney'].includes(field)) {
+            this.recalculateRow(selectedRow, field);
           }
         }
       });
     }
 
     // Luôn tính lại cho dòng đang edit nếu cần
-    if (['QtyRequest', 'UnitPrice', 'VAT', 'DiscountPercent', 'FeeShip', 'VATMoney'].includes(field)) {
-      this.recalculateRow(row);
+    if (['QtyRequest', 'UnitPrice', 'ThanhTien', 'VAT', 'DiscountPercent', 'FeeShip', 'VATMoney'].includes(field)) {
+      this.recalculateRow(row, field);
     }
   }
 

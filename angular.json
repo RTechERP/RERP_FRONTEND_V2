@@ -51,6 +51,10 @@
           },
           "configurations": {
             "production": {
+              "optimization": true,
+              "buildOptimizer": true,
+              "sourceMap": false,
+              "extractLicenses": true,
               "budgets": [
                 {
                   "type": "initial",

@@ -9,6 +9,8 @@ import {
     Filters,
     Formatters,
     GridOption,
+    Grouping,
+    SortComparers,
     MultipleSelectOption,
 } from 'angular-slickgrid';
 
@@ -20,6 +22,9 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -28,6 +33,7 @@ import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESP
 import { PermissionService } from '../../../../../services/permission.service';
 import { HRRecruitmentApplicationService } from './hr-recruitment-application.service';
 import { HRRecruitmentApplicationFormService } from '../home-layout-candidate/hr-recruitment-application-form.service';
+import { DepartmentServiceService } from '../../../department/department-service/department-service.service';
 import { HomeLayoutCandidateComponent } from '../home-layout-candidate/home-layout-candidate.component';
 
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -57,6 +63,9 @@ import { DateTime } from 'luxon';
         NzIconModule,
         NzModalModule,
         NzInputModule,
+        NzSelectModule,
+        NzFormModule,
+        NzGridModule,
         Menubar,
         HomeLayoutCandidateComponent,
     ],
@@ -71,6 +80,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
     isLoading = false;
     isMobile = window.innerWidth <= 768;
     isShowModal = false;
+    isShowSearchModal = false;
     isShowDetail = false;
 
     // Candidate được chọn để xem phiếu
@@ -92,6 +102,8 @@ export class HRRecruitmentApplicationComponent implements OnInit {
     filterTimeout: any;
     chucVu = '';
     filterText = '';
+    departmentId: any = 0;
+    departmentList: any[] = [];
     //#endregion
 
     constructor(
@@ -99,6 +111,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
         private permissionService: PermissionService,
         private applicationService: HRRecruitmentApplicationService,
         private hrFormService: HRRecruitmentApplicationFormService,
+        private departmentService: DepartmentServiceService,
         private modal: NzModalService,
     ) { }
 
@@ -108,6 +121,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.loadDepartments();
         this.initMenuBar();
         this.initGrid();
         this.loadData();
@@ -150,6 +164,19 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             },
         ];
     }
+
+    loadDepartments() {
+        this.departmentService.getDepartments().subscribe({
+            next: (res: any) => {
+                if (res?.status === 1) {
+                    this.departmentList = res.data || [];
+                }
+            },
+            error: (err: any) => {
+                console.error('Lỗi lấy danh sách phòng ban:', err);
+            }
+        });
+    }
     //#endregion
     //#region Grid chính - Danh sách tờ khai
     initGrid() {
@@ -162,7 +189,12 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             },
             {
                 id: 'FullName', field: 'FullName', name: 'Họ và tên',
-                width: 250, sortable: true, filterable: true,
+                width: 180, sortable: true, filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'PositionName', field: 'PositionName', name: 'Vị trí ứng tuyển',
+                width: 150, sortable: true, filterable: true,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
@@ -195,6 +227,16 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             },
             {
                 id: 'PositionName', field: 'PositionName', name: 'Vị trí ứng tuyển',
+                width: 200, sortable: true, filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: { filter: true } as MultipleSelectOption,
+                    collectionOptions: { addBlankEntry: true },
+                },
+            },
+            {
+                id: 'DepartmentName', field: 'DepartmentName', name: 'Phòng ban',
                 width: 200, sortable: true, filterable: true,
                 filter: {
                     model: Filters['multipleSelect'],
@@ -274,9 +316,10 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
-            frozenColumn: this.isMobile ? 0 : 3,
+            frozenColumn: this.isMobile ? 0 : 4,
             showFooterRow: true,
             createFooterRow: true,
+            enableGrouping: true,
             formatterOptions: {
                 decimalSeparator: '.',
                 displayNegativeNumberWithParentheses: false,
@@ -335,7 +378,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
     loadData() {
         this.isLoading = true;
         this.selectedRowItem = null;
-        this.applicationService.getAllApplicationForm(this.chucVu, this.filterText).subscribe({
+        this.applicationService.getAllApplicationForm(this.chucVu, this.filterText, this.departmentId || 0).subscribe({
             next: (res: any) => {
                 this.isLoading = false;
                 if (res?.status === 1) {
@@ -351,6 +394,10 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                     setTimeout(() => {
                         this.applyDistinctFilters(this.angularGrid);
                         this.updateFooterRow();
+                        this.reNumberSTTByGroup();
+                        this.groupByDepartment();
+                        this.angularGrid?.slickGrid?.invalidate();
+                        this.angularGrid?.slickGrid?.render();
                     }, 100);
                 } else {
                     this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lấy dữ liệu thất bại');
@@ -552,6 +599,42 @@ export class HRRecruitmentApplicationComponent implements OnInit {
         angularGrid.slickGrid.render();
         this.updateFooterRow();
     }
+
+    groupByDepartment() {
+        const dataView = this.angularGrid?.dataView;
+        if (!dataView) return;
+
+        dataView.setGrouping([
+            {
+                getter: 'DepartmentName',
+                formatter: (g: any) =>
+                    `<b>Phòng ban:</b> ${g.value || '(Chưa có)'} &nbsp; <span style="color:#e34141">(${g.count} ứng viên)</span>`,
+                comparer: (a: any, b: any) => SortComparers.string(a.value, b.value),
+                aggregators: [],
+                collapsed: false,
+                lazyTotalsCalculation: true,
+            }
+        ] as Grouping[]);
+
+        this.angularGrid?.slickGrid?.invalidate();
+        this.angularGrid?.slickGrid?.render();
+    }
+
+    reNumberSTTByGroup() {
+        // Sort theo DepartmentName để items cùng nhóm liền kề
+        this.dataset.sort((a: any, b: any) =>
+            (a.DepartmentName ?? '').localeCompare(b.DepartmentName ?? '')
+        );
+
+        // Đánh lại STT trong từng group
+        const counters = new Map<string, number>();
+        this.dataset = this.dataset.map((item: any) => {
+            const key = item.DepartmentName ?? '';
+            const n = (counters.get(key) ?? 0) + 1;
+            counters.set(key, n);
+            return { ...item, STT: n };
+        });
+    }
     //#endregion
 
     //#region In phiếu
@@ -579,7 +662,12 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                     const data = res.data;
                     const mainForm = data.applicationForm?.[0] || data.HRRecruitmentApplicationForm || {};
                     if (mainForm.FileName) {
-                        this.hrFormService.downloadFile(mainForm.FileName).subscribe({
+                        const dateApply = mainForm.DateApply || mainForm.DateSign || mainForm.CreatedDate || new Date();
+                        const yearStr = DateTime.fromJSDate(new Date(dateApply)).toFormat('yyyy');
+                        const positionName = mainForm.PositionName || 'NoPosition';
+                        const subPath = `/${yearStr}/${positionName}`;
+
+                        this.hrFormService.downloadFile(mainForm.FileName, subPath).subscribe({
                             next: async (blob: any) => {
                                 try {
                                     const base64 = await this.convertBlobToDataUrl(blob);

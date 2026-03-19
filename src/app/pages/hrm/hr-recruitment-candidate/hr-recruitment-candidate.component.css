@@ -22,10 +22,6 @@
   height: 100%;
 }
 
-::ng-deep
-  .slickgrid-container
-  .slick-footerrow
-  .slick-footerrow-columns
-  .slick-footerrow-column {
+::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
   border-right: 1px solid #ddd !important;
 }

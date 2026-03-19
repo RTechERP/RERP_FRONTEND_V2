@@ -1,0 +1,30 @@
+.page-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-content {
+  height: 100%;
+  padding: 8px 0;
+}
+
+:host ::ng-deep div[id^="historyBorrowSalePersonalGrid-"] {
+  height: 80vh !important;
+}
+
+:host ::ng-deep div[id^="historyProductRtcPersonalGrid-"] {
+  height: 80vh !important;
+}
+
+:host ::ng-deep .ant-spin-nested-loading {
+  height: calc(-180px + 95.4vh) !important;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+  height: 66% !important;
+}
+
+:host ::ng-deep #assetsTable {
+  height: 78vh !important;
+}

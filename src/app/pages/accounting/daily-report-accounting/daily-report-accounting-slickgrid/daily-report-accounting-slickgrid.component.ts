@@ -139,8 +139,8 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
         const currentUser = this.appUserService.currentUser;
         const currentUserId = this.appUserService.id || 0;
         const currentEmployeeId = this.appUserService.employeeID || 0;
-        const hasN1 = this.appUserService.hasPermission('N1') || (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false);
-        const hasN52 = this.appUserService.hasPermission('N52') || (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N52') : false);
+        const hasN1 = (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false);
+        const hasN52 = (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N52') : false);
         this.isAdmin = hasN1 || hasN52 || this.appUserService.isAdmin;
 
         if (this.isAdmin) {

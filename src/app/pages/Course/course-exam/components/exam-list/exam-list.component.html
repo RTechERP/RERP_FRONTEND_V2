@@ -1,0 +1,17 @@
+<div class="card h-100 border-0 rounded-0 d-flex flex-column overflow-hidden">
+    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center flex-shrink-0">
+        <h6 class="mb-0">Đề thi</h6>
+    </div>
+    <p-menubar [model]="menuItems" class="flex-shrink-0">
+        <ng-template pTemplate="item" let-item>
+            <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                <i [class]="item.icon"></i>
+                <span class="p-menuitem-text">{{ item.label }}</span>
+            </a>
+        </ng-template>
+    </p-menubar>
+    <nz-spin [nzSpinning]="isLoading" [nzDelay]="200"
+        class="flex-grow-1 min-height-0 d-flex flex-column overflow-hidden">
+        <div #ExamTable class="h-100 w-100 table-container"></div>
+    </nz-spin>
+</div>

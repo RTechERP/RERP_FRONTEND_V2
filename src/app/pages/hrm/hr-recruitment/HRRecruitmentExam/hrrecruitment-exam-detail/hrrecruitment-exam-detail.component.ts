@@ -2,6 +2,9 @@ import {
   Component,
   OnInit,
   Input,
+  ViewChildren,
+  ElementRef,
+  QueryList,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -47,6 +50,13 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
 
   /** Chế độ: true = sửa, false = thêm mới */
   @Input() isEditMode: boolean = false;
+
+  answerCodes = ['A', 'B', 'C', 'D'];
+
+  @ViewChildren('answerInput', { read: ElementRef }) answerInputs!: QueryList<ElementRef>;
+
+  /** STT tiếp theo cho mã đề thi */
+  nextExamSTT: number = 0;
 
   /** ID phòng ban - nhận từ form cha */
   @Input() departmentID: number = 0;
@@ -250,13 +260,42 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
     this.formGroup.patchValue({ CodeExam: `${prefix}_${suffix}` });
   }
 
+  /** Tự động sinh mã đề thi mẫu TN_STT dựa trên ID lớn nhất từ database */
+  generateAutoCode(): void {
+    this.examService.getMaxExamID().subscribe({
+      next: (res: any) => {
+        if (res.status === 1) {
+          this.nextExamSTT = (res.data || 0) + 1;
+          this.updateCodeByType();
+        }
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy ID lớn nhất:', err);
+      }
+    });
+  }
+
+  /** Cập nhật mã đề thi dựa trên loại đề và STT */
+  updateCodeByType(): void {
+    if (this.isEditMode) return;
+
+    const examType = this.formGroup.get('ExamType')?.value;
+    let prefix = 'TN';
+    if (examType === 2) prefix = 'TL';
+    else if (examType === 3) prefix = 'TN_TL';
+
+    this.formGroup.patchValue({ CodeExam: `${prefix}_${this.nextExamSTT}` }, { emitEvent: false });
+  }
+
   //#endregion
 
   //#region Sự kiện thay đổi loại đề thi
 
   /** Khi thay đổi loại đề thi → cập nhật mã đề thi */
   onExamTypeChange(value: number): void {
-    if (this.formGroup.get('CodeExam')?.value) {
+    if (!this.isEditMode) {
+      this.updateCodeByType();
+    } else if (this.formGroup.get('CodeExam')?.value) {
       this.setCode('');
     }
   }
@@ -370,12 +409,13 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
 
     this.formGroup.reset({
       ExamType: 1,
-      Goal: 100,
-      TestTime: 60,
-      CodeExam: 'A_B', // Sẽ được cập nhật ở dòng dưới
+      Goal: 10,
+      TestTime: 30,
+      CodeExam: '',
       DepartmentID: defaultDeptId,
     }, { emitEvent: false });
-    this.setCode('');
+
+    this.generateAutoCode();
   }
 
   //#endregion

@@ -11,7 +11,7 @@
     <div class="modal-footer bg-light p-2">
         <div class="d-flex gap-2 w-100">
             <!-- <button nz-button nzDanger nzType="default" (click)="onClose()" [disabled]="isSaving">Đóng</button> -->
-            <button nz-button nzType="primary" (click)="onSaveAndNew()" [nzLoading]="isSaving">Lưu &amp; Thêm
+            <button nz-button nzType="default" (click)="onSaveAndNew()" [nzLoading]="isSaving">Lưu &amp; Thêm
                 mới</button>
             <button nz-button nzType="primary" (click)="onSaveAndClose()" [nzLoading]="isSaving">Lưu &amp;
                 Đóng</button>
@@ -76,7 +76,7 @@
                     Nội dung câu hỏi <span class="text-danger">(*)</span>
                 </div>
                 <p-editor [(ngModel)]="questionText" name="questionText"
-                    [style]="{'height': '260px', 'margin-bottom': '10px'}" [modules]="editorModules">
+                    [style]="{'height': '180px', 'margin-bottom': '10px'}" [modules]="editorModules">
                     <ng-template pTemplate="header">
                         <span class="ql-formats">
                             <select class="ql-header">
@@ -165,7 +165,9 @@
         <!-- ===== Bảng đáp án (chỉ khi Trắc nghiệm) ===== -->
         <div class="answer-section" *ngIf="showAnswerGrid">
             <div class="answer-header">
-                <span class="answer-title">ĐÁP ÁN</span>
+                <span class="answer-title">ĐÁP ÁN <small class="text-muted"
+                        style="text-transform: none; font-weight: normal; margin-left: 4px;">(Nhấn Tab để thêm
+                        mới hoặc chuyển nội dung đáp án tiếp theo)</small></span>
                 <button nz-button nzSize="small" nzType="primary" (click)="onAddAnswer()">
                     <nz-icon nzType="plus"></nz-icon> Thêm đáp án
                 </button>
@@ -186,14 +188,17 @@
                     <tbody>
                         <tr *ngFor="let answer of answers; let i = index">
                             <td class="text-center">
-                                <button class="btn-delete-answer" (click)="onDeleteAnswer(i)" title="Xóa">
+                                <button class="btn-delete-answer" (click)="onDeleteAnswer(i)"
+                                    (keydown.enter)="onDeleteAnswer(i)" title="Xóa">
                                     <nz-icon nzType="delete" style="color:red;"></nz-icon>
                                 </button>
                             </td>
                             <td class="text-center">{{ answer.AnswerNumber }}</td>
                             <td class="text-center fw-bold">{{ answer.Code }}</td>
                             <td>
-                                <input nz-input [(ngModel)]="answer.AnswerText" placeholder="Nhập nội dung đáp án..." />
+                                <textarea #answerInput nz-input [(ngModel)]="answer.AnswerText"
+                                    placeholder="Nhập nội dung đáp án..." rows="1"
+                                    (keydown.tab)="onAnswerTab($event, i)"></textarea>
                             </td>
                             <td class="text-center">
                                 <label nz-checkbox [(ngModel)]="answer.RightAnswer" [name]="'rightAnswer_' + i"></label>

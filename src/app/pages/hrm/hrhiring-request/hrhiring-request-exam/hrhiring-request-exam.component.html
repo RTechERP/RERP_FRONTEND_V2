@@ -22,7 +22,7 @@
                     </tr>
                     <tr>
                         <th></th>
-                        <th><p-columnFilter type="text" field="ChucVu" display="row"></p-columnFilter>
+                        <th><p-columnFilter type="text" field="PositionName" display="row"></p-columnFilter>
                         </th>
                         <th><p-columnFilter type="text" field="HiringRequestCode" display="row"></p-columnFilter></th>
                     </tr>
@@ -34,7 +34,7 @@
                                 {{item.IsActiveExam ? 'Hoạt động' : 'Khóa'}}
                             </span>
                         </td>
-                        <td>{{item.ChucVu}}</td>
+                        <td>{{item.PositionName}}</td>
                         <td class="font-weight-bold">{{item.HiringRequestCode}}</td>
                     </tr>
                 </ng-template>

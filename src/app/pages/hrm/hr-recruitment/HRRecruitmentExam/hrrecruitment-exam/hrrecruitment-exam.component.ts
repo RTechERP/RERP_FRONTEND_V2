@@ -99,6 +99,11 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
   datasetRightAnswer: any[] = [];
   //#endregion
 
+  //#region Layout state
+  sizeBottomPanel: string | number = '25%';
+  lastBottomPanelSize: string | number = '25%';
+  //#endregion
+
   //#region Trạng thái grid đã sẵn sàng
   gridsReady = false;
   //#endregion
@@ -429,9 +434,19 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             }
           }
 
+          let parsedAtts = [];
+          try {
+            if (item.QuestionAttachments) {
+              parsedAtts = JSON.parse(item.QuestionAttachments);
+            }
+          } catch (e) {
+            console.error('Error parsing QuestionAttachments:', e);
+          }
+
           return {
             ...item,
             id: item.ID || `question_${index + 1}`,
+            parsedAttachments: parsedAtts
           };
         });
 
@@ -484,6 +499,12 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
 
   /** Tải đáp án đúng theo QuestionID */
   loadRightAnswers(questionId: number): void {
+    // Tự động mở lại bảng nếu đang bị đóng
+    if (this.sizeBottomPanel === '0' || this.sizeBottomPanel === '0%') {
+      this.sizeBottomPanel = this.lastBottomPanelSize || '25%';
+      setTimeout(() => this.resizeAllGrids(), 200);
+    }
+
     this.isLoadingRightAnswer = true;
     this.examService.getRightAnswersByQuestionId(questionId).subscribe({
       next: (response: any) => {
@@ -624,6 +645,9 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
 
     const selectedExam = this.datasetExam.find((e: any) => e.ID === this.selectedExamID);
     const examCode = selectedExam?.CodeExam || '';
+    const examName = selectedExam?.NameExam || '';
+    const deptName = this.departments.find((d: any) => d.ID === selectedExam?.DepartmentID)?.Name || '';
+
     const title = isEdit
       ? `Sửa câu hỏi - ${examCode}`
       : `Thêm câu hỏi - ${examCode}`;
@@ -637,6 +661,8 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
         questionID: questionId,
         examID: this.selectedExamID,
         examType: this.selectedExamType,
+        examName: examName,
+        departmentName: deptName,
         isEditMode: isEdit,
         datasetRightAnswer: this.datasetRightAnswer || [],
         onSavedCallback: (result: any) => {
@@ -784,6 +810,26 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
   /** Resize tất cả các grid */
   private resizeAllGrids(): void {
     // PrimeNG grids auto resize, no longer need explicit resizerService calls
+  }
+
+  /** Đóng bảng đáp án đúng (panel bên phải/dưới) */
+  closeLeftPanel() {
+    if (this.sizeBottomPanel !== '0') {
+      this.lastBottomPanelSize = this.sizeBottomPanel;
+    }
+    this.sizeBottomPanel = '0';
+    setTimeout(() => this.resizeAllGrids(), 200);
+  }
+
+  /** Đồng bộ khi người dùng kéo thả splitter */
+  onSizeChange(event: any) {
+    if (event && event[1]) {
+      const newSize = event[1].size;
+      this.sizeBottomPanel = newSize + '%';
+      if (newSize > 0) {
+        this.lastBottomPanelSize = this.sizeBottomPanel;
+      }
+    }
   }
 
   //#endregion

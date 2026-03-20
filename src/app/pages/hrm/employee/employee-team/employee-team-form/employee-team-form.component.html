@@ -1,0 +1,62 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    CHI TIẾT TEAM PHÒNG BAN
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+<div class="modal-body fs-12">
+  <form nz-form [formGroup]="form">
+    <nz-form-item class="mb-0">
+      <nz-form-label [nzSpan]="24" class="p-0">STT</nz-form-label>
+      <nz-form-control [nzSpan]="24">
+        <input nz-input formControlName="STT" />
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item class="mb-0">
+      <nz-form-label [nzSpan]="24" class="p-0">Phòng ban<span class="text-danger ps-1">*</span></nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn phòng ban">
+        <nz-select formControlName="DepartmentID" nzPlaceHolder="Chọn phòng ban" style="width: 100%;"
+          [nzOptions]="departmentList" nzAllowClear>
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item class="mb-0">
+      <nz-form-label [nzSpan]="24" class="p-0">Mã team<span class="text-danger ps-1">*</span></nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã team">
+        <input nz-input formControlName="Code" placeholder="Nhập mã team" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="mb-0">
+      <nz-form-label [nzSpan]="24" class="p-0">Tên team<span class="text-danger ps-1">*</span></nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên team">
+        <input nz-input formControlName="Name" placeholder="Nhập tên team" />
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item class="mb-0">
+      <nz-form-label [nzSpan]="24" class="p-0">Leader<span class="text-danger ps-1">*</span></nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn leader">
+        <nz-select formControlName="LeaderID" nzPlaceHolder="Chọn leader" style="width: 100%;"
+          nzAllowClear nzShowSearch [nzOptions]="employeeList">
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="mb-0">
+      <nz-form-label [nzSpan]="24" class="p-0">Team trực thuộc (Cha)<span class="text-danger ps-1">*</span></nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn team trực thuộc">
+        <nz-tree-select formControlName="ParentID" nzPlaceHolder="Chọn team trực thuộc" style="width: 100%;"
+          nzShowSearch [nzNodes]="parentTeamTree" nzDefaultExpandAll>
+        </nz-tree-select>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</div>
+<div class="modal-footer fs-12">
+  <button type="button" class="btn btn-outline-danger" (click)="onCancel()">
+    Đóng
+  </button>
+  <button type="button" class="btn btn-primary" (click)="onSubmit()">
+    Lưu
+  </button>
+</div>

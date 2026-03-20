@@ -324,6 +324,9 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         const localCountsFull = new Map<any, number>();
 
         data.forEach((item: any) => {
+            // Normalize ParentID
+            if (item.ParentID === null || item.ParentID === undefined) item.ParentID = 0;
+
             localCountsFull.set(item.ID, item.EmployeeCount || 0);
             if (item.ParentID !== undefined) {
                 if (!childrenMapFull.has(item.ParentID)) childrenMapFull.set(item.ParentID, []);

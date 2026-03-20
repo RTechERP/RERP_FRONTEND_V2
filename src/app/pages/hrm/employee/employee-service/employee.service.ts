@@ -141,4 +141,16 @@ export class EmployeeService {
     };
     return this.http.get<any>(this._url + 'Home/get-all-contact', { params });
   }
+
+  updateCountSalary(employeeID: number, isExcludedFromSalary: boolean): Observable<any> {
+    return this.http.get<any>(
+      this._url + `Employee/update-count-salary?employeeID=${employeeID}&isExcludedFromSalary=${isExcludedFromSalary}`
+    );
+  }
+
+  updateEmployeeTeam(employeeID: number, teamID: number): Observable<any> {
+    return this.http.get<any>(
+      this._url + `EmployeeTeam/update-employee-team?employeeID=${employeeID}&teamID=${teamID}`
+    );
+  }
 }

@@ -287,6 +287,7 @@ import { DevicesComponent } from './pages/ems/components/managers/devices/device
 import { CommunicationComponent } from './pages/ems/components/managers/communication/communication.component';
 import { DailyReportAccountingSlickgridComponent } from './pages/accounting/daily-report-accounting/daily-report-accounting-slickgrid/daily-report-accounting-slickgrid.component';
 import { SummaryAssetPersionalComponent } from './pages/hrm/asset/summary-asset-persional/summary-asset-persional.component';
+import { PaymentOrderTeamComponent } from './pages/general-category/payment-order-team/payment-order-team.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -1102,6 +1103,7 @@ export const routes: Routes = [
             { path: 'history-product-rtc-personal', component: HistoryProductRtcPersonalComponent, canActivate: [authGuard] },
 
             { path: 'summary-asset-persional', component: SummaryAssetPersionalComponent, canActivate: [authGuard] },
+            { path: 'payment-order-view', component: PaymentOrderTeamComponent, canActivate: [authGuard] },
 
             //#region EMS
             { path: 'ems/dashboard', component: DashboardComponent, canActivate: [authGuard] },

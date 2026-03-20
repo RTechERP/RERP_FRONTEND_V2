@@ -39,6 +39,7 @@ import { AppUserService } from '../../../../services/app-user.service';
 
 import { DailyReportAccountingService } from '../daily-report-accounting-service/daily-report-accounting.service';
 import { DailyReportAccountingDetailComponent } from '../daily-report-accounting-detail/daily-report-accounting-detail.component';
+import { ImportExcelAccountingComponent } from '../import-excel-accounting/import-excel-accounting.component';
 import { ReadOnlyLongTextEditor } from '../../../KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
 
 @Component({
@@ -122,6 +123,11 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
                 label: 'Xuất Excel',
                 icon: 'fa-solid fa-file-excel fa-lg text-success',
                 command: () => this.exportExcel()
+            },
+            {
+                label: 'Nhập Excel',
+                icon: 'fa-solid fa-file-import fa-lg text-info',
+                command: () => this.openImportExcel()
             },
         ];
     }
@@ -224,6 +230,25 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
             return;
         }
         this.openModal(this.selectedRowId);
+    }
+
+    openImportExcel(): void {
+        const modalRef = this.modalService.open(ImportExcelAccountingComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+        });
+
+        modalRef.result.then(
+            (result) => {
+                if (result === 'success') {
+                    this.loadData();
+                }
+            },
+            () => {
+                console.log('Import Excel modal closed');
+            }
+        );
     }
 
     onDeleteDailyReportAccounting(): void {
@@ -367,7 +392,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
 
         this.gridOptions = {
             enableAutoResize: true,
-            forceFitColumns: false,
+            forceFitColumns: true,
             autoResize: {
                 container: '.grid-container-daily-report-acc',
                 calculateAvailableSizeBy: 'container',

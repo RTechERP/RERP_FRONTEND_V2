@@ -67,7 +67,7 @@ import * as ExcelJS from 'exceljs';
 import { RequestInvoiceSlickgridService } from './request-invoice-slickgrid-service/request-invoice-slickgrid-service.service';
 import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
 import { RequestInvoiceDetailComponent } from '../request-invoice-detail/request-invoice-detail.component';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 import { RequestInvoiceSummaryComponent } from '../request-invoice-summary/request-invoice-summary.component';
@@ -728,12 +728,26 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     this.isLoadingMain = false;
                 } else {
                     this.isLoadingMain = false;
-                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải dữ liệu chính',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
             },
-            error: (error) => {
+            error: (err: any) => {
                 this.isLoadingMain = false;
-                this.notification.error(NOTIFICATION_TITLE.error, error);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             },
         });
     }
@@ -745,11 +759,25 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     this.statusData = response.data;
                     this.updateStatusFilter();
                 } else {
-                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải trạng thái',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
             },
-            error: (error) => {
-                this.notification.error(NOTIFICATION_TITLE.error, error);
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             },
         });
     }
@@ -805,13 +833,27 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 } else {
                     this.isLoadingDetail = false;
                     this.isLoadingFile = false;
-                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải chi tiết',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
             },
-            error: (error) => {
+            error: (err: any) => {
                 this.isLoadingDetail = false;
                 this.isLoadingFile = false;
-                this.notification.error(NOTIFICATION_TITLE.error, error);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             },
         });
     }
@@ -827,12 +869,28 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                         ...item,
                         id: item.ID || `pofile_${index}`
                     }));
+                } else {
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải tệp POKH',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
                 this.isLoadingPOFile = false;
             },
-            (error) => {
+            (err: any) => {
                 this.isLoadingPOFile = false;
-                console.error('Lỗi kết nối khi tải POKHFile:', error);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         );
     }
@@ -840,7 +898,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     // Edit function
     onEdit() {
         if (!this.selectedId) {
-            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần sửa');
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                'Vui lòng chọn bản ghi cần sửa',
+                {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                }
+            );
             return;
         }
         this.RequestInvoiceSlickgridService.getDetail(this.selectedId).subscribe({
@@ -886,11 +951,25 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                         }
                     );
                 } else {
-                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi lấy dữ liệu chỉnh sửa',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
             },
-            error: (error) => {
-                this.notification.error(NOTIFICATION_TITLE.error, error);
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             },
         });
     }
@@ -903,7 +982,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
     openRequestInvoiceStatusLinkModal(): void {
         if (this.selectedId <= 0) {
-            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn yêu cầu xuất hóa đơn');
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                'Vui lòng chọn yêu cầu xuất hóa đơn',
+                {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                }
+            );
             return;
         }
         const modalRef = this.modalService.open(RequestInvoiceStatusLinkComponent, {
@@ -931,7 +1017,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
     openTreeFolder(): void {
         if (this.selectedId <= 0) {
-            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn yêu cầu xuất hóa đơn để xem cây thư mục');
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                'Vui lòng chọn yêu cầu xuất hóa đơn để xem cây thư mục',
+                {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                }
+            );
             return;
         }
 
@@ -941,11 +1034,25 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     const folderPath = response.data;
                     this.showFolderModal(folderPath);
                 } else {
-                    this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Không thể lấy đường dẫn thư mục');
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Không thể lấy đường dẫn thư mục',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
             },
-            error: (error) => {
-                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lấy đường dẫn thư mục');
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         });
     }
@@ -972,7 +1079,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
     copyToClipboard(text: string): void {
         navigator.clipboard.writeText(text).catch(err => {
-            console.error('Failed to copy text: ', err);
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                'Failed to copy text: ' + (err?.message || err),
+                {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                }
+            );
             const textArea = document.createElement('textarea');
             textArea.value = text;
             document.body.appendChild(textArea);
@@ -1015,7 +1129,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
     onDelete() {
         if (!this.selectedId) {
-            this.notification.error('Thông báo!', 'Vui lòng chọn yêu cầu cần xóa!');
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo!',
+                'Vui lòng chọn yêu cầu cần xóa!',
+                {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                }
+            );
             return;
         }
         this.modal.confirm({
@@ -1042,14 +1163,25 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                                 this.filters.filterText
                             );
                         } else {
-                            this.notification.error(
-                                NOTIFICATION_TITLE.error,
-                                response.message || 'Xóa dữ liệu thất bại!'
+                            this.notification.create(
+                                NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                                NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                                response.message || 'Xóa dữ liệu thất bại!',
+                                {
+                                    nzStyle: { whiteSpace: 'pre-line' }
+                                }
                             );
                         }
                     },
-                    error: (err) => {
-                        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xóa dữ liệu!');
+                    error: (err: any) => {
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            {
+                                nzStyle: { whiteSpace: 'pre-line' }
+                            }
+                        );
                     },
                 });
             },
@@ -1144,7 +1276,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
         const fullPath = this.buildFullFilePath(file);
         if (!fullPath) {
-            this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
+                'Không xác định được đường dẫn file!',
+                {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                }
+            );
             return;
         }
 
@@ -1167,27 +1306,53 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     window.URL.revokeObjectURL(url);
                     this.notification.success('Thông báo', 'Tải xuống thành công!');
                 } else {
-                    this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                        NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
+                        'File tải về không hợp lệ!',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
             },
-            error: (res: any) => {
+            error: (err: any) => {
                 this.message.remove(loadingMsg);
-                console.error('Lỗi khi tải file:', res);
 
-                if (res.error instanceof Blob) {
+                if (err.error instanceof Blob) {
                     const reader = new FileReader();
                     reader.onload = () => {
                         try {
                             const errorText = JSON.parse(reader.result as string);
-                            this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+                            this.notification.create(
+                                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
+                                errorText.message || 'Tải xuống thất bại!',
+                                {
+                                    nzStyle: { whiteSpace: 'pre-line' }
+                                }
+                            );
                         } catch {
-                            this.notification.error('Thông báo', 'Tải xuống thất bại!');
+                            this.notification.create(
+                                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
+                                'Tải xuống thất bại!',
+                                {
+                                    nzStyle: { whiteSpace: 'pre-line' }
+                                }
+                            );
                         }
                     };
-                    reader.readAsText(res.error);
+                    reader.readAsText(err.error);
                 } else {
-                    const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
-                    this.notification.error('Thông báo', errorMsg);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Thông báo',
+                        err?.error?.message || err?.message || 'Tải xuống thất bại! Vui lòng thử lại.',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
             },
         });
@@ -1201,7 +1366,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
         const fullPath = this.buildFullFilePath(file);
         if (!fullPath) {
-            this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
+                'Không xác định được đường dẫn file!',
+                {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                }
+            );
             return;
         }
 
@@ -1224,27 +1396,53 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     window.URL.revokeObjectURL(url);
                     this.notification.success('Thông báo', 'Tải xuống thành công!');
                 } else {
-                    this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                        NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
+                        'File tải về không hợp lệ!',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
             },
-            error: (res: any) => {
+            error: (err: any) => {
                 this.message.remove(loadingMsg);
-                console.error('Lỗi khi tải file:', res);
 
-                if (res.error instanceof Blob) {
+                if (err.error instanceof Blob) {
                     const reader = new FileReader();
                     reader.onload = () => {
                         try {
                             const errorText = JSON.parse(reader.result as string);
-                            this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+                            this.notification.create(
+                                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
+                                errorText.message || 'Tải xuống thất bại!',
+                                {
+                                    nzStyle: { whiteSpace: 'pre-line' }
+                                }
+                            );
                         } catch {
-                            this.notification.error('Thông báo', 'Tải xuống thất bại!');
+                            this.notification.create(
+                                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
+                                'Tải xuống thất bại!',
+                                {
+                                    nzStyle: { whiteSpace: 'pre-line' }
+                                }
+                            );
                         }
                     };
-                    reader.readAsText(res.error);
+                    reader.readAsText(err.error);
                 } else {
-                    const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
-                    this.notification.error('Thông báo', errorMsg);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Thông báo',
+                        err?.error?.message || err?.message || 'Tải xuống thất bại! Vui lòng thử lại.',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 }
             },
         });

@@ -1,0 +1,71 @@
+<div class="modal-header py-2">
+  <h5 class="modal-title fs-14 fw-bold">CHỌN NHÂN VIÊN</h5>
+  <button type="button" class="btn-close shadow-none" aria-label="Close" (click)="closeModal()"></button>
+</div>
+
+<div class="modal-body p-0">
+  <div class="p-2 border-bottom bg-light">
+    <p-iconfield iconPosition="left" class="w-100">
+      <p-inputicon styleClass="pi pi-search"></p-inputicon>
+      <input pInputText type="text" class="fs-12 w-100 p-inputtext-sm" [(ngModel)]="searchValue"
+        (input)="dt.filterGlobal(searchValue.trim(), 'contains')"
+        placeholder="Tìm kiếm theo tên, mã nhân viên, bộ phận..." />
+    </p-iconfield>
+  </div>
+
+  <div style="height: 450px;">
+    <p-table #dt [value]="employeeList" [(selection)]="selectedEmployees" dataKey="ID" [scrollable]="true"
+      scrollHeight="flex" rowGroupMode="subheader" groupRowsBy="DepartmentName"
+      [globalFilterFields]="['Code', 'FullName', 'DepartmentName', 'ChucVu']"
+      styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped" class="fs-12 w-100">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 3rem">
+            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+          </th>
+          <th pSortableColumn="Code" style="width: 100px">Mã NV <p-sortIcon field="Code"></p-sortIcon></th>
+          <th pSortableColumn="FullName">Họ tên <p-sortIcon field="FullName"></p-sortIcon></th>
+          <th pSortableColumn="DepartmentName">Bộ phận <p-sortIcon field="DepartmentName"></p-sortIcon></th>
+          <th pSortableColumn="ChucVu">Chức vụ <p-sortIcon field="ChucVu"></p-sortIcon></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="groupheader" let-employee>
+        <tr pRowGroupHeader>
+          <td colspan="5" class="bg-primary-subtle fw-bold">
+            <i class="fa-solid fa-building me-2 text-primary"></i>
+            {{ employee.DepartmentName || 'Chưa có phòng ban' }}
+            <span class="text-secondary ms-1">({{ getDepartmentCount(employee.DepartmentName) }} nhân viên)</span>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-employee>
+        <tr>
+          <td>
+            <p-tableCheckbox [value]="employee"></p-tableCheckbox>
+          </td>
+          <td>{{employee.Code}}</td>
+          <td>{{employee.FullName}}</td>
+          <td>{{employee.DepartmentName}}</td>
+          <td>{{employee.ChucVu}}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center p-3">Không tìm thấy nhân viên nào.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<div class="modal-footer py-2">
+  <p-button label="Hủy" icon="pi pi-times" severity="secondary" size="small" (onClick)="closeModal()">
+  </p-button>
+  <p-button label="Xác nhận ({{selectedEmployees.length}})" icon="pi pi-check" size="small"
+    [disabled]="selectedEmployees.length === 0" (onClick)="confirmSelection()">
+  </p-button>
+</div>

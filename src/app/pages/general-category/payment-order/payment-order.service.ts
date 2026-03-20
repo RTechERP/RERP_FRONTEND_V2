@@ -107,6 +107,9 @@ export class PaymentOrderService {
         return this.http.get<any>(`${this.url}/get-data-combo`);
     }
 
+    getStep(): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-step`);
+    }
     // ====== 4. Đọc 3 chữ số ======
     private readThreeDigits(num: number): string {
         let tram = Math.floor(num / 100);
@@ -191,6 +194,15 @@ export class PaymentOrderService {
         }
 
         return result;
+    }
+
+
+    getTeamSale(employeeId: number): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-team-sale/${employeeId}`);
+    }
+
+    getPaymentOrderByTeam(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/get-payment-order-team`, data);
     }
 }
 

@@ -5,8 +5,10 @@
         <div class="card-header bg-white p-1 bill-export-new-card-header bill-export-new-bg-white bill-export-new-p-1">
             <p-menubar [model]="menuItems" styleClass="p-0 border-0">
                 <ng-template pTemplate="end">
-                    <button nz-button nzType="text" (click)="toggleFilterBar()" nz-tooltip nzTooltipTitle="Ẩn/hiện bộ lọc tìm kiếm">
-                        <i class="fa text-secondary" [ngClass]="isFilterBarVisible ? 'fa-angle-double-up' : 'fa-filter'"></i>
+                    <button nz-button nzType="text" (click)="toggleFilterBar()" nz-tooltip
+                        nzTooltipTitle="Ẩn/hiện bộ lọc tìm kiếm">
+                        <i class="fa text-secondary"
+                            [ngClass]="isFilterBarVisible ? 'fa-angle-double-up' : 'fa-magnifying-glass'"></i>
                     </button>
                 </ng-template>
             </p-menubar>
@@ -129,7 +131,8 @@
                 <app-custom-table [data]="datasetMaster" [columns]="columnsMaster" [loading]="isLoading"
                     [scrollable]="true" scrollHeight="flex" selectionMode="multiple" [(selection)]="selectedMasterRows"
                     [clickSelectRow]="true" (rowClick)="onRowClick($event)" dataKey="id" [showGlobalFilter]="false"
-                    [resizeMode]="'expand'" filterDisplay="row" [showGridlines]="true" [stripedRows]="true">
+                    [resizeMode]="'expand'" filterDisplay="row" [showGridlines]="true" [stripedRows]="true"
+                    [showFooter]="true">
                 </app-custom-table>
             </ng-template>
 
@@ -137,7 +140,7 @@
             <ng-template pTemplate>
                 <app-custom-table [data]="datasetDetail" [columns]="columnsDetail" [loading]="isDetailLoad"
                     [scrollable]="true" scrollHeight="flex" [showGlobalFilter]="false" filterDisplay="row"
-                    [showGridlines]="true" [stripedRows]="true">
+                    [showGridlines]="true" [stripedRows]="true" [showFooter]="true">
                 </app-custom-table>
             </ng-template>
         </p-splitter>

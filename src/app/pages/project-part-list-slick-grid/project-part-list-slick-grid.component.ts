@@ -6685,7 +6685,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             return;
           }
           const fileName = `${productCode}.pdf`;
-          const url = `  ${environment.host}api/share/duan/projects/${pathPattern}/${fileName}`;
+          const enCodeFileName = encodeURIComponent(fileName);
+          // const url = `${environment.host}api/share/duan/projects/${pathPattern}/${fileName}`;
+          const url = `https://erp.rtc.edu.vn/api/api/share/Software/Test/duan/${enCodeFileName}`;
+
           this.projectPartListService.downloadDrawingFile(url).subscribe({
             next: (blob: Blob) => {
               completedCount++;

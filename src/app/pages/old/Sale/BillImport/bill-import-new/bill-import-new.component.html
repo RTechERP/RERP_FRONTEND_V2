@@ -20,10 +20,10 @@
       </p-menubar>
     </div>
 
-    
+
   </ng-template>
-<div style="display: flex; flex-direction: column; height: 100%;">
-<!-- Filter bar: desktop only -->
+  <div style="display: flex; flex-direction: column; height: 100%;">
+    <!-- Filter bar: desktop only -->
     <div *ngIf="!isMobile" style="position: relative; min-height: 18px;">
       <div class="border-top p-2" *ngIf="showSearchBar">
         <form [id]="'form-bill-import-search-' + wareHouseCode" nz-form nzLayout="inline" (keyup.enter)="onSearch()">
@@ -99,23 +99,24 @@
         <i class="fa" [ngClass]="showSearchBar ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
       </button>
     </div>
-  <!-- Splitter -->
-  <p-splitter layout="vertical" [panelSizes]="[60, 40]" [minSizes]="[10, 10]" style="flex: 1; min-height: 0">
-    <!-- Master Grid Panel -->
-    <ng-template pTemplate>
-      <app-custom-table [data]="datasetMaster" [columns]="columnsMaster" [loading]="isLoading" [scrollable]="true"
-        scrollHeight="flex" selectionMode="multiple" [(selection)]="selectedMasterRows" [clickSelectRow]="true"
-        (rowClick)="onRowClick($event)" dataKey="id" [showGlobalFilter]="false" [resizeMode]="'expand'"
-        filterDisplay="row" [showGridlines]="true" [stripedRows]="true">
-      </app-custom-table>
-    </ng-template>
+    <!-- Splitter -->
+    <p-splitter layout="vertical" [panelSizes]="[60, 40]" [minSizes]="[10, 10]" style="flex: 1; min-height: 0">
+      <!-- Master Grid Panel -->
+      <ng-template pTemplate>
+        <app-custom-table [data]="datasetMaster" [columns]="columnsMaster" [loading]="isLoading" [scrollable]="true"
+          scrollHeight="flex" selectionMode="multiple" [(selection)]="selectedMasterRows" [clickSelectRow]="true"
+          (rowClick)="onRowClick($event)" dataKey="id" [showGlobalFilter]="false" [resizeMode]="'expand'"
+          filterDisplay="row" [showGridlines]="true" [stripedRows]="true" [showFooter]="true">
+        </app-custom-table>
+      </ng-template>
 
-    <!-- Detail Grid Panel -->
-    <ng-template pTemplate>
-      <app-custom-table [data]="datasetDetail" [columns]="columnsDetail" [loading]="isDetailLoad" [scrollable]="true"
-        scrollHeight="flex" [showGlobalFilter]="false" filterDisplay="row" [showGridlines]="true" [stripedRows]="true">
-      </app-custom-table>
-    </ng-template>
-  </p-splitter>
-</div>
+      <!-- Detail Grid Panel -->
+      <ng-template pTemplate>
+        <app-custom-table [data]="datasetDetail" [columns]="columnsDetail" [loading]="isDetailLoad" [scrollable]="true"
+          scrollHeight="flex" [showGlobalFilter]="false" filterDisplay="row" [showGridlines]="true" [stripedRows]="true"
+          [showFooter]="true">
+        </app-custom-table>
+      </ng-template>
+    </p-splitter>
+  </div>
 </p-card>

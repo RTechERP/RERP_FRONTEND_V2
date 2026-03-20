@@ -334,6 +334,7 @@ export class BillExportNewComponent
         sortable: true,
         filterMode: 'multiselect',
         width: '160px',
+        footer: (data: any[]) => (data?.length.toString() || '0')
       },
       {
         header: 'Phòng ban',
@@ -516,6 +517,7 @@ export class BillExportNewComponent
         sortable: true,
         filterMode: 'multiselect',
         width: '200px',
+        footer: (data: any[]) => (data?.length.toString() || '0')
       },
       {
         header: 'SL tồn',
@@ -553,6 +555,14 @@ export class BillExportNewComponent
         width: '100px',
         format: (value: any) =>
           this.formatNumberEnUS(value),
+        footer: (data: any[]) => {
+          const total = data?.reduce(
+            (acc, row) => acc + Number(row.Qty || 0),
+            0
+          ) || 0;
+
+          return this.formatNumberEnUS(total, 2);
+        }
       },
       {
         header: 'Loại hàng',
@@ -583,6 +593,14 @@ export class BillExportNewComponent
         width: '120px',
         format: (value: any) =>
           this.formatNumberEnUS(value),
+        footer: (data: any[]) => {
+          const total = data?.reduce(
+            (acc, row) => acc + Number(row.UnitPricePOKH || 0),
+            0
+          ) || 0;
+
+          return this.formatNumberEnUS(total, 2);
+        }
       },
       {
         header: 'Đơn giá mua',
@@ -592,6 +610,14 @@ export class BillExportNewComponent
         width: '120px',
         format: (value: any) =>
           this.formatNumberEnUS(value),
+        footer: (data: any[]) => {
+          const total = data?.reduce(
+            (acc, row) => acc + Number(row.UnitPricePurchase || 0),
+            0
+          ) || 0;
+
+          return this.formatNumberEnUS(total, 2);
+        }
       },
       {
         header: 'Đơn mua hàng',

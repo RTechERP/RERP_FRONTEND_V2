@@ -194,7 +194,7 @@ export class BillImportNewComponent implements OnInit {
     private route: ActivatedRoute,
     private message: NzMessageService,
     @Optional() @Inject('tabData') private tabData: any,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initColumns();
@@ -342,10 +342,10 @@ export class BillImportNewComponent implements OnInit {
     return isNaN(d.getTime())
       ? ''
       : d.toLocaleDateString('vi-VN', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        });
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
   }
 
   initColumns(): void {
@@ -379,7 +379,7 @@ export class BillImportNewComponent implements OnInit {
         filterMode: 'multiselect',
         frozen: true,
         alignFrozen: 'left',
-        textWrap:true
+        textWrap: true
       },
       {
         field: 'DateStatus',
@@ -411,6 +411,7 @@ export class BillImportNewComponent implements OnInit {
         width: '180px',
         sortable: true,
         filterMode: 'multiselect',
+        footer: (data: any[]) => (data?.length.toString() || '0'),
       },
       {
         field: 'Suplier',
@@ -499,6 +500,7 @@ export class BillImportNewComponent implements OnInit {
         header: 'Mã hàng',
         width: '150px',
         sortable: true,
+        footer: (data: any[]) => (data?.length.toString() || '0')
       },
       {
         field: 'ProductName',
@@ -533,11 +535,19 @@ export class BillImportNewComponent implements OnInit {
         format: (val) =>
           val != null
             ? Number(val).toLocaleString('vi-VN', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2,
-              })
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2,
+            })
             : '',
         cssClass: 'text-end',
+        footer: (data: any[]) => {
+          const total = data?.reduce(
+            (acc, row) => acc + Number(row.Qty || 0),
+            0
+          ) || 0;
+
+          return this.formatNumber(total, 0);
+        }
       },
       { field: 'SomeBill', header: 'Hóa đơn', width: '150px', sortable: true },
       {
@@ -866,7 +876,7 @@ export class BillImportNewComponent implements OnInit {
           this.notification.success(
             NOTIFICATION_TITLE.success,
             res.message ||
-              `Cập nhật trạng thái hồ sơ chứng từ thành "${statusText}" thành công!`,
+            `Cập nhật trạng thái hồ sơ chứng từ thành "${statusText}" thành công!`,
           );
           this.loadDataBillImport();
         } else {
@@ -881,7 +891,7 @@ export class BillImportNewComponent implements OnInit {
         this.notification.error(
           NOTIFICATION_TITLE.error,
           err.error?.message ||
-            'Có lỗi xảy ra khi cập nhật trạng thái hồ sơ chứng từ!',
+          'Có lỗi xảy ra khi cập nhật trạng thái hồ sơ chứng từ!',
         );
       },
     });

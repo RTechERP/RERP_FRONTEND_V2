@@ -103,8 +103,10 @@ export class LoginComponent {
                         }),
                     );
                     localStorage.setItem('remember_login', encrypted);
+                    localStorage.setItem('auto_login', 'true');
                 } else {
                     localStorage.removeItem('remember_login');
+                    localStorage.removeItem('auto_login');
                 }
 
                 // 🔹 Decode token (giữ nguyên logic cũ)

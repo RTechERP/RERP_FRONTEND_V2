@@ -52,6 +52,10 @@ import { MenuItem } from 'primeng/api';
 import { BillExportDetailNewComponent } from '../bill-export-detail-new/bill-export-detail-new.component';
 import { ClipboardService } from '../../../../../services/clipboard.service';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { CustomTable } from '../../../../../shared/custom-table/custom-table';
+import { ColumnDef } from '../../../../../shared/custom-table/column-def.model';
+import { SplitterModule } from 'primeng/splitter';
+import { CardModule } from "primeng/card";
 @Component({
   selector: 'app-bill-export-new',
   templateUrl: './bill-export-new.component.html',
@@ -75,18 +79,20 @@ import { NzMessageService } from 'ng-zorro-antd/message';
     NzModalModule,
     HasPermissionDirective,
     MenubarModule,
+    CustomTable,
+    SplitterModule,
+    CardModule
   ],
 })
 export class BillExportNewComponent
-  implements OnInit, OnDestroy, AfterViewInit
-{
+  implements OnInit, OnDestroy, AfterViewInit {
   // ========================================
   // Grid Instances & Properties
   // ========================================
   angularGridMaster!: AngularGridInstance;
   angularGridDetail!: AngularGridInstance;
-  columnDefinitionsMaster: Column[] = [];
-  columnDefinitionsDetail: Column[] = [];
+  // columnDefinitionsMaster: ColumnDef[] = [];
+  // columnDefinitionsDetail: ColumnDef[] = [];
   gridOptionsMaster!: GridOption;
   gridOptionsDetail!: GridOption;
   datasetMaster: any[] = [];
@@ -106,6 +112,9 @@ export class BillExportNewComponent
   isModalOpening: boolean = false; // Flag để ngăn mở modal 2 lần
   sizeTbDetail: number | string = '0';
   warehouseCode: string = '';
+  isLoading: boolean = false;
+  showSearchBar: boolean = true;
+  isFilterBarVisible: boolean = true;
   readonly componentId: string =
     'billexport-' + Math.random().toString(36).substring(2, 11);
   checked: boolean = false;
@@ -152,6 +161,13 @@ export class BillExportNewComponent
   private resizeObserver: ResizeObserver | null = null;
   private lastVisibleWidth: number = 0;
 
+  // Column definitions (PrimeNG custom-table)
+  columnsMaster: ColumnDef[] = [];
+  columnsDetail: ColumnDef[] = [];
+
+  // Selection
+  selectedMasterRows: any[] = [];
+
   constructor(
     private billExportService: BillExportService,
     private notification: NzNotificationService,
@@ -164,7 +180,7 @@ export class BillExportNewComponent
     private elementRef: ElementRef,
     private ngZone: NgZone,
     @Optional() @Inject('tabData') private tabData: any,
-  ) {}
+  ) { }
 
   ngOnInit() {
     // Đọc wareHouseCode từ query params và reinit khi thay đổi
@@ -270,167 +286,104 @@ export class BillExportNewComponent
   // ========================================
 
   initMasterGrid() {
-    this.columnDefinitionsMaster = [
+    this.columnsMaster = [
       {
-        id: 'IsApproved',
-        name: 'Nhận chứng từ',
+        header: 'Nhận chứng từ',
         field: 'IsApproved',
         sortable: true,
-        filterable: true,
-        type: FieldType.boolean,
-        filter: {
-          model: Filters['singleSelect'],
-          collection: [
-            { value: 'true', label: 'Đã nhận' },
-            { value: 'false', label: 'Chưa nhận' },
-          ],
-          collectionOptions: {
-            addBlankEntry: true,
-          },
-        },
-        formatter: Formatters.checkmarkMaterial,
-        minWidth: 120,
-        maxWidth: 120,
+        width: '30px',
+        filterOptions: [
+          { label: 'Đã nhận', value: true },
+          { label: 'Chưa nhận', value: false },
+        ],
+        filterMode: 'multiselect',
+        format: (val) => (val === true ? '✓' : ''),
+        cssClass: 'text-center',
+        frozen: true,
+        alignFrozen: 'left',
       },
       {
-        id: 'DateStatus',
-        name: 'Ngày nhận',
+        header: 'Ngày nhận',
         field: 'DateStatus',
         sortable: true,
-        filterable: true,
-        formatter: Formatters.date,
-        exportCustomFormatter: Formatters.date,
-        type: 'date',
-        params: { dateFormat: 'DD/MM/YYYY' },
-        filter: { model: Filters['compoundDate'] },
-        minWidth: 120,
+        width: '50px',
+        format: (val) => this.formatDate(val),
+        cssClass: 'text-center',
+        frozen: true,
+        alignFrozen: 'left',
       },
       {
-        id: 'nameStatus',
-        name: 'Trạng thái',
+        header: 'Trạng thái',
         field: 'nameStatus',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
+        filterMode: 'multiselect',
+        width: '200px',
       },
       {
-        id: 'RequestDate',
-        name: 'Ngày yêu cầu xuất kho',
+        header: 'Ngày yêu cầu xuất kho',
         field: 'RequestDate',
         sortable: true,
-        filterable: true,
-        formatter: Formatters.date,
-        exportCustomFormatter: Formatters.date,
-        type: 'date',
-        params: { dateFormat: 'DD/MM/YYYY' },
-        filter: { model: Filters['compoundDate'] },
-        minWidth: 150,
+        format: (val) => this.formatDate(val),
+        cssClass: 'text-center',
+        frozen: true,
+        alignFrozen: 'left',
       },
       {
-        id: 'Code',
-        name: 'Số phiếu',
+        header: 'Số phiếu',
         field: 'Code',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 160,
+        filterMode: 'multiselect',
+        width: '160px',
       },
       {
-        id: 'DepartmentName',
-        name: 'Phòng ban',
+        header: 'Phòng ban',
         field: 'DepartmentName',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
+        filterMode: 'multiselect',
+        width: '200px',
       },
       {
-        id: 'EmployeeCode',
-        name: 'Mã NV',
+        header: 'Mã NV',
         field: 'EmployeeCode',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 150,
+        filterMode: 'multiselect',
+        width: '150px',
       },
       {
-        id: 'FullName',
-        name: 'Tên NV',
+        header: 'Tên NV',
         field: 'FullName',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
+        filterMode: 'multiselect',
+        width: '200px',
       },
       {
-        id: 'CustomerName',
-        name: 'Khách hàng',
+        header: 'Khách hàng',
         field: 'CustomerName',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
-        formatter: (_row, _cell, value) => {
-          if (!value) return '';
-          const text = String(value);
-          return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
-        },
+        width: '400px',
+        textWrap: true
       },
       {
-        id: 'NameNCC',
-        name: 'Nhà cung cấp',
+        header: 'Nhà cung cấp',
         field: 'NameNCC',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
-        formatter: (_row, _cell, value) => {
-          if (!value) return '';
-          const text = String(value);
-          return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
-        },
+        width: '400px',
+        textWrap: true
       },
       {
-        id: 'Address',
-        name: 'Địa chỉ',
+        header: 'Địa chỉ',
         field: 'Address',
         sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInput'] },
-        minWidth: 250,
-        formatter: (_row, _cell, value) => {
-          if (!value) return '';
-          const text = String(value);
-          return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
-        },
+        width: '400px',
+        textWrap: true
       },
       {
-        id: 'CreatDate',
-        name: 'Ngày xuất',
+        header: 'Ngày xuất',
         field: 'CreatDate',
         sortable: true,
-        filterable: true,
-        formatter: Formatters.date,
-        exportCustomFormatter: Formatters.date,
-        type: 'date',
-        params: { dateFormat: 'DD/MM/YYYY hh:mm:ss' },
-        filter: { model: Filters['compoundDate'] },
-        minWidth: 150,
+        format: (val) => this.formatDate(val),
+        cssClass: 'text-center',
+        width: '150px',
       },
       //             {
       //     id: 'CreatedDate',
@@ -446,66 +399,50 @@ export class BillExportNewComponent
       //     minWidth: 150,
       // },
       {
-        id: 'WarehouseType',
-        name: 'Loại vật tư',
+        header: 'Loại vật tư',
         field: 'WarehouseType',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
+        filterMode: 'multiselect',
+        width: '150px',
       },
       {
-        id: 'WarehouseName',
-        name: 'Kho',
+        header: 'Kho',
         field: 'WarehouseName',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
+        filterMode: 'multiselect',
+        width: '100px',
       },
       {
-        id: 'ProductTypeText',
-        name: 'Loại phiếu',
+        header: 'Loại phiếu',
         field: 'ProductTypeText',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 120,
+        filterMode: 'multiselect',
+        width: '120px',
       },
       {
-        id: 'FullNameSender',
-        name: 'Người giao',
+        header: 'Người giao',
         field: 'FullNameSender',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
+        filterMode: 'multiselect',
+        width: '200px',
       },
-      {
-        id: 'IsUrgent',
-        name: 'Phát sinh',
-        field: 'IsUrgent',
-        sortable: true,
-        filterable: true,
-        type: FieldType.boolean,
-        filter: {
-          model: Filters['singleSelect'],
-          collection: [{ value: 'true', label: 'Phát sinh' }],
-          collectionOptions: {
-            addBlankEntry: true,
-          },
-        },
-        formatter: Formatters.checkmarkMaterial,
-        minWidth: 100,
-      },
+      // {
+      //   header: 'Phát sinh',
+      //   field: 'IsUrgent',
+      //   sortable: true,
+      //   filterMode: 'multiselect',
+      //   width: '100px',
+      //   // formatter: (_row, _cell, value) => (value === true ? '✓' : ''),
+      //   // cssClass: 'text-center',
+      //   // filter: {
+      //   //   model: Filters['singleSelect'],
+      //   //   collection: [{ value: 'true', label: 'Phát sinh' }],
+      //   //   collectionOptions: {
+      //   //     addBlankEntry: true,
+      //   //   },
+      //   // },
+      //   // formatter: Formatters.checkmarkMaterial,
+      // },
     ];
 
     this.gridOptionsMaster = {
@@ -558,187 +495,124 @@ export class BillExportNewComponent
   }
 
   initDetailGrid() {
-    this.columnDefinitionsDetail = [
+    this.columnsDetail = [
       {
-        id: 'STT',
-        name: 'STT',
+        header: 'STT',
         field: 'STT',
         sortable: true,
         cssClass: 'text-center',
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        maxWidth: 80,
+        width: '30px',
       },
       {
-        id: 'ProductNewCode',
-        name: 'Mã nội bộ',
+        header: 'Mã nội bộ',
         field: 'ProductNewCode',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 150,
+        filterMode: 'multiselect',
+        width: '120px',
       },
       {
-        id: 'ProductCode',
-        name: 'Mã sản phẩm',
+        header: 'Mã sản phẩm',
         field: 'ProductCode',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 150,
+        filterMode: 'multiselect',
+        width: '200px',
       },
       {
-        id: 'TotalInventory',
-        name: 'SL tồn',
+        header: 'SL tồn',
         field: 'TotalInventory',
         sortable: true,
-        filterable: true,
-        type: FieldType.number,
-        filter: {
-          model: Filters['compoundInputNumber'],
-        },
-        minWidth: 100,
+        width: '50px',
+        cssClass: 'text-end',
       },
       {
-        id: 'ProductName',
-        name: 'Chi tiết sản phẩm',
+        header: 'Chi tiết sản phẩm',
         field: 'ProductName',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
+        filterMode: 'multiselect',
+        width: '200px',
       },
       {
-        id: 'ProductFullName',
-        name: 'Mã sản phẩm theo dự án',
+        header: 'Mã sản phẩm theo dự án',
         field: 'ProductFullName',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
+        filterMode: 'multiselect',
+        width: '200px',
       },
       {
-        id: 'Unit',
-        name: 'ĐVT',
+        header: 'ĐVT',
         field: 'Unit',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 100,
+        filterMode: 'multiselect',
+        width: '50px',
       },
       {
-        id: 'Qty',
-        name: 'Số lượng',
+        header: 'Số lượng',
         cssClass: 'text-end',
         field: 'Qty',
         sortable: true,
-        filterable: true,
-        type: FieldType.number,
-        minWidth: 100,
-        formatter: (row: number, cell: number, value: any) =>
+        width: '100px',
+        format: (value: any) =>
           this.formatNumberEnUS(value),
       },
       {
-        id: 'ProductGroupName',
-        name: 'Loại hàng',
+        header: 'Loại hàng',
         field: 'ProductGroupName',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 150,
+        filterMode: 'multiselect',
+        width: '150px',
       },
       {
-        id: 'ProductTypeText',
-        name: 'Hàng xuất',
+        header: 'Hàng xuất',
         field: 'ProductTypeText',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 120,
+        filterMode: 'multiselect',
+        width: '120px',
       },
       {
-        id: 'Note',
-        name: 'Ghi chú (PO)',
+        header: 'Ghi chú (PO)',
         field: 'Note',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
+        filterMode: 'multiselect',
+        width: '200px',
       },
       {
-        id: 'UnitPricePOKH',
-        name: 'Đơn giá bán',
+        header: 'Đơn giá bán',
         field: 'UnitPricePOKH',
         cssClass: 'text-end',
         sortable: true,
-        filterable: true,
-        type: FieldType.number,
-        minWidth: 120,
-        formatter: (row: number, cell: number, value: any) =>
+        width: '120px',
+        format: (value: any) =>
           this.formatNumberEnUS(value),
       },
       {
-        id: 'UnitPricePurchase',
-        name: 'Đơn giá mua',
+        header: 'Đơn giá mua',
         field: 'UnitPricePurchase',
         cssClass: 'text-end',
         sortable: true,
-        filterable: true,
-        type: FieldType.number,
-        minWidth: 120,
-        formatter: (row: number, cell: number, value: any) =>
+        width: '120px',
+        format: (value: any) =>
           this.formatNumberEnUS(value),
       },
       {
-        id: 'BillCode',
-        name: 'Đơn mua hàng',
+        header: 'Đơn mua hàng',
         field: 'BillCode',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 150,
+        filterMode: 'multiselect',
+        width: '150px',
       },
       {
-        id: 'ProjectCodeExport',
-        name: 'Mã dự án',
+        header: 'Mã dự án',
         field: 'ProjectCodeExport',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 120,
+        filterMode: 'multiselect',
+        width: '150px',
       },
       {
-        id: 'ProjectNameText',
-        name: 'Dự án',
+        header: 'Dự án',
         field: 'ProjectNameText',
         sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['compoundInput'],
-        },
-        minWidth: 200,
+        filterMode: 'multiselect',
+        width: '200px',
       },
     ];
 
@@ -773,6 +647,18 @@ export class BillExportNewComponent
   // ========================================
   // Grid Events
   // ========================================
+
+  private formatDate(val: any): string {
+    if (!val) return '';
+    const d = new Date(val);
+    return isNaN(d.getTime())
+      ? ''
+      : d.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+  }
 
   angularGridMasterReady(angularGrid: AngularGridInstance) {
     this.angularGridMaster = angularGrid;
@@ -890,8 +776,26 @@ export class BillExportNewComponent
     }
   }
 
-  onMasterCellClick(e: Event, args: OnEventArgs) {
-    // Handle cell click if needed
+  onRowClick(rowData: any): void {
+    this.selectedRow = rowData;
+    this.id = rowData?.ID || 0;
+    this.updateTabDetailTitle();
+    if (this.id > 0) {
+      this.getBillExportDetail(this.id);
+      this.getBillExportByID(this.id);
+    } else {
+      this.datasetDetail = [];
+      this.selectBillExport = [];
+    }
+  }
+
+
+  onMasterSelectionChange(selection: any[]): void {
+    this.selectedMasterRows = selection || [];
+  }
+
+  private getSelectedRows(): any[] {
+    return this.selectedMasterRows || [];
   }
 
   onMasterDoubleClick(event: any) {
@@ -1115,10 +1019,6 @@ export class BillExportNewComponent
             this.applyDistinctFiltersToMaster();
             this.updateMasterFooterRow();
           }
-          this.id = 0;
-          this.selectedRow = null;
-          this.data = [];
-          this.datasetDetail = [];
         },
         error: (err) => {
           this.isLoadTable = false;
@@ -1203,6 +1103,10 @@ export class BillExportNewComponent
   // Search & Filter
   // ========================================
 
+  toggleFilterBar() {
+    this.isFilterBarVisible = !this.isFilterBarVisible;
+  }
+
   // onSearch() {
   //   this.loadDataBillExport();
   // }
@@ -1219,8 +1123,8 @@ export class BillExportNewComponent
   // Actions
   // ========================================
 
-  openModalBillExportDetail(isCheckmode: boolean) {
-    this.isCheckmode = isCheckmode;
+  openModalBillExportDetail(ischeckmode: boolean) {
+    this.isCheckmode = ischeckmode;
     if (this.isCheckmode === true && this.id === 0) {
       this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
       return;
@@ -1232,25 +1136,18 @@ export class BillExportNewComponent
       keyboard: false,
       fullscreen: true,
     });
-    modalRef.componentInstance.newBillExport = !isCheckmode; // true khi thêm mới, false khi sửa
+    modalRef.componentInstance.newBillExport = this.newBillExport;
     modalRef.componentInstance.isCheckmode = this.isCheckmode;
-    modalRef.componentInstance.id = isCheckmode ? this.id : 0; // Chỉ truyền id khi sửa
+    modalRef.componentInstance.id = ischeckmode ? this.id : 0;
     modalRef.componentInstance.wareHouseCode = this.warehouseCode;
-    modalRef.result
-      .then(() => {
-        this.isModalOpening = false;
-      })
-      .catch((result) => {
-        this.isModalOpening = false;
-        if (result === true) {
-          this.id = 0;
-          this.loadDataBillExport();
-        }
-      })
-      .finally(() => {
-        this.isModalOpening = false;
-        this.loadDataBillExport();
-      });
+    modalRef.result.finally(() => {
+      this.isModalOpening = false;
+      this.loadDataBillExport();
+      if (this.id > 0) {
+        this.getBillExportDetail(this.id);
+        this.getBillExportByID(this.id);
+      }
+    });
   }
 
   openModalHistoryDeleteBill() {
@@ -1451,19 +1348,19 @@ export class BillExportNewComponent
   // Helper Methods
   // ========================================
 
-  getSelectedRows(): any[] {
-    if (this.angularGridMaster?.slickGrid) {
-      const selectedRowIndexes =
-        this.angularGridMaster.slickGrid.getSelectedRows();
-      if (selectedRowIndexes && selectedRowIndexes.length > 0) {
-        const dataView = this.angularGridMaster.dataView;
-        return selectedRowIndexes.map((index: number) =>
-          dataView?.getItem(index),
-        );
-      }
-    }
-    return [];
-  }
+  // getSelectedRows(): any[] {
+  //   if (this.angularGridMaster?.slickGrid) {
+  //     const selectedRowIndexes =
+  //       this.angularGridMaster.slickGrid.getSelectedRows();
+  //     if (selectedRowIndexes && selectedRowIndexes.length > 0) {
+  //       const dataView = this.angularGridMaster.dataView;
+  //       return selectedRowIndexes.map((index: number) =>
+  //         dataView?.getItem(index),
+  //       );
+  //     }
+  //   }
+  //   return [];
+  // }
 
   // updateTabDetailTitle() {
   //   // Update tab title with count
@@ -1723,9 +1620,8 @@ export class BillExportNewComponent
 
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa phiếu "${
-        this.selectedRow?.Code || ''
-      }" không?`,
+      nzContent: `Bạn có chắc chắn muốn xóa phiếu "${this.selectedRow?.Code || ''
+        }" không?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -1796,12 +1692,12 @@ export class BillExportNewComponent
         )
           .toString()
           .padStart(2, '0')}_${now.getFullYear()}_${now
-          .getHours()
-          .toString()
-          .padStart(2, '0')}_${now
-          .getMinutes()
-          .toString()
-          .padStart(2, '0')}_${now.getSeconds().toString().padStart(2, '0')}`;
+            .getHours()
+            .toString()
+            .padStart(2, '0')}_${now
+              .getMinutes()
+              .toString()
+              .padStart(2, '0')}_${now.getSeconds().toString().padStart(2, '0')}`;
 
         const selectedBill = this.datasetMaster?.find?.(
           (item) => item.ID === exportId,
@@ -1867,9 +1763,8 @@ export class BillExportNewComponent
         )
           .toString()
           .padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
-        const fileName = `${
-          selectedHandover?.Code || 'export'
-        }_${dateString}.xlsx`;
+        const fileName = `${selectedHandover?.Code || 'export'
+          }_${dateString}.xlsx`;
         a.href = url;
         a.download = fileName;
         document.body.appendChild(a);
@@ -1932,12 +1827,12 @@ export class BillExportNewComponent
         )
           .toString()
           .padStart(2, '0')}_${now.getFullYear()}_${now
-          .getHours()
-          .toString()
-          .padStart(2, '0')}_${now
-          .getMinutes()
-          .toString()
-          .padStart(2, '0')}_${now.getSeconds().toString().padStart(2, '0')}`;
+            .getHours()
+            .toString()
+            .padStart(2, '0')}_${now
+              .getMinutes()
+              .toString()
+              .padStart(2, '0')}_${now.getSeconds().toString().padStart(2, '0')}`;
 
         const fileName = `PhieuXuat_${dateString}.zip`;
 
@@ -2105,12 +2000,12 @@ export class BillExportNewComponent
     }
 
     // Cập nhật trong columnDefinitions
-    const statusColDef = this.columnDefinitionsMaster.find(
-      (col) => col.id === 'nameStatus',
+    const statusColDef = this.columnsMaster.find(
+      (col) => col.field === 'nameStatus',
     );
-    if (statusColDef?.filter) {
-      statusColDef.filter.collection = statusCollection;
-    }
+    // if (statusColDef?.filterMode) {
+    //   statusColDef.filterMode = statusCollection;
+    // }
 
     this.angularGridMaster.slickGrid.setColumns(columns);
 
@@ -2180,11 +2075,11 @@ export class BillExportNewComponent
     });
 
     // Update column definitions
-    this.columnDefinitionsDetail.forEach((colDef: any) => {
-      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+    this.columnsDetail.forEach((colDef: any) => {
+      if (colDef?.filterMode && colDef.filterMode === 'multiselect') {
         const field = colDef.field;
         if (!field || !fieldsToFilter.includes(field)) return;
-        colDef.filter.collection = getUniqueValues(data, field);
+        colDef.filterMode = getUniqueValues(data, field);
       }
     });
 

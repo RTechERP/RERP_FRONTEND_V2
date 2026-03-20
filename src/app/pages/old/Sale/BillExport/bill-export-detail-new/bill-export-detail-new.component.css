@@ -137,13 +137,16 @@
   text-align: right;
   background-color: #fafafa;
 }
-::ng-deep div[id^="billExportDetail_"]{
-  height: 54vh !important;;
+
+::ng-deep div[id^="billExportDetail_"] {
+  height: 60vh !important;
 }
-::ng-deep .modal-body{
+
+::ng-deep .modal-body {
   height: 91vh !important;
 }
-::ng-deep .modal-footer{
+
+::ng-deep .modal-footer {
   border-top: none !important;
   padding: 0 1rem 0 0 !important;
 }

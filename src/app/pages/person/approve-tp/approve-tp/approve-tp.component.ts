@@ -80,7 +80,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     isBGD: boolean = false;
     isSeniorMode: boolean = false;
     showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
-
+    automationDept: number = 2;
+     seniorPermission:string='N85';
     get shouldShowSearchBar(): boolean {
         return this.showSearchBar;
     }
@@ -612,7 +613,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                 {
                     title: 'Trạng thái duyệt', columns: [
                         {
-                            title: 'Senior ', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
+                            title: 'Senior ', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false, visible:(this.appUserService.departmentID===this.automationDept || this.appUserService.hasPermission(this.seniorPermission)),
                             formatter: (cell: any) => {
                                 const rowData = cell.getRow().getData();
                                 const textValue = cell.getValue();
@@ -809,7 +810,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                 {
                     title: 'Người duyệt', columns: [
                         {
-                            title: 'Tên Senior ', field: 'ApprovedSeniorName', hozAlign: 'left', headerHozAlign: 'center', width: 120, formatter: 'textarea', headerSort: false,
+                            title: 'Tên Senior ', field: 'ApprovedSeniorName', hozAlign: 'left', headerHozAlign: 'center', width: 120, formatter: 'textarea', headerSort: false,visible:(this.appUserService.departmentID === this.automationDept || this.appUserService.hasPermission(this.seniorPermission))
                         },
                         {
                             title: 'Tên TBP ', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,

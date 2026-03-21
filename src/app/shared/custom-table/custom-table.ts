@@ -18,7 +18,7 @@ import { DialogModule } from 'primeng/dialog';
 import { OrderListModule } from 'primeng/orderlist';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TabsModule } from 'primeng/tabs';
-import { MenuItem } from 'primeng/api';
+import { MenuItem, FilterService } from 'primeng/api';
 import { ColumnDef, EditLookupConfig } from './column-def.model';
 
 @Component({
@@ -40,8 +40,24 @@ export class CustomTable implements OnChanges {
     @ViewChild('lookupPanel') lookupPanel!: Popover;
 
     private el = inject(ElementRef);
+    private filterService = inject(FilterService);
     @HostBinding('attr.tabindex') tabindex = '0';
-    
+
+    constructor() {
+        this.filterService.register('dateRange', (value: any, filter: Date[]) => {
+            if (!filter || !filter[0]) return true;
+            if (value == null) return false;
+            const date = new Date(value);
+            date.setHours(0, 0, 0, 0);
+            const start = new Date(filter[0]);
+            start.setHours(0, 0, 0, 0);
+            if (!filter[1]) return date.getTime() >= start.getTime();
+            const end = new Date(filter[1]);
+            end.setHours(23, 59, 59, 999);
+            return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
+        });
+    }
+
     // --- Highlighting State ---
     globalFilterValue: string = '';
     
@@ -50,6 +66,11 @@ export class CustomTable implements OnChanges {
     activeFilterTab: { [field: string]: string } = {};
     customFilterMatchMode: { [field: string]: string } = {};
     customFilterValue: { [field: string]: any } = {};
+
+    // --- DateTime Filter State ---
+    dateFilterMode: { [field: string]: 'single' | 'range' } = {};
+    dateRangeFilter: { [field: string]: Date[] } = {};
+    dateSingleFilter: { [field: string]: Date | null } = {};
 
     // --- Table Lookup State ---
     lookupSearchText: string = '';
@@ -61,6 +82,9 @@ export class CustomTable implements OnChanges {
     lookupSelectedRows: any[] = [];
     /** Cache of last-loaded data per field (for formatValue when using loadData) */
     private lookupDataCache: { [field: string]: any[] } = {};
+
+    // --- Cell Value Cache (performance: avoid re-calling format() on every CD cycle) ---
+    private cellValueCache = new Map<string, string>();
 
     // --- Cell Focus State ---
     focusedCell: { rowData: any, colField: string } | null = null;
@@ -74,6 +98,7 @@ export class CustomTable implements OnChanges {
         this._originalData = val ? [...val] : [];
         this._data = val ? [...val] : [];
         this.buildFilterOptionsCache();
+        this.cellValueCache.clear();
     }
     get data(): any[] {
         return this._data;
@@ -300,6 +325,7 @@ export class CustomTable implements OnChanges {
 
     onGlobalFilter(event: Event) {
         this.globalFilterValue = (event.target as HTMLInputElement).value;
+        this.cellValueCache.clear();
         this.dt.filterGlobal(this.globalFilterValue, 'contains');
     }
 
@@ -309,6 +335,21 @@ export class CustomTable implements OnChanges {
         const term = this.globalFilterValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(`(${term})`, 'gi');
         return str.replace(regex, '<mark>$1</mark>');
+    }
+
+    /** Memoized cell value: gọi formatValue + getHighlightedText đúng 1 lần/cell, cache lại cho các CD cycle tiếp theo */
+    getCellValue(col: ColumnDef, rowData: any): string {
+        const rowKey = this.dataKey ? rowData[this.dataKey] : null;
+        const cacheKey = rowKey != null
+            ? `${col.field}__${rowKey}__${this.globalFilterValue}`
+            : null;
+        if (cacheKey) {
+            const cached = this.cellValueCache.get(cacheKey);
+            if (cached !== undefined) return cached;
+        }
+        const result = this.getHighlightedText(this.formatValue(col, rowData));
+        if (cacheKey) this.cellValueCache.set(cacheKey, result);
+        return result;
     }
 
     isFilterSelected(value: any[], val: any): boolean {
@@ -846,6 +887,25 @@ export class CustomTable implements OnChanges {
 
     isCellFocused(rowData: any, colField: string): boolean {
         return this.focusedCell?.rowData === rowData && this.focusedCell?.colField === colField;
+    }
+
+    // =============================================
+    // DateTime Filter
+    // =============================================
+    toggleDateFilterMode(field: string, filterCallback: Function) {
+        this.dateFilterMode[field] = this.dateFilterMode[field] === 'range' ? 'single' : 'range';
+        this.dateRangeFilter[field] = [];
+        this.dateSingleFilter[field] = null;
+        filterCallback(null);
+    }
+
+    onDateRangeChange(field: string, value: Date[], filterCallback: Function) {
+        this.dateRangeFilter[field] = value;
+        if (value && value.length >= 2 && value[0] && value[1]) {
+            filterCallback(value);
+        } else if (!value || value.length === 0) {
+            filterCallback(null);
+        }
     }
 
     @HostListener('keydown', ['$event'])

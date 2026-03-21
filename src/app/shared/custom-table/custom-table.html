@@ -67,7 +67,7 @@
             </th>
             <th *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field"
             [pSortableColumnDisabled]="!col.sortable || !!col.headerFormat" pFrozenColumn [frozen]="col.frozen || false"
-                [alignFrozen]="col.alignFrozen || 'left'" [style.width]="col.width || null" pReorderableColumn
+                [alignFrozen]="col.alignFrozen || 'left'" [style.width]="col.width || null" [style.min-width]="col.width || null" pReorderableColumn
                 [pReorderableColumnDisabled]="!reorderableColumns"
                 [ngClass]="[col.cssClass || '', col.frozen ? (col.alignFrozen === 'right' ? 'frozen-right' : 'frozen-left') : '']"
                 (contextmenu)="onHeaderContextMenu($event, col.field)">
@@ -223,6 +223,57 @@
                     </p-columnFilter>
                 </ng-container>
 
+                <!-- DateTime filter: single date or date range -->
+                <ng-container *ngIf="col.filterMode === 'datetime'">
+                    <p-columnFilter [field]="col.field"
+                        [matchMode]="dateFilterMode[col.field] === 'range' ? 'dateRange' : 'dateIs'"
+                        display="row" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filterCallback="filterCallback">
+                            <div style="position:relative;width:100%;">
+                                <i [class]="'pi cursor-pointer ' + (dateFilterMode[col.field] === 'range' ? 'pi-calendar-clock' : 'pi-calendar')"
+                                   [style.color]="dateFilterMode[col.field] === 'range' ? 'var(--p-primary-color)' : 'var(--p-text-muted-color)'"
+                                   [title]="dateFilterMode[col.field] !== 'range' ? 'Chọn ngày — click để chọn khoảng ngày' : 'Chọn khoảng ngày — click để chọn ngày đơn'"
+                                   style="position:absolute;left:6px;top:50%;transform:translateY(-50%);z-index:2;font-size:0.75rem"
+                                   (click)="toggleDateFilterMode(col.field, filterCallback);$event.stopPropagation()">
+                                </i>
+                                <!-- Single date picker -->
+                                <p-datepicker *ngIf="dateFilterMode[col.field] !== 'range'"
+                                    [(ngModel)]="dateSingleFilter[col.field]"
+                                    (ngModelChange)="filterCallback($event)"
+                                    [dateFormat]="col.editDateFormat || 'dd/mm/yy'"
+                                    appendTo="body" [showClear]="false" [showIcon]="false"
+                                    [inputStyle]="{'padding-left':'10px','padding-right':'4px','padding-top':'0px','padding-bottom':'0px','width':'100%'}"
+                                    [style]="{'width':'100%'}">
+                                    <ng-template pTemplate="footer">
+                                        <div style="padding:4px 8px;text-align:center;border-top:1px solid var(--p-surface-200)">
+                                            <button pButton label="Bỏ chọn" size="small" severity="secondary" [text]="true"
+                                                (click)="dateSingleFilter[col.field]=null;filterCallback(null)">
+                                            </button>
+                                        </div>
+                                    </ng-template>
+                                </p-datepicker>
+                                <!-- Range date picker -->
+                                <p-datepicker *ngIf="dateFilterMode[col.field] === 'range'"
+                                    [(ngModel)]="dateRangeFilter[col.field]"
+                                    (ngModelChange)="onDateRangeChange(col.field, $event, filterCallback)"
+                                    selectionMode="range"
+                                    [dateFormat]="col.editDateFormat || 'dd/mm/yy'"
+                                    appendTo="body" [showClear]="false" [showIcon]="false"
+                                    [inputStyle]="{'padding-left':'10px','padding-right':'4px','padding-top':'0px','padding-bottom':'0px','width':'100%'}"
+                                    [style]="{'width':'100%'}">
+                                    <ng-template pTemplate="footer">
+                                        <div style="padding:4px 8px;text-align:center;border-top:1px solid var(--p-surface-200)">
+                                            <button pButton label="Bỏ chọn" size="small" severity="secondary" [text]="true"
+                                                (click)="dateRangeFilter[col.field]=[];filterCallback(null)">
+                                            </button>
+                                        </div>
+                                    </ng-template>
+                                </p-datepicker>
+                            </div>
+                        </ng-template>
+                    </p-columnFilter>
+                </ng-container>
+
             </th>
         </tr>
     </ng-template>
@@ -245,7 +296,7 @@
     <!-- Body Row -->
     <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex" let-expanded="expanded">
         <tr *ngIf="!expandableRowGroups || isGroupExpanded(rowData[groupRowsBy])" [pSelectableRow]="rowData"
-            [pSelectableRowIndex]="rowIndex" [pSelectableRowDisabled]="clickSelectRow"
+            [pSelectableRowIndex]="rowIndex" [pSelectableRowDisabled]="clickSelectRow || selectionMode === 'multiple'"
             [pContextMenuRow]="contextMenuItems.length > 0 ? rowData : null"
             [pReorderableRow]="rowIndex" 
             [ngClass]="rowClass ? rowClass(rowData) : ''"
@@ -268,6 +319,7 @@
             <!-- Data columns -->
             <td *ngFor="let col of columns" pFrozenColumn [frozen]="col.frozen || false"
                 [alignFrozen]="col.alignFrozen || 'left'"
+                [style.min-width]="col.width || null"
                 [pEditableColumn]="col.editable && editMode && col.editType !== 'table-lookup' && col.editType !== 'progressbar' && col.editType !== 'badge' ? rowData : null"
                 [pEditableColumnField]="col.editable && editMode && col.editType !== 'table-lookup' && col.editType !== 'progressbar' && col.editType !== 'badge' ? col.field : ''"
                 [ngClass]="[getAutoAlignClass(col.cssClass, col), col.cellClass ? col.cellClass(rowData) : '', col.frozen ? (col.alignFrozen === 'right' ? 'frozen-right' : 'frozen-left') : '', isCellFocused(rowData, col.field) ? 'focused-cell' : '']"
@@ -347,7 +399,7 @@
             <!-- Default Text -->
             <div *ngSwitchDefault
                 [class]="(col.textWrap !== undefined ? col.textWrap : (col.editType === 'textarea' ? true : textWrap)) ? 'wrap-text' : 'truncate-text'"
-                [title]="rowData[col.field]" [innerHTML]="getHighlightedText(formatValue(col, rowData))">
+                [title]="rowData[col.field]" [innerHTML]="getCellValue(col, rowData)">
             </div>
         </ng-container>
     </ng-template>

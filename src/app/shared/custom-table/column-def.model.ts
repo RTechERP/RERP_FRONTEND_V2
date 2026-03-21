@@ -24,8 +24,9 @@ export interface ColumnDef {
     width?: string;
     /** PrimeNG filter type: 'text' | 'numeric' | 'date'. Default: 'text' */
     filterType?: string;
-    /** Filter UI mode: 'input' | 'dropdown' | 'multiselect'. Default: 'input' */
-    filterMode?: 'input' | 'dropdown' | 'multiselect';
+    /** Filter UI mode: 'input' | 'dropdown' | 'multiselect' | 'datetime'. Default: 'input'
+     *  'datetime' shows a date picker with toggle between single-date and date-range modes. */
+    filterMode?: 'input' | 'dropdown' | 'multiselect' | 'datetime';
     /** Manual filter options. If empty, auto-populated from data. Format: [{label, value}] */
     filterOptions?: { label: string; value: any }[];
     /** Lazy load function for filter dropdown/multiselect options.

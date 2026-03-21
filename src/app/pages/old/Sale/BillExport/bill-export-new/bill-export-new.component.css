@@ -1,5 +1,5 @@
 /* Font-size 12px cho filter bar */
-::ng-deep .filter-bar {
+:host ::ng-deep .bill-export-new-filter-bar {
   nz-form-label {
     font-size: 12px !important;
   }
@@ -128,15 +128,15 @@
   }
 }
 
-::ng-deep div[id^="gridMaster-"][id*="billexport"] {
+:host ::ng-deep div[id^="gridMaster-"][id*="billexport"]{
   height: 45vh !important;
 }
-::ng-deep div[id^="gridDetail-"][id*="billexport"] {
+:host ::ng-deep div[id^="gridDetail-"][id*="billexport"]{
   height: 35vh !important;
 }
 
 /* Multiline cell - wrap up to 3 lines with ellipsis */
-::ng-deep .cell-multiline {
+:host ::ng-deep .cell-multiline {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -152,12 +152,12 @@
 
 /* Increase row height for master grid to accommodate multiline (3 lines) */
 /* Calculation: 12px font * 1.5 line-height * 3 lines + 12px padding = ~66px */
-::ng-deep div[id^="gridMaster-"][id*="billexport"] .slick-row {
+:host ::ng-deep div[id^="gridMaster-"][id*="billexport"] .slick-row {
   height: auto !important;
   min-height: 66px !important;
 }
 
-::ng-deep div[id^="gridMaster-"][id*="billexport"] .slick-cell {
+:host ::ng-deep div[id^="gridMaster-"][id*="billexport"] .slick-cell {
   padding: 6px 8px !important;
   line-height: 1.5 !important;
   overflow: visible !important;

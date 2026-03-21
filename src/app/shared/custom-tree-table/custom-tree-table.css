@@ -1,0 +1,127 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host:focus {
+    outline: none;
+}
+
+/* p-treeTable fills the flex host */
+:host ::ng-deep p-treeTable {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .p-treetable {
+    flex: 1;
+    min-height: 0;
+}
+
+.truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wrap-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-thead>tr>th {
+    text-align: center;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-thead>tr>th .p-column-filter {
+    width: 100%;
+}
+
+/* Distinct boundary for frozen columns (DevExpress-like drop shadow and border) */
+:host ::ng-deep .frozen-left {
+    box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.08) !important;
+    border-right: 1px solid var(--p-surface-300, #cbd5e1) !important;
+}
+
+:host ::ng-deep .frozen-right {
+    box-shadow: -4px 0 6px -2px rgba(0, 0, 0, 0.08) !important;
+    border-left: 1px solid var(--p-surface-300, #cbd5e1) !important;
+}
+
+/* Ensure frozen cells have an opaque background so scrolling text doesn't bleed through */
+:host ::ng-deep .p-treetable .p-treetable-thead > tr > th.p-frozen-column {
+    background-color: var(--p-surface-50, #f8fafc) !important;
+}
+:host ::ng-deep .p-treetable .p-treetable-tbody > tr > td.p-frozen-column,
+:host ::ng-deep .p-treetable .p-treetable-tfoot > tr > td.p-frozen-column {
+    background-color: var(--p-surface-0, #ffffff) !important;
+}
+
+/* Table Lookup Cell (select-like appearance) */
+.table-lookup-cell {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--p-surface-300, #cbd5e1);
+    border-radius: 6px;
+    background: var(--p-surface-0, #fff);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    min-height: 2rem;
+}
+
+.table-lookup-cell:hover {
+    border-color: var(--p-primary-400, #60a5fa);
+    box-shadow: 0 0 0 1px var(--p-primary-200, rgba(59, 130, 246, 0.2));
+}
+
+.table-lookup-value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table-lookup-chevron {
+    font-size: 0.7rem;
+    color: var(--p-surface-500, #64748b);
+    margin-left: 0.25rem;
+    flex-shrink: 0;
+}
+
+/* Selected row in lookup popup */
+.lookup-row-selected {
+    background: var(--p-primary-50, rgba(59, 130, 246, 0.1));
+    font-weight: 600;
+}
+
+.lookup-row-selected td {
+    color: var(--p-primary-700, #1d4ed8);
+}
+
+:host ::ng-deep mark {
+    background-color: #fff176;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: bold;
+    color: #000;
+}
+
+/* Maintain scroll container height even when table is empty */
+:host ::ng-deep .p-treetable-scrollable .p-scroller,
+:host ::ng-deep .p-treetable-scrollable .p-treetable-scrollable-body {
+    min-height: var(--tt-scroll-height, auto);
+}
+
+/* Cell Focus Selection */
+:host ::ng-deep .focused-cell {
+    outline: 2px solid var(--p-primary-color, #3b82f6) !important;
+    outline-offset: -2px; /* Keeps the outline inside the cell bounds */
+    position: relative;
+    z-index: 1;
+}

@@ -2,9 +2,6 @@ import {
   Component,
   OnInit,
   Input,
-  ViewChildren,
-  ElementRef,
-  QueryList,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -18,9 +15,8 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentExamService } from '../hr-recruitment-exam-service/hrrecruitment-exam.service';
-import { AppUserService } from '../../../../../services/app-user.service';
 
 @Component({
   selector: 'app-hrrecruitment-exam-detail',
@@ -51,13 +47,6 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
   /** Chế độ: true = sửa, false = thêm mới */
   @Input() isEditMode: boolean = false;
 
-  answerCodes = ['A', 'B', 'C', 'D'];
-
-  @ViewChildren('answerInput', { read: ElementRef }) answerInputs!: QueryList<ElementRef>;
-
-  /** STT tiếp theo cho mã đề thi */
-  nextExamSTT: number = 0;
-
   /** ID phòng ban - nhận từ form cha */
   @Input() departmentID: number = 0;
 
@@ -84,7 +73,6 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
   //#region Trạng thái
 
   isSaving: boolean = false;
-  isAdmin: boolean = false;
 
   //#endregion
 
@@ -93,7 +81,6 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
     private notification: NzNotificationService,
     private examService: HRRecruitmentExamService,
     private fb: FormBuilder,
-    private appUserService: AppUserService,
   ) {
     this.createForm();
   }
@@ -101,20 +88,10 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
   //#region Lifecycle
 
   ngOnInit(): void {
-    // Thêm mảng employeeID đặc biệt có quyền như admin
-    const specialAdminIds = [54];
-    this.isAdmin = this.appUserService.isAdmin || specialAdminIds.includes(this.appUserService.employeeID || 0);
-
     this.loadDepartments();
 
     if (this.departmentID > 0) {
       this.formGroup.patchValue({ DepartmentID: this.departmentID }, { emitEvent: false });
-    }
-
-    if (!this.isAdmin) {
-      const userDeptId = this.appUserService.departmentID || null;
-      this.formGroup.patchValue({ DepartmentID: userDeptId }, { emitEvent: false });
-      this.formGroup.get('DepartmentID')?.disable();
     }
 
     if (this.isEditMode && this.examID > 0) {
@@ -192,13 +169,9 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
           this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Không tìm thấy đề thi!');
         }
       },
-      error: (err: any) => {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          { nzStyle: { whiteSpace: 'pre-line' } }
-        );
+      error: (err) => {
+        console.error('Lỗi khi tải chi tiết đề thi:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi tải chi tiết đề thi!');
       },
     });
   }
@@ -260,42 +233,13 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
     this.formGroup.patchValue({ CodeExam: `${prefix}_${suffix}` });
   }
 
-  /** Tự động sinh mã đề thi mẫu TN_STT dựa trên ID lớn nhất từ database */
-  generateAutoCode(): void {
-    this.examService.getMaxExamID().subscribe({
-      next: (res: any) => {
-        if (res.status === 1) {
-          this.nextExamSTT = (res.data || 0) + 1;
-          this.updateCodeByType();
-        }
-      },
-      error: (err) => {
-        console.error('Lỗi khi lấy ID lớn nhất:', err);
-      }
-    });
-  }
-
-  /** Cập nhật mã đề thi dựa trên loại đề và STT */
-  updateCodeByType(): void {
-    if (this.isEditMode) return;
-
-    const examType = this.formGroup.get('ExamType')?.value;
-    let prefix = 'TN';
-    if (examType === 2) prefix = 'TL';
-    else if (examType === 3) prefix = 'TN_TL';
-
-    this.formGroup.patchValue({ CodeExam: `${prefix}_${this.nextExamSTT}` }, { emitEvent: false });
-  }
-
   //#endregion
 
   //#region Sự kiện thay đổi loại đề thi
 
   /** Khi thay đổi loại đề thi → cập nhật mã đề thi */
   onExamTypeChange(value: number): void {
-    if (!this.isEditMode) {
-      this.updateCodeByType();
-    } else if (this.formGroup.get('CodeExam')?.value) {
+    if (this.formGroup.get('CodeExam')?.value) {
       this.setCode('');
     }
   }
@@ -337,14 +281,11 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lưu đề thi thất bại!');
         }
       },
-      error: (err: any) => {
+      error: (err) => {
         this.isSaving = false;
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          { nzStyle: { whiteSpace: 'pre-line' } }
-        );
+        const errorMsg = err?.error?.message || 'Có lỗi xảy ra khi lưu đề thi!';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+        console.error(err);
       },
     });
   }
@@ -371,14 +312,11 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lưu đề thi thất bại!');
         }
       },
-      error: (err: any) => {
+      error: (err) => {
         this.isSaving = false;
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          { nzStyle: { whiteSpace: 'pre-line' } }
-        );
+        const errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra khi lưu đề thi!';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+        console.error(err);
       },
     });
   }
@@ -401,21 +339,14 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
   private resetForm(): void {
     this.examID = 0;
     this.isEditMode = false;
-
-    let defaultDeptId = this.departmentID || null;
-    if (!this.isAdmin) {
-      defaultDeptId = this.appUserService.departmentID || null;
-    }
-
     this.formGroup.reset({
       ExamType: 1,
-      Goal: 10,
-      TestTime: 30,
-      CodeExam: '',
-      DepartmentID: defaultDeptId,
+      Goal: 100,
+      TestTime: 60,
+      CodeExam: 'A_B', // Sẽ được cập nhật ở dòng dưới
+      DepartmentID: this.departmentID || null,
     }, { emitEvent: false });
-
-    this.generateAutoCode();
+    this.setCode('');
   }
 
   //#endregion
@@ -424,7 +355,7 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
 
   /** Đóng dialog không lưu */
   onClose(): void {
-    this.activeModal.close({ success: false, reloadData: true });
+    this.activeModal.close({ success: false, reloadData: false });
   }
 
   //#endregion

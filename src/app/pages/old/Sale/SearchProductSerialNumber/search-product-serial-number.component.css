@@ -1,8 +1,8 @@
-.fs-12 {
+.search-product-serial-number-fs-12 {
   font-size: 0.75rem !important;
 }
 
-::ng-deep
+:host ::ng-deep
   .slickgrid-container
   .slick-footerrow
   .slick-footerrow-columns
@@ -14,20 +14,20 @@
   height: 90vh !important;
 }
 
-::ng-deep .ant-card-body {
+:host ::ng-deep .ant-card-body {
   padding: 2px !important;
 }
 
-::ng-deep .ant-card-head {
+:host ::ng-deep .ant-card-head {
   padding-left: 6px !important;
   text-transform: uppercase;
 }
 
-::ng-deep div[id^="gridExport_"] {
+:host ::ng-deep div[id^="gridExport_"] {
   height: 85vh !important;
 }
 
-::ng-deep div[id^="gridImport_"] {
+:host ::ng-deep div[id^="gridImport_"] {
   height: 85vh !important;
 }
 

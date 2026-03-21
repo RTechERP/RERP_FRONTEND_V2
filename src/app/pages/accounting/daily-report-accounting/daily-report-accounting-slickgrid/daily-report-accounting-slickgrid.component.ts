@@ -13,13 +13,11 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzGridModule } from 'ng-zorro-antd/grid';
-
+import { NzFormModule } from 'ng-zorro-antd/form';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
     Column,
-    EditCommand,
     Filters,
     GridOption,
     MultipleSelectOption,
@@ -34,13 +32,11 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
-import { ID_ADMIN_SALE_LIST, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
+import { ID_ADMIN_SALE_LIST } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
 
 import { DailyReportAccountingService } from '../daily-report-accounting-service/daily-report-accounting.service';
 import { DailyReportAccountingDetailComponent } from '../daily-report-accounting-detail/daily-report-accounting-detail.component';
-import { ImportExcelAccountingComponent } from '../import-excel-accounting/import-excel-accounting.component';
-import { ReadOnlyLongTextEditor } from '../../../KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
 
 @Component({
     selector: 'app-daily-report-accounting-slickgrid',
@@ -55,7 +51,7 @@ import { ReadOnlyLongTextEditor } from '../../../KPITech/kpievaluation-employee/
         NzSelectModule,
         NzSpinModule,
         NzModalModule,
-        NzGridModule,
+        NzFormModule,
         CommonModule,
         HasPermissionDirective,
         AngularSlickgridModule,
@@ -73,7 +69,6 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
     columnDefinitions: Column[] = [];
     gridOptions: GridOption = {};
     dataset: any[] = [];
-    editCommandQueue: EditCommand[] = [];
 
     // PrimeNG Menubar
     menuBars: any[] = [];
@@ -124,11 +119,6 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
                 icon: 'fa-solid fa-file-excel fa-lg text-success',
                 command: () => this.exportExcel()
             },
-            {
-                label: 'Nhập Excel',
-                icon: 'fa-solid fa-file-import fa-lg text-info',
-                command: () => this.openImportExcel()
-            },
         ];
     }
 
@@ -148,10 +138,9 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
         // Kiểm tra quyền admin và set employeeId
         const currentUser = this.appUserService.currentUser;
         const currentUserId = this.appUserService.id || 0;
-        const currentEmployeeId = this.appUserService.employeeID || 0;
-        const hasN1 = (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false);
-        const hasN52 = (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N52') : false);
-        this.isAdmin = hasN1 || hasN52 || this.appUserService.isAdmin;
+        const hasN1 = this.appUserService.hasPermission('N1') || (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false);
+        const hasN52 = this.appUserService.hasPermission('N52') || (currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N52') : false);
+        this.isAdmin = hasN1 || hasN52 || ID_ADMIN_SALE_LIST.includes(currentUserId) || this.appUserService.isAdmin;
 
         if (this.isAdmin) {
             this.isEmployeeIdDisabled = false;
@@ -159,7 +148,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
         } else {
             // User thường: disable cả hai, tự điền employeeId
             this.isEmployeeIdDisabled = true;
-            this.filters.employeeId = currentEmployeeId;
+            this.filters.employeeId = currentUserId;
         }
 
         this.loadEmployees();
@@ -191,15 +180,10 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
                     this.notification.error('Lỗi', response.message || 'Không thể tải danh sách nhân viên');
                 }
             },
-            (err: any) => {
+            (error) => {
                 this.employees = [];
-                this.notification.create(
-                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                    err?.error?.message || `${err.error}\n${err.message}`,
-                    { nzStyle: { whiteSpace: 'pre-line' } }
-                );
-                console.error('Error loading employees:', err);
+                this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách nhân viên');
+                console.error('Error loading employees:', error);
             }
         );
     }
@@ -232,25 +216,6 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
         this.openModal(this.selectedRowId);
     }
 
-    openImportExcel(): void {
-        const modalRef = this.modalService.open(ImportExcelAccountingComponent, {
-            centered: true,
-            size: 'xl',
-            backdrop: 'static',
-        });
-
-        modalRef.result.then(
-            (result) => {
-                if (result === 'success') {
-                    this.loadData();
-                }
-            },
-            () => {
-                console.log('Import Excel modal closed');
-            }
-        );
-    }
-
     onDeleteDailyReportAccounting(): void {
         if (!this.selectedRowId || this.selectedRowId <= 0) {
             this.notification.warning('Cảnh báo', 'Vui lòng chọn một dòng để xóa!');
@@ -275,14 +240,9 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
                             this.notification.error('Lỗi', response.message || 'Không thể xóa báo cáo!');
                         }
                     },
-                    error: (err: any) => {
-                        console.error('Error deleting daily report accounting:', err);
-                        this.notification.create(
-                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                            err?.error?.message || `${err.error}\n${err.message}`,
-                            { nzStyle: { whiteSpace: 'pre-line' } }
-                        );
+                    error: (error) => {
+                        console.error('Error deleting daily report accounting:', error);
+                        this.notification.error('Lỗi', 'Lỗi kết nối khi xóa báo cáo!');
                     }
                 });
             }
@@ -317,14 +277,9 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
                     this.notification.error('Lỗi', 'Không thể tải dữ liệu để xuất Excel!');
                 }
             },
-            error: (err: any) => {
-                console.error('Error loading data for export:', err);
-                this.notification.create(
-                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                    err?.error?.message || `${err.error}\n${err.message}`,
-                    { nzStyle: { whiteSpace: 'pre-line' } }
-                );
+            error: (error) => {
+                console.error('Error loading data for export:', error);
+                this.notification.error('Lỗi', 'Lỗi kết nối khi tải dữ liệu để xuất Excel!');
             }
         });
     }
@@ -382,17 +337,17 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
             { id: 'FullName', name: 'Họ tên', field: 'FullName', width: 250, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'ChucVu', name: 'Chức vụ', field: 'ChucVu', width: 250, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             { id: 'ReportDate', name: 'Ngày báo cáo', field: 'ReportDate', width: 150, minWidth: 100, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center', filter: { model: Filters['compoundInputText'] } },
-            { id: 'Content', name: 'Việc đã làm', field: 'Content', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
-            { id: 'Result', name: 'Kết quả/Tình trạng', field: 'Result', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
-            { id: 'NextPlan', name: 'Kế hoạch tiếp theo', field: 'NextPlan', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
-            { id: 'PendingIssues', name: 'Tồn đọng/Vướng mắc', field: 'PendingIssues', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
-            { id: 'Urgent', name: 'Phát sinh gấp cần xử lý', field: 'Urgent', width: 300, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
-            { id: 'MistakeOrViolation', name: 'Lỗi/Sai phạm/Bị nhắc nhở', field: 'MistakeOrViolation', width: 300, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
+            { id: 'Content', name: 'Việc đã làm', field: 'Content', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Result', name: 'Kết quả/Tình trạng', field: 'Result', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'NextPlan', name: 'Kế hoạch tiếp theo', field: 'NextPlan', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'PendingIssues', name: 'Tồn đọng/Vướng mắc', field: 'PendingIssues', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Urgent', name: 'Phát sinh gấp cần xử lý', field: 'Urgent', width: 300, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'MistakeOrViolation', name: 'Lỗi/Sai phạm/Bị nhắc nhở', field: 'MistakeOrViolation', width: 300, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
         ];
 
         this.gridOptions = {
             enableAutoResize: true,
-            forceFitColumns: true,
+            forceFitColumns: false,
             autoResize: {
                 container: '.grid-container-daily-report-acc',
                 calculateAvailableSizeBy: 'container',
@@ -407,13 +362,6 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
             },
             enableCheckboxSelector: false,
             multiColumnSort: true,
-            editable: true,
-            autoEdit: true,
-            autoCommitEdit: true,
-            editCommandHandler: (_item: any, _column: Column, editCommand: EditCommand) => {
-                this.editCommandQueue.push(editCommand);
-                editCommand.execute();
-            },
         };
     }
 
@@ -441,7 +389,7 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
 
     loadData(): void {
         this.isLoadingData = true;
-        const userId = this.isAdmin ? (this.filters.employeeId || 0) : (this.appUserService.employeeID || 0);
+        const userId = this.isAdmin ? (this.filters.employeeId || 0) : (this.appUserService.id || 0);
 
         const dateStart = DateTime.fromISO(this.filters.dateStart || DateTime.local().toFormat('yyyy-MM-dd')).startOf('day').toJSDate();
         const dateEnd = DateTime.fromISO(this.filters.dateEnd || DateTime.local().toFormat('yyyy-MM-dd')).endOf('day').toJSDate();
@@ -474,15 +422,10 @@ export class DailyReportAccountingSlickgridComponent implements OnInit {
                 }
                 this.isLoadingData = false;
             },
-            error: (err: any) => {
+            error: (error) => {
                 this.isLoadingData = false;
-                console.error('Error loading daily report accounting data:', err);
-                this.notification.create(
-                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                    err?.error?.message || `${err.error}\n${err.message}`,
-                    { nzStyle: { whiteSpace: 'pre-line' } }
-                );
+                console.error('Error loading daily report accounting data:', error);
+                this.notification.error('Lỗi', 'Không thể tải dữ liệu!');
             }
         });
     }

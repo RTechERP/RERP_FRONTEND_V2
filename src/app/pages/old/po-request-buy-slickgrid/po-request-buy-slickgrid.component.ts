@@ -53,6 +53,7 @@ import { map, catchError, of, forkJoin } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
+import { PokhService } from '../pokh/pokh-service/pokh.service';
 import { PoRequestBuySlickgridService } from './po-request-buy-slickgrid-service/po-request-buy-slickgrid.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { AppUserService } from '../../../services/app-user.service';
@@ -80,8 +81,7 @@ import { AppUserService } from '../../../services/app-user.service';
   styleUrl: './po-request-buy-slickgrid.component.css',
 })
 export class PoRequestBuySlickgridComponent implements OnInit {
-  @Input() pokhId?: number;
-  @Input() pokhIds: number[] = [];
+  @Input() pokhId!: number;
 
   // SlickGrid properties
   angularGrid!: AngularGridInstance;
@@ -92,6 +92,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
   isLoading: boolean = false;
 
   constructor(
+    private pokhService: PokhService,
     public activeModal: NgbActiveModal,
     private notification: NzNotificationService,
     private PoRequestBuySlickgridService: PoRequestBuySlickgridService,
@@ -108,7 +109,6 @@ export class PoRequestBuySlickgridComponent implements OnInit {
   dateReturnExpected: Date = new Date();
   selectedRows: any[] = [];
   isEmployeeDisabled: boolean = false;
-  selectedPokhIds: number[] = [];
 
   ngOnInit(): void {
     // Kiểm tra quyền admin và set employeeId
@@ -128,8 +128,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     this.initGrid();
     this.loadDepartment();
     this.loadEmployee();
-    this.selectedPokhIds = this.normalizePokhIds(this.pokhIds, this.pokhId);
-    this.loadPOKHProductsByPokhIds(this.selectedPokhIds);
+    this.loadPOKHProducts(this.pokhId);
   }
   
   closeModal(): void {
@@ -167,70 +166,6 @@ export class PoRequestBuySlickgridComponent implements OnInit {
         this.isLoading = false;
       },
     });
-  }
-
-  loadPOKHProductsByPokhIds(ids: number[] = []): void {
-    const normalizedIds = this.normalizePokhIds(ids);
-    if (normalizedIds.length === 0) {
-      this.gridData = [];
-      this.dataset = [];
-      return;
-    }
-
-    this.isLoading = true;
-    this.PoRequestBuySlickgridService.getPOKHProductsForRequestBuy(normalizedIds).subscribe({
-      next: (result: any) => {
-        this.gridData = Array.isArray(result?.data) ? result.data : [];
-        this.dataset = this.gridData.map((item: any, index: number) => ({
-          ...item,
-          id: `${item.__pokhId || 'pokh'}_${item.POKHDetailID || item.ID || index}`
-        }));
-
-        const failedIds = Array.isArray(result?.failedIds) ? result.failedIds : [];
-        if (failedIds.length > 0) {
-          const failedIdsText = failedIds.join(', ');
-          if (failedIds.length === normalizedIds.length) {
-            this.notification.error(
-              NOTIFICATION_TITLE.error,
-              `Khong the tai chi tiet POKH: ${failedIdsText}`
-            );
-          } else {
-            this.notification.warning(
-              NOTIFICATION_TITLE.warning,
-              `Da bo qua POKH loi: ${failedIdsText}`
-            );
-          }
-        }
-
-        if (this.dataset.length > 0) {
-          setTimeout(() => {
-            this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, ['Maker', 'Unit']);
-          }, 1000);
-        } else if (failedIds.length === 0) {
-          this.notification.warning(
-            NOTIFICATION_TITLE.warning,
-            'Khong co chi tiet POKH de hien thi'
-          );
-        }
-
-        this.isLoading = false;
-      },
-      error: (error: any) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Loi ket noi khi tai chi tiet POKH: ' + (error?.message || error)
-        );
-        this.isLoading = false;
-      },
-    });
-  }
-
-  private normalizePokhIds(ids: Array<number | null | undefined> = [], fallbackId?: number): number[] {
-    const sourceIds = ids.length > 0 ? ids : [fallbackId];
-
-    return sourceIds
-      .map((id) => Number(id) || 0)
-      .filter((id, index, array) => id > 0 && array.indexOf(id) === index);
   }
 
   loadEmployee(status: number = 0): void {

@@ -24,120 +24,100 @@
 .card-header {
   flex-shrink: 0;
 }
-:host ::ng-deep .p-datatable-table {
-  height: 100% !important;
-}
-/* PrimeNG Table container */
-#grid-container-report {
-  height: 100%;
+
+/* SlickGrid container */
+.grid-container {
   width: 100%;
-}
-
-/* PrimeNG Table styling */
-:host ::ng-deep .p-datatable {
-  font-size: 0.75rem !important;
   height: 100%;
 }
 
-:host ::ng-deep .p-datatable-wrapper {
-  flex: 1;
-  overflow: auto;
-}
-
-:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
-  background-color: #f8f9fa;
-  white-space: nowrap;
-}
-
-:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+/* SlickGrid styling */
+:host ::ng-deep .slickgrid-container {
   font-size: 0.75rem !important;
-  vertical-align: top;
 }
 
-:host ::ng-deep .p-datatable .p-datatable-tbody > tr {
+:host ::ng-deep .slick-cell {
+  font-size: 0.75rem !important;
+  padding: 4px 6px !important;
+}
+
+:host ::ng-deep .slick-header-column {
+  font-size: 0.75rem !important;
+  font-weight: 600;
+}
+
+:host ::ng-deep .slick-row {
   cursor: pointer;
 }
 
-:host ::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
-  background-color: #f5f5f5 !important;
+:host ::ng-deep .slick-row:hover {
+  background-color: #f5f5f5;
 }
 
-:host ::ng-deep .p-datatable .p-datatable-tbody > tr.p-highlight {
+:host ::ng-deep .slick-row.selected {
   background-color: #e6f7ff !important;
-  color: inherit;
-}
-
-/* Footer row */
-:host ::ng-deep .p-datatable .p-datatable-tfoot > tr > td {
-  font-size: 0.75rem !important;
-  padding: 4px 6px !important;
-  background-color: #fafafa;
-  border-top: 2px solid #dee2e6;
-}
-
-/* Frozen column border */
-:host ::ng-deep .p-datatable-frozen-column {
-  border-right: 2px solid #dee2e6 !important;
 }
 
 /* Cell wrap - tự động xuống dòng khi text dài */
-.cell-wrap {
+:host ::ng-deep .cell-wrap {
   white-space: normal !important;
   line-height: 1.4 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
   word-wrap: break-word !important;
   word-break: break-word !important;
+  padding: 4px 6px !important;
+  vertical-align: top !important;
 }
 
-/* Cell wrap content - hiển thị toàn bộ nội dung */
-.cell-wrap-content {
+/* Cell wrap content - giới hạn 3 dòng */
+:host ::ng-deep .cell-wrap-content {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: pre-wrap;
   word-break: break-word;
+  line-height: 1.4em;
+  max-height: 4.2em; /* 3 lines * 1.4em */
 }
 
 /* Link styling trong cell */
-.cell-link {
+:host ::ng-deep .cell-link {
   color: #0066cc;
   text-decoration: underline;
   cursor: pointer;
 }
 
-.cell-link:hover {
+:host ::ng-deep .cell-link:hover {
   color: #004499;
 }
 
+/* Text alignment */
+:host ::ng-deep .text-center {
+  text-align: center !important;
+}
+
+:host ::ng-deep .text-right {
+  text-align: right !important;
+}
+
 /* Filter row styling */
-:host ::ng-deep .p-datatable .p-datatable-thead > tr:nth-child(2) > th {
-  padding: 2px !important;
+:host ::ng-deep .slick-headerrow {
   background-color: #fafafa;
 }
 
-:host ::ng-deep .p-datatable .p-datatable-thead > tr:nth-child(2) input {
+:host ::ng-deep .slick-headerrow-column {
+  padding: 2px !important;
+}
+
+:host ::ng-deep .slick-headerrow-column input {
   font-size: 0.7rem;
   padding: 2px 4px;
   width: 100%;
   box-sizing: border-box;
-}
-
-/* MultiSelect filter styling */
-:host ::ng-deep .p-multiselect {
-  font-size: 0.7rem !important;
-  min-height: unset;
-  height: 24px;
-}
-
-:host ::ng-deep .p-multiselect .p-multiselect-label {
-  font-size: 0.7rem !important;
-  padding: 2px 4px !important;
-}
-
-:host ::ng-deep .p-multiselect-panel .p-multiselect-item {
-  font-size: 0.7rem !important;
-  padding: 4px 8px !important;
-}
-
-/* Sort icon styling */
-:host ::ng-deep .p-sortable-column .p-sortable-column-icon {
-  font-size: 0.65rem;
 }
 
 /* NZ Spin fix */
@@ -155,3 +135,19 @@
   height: 100%;
 }
 
+/* Angular SlickGrid container */
+#grid-container-report {
+  height: 100%;
+  width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
+}

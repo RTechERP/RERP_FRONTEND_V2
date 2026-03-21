@@ -40,7 +40,7 @@
   width: calc(100% - 300px);
 }
 
-::ng-deep ng-select .ng-value-container {
+:host ::ng-deep ng-select .ng-value-container {
   display: flex !important;
   flex-wrap: nowrap !important;
   overflow-x: auto !important;
@@ -55,7 +55,7 @@
   padding: 0px;
 }
 
-.fs-12 {
+.bill-export-detail-fs-12 {
   font-size: 0.75rem;
 }
 
@@ -95,7 +95,7 @@
   overflow: visible !important;
 }
 
-::ng-deep ng-select.form-control .ng-clear-wrapper {
+:host ::ng-deep ng-select.form-control .ng-clear-wrapper {
   display: flex;
   align-items: center;
   margin-left: 20px;
@@ -105,11 +105,11 @@
   margin:auto !important;
 }
 
-::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
+:host ::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
   color: #d9363e;
 }
 
-::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+:host ::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
     margin-top: 3px;
     margin-right: 1px;
     font-size: .75rem;
@@ -121,7 +121,7 @@
 }
 
 /* Error Notification Popup Styles */
-.error-popup-overlay {
+.bill-export-detail-error-popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -135,7 +135,7 @@
   animation: fadeIn 0.2s ease-in-out;
 }
 
-.error-popup-container {
+.bill-export-detail-error-popup-container {
   background: white;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -147,14 +147,14 @@
   animation: slideUp 0.3s ease-out;
 }
 
-.error-popup-header {
+.bill-export-detail-error-popup-header {
   padding: 16px 20px;
   border-bottom: 1px solid #e8e8e8;
   display: flex;
   align-items: center;
 }
 
-.error-popup-title {
+.bill-export-detail-error-popup-title {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
@@ -163,14 +163,14 @@
   color: #262626;
 }
 
-.error-popup-body {
+.bill-export-detail-error-popup-body {
   padding: 20px;
   overflow-y: auto;
   flex: 1;
   max-height: calc(80vh - 120px);
 }
 
-.error-popup-message {
+.bill-export-detail-error-popup-message {
   margin: 0;
   font-size: 14px;
   line-height: 1.6;
@@ -179,7 +179,7 @@
   word-wrap: break-word;
 }
 
-.error-popup-footer {
+.bill-export-detail-error-popup-footer {
   padding: 12px 20px;
   border-top: 1px solid #e8e8e8;
   display: flex;

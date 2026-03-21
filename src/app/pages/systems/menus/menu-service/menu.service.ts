@@ -215,7 +215,8 @@ export class MenuService {
     ];
 
     departmentBODs = [22];
-    departmentAccs = [5];
+
+
 
     setMenuKey(value: string) {
         // console.log(value);
@@ -293,11 +294,6 @@ export class MenuService {
                     //Nếu là BOD
                     if (item.Router == 'daily-report-bod') {
                         isPermission = isAdmin || this.departmentBODs.includes(departmentID);
-                    }
-
-                    //Nếu là KẾ toán
-                    if (item.Router == 'daily-report-accounting-person') {
-                        isPermission = isAdmin || this.departmentAccs.includes(departmentID);
                     }
 
                     // console.log('isAdmin:', isAdmin);

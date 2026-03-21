@@ -63,12 +63,9 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { ProjectService } from '../../project/project-service/project.service';
-import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TeamComponent } from '../team/team.component';
 import { PermissionService } from '../../../services/permission.service';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { TabServiceService } from '../../../layouts/tab-service.service';
 
 @Component({
   selector: 'app-employee',
@@ -111,9 +108,6 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
     NzSpinModule,
     EmployeeTeamComponent,
     HasPermissionDirective,
-    NzDropDownModule,
-    NzMenuModule,
-    NgbModalModule,
   ],
   providers: [NzModalService, NzNotificationService, NzConfigService],
   standalone: true,
@@ -155,8 +149,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private projectService: ProjectService,
     private modalService: NgbModal,
-    private permissionService: PermissionService,
-    private tabService: TabServiceService
+    private permissionService: PermissionService
   ) {
     // Subscribe to EndContract changes
     this.endContractControl.valueChanges.subscribe((checked) => {
@@ -679,17 +672,6 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
               frozen: true,
               minWidth: 200
             },
-            {
-              title: 'Có tính lương',
-              field: 'IsExcludedFromSalary',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              frozen: true,
-              minWidth: 60,
-              formatter: function (cell) {
-                return cell.getValue() == 0 ? "✔" : "";
-              }
-            }
           ],
         },
         {
@@ -2501,34 +2483,6 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     this.deleteForm.reset();
   }
 
-  updateCountSalaryStatus(isExcluded: boolean) {
-    const selectedRows = this.tabulatorEmployee.getSelectedRows();
-    if (selectedRows.length === 0) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn nhân viên cần cập nhật trạng thái'
-      );
-      return;
-    }
-    const employee = selectedRows[0].getData();
-    this.employeeService.updateCountSalary(employee['ID'], isExcluded).subscribe({
-      next: (res: any) => {
-        this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Cập nhật trạng thái thành công');
-        this.loadEmployees(this.lastSearchPayload);
-      },
-      error: (err: any) => {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
-        );
-      }
-    });
-  }
-
   openPositionContractForm() {
     const modal = new (window as any).bootstrap.Modal(
       document.getElementById('positionContractModal')
@@ -2560,13 +2514,17 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     this.employeeImportExcelComponent.ngOnInit();
   }
 
+  @ViewChild(EmployeeTeamComponent) employeeTeamComponent!: EmployeeTeamComponent;
   openEmployeeTeamForm() {
-    this.tabService.openTabComp({
-      comp: EmployeeTeamComponent,
-      title: 'Danh sách team phòng ban',
-      key: 'employee-team',
-      data: {}
-    });
+    const modal = new (window as any).bootstrap.Modal(
+      document.getElementById('employeeTeamForm'),
+      {
+        backdrop: false,
+        keyboard: true
+      }
+    );
+    modal.show();
+    this.employeeTeamComponent.ngOnInit();
   }
 
   @ViewChild(EmployeeLoginManagerComponent) employeeLoginManagerComponent!: EmployeeLoginManagerComponent;
@@ -2780,87 +2738,16 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
 
   //#region Hàm xuất excel
   async exportToExcel() {
-    const data = this.tabulatorEmployee.getData();
-    if (!data || data.length === 0) {
+    let data = this.tabulatorEmployee.getData();
+    if (data == null) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
         'Không có dữ liệu để xuất excel'
       );
       return;
     }
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('DanhSachNhanSu');
-
-    const columns = this.tabulatorEmployee.getColumns();
-    const visibleColumns = columns
-      .map((col: any) => col.getDefinition())
-      .filter((def: any) => def.formatter !== 'rowSelection');
-
-    const headers = visibleColumns.map((def: any) => def.title);
-    worksheet.addRow(headers);
-
-    const groupedData = new Map<string, any[]>();
-    data.forEach((row: any) => {
-      const type = row['DepartmentName'] || '';
-      if (!groupedData.has(type)) {
-        groupedData.set(type, []);
-      }
-      groupedData.get(type)?.push(row);
-    });
-
-    groupedData.forEach((rows, grname) => {
-      const groupRow = worksheet.addRow([`${grname}`]);
-      const groupRowIndex = groupRow.number;
-      worksheet.mergeCells(`A${groupRowIndex}:D${groupRowIndex}`);
-
-      groupRow.font = { bold: true };
-      groupRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE0E0E0' },
-      };
-
-      rows.forEach((row: any) => {
-        const rowData = visibleColumns.map((col: any) => {
-          const field = col.field;
-          let value = row[field];
-
-          if (typeof value === 'boolean') {
-            return value ? '☑' : '☐';
-          }
-
-          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-            const date = new Date(value);
-            value = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-          }
-
-          return value;
-        });
-
-        worksheet.addRow(rowData);
-      });
-    });
-
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return;
-      row.eachCell((cell) => {
-        if (cell.value instanceof Date) {
-          cell.numFmt = 'dd/mm/yyyy';
-        }
-        cell.alignment = { vertical: 'middle', wrapText: true };
-      });
-    });
-
-    worksheet.columns.forEach((column: any) => {
-      column.width = 20;
-    });
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    const dateStr = DateTime.local().toFormat('ddMMyy');
-    saveAs(blob, `DanhSachNhanSu_${dateStr}.xlsx`);
+    let date = DateTime.local().toFormat('ddMMyy');
+    this.projectService.exportExcelGroup(this.tabulatorEmployee, data, 'DanhSachNhanSu', `DanhSachNhanSu_${date}`, 'DepartmentName');
   }
   //#endregion
 

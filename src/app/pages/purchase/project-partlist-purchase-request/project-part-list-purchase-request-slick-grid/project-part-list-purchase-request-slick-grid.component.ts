@@ -3160,7 +3160,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   private getProductGroupCollection(
     isRTC: boolean
   ): Array<{ value: number; label: string }> {
-    const groups = isRTC ? this.dtproductGroupsRTC : this.dtproductGroups?.filter((g: any) => g.ParentID === 0 || g.ParentID === null || g.ParentID === undefined);
+    const groups = isRTC ? this.dtproductGroupsRTC : this.dtproductGroups;
+    // ?.filter((g: any) => g.ParentID === 0 || g.ParentID === null || g.ParentID === undefined);
 
     const collection = (groups || []).map((g: any) => ({
       value: g.ID,

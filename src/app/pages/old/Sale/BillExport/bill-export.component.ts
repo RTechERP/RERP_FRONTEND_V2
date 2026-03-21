@@ -69,6 +69,10 @@ interface BillExport {
     SupplierID: number;
     CreatDate: Date | string;
     RequestDate: Date | string;
+    IsTransfer?: boolean;
+    TransferType?: number;
+    ProductGroupTransferID?: number;
+    BillImportTechID?: number;
 }
 
 @Component({

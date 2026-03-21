@@ -8,7 +8,7 @@
                 </button>
                 <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openAddModal()"
                     *hasPermission="'N1,N2,N60'">
-                    <img src="assets/icon/action_add_item_16.png" alt="Thêm " /> Thêm
+                    <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " /> Thêm
                 </button>
                 <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openEditModal()"
                     *hasPermission="'N1,N2,N60'">
@@ -51,19 +51,6 @@
                     <img src="assets/icon/action_team_16.png" alt="Team"
                         style="width:16px; height:16px; object-fit:contain" /> Team
                 </button>
-
-                <button nz-button nz-dropdown [nzDropdownMenu]="menuSalary" nzType="default" nzSize="small"
-                    class="me-1 fs-12" *hasPermission="'N1,N2'">
-                    <img src="assets/icon/action_confirm_admin_16.png" alt="Lương"
-                        style="width:16px; height:16px; object-fit:contain" /> Cập nhật nhận lương
-                    <span nz-icon nzType="down"></span>
-                </button>
-                <nz-dropdown-menu #menuSalary="nzDropdownMenu">
-                    <ul nz-menu>
-                        <li nz-menu-item (click)="updateCountSalaryStatus(false)">Tính lương</li>
-                        <li nz-menu-item (click)="updateCountSalaryStatus(true)">Không tính lương</li>
-                    </ul>
-                </nz-dropdown-menu>
                 <label nz-checkbox [formControl]="endContractControl" class="fs-12">Sắp hết HĐ</label>
             </div>
         </div>
@@ -1016,6 +1003,20 @@
     </div>
 </div>
 
+<div class="modal fade" id="employeeTeamForm" tabindex="-1" aria-labelledby="employeeTeamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="employeeTeamModalLabel">TEAM PHÒNG BAN</h6>
+                <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-12">
+                <app-employee-team></app-employee-team>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="deleteModalNew" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1155,7 +1156,21 @@
     </div>
 </div>
 
-
+<div class="modal fade" id="employeeTeamForm" tabindex="-1" aria-labelledby="employeeTeamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="employeeTeamModalLabel">
+                    TEAM PHÒNG BAN
+                </h6>
+                <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-12">
+                <app-employee-team></app-employee-team>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

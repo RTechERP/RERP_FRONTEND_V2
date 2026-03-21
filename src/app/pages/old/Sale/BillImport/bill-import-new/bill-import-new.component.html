@@ -10,9 +10,17 @@
           </a>
         </ng-template>
         <ng-template #end>
-          <div style="margin-left: auto">
+          <div style="margin-left: auto; display: flex; align-items: center;">
+            <!-- Mobile: mở modal tìm kiếm -->
             <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile"
               (click)="isShowModal = true; $event.stopPropagation()">
+              <i nz-icon nzType="search"></i>
+            </button>
+            <!-- Desktop: toggle search bar -->
+            <button nz-button nzType="text" nzShape="circle" *ngIf="!isMobile"
+              [title]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+              [class.text-primary]="showSearchBar"
+              (click)="showSearchBar = !showSearchBar; $event.stopPropagation()">
               <i nz-icon nzType="search"></i>
             </button>
           </div>
@@ -24,7 +32,7 @@
   </ng-template>
 <div style="display: flex; flex-direction: column; height: 100%;">
 <!-- Filter bar: desktop only -->
-    <div *ngIf="!isMobile" style="position: relative; min-height: 18px;">
+    <div *ngIf="!isMobile">
       <div class="border-top p-2" *ngIf="showSearchBar">
         <form [id]="'form-bill-import-search-' + wareHouseCode" nz-form nzLayout="inline" (keyup.enter)="onSearch()">
           <nz-form-item>
@@ -93,11 +101,6 @@
           </nz-form-item>
         </form>
       </div>
-      <!-- Toggle button: ngoài filter div, absolute ở góc phải-dưới của wrapper -->
-      <button (click)="showSearchBar = !showSearchBar" title="{{ showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm' }}"
-        style="position:absolute; bottom:2px; right:4px; border:none; background:transparent; cursor:pointer; padding: 1px 5px; color:#6c757d; z-index:5;">
-        <i class="fa" [ngClass]="showSearchBar ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-      </button>
     </div>
   <!-- Splitter -->
   <p-splitter layout="vertical" [panelSizes]="[60, 40]" [minSizes]="[10, 10]" style="flex: 1; min-height: 0">

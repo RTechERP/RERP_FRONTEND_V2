@@ -1516,7 +1516,6 @@ export class ProjectPartlistPriceRequestFormComponent
           Deadline: data['Deadline']
             ? DateTime.fromJSDate(new Date(data['Deadline'])).toJSDate()
             : null,
-          Note: note || '',
           DateRequest: this.requestDate ? new Date(this.requestDate) : null,
           EmployeeID: Number(this.requester) || null,
           IsJobRequirement: Boolean(isJobRequirement) || false,
@@ -1610,6 +1609,8 @@ export class ProjectPartlistPriceRequestFormComponent
       });
     });
 
+    console.log('data save:', recordsToSave);
+    
     this.priceRequestService.saveData(recordsToSave).subscribe({
       next: (response) => {
         // Lưu ghi chú nếu là loại HR (typeID = 3) hoặc loại 4, 6 (dùng RequestNote)

@@ -21,10 +21,15 @@
                             <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center"
                                 style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                                 <p class="m-0">Giải pháp</p>
-                                <button nz-button nzType="text" class="btn-close-panel" style="color: red;"
-                                    (click)="closeLeftPanel()" *ngIf="sizeLeftPanel !== '0'" nzSize="small">
-                                    <i nz-icon nzType="close"></i>
-                                </button>
+                                <div>
+                                    <button nz-button nzType="text" nzSize="small" (click)="loadDataSolution()" title="Làm mới" style="color: #1890ff;">
+                                        <i nz-icon nzType="sync"></i>
+                                    </button>
+                                    <button nz-button nzType="text" class="btn-close-panel" style="color: red;"
+                                        (click)="closeLeftPanel()" *ngIf="sizeLeftPanel !== '0'" nzSize="small">
+                                        <i nz-icon nzType="close"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-header bg-white p-1 d-flex gap-1" *ngIf="!tbp">
                                 <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
@@ -79,6 +84,9 @@
                             <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center"
                                 style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                                 <p class="m-0">Phiên bản</p>
+                                <button nz-button nzType="text" nzSize="small" (click)="loadDataVersion()" title="Làm mới" style="color: #1890ff;">
+                                    <i nz-icon nzType="sync"></i>
+                                </button>
                             </div>
                             <!-- tích xanh -->
                             <div class="card-header bg-white p-1 d-flex gap-1 flex-wrap" *ngIf="!tbp">
@@ -137,11 +145,29 @@
                                         </button>
                                     </ng-container>
                                 </ng-container>
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                    (click)="loadDataVersion()" title="Làm mới">
-                                    <i nz-icon nzType="sync"></i>
-                                    Làm mới
-                                </button>
+                                <!-- Duyệt phiên bản -->
+                                <ng-container *ngIf="type === 2">
+                                    <ng-container *hasPermission="'N13,N1,N65'">
+                                        <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                                            [nzDropdownMenu]="menuDuyetVersion">
+                                            <img src="assets/icon/action_confirm_tbp_16.png" alt="Duyệt phiên bản" /> Duyệt phiên bản
+                                            <i nz-icon nzType="down"></i>
+                                        </button>
+                                    </ng-container>
+                                </ng-container>
+                                <nz-dropdown-menu #menuDuyetVersion="nzDropdownMenu">
+                                    <ul nz-menu>
+                                        <li nz-menu-item (click)="ApproveVersion(true)">
+                                            <img src="assets/icon/action_approved_16.png" />
+                                            <span class="ms-1">Duyệt phiên bản</span>
+                                        </li>
+                                        <li nz-menu-item (click)="ApproveVersion(false)">
+                                            <img src="assets/icon/action_unapproved_16.png" />
+                                            <span class="ms-1">Hủy duyệt phiên bản</span>
+                                        </li>
+                                    </ul>
+                                </nz-dropdown-menu>
+                                
                             </div>
                             <div class="card-body p-0 flex-grow-1 overflow-hidden grid-version-container"
                                 style="min-height: 0; height: 100%;">
@@ -385,17 +411,27 @@
                     <div class="card-header bg-white p-3 d-flex gap-1">
                         <div style="width: 100%;" class="d-flex gap-1 align-items-center">
                             <ng-container>
-                                <label class="fs-12 font-weight-bold" style="font-size: 0.75rem !important;">Dự
+                                <label class="fs-12 font-weight-bold" style="font-size: 0.75rem !important; white-space: nowrap;">Dự
                                     án:</label>
                                 <nz-select style="font-size: 0.75rem !important;" name="projectId" nzShowSearch
                                     nzAllowClear nzPlaceHolder="Chọn dự án" nzSize="small" [(ngModel)]="projectId"
                                     (ngModelChange)="onProjectIdChange($event)" style="width: 350px;">
-                                    @for (item of projects; track $index) {
-                                    <nz-option [nzValue]="item.ID"
-                                        [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
+                                    @if (recentProjects.length > 0) {
+                                    <nz-option-group nzLabel="⏱ Đã tìm gần đây">
+                                        @for (item of recentProjects; track $index) {
+                                        <nz-option [nzValue]="item.ID"
+                                            [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
+                                        }
+                                    </nz-option-group>
                                     }
+                                    <nz-option-group nzLabel="Tất cả dự án">
+                                        @for (item of projects; track $index) {
+                                        <nz-option [nzValue]="item.ID"
+                                            [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
+                                        }
+                                    </nz-option-group>
                                 </nz-select>
-                                <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái TBP</label>
+                                <label class="fs-12 mb-0 ms-1" style="font-size: 0.75rem !important;  white-space: nowrap;">Trạng thái TBP</label>
                                 <nz-select style="font-size: 0.75rem !important;" name="IsLateActual" nzShowSearch
                                     nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
                                     [(ngModel)]="isApprovedTBP" nzAllowClear="false" class="fs-12">
@@ -404,7 +440,7 @@
                                     <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                                 </nz-select>
 
-                                <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái Y/c
+                                <label class="fs-12 mb-0 ms-1" style="font-size: 0.75rem !important; white-space: nowrap;">Trạng thái Y/c
                                     mua</label>
                                 <nz-select style="font-size: 0.75rem !important;" name="IsApprovedPurchase" nzShowSearch
                                     nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
@@ -413,7 +449,7 @@
                                     <nz-option [nzValue]="0" nzLabel="Chưa Y/c mua" class="fs-12"></nz-option>
                                     <nz-option [nzValue]="1" nzLabel="Đã yêu cầu mua" class="fs-12"></nz-option>
                                 </nz-select>
-                                <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái</label>
+                                <label class="fs-12 mb-0 ms-1" style="font-size: 0.75rem !important; white-space: nowrap;">Trạng thái</label>
                                 <nz-select style="font-size: 0.75rem !important;" name="IsDeleted" nzShowSearch
                                     nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small" [(ngModel)]="isDeleted"
                                     nzAllowClear="false" class="fs-12">

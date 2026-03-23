@@ -898,7 +898,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         type: 'number',
         cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),
@@ -1555,7 +1555,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           decimal: 2,
         },
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),
@@ -3222,7 +3222,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     const prefix = columnDef.params?.groupFormatterPrefix || '';
 
     if (sum !== undefined && sum !== null) {
-      return `${prefix}${this.formatNumberEnUS(sum, 0)}`;
+      return `${prefix}${this.formatNumberEnUS(sum, 2)}`;
     }
     return '';
   }

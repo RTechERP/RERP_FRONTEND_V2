@@ -545,10 +545,11 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   onSupplierChange(selectedSupplierID: number): void {
     const selectedSupplier = this.supplierSales.find(s => s.ID === selectedSupplierID);
     if (selectedSupplier) {
+      const isNewRecord = !this.isEditMode || this.isCopy;
       this.ponccService.getPOCode(selectedSupplier.CodeNCC).subscribe({
         next: (response: any) => {
           this.informationForm.patchValue({
-            POCode: response.data || '',
+            ...(isNewRecord ? { POCode: response.data || '' } : {}),
             AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
             MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
             Note: selectedSupplier.Description || this.poncc?.Note || '',
@@ -557,7 +558,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         },
         error: (error) => {
           this.informationForm.patchValue({
-            POCode: this.poncc?.CodeNCC || selectedSupplier.CodeNCC || '',
+            ...(isNewRecord ? { POCode: this.poncc?.CodeNCC || selectedSupplier.CodeNCC || '' } : {}),
             AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
             MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
             Note: selectedSupplier.Description || this.poncc?.Note || '',

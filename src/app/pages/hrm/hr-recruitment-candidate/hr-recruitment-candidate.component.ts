@@ -569,7 +569,21 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
-                params: { dateFormat: 'DD/MM/YYYY' },
+                params: { dateFormat: 'DD/MM/YYYY HH:mm' },
+                filter: { model: Filters['compoundDate'] },
+                excelExportOptions: { width: 16 },
+            },
+            {
+                id: 'DeadlineFeedbackMail',
+                field: 'DeadlineFeedbackMail',
+                name: 'Hạn phản hồi mail',
+                minWidth: 150,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.date,
+                exportCustomFormatter: Formatters.date,
+                type: 'date',
+                params: { dateFormat: 'DD/MM/YYYY HH:mm' },
                 filter: { model: Filters['compoundDate'] },
                 excelExportOptions: { width: 16 },
             },
@@ -713,26 +727,26 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
 
             enableGrouping: true,
 
-      rowHeight: 30,
-      createFooterRow: true,
-      showFooterRow: true,
-      footerRowHeight: 28,
-      frozenColumn: 5,
-      contextMenu: {
-        hideCloseButton: false,
-        commandTitle: '',
-        commandItems: [
-          {
-            command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 10,
-            action: (e, args) => {
-              const filePath = args.dataContext?.ServerPath || '';
-              if (filePath) {
-                const host = environment.host + 'api/share';
-                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileCVName}`;
-                const newWindow = window.open(
-                  urlImg,
-                  '_blank',
-                );
+            rowHeight: 30,
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
+            frozenColumn: 5,
+            contextMenu: {
+                hideCloseButton: false,
+                commandTitle: '',
+                commandItems: [
+                    {
+                        command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 10,
+                        action: (e, args) => {
+                            const filePath = args.dataContext?.ServerPath || '';
+                            if (filePath) {
+                                const host = environment.host + 'api/share';
+                                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileCVName}`;
+                                const newWindow = window.open(
+                                    urlImg,
+                                    '_blank',
+                                );
 
                                 if (newWindow) {
                                     newWindow.onload = () => {

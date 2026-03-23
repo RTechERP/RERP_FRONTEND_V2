@@ -17,14 +17,14 @@
                 <ng-template pTemplate="header">
                     <tr>
                         <th style="width: 100px">Trạng thái</th>
-                        <th>Mã YCTD</th>
                         <th>Vị trí</th>
+                        <th>Mã YCTD</th>
                     </tr>
                     <tr>
                         <th></th>
-                        <th><p-columnFilter type="text" field="HiringRequestCode" display="row"></p-columnFilter></th>
-                        <th><p-columnFilter type="text" field="ChucVu" display="row"></p-columnFilter>
+                        <th><p-columnFilter type="text" field="PositionName" display="row"></p-columnFilter>
                         </th>
+                        <th><p-columnFilter type="text" field="HiringRequestCode" display="row"></p-columnFilter></th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-item>
@@ -34,8 +34,8 @@
                                 {{item.IsActiveExam ? 'Hoạt động' : 'Khóa'}}
                             </span>
                         </td>
+                        <td>{{item.PositionName}}</td>
                         <td class="font-weight-bold">{{item.HiringRequestCode}}</td>
-                        <td>{{item.EmployeeChucVuHDName}}</td>
                     </tr>
                 </ng-template>
             </p-table>

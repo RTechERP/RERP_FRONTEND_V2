@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, OnDestroy, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -44,6 +44,7 @@ import { EmployeeService } from '../hrm/employee/employee-service/employee.servi
     MultiSelectModule,
     InputTextModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() projectId: number = 0;
@@ -56,7 +57,8 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
     private employeeService: EmployeeService,
     private notification: NzNotificationService,
     private modalService: NgbModal,
-    public activeModal: NgbActiveModal
+    public activeModal: NgbActiveModal,
+    private cdr: ChangeDetectorRef
   ) { }
 
   // Table data
@@ -158,8 +160,16 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
     return num.toFixed(2);
   }
 
+  private linkifyCache = new Map<string, string>();
+
   linkifyText(text: string): string {
     if (!text || (typeof text === 'string' && text.trim() === '')) return '';
+
+    // Check cache
+    if (this.linkifyCache.has(text)) {
+      return this.linkifyCache.get(text)!;
+    }
+
     const urlPattern = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^\s]*)/gi;
 
     const escapeHtml = (str: string): string => {
@@ -190,7 +200,9 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       parts.push(escapeHtml(text.substring(lastIndex)));
     }
 
-    return parts.join('');
+    const result = parts.join('');
+    this.linkifyCache.set(text, result);
+    return result;
   }
 
   getCellValue(row: any, col: any): string {
@@ -264,15 +276,18 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   //#region Data Loading
   loadData() {
     this.isLoading = true;
+    this.linkifyCache.clear();
+    this.cdr.markForCheck();
     this.projectService.getProjectListWorkReport(
       this.projectId || 0,
       this.keyword || '',
       1,
-      999999, // Lấy tất cả dữ liệu
+      999999, // Lấy toàn bộ dữ liệu
       this.teamId || 0,
     ).subscribe({
       next: (response: any) => {
         this.isLoading = false;
+        this.cdr.markForCheck();
         if (response && response.status === 1 && response.data) {
           let data: any[] = [];
           if (Array.isArray(response.data)) {
@@ -290,7 +305,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
           // Build filter options
           this.buildFilterOptions();
 
-          // Tính tổng
+          // Tính tổng cho toàn bộ dữ liệu
           this.calculateTotals(this.dataset);
         } else {
           this.dataset = [];
@@ -299,6 +314,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       },
       error: (error) => {
         this.isLoading = false;
+        this.cdr.markForCheck();
         console.error('Error loading data:', error);
         this.notification.error('Lỗi', error?.message || error?.error?.message || 'Không thể tải dữ liệu danh sách báo cáo công việc!');
         this.dataset = [];
@@ -343,10 +359,12 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
           if (this.projectId > 0) {
             this.updateProjectCode();
           }
+          this.cdr.markForCheck();
         }
       },
       error: () => {
         this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách dự án!');
+        this.cdr.markForCheck();
       },
     });
   }
@@ -368,10 +386,12 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       next: (response: any) => {
         if (response.status === 1) {
           this.teams = response.data;
+          this.cdr.markForCheck();
         }
       },
       error: () => {
         this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách team!');
+        this.cdr.markForCheck();
       },
     });
   }

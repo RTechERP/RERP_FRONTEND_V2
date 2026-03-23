@@ -6,6 +6,9 @@ import {
   Input,
   Optional,
   Inject,
+  ViewChildren,
+  QueryList,
+  ElementRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -56,7 +59,15 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
   //#region Input từ form cha
 
   @Input() questionID: number = 0;
+  /** ID đề thi - nhận từ form cha */
   @Input() examID: number = 0;
+
+  /** Tên phòng ban để làm subpath upload */
+  @Input() departmentName: string = '';
+  /** Tên đề thi để làm subpath upload */
+  @Input() examName: string = '';
+
+  /** Loại đề thi (1, 2, 3) */
   /** 1 = Trắc nghiệm, 2 = Tự luận, 3 = TN & TL */
   @Input() examType: number = 1;
   @Input() isEditMode: boolean = false;
@@ -107,6 +118,8 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
   listAnswerIDDelete: number[] = [];
   answerCodes = ['A', 'B', 'C', 'D'];
 
+  @ViewChildren('answerInput', { read: ElementRef }) answerInputs!: QueryList<ElementRef>;
+
   //#endregion
 
   //#region Trạng thái
@@ -118,6 +131,8 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
 
   /** Hiển thị phần đáp án trắc nghiệm */
   showMultipleChoiceAnswers: boolean = true;
+  /** Checkbox tư vấn tự luận số */
+  IsAnswerNumberValue: boolean = false;
   /** Hiển thị phần tự luận */
   showEssayFields: boolean = false;
   /** Đáp án đúng cho tự luận (so khớp chuỗi, để trống nếu chấm thủ công) */
@@ -136,6 +151,15 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     private tabService: TabServiceService,
     @Optional() @Inject('tabData') private tabData?: any,
   ) {
+    if (this.tabData) {
+      this.questionID = this.tabData.questionID || 0;
+      this.examID = this.tabData.examID || 0;
+      this.examType = this.tabData.examType || 1;
+      this.isEditMode = this.tabData.isEditMode || false;
+      // this.listRightAnswerSelected = this.tabData.datasetRightAnswer || []; // This line was commented out in the original, keeping it commented.
+      this.departmentName = this.tabData.departmentName || '';
+      this.examName = this.tabData.examName || '';
+    }
     this.createForm();
     this.configureQuillFonts();
   }
@@ -151,15 +175,24 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
       if (this.tabData.examType !== undefined) this.examType = this.tabData.examType;
       if (this.tabData.isEditMode !== undefined) this.isEditMode = this.tabData.isEditMode;
       if (this.tabData.onSavedCallback !== undefined) this.onSavedCallback = this.tabData.onSavedCallback;
+      if (this.tabData.departmentName !== undefined) this.departmentName = this.tabData.departmentName;
+      if (this.tabData.examName !== undefined) this.examName = this.tabData.examName;
     }
 
     if (this.isEditMode && this.questionID > 0) {
       this.loadQuestionDetail(this.questionID);
     } else {
-      // Set mặc định loại câu hỏi theo examType
       const defaultType = this.examType === 2 ? 2 : 1;
       this.formGroup.patchValue({ QuestionType: defaultType });
       this.onQuestionTypeChange(defaultType);
+
+      // Mặc định tạo sẵn 4 đáp án cho câu hỏi trắc nghiệm khi thêm mới
+      if (defaultType === 1) {
+        for (let i = 0; i < 4; i++) {
+          this.onAddAnswer();
+        }
+      }
+
       this.loadNextSTT();
     }
   }
@@ -439,13 +472,38 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     });
   }
 
+  /** Xử lý phím Tab trong ô nhập đáp án để nhảy xuống dòng sau */
+  onAnswerTab(event: any, index: number): void {
+    if (index < this.answers.length - 1) {
+      event.preventDefault();
+      setTimeout(() => {
+        const nextInput = this.answerInputs.toArray()[index + 1].nativeElement;
+        if (nextInput) {
+          nextInput.focus();
+        }
+      });
+    } else {
+      // Nếu là dòng cuối cùng, tự động thêm dòng mới khi ấn Tab
+      event.preventDefault();
+      this.onAddAnswer();
+      setTimeout(() => {
+        const inputs = this.answerInputs.toArray();
+        const lastInput = inputs[inputs.length - 1]?.nativeElement;
+        if (lastInput) {
+          lastInput.focus();
+        }
+      }, 100);
+    }
+  }
+
   onDeleteAnswer(index: number): void {
     const answer = this.answers[index];
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa đáp án [${answer.Code}] không?`,
+      nzContent: `Bạn có chắc chắn muốn xóa đáp án "${answer.Code}" không?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
+      nzAutofocus: 'ok',
       nzOnOk: () => {
         // Nếu đáp án đã có ID thì thêm vào danh sách xóa
         if (answer.ID && answer.ID > 0) {
@@ -556,43 +614,55 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
   private save(closeAfterSave: boolean): void {
     this.isSaving = true;
 
-    // Lấy các file mới cần upload (chưa có ServerPath)
-    const filesToUpload = this.questionImages
-      .filter(img => img.originFile && !img.ServerPath)
-      .map(img => img.originFile!);
+    // Chuẩn bị danh sách file cần upload
+    const filesToUpload: File[] = [];
+    const questionImageIndices: number[] = [];
+    const answerUploadTasks: { answerIdx: number }[] = [];
 
-    // Upload ảnh đáp án (giữ nguyên logic cũ)
-    const answerUploadTasks: { idx: number; file: File }[] = [];
-    this.answers.forEach((a, i) => {
-      if (a.selectedImageFile) answerUploadTasks.push({ idx: i, file: a.selectedImageFile });
+    // 1. Lọc ảnh câu hỏi mới
+    this.questionImages.forEach((img, i) => {
+      if (img.originFile && !img.ServerPath) {
+        filesToUpload.push(img.originFile);
+        questionImageIndices.push(i);
+      }
     });
 
-    const allUploads: any[] = [];
+    // 2. Lọc ảnh đáp án mới
+    this.answers.forEach((ans, i) => {
+      if (ans.selectedImageFile) {
+        filesToUpload.push(ans.selectedImageFile);
+        answerUploadTasks.push({ answerIdx: i });
+      }
+    });
 
-    // Upload các file ảnh câu hỏi (mỗi file riêng)
-    const questionFileUploads = filesToUpload.map(f => this.examService.uploadImage(f, 'HRRecruitmentExam'));
+    // Sinh subPath: "Phòng ban/RecruitmentQuestion"
+    const subPathParts = [];
+    if (this.departmentName) subPathParts.push(this.departmentName);
+    //subPathParts.push('RecruitmentQuestion');
+    const subPath = subPathParts.join('/');
 
-    // Upload ảnh đáp án
-    const answerFileUploads = answerUploadTasks.map(t => this.examService.uploadImage(t.file, 'HRRecruitmentExam'));
+    if (filesToUpload.length > 0) {
+      this.notification.info('Đang upload', 'Đang tải file lên...');
+      this.examService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+        next: (res: any) => {
+          const uploadedFiles = res?.data || [];
 
-    const totalUploads = [...questionFileUploads, ...answerFileUploads];
-
-    if (totalUploads.length > 0) {
-      forkJoin(totalUploads).subscribe({
-        next: (results: any[]) => {
-          // Cập nhật ServerPath cho danh sách ảnh câu hỏi
-          let newIdx = 0;
-          this.questionImages.forEach(img => {
-            if (img.originFile && !img.ServerPath && results[newIdx]) {
-              img.ServerPath = results[newIdx]?.data?.SavedFileName || results[newIdx]?.data?.savedFileName || '';
-              newIdx++;
+          // 3. Cập nhật ServerPath cho ảnh câu hỏi
+          questionImageIndices.forEach((imgIdx, uploadIdx) => {
+            const fileRes = uploadedFiles[uploadIdx];
+            if (fileRes) {
+              this.questionImages[imgIdx].ServerPath = fileRes.FilePath || fileRes.filePath || '';
             }
           });
-          // Cập nhật ImageLink cho đáp án
-          answerUploadTasks.forEach((t, i) => {
-            const res = results[questionFileUploads.length + i];
-            this.answers[t.idx].ImageLink = res?.data?.SavedFileName || res?.data?.savedFileName || '';
+
+          // 4. Cập nhật ImageLink cho đáp án (phần sau trong mảng uploadedFiles)
+          answerUploadTasks.forEach((task, index) => {
+            const fileRes = uploadedFiles[questionImageIndices.length + index];
+            if (fileRes) {
+              this.answers[task.answerIdx].ImageLink = fileRes.FilePath || fileRes.filePath || '';
+            }
           });
+
           this.callSaveApi(closeAfterSave);
         },
         error: (err) => {
@@ -638,7 +708,7 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
         AnswersText: a.AnswerText,
         AnswersNumber: a.AnswerNumber,
         IsRightAnswer: !!a.RightAnswer,
-        Imagelink: a.ImageLink || null,
+        ImageLink: a.ImageLink || null,
       })) : [],
       listAnswerIDDelete: this.listAnswerIDDelete,
       ExamType: this.examType,
@@ -689,6 +759,14 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     this.onQuestionTypeChange(defaultType);
     this.questionImages = [];
     this.listImageIDDelete = [];
+
+    // Mặc định tạo sẵn 4 đáp án cho câu hỏi trắc nghiệm
+    if (defaultType === 1) {
+      for (let i = 0; i < 4; i++) {
+        this.onAddAnswer();
+      }
+    }
+
     this.loadNextSTT();
   }
 

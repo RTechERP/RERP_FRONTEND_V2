@@ -16,19 +16,25 @@ export class HRRecruitmentApplicationFormService {
         return this.http.get<any>(`${this.apiUrl}/get-all-chuc-vu`);
     }
 
-    uploadFile(file: File): Observable<any> {
+    uploadFile(file: File, subPath?: string): Observable<any> {
         const formData = new FormData();
         formData.append('files', file);
         formData.append('key', 'HRRecruitmentApplicationForm');
+        if (subPath) {
+            formData.append('subPath', subPath);
+        }
         return this.http.post<any>(`${environment.host}api/home/upload-multiple`, formData);
     }
 
-    downloadFile(fileName: string): Observable<Blob> {
-        return this.http.get(`${environment.host}api/home/download-by-key`, {
-            params: {
-                key: 'HRRecruitmentApplicationForm',
-                fileName: fileName
-            },
+    downloadFile(fileName: string, subPath?: string): Observable<Blob> {
+        const params: any = {
+            key: 'HRRecruitmentApplicationForm',
+            fileName: fileName
+        };
+        if (subPath) params.subPath = subPath;
+
+        return this.http.get(`${environment.host}api/HRRecruitmentApplicationForm/download-by-key`, {
+            params: params,
             responseType: 'blob'
         });
     }

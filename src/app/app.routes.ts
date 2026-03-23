@@ -58,6 +58,7 @@ import { EmployeeTimekeepingComponent } from './pages/hrm/employee-management/em
 import { WFHSummaryComponent } from './pages/hrm/employee-management/employee-wfh/WFH-summary/wfh-summary.component';
 import { WFHComponent } from './pages/hrm/employee-management/employee-wfh/WFH.component';
 import { EmployeeComponent } from './pages/hrm/employee/employee.component';
+import { EmployeeTeamComponent } from './pages/hrm/employee/employee-team/employee-team.component';
 import { SummaryEmployeeComponent } from './pages/hrm/employee/summary-employee/summary-employee.component';
 import { FilmManagementComponent } from './pages/hrm/film-management/film-management.component';
 import { HandoverComponent } from './pages/hrm/handover/handover.component';
@@ -286,6 +287,8 @@ import { AreasComponent } from './pages/ems/components/managers/areas/areas.comp
 import { DevicesComponent } from './pages/ems/components/managers/devices/devices.component';
 import { CommunicationComponent } from './pages/ems/components/managers/communication/communication.component';
 import { DailyReportAccountingSlickgridComponent } from './pages/accounting/daily-report-accounting/daily-report-accounting-slickgrid/daily-report-accounting-slickgrid.component';
+import { JobRequirementPersonalComponent } from './pages/hrm/job-requirement/job-requirement-personal/job-requirement-personal.component';
+import { SummaryAssetPersionalComponent } from './pages/hrm/asset/summary-asset-persional/summary-asset-persional.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -335,7 +338,7 @@ export const routes: Routes = [
             { path: 'paymentorder', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'kt-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'daily-report-accounting', component: DailyReportAccountingSlickgridComponent, canActivate: [authGuard] },
-
+            { path: 'daily-report-accounting-person', component: DailyReportAccountingSlickgridComponent, canActivate: [authGuard] },
             //#endregion
 
 
@@ -380,6 +383,7 @@ export const routes: Routes = [
             { path: 'hrhiring-request', component: HrhiringRequestComponent, canActivate: [authGuard] },
             { path: 'hrhiring-request-exam', component: HRHiringRequestExamComponent, canActivate: [authGuard] },
             { path: 'job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
+            { path: 'job-requirement-personal', component: JobRequirementPersonalComponent, canActivate: [authGuard] },
             { path: 'approve-job-requirement', component: ApproveJobRequirementComponent, canActivate: [authGuard] },
             { path: 'job-requirement-bgd', component: ApproveJobRequirementComponent, canActivate: [authGuard] },
             { path: 'hr-purchase-proposal', component: HrPurchaseProposalComponent, canActivate: [authGuard] },
@@ -406,6 +410,7 @@ export const routes: Routes = [
             { path: 'team', component: TeamComponent, canActivate: [authGuard] },
             { path: 'positions', component: PositionsComponent, canActivate: [authGuard] },
             { path: 'employee', component: EmployeeComponent, canActivate: [authGuard] },
+            { path: 'employee-team', component: EmployeeTeamComponent, canActivate: [authGuard] },
             { path: 'contract', component: ContractComponent, canActivate: [authGuard] },
             { path: 'handover', component: HandoverComponent, canActivate: [authGuard] },
             { path: 'holiday', component: HolidayComponent, canActivate: [authGuard] },
@@ -1099,6 +1104,8 @@ export const routes: Routes = [
             { path: 'hr-recruitment-application', component: HRRecruitmentApplicationComponent, canActivate: [authGuard] },
             { path: 'history-borrow-sale-personal', component: HistoryBorrowSalePersonalComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-personal', component: HistoryProductRtcPersonalComponent, canActivate: [authGuard] },
+
+            { path: 'summary-asset-persional', component: SummaryAssetPersionalComponent, canActivate: [authGuard] },
 
             //#region EMS
             { path: 'ems/dashboard', component: DashboardComponent, canActivate: [authGuard] },

@@ -34,6 +34,8 @@ export interface CandidateMail {
   extraHtml: string;
   signature: string;
   round1InterviewDate: any; // Ngày phỏng vấn vòng 1 (chỉ dùng cho round 2)
+  userName?: string;
+  password?: string;
 }
 
 @Component({
@@ -72,26 +74,35 @@ export class HrInterviewInvitationComponent implements OnInit, AfterViewInit {
   minutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
 
   ngOnInit(): void {
-    this.mails = this.candidates.map((c) => ({
-      candidateId: c.ID,
-      candidateName: c.FullName || '...',
-      position: c.PositionName || '...',
-      toEmail: c.Email || '',
-      subject: this.round === 1 ? `RTC_THƯ MỜI PHỎNG VẤN VỊ TRÍ ${c.PositionName?.toUpperCase() || '...'}_${c.FullName?.toUpperCase() || '...'}`
-        : `RTC_THƯ MỜI PHỎNG VẤN VÒNG 2 VỊ TRÍ ${c.PositionName?.toUpperCase() || '...'}_${c.FullName?.toUpperCase() || '...'}`,
-      interviewDate: null,
-      interviewHour: '08',
-      interviewMinute: '00',
-      interviewAddress: 'Công ty Cổ phần RTC Technology Việt Nam',
-      replyDeadlineDate: null,
-      replyDeadlineHour: '17',
-      replyDeadlineMinute: '00',
-      contactPhone: '0965 513 189',
-      contactEmail: 'Tuyendung@rtc.edu.vn',
-      extraHtml: '',
-      signature: '(Chữ ký chân email)',
-      round1InterviewDate: c.DateInterview ? new Date(c.DateInterview) : null,
-    }));
+    this.mails = this.candidates.map((c) => {
+      // Parse DateInterview từ candidate
+      const interviewD = c.DateInterview ? new Date(c.DateInterview) : null;
+      const deadlineD = c.DeadlineFeedbackMail ? new Date(c.DeadlineFeedbackMail) : null;
+
+      return {
+        candidateId: c.ID,
+        candidateName: c.FullName || '...',
+        position: c.PositionName || '...',
+        toEmail: c.Email || '',
+        subject: this.round === 1
+          ? `RTC_THƯ MỜI PHỎNG VẤN VỊ TRÍ ${c.PositionName?.toUpperCase() || '...'}_${c.FullName?.toUpperCase() || '...'}`
+          : `RTC_THƯ MỜI PHỎNG VẤN VÒNG 2 VỊ TRÍ ${c.PositionName?.toUpperCase() || '...'}_${c.FullName?.toUpperCase() || '...'}`,
+        interviewDate: interviewD,
+        interviewHour: interviewD ? String(interviewD.getHours()).padStart(2, '0') : '08',
+        interviewMinute: interviewD ? String(interviewD.getMinutes()).padStart(2, '0') : '00',
+        interviewAddress: 'Công ty Cổ phần RTC Technology Việt Nam',
+        replyDeadlineDate: deadlineD,
+        replyDeadlineHour: deadlineD ? String(deadlineD.getHours()).padStart(2, '0') : '08',
+        replyDeadlineMinute: deadlineD ? String(deadlineD.getMinutes()).padStart(2, '0') : '00',
+        contactPhone: '0965 513 189',
+        contactEmail: 'Tuyendung@rtc.edu.vn',
+        extraHtml: '',
+        signature: '(Chữ ký chân email)',
+        round1InterviewDate: interviewD,
+        userName: c.UserName || '',
+        password: c.Password || '',
+      };
+    });
   }
 
   ngAfterViewInit(): void {
@@ -132,7 +143,8 @@ export class HrInterviewInvitationComponent implements OnInit, AfterViewInit {
       ? `<p ${P}>Công ty Cổ phần RTC Technology Việt Nam chân thành cảm ơn Anh/Chị đã sắp xếp thời gian tham gia phỏng vấn vòng 1 vị trí <strong>${mail.position}</strong> ngày ${mail.round1InterviewDate ? this.formatDate(mail.round1InterviewDate) : '.../.../...'}.</p><p ${P}>Qua buổi phỏng vấn, chúng tôi đánh giá cao trình độ và kinh nghiệm của Anh/Chị về vị trí dự tuyển.</p>`
       : `<p ${P}>Công ty Cổ phần RTC Technology Việt Nam đã nhận được thư ứng tuyển vào vị trí <strong>${mail.position}</strong> của Anh/Chị.</p><p ${P}>Sau khi sơ tuyển, chúng tôi nhận thấy kiến thức chuyên môn và kinh nghiệm của Anh/Chị phù hợp để ứng tuyển vào vị trí này.</p>`;
 
-    return `<p ${P}>Kính gửi: Anh/Chị <strong>${mail.candidateName}</strong>,</p>${intro}<p ${P}>Bằng email này, chúng tôi kính mời Anh/Chị đến tham dự buổi phỏng vấn${this.round === 2 ? ' <strong>vòng 2</strong>' : ''} theo thời gian và địa điểm như sau:</p><p ${P}><strong>1. Thời gian:</strong> ${time}</p><p ${P}><strong>2. Địa chỉ:</strong> ${mail.interviewAddress}</p><p ${P}><strong>Mọi thông tin cần hỗ trợ vui lòng liên hệ Bộ phận Tuyển dụng: ${mail.contactPhone}</strong></p><p ${P}>Rất mong Anh/Chị sắp xếp thời gian tham dự buổi phỏng vấn đúng giờ. Khi đi mang theo 01 bộ hồ sơ photo.</p><p ${P}>Anh/chị vui lòng phản hồi về việc tham dự phỏng vấn muộn nhất trước <strong>${replyDeadline}</strong> với Bộ phận Tuyển dụng qua email: <em>${mail.contactEmail}</em></p>${mail.extraHtml ? `<div style="margin:8px 0">${mail.extraHtml}</div>` : ''}<p ${P}>Trân trọng cảm ơn!</p><p><em>${mail.signature.replace(/\n/g, '<br>')}</em></p>`;
+    const loginInfo = `<p ${P}><strong>Link làm tờ khai:</strong> <a href="https://erp.rtc.edu.vn/rerpweb/login-candidate">https://erp.rtc.edu.vn/rerpweb/login-candidate</a></p><p ${P}><strong>Tên đăng nhập:</strong> ${mail.userName}</p><p ${P}><strong>Mật khẩu:</strong> ${mail.password}</p>`;
+    return `<p ${P}>Kính gửi: Anh/Chị <strong>${mail.candidateName}</strong>,</p>${intro}<p ${P}>Bằng email này, chúng tôi kính mời Anh/Chị đến tham dự buổi phỏng vấn${this.round === 2 ? ' <strong>vòng 2</strong>' : ''} theo thời gian và địa điểm như sau:</p><p ${P}><strong>1. Thời gian:</strong> ${time}</p><p ${P}><strong>2. Địa chỉ:</strong> ${mail.interviewAddress}</p><p ${P}><strong>Mọi thông tin cần hỗ trợ vui lòng liên hệ Bộ phận Tuyển dụng: ${mail.contactPhone}</strong></p><p ${P}>Rất mong Anh/Chị sắp xếp thời gian tham dự buổi phỏng vấn đúng giờ. Khi đi mang theo 01 bộ hồ sơ photo.</p><p ${P}>Anh/chị vui lòng phản hồi về việc tham dự phỏng vấn muộn nhất trước <strong>${replyDeadline}</strong> với Bộ phận Tuyển dụng qua email: <em>${mail.contactEmail}</em></p>${loginInfo}${mail.extraHtml ? `<div style="margin:8px 0">${mail.extraHtml}</div>` : ''}<p ${P}>Trân trọng cảm ơn!</p><p><em>${mail.signature.replace(/\n/g, '<br>')}</em></p>`;
   }
 
   // Dùng cho preview trong UI
@@ -223,15 +235,38 @@ export class HrInterviewInvitationComponent implements OnInit, AfterViewInit {
 
     this.isSending = true;
 
-    let payload = this.mails.map(mail => ({
-      ID: mail.candidateId,
-      Subject: mail.subject,
-      EmailTo: mail.toEmail,
-      Body: this.getMailBody(mail),
-      EmailCC: '',
-      StatusSend: this.round === 2 ? 2 : 1,
-      DateSend: this.round === 2 ? mail.round1InterviewDate : mail.interviewDate,
-    }));
+    const toLocalISO = (d: Date): string => {
+      const pad = (n: number) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+    };
+
+    let payload = this.mails.map(mail => {
+      // Gộp ngày + giờ + phút thành datetime local
+      const interviewDT = mail.interviewDate ? (() => {
+        const d = new Date(mail.interviewDate);
+        d.setHours(+mail.interviewHour, +mail.interviewMinute, 0, 0);
+        return toLocalISO(d);
+      })() : null;
+
+      const deadlineDT = mail.replyDeadlineDate ? (() => {
+        const d = new Date(mail.replyDeadlineDate);
+        d.setHours(+mail.replyDeadlineHour, +mail.replyDeadlineMinute, 0, 0);
+        return toLocalISO(d);
+      })() : null;
+
+      const round1DT = mail.round1InterviewDate ? toLocalISO(new Date(mail.round1InterviewDate)) : null;
+
+      return {
+        ID: mail.candidateId,
+        Subject: mail.subject,
+        EmailTo: mail.toEmail,
+        Body: this.getMailBody(mail),
+        EmailCC: '',
+        StatusSend: this.round === 2 ? 2 : 1,
+        DateSend: this.round === 2 ? round1DT : interviewDT,
+        DeadlineFeedbackMail: deadlineDT,
+      };
+    });
 
     this.service.sendInterviewMail(payload).subscribe({
       next: () => {

@@ -31,6 +31,11 @@ export class HRRecruitmentExamService {
     return this.http.get<any>(this.apiUrlExam + `get-data-exam-by-id?examID=${id}`);
   }
 
+  /** Lấy ID đề thi lớn nhất để sinh mã tự động */
+  getMaxExamID(): Observable<any> {
+    return this.http.get<any>(this.apiUrlExam + 'get-max-id');
+  }
+
   //#endregion
 
   //#region Đóng/mở hoạt động đề thi
@@ -85,27 +90,35 @@ export class HRRecruitmentExamService {
 
   //#endregion
 
-  //#region Upload ảnh
-
   /**
    * Upload ảnh câu hỏi / đáp án
-   * @param file  File ảnh cần upload
-   * @param key   Key cấu hình đường dẫn trong ConfigSystem (server sẽ tra cứu path từ key này)
+   * @param file    File ảnh cần upload
+   * @param subPath Đường dẫn con (ví dụ: "PhongBan/RecruitmentQuestion")
+   * @param key     Key cấu hình đường dẫn trong ConfigSystem (mặc định 'HRRecruitmentExam')
    */
-  uploadImage(file: File, key: string = 'HRRecruitmentExam'): Observable<any> {
+  uploadImage(file: File, subPath: string = '', key: string = 'HRRecruitmentExam'): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('key', key);
+    if (subPath) {
+      formData.append('subPath', subPath);
+    }
     return this.http.post<any>(environment.host + 'api/Home/upload', formData);
   }
 
   /**
    * Upload nhiều file cùng lúc (dùng cho danh sách hình ảnh câu hỏi)
+   * @param files   Danh sách file cần upload
+   * @param subPath Đường dẫn con
+   * @param key     Key cấu hình hệ thống
    */
-  uploadMultipleFiles(files: File[], key: string = 'HRRecruitmentExam'): Observable<any> {
+  uploadMultipleFiles(files: File[], subPath: string = '', key: string = 'HRRecruitmentExam'): Observable<any> {
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
     formData.append('key', key);
+    if (subPath) {
+      formData.append('subPath', subPath);
+    }
     return this.http.post<any>(environment.host + 'api/Home/upload-multiple', formData);
   }
 
@@ -122,16 +135,14 @@ export class HRRecruitmentExamService {
     return this.http.get<any>(this.apiUrlDoc + 'get-departments');
   }
 
-  //#endregion
+  /**
+   * Tải file dựa trên đường dẫn tuyệt đối (ServerPath)
+   * @param serverPath Đường dẫn đầy đủ trên server (lấy từ database)
+   */
+  downloadFile(serverPath: string): Observable<Blob> {
+    const url = `${environment.host}api/home/download?path=${encodeURIComponent(serverPath)}`;
 
-  //#region privew ảnh
-
-  downloadFile(fileName: string): Observable<Blob> {
-    return this.http.get(`${environment.host}api/home/download-by-key`, {
-      params: {
-        key: 'HRRecruitmentExam',
-        fileName: fileName
-      },
+    return this.http.get(url, {
       responseType: 'blob'
     });
   }

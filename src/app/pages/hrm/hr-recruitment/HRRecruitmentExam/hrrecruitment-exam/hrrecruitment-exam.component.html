@@ -1,4 +1,4 @@
-﻿<ng-container class="w-100">
+<ng-container class="w-100">
     <div class="card border-0 rounded-0 h-100">
 
 
@@ -221,10 +221,33 @@
                                                         <div style="word-break:break-word;white-space:normal;"
                                                             [innerHTML]="q.QuestionText"></div>
                                                     </td>
-                                                    <td class="text-center">
-                                                        <nz-icon *ngIf="q.QuestionAttachments" nzType="file-text"
-                                                            nzTheme="outline" class="text-primary" nz-tooltip
-                                                            nzTooltipTitle="Có tệp đính kèm" />
+                                                    <td class="text-center" (click)="$event.stopPropagation()">
+                                                        <!-- 1 file: click mở thẳng -->
+                                                        <ng-container *ngIf="q.parsedAttachments?.length === 1">
+                                                            <nz-icon nzType="file-text" nzTheme="outline"
+                                                                class="text-primary"
+                                                                style="cursor:pointer; font-size:16px;"
+                                                                nz-tooltip
+                                                                [nzTooltipTitle]="q.parsedAttachments[0].FileNameOrigin"
+                                                                (click)="openAttachmentInNewWindow(q.parsedAttachments[0].ServerPath, q.parsedAttachments[0].FileNameOrigin)" />
+                                                        </ng-container>
+                                                        <!-- Nhiều file: click mở dropdown danh sách -->
+                                                        <ng-container *ngIf="q.parsedAttachments?.length > 1">
+                                                            <a nz-dropdown [nzDropdownMenu]="attachMenu" nzTrigger="click" (click)="$event.stopPropagation()">
+                                                                <nz-icon nzType="file-text" nzTheme="outline"
+                                                                    class="text-primary"
+                                                                    style="cursor:pointer; font-size:16px;" />
+                                                            </a>
+                                                            <nz-dropdown-menu #attachMenu="nzDropdownMenu">
+                                                                <ul nz-menu>
+                                                                    <li nz-menu-item *ngFor="let att of q.parsedAttachments"
+                                                                        (click)="openAttachmentInNewWindow(att.ServerPath, att.FileNameOrigin)">
+                                                                        <i class="fa fa-file text-primary me-2"></i>
+                                                                        <span class="text-truncate d-inline-block align-middle" style="max-width: 260px;" [title]="att.FileNameOrigin">{{ att.FileNameOrigin }}</span>
+                                                                    </li>
+                                                                </ul>
+                                                            </nz-dropdown-menu>
+                                                        </ng-container>
                                                     </td>
                                                     <td class="text-right">{{q.Point}}</td>
                                                     <!-- <td (dblclick)="downloadFileFromGrid(q.Image)"
@@ -286,10 +309,10 @@
                                                         <div style="word-break:break-word;white-space:normal;"
                                                             [innerHTML]="ans.AnswersText"></div>
                                                     </td>
-                                                    <td (dblclick)="downloadFileFromGrid(ans.ImageLink)"
+                                                    <td (click)="openAttachmentInNewWindow(ans.ImageLink, ans.ImageLink)"
                                                         [style.cursor]="ans.ImageLink ? 'pointer' : 'default'">
                                                         <div style="word-break:break-word;white-space:normal;"
-                                                            [title]="ans.ImageLink">{{ans.ImageLink}}</div>
+                                                            [title]="ans.ImageLink ? ans.ImageLink + ' (Click để xem)' : ''">{{ans.ImageLink}}</div>
                                                     </td>
                                                 </tr>
                                             </ng-template>

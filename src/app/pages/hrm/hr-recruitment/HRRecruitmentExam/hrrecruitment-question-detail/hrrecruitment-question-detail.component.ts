@@ -8,7 +8,8 @@ import {
   Inject,
   ViewChildren,
   QueryList,
-  ElementRef
+  ElementRef,
+  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -30,7 +31,7 @@ import { HRRecruitmentExamService } from '../hr-recruitment-exam-service/hrrecru
 import { EditorModule } from 'primeng/editor';
 import Quill from 'quill';
 import { environment } from '../../../../../../environments/environment';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-hrrecruitment-question-detail',
@@ -428,6 +429,69 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     setTimeout(() => document.body.removeChild(fileInput), 100);
   }
 
+  /** Bắt sự kiện dán (Ctrl+V) ảnh toàn cục */
+  @HostListener('window:paste', ['$event'])
+  onPaste(event: ClipboardEvent): void {
+    // Không xử lý nếu người dùng đang focus vào ô nhập liệu (input, textarea, thẻ contenteditable của p-editor)
+    const activeElement = document.activeElement as HTMLElement;
+    const isInput = activeElement?.tagName === 'INPUT' || activeElement?.tagName === 'TEXTAREA';
+    const isContentEditable = activeElement?.isContentEditable || activeElement?.classList?.contains('ql-editor');
+    
+    if (isInput || isContentEditable) return;
+
+    const items = event.clipboardData?.items;
+    if (!items) return;
+
+    let hasImage = false;
+    for (let i = 0; i < items.length; i++) {
+       if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            hasImage = true;
+            this.addPastedFileToQuestionImages(file);
+          }
+       }
+    }
+    
+    // Ngăn chặn hành động paste mặc định của trình duyệt nếu đã lấy được ảnh
+    if (hasImage) {
+      event.preventDefault();
+      this.notification.success('Thành công', 'Đã dán ảnh đính kèm thành công!');
+    }
+  }
+
+  /** Xử lý file ảnh được dán từ clipboard */
+  private addPastedFileToQuestionImages(file: File): void {
+    // Đổi tên file để tránh trùng lặp "image.png" từ clipboard
+    let fileName = file.name || 'image.png';
+    // Đuôi mặc định thường là png khi paste
+    const extension = fileName.split('.').pop() || 'png';
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}`;
+    
+    fileName = `Pasted_Image_${timeStr}.${extension}`;
+
+    const isDup = this.questionImages.some(f => f.FileNameOrigin === fileName && f.originFile?.size === file.size);
+    if (isDup) return;
+
+    const newItem = {
+      uid: Math.random().toString(36).substring(2) + Date.now(),
+      ID: 0,
+      FileNameOrigin: fileName,
+      ServerPath: '',
+      Extension: extension,
+      originFile: file,
+      previewUrl: null as string | null,
+      isImage: true,
+    };
+    
+    const reader = new FileReader();
+    reader.onload = () => { newItem.previewUrl = reader.result as string; };
+    reader.readAsDataURL(file);
+    
+    this.questionImages = [...this.questionImages, newItem];
+  }
+
   /** Xóa ảnh/file khỏi danh sách */
   removeQuestionImage(index: number): void {
     const img = this.questionImages[index];
@@ -614,15 +678,15 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
   private save(closeAfterSave: boolean): void {
     this.isSaving = true;
 
-    // Chuẩn bị danh sách file cần upload
-    const filesToUpload: File[] = [];
+    const questionFiles: File[] = [];
     const questionImageIndices: number[] = [];
+    const answerFiles: File[] = [];
     const answerUploadTasks: { answerIdx: number }[] = [];
 
     // 1. Lọc ảnh câu hỏi mới
     this.questionImages.forEach((img, i) => {
       if (img.originFile && !img.ServerPath) {
-        filesToUpload.push(img.originFile);
+        questionFiles.push(img.originFile);
         questionImageIndices.push(i);
       }
     });
@@ -630,34 +694,48 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     // 2. Lọc ảnh đáp án mới
     this.answers.forEach((ans, i) => {
       if (ans.selectedImageFile) {
-        filesToUpload.push(ans.selectedImageFile);
+        answerFiles.push(ans.selectedImageFile);
         answerUploadTasks.push({ answerIdx: i });
       }
     });
 
-    // Sinh subPath: "Phòng ban/RecruitmentQuestion"
+    // Sinh subPath: "Phòng ban/QuestionFile" hoặc "Phòng ban/AnswersFile"
     const subPathParts = [];
     if (this.departmentName) subPathParts.push(this.departmentName);
-    //subPathParts.push('RecruitmentQuestion');
-    const subPath = subPathParts.join('/');
+    const basePath = subPathParts.join('/');
 
-    if (filesToUpload.length > 0) {
+    const subPathQuestion = basePath ? `${basePath}/QuestionFile` : 'QuestionFile';
+    const subPathAnswer = basePath ? `${basePath}/AnswersFile` : 'AnswersFile';
+
+    const questionUpload$ = questionFiles.length > 0
+      ? this.examService.uploadMultipleFiles(questionFiles, subPathQuestion)
+      : of({ data: [] });
+
+    const answerUpload$ = answerFiles.length > 0
+      ? this.examService.uploadMultipleFiles(answerFiles, subPathAnswer)
+      : of({ data: [] });
+
+    if (questionFiles.length > 0 || answerFiles.length > 0) {
       this.notification.info('Đang upload', 'Đang tải file lên...');
-      this.examService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
-        next: (res: any) => {
-          const uploadedFiles = res?.data || [];
+      forkJoin({
+        questions: questionUpload$,
+        answers: answerUpload$
+      }).subscribe({
+        next: (results: any) => {
+          const uploadedQuestionFiles = results.questions?.data || [];
+          const uploadedAnswerFiles = results.answers?.data || [];
 
           // 3. Cập nhật ServerPath cho ảnh câu hỏi
           questionImageIndices.forEach((imgIdx, uploadIdx) => {
-            const fileRes = uploadedFiles[uploadIdx];
+            const fileRes = uploadedQuestionFiles[uploadIdx];
             if (fileRes) {
               this.questionImages[imgIdx].ServerPath = fileRes.FilePath || fileRes.filePath || '';
             }
           });
 
-          // 4. Cập nhật ImageLink cho đáp án (phần sau trong mảng uploadedFiles)
-          answerUploadTasks.forEach((task, index) => {
-            const fileRes = uploadedFiles[questionImageIndices.length + index];
+          // 4. Cập nhật ImageLink cho đáp án
+          answerUploadTasks.forEach((task, uploadIdx) => {
+            const fileRes = uploadedAnswerFiles[uploadIdx];
             if (fileRes) {
               this.answers[task.answerIdx].ImageLink = fileRes.FilePath || fileRes.filePath || '';
             }

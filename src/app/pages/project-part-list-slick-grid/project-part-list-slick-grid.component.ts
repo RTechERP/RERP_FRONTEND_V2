@@ -4272,20 +4272,20 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.notification.warning('Thông báo', 'Không tìm thấy phiên bản giải pháp đã chọn');
         return;
       }
-      if (selectedVersion['StatusVersion'] == 2) {
-        this.notification.warning('Thông báo', `Phiên bản [${selectedVersion.Code}] đã bị PO. Bạn không thể yêu cầu báo giá!`);
-        return;
-      }
+      // if (selectedVersion['StatusVersion'] == 2) {
+      //   this.notification.warning('Thông báo', `Phiên bản [${selectedVersion.Code}] đã bị PO. Bạn không thể yêu cầu báo giá!`);
+      //   return;
+      // }
     } else {
       selectedVersion = this.dataPOVersion.find((v: any) => v.ID === this.versionPOID);
       if (!selectedVersion) {
         this.notification.warning('Thông báo', 'Không tìm thấy phiên bản PO đã chọn');
         return;
       }
-      if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
-        this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
-        return;
-      }
+      // if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+      //   this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
+      //   return;
+      // }
     }
 
     // Validate từng vật tư được chọn

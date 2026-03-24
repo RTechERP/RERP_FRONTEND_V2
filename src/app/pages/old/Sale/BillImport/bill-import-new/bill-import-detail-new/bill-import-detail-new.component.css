@@ -82,11 +82,11 @@
 }
 
 :host ::ng-deep div[id^="billImportDetail_"] {
-  height: 67vh !important;
+  height: 62vh !important;
 }
 
 :host ::ng-deep div[id^="billImportDocDetail_"] {
-  height: 67vh !important;
+  height: 62vh !important;
 }
 
 /* Multiline cell with max 3 lines and ellipsis */
@@ -104,7 +104,7 @@
 }
 
 :host ::ng-deep .ant-tabs.ant-tabs-top.ant-tabs-default {
-  height: 67vh !important;
+  height: 65vh !important;
 }
 
 :host ::ng-deep .ant-form-vertical .ant-form-item-label {

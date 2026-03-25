@@ -129,11 +129,11 @@ export class ProjectPartlistPurchaseRequestService {
 
     private productRTCUrl = environment.host + 'api/ProductRTC/';
 
-    getProductRTC(): Observable<any[]> {
-        return this.http.get<any>(this.baseUrl + 'product-group_rtc').pipe(
-            map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
-        );
-    }
+  getProductRTC(): Observable<any[]> {
+    return this.http.get<any>(this.baseUrl + 'product-group-rtc').pipe(
+      map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
+    );
+  }
 
     // Get list of ProductRTC products - tham khảo TbProductRtcService.getProductRTC()
     getProductsRTC(request?: {

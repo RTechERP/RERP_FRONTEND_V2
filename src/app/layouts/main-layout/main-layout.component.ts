@@ -277,6 +277,14 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             // console.log('[MainLayout] Received tabCompRequest:', payload);
             this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
+
+        // Subscribe to close tab by key
+        this.tabService.closeTabByKey$.subscribe((key: string) => {
+            const index = this.dynamicTabComps.findIndex(t => t.key === key);
+            if (index >= 0) {
+                this.closeTabComp({ index });
+            }
+        });
     }
 
     getCompMenus() {
@@ -1129,16 +1137,29 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     logout() {
         this.auth.logout();
     }
+    // onPick(n: NotifyItem) {
+    //     if (!n.route) return;
+    //     const route = n.route.replace(/^\//, '');
+    //     const menu = this.findMenuByRouter(this.menuComps, route) as LeafItem;
+    //     if (menu?.comp) {
+    //         this.newTabComp(menu.comp, menu.title, route, menu.data);
+    //     } else {
+    //         this.newTab(route, n.title || route);
+    //     }
+    // }
+
     onPick(n: NotifyItem) {
         if (!n.route) return;
         const route = n.route.replace(/^\//, '');
         const menu = this.findMenuByRouter(this.menuComps, route) as LeafItem;
+        const data = { ...(menu?.data ?? {}), ...(n.queryParams ?? {}) };
         if (menu?.comp) {
-            this.newTabComp(menu.comp, menu.title, route, menu.data);
+            this.newTabComp(menu.comp, menu.title, route, data);
         } else {
-            this.newTab(route, n.title || route);
+            this.newTab(route, n.title || route, data);
         }
     }
+
     // toggleMenu(key: string) {
     //   const m = this.menus.find((x) => x.key === key);
     //   if (m) m.isOpen = !m.isOpen;

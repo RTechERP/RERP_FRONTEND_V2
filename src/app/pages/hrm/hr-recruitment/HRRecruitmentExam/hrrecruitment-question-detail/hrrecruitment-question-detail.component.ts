@@ -60,15 +60,7 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
   //#region Input từ form cha
 
   @Input() questionID: number = 0;
-  /** ID đề thi - nhận từ form cha */
   @Input() examID: number = 0;
-
-  /** Tên phòng ban để làm subpath upload */
-  @Input() departmentName: string = '';
-  /** Tên đề thi để làm subpath upload */
-  @Input() examName: string = '';
-
-  /** Loại đề thi (1, 2, 3) */
   /** 1 = Trắc nghiệm, 2 = Tự luận, 3 = TN & TL */
   @Input() examType: number = 1;
   @Input() isEditMode: boolean = false;
@@ -119,8 +111,6 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
   listAnswerIDDelete: number[] = [];
   answerCodes = ['A', 'B', 'C', 'D'];
 
-  @ViewChildren('answerInput', { read: ElementRef }) answerInputs!: QueryList<ElementRef>;
-
   //#endregion
 
   //#region Trạng thái
@@ -132,8 +122,6 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
 
   /** Hiển thị phần đáp án trắc nghiệm */
   showMultipleChoiceAnswers: boolean = true;
-  /** Checkbox tư vấn tự luận số */
-  IsAnswerNumberValue: boolean = false;
   /** Hiển thị phần tự luận */
   showEssayFields: boolean = false;
   /** Đáp án đúng cho tự luận (so khớp chuỗi, để trống nếu chấm thủ công) */
@@ -152,15 +140,6 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     private tabService: TabServiceService,
     @Optional() @Inject('tabData') private tabData?: any,
   ) {
-    if (this.tabData) {
-      this.questionID = this.tabData.questionID || 0;
-      this.examID = this.tabData.examID || 0;
-      this.examType = this.tabData.examType || 1;
-      this.isEditMode = this.tabData.isEditMode || false;
-      // this.listRightAnswerSelected = this.tabData.datasetRightAnswer || []; // This line was commented out in the original, keeping it commented.
-      this.departmentName = this.tabData.departmentName || '';
-      this.examName = this.tabData.examName || '';
-    }
     this.createForm();
     this.configureQuillFonts();
   }
@@ -176,24 +155,15 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
       if (this.tabData.examType !== undefined) this.examType = this.tabData.examType;
       if (this.tabData.isEditMode !== undefined) this.isEditMode = this.tabData.isEditMode;
       if (this.tabData.onSavedCallback !== undefined) this.onSavedCallback = this.tabData.onSavedCallback;
-      if (this.tabData.departmentName !== undefined) this.departmentName = this.tabData.departmentName;
-      if (this.tabData.examName !== undefined) this.examName = this.tabData.examName;
     }
 
     if (this.isEditMode && this.questionID > 0) {
       this.loadQuestionDetail(this.questionID);
     } else {
+      // Set mặc định loại câu hỏi theo examType
       const defaultType = this.examType === 2 ? 2 : 1;
       this.formGroup.patchValue({ QuestionType: defaultType });
       this.onQuestionTypeChange(defaultType);
-
-      // Mặc định tạo sẵn 4 đáp án cho câu hỏi trắc nghiệm khi thêm mới
-      if (defaultType === 1) {
-        for (let i = 0; i < 4; i++) {
-          this.onAddAnswer();
-        }
-      }
-
       this.loadNextSTT();
     }
   }
@@ -536,38 +506,13 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     });
   }
 
-  /** Xử lý phím Tab trong ô nhập đáp án để nhảy xuống dòng sau */
-  onAnswerTab(event: any, index: number): void {
-    if (index < this.answers.length - 1) {
-      event.preventDefault();
-      setTimeout(() => {
-        const nextInput = this.answerInputs.toArray()[index + 1].nativeElement;
-        if (nextInput) {
-          nextInput.focus();
-        }
-      });
-    } else {
-      // Nếu là dòng cuối cùng, tự động thêm dòng mới khi ấn Tab
-      event.preventDefault();
-      this.onAddAnswer();
-      setTimeout(() => {
-        const inputs = this.answerInputs.toArray();
-        const lastInput = inputs[inputs.length - 1]?.nativeElement;
-        if (lastInput) {
-          lastInput.focus();
-        }
-      }, 100);
-    }
-  }
-
   onDeleteAnswer(index: number): void {
     const answer = this.answers[index];
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa đáp án "${answer.Code}" không?`,
+      nzContent: `Bạn có chắc chắn muốn xóa đáp án [${answer.Code}] không?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
-      nzAutofocus: 'ok',
       nzOnOk: () => {
         // Nếu đáp án đã có ID thì thêm vào danh sách xóa
         if (answer.ID && answer.ID > 0) {
@@ -740,7 +685,11 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
               this.answers[task.answerIdx].ImageLink = fileRes.FilePath || fileRes.filePath || '';
             }
           });
-
+          // Cập nhật ImageLink cho đáp án
+          answerUploadTasks.forEach((t, i) => {
+            const res = results[questionFileUploads.length + i];
+            this.answers[t.idx].ImageLink = res?.data?.SavedFileName || res?.data?.savedFileName || '';
+          });
           this.callSaveApi(closeAfterSave);
         },
         error: (err) => {
@@ -786,7 +735,7 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
         AnswersText: a.AnswerText,
         AnswersNumber: a.AnswerNumber,
         IsRightAnswer: !!a.RightAnswer,
-        ImageLink: a.ImageLink || null,
+        Imagelink: a.ImageLink || null,
       })) : [],
       listAnswerIDDelete: this.listAnswerIDDelete,
       ExamType: this.examType,
@@ -837,14 +786,6 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     this.onQuestionTypeChange(defaultType);
     this.questionImages = [];
     this.listImageIDDelete = [];
-
-    // Mặc định tạo sẵn 4 đáp án cho câu hỏi trắc nghiệm
-    if (defaultType === 1) {
-      for (let i = 0; i < 4; i++) {
-        this.onAddAnswer();
-      }
-    }
-
     this.loadNextSTT();
   }
 

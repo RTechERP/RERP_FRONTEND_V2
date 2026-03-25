@@ -2,7 +2,7 @@
   <h6 class="modal-title text-white">Chi tiết phiếu xuất</h6>
   <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
 </div>
-<div class="modal-body p-2">
+<div class="modal-body p-2 bill-export-detail-new-modal-body bill-export-detail-new-p-2">
   <nz-spin [nzSpinning]="isLoading">
     <div class="d-flex gap-2 pb-2 border-bottom" *ngIf="!newBillExport.IsApproved">
       <button type="button" class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Them san pham"
@@ -178,7 +178,7 @@
 
         <div nz-col nzSpan="3">
           <nz-form-item>
-            <nz-form-label class="fs-12">Loại hàng</nz-form-label>
+            <nz-form-label class="fs-12 bill-export-detail-new-fs-12">Loại hàng</nz-form-label>
             <nz-form-control>
               <nz-select nzSize="default" formControlName="ProductType" nzShowSearch nzAllowClear
                 nzPlaceHolder="Chọn loại hàng" nzSize="small">
@@ -260,7 +260,7 @@
       <div nz-row [nzGutter]="16">
         <div nz-col nzSpan="9">
           <nz-form-item>
-            <nz-form-label class="fs-12">Địa chỉ giao hàng</nz-form-label>
+            <nz-form-label class="fs-12 bill-export-detail-new-fs-12">Địa chỉ giao hàng</nz-form-label>
             <nz-form-control>
               <nz-select nzSize="default" formControlName="AddressStockID" nzShowSearch [nzAllowClear]="false"
                 nzPlaceHolder="Chọn địa chỉ giao hàng" nzSize="small" nzDropdownClassName="select-dropdown">
@@ -272,7 +272,7 @@
 
         <!-- <div nz-col nzSpan="12">
           <nz-form-item>
-            <nz-form-label class="fs-12">Địa chỉ khách hàng</nz-form-label>
+            <nz-form-label class="fs-12 bill-export-detail-new-fs-12">Địa chỉ khách hàng</nz-form-label>
             <nz-form-control>
               <input nz-input nzSize="default" formControlName="Address" readonly placeholder="Địa chỉ khách hàng" />
             </nz-form-control>
@@ -280,7 +280,7 @@
         </div> -->
         <div nz-col nzSpan="9">
           <nz-form-item>
-            <nz-form-label class="fs-12">Nhà cung cấp</nz-form-label>
+            <nz-form-label class="fs-12 bill-export-detail-new-fs-12">Nhà cung cấp</nz-form-label>
             <nz-form-control>
               <nz-select nzSize="default" formControlName="SupplierID" nzShowSearch [nzAllowClear]="false"
                 nzPlaceHolder="Chọn nhà cung cấp" nzSize="small" nzDropdownClassName="select-dropdown">
@@ -300,10 +300,11 @@
 
         <div nz-col nzSpan="6">
           <nz-form-item>
-            <nz-form-label class="fs-12">Tham chiếu</nz-form-label>
+            <nz-form-label class="fs-12 bill-export-detail-new-fs-12">Tham chiếu</nz-form-label>
             <nz-form-control>
-              <div class="reference-links-container d-flex">
-                <div nzSize="small" *ngIf="referenceLinks.length === 0" class="no-ref">
+              <div
+                class="reference-links-container d-flex bill-export-detail-new-reference-links-container bill-export-detail-new-d-flex">
+                <div nzSize="small" *ngIf="referenceLinks.length === 0" class="no-ref bill-export-detail-new-no-ref">
                   Không có tham chiếu
                 </div>
                 <div *ngFor="let link of referenceLinks">
@@ -320,7 +321,7 @@
       <!-- <div nz-row [nzGutter]="16"> -->
       <!-- <div nz-col nzSpan="2">
           <nz-form-item>
-            <nz-form-label class="fs-12">&nbsp;</nz-form-label>
+            <nz-form-label class="fs-12 bill-export-detail-new-fs-12">&nbsp;</nz-form-label>
             <nz-form-control>
               <label nz-checkbox formControlName="IsTransfer">Chuyển kho</label>
             </nz-form-control>
@@ -329,13 +330,13 @@
 
         <div nz-col nzSpan="6">
           <nz-form-item>
-            <nz-form-label class="fs-12">Tham chiếu</nz-form-label>
+            <nz-form-label class="fs-12 bill-export-detail-new-fs-12">Tham chiếu</nz-form-label>
             <nz-form-control>
-              <div class="reference-links-container d-flex">
-                  <div *ngIf="referenceLinks.length === 0" class="no-ref">
+              <div class="reference-links-container d-flex bill-export-detail-new-reference-links-container bill-export-detail-new-d-flex">
+                  <div *ngIf="referenceLinks.length === 0" class="no-ref bill-export-detail-new-no-ref">
                       Khong co tham chieu
                   </div>
-                  <div *ngFor="let link of referenceLinks" class="mt-1">
+                  <div *ngFor="let link of referenceLinks" class="mt-1 bill-export-detail-new-mt-1">
                       <a href="javascript:void(0)" (click)="onReferenceLinkClick(link)">
                           {{ link.text }}
                       </a><span>,</span>
@@ -347,7 +348,7 @@
 
         <div nz-col nzSpan="4">
           <nz-form-item>
-            <nz-form-label class="fs-12">Kho đích</nz-form-label>
+            <nz-form-label class="fs-12 bill-export-detail-new-fs-12">Kho đích</nz-form-label>
             <nz-form-control>
               <nz-select nzSize="default" formControlName="WareHouseTranferID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn kho đích" [nzDisabled]="!validateForm.get('IsTransfer')?.value">
                 <nz-option *ngFor="let id of dataCbbWareHouseTransfer" [nzValue]="id.ID" [nzLabel]="id.Name"></nz-option>
@@ -388,8 +389,8 @@
         Thông báo
       </h5>
     </div>
-    <div class="error-popup-body">
-      <div class="error-popup-message">{{ errorMessage }}</div>
+    <div class="error-popup-body bill-export-detail-new-error-popup-body">
+      <div class="error-popup-message bill-export-detail-new-error-popup-message">{{ errorMessage }}</div>
     </div>
     <div class="error-popup-footer">
       <button type="button" class="fs-12 btn" nz-button nzType="primary" (click)="closeErrorPopup()">

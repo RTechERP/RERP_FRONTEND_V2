@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnInit, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { NzTabSetComponent, NzTabComponent } from 'ng-zorro-antd/tabs';
@@ -25,9 +25,16 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 export class SummaryAssetPersionalComponent implements OnInit {
   activeTabIndex: number = 0;
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    @Optional() @Inject('tabData') private tabData: any
+  ) {}
 
   ngOnInit(): void {
+    if (this.tabData?.activeTab != null) {
+      this.activeTabIndex = Number(this.tabData.activeTab);
+      return;
+    }
     this.route.queryParams.subscribe(params => {
       if (params['activeTab']) {
         this.activeTabIndex = Number(params['activeTab']);

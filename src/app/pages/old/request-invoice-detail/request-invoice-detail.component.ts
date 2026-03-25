@@ -58,7 +58,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { RequestInvoiceDetailService } from './request-invoice-detail-service/request-invoice-detail-service.service';
-import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { RequestInvoiceService } from '../request-invoice/request-invoice-service/request-invoice-service.service';
 import { AppUserService } from '../../../services/app-user.service';
@@ -211,25 +211,11 @@ export class RequestInvoiceDetailComponent implements OnInit {
             this.handlePOKHData();
           }
         } else {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[response.status] || 'error',
-            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
-            response.message || 'Lỗi khi tải khách hàng',
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
+          console.error('Lỗi khi tải Customer:', response.message);
         }
       },
-      (err: any) => {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
-        );
+      (error) => {
+        console.error('Lỗi kết nối khi tải Customer:', error);
       }
     );
   }
@@ -243,26 +229,10 @@ export class RequestInvoiceDetailComponent implements OnInit {
           if (this.tb_POFile) {
             this.tb_POFile.setData(this.POFiles);
           }
-        } else {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[response.status] || 'error',
-            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
-            response.message || 'Lỗi khi tải tệp POKH',
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
         }
       },
-      (err: any) => {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
-        );
+      (error) => {
+        console.error('Lỗi kết nối khi tải POKHFile:', error);
       }
     );
   }
@@ -273,25 +243,11 @@ export class RequestInvoiceDetailComponent implements OnInit {
         if (response.status === 1) {
           this.projects = response.data;
         } else {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[response.status] || 'error',
-            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
-            response.message || 'Lỗi khi tải dự án',
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
+          console.error('Lỗi khi tải Project:', response.message);
         }
       },
-      (err: any) => {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
-        );
+      (error) => {
+        console.error('Lỗi kết nối khi tải Project:', error);
       }
     );
   }
@@ -303,26 +259,12 @@ export class RequestInvoiceDetailComponent implements OnInit {
           this.products = response.data;
           this.initDataTable();
         } else {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[response.status] || 'error',
-            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
-            response.message || 'Lỗi khi tải sản phẩm',
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
+          console.error('Lỗi khi tải Product:', response.message);
         }
         this.isLoading = false;
       },
-      (err: any) => {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
-        );
+      (error) => {
+        console.error('Lỗi kết nối khi tải Product:', error);
         this.isLoading = false;
       }
     );
@@ -339,25 +281,11 @@ export class RequestInvoiceDetailComponent implements OnInit {
             }
           }
         } else {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[response.status] || 'error',
-            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
-            response.message || 'Lỗi khi tải danh sách nhân viên',
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
+          console.error('Lỗi khi tải Employees:', response.message);
         }
       },
-      (err: any) => {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
-        );
+      (error) => {
+        console.error('Lỗi kết nối khi tải Employees:', error);
       }
     );
   }
@@ -367,25 +295,11 @@ export class RequestInvoiceDetailComponent implements OnInit {
         if (response.status === 1) {
           this.formData.Code = response.data;
         } else {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[response.status] || 'error',
-            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
-            response.message || 'Lỗi khi tạo số phiếu',
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
+          console.error('Lỗi khi tạo số phiếu:', response.message);
         }
       },
-      (err: any) => {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
-        );
+      (error) => {
+        console.error('Lỗi kết nối khi tạo số phiếu', error);
       }
     );
   }
@@ -441,25 +355,15 @@ export class RequestInvoiceDetailComponent implements OnInit {
         if (response.status === 1) {
           this.handleSuccess(response);
         } else {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[response.status] || 'error',
-            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
-            response.message || 'Không thể lưu dữ liệu!',
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            response.message || 'Không thể lưu dữ liệu!'
           );
         }
       },
-      error: (err: any) => {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
-        );
+      error: (err) => {
+        const message = err.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu!';
+        this.notification.error(NOTIFICATION_TITLE.error, message);
       },
     });
   }
@@ -478,24 +382,16 @@ export class RequestInvoiceDetailComponent implements OnInit {
         const someBill = row.SomeBill || '';
         const productName = row.ProductName || '';
         if (!someBill || someBill.trim() === '') {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-            NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
-            `Vì không là hàng lấy từ Tồn kho, bắt buộc phải có Hóa đơn đầu vào cho mã sản phẩm ${productNewCode} - STT: ${stt}`,
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
+          this.notification.error(
+            'Thông báo',
+            `Vì không là hàng lấy từ Tồn kho, bắt buộc phải có Hóa đơn đầu vào cho mã sản phẩm ${productNewCode} - STT: ${stt}`
           );
           return false;
         }
       } else if (billCode && billCode.trim() !== '') {
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-          NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
-          `Bạn không thể chọn Tồn kho vì đã có Phiếu nhập kho [${billCode}] cho mã sản phẩm ${productNewCode} - STT: ${stt}`,
-          {
-            nzStyle: { whiteSpace: 'pre-line' }
-          }
+        this.notification.error(
+          'Thông báo',
+          `Bạn không thể chọn Tồn kho vì đã có Phiếu nhập kho [${billCode}] cho mã sản phẩm ${productNewCode} - STT: ${stt}`
         );
         return false;
       }
@@ -609,7 +505,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
                 this.notification.warning('Thông báo', `${totalUploaded}/${totalRequested} file upload thành công, ${totalRequested - totalUploaded} file thất bại.`);
               }
 
-                // Cập nhật lại danh sách file với ServerPath trả về từ server
+              // Cập nhật lại danh sách file với ServerPath trả về từ server
               this.files = [
                 ...this.files.filter((f: any) => !f.file),
                 ...uploadedFiles.map((f: any) => ({
@@ -623,25 +519,11 @@ export class RequestInvoiceDetailComponent implements OnInit {
                 this.tb_InvoiceFile.setData(this.files);
               }
             } else {
-              this.notification.create(
-                NOTIFICATION_TYPE_MAP[response.status] || 'error',
-                NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Thông báo',
-                response.message || 'Upload file thất bại!',
-                {
-                  nzStyle: { whiteSpace: 'pre-line' }
-                }
-              );
+              this.notification.error('Thông báo', response.message || 'Upload file thất bại!');
             }
           },
-          error: (err: any) => {
-            this.notification.create(
-              NOTIFICATION_TYPE_MAP[err.status] || 'error',
-              NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Thông báo',
-              err?.error?.message || `${err.error}\n${err.message}`,
-              {
-                nzStyle: { whiteSpace: 'pre-line' }
-              }
-            );
+          error: (error) => {
+            this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
           },
         });
       });
@@ -653,15 +535,8 @@ export class RequestInvoiceDetailComponent implements OnInit {
         next: () => {
           this.deletedFileIds = [];
         },
-        error: (err: any) => {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[err.status] || 'error',
-            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Thông báo',
-            err?.error?.message || `${err.error}\n${err.message}`,
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
+        error: (error) => {
+          this.notification.error('Lỗi xóa files:', error);
         },
       });
     }
@@ -673,13 +548,9 @@ export class RequestInvoiceDetailComponent implements OnInit {
       Array.from(files).forEach((file) => {
         const fileObj = file as File;
         if (fileObj.size > MAX_FILE_SIZE) {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-            NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
-            `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`,
-            {
-                nzStyle: { whiteSpace: 'pre-line' }
-            }
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`
           );
           return;
         }
@@ -743,14 +614,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
 
   private downloadFromServer(fullPath: string, fileName: string): void {
     if (!fullPath) {
-      this.notification.create(
-        NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-        NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
-        'Không xác định được đường dẫn file!',
-        {
-          nzStyle: { whiteSpace: 'pre-line' }
-        }
-      );
+      this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
       return;
     }
 
@@ -772,14 +636,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
           window.URL.revokeObjectURL(url);
           this.notification.success('Thông báo', 'Tải xuống thành công!');
         } else {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-            NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
-            'File tải về không hợp lệ!',
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
         }
       },
       error: (err) => {
@@ -789,34 +646,19 @@ export class RequestInvoiceDetailComponent implements OnInit {
           reader.onload = () => {
             try {
               const errText = JSON.parse(reader.result as string);
-              this.notification.create(
-                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
-                errText.message || 'Tải xuống thất bại!',
-                {
-                  nzStyle: { whiteSpace: 'pre-line' }
-                }
+              this.notification.error(
+                'Thông báo',
+                errText.message || 'Tải xuống thất bại!'
               );
             } catch {
-              this.notification.create(
-                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
-                'Tải xuống thất bại!',
-                {
-                  nzStyle: { whiteSpace: 'pre-line' }
-                }
-              );
+              this.notification.error('Thông báo', 'Tải xuống thất bại!');
             }
           };
           reader.readAsText(err.error);
         } else {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[err.status] || 'error',
-            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Thông báo',
-            err?.error?.message || err?.message || 'Tải xuống thất bại!',
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
+          this.notification.error(
+            'Thông báo',
+            err?.error?.message || err?.message || 'Tải xuống thất bại!'
           );
         }
       },
@@ -832,13 +674,9 @@ export class RequestInvoiceDetailComponent implements OnInit {
     const fileName =
       file.FileName || file.fileName || file.FileNameOrigin || 'downloaded_file';
     if (!fullPath) {
-      this.notification.create(
-        NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-        NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
-        'Không xác định được đường dẫn file! (Có thể file mới chưa được upload lên server).',
-        {
-          nzStyle: { whiteSpace: 'pre-line' }
-        }
+      this.notification.error(
+        'Thông báo',
+        'Không xác định được đường dẫn file! (Có thể file mới chưa được upload lên server).'
       );
       return;
     }
@@ -854,14 +692,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     const fileName =
       file.FileName || file.fileName || file.FileNameOrigin || 'downloaded_file';
     if (!fullPath) {
-      this.notification.create(
-        NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-        NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
-        'Không xác định được đường dẫn file!',
-        {
-          nzStyle: { whiteSpace: 'pre-line' }
-        }
-      );
+      this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
       return;
     }
     this.downloadFromServer(fullPath, fileName);

@@ -52,13 +52,6 @@ export class CandidateTestService {
   }
 
   /**
-   * Cập nhật thời gian thi còn lại (mỗi 30s)
-   */
-  updateExamTime(examResultID: number, remainingSeconds: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}update-exam-time`, { ID: examResultID, RemainingSeconds: remainingSeconds });
-  }
-
-  /**
    * Lưu tiến độ từng câu hỏi
    */
   saveQuestionProgress(data: any): Observable<any> {
@@ -106,4 +99,3 @@ export class CandidateTestService {
     return this.http.post<any>(`${environment.host}api/home/upload`, formData);
   }
 }
-

@@ -324,9 +324,6 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         const localCountsFull = new Map<any, number>();
 
         data.forEach((item: any) => {
-            // Normalize ParentID
-            if (item.ParentID === null || item.ParentID === undefined) item.ParentID = 0;
-
             localCountsFull.set(item.ID, item.EmployeeCount || 0);
             if (item.ParentID !== undefined) {
                 if (!childrenMapFull.has(item.ParentID)) childrenMapFull.set(item.ParentID, []);
@@ -361,24 +358,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         const nodeDataArray: any[] = [];
         const linkDataArray: any[] = [];
 
-        // Synthetic dept root key — used when a specific department tab is selected
-        const deptRootKey = departmentId !== 0 ? `dept-root-${departmentId}` : null;
-
         if (data.length > 0) {
-            // Inject synthetic root node (department name) when viewing a specific dept tab
-            if (deptRootKey) {
-                const currentDept = this.departments.find((d: any) => d.ID === departmentId);
-                const deptName = currentDept?.Name || '';
-                nodeDataArray.push({
-                    key: deptRootKey,
-                    name: '',
-                    position: deptName,
-                    color: '#e4985dff',
-                    colorStroke: '#303030ff',
-                    totalCount: getRootTotal()
-                });
-            }
-
             data.forEach((item: any) => {
                 if (item.DepartmentID === 1) assistantBgd = item.ID;
                 if (item.TeamCode === "KYTHUAT" && item.Level === 1) assistantTech = item.ID;
@@ -397,82 +377,42 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 const hasSubDepartments = (childrenMapFull.get(item.ID) || []).length > 0;
                 const hasEmployees = dataDetail.some((x: any) => x.OrganizationalChartID === item.ID);
                 const hasChildren = hasSubDepartments || hasEmployees;
-                const displayCount = (hasChildren && (departmentId === 0 || item.Level === 0 || item.Level === 1 || item.Level === 2 || item.Level === 3 || item.Level === 4 || item.Level === 5)) ? totalForThisNode : 0;
+                const displayCount = (hasChildren && (departmentId === 0 || item.Level === 1 || item.Level === 2 || item.Level === 3 || item.Level === 4 || item.Level === 5)) ? totalForThisNode : 0;
 
-                if (departmentId === 0) {
-                    // ── MASTER VIEW: RTC → Phòng ban → Team ──
-                    if (item.ParentID === 0) {
-                        // Ensure RTC root exists
-                        if (!nodeDataArray.some((n: any) => n.key === 0)) {
-                            nodeDataArray.push({
-                                key: 0,
-                                name: "",
-                                parent: "RTC",
-                                position: "RTC",
-                                color: "#e4985dff",
-                                colorStroke: "#303030ff",
-                                totalCount: getRootTotal()
-                            });
-                        }
-
-                        // Inject intermediate department node if not already added
-                        const deptNodeKey = `dept-${item.DepartmentID}`;
-                        if (!nodeDataArray.some((n: any) => n.key === deptNodeKey)) {
-                            const deptInfo = this.departments.find((d: any) => d.ID === item.DepartmentID);
-                            const deptName = deptInfo?.Name || `Phòng ban ${item.DepartmentID}`;
-                            // Calculate dept total = sum of all top-level teams in this dept
-                            const deptTotal = data
-                                .filter((x: any) => x.DepartmentID === item.DepartmentID && x.ParentID === 0)
-                                .reduce((sum: number, x: any) => sum + calculateTotal(x.ID), 0);
-
-                            nodeDataArray.push({
-                                key: deptNodeKey,
-                                parent: 0,
-                                position: deptName,
-                                name: "",
-                                color: TAGS_COLORS[0] || "#fff",
-                                colorStroke: "black",
-                                totalCount: deptTotal
-                            });
-                            linkDataArray.push({ from: 0, to: deptNodeKey });
-                        }
-
-                        // Team links to its department node
+                if (item.ParentID === 0 && departmentId === 0) {
+                    if (!nodeDataArray.some((n: any) => n.key === 0)) {
                         nodeDataArray.push({
-                            key: item.ID,
-                            parent: deptNodeKey,
-                            position: position,
-                            name: name,
-                            color: TAGS_COLORS[item.Level + 1] || "#fff",
-                            colorStroke: "black",
-                            totalCount: displayCount
+                            key: 0,
+                            name: "",
+                            parent: "RTC",
+                            position: "RTC",
+                            color: "#e4985dff",
+                            colorStroke: "#303030ff",
+                            totalCount: getRootTotal()
                         });
-                        linkDataArray.push({ from: deptNodeKey, to: item.ID });
-
-                    } else {
-                        if (item.DepartmentID === 22) return;
-                        if (item.Level >= 4) return;
-
-                        nodeDataArray.push({
-                            key: item.ID,
-                            parent: item.ParentID,
-                            position: position,
-                            name: name,
-                            color: TAGS_COLORS[item.Level + 1] || "#fff",
-                            colorStroke: "black",
-                            stt: item.STT,
-                            totalCount: displayCount
-                        });
-                        linkDataArray.push({ from: item.ParentID, to: item.ID });
                     }
-                } else {
-                    // ── DEPARTMENT TAB VIEW ──
-                    if (item.DepartmentID === 22 && departmentId === 0) return;
-                    if (item.Level >= 4 && departmentId === 0) return;
-                    const parentKey = (item.ParentID === 0 && deptRootKey) ? deptRootKey : item.ParentID;
+
                     nodeDataArray.push({
                         key: item.ID,
-                        parent: parentKey,
+                        parent: item.ParentID,
+                        position: position,
+                        name: name,
+                        color: TAGS_COLORS[item.Level] || "#fff",
+                        colorStroke: "black",
+                        totalCount: displayCount
+                    });
+
+                    linkDataArray.push({
+                        from: item.ParentID,
+                        to: item.ID
+                    });
+                } else {
+                    if (item.DepartmentID === 22 && departmentId === 0) return;
+                    // Removed Level 4 restriction so "Project Team 2" shows up
+                    if (item.Level >= 4 && departmentId === 0) return;
+                    nodeDataArray.push({
+                        key: item.ID,
+                        parent: item.ParentID,
                         position: position,
                         name: name,
                         color: TAGS_COLORS[item.Level] || "#fff",
@@ -482,7 +422,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     });
 
                     linkDataArray.push({
-                        from: parentKey,
+                        from: item.ParentID,
                         to: item.ID
                     });
                 }
@@ -490,7 +430,7 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 if (departmentId !== 0) {
                     const child = dataDetail.filter((x: any) => x.OrganizationalChartID === item.ID);
 
-                    if (child.length > 0) {
+                    if (child.length > 0 && (item.ParentID !== 0 || departmentId === 1)) {
                         let tagGroup = child.length < 5 ? "col1" : "col2";
                         if (departmentId === 1) tagGroup = "col4";
 
@@ -541,14 +481,14 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         if (departmentId === 2) {
             nodeDataArray.push({
                 key: "Admin",
-                parent: deptRootKey,
+                parent: assistantTech,
                 position: "Admin of the Engineering Department",
                 name: "Mai Thị Tú Oanh",
                 color: "#c8e6c9",
                 colorStroke: "black",
                 totalCount: 0
             });
-            linkDataArray.push({ from: deptRootKey, to: "Admin" });
+            linkDataArray.push({ from: assistantTech, to: "Admin" });
         }
 
         if (departmentId === 0) {

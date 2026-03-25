@@ -584,13 +584,12 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 RequestInvoiceID: item.RequestInvoiceID ?? item.ID,
                 POKHId: item.POKHID ?? item.PokhId ?? item.POKHId,
                 CompanyText: companyText,
-                InvoiceNumber: item.InvoiceNumber || '',
-                PONumber: item.PONumber || ''
+                InvoiceNumber: item.InvoiceNumber || ''
             };
         });
 
-        // get unique payload by RequestInvoiceID and POKHId
-        const uniquePayload = Array.from(new Map(payload.map((item: any) => [`${item.RequestInvoiceID}_${item.PONumber}`, item])).values());
+        // get unique payload by RequestInvoiceID
+        const uniquePayload = Array.from(new Map(payload.map((item: any) => [item.RequestInvoiceID, item])).values());
 
         if (uniquePayload.length === 0) {
             this.notification.warning('Thông báo', 'Không tìm thấy dữ liệu hợp lệ trong các dòng đã chọn!');
@@ -603,36 +602,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             next: (response) => {
                 this.message.remove(loadingMsg);
                 if (response && response.status === 1) {
-                    let savedPath = '';
-                    let errorFilesHtml = '';
-
-                    // Nếu trả về object chứa baseDestPath và errorFiles
-                    if (response.data && typeof response.data === 'object') {
-                        savedPath = response.data.baseDestPath || '';
-                        
-                        if (response.data.errorFiles && Array.isArray(response.data.errorFiles) && response.data.errorFiles.length > 0) {
-                            const errors = response.data.errorFiles.map((f: string) => `<li>${f}</li>`).join('');
-                            errorFilesHtml = `<br><br><b class="text-danger">Các file lỗi không copy được:</b><br><ul class="text-danger" style="max-height: 150px; overflow-y: auto;">${errors}</ul>`;
-                        }
-                    } else {
-                        // Nếu trả về string như cũ
-                        savedPath = response.data || '';
-                    }
-
-                    if (!savedPath && response.message) {
-                        savedPath = response.message;
-                    }
-
-                    this.modal.success({
-                        nzTitle: 'Tải file thành công',
-                        nzContent: savedPath
-                            ? `Đã lưu file thành công!<br><br><b>Đường dẫn:</b><br>${savedPath}${errorFilesHtml}`
-                            : `Đã lưu file thành công!${errorFilesHtml}`,
-                        nzOkText: 'Đóng',
-                        nzClosable: true,
-                        nzMaskClosable: false,
-                        nzWidth: errorFilesHtml ? 600 : 416
-                    });
+                    this.notification.success('Thông báo', 'Đã lưu file thành công!');
                 } else {
                     this.notification.error('Thông báo', response?.message || 'Có lỗi xảy ra!');
                 }

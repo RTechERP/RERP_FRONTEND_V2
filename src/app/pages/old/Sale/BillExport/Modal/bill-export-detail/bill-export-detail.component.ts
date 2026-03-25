@@ -103,6 +103,9 @@ interface BillExport {
   RequestDate: Date | string | null;
   IsApproved?: boolean; // C# form line 114-117: Disable buttons when approved
   IsTransfer: boolean;
+  TransferType?: number;
+  ProductGroupTransferID?: number;
+  BillImportTechID?: number;
 }
 
 @Component({
@@ -135,8 +138,7 @@ interface BillExport {
   styleUrl: './bill-export-detail.component.css',
 })
 export class BillExportDetailComponent
-  implements OnInit, AfterViewInit, OnChanges, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('tableBillExportDetails', { static: false })
   tableBillExportDetailsRef!: ElementRef;
   table_billExportDetail: any;
@@ -303,10 +305,10 @@ export class BillExportDetailComponent
       POKHDetailID: number;
     }
   > = new Map(); // Key = row ID hoặc index
-private productInventoryDetailMap: Map<number, {
-  keepByProject: Map<number, number>,
-  generalStock: number
-}> = new Map();
+  private productInventoryDetailMap: Map<number, {
+    keepByProject: Map<number, number>,
+    generalStock: number
+  }> = new Map();
 
   private hasInventoryRelatedChange: boolean = false;
 
@@ -1002,7 +1004,7 @@ private productInventoryDetailMap: Map<number, {
     }
 
     // Gọi API lấy phiếu nhập theo BillExportID
-    this.billExportService.getBillImportByBillExportID(billExportID).subscribe({
+    this.billExportService.getBillImportByBillExportID(billExportID, 2).subscribe({
       next: (res: any) => {
         if (res?.status === 1 && res?.data) {
           const billImport = res.data;
@@ -1371,9 +1373,8 @@ private productInventoryDetailMap: Map<number, {
           if (!this.productOptions.find((p: any) => p.value === product.ID)) {
             this.productOptions.push({
               // Hiển thị đầy đủ: ProductNewCode | ProductCode | ProductName khi popup
-              label: `${product.ProductNewCode || ''} | ${
-                product.ProductCode || ''
-              } | ${product.ProductName || ''}`,
+              label: `${product.ProductNewCode || ''} | ${product.ProductCode || ''
+                } | ${product.ProductName || ''}`,
               value: product.ID,
               ProductCode: product.ProductCode,
               TotalInventory: product.TotalQuantityLast,
@@ -1529,9 +1530,8 @@ private productInventoryDetailMap: Map<number, {
               )
               .map((product) => {
                 const mappedProduct = {
-                  label: `${product.ProductNewCode || ''} | ${
-                    product.ProductCode || ''
-                  } | ${product.ProductName || ''}`,
+                  label: `${product.ProductNewCode || ''} | ${product.ProductCode || ''
+                    } | ${product.ProductName || ''}`,
                   value: product.ProductSaleID,
                   ProductCode: product.ProductCode,
                   TotalInventory: product.TotalQuantityLast,
@@ -1713,10 +1713,10 @@ private productInventoryDetailMap: Map<number, {
     this.billExportService.getWarehouses().subscribe({
       next: (res: any) => {
         const list = res.data || [];
-        this.dataCbbWareHouseTransfer = list.filter((item:any) => item.WarehouseCode !== this.wareHouseCode).map((item: any) => ({
+        this.dataCbbWareHouseTransfer = list.filter((item: any) => item.WarehouseCode !== this.wareHouseCode).map((item: any) => ({
           ID: item.ID,
-          Name: item.WarehouseName|| '',
-          Code: item.WarehouseCode|| '',
+          Name: item.WarehouseName || '',
+          Code: item.WarehouseCode || '',
         }));
       },
       error: (err: any) => {
@@ -1958,7 +1958,7 @@ private productInventoryDetailMap: Map<number, {
 
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => {});
+      onRendered(() => { });
 
       return container;
     };
@@ -2625,9 +2625,8 @@ private productInventoryDetailMap: Map<number, {
                   projectName = project ? project.label : '';
                 }
 
-                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${
-                  projectName || 'Chọn dự án'
-                }</p> <i class="fas fa-angle-down"></i></div>`;
+                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${projectName || 'Chọn dự án'
+                  }</p> <i class="fas fa-angle-down"></i></div>`;
               },
               cellClick: (e, cell) => {
                 this.toggleProjectPopup(cell);
@@ -3078,74 +3077,74 @@ private productInventoryDetailMap: Map<number, {
 
   //   return { isValid: true, message: '' };
   // }
- private validateInventoryStock(): { isValid: boolean; message: string } {
-  const tableData = this.table_billExportDetail?.getData() || [];
-  if (tableData.length === 0) return { isValid: true, message: '' };
+  private validateInventoryStock(): { isValid: boolean; message: string } {
+    const tableData = this.table_billExportDetail?.getData() || [];
+    if (tableData.length === 0) return { isValid: true, message: '' };
 
-  const insufficientMessages: string[] = [];
+    const insufficientMessages: string[] = [];
 
-  // Bước 1: Gom nhóm yêu cầu xuất từ Grid theo ProductID
-  // productUsage: ProductID -> { totalRequested, projectDemands }
-  const productUsage = new Map<number, {
-    totalRequested: number,
-    projectDemands: Map<number, number>
-  }>();
+    // Bước 1: Gom nhóm yêu cầu xuất từ Grid theo ProductID
+    // productUsage: ProductID -> { totalRequested, projectDemands }
+    const productUsage = new Map<number, {
+      totalRequested: number,
+      projectDemands: Map<number, number>
+    }>();
 
-  tableData.forEach((row: any) => {
-    const pId = Number(row.ProductID);
-    if (pId <= 0) return;
+    tableData.forEach((row: any) => {
+      const pId = Number(row.ProductID);
+      if (pId <= 0) return;
 
-    const qty = parseFloat(row.Qty || 0);
-    const projId = Number(row.ProjectID || 0);
+      const qty = parseFloat(row.Qty || 0);
+      const projId = Number(row.ProjectID || 0);
 
-    if (!productUsage.has(pId)) {
-      productUsage.set(pId, { totalRequested: 0, projectDemands: new Map() });
-    }
+      if (!productUsage.has(pId)) {
+        productUsage.set(pId, { totalRequested: 0, projectDemands: new Map() });
+      }
 
-    const usage = productUsage.get(pId)!;
-    usage.totalRequested += qty;
+      const usage = productUsage.get(pId)!;
+      usage.totalRequested += qty;
 
-    // Lưu lượng yêu cầu riêng cho từng dự án trong phiếu này
-    const currentProjQty = usage.projectDemands.get(projId) || 0;
-    usage.projectDemands.set(projId, currentProjQty + qty);
-  });
-
-  // Bước 2: Đối soát với dữ liệu đã nạp trong Map
-  productUsage.forEach((usage, pId) => {
-    const invInfo = this.productInventoryDetailMap.get(pId);
-    if (!invInfo) {
-      insufficientMessages.push(`Sản phẩm ID ${pId}: Chưa nạp được dữ liệu tồn kho.`);
-      return;
-    }
-
-    // Công thức WinForms: Tổng tồn khả dụng = Tồn CK + Tổng các lô giữ của các dự án có trong phiếu
-    let totalKeepAvailable = 0;
-    usage.projectDemands.forEach((qtyNeeded, projId) => {
-        // Lấy hàng giữ cho dự án này (nếu có)
-        totalKeepAvailable += (invInfo.keepByProject.get(projId) || 0);
+      // Lưu lượng yêu cầu riêng cho từng dự án trong phiếu này
+      const currentProjQty = usage.projectDemands.get(projId) || 0;
+      usage.projectDemands.set(projId, currentProjQty + qty);
     });
 
-    const totalPossibleStock = invInfo.generalStock + totalKeepAvailable;
+    // Bước 2: Đối soát với dữ liệu đã nạp trong Map
+    productUsage.forEach((usage, pId) => {
+      const invInfo = this.productInventoryDetailMap.get(pId);
+      if (!invInfo) {
+        insufficientMessages.push(`Sản phẩm ID ${pId}: Chưa nạp được dữ liệu tồn kho.`);
+        return;
+      }
 
-    // Kiểm tra đơn vị tính (bỏ qua m, mét theo logic gốc)
-    const rowSample = tableData.find((r: any) => r.ProductID === pId);
-    const unit = (rowSample?.Unit || '').toLowerCase().trim();
-    if (unit === 'm' || unit === 'mét' || unit === 'met') return;
+      // Công thức WinForms: Tổng tồn khả dụng = Tồn CK + Tổng các lô giữ của các dự án có trong phiếu
+      let totalKeepAvailable = 0;
+      usage.projectDemands.forEach((qtyNeeded, projId) => {
+        // Lấy hàng giữ cho dự án này (nếu có)
+        totalKeepAvailable += (invInfo.keepByProject.get(projId) || 0);
+      });
 
-    if (usage.totalRequested > totalPossibleStock) {
-      const productDisplay = rowSample?.ProductNewCode || rowSample?.ProductCode || `ID:${pId}`;
-      insufficientMessages.push(
-        `[${productDisplay}]: Xuất ${usage.totalRequested.toFixed(2)} > Khả dụng ${totalPossibleStock.toFixed(2)} ` +
-        `(Giữ dự án: ${totalKeepAvailable.toFixed(2)} + Tồn CK: ${invInfo.generalStock.toFixed(2)})`
-      );
-    }
-  });
+      const totalPossibleStock = invInfo.generalStock + totalKeepAvailable;
 
-  return {
-    isValid: insufficientMessages.length === 0,
-    message: insufficientMessages.join('\n')
-  };
-}
+      // Kiểm tra đơn vị tính (bỏ qua m, mét theo logic gốc)
+      const rowSample = tableData.find((r: any) => r.ProductID === pId);
+      const unit = (rowSample?.Unit || '').toLowerCase().trim();
+      if (unit === 'm' || unit === 'mét' || unit === 'met') return;
+
+      if (usage.totalRequested > totalPossibleStock) {
+        const productDisplay = rowSample?.ProductNewCode || rowSample?.ProductCode || `ID:${pId}`;
+        insufficientMessages.push(
+          `[${productDisplay}]: Xuất ${usage.totalRequested.toFixed(2)} > Khả dụng ${totalPossibleStock.toFixed(2)} ` +
+          `(Giữ dự án: ${totalKeepAvailable.toFixed(2)} + Tồn CK: ${invInfo.generalStock.toFixed(2)})`
+        );
+      }
+    });
+
+    return {
+      isValid: insufficientMessages.length === 0,
+      message: insufficientMessages.join('\n')
+    };
+  }
 
   // ✅ Có thể thêm method để clear map khi cần (ví dụ khi thay đổi KhoTypeID hoặc WarehouseID)
   private clearProductAvailableInventoryMap(): void {
@@ -3641,10 +3640,10 @@ private productInventoryDetailMap: Map<number, {
           this.notification.error(
             'Thông báo',
             `Số lượng còn lại của sản phẩm [${group.ProductNewCode}] không đủ!\n` +
-              `SL xuất: ${group.TotalQty}\n` +
-              `SL giữ: ${inventoryData.totalQuantityKeepShow} | ` +
-              `Tồn CK: ${inventoryData.totalQuantityLastShow} | ` +
-              `Tổng: ${totalStock}`
+            `SL xuất: ${group.TotalQty}\n` +
+            `SL giữ: ${inventoryData.totalQuantityKeepShow} | ` +
+            `Tồn CK: ${inventoryData.totalQuantityLastShow} | ` +
+            `Tổng: ${totalStock}`
           );
           return false;
         }
@@ -4131,139 +4130,139 @@ private productInventoryDetailMap: Map<number, {
   //     });
   //   }
   // }
- async saveDataBillExport() {
-  // --- 1. KIỂM TRA SERIAL ---
-  const isSerialValid = await this.checkSerial();
-  if (!isSerialValid) {
-    this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng serial không đủ, vui lòng kiểm tra lại');
-    return;
-  }
+  async saveDataBillExport() {
+    // --- 1. KIỂM TRA SERIAL ---
+    const isSerialValid = await this.checkSerial();
+    if (!isSerialValid) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng serial không đủ, vui lòng kiểm tra lại');
+      return;
+    }
 
-  const tableData = this.table_billExportDetail?.getData() || [];
-  if (tableData.length === 0) {
-    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng thêm ít nhất một sản phẩm vào bảng!');
-    return;
-  }
+    const tableData = this.table_billExportDetail?.getData() || [];
+    if (tableData.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng thêm ít nhất một sản phẩm vào bảng!');
+      return;
+    }
 
-  // --- 2. KIỂM TRA QUYỀN & FORM ---
-  const formValues = this.validateForm.getRawValue();
-  const billID = this.newBillExport.Id || 0;
-  if ((billID > 0 || this.id > 0) && !this.permissionService.hasPermission('N27,N1,N33,N34,N69')) {
-    this.showErrorNotification('Bạn không có quyền thực hiện hành động này!');
-    return;
-  }
+    // --- 2. KIỂM TRA QUYỀN & FORM ---
+    const formValues = this.validateForm.getRawValue();
+    const billID = this.newBillExport.Id || 0;
+    if ((billID > 0 || this.id > 0) && !this.permissionService.hasPermission('N27,N1,N33,N34,N69')) {
+      this.showErrorNotification('Bạn không có quyền thực hiện hành động này!');
+      return;
+    }
 
-  if (!this.validateForm.valid) {
-    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc!');
-    this.validateForm.markAllAsTouched();
-    return;
-  }
+    if (!this.validateForm.valid) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc!');
+      this.validateForm.markAllAsTouched();
+      return;
+    }
 
-  // --- 3. NẠP TỒN KHO BẤT ĐỒNG BỘ (TRỌNG TÂM SỬA LỖI) ---
-  this.isSaving = true; // Hiện loading spinner và disable nút lưu
-  try {
-    const status = formValues.Status || this.newBillExport.Status || 0;
+    // --- 3. NẠP TỒN KHO BẤT ĐỒNG BỘ (TRỌNG TÂM SỬA LỖI) ---
+    this.isSaving = true; // Hiện loading spinner và disable nút lưu
+    try {
+      const status = formValues.Status || this.newBillExport.Status || 0;
 
-    // Chỉ nạp tồn kho và validate nếu là trạng thái xuất (2) hoặc yêu cầu xuất (6) hoặc mượn (0,7)
-    // Thực tế mọi trạng thái xuất đều nên nạp tồn kho để đảm bảo an toàn
-// Sử dụng <number> cho Set để chỉ định rõ kiểu dữ liệu bên trong
-const uniqueProductIds: number[] = [...new Set<number>(
-  tableData.map((r: any) => Number(r.ProductID)).filter((id:number) => id > 0)
-)];
+      // Chỉ nạp tồn kho và validate nếu là trạng thái xuất (2) hoặc yêu cầu xuất (6) hoặc mượn (0,7)
+      // Thực tế mọi trạng thái xuất đều nên nạp tồn kho để đảm bảo an toàn
+      // Sử dụng <number> cho Set để chỉ định rõ kiểu dữ liệu bên trong
+      const uniqueProductIds: number[] = [...new Set<number>(
+        tableData.map((r: any) => Number(r.ProductID)).filter((id: number) => id > 0)
+      )];
 
-    console.log('⏳ Đang nạp dữ liệu tồn kho dự án và hàng tự do...');
-    // Đợi tất cả API nạp xong mới chạy tiếp
-    await Promise.all(uniqueProductIds.map(id => this.loadInventoryForValidation(id)));
-    console.log('✅ Nạp dữ liệu hoàn tất.');
+      console.log('⏳ Đang nạp dữ liệu tồn kho dự án và hàng tự do...');
+      // Đợi tất cả API nạp xong mới chạy tiếp
+      await Promise.all(uniqueProductIds.map(id => this.loadInventoryForValidation(id)));
+      console.log('✅ Nạp dữ liệu hoàn tất.');
 
-    // --- 4. VALIDATE TỒN KHO ---
-    const inventoryValidation = this.validateInventoryStock();
-    if (!inventoryValidation.isValid) {
-      this.showErrorNotification(inventoryValidation.message);
+      // --- 4. VALIDATE TỒN KHO ---
+      const inventoryValidation = this.validateInventoryStock();
+      if (!inventoryValidation.isValid) {
+        this.showErrorNotification(inventoryValidation.message);
+        this.isSaving = false;
+        return; // Dừng lại không cho lưu
+      }
+
+      // --- 5. GỬI PAYLOAD LƯU ---
+      console.log('🚀 Gửi dữ liệu lưu...');
+      const payload = {
+        BillExport: { ...this.newBillExport, ...formValues },
+        billExportDetail: this.mapTableDataToBillExportDetails(tableData),
+        DeletedDetailIds: this.deletedDetailIds || [],
+      };
+
+      this.billExportService.saveBillExport(payload).subscribe({
+        next: (res: any) => {
+          if (res.status === 1) {
+            this.notification.success(NOTIFICATION_TITLE.success, this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+            this.activeModal.close(true);
+          } else {
+            this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi khi lưu phiếu');
+          }
+          this.isSaving = false;
+        },
+        error: (err: any) => {
+          this.showErrorNotification(err?.error?.message || 'Có lỗi xảy ra khi lưu!');
+          this.isSaving = false;
+        },
+      });
+
+    } catch (error) {
+      console.error('Lỗi quy trình lưu:', error);
+      this.notification.error('Lỗi', 'Không thể kiểm tra tồn kho');
       this.isSaving = false;
-      return; // Dừng lại không cho lưu
     }
-
-    // --- 5. GỬI PAYLOAD LƯU ---
-    console.log('🚀 Gửi dữ liệu lưu...');
-    const payload = {
-      BillExport: { ...this.newBillExport, ...formValues },
-      billExportDetail: this.mapTableDataToBillExportDetails(tableData),
-      DeletedDetailIds: this.deletedDetailIds || [],
-    };
-
-    this.billExportService.saveBillExport(payload).subscribe({
-      next: (res: any) => {
-        if (res.status === 1) {
-          this.notification.success(NOTIFICATION_TITLE.success, this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
-          this.activeModal.close(true);
-        } else {
-          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi khi lưu phiếu');
-        }
-        this.isSaving = false;
-      },
-      error: (err: any) => {
-        this.showErrorNotification(err?.error?.message || 'Có lỗi xảy ra khi lưu!');
-        this.isSaving = false;
-      },
-    });
-
-  } catch (error) {
-    console.error('Lỗi quy trình lưu:', error);
-    this.notification.error('Lỗi', 'Không thể kiểm tra tồn kho');
-    this.isSaving = false;
   }
-}
 
-private async loadInventoryForValidation(productID: number): Promise<void> {
-  if (productID <= 0) return;
-  const tableData = this.table_billExportDetail?.getData() || [];
-  const warehouseID = this.newBillExport.WarehouseID || 0;
-console.log('tableData', tableData);
+  private async loadInventoryForValidation(productID: number): Promise<void> {
+    if (productID <= 0) return;
+    const tableData = this.table_billExportDetail?.getData() || [];
+    const warehouseID = this.newBillExport.WarehouseID || 0;
+    console.log('tableData', tableData);
 
-  try {
-        let pokhdetailID = tableData[0].POKHDetailID || 0;
-        let projectID = tableData[0].ProjectID || 0;
-        let billDetailID = tableData[0].ID || 0;
-        if(pokhdetailID > 0) {
-          projectID = 0;
-        }
-    // Gọi API lấy thông tin tổng hợp (Hàng giữ + Tồn CK)
-    // spGetInventoryProjectImportExport trả về 4 bảng: [0] Keep, [1] Import, [2] Export, [3] Stock
-    const res: any = await firstValueFrom(
-      this.billExportService.getInventoryProject(warehouseID, productID, projectID, pokhdetailID, billDetailID)
-    );
+    try {
+      let pokhdetailID = tableData[0].POKHDetailID || 0;
+      let projectID = tableData[0].ProjectID || 0;
+      let billDetailID = tableData[0].ID || 0;
+      if (pokhdetailID > 0) {
+        projectID = 0;
+      }
+      // Gọi API lấy thông tin tổng hợp (Hàng giữ + Tồn CK)
+      // spGetInventoryProjectImportExport trả về 4 bảng: [0] Keep, [1] Import, [2] Export, [3] Stock
+      const res: any = await firstValueFrom(
+        this.billExportService.getInventoryProject(warehouseID, productID, projectID, pokhdetailID, billDetailID)
+      );
 
-    if (res && res.status === 1) {
-      // 1. Lấy tồn kho tự do (Hàng CK) từ bảng Stock [index 3]
-      const stockTable = res.stock || [];
-      const generalStock = stockTable.length > 0 ? Number(stockTable[0].TotalQuantityLast || 0) : 0;
+      if (res && res.status === 1) {
+        // 1. Lấy tồn kho tự do (Hàng CK) từ bảng Stock [index 3]
+        const stockTable = res.stock || [];
+        const generalStock = stockTable.length > 0 ? Number(stockTable[0].TotalQuantityLast || 0) : 0;
 
-      // 2. Lấy tồn giữ theo từng Dự án từ bảng Keep [index 0]
-      const keepTable = res.inventoryProjects || [];
-      const keepMap = new Map<number, number>();
+        // 2. Lấy tồn giữ theo từng Dự án từ bảng Keep [index 0]
+        const keepTable = res.inventoryProjects || [];
+        const keepMap = new Map<number, number>();
 
-      keepTable.forEach((inv: any) => {
-        const pId = Number(inv.ProjectID || 0);
-        const remainQty = Number(inv.TotalQuantity || 0);
-        const currentSum = keepMap.get(pId) || 0;
-        keepMap.set(pId, currentSum + remainQty);
-      });
+        keepTable.forEach((inv: any) => {
+          const pId = Number(inv.ProjectID || 0);
+          const remainQty = Number(inv.TotalQuantity || 0);
+          const currentSum = keepMap.get(pId) || 0;
+          keepMap.set(pId, currentSum + remainQty);
+        });
 
-      // 3. Cập nhật Map tổng cho sản phẩm này
-      this.productInventoryDetailMap.set(productID, {
-        keepByProject: keepMap,
-        generalStock: Math.max(0, generalStock)
-      });
+        // 3. Cập nhật Map tổng cho sản phẩm này
+        this.productInventoryDetailMap.set(productID, {
+          keepByProject: keepMap,
+          generalStock: Math.max(0, generalStock)
+        });
 
-      console.log(`✅ Nạp xong tồn kho SP ${productID}: CK=${generalStock}, Dự án=${keepMap.size}`);
+        console.log(`✅ Nạp xong tồn kho SP ${productID}: CK=${generalStock}, Dự án=${keepMap.size}`);
+      }
+    } catch (err) {
+      console.error(`❌ Lỗi API tồn kho SP ${productID}:`, err);
+      // Nếu lỗi API, mặc định tồn = 0 để tránh lọt lưới validate
+      this.productInventoryDetailMap.set(productID, { keepByProject: new Map(), generalStock: 0 });
     }
-  } catch (err) {
-    console.error(`❌ Lỗi API tồn kho SP ${productID}:`, err);
-    // Nếu lỗi API, mặc định tồn = 0 để tránh lọt lưới validate
-    this.productInventoryDetailMap.set(productID, { keepByProject: new Map(), generalStock: 0 });
   }
-}
   private mapTableDataToBillExportDetails(tableData: any[]): any[] {
     return tableData.map((row: any, index: number) => {
       const rowKey = row.ID || index;
@@ -4276,7 +4275,7 @@ console.log('tableData', tableData);
           original.Qty !== (row.Qty || 0) ||
           original.ProjectID !== (row.ProjectID || 0) ||
           original.POKHDetailID !==
-            (row.POKHDetailIDActual || row.POKHDetailID || 0));
+          (row.POKHDetailIDActual || row.POKHDetailID || 0));
       return {
         ID: row.ID || 0,
         ProductID: row.ProductID || 0,

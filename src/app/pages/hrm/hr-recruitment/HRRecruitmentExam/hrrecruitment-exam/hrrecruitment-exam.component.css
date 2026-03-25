@@ -98,8 +98,7 @@
 
 /* ===== Grid container ===== */
 .grid-container {
-    flex: 1;
-    height: auto;
+    height: 100%;
     min-height: 200px;
     width: 100%;
 }
@@ -116,14 +115,14 @@
     background: #fafafa;
     padding: 8px;
     text-align: center;
-    white-space: nowrap !important;
-    text-overflow: ellipsis;
-    overflow: hidden;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
 }
 
 :host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
     font-size: 12px;
-    padding: 2px 8px;
+    padding: 6px 8px;
 }
 
 /* PrimeNG filter inputs: lock to 100% of the header TH */

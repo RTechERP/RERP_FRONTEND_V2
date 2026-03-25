@@ -184,23 +184,13 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
             // this.isAdmin = (this.appUserService.currentUser?.IsAdmin) || false;
         });
-
-        // this.getMenus();
-        // this.getHoliday(this.today.getFullYear(), this.today.getMonth());
-        // this.getEmployeeOnleaveAndWFH();
-        // this.getQuantityApprove();
-        // this.getQuantityBorrow();
-        // this.loadNewsletters();
-
         // Gom các API load UI vào forkJoin để biết khi nào tất cả đã xong
-        this.notifService.setItems([]);
         forkJoin([
             this.getMenus(),
             this.getHoliday(this.today.getFullYear(), this.today.getMonth()),
             this.getEmployeeOnleaveAndWFH(),
             this.getQuantityApprove(),
             this.getQuantityBorrow(),
-            this.getQuantityBorrowSale(),
             this.loadNewsletters()
         ]).subscribe({
             next: () => {
@@ -214,8 +204,6 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 // this.initSseConnection();
             }
         });
-
-        
     }
     getQuantityApprove() {
         return this.approveTpService.getQuantityApprove().pipe(
@@ -238,8 +226,10 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
 
     getQuantityBorrow() {
-        return this.borrowService.getQuantityBorrow().pipe(
-            tap((res: any) => {
+        this.notifService.setItems([]);
+        // Lấy dữ liệu số lượng mượn vật tư kho demo
+        this.borrowService.getQuantityBorrow().subscribe({
+            next: (res: any) => {
                 this.quantityBorrow = res.data.QuantitySemiExpired;
                 this.quantityBorrowExpried = res.data.QuantityExpired;
                 if (this.quantityBorrow > 0 || this.quantityBorrowExpried > 0) {
@@ -269,23 +259,21 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                         queryParams: { activeTab: 2 }
                     });
                 }
-            }),
-            catchError((err: any) => {
+            },
+            error: (err: any) => {
                 this.notification.create(
                     NOTIFICATION_TYPE_MAP[err.status] || 'error',
                     NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
                     err?.error?.message || `${err.error}\n${err.message}`,
-                    { nzStyle: { whiteSpace: 'pre-line' } }
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
                 );
-                return of(null);
-            })
-        );
+            }
+        });
 
-    }
-
-    getQuantityBorrowSale() {
-        return this.historyBorrowSaleService.getQuantityBorrow().pipe(
-            tap((res: any) => {
+        this.historyBorrowSaleService.getQuantityBorrow().subscribe({
+            next: (res: any) => {
                 this.quantityBorrowSale = res.data.quantityBorrowSale;
                 this.quantityBorrowExpriedSale = res.data.quantityBorrowExpriedSale;
 
@@ -316,17 +304,19 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                         queryParams: { activeTab: 1 }
                     });
                 }
-            }),
-            catchError((err: any) => {
+            },
+            error: (err: any) => {
                 this.notification.create(
                     NOTIFICATION_TYPE_MAP[err.status] || 'error',
                     NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
                     err?.error?.message || `${err.error}\n${err.message}`,
-                    { nzStyle: { whiteSpace: 'pre-line' } }
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
                 );
-                return of(null);
-            })
-        );
+            }
+        });
+
     }
 
     newTabApprove() {

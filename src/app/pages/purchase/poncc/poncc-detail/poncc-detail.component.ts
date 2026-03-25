@@ -545,10 +545,11 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   onSupplierChange(selectedSupplierID: number): void {
     const selectedSupplier = this.supplierSales.find(s => s.ID === selectedSupplierID);
     if (selectedSupplier) {
+      const isNewRecord = !this.isEditMode || this.isCopy;
       this.ponccService.getPOCode(selectedSupplier.CodeNCC).subscribe({
         next: (response: any) => {
           this.informationForm.patchValue({
-            POCode: response.data || '',
+            ...(isNewRecord ? { POCode: response.data || '' } : {}),
             AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
             MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
             Note: selectedSupplier.Description || this.poncc?.Note || '',
@@ -557,7 +558,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         },
         error: (error) => {
           this.informationForm.patchValue({
-            POCode: this.poncc?.CodeNCC || selectedSupplier.CodeNCC || '',
+            ...(isNewRecord ? { POCode: this.poncc?.CodeNCC || selectedSupplier.CodeNCC || '' } : {}),
             AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
             MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
             Note: selectedSupplier.Description || this.poncc?.Note || '',
@@ -1019,15 +1020,15 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           headerSort: false,
           formatter: dateFormatter
         },
-        // {
-        //   title: 'Ngày về dự kiến',
-        //   field: 'ExpectedDate',
-        //   editor: "date",
-        //   width: 150,
-        //   headerSort: false,
-        //   hozAlign: 'center',
-        //   formatter: dateFormatter
-        // },
+        {
+          title: 'Ngày về dự kiến',
+          field: 'ExpectedDate',
+          editor: "date",
+          width: 150,
+          headerSort: false,
+          hozAlign: 'center',
+          formatter: dateFormatter
+        },
         {
           title: 'Ngày về thực tế',
           field: 'ActualDate',
@@ -1223,6 +1224,10 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
   /** Refresh Số đơn hàng (BillCode) bằng cách gọi lại API */
   refreshBillCode(): void {
+    if (this.isEditMode && (!this.isCopy)) {
+      return;
+    }
+
     const poTypeId = this.informationForm.get('POType')?.value ?? 0;
     this.ponccService.getBillCode(poTypeId).subscribe({
       next: (res: any) => {
@@ -1237,6 +1242,10 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
   /** Refresh Mã PO NCC bằng cách gọi lại API */
   refreshPOCode(): void {
+    if (this.isEditMode && (!this.isCopy)) {
+      return;
+    }
+
     const supplierID = this.informationForm.get('SupplierSaleID')?.value;
     const selectedSupplier = this.supplierSales.find(s => s.ID === supplierID);
     if (!selectedSupplier) {
@@ -1313,12 +1322,25 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     const data = row.getData();
 
     const quantity = Number(data['QtyRequest']) || 0;
-    const unitPrice = Number(data['UnitPrice']) || 0;
+    let unitPrice = Number(data['UnitPrice']) || 0;
+    let thanhTien = Number(data['ThanhTien']) || 0;
+
+    if (editedField === 'ThanhTien') {
+      // Nếu user edit ThanhTien trực tiếp, tính ngược lại UnitPrice
+      if (quantity > 0) {
+        unitPrice = thanhTien / quantity;
+      } else {
+        unitPrice = 0;
+      }
+    } else {
+      // Tính ThanhTien = quantity * unitPrice
+      thanhTien = quantity * unitPrice;
+    }
+
     const discountPercent = Number(data['DiscountPercent']) || 0;
     const feeShip = Number(data['FeeShip']) || 0;
     const currencyRate = this.companyForm.get('CurrencyRate')?.value || 0;
 
-    const thanhTien = quantity * unitPrice;
     const discount = thanhTien * (discountPercent / 100);
 
     let vatMoney: number;
@@ -1342,6 +1364,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     const isBill = vatMoney > 0;
 
     row.update({
+      UnitPrice: unitPrice,
       ThanhTien: thanhTien,
       VAT: vat,
       VATMoney: vatMoney,
@@ -1555,16 +1578,16 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           }
 
           // Tính lại nếu là trường ảnh hưởng đến tổng tiền
-          if (['QtyRequest', 'UnitPrice', 'VAT', 'DiscountPercent', 'FeeShip', 'VATMoney'].includes(field)) {
-            this.recalculateRow(selectedRow);
+          if (['QtyRequest', 'UnitPrice', 'ThanhTien', 'VAT', 'DiscountPercent', 'FeeShip', 'VATMoney'].includes(field)) {
+            this.recalculateRow(selectedRow, field);
           }
         }
       });
     }
 
     // Luôn tính lại cho dòng đang edit nếu cần
-    if (['QtyRequest', 'UnitPrice', 'VAT', 'DiscountPercent', 'FeeShip', 'VATMoney'].includes(field)) {
-      this.recalculateRow(row);
+    if (['QtyRequest', 'UnitPrice', 'ThanhTien', 'VAT', 'DiscountPercent', 'FeeShip', 'VATMoney'].includes(field)) {
+      this.recalculateRow(row, field);
     }
   }
 
@@ -1639,6 +1662,16 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           NOTIFICATION_TITLE.warning,
           `Dòng ${stt}: Số lượng phải lớn hơn 0!\nSản phẩm: ${row.ProductName || 'Chưa có tên'}`
         );
+        this.isSaving = false;
+        return;
+      }
+
+      if (!row.ExpectedDate) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Dòng ${stt}: Vui lòng điền Ngày về dự kiến!\nSản phẩm: ${row.ProductName || 'Chưa có tên'}`
+        );
+        this.isSaving = false;
         return;
       }
     }
@@ -1807,7 +1840,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       ParentProductCode: row.ParentProductCode || '',
       IsPurchase: row.IsPurchase || false,
       DeadlineDelivery: row.DeadlineDelivery || null,
-      // ExpectedDate: row.ExpectedDate || null,
+      ExpectedDate: row.ExpectedDate || null,
       ActualDate: row.ActualDate || null,
       PriceSale: row.PriceSale || 0,
       DateReturnEstimated: row.DateReturnEstimated || null,

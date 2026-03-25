@@ -1,114 +1,118 @@
 :host {
-  font-size: 12px !important;
-}
-
-.tabulator {
-  font-size: 12px;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 93vh;
-  overflow: hidden;
-}
-
-.card-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.card-body>div {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
+    font-size: 12px !important;
 }
 
 .fs-12 {
-  font-size: 0.75rem;
+    font-size: 12px !important;
 }
 
-.reset {
-  all: revert;
+/* Card styles */
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
 }
 
-:host ::ng-deep .tabulator-cell {
-  white-space: pre-wrap !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  word-break: break-word !important;
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
 }
 
-/* ========================================= */
-/* Search Bar / Filter Responsive Styles */
-/* ========================================= */
-
-.filter-bar {
-  /* Default Mobile-first or base styles */
-  background: #f8f9fa;
-  /* bg-light */
-}
-
-/* On Desktop (or > 768px), keep it static flow */
-@media (min-width: 769px) {
-  .filter-bar {
-    position: static !important;
-    z-index: 1;
-    margin: 0 !important;
-    border-bottom: 1px solid #dee2e6;
-  }
-
-  .filter-backdrop {
-    display: none !important;
-  }
-
-  /* Override any mobile-modal effects */
-  .mobile-modal {
-    position: static !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    width: auto !important;
-    height: auto !important;
-    max-height: none !important;
-    box-shadow: none !important;
-    transform: none !important;
-    border-radius: 0 !important;
-  }
-}
-
-/* On Mobile (< 768px), make it a modal/popup if needed */
-@media (max-width: 768px) {
-  .mobile-modal {
-    position: fixed;
-    top: 50px;
-    /* Adjust to be below header if possible */
-    left: 10px;
-    right: 10px;
-    z-index: 1001;
-    /* Above table */
+.card-header {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 20;
     background: white;
-    border: 1px solid #ccc;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-radius: 4px;
-    padding: 10px;
-  }
+}
 
-  .mobile-modal.ng-star-inserted {
-    /* Animation support could go here */
-  }
+/* Table Section */
+.table-section {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
 
-  .filter-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-  }
+:host ::ng-deep .p-datatable {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+/* Font-size 12px (GLOBAL CONSTRAINT) */
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    font-size: 12px;
+    padding: 6px 8px;
+    background: #f5f5f5;
+    font-weight: 600;
+    text-align: center;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tfoot>tr>td {
+    font-size: 12px;
+    padding: 6px 8px;
+    font-weight: 600;
+    background: #fafafa;
+}
+
+/* Row Group Header Styling */
+::ng-deep .p-rowgroup-header {
+    background-color: #f8f9fa !important;
+    transition: background-color 0.2s;
+}
+
+::ng-deep .p-rowgroup-header:hover {
+    background-color: #f1f3f5 !important;
+}
+
+::ng-deep .p-rowgroup-header td {
+    border-top: 1px solid #dee2e6 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.font-bold {
+    font-weight: 700 !important;
+}
+
+.btn-delete {
+    background-color: #fff1f0;
+    border-color: #ffa39e;
+    color: #cf1322;
+}
+
+.btn-delete:hover {
+    background-color: #cf1322;
+    color: #fff;
+    border-color: #cf1322;
+}
+
+/* Frozen columns shadow */
+:host ::ng-deep .p-datatable-frozen-column {
+    z-index: 10;
+}
+
+/* Selection Color */
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight {
+    background: #e6f7ff !important;
+}
+
+/* Header Checkbox spacing */
+:host ::ng-deep .p-checkbox {
+    width: 16px;
+    height: 16px;
 }

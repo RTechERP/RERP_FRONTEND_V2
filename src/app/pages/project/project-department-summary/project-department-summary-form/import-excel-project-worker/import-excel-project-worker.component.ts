@@ -270,12 +270,21 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
       let validRecords = 0;
       const regex = /^-?[\d\.]+$/; // Regex để validate STT
 
-      // Đọc dữ liệu từ hàng thứ 2 trở đi (hàng 1 là header)
+      // Lần 1: Thu thập tất cả STT hợp lệ
+      const allStt: string[] = [];
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+          const stt = this.getCellText(row.getCell(1)).trim();
+          if (stt && regex.test(stt)) allStt.push(stt);
+        }
+      });
+
+      // Lần 2: Đọc dữ liệu, xác định hàng cha dựa vào việc có con hay không
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber > 1) {
           const cell1 = row.getCell(1);
           const stt = this.getCellText(cell1).trim();
-          
+
           // Bỏ qua nếu STT rỗng
           if (!stt) return;
 
@@ -288,21 +297,22 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
           const numberOfDay = this.parseNumber(row.getCell(4).value);
           const cell6 = row.getCell(6);
           const priceStr = this.getCellText(cell6);
-          
+
           // Format giá: bỏ dấu phẩy và chấm (trừ dấu chấm thập phân cuối cùng nếu có)
           const price = this.parsePrice(priceStr);
-          
-          // Tính toán
-          const totalWorkforce = amountPeople * numberOfDay;
-          const totalPrice = price * totalWorkforce;
+
+          // Hàng cha: có ít nhất 1 STT khác bắt đầu bằng stt + "."
+          const isParent = allStt.some(s => s.startsWith(stt + '.'));
+          const totalWorkforce = isParent ? 0 : amountPeople * numberOfDay;
+          const totalPrice = isParent ? 0 : price * totalWorkforce;
 
           const rowData: any = {
             TT: stt,
             WorkContent: workContent,
-            AmountPeople: amountPeople,
-            NumberOfDay: numberOfDay,
+            AmountPeople: isParent ? 0 : amountPeople,
+            NumberOfDay: isParent ? 0 : numberOfDay,
             TotalWorkforce: totalWorkforce,
-            Price: price,
+            Price: isParent ? 0 : price,
             TotalPrice: totalPrice
           };
 
@@ -323,7 +333,7 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
         this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
       }
 
-      // Cập nhật Tabulator
+      // Cập nhật Tabulator 
       if (this.tableExcel) {
         this.tableExcel.replaceData(this.dataTableExcel);
       } else {
@@ -363,11 +373,19 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
         }
       }
       
+      // Nếu là formula object (ExcelJS): { formula: '...', result: ... }
+      if (typeof value === 'object' && 'formula' in value) {
+        const result = value.result;
+        if (result === null || result === undefined) return '';
+        if (typeof result === 'object' && result?.error) return '';
+        return String(result);
+      }
+
       // Nếu là object có thuộc tính text
       if (typeof value === 'object' && 'text' in value && value.text !== null && value.text !== undefined) {
         return String(value.text);
       }
-      
+
       // Nếu là string hoặc number, chuyển sang string
       return String(value);
     } catch (e) {
@@ -378,6 +396,10 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
 
   // Helper function để parse number
   private parseNumber(value: any): number {
+    // Xử lý formula cell của ExcelJS: { formula: '...', result: 5 }
+    if (typeof value === 'object' && value !== null && 'formula' in value) {
+      value = value.result;
+    }
     if (typeof value === 'number') return value;
     if (!value) return 0;
     const str = value.toString().replace(/[,\.]/g, '');

@@ -37,10 +37,16 @@
 
     <!-- Header Row: Titles -->
     <ng-template pTemplate="header">
-        <!-- Multi-Level Header Groups (Banded Columns) -->
+        <tr style="height: 0;">
+            <th *ngIf="reorderableRows" style="width: 3rem; height: 0; padding: 0; border: 0;"></th>
+            <th *ngIf="expandable" style="width: 4rem; height: 0; padding: 0; border: 0;"></th>
+            <th *ngIf="selectionMode === 'multiple'" style="width: 3rem; height: 0; padding: 0; border: 0;"></th>
+            <th *ngFor="let col of columns" [style.width]="col.width" style="height: 0; padding: 0; border: 0;"></th>
+        </tr>
+        
+            <!-- Multi-Level Header Groups (Banded Columns) -->
         <ng-container *ngIf="headerGroups && headerGroups.length > 0">
             <tr *ngFor="let groupRow of headerGroups">
-                <!-- Empty cells for control columns if needed -->
                 <ng-container *ngIf="reorderableRows"><th [attr.rowspan]="1" style="width: 3rem"></th></ng-container>
                 <ng-container *ngIf="expandable"><th [attr.rowspan]="1" style="width: 4rem"></th></ng-container>
                 <ng-container *ngIf="selectionMode === 'multiple'"><th [attr.rowspan]="1" style="width: 3rem"></th></ng-container>
@@ -54,6 +60,7 @@
                     {{ h.header }}
                 </th>
             </tr>
+            
         </ng-container>
 
         <tr>
@@ -65,7 +72,7 @@
             <th *ngIf="selectionMode === 'multiple'" style="width: 3rem" pFrozenColumn [frozen]="true" class="frozen-left">
                 <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
             </th>
-            <th *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field"
+            <th *ngFor="let col of columns; trackBy: trackByField" pResizableColumn [pSortableColumn]="col.field"
             [pSortableColumnDisabled]="!col.sortable || !!col.headerFormat" pFrozenColumn [frozen]="col.frozen || false"
                 [alignFrozen]="col.alignFrozen || 'left'" [style.width]="col.width || null" [style.min-width]="col.width || null" pReorderableColumn
                 [pReorderableColumnDisabled]="!reorderableColumns"
@@ -180,7 +187,7 @@
             <th *ngIf="expandable"></th>
             <!-- Empty cell for checkbox column -->
             <th *ngIf="selectionMode === 'multiple'" pFrozenColumn [frozen]="true"></th>
-            <th *ngFor="let col of columns" pFrozenColumn [frozen]="col.frozen || false"
+            <th *ngFor="let col of columns; trackBy: trackByField" pFrozenColumn [frozen]="col.frozen || false"
                 [alignFrozen]="col.alignFrozen || 'left'">
 
                 <!-- Default: text/numeric input filter — auto-filter on input -->
@@ -298,10 +305,11 @@
         <tr *ngIf="!expandableRowGroups || isGroupExpanded(rowData[groupRowsBy])" [pSelectableRow]="rowData"
             [pSelectableRowIndex]="rowIndex" [pSelectableRowDisabled]="clickSelectRow || selectionMode === 'multiple'"
             [pContextMenuRow]="contextMenuItems.length > 0 ? rowData : null"
-            [pReorderableRow]="rowIndex" 
+            [pReorderableRow]="rowIndex"
             [ngClass]="rowClass ? rowClass(rowData) : ''"
             [class.row-click-selected]="isRowClicked(rowData)"
-            (click)="onRowClick(rowData)">
+            (click)="onRowClick(rowData)"
+            (dblclick)="onRowDoubleClick(rowData)">
             <!-- Drag handle for row reorder -->
             <td *ngIf="reorderableRows">
                 <span class="pi pi-bars" pReorderableRowHandle style="cursor: move;"></span>
@@ -317,7 +325,7 @@
                 <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
             </td>
             <!-- Data columns -->
-            <td *ngFor="let col of columns" pFrozenColumn [frozen]="col.frozen || false"
+            <td *ngFor="let col of columns; trackBy: trackByField" pFrozenColumn [frozen]="col.frozen || false"
                 [alignFrozen]="col.alignFrozen || 'left'"
                 [style.min-width]="col.width || null"
                 [pEditableColumn]="col.editable && editMode && col.editType !== 'table-lookup' && col.editType !== 'progressbar' && col.editType !== 'badge' ? rowData : null"
@@ -410,7 +418,7 @@
             <td *ngIf="reorderableRows"></td>
             <td *ngIf="expandable"></td>
             <td *ngIf="selectionMode === 'multiple'" pFrozenColumn [frozen]="true"></td>
-            <td *ngFor="let col of columns" pFrozenColumn [frozen]="col.frozen || false"
+            <td *ngFor="let col of columns; trackBy: trackByField" pFrozenColumn [frozen]="col.frozen || false"
                 [alignFrozen]="col.alignFrozen || 'left'"
                 [ngClass]="getAutoAlignClass(col.footerClass || col.cssClass, col)"
                 class="font-semibold" style="background: var(--p-surface-100);">

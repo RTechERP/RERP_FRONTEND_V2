@@ -73,19 +73,19 @@
             </th>
         </tr>
         <!-- Filter Row -->
-        <tr *ngIf="showColumnFilter">
+        <tr *ngIf="showColumnFilter" class="filter-header-row">
             <th *ngFor="let col of columns">
                 <!-- Default: text input filter (auto-filter on input) -->
                 <ng-container *ngIf="!col.filterMode || col.filterMode === 'input'">
                     <input pInputText type="text" (input)="tt.filter($any($event.target).value, col.field, 'contains')"
-                        [placeholder]="'Search ' + col.header" style="width: 100%;" />
+                        placeholder="Lọc..." style="width: 100%;" />
                 </ng-container>
 
                 <!-- Dropdown filter -->
                 <ng-container *ngIf="col.filterMode === 'dropdown'">
                     <p-select [options]="getFilterOptions(col)"
                         (onChange)="tt.filter($event.value, col.field, 'equals')" optionLabel="label"
-                        optionValue="value" [placeholder]="'Select ' + col.header" [showClear]="true" appendTo="body"
+                        optionValue="value" placeholder="Lọc..." [showClear]="true" appendTo="body"
                         [style]="{ 'width': '100%' }">
                     </p-select>
                 </ng-container>
@@ -94,7 +94,7 @@
                 <ng-container *ngIf="col.filterMode === 'multiselect'">
                     <p-multiSelect [options]="getFilterOptions(col)"
                         (onChange)="tt.filter($event.value, col.field, 'in')" optionLabel="label" optionValue="value"
-                        [placeholder]="'Select ' + col.header" [filter]="true" appendTo="body"
+                        placeholder="Lọc..." [filter]="true" appendTo="body"
                         [style]="{ 'width': '100%' }"
                         [virtualScroll]="col.filterVirtualScroll || false"
                         [virtualScrollItemSize]="col.filterVirtualScrollItemSize || 30">

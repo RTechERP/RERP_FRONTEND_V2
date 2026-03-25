@@ -48,6 +48,8 @@ import { EmployeeBussinessComponent } from './pages/hrm/employee-management/empl
 import { EmployeeRegisterBussinessComponent } from './pages/hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness.component';
 import { EmployeeCurricularComponent } from './pages/hrm/employee-management/employee-curriculart/employee-curricular/employee-curricular.component';
 import { EmployeeErrorComponent } from './pages/hrm/employee-management/employee-error/employee-error.component';
+import { EmployeeDeductionComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction.component';
+import { EmployeeDeductionSummaryComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction-summary/employee-deduction-summary.component';
 import { EmployeeNightShiftPersonSummaryComponent } from './pages/hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
 import { EmployeeNightShiftComponent } from './pages/hrm/employee-management/employee-night-shift/employee-night-shift/employee-night-shift.component';
 import { EmployeeNoFingerSummaryComponent } from './pages/hrm/employee-management/employee-no-fingerprint/employee-no-finger-summary/employee-no-finger-summary.component';
@@ -277,6 +279,10 @@ import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-
 import { DailyReportSaleAdminSlickgridComponent } from './pages/old/KPISale/daily-report-sale-admin-slickgrid/daily-report-sale-admin-slickgrid.component';
 import { ListProductProjectNewComponent } from './pages/old/Sale/ListProductProject/list-product-project-new/list-product-project-new.component';
 import { HRRecruitmentCandidateComponent } from './pages/hrm/hr-recruitment-candidate/hr-recruitment-candidate.component';
+import { HRRecruitmentExamComponent } from './pages/hrm/hr-recruitment/HRRecruitmentExam/hrrecruitment-exam/hrrecruitment-exam.component';
+import { ExamScoreComponent } from './pages/hrm/hr-recruitment-exam-score/exam-score/exam-score.component';
+import { HRHiringRequestExamComponent } from './pages/hrm/hrhiring-request/hrhiring-request-exam/hrhiring-request-exam.component';
+import { HiringRequestListComponent } from './pages/hrm/hr-recruitment/hiring-request-list/hiring-request-list.component';
 import { HRRecruitmentApplicationComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/hr-recruitment-application/hr-recruitment-application.component';
 import { HistoryBorrowSalePersonalComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale-personal/history-borrow-sale-personal.component';
 import { HistoryProductRtcPersonalComponent } from './pages/old/inventory-demo/borrow/borrow-product-history/history-product-rtc-personal/history-product-rtc-personal.component';
@@ -416,6 +422,10 @@ export const routes: Routes = [
             { path: 'employee-no-fingerprint', component: EmployeeNoFingerprintComponent, canActivate: [authGuard] },
             { path: 'employee-attendance', component: EmployeeAttendanceComponent, canActivate: [authGuard] },
             { path: 'employee-error', component: EmployeeErrorComponent, canActivate: [authGuard] },
+            { path: 'employee-deduction', component: EmployeeDeductionComponent, canActivate: [authGuard] },
+            { path: 'employee-deduction-hr', component: EmployeeDeductionComponent, canActivate: [authGuard] },
+
+            { path: 'employee-deduction-summary', component: EmployeeDeductionSummaryComponent, canActivate: [authGuard] },
             { path: 'employee-curricular', component: EmployeeCurricularComponent, canActivate: [authGuard] },
             { path: 'payroll', component: PayrollComponent, canActivate: [authGuard] },
             { path: 'employee-timekeeping', component: EmployeeTimekeepingComponent, canActivate: [authGuard] },
@@ -425,6 +435,8 @@ export const routes: Routes = [
             { path: 'phase-allocation-person', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
             { path: 'training-registration', component: TrainingRegistrationComponent, canActivate: [authGuard] },
             { path: 'factory-visit-registration', component: FactoryVisitRegistrationComponent, canActivate: [authGuard] },
+            { path: 'hr-recruitment-exam-score', component: ExamScoreComponent, canActivate: [authGuard] },
+            { path: 'hiring-request-list', component: HiringRequestListComponent, data: { title: 'DS Yêu cầu tuyển dụng' }, canActivate: [authGuard] },
             { path: 'app', component: AppComponent, canActivate: [authGuard] },
             { path: 'warehouse', component: WarehouseComponent1, canActivate: [authGuard] },
             { path: 'inventory-by-product', component: InventoryByProductComponent, canActivate: [authGuard] },

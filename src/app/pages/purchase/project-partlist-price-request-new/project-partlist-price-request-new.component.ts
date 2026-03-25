@@ -1832,6 +1832,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filter: { model: Filters['compoundDate'] },
       },
       {
+        id: 'QuoteExpectedDate',
+        field: 'QuoteExpectedDate',
+        name: 'Ngày hết hạn báo giá',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        type: 'date',
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        editor: {
+          model: Editors['date'],
+          editorOptions: { dateFormat: 'DD/MM/YYYY' },
+        },
+        filter: { model: Filters['compoundDate'] },
+      },
+      {
         id: 'CurrencyID',
         field: 'CurrencyID',
         name: 'Loại tiền',
@@ -3368,6 +3385,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       'IsImport', // checkbox editor
       'SupplierSaleID', // supplierEditor (popup)
       'DateExpected',
+      'QuoteExpectedDate',
       'DateRequest',
       'DatePriceQuote',
       'LeadTime',
@@ -3386,6 +3404,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       'Deadline',
       'DateExpected',
       'DateRequest',
+      'QuoteExpectedDate',
       'DatePriceQuote',
       'LeadTime',
     ];
@@ -3408,6 +3427,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       'TotalPriceExchange',
       'HistoryPrice',
       'SupplierSaleID',
+      'QuoteExpectedDate',
       'TotalDayLeadTime',
       'QuoteEmployeeID',
       'StatusRequest',
@@ -3569,7 +3589,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       return data;
     }
 
-    const dateFields = ['DateRequest', 'DateExpected', 'DateHistoryPrice', 'LeadTime', 'DatePriceQuote'];
+    const dateFields = ['DateRequest', 'DateExpected', 'DateHistoryPrice', 'LeadTime', 'DatePriceQuote', 'QuoteExpectedDate'];
 
     return data.map((row: any) => {
       const formattedRow = { ...row };

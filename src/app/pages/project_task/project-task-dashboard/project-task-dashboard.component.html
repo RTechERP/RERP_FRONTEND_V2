@@ -1,0 +1,232 @@
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h2>Dashboard Quản lý Công việc</h2>
+        <div class="header-actions">
+            <label style="font-size: 12px; color: #595959; white-space: nowrap;">Từ ngày</label>
+            <input type="date" [(ngModel)]="dateStart"
+                style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+            <label style="font-size: 12px; color: #595959; white-space: nowrap;">Đến ngày</label>
+            <input type="date" [(ngModel)]="dateEnd"
+                style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+            <button nz-button nzType="primary" (click)="refreshData()" [disabled]="!dateStart || !dateEnd">
+                <i nz-icon nzType="search"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- KPI Stats -->
+    @if (stats()) {
+    <div class="stats-grid">
+        <div class="stat-card" (click)="goToProjectTask()">
+            <div class="stat-icon bg-primary-soft">
+                <i nz-icon nzType="project" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Tổng công việc</div>
+                <div class="value">{{ stats()?.totalTasks }}</div>
+            </div>
+        </div>
+        <div class="stat-card" (click)="viewStatusDetail(1, 'Chưa làm')">
+            <div class="stat-icon bg-secondary-soft">
+                <i nz-icon nzType="info-circle" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Chưa làm</div>
+                <div class="value">{{ stats()?.notStarted }}</div>
+            </div>
+        </div>
+        <div class="stat-card" (click)="viewStatusDetail(2, 'Đang thực hiện')">
+            <div class="stat-icon bg-info-soft">
+                <i nz-icon nzType="sync" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Đang thực hiện</div>
+                <div class="value">{{ stats()?.inProgress }}</div>
+            </div>
+        </div>
+        <div class="stat-card" (click)="viewStatusDetail(21, 'Đang làm quá hạn')">
+            <div class="stat-icon bg-rose-soft">
+                <i nz-icon nzType="warning" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Đang làm quá hạn</div>
+                <div class="value">{{ stats()?.inProgressOverdue }}</div>
+            </div>
+        </div>
+        <div class="stat-card" (click)="viewStatusDetail(3, 'Hoàn thành')">
+            <div class="stat-icon bg-success-soft">
+                <i nz-icon nzType="check-circle" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Hoàn thành</div>
+                <div class="value">{{ stats()?.completed }}</div>
+            </div>
+        </div>
+        <div class="stat-card" (click)="viewStatusDetail(31, 'Hoàn thành quá hạn')">
+            <div class="stat-icon bg-amber-soft">
+                <i nz-icon nzType="history" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Hoàn thành quá hạn</div>
+                <div class="value">{{ stats()?.completedOverdue }}</div>
+            </div>
+        </div>
+        <div class="stat-card" (click)="viewStatusDetail(32, 'Đã duyệt')">
+            <div class="stat-icon bg-audit-soft">
+                <i nz-icon nzType="file-done" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Đã duyệt</div>
+                <div class="value">{{ stats()?.approved }}</div>
+            </div>
+        </div>
+        <div class="stat-card" (click)="viewStatusDetail(33, 'Đã hủy duyệt')">
+            <div class="stat-icon bg-slate-soft">
+                <i nz-icon nzType="close-circle" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Đã hủy duyệt</div>
+                <div class="value">{{ stats()?.rejected }}</div>
+            </div>
+        </div>
+        <div class="stat-card" (click)="viewStatusDetail(4, 'Pending')">
+            <div class="stat-icon bg-orange-soft">
+                <i nz-icon nzType="pause-circle" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Pending</div>
+                <div class="value">{{ stats()?.pending }}</div>
+            </div>
+        </div>
+        <div class="stat-card" (click)="viewStatusDetail(0, 'Chờ phê duyệt')">
+            <div class="stat-icon bg-audit-soft">
+                <i nz-icon nzType="audit" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Chờ phê duyệt</div>
+                <div class="value">{{ stats()?.pendingApproval }}</div>
+            </div>
+        </div>
+    </div>
+    }
+
+    <!-- Charts -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>Tình trạng công việc</h3>
+            <div class="chart-wrapper">
+                @if (statusChartData()) {
+                <p-chart type="pie" [data]="statusChartData()" [options]="pieOptions" [plugins]="piePlugins"
+                    (onDataSelect)="onStatusChartClick($event)" style="cursor: pointer;"></p-chart>
+                }
+            </div>
+        </div>
+        <div class="chart-card list-card">
+            <h3>Công việc sắp hết hạn</h3>
+            <div class="list-wrapper scrollbar-custom">
+                <div class="task-list-detailed">
+                    @for (task of upcomingTasks(); track task.ID) {
+                    <div class="task-item-detailed" (click)="openTaskDetail(task)">
+                        <div class="task-main">
+                            <div class="task-title">{{ task.Title }}</div>
+                            <div class="task-project">{{ task.ProjectName }}</div>
+                        </div>
+                        <div class="task-time-info">
+                            <div class="plan-date">{{ formatDate(task.PlanEndDate) }}</div>
+                            <span class="upcoming-tag" [class.today]="getUpcomingLabel(task) === 'Hôm nay'"
+                                [class.overdue]="getUpcomingLabel(task) === 'Quá hạn'">
+                                {{ getUpcomingLabel(task) }}
+                            </span>
+                        </div>
+                    </div>
+                    }
+                    @if (upcomingTasks().length === 0) {
+                    <div class="empty-state">
+                        <i nz-icon nzType="check-circle" nzTheme="outline"></i>
+                        <p>Không có công việc sắp hết hạn</p>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Focus Areas -->
+    <div class="focus-grid单列" style="margin-top: 24px;">
+        <!-- Pending Approvals -->
+        <div class="focus-card full-width">
+            <h3>
+                <i nz-icon nzType="audit" nzTheme="outline" class="text-warning"></i>
+                Cần phê duyệt ({{ pendingApprovalTasks().length }})
+            </h3>
+            <div class="task-list-mini">
+                @for (task of pendingApprovalTasks(); track task.ID) {
+                <div class="task-item-mini" (click)="openTaskDetail(task)">
+                    <div class="task-content">
+                        <div class="task-title">{{ task.Title }}</div>
+                        <div class="task-meta">{{ task.ProjectName }}</div>
+                    </div>
+                    <div class="task-status">
+                        <div class="flex gap-2 align-items-center">
+                            <button nz-button nzType="text" class="text-success p-0" style="height: 24px; width: 24px;"
+                                (click)="$event.stopPropagation(); approveTask(task)" nz-tooltip="Duyệt">
+                                <i nz-icon nzType="check-circle"></i>
+                            </button>
+                            <button nz-button nzType="text" class="text-danger p-0" style="height: 24px; width: 24px;"
+                                (click)="$event.stopPropagation(); rejectTask(task)" nz-tooltip="Từ chối">
+                                <i nz-icon nzType="close-circle"></i>
+                            </button>
+                            <i nz-icon nzType="right" nzTheme="outline" class="ms-1 text-muted"
+                                style="font-size: 10px;"></i>
+                        </div>
+                    </div>
+                </div>
+                }
+                @if (pendingApprovalTasks().length === 0) {
+                <div class="text-center py-4 text-muted">Không có công việc chờ duyệt</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    @if (loading()) {
+    <div class="loading-overlay">
+        <i nz-icon nzType="loading" nzTheme="outline"></i>
+    </div>
+    }
+    @if (isApproving) {
+    <div class="loading-overlay">
+        <i nz-icon nzType="loading" nzTheme="outline"></i>
+    </div>
+    }
+</div>
+
+<!-- Modal Templates -->
+<ng-template #approveModalTpl>
+    <div class="py-2">
+        <p>Bạn có chắc muốn <strong class="text-success">duyệt</strong> công việc này?</p>
+        <div class="mt-3">
+            <label class="d-block mb-1">Nhận xét (không bắt buộc)</label>
+            <textarea nz-input [(ngModel)]="approveReviewText" rows="3"
+                placeholder="Nhập nhận xét đánh giá..."
+                style="width: 100%; border-color: #f0f0f0;"></textarea>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #rejectModalTpl>
+    <div class="py-2">
+        <p>Bạn có chắc muốn <strong class="text-danger">từ chối</strong> công việc này?</p>
+        <div class="mt-3">
+            <label class="d-block mb-1">Lý do từ chối <span class="text-danger">*</span></label>
+            <textarea nz-input [(ngModel)]="rejectReviewText" rows="3" placeholder="Nhập lý do từ chối..."
+                [style.border-color]="rejectReviewError ? '#ff4d4f' : '#f0f0f0'"
+                style="width: 100%;"></textarea>
+            @if (rejectReviewError) {
+            <div class="text-danger mt-1" style="font-size: 12px;">Vui lòng nhập lý do từ chối</div>
+            }
+        </div>
+    </div>
+</ng-template>

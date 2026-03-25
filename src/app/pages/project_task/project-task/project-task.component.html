@@ -1,0 +1,499 @@
+<!-- Project Task List Page -->
+<div class="project-task-container">
+    <!-- Header -->
+    <div class="header-section">
+        <!-- Tabs -->
+        <div class="tabs-container">
+            <div class="tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all')">
+                Tổng công việc
+                <span class="badge" [class.highlight]="allTasksCount() > 0">{{ allTasksCount() }}</span>
+            </div>
+            <div class="tab" [class.active]="activeTab() === 'assigned'" (click)="setActiveTab('assigned')">
+                Việc giao cho tôi
+                <span class="badge" [class.highlight]="assignedTasksCount() > 0">{{ assignedTasksCount() }}</span>
+            </div>
+            <div class="tab" [class.active]="activeTab() === 'myApproval'" (click)="setActiveTab('myApproval')">
+                Việc tôi giao
+                <span class="badge" [class.highlight]="myApprovalTasksCount() > 0">{{ myApprovalTasksCount() }}</span>
+            </div>
+            <div class="tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related')">
+                Việc liên quan đến tôi
+                <span class="badge" [class.highlight]="relatedTasksCount() > 0">{{ relatedTasksCount() }}</span>
+            </div>
+        </div>
+
+        <!-- Right side: Add button + Action Buttons -->
+        <div class="header-right">
+            <button class="btn-outline btn-sm" (click)="copySelectedTask()" [disabled]="!selectedTaskForCopy"
+                [class.btn-disabled]="!selectedTaskForCopy">
+                <span nz-icon nzType="copy" nzTheme="outline"></span>
+                Copy
+            </button>
+            <button class="btn-outline btn-sm" (click)="openImportExcelModal()">
+                <span nz-icon nzType="file-excel" nzTheme="outline"></span>
+                Import Excel
+            </button>
+            <button class="btn-outline btn-sm" (click)="exportToExcel()">
+                <span nz-icon nzType="file-excel" nzTheme="outline"></span>
+                Xuất Excel
+            </button>
+            <button class="btn-primary btn-sm" (click)="openAddTaskModal()">
+                <span nz-icon nzType="plus" nzTheme="outline"></span>
+                Thêm công việc
+            </button>
+            <!-- Action Buttons -->
+            @if (activeTab() === 'myApproval' && selectedTasks().length > 0) {
+            <button class="btn-outline" (click)="rejectSelected()">
+                <span nz-icon nzType="close" nzTheme="outline"></span>
+                Từ chối ({{ selectedTasks().length }})
+            </button>
+            <button class="btn-success" (click)="approveSelected()">
+                <span nz-icon nzType="check" nzTheme="outline"></span>
+                Duyệt ({{ selectedTasks().length }})
+            </button>
+            }
+            @if (activeTab() === 'related' && selectedTasks().length > 0) {
+            <button class="btn-outline btn-danger-outline" (click)="unfollowSelected()">
+                <span nz-icon nzType="eye-invisible" nzTheme="outline"></span>
+                Bỏ theo dõi ({{ selectedTasks().length }})
+            </button>
+            }
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <div class="search-field">
+            <label class="search-label">Từ ngày</label>
+            <input type="date" [(ngModel)]="dateStart"
+                style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+        </div>
+        <div class="search-field">
+            <label class="search-label">Đến ngày</label>
+            <input type="date" [(ngModel)]="dateEnd"
+                style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+        </div>
+        <div class="search-field">
+            <label class="search-label">Trạng thái</label>
+            <select [(ngModel)]="filterStatus"
+                style="padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px;">
+                <option [ngValue]="-1">Tất cả</option>
+                <option [ngValue]="0">Chưa duyệt</option>
+                <option [ngValue]="1">Đã duyệt</option>
+            </select>
+        </div>
+        <button class="btn-search" (click)="loadTasks()" [disabled]="!dateStart || !dateEnd"
+            [class.btn-disabled]="!dateStart || !dateEnd"
+            [pTooltip]="(!dateStart || !dateEnd) ? 'Vui lòng chọn khoảng ngày' : 'Tìm kiếm'" tooltipPosition="top">
+            <span nz-icon nzType="search" nzTheme="outline"></span>
+        </button>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <p-table #dt [value]="filteredTasks()" [resizableColumns]="true" columnResizeMode="fit"
+            [reorderableColumns]="true" [customSort]="true" (sortFunction)="customSort($event)"
+            [(selection)]="selectedTasks" dataKey="ID" [loading]="loading()"
+            styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
+            (onFilter)="handleFilter($event)">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    @if (activeTab() === 'myApproval') {
+                    <th style="width: 3rem">
+                        <input type="checkbox" [checked]="isAllPendingSelected()" [indeterminate]="isIndeterminate()"
+                            (change)="toggleSelectAllPending($any($event.target).checked)"
+                            style="cursor: pointer; width: 16px; height: 16px;">
+                    </th>
+                    }
+                    @if (activeTab() === 'related') {
+                    <th style="width: 3rem">
+                        <input type="checkbox" [checked]="isAllRelatedSelected()"
+                            [indeterminate]="isRelatedIndeterminate()"
+                            (change)="toggleSelectAllRelated($any($event.target).checked)"
+                            style="cursor: pointer; width: 16px; height: 16px;">
+                    </th>
+                    }
+                    <th style="width: 140px; text-align: center">
+                        Trạng thái
+                    </th>
+                    <!-- <th pResizableColumn pSortableColumn="Code" style="width: 130px">
+                        Mã công việc
+                        <p-sortIcon field="Code" />
+                    </th> -->
+
+                    <th pResizableColumn pSortableColumn="Title" style="min-width: 300px">
+                        Tên công việc
+                        <p-sortIcon field="Title" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="ParentCode" style="width: 130px">
+                        Mã CV Cha
+                        <p-sortIcon field="ParentCode" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="ProjectName" style="min-width: 250px">
+                        Dự án
+                        <p-sortIcon field="ProjectName" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="FullName" style="width: 150px">
+                        Người giao việc
+                        <p-sortIcon field="FullName" />
+                    </th>
+
+                    <th pResizableColumn pSortableColumn="IsPersonalProject" style="width: 140px">
+                        Loại dự án
+                        <p-sortIcon field="IsPersonalProject" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="ProjectTaskTypeName" style="width: 160px">
+                        Loại công việc
+                        <p-sortIcon field="ProjectTaskTypeName" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="IsAdditional" style="width: 100px; text-align: center">
+                        Phát sinh
+                        <p-sortIcon field="IsAdditional" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="TaskComplexity" style="width: 100px; text-align: center">
+                        Phức tạp
+                        <p-sortIcon field="TaskComplexity" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="PercentOverTime" style="width: 100px; text-align: center">
+                        % Quá hạn
+                        <p-sortIcon field="PercentOverTime" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="PlanStartDate" class="col-date" style="width: 100px">
+                        Ngày BĐ dự kiến
+                        <p-sortIcon field="PlanStartDate" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="PlanEndDate" class="col-date" style="width: 100px">
+                        Ngày KT dự kiến
+                        <p-sortIcon field="PlanEndDate" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="StartDate" class="col-date" style="width: 100px">
+                        Ngày BĐ thực tế
+                        <p-sortIcon field="StartDate" />
+                    </th>
+                    <th pResizableColumn pSortableColumn="DueDate" class="col-date" style="width: 100px">
+                        Ngày KT thực tế
+                        <p-sortIcon field="DueDate" />
+                    </th>
+                    @if (activeTab() === 'all' || activeTab() === 'assigned') {
+                    <th pResizableColumn pSortableColumn="DepartmentAssignerName" style="width: 180px">
+                        Phòng ban giao
+                        <p-sortIcon field="DepartmentAssignerName" />
+                    </th>
+                    }
+                    @if (activeTab() === 'all' || activeTab() === 'myApproval') {
+                    <th pResizableColumn pSortableColumn="DepartmentAssigneeName" style="width: 180px">
+                        Phòng ban nhận
+                        <p-sortIcon field="DepartmentAssigneeName" />
+                    </th>
+                    }
+
+                </tr>
+                <tr>
+                    @if (activeTab() === 'myApproval') {
+                    <th></th>
+                    }
+                    @if (activeTab() === 'related') {
+                    <th></th>
+                    }
+                    <th style="text-align: center;">
+                        <p-columnFilter field="DisplayStatus" matchMode="in" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-multiSelect [options]="statusOptions" [ngModel]="value" (onChange)="filter($event.value)"
+                                    placeholder="Tất cả" [showHeader]="false" [filter]="false"
+                                    class="status-filter-multi" [maxSelectedLabels]="1" selectedItemsLabel="..."
+                                    appendTo="body" />
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+
+                    <!-- <th>
+                        <p-columnFilter matchMode="contains" type="text" field="Code" placeholder="Tìm kiếm..." />
+                    </th> -->
+
+                    <th>
+                        <p-columnFilter matchMode="contains" type="text" field="Title" placeholder="Tìm kiếm..." />
+                    </th>
+                    <th>
+                        <p-columnFilter matchMode="contains" type="text" field="ParentCode" placeholder="Tìm kiếm..." />
+                    </th>
+                    <th>
+                        <p-columnFilter matchMode="contains" type="text" field="ProjectFullName"
+                            placeholder="Tìm kiếm..." />
+                    </th>
+                    <th>
+                        <p-columnFilter matchMode="contains" type="text" field="FullName" placeholder="Tìm kiếm..." />
+                    </th>
+
+                    <th>
+                        <p-columnFilter field="IsPersonalProject" matchMode="equals" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <select class="status-filter"
+                                    (change)="filter($any($event.target).value === '' ? null : $any($event.target).value === 'true')">
+                                    <option value="">Tất cả</option>
+                                    <option value="false">Dự án</option>
+                                    <option value="true">Cá nhân</option>
+                                </select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter field="ProjectTaskTypeID" matchMode="equals" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <select class="status-filter"
+                                    (change)="filter($any($event.target).value === '' ? null : +$any($event.target).value)">
+                                    <option value="">Tất cả</option>
+                                    @for (type of taskTypes(); track type.ID) {
+                                    <option [value]="type.ID">
+                                        {{ type.TypeName }}
+                                    </option>
+                                    }
+                                </select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    
+                    <th>
+                        <p-columnFilter field="IsAdditional" matchMode="isAdditional" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <select class="status-filter"
+                                    (change)="filter($any($event.target).value === '' ? null : $any($event.target).value === 'true')">
+                                    <option value="">Tất cả</option>
+                                    <option value="true">Có</option>
+                                    <option value="false">Không</option>
+                                </select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter field="TaskComplexity" matchMode="equals" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <select class="status-filter"
+                                    (change)="filter($any($event.target).value === '' ? null : +$any($event.target).value)">
+                                    <option value="">Tất cả</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter field="PercentOverTime" matchMode="overdue" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <select class="status-filter" (change)="filter($any($event.target).value)">
+                                    <option value="">Tất cả</option>
+                                    <option value="ontime">Đúng hạn (<= 0%)</option>
+                                    <option value="overdue">Quá hạn (> 0%)</option>
+                                </select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    <th class="col-date">
+                        <p-columnFilter type="date" field="PlanStartDate" placeholder="Tìm kiếm..." />
+                    </th>
+                    <th class="col-date">
+                        <p-columnFilter type="date" field="PlanEndDate" placeholder="Tìm kiếm..." />
+                    </th>
+                    <th class="col-date">
+                        <p-columnFilter type="date" field="StartDate" placeholder="Tìm kiếm..." />
+                    </th>
+                    <th class="col-date">
+                        <p-columnFilter type="date" field="DueDate" placeholder="Tìm kiếm..." />
+                    </th>
+                    @if (activeTab() === 'all' || activeTab() === 'myApproval') {
+                    <th>
+                        <p-columnFilter matchMode="contains" type="text" field="DepartmentAssignerName"
+                            placeholder="Tìm kiếm..." />
+                    </th>
+                    }
+                    @if (activeTab() === 'all' || activeTab() === 'assigned') {
+                    <th>
+                        <p-columnFilter matchMode="contains" type="text" field="DepartmentAssigneeName"
+                            placeholder="Tìm kiếm..." />
+                    </th>
+                    }
+
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-task>
+                <tr (click)="selectTaskForCopy(task)" [class.row-selected]="selectedTaskForCopy?.ID === task.ID">
+                    @if (activeTab() === 'myApproval') {
+                    <td (click)="$event.stopPropagation()">
+                        <p-tableCheckbox [value]="task"
+                            [disabled]="task.Status !== 3 || task.ReviewStatus === 2 || task.ReviewStatus === 3" />
+                    </td>
+                    }
+                    @if (activeTab() === 'related') {
+                    <td (click)="$event.stopPropagation()">
+                        <p-tableCheckbox [value]="task" />
+                    </td>
+                    }
+                    <td style="text-align: center;">
+                        <div class="status-cell">
+                            <p-tag [value]="getDisplayStatus(task).label"
+                                [severity]="getDisplayStatus(task).severity" />
+                            @if (showApprovalButtons(task)) {
+                            <div class="approval-buttons mt-1">
+                                <button class="approval-btn approve"
+                                    (click)="approveTask(task); $event.stopPropagation()" pTooltip="Duyệt"
+                                    tooltipPosition="top">
+                                    <span nz-icon nzType="check" nzTheme="outline"></span>
+                                </button>
+                                <button class="approval-btn reject" (click)="rejectTask(task); $event.stopPropagation()"
+                                    pTooltip="Từ chối" tooltipPosition="top">
+                                    <span nz-icon nzType="close" nzTheme="outline"></span>
+                                </button>
+                            </div>
+                            }
+                        </div>
+                    </td>
+                    <!-- <td>
+                        @if (task.Code) {
+                        <a class="task-code-link" (click)="openTaskDetail(task)">{{ task.Code }}</a>
+                        } @else {
+                        <span>-</span>
+                        }
+                    </td> -->
+
+                    <td>
+                        <div class="task-name-cell">
+                            <span class="task-title text-wrap" (click)="openTaskDetail(task)">{{ task.Title }}</span>
+                        </div>
+                    </td>
+                    <td style="text-align: center;">
+                        @if (task.ParentCode) {
+                        <a class="task-code-link" (click)="openTaskDetail({ ID: task.ParentID })" 
+                           nz-tooltip [nzTooltipTitle]="task.ParentTitle" nzTooltipPlacement="top">{{ task.ParentCode }}</a>
+                        } @else {
+                        <span class="text-muted">-</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="project-cell">
+                            <span class="project-name text-wrap">{{task.ProjectCode}} - {{ task.ProjectName }}</span>
+                        </div>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="text-wrap">{{ task.FullName || '-' }}</span>
+                    </td>
+
+                    <td style="text-align: center;">
+                        <span class="text-wrap">{{ task.IsPersonalProject ? 'Cá nhân' : 'Dự án' }}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="text-wrap">{{ task.ProjectTaskTypeName || '-' }}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        @if (task.IsAdditional) {
+                        <span nz-icon nzType="warning" nzTheme="outline" style="color: #faad14;"
+                            pTooltip="Có vấn đề phát sinh"></span>
+                        } @else {
+                        <span class="text-muted">-</span>
+                        }
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="fw-bold">{{ task.TaskComplexity || '-' }}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        @if (task.PercentOverTime !== null && task.PercentOverTime !== undefined) {
+                        <span [style.color]="task.PercentOverTime > 0 ? '#ff4d4f' : 'inherit'" class="fw-bold">
+                            {{ task.PercentOverTime * 100 }}%
+                        </span>
+                        } @else {
+                        <span class="text-muted">-</span>
+                        }
+                    </td>
+                    <td class="col-date">
+                        <span class="date-text">{{ formatDate(task.PlanStartDate) }}</span>
+                    </td>
+                    <td class="col-date">
+                        <span class="date-text">{{ formatDate(task.PlanEndDate) }}</span>
+                    </td>
+                    <td class="col-date">
+                        <span class="date-text">{{ formatDate(task.StartDate) }}</span>
+                    </td>
+                    <td class="col-date">
+                        <span class="date-text">{{ formatDate(task.DueDate) }}</span>
+                    </td>
+                    @if (activeTab() === 'all' || activeTab() === 'myApproval') {
+                    <td>
+                        <span class="text-wrap">{{ task.DepartmentAssignerName || '-' }}</span>
+                    </td>
+                    }
+                    @if (activeTab() === 'all' || activeTab() === 'assigned') {
+                    <td>
+                        <span class="text-wrap">{{ task.DepartmentAssigneeName || '-' }}</span>
+                    </td>
+                    }
+
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="footer">
+                <tr>
+                    <td [attr.colspan]="activeTab() === 'all' ? 17 : (activeTab() === 'myApproval' ? 17 : (activeTab() === 'assigned' ? 16 : (activeTab() === 'related' ? 16 : 15)))"
+                        class="table-footer-total">
+                        Tổng cộng: <span class="total-count">{{ totalRecords() }}</span> công việc
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="activeTab() === 'all' ? 17 : (activeTab() === 'myApproval' ? 17 : (activeTab() === 'assigned' ? 16 : (activeTab() === 'related' ? 16 : 15)))"
+                        class="empty-message">
+                        <div class="empty-state">
+                            <span nz-icon nzType="inbox" nzTheme="outline" class="empty-icon"></span>
+                            <p>Chưa có công việc</p>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="loadingbody">
+                <tr>
+                    <td [attr.colspan]="activeTab() === 'all' ? 17 : (activeTab() === 'myApproval' ? 17 : (activeTab() === 'assigned' ? 16 : (activeTab() === 'related' ? 16 : 15)))"
+                        class="text-center">
+                        <span nz-icon nzType="loading" nzTheme="outline"></span> Đang tải...
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>
+
+<!-- Modal: Duyệt công việc -->
+<ng-template #approveModalTpl>
+    <div>
+        <p>Bạn có chắc muốn <strong style="color: #52c41a;">duyệt</strong> công việc này?</p>
+        <label>Nhận xét (không bắt buộc)</label>
+        <textarea nz-input [(ngModel)]="approveReviewText" rows="3" placeholder="Nhập nhận xét đánh giá..."></textarea>
+    </div>
+</ng-template>
+
+<!-- Modal: Từ chối công việc -->
+<ng-template #rejectModalTpl>
+    <div>
+        <p>Bạn có chắc muốn <strong style="color: #ff4d4f;">từ chối</strong> công việc này?</p>
+        <label>Lý do từ chối <span style="color: #ff4d4f;">*</span></label>
+        <textarea nz-input [(ngModel)]="rejectReviewText" rows="3" placeholder="Nhập lý do từ chối..."
+            [style.border-color]="rejectReviewError ? '#ff4d4f' : '#d9d9d9'"></textarea>
+        @if (rejectReviewError) {
+        <div style="color: #ff4d4f; font-size: 12px; margin-top: 4px;">Vui lòng nhập lý do từ chối</div>
+        }
+    </div>
+</ng-template>
+
+<!-- Modal: Bỏ theo dõi công việc -->
+<ng-template #unfollowModalTpl>
+    <div>
+        <p>Bạn có chắc muốn <strong style="color: #ff4d4f;">bỏ theo dõi</strong> {{ selectedTasks().length }} công việc
+            đã chọn?</p>
+        <p style="color: #666; font-size: 13px;">Bạn sẽ không còn thấy các công việc này trong tab "Việc liên quan đến
+            tôi" nữa.</p>
+    </div>
+</ng-template>

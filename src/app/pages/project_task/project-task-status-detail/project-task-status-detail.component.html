@@ -1,0 +1,291 @@
+<div class="header-section">
+    <button class="btn-excel btn-sm" (click)="exportToExcel()">
+        <span nz-icon nzType="file-excel" nzTheme="outline"></span>
+        Xuất Excel
+    </button>
+</div>
+<div class="table-container">
+    <p-table #dt [value]="filteredTasks()" [resizableColumns]="true" columnResizeMode="expand" [loading]="loading()"
+        styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
+        [tableStyle]="{'min-width': '2000px'}" [customSort]="true" (sortFunction)="customSort($event)"
+        (onFilter)="handleFilter($event)">
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pResizableColumn pSortableColumn="DisplayStatus" style="width: 140px; text-align: center">
+                    Trạng thái <p-sortIcon field="DisplayStatus" />
+                </th>
+                <th pResizableColumn pSortableColumn="Title" style="min-width: 300px" class="text-left">
+                    Tên công việc <p-sortIcon field="Title" />
+                </th>
+                <th pResizableColumn pSortableColumn="ParentCode" style="width: 140px; text-align: center">
+                    Mã CV Cha <p-sortIcon field="ParentCode" />
+                </th>
+                <th pResizableColumn pSortableColumn="ProjectName" style="min-width: 250px" class="text-left">
+                    Dự án <p-sortIcon field="ProjectName" />
+                </th>
+                <th pResizableColumn pSortableColumn="FullName" style="width: 150px" class="text-left">
+                    Người giao việc <p-sortIcon field="FullName" />
+                </th>
+                <th pResizableColumn pSortableColumn="IsPersonalProject" style="width: 140px" class="text-left">
+                    Loại dự án <p-sortIcon field="IsPersonalProject" />
+                </th>
+                <th pResizableColumn pSortableColumn="ProjectTaskTypeName" style="width: 160px" class="text-left">
+                    Loại công việc <p-sortIcon field="ProjectTaskTypeName" />
+                </th>
+                <th pResizableColumn pSortableColumn="IsAdditional" style="width: 100px; text-align: center">
+                    Phát sinh <p-sortIcon field="IsAdditional" />
+                </th>
+                <th pResizableColumn pSortableColumn="TaskComplexity" style="width: 100px; text-align: center">
+                    Phức tạp <p-sortIcon field="TaskComplexity" />
+                </th>
+                <th pResizableColumn pSortableColumn="PercentOverTime" style="width: 100px; text-align: center">
+                    % Quá hạn <p-sortIcon field="PercentOverTime" />
+                </th>
+                <th pResizableColumn pSortableColumn="PlanStartDate" class="col-date" style="width: 110px">
+                    Ngày BĐ dự kiến <p-sortIcon field="PlanStartDate" />
+                </th>
+                <th pResizableColumn pSortableColumn="PlanEndDate" class="col-date" style="width: 110px">
+                    Ngày KT dự kiến <p-sortIcon field="PlanEndDate" />
+                </th>
+                <th pResizableColumn pSortableColumn="StartDate" class="col-date" style="width: 110px">
+                    Ngày BĐ thực tế <p-sortIcon field="StartDate" />
+                </th>
+                <th pResizableColumn pSortableColumn="DueDate" class="col-date" style="width: 110px">
+                    Ngày KT thực tế <p-sortIcon field="DueDate" />
+                </th>
+                <th pResizableColumn pSortableColumn="DepartmentAssignerName" style="width: 180px" class="text-left">
+                    Phòng ban giao <p-sortIcon field="DepartmentAssignerName" />
+                </th>
+                <th pResizableColumn pSortableColumn="DepartmentAssigneeName" style="width: 180px" class="text-left">
+                    Phòng ban nhận <p-sortIcon field="DepartmentAssigneeName" />
+                </th>
+            </tr>
+            <tr>
+                <th style="text-align: center;">
+                    <p-columnFilter field="DisplayStatus" matchMode="in" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                            <p-multiSelect [options]="statusOptions" [ngModel]="value" (onChange)="filter($event.value)"
+                                placeholder="Tất cả" [showHeader]="false" [filter]="false"
+                                styleClass="status-filter-multi" [maxSelectedLabels]="1" 
+                                selectedItemsLabel="{0} trạng thái" appendTo="body" />
+                        </ng-template>
+                    </p-columnFilter>
+                </th>
+                <th>
+                    <p-columnFilter matchMode="contains" type="text" field="Title" placeholder="Tìm kiếm..." />
+                </th>
+                <th>
+                    <p-columnFilter matchMode="contains" type="text" field="ParentCode" placeholder="Tìm kiếm..." />
+                </th>
+                <th>
+                    <p-columnFilter matchMode="contains" type="text" field="ProjectFullName"
+                        placeholder="Tìm kiếm..." />
+                </th>
+                <th>
+                    <p-columnFilter matchMode="contains" type="text" field="FullName" placeholder="Tìm kiếm..." />
+                </th>
+                <th>
+                    <p-columnFilter field="IsPersonalProject" matchMode="equals" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                            <select class="status-filter"
+                                (change)="filter($any($event.target).value === '' ? null : $any($event.target).value === 'true')">
+                                <option value="">Tất cả</option>
+                                <option value="false">Dự án</option>
+                                <option value="true">Cá nhân</option>
+                            </select>
+                        </ng-template>
+                    </p-columnFilter>
+                </th>
+                <th>
+                    <p-columnFilter field="ProjectTaskTypeID" matchMode="equals" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                            <select class="status-filter"
+                                (change)="filter($any($event.target).value === '' ? null : +$any($event.target).value)">
+                                <option value="">Tất cả</option>
+                                @for (type of taskTypes(); track type.ID) {
+                                <option [value]="type.ID">{{ type.TypeName }}</option>
+                                }
+                            </select>
+                        </ng-template>
+                    </p-columnFilter>
+                </th>
+                <th>
+                    <p-columnFilter field="IsAdditional" matchMode="isAdditional" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                            <select class="status-filter"
+                                (change)="filter($any($event.target).value === '' ? null : $any($event.target).value === 'true')">
+                                <option value="">Tất cả</option>
+                                <option value="true">Có</option>
+                                <option value="false">Không</option>
+                            </select>
+                        </ng-template>
+                    </p-columnFilter>
+                </th>
+                <th>
+                    <p-columnFilter field="TaskComplexity" matchMode="equals" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                            <select class="status-filter"
+                                (change)="filter($any($event.target).value === '' ? null : +$any($event.target).value)">
+                                <option value="">Tất cả</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </ng-template>
+                    </p-columnFilter>
+                </th>
+                <th>
+                    <p-columnFilter field="PercentOverTime" matchMode="overdue" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                            <select class="status-filter" (change)="filter($any($event.target).value)">
+                                <option value="">Tất cả</option>
+                                <option value="ontime">Đúng hạn (<= 0%)</option>
+                                <option value="overdue">Quá hạn (> 0%)</option>
+                            </select>
+                        </ng-template>
+                    </p-columnFilter>
+                </th>
+                <th class="col-date">
+                    <p-columnFilter type="date" field="PlanStartDate" placeholder="Từ..." />
+                </th>
+                <th class="col-date">
+                    <p-columnFilter type="date" field="PlanEndDate" placeholder="Từ..." />
+                </th>
+                <th class="col-date">
+                    <p-columnFilter type="date" field="StartDate" placeholder="Từ..." />
+                </th>
+                <th class="col-date">
+                    <p-columnFilter type="date" field="DueDate" placeholder="Từ..." />
+                </th>
+                <th>
+                    <p-columnFilter matchMode="contains" type="text" field="DepartmentAssignerName"
+                        placeholder="Tìm..." />
+                </th>
+                <th>
+                    <p-columnFilter matchMode="contains" type="text" field="DepartmentAssigneeName"
+                        placeholder="Tìm..." />
+                </th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-task>
+            <tr>
+                <td style="text-align: center;">
+                    <div class="status-cell">
+                        <p-tag [severity]="getDisplayStatus(task).severity"
+                            [value]="getDisplayStatus(task).label"></p-tag>
+                        @if (showApprovalButtons(task)) {
+                        <div class="approval-buttons mt-1">
+                            <button class="approval-btn approve" (click)="approveTask(task); $event.stopPropagation()"
+                                nz-tooltip="Duyệt" tooltipPosition="top">
+                                <span nz-icon nzType="check" nzTheme="outline"></span>
+                            </button>
+                            <button class="approval-btn reject" (click)="rejectTask(task); $event.stopPropagation()"
+                                nz-tooltip="Từ chối" tooltipPosition="top">
+                                <span nz-icon nzType="close" nzTheme="outline"></span>
+                            </button>
+                        </div>
+                        }
+                    </div>
+                </td>
+                <td class="text-left">
+                    <div class="task-title text-wrap" (click)="openTaskDetail(task.ID)">
+                        {{ task.Title }}
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    @if (task.ParentCode) {
+                    <a class="task-code-link" (click)="openTaskDetail(task.ParentID)"
+                       nz-tooltip [nzTooltipTitle]="task.ParentTitle" nzTooltipPlacement="top">{{ task.ParentCode }}</a>
+                    } @else {
+                    <span class="text-muted">-</span>
+                    }
+                </td>
+                <td class="text-left">
+                    <div class="project-name text-wrap">
+                        {{ task.ProjectCode }} - {{ task.ProjectName }}
+                    </div>
+                </td>
+                <td class="text-left">{{ task.FullName || '-' }}</td>
+                <td style="text-align: center;">{{ task.IsPersonalProject ? 'Cá nhân' : 'Dự án' }}</td>
+                <td style="text-align: center;">{{ task.ProjectTaskTypeName || '-' }}</td>
+                <td style="text-align: center;">
+                    @if (task.IsAdditional) {
+                    <span nz-icon nzType="warning" nzTheme="outline" style="color: #faad14;"
+                        pTooltip="Có vấn đề phát sinh"></span>
+                    } @else {
+                    <span class="text-muted">-</span>
+                    }
+                </td>
+                <td style="text-align: center;" class="fw-bold">{{ task.TaskComplexity || '-' }}</td>
+                <td style="text-align: center;">
+                    @if (task.PercentOverTime !== null && task.PercentOverTime !== undefined) {
+                    <span [style.color]="task.PercentOverTime > 0 ? '#ff4d4f' : 'inherit'" class="fw-bold">
+                        {{ task.PercentOverTime * 100 }}%
+                    </span>
+                    } @else {
+                    <span class="text-muted">-</span>
+                    }
+                </td>
+                <td class="col-date">
+                    <span class="date-text">{{ formatDate(task.PlanStartDate) }}</span>
+                </td>
+                <td class="col-date">
+                    <span class="date-text">{{ formatDate(task.PlanEndDate) }}</span>
+                </td>
+                <td class="col-date">
+                    <span class="date-text">{{ formatDate(task.StartDate) }}</span>
+                </td>
+                <td class="col-date">
+                    <span class="date-text">{{ formatDate(task.DueDate) }}</span>
+                </td>
+                <td class="text-left">{{ task.DepartmentAssignerName || '-' }}</td>
+                <td class="text-left">{{ task.DepartmentAssigneeName || '-' }}</td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="footer">
+            <tr>
+                <td colspan="16" class="table-footer-total">
+                    Tổng số công việc: <span class="total-count">{{ totalRecords() }}</span>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="16" class="text-center p-4">Không có dữ liệu công việc phù hợp.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- Modal Templates -->
+<ng-template #approveModalTpl>
+    <div class="py-2">
+        <p>Bạn có chắc muốn <strong class="text-success">duyệt</strong> công việc này?</p>
+        <div class="mt-3">
+            <label class="d-block mb-1">Nhận xét (không bắt buộc)</label>
+            <textarea nz-input [(ngModel)]="approveReviewText" rows="3" placeholder="Nhập nhận xét đánh giá..."
+                style="width: 100%; border-color: #f0f0f0; padding: 10px;"></textarea>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #rejectModalTpl>
+    <div class="py-2">
+        <p>Bạn có chắc muốn <strong class="text-danger">từ chối</strong> công việc này?</p>
+        <div class="mt-3">
+            <label class="d-block mb-1">Lý do từ chối <span class="text-danger">*</span></label>
+            <textarea nz-input [(ngModel)]="rejectReviewText" rows="3" placeholder="Nhập lý do từ chối..."
+                [style.border-color]="rejectReviewError ? '#ff4d4f' : '#f0f0f0'"
+                style="width: 100%;"></textarea>
+            @if (rejectReviewError) {
+            <div class="text-danger mt-1" style="font-size: 12px;">Vui lòng nhập lý do từ chối</div>
+            }
+        </div>
+    </div>
+</ng-template>

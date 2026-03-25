@@ -1,0 +1,248 @@
+/* ===== Layout Container ===== */
+.pts-container {
+    background: #fff;
+    height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ===== Sticky Search Header ===== */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* ===== Form field vertical (từ workplan-summary-new) ===== */
+.form-field-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.form-field-vertical label {
+    font-size: 12px;
+    color: #595959;
+    white-space: nowrap;
+}
+
+/* ===== Table Container ===== */
+.table-container {
+    flex: 1;
+    overflow: hidden;
+    padding: 8px 16px 16px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== Zero Count ===== */
+.zero-count {
+    color: #bfbfbf;
+    font-size: 13px;
+}
+
+/* ===== Cell helpers ===== */
+.cell-center {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.cell-total {
+    font-weight: 600;
+}
+
+/* Ô rowspan (STT + Họ tên) */
+.cell-group {
+    vertical-align: middle !important;
+    background: #ffffff !important;
+    border-right: 1px solid #e8e8e8;
+}
+
+.cell-name {
+    font-weight: 500;
+    color: #262626;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* ===== Column filter input (manual) ===== */
+.col-filter-input {
+    width: 100%;
+    padding: 3px 6px;
+    font-size: 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    outline: none;
+    background: #fff;
+    color: #262626;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.col-filter-input:focus {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, .1);
+}
+
+/* input từ khóa  */
+
+.search-input-field {
+    width: 100%;    
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: all 0.3s;
+}
+.search-input-field:focus,
+.search-input-field:active {
+    border-color: #40a9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    outline: 0;
+}
+
+/* ===== Empty State ===== */
+.empty-message {
+    text-align: center;
+    padding: 48px 16px !important;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #8c8c8c;
+}
+
+.empty-icon {
+    font-size: 48px;
+    color: #d9d9d9;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ===== PrimeNG Table Overrides ===== */
+:host ::ng-deep .p-datatable {
+    font-size: 13px;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    background: #fafafa;
+    font-weight: 500;
+    color: #262626;
+    padding: 10px 12px;
+    border-color: #e8e8e8;
+    text-align: center;
+    vertical-align: middle;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    padding: 10px 12px;
+    border-color: #f0f0f0;
+    color: #595959;
+    vertical-align: middle;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+    background: #f5f5f5 !important;
+}
+
+/* Column filter compact */
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-inputtext {
+    padding: 4px 6px;
+    font-size: 12px;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-menu-button,
+:host ::ng-deep .p-column-filter-clear-button {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+}
+
+/* Sort icons */
+:host ::ng-deep .p-datatable .p-sortable-column .p-sortable-column-icon {
+    color: #8c8c8c;
+}
+
+/* Column resizer */
+:host ::ng-deep .p-datatable .p-column-resizer {
+    width: 8px;
+}
+
+/* p-tag compact */
+:host ::ng-deep .p-tag {
+    font-size: 12px;
+    padding: 2px 8px;
+    min-width: 28px;
+    display: inline-flex;
+    justify-content: center;
+}
+
+/* Loading overlay */
+:host ::ng-deep .p-datatable-loading-overlay {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+:host ::ng-deep .table-container {
+    padding: 0px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .pts-container {
+        height: auto;
+    }
+
+    .table-container {
+        padding: 8px;
+    }
+}
+
+/* Excel Button Style */
+.btn-excel {
+    color: #1d6f42 !important;
+    border-color: #1d6f42 !important;
+}
+.btn-excel:hover {
+    color: #fff !important;
+    background-color: #1d6f42 !important;
+}
+/* p-multiSelect custom small style */
+:host ::ng-deep .p-multiselect.p-inputtext-sm {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    border-color: #d9d9d9;
+    width: 100%;
+}
+
+:host ::ng-deep .p-multiselect.p-inputtext-sm .p-multiselect-label {
+    padding: 2px 8px;
+    font-size: 11px;
+    line-height: normal;
+}
+
+:host ::ng-deep .p-multiselect.p-inputtext-sm .p-multiselect-trigger {
+    width: 24px;
+    height: 24px;
+}

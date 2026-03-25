@@ -1,0 +1,1689 @@
+.task-detail-container {
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* Full height flexbox layout */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+}
+
+/* Fixed header */
+.task-detail-header {
+    flex-shrink: 0;
+}
+
+/* Fixed footer */
+.modal-footer {
+    flex-shrink: 0;
+}
+
+/* Project and Group Header Styles */
+.project-badge {
+    background: #fff;
+    border-radius: 6px;
+    padding: 4px 8px;
+}
+
+.project-icon {
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, #d946ef, #a855f7);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+}
+
+.user-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    color: rgb(1, 122, 236);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.user-icon:hover {
+    color: rgb(0, 100, 200);
+    transform: scale(1.1);
+}
+
+.complexity-input {
+    width: 65px;
+    /* Slightly wider for better fit */
+    height: 35px !important;
+    border: 1px solid #d3d3d3 !important;
+    border-radius: 6px !important;
+    display: flex;
+    align-items: center;
+    box-shadow: none !important;
+}
+
+.complexity-input ::ng-deep .ant-input-number-input-wrap {
+    height: 33px;
+}
+
+.complexity-input ::ng-deep .ant-input-number-input {
+    height: 33px !important;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Hide default handler for cleaner look if requested, but let's keep it for now as it's a number input. 
+   If it looks bad, we can hide it. */
+
+.complexity-input ::ng-deep .ant-input-number-handler-wrap {
+    background: transparent;
+    border-left: 1px solid #d3d3d3;
+}
+
+/* Status Selector */
+.status-select {
+    min-width: 150px;
+    border: 1px solid #d3d3d3;
+    border-radius: 6px;
+    height: 35px;
+}
+
+.status-select ::ng-deep .ant-select-selector {
+    padding: 0 10px !important;
+    font-weight: 500;
+    height: 35px !important;
+    display: flex;
+    align-items: center;
+}
+
+.status-select ::ng-deep .ant-select-selection-item {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    line-height: 35px !important;
+    height: 35px;
+}
+
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Task Type Selector */
+.task-type-select {
+    min-width: 160px;
+    border: 1px solid #d3d3d3;
+    border-radius: 6px;
+    height: 35px;
+}
+
+.task-type-select ::ng-deep .ant-select-selector {
+    padding: 0 10px !important;
+    font-weight: 500;
+    height: 35px !important;
+    display: flex;
+    align-items: center;
+}
+
+.task-type-select ::ng-deep .ant-select-selection-item {
+    display: flex !important;
+    align-items: center;
+    line-height: 35px !important;
+    height: 35px;
+}
+
+.task-type-select ::ng-deep .ant-select-selection-placeholder {
+    line-height: 35px !important;
+}
+
+/* Compact info box for assignee/assigner row */
+.info-box-compact {
+    padding: 6px 10px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 0;
+    gap: 6px;
+}
+
+.info-value-compact {
+    font-size: 13px;
+    font-weight: 500;
+    color: #262626;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Compact estimated time badge */
+.estimated-time-compact {
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.estimated-time-minimal {
+    font-size: 11px;
+    color: #1890ff;
+    display: flex;
+    justify-content: end;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.project-select {
+    min-width: 210px;
+    border: 1px solid #d3d3d3;
+    border-radius: 6px;
+    height: 35px;
+}
+
+.project-select ::ng-deep .ant-select-selector {
+    padding: 0 10px !important;
+    font-weight: 500;
+    height: 35px;
+}
+
+.project-select ::ng-deep .ant-select-selection-item {
+    font-weight: 500;
+    line-height: 30px !important;
+}
+
+.project-select ::ng-deep .ant-select-selection-placeholder {
+    text-align: left !important;
+    line-height: 30px !important;
+}
+
+.group-select {
+    min-width: 140px;
+}
+
+.group-select ::ng-deep .ant-select-selector {
+    background: var(--group-bg-color, #fef3c7) !important;
+    border: 1px solid var(--group-border-color, #fcd34d) !important;
+    border-radius: 6px !important;
+    height: 32px !important;
+    line-height: 30px !important;
+    transition: all 0.3s ease;
+}
+
+.group-select ::ng-deep .ant-select-selection-item {
+    color: var(--group-text-color, #92400e) !important;
+    font-weight: 500;
+    line-height: 30px !important;
+}
+
+/* Progress Badge */
+.progress-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    padding: 4px 12px;
+    height: 32px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.progress-badge:hover {
+    border-color: #1890ff;
+    background: #e6f7ff;
+}
+
+.progress-label {
+    font-size: 13px;
+    color: #666;
+}
+
+.progress-percent {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1890ff;
+}
+
+.dropdown-icon {
+    font-size: 10px;
+    color: #999;
+}
+
+/* Progress Popover */
+.progress-popover {
+    width: 280px;
+    padding: 8px;
+}
+
+.progress-popover .popover-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.slider-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #1890ff;
+    font-size: 16px;
+    font-weight: 600;
+    user-select: none;
+}
+
+.slider-btn:hover {
+    background: #e6f7ff;
+}
+
+.progress-slider {
+    flex: 1;
+}
+
+.slider-marks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 16px;
+    padding: 0 4px;
+}
+
+.progress-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.progress-input-row label {
+    font-size: 13px;
+    color: #666;
+}
+
+.progress-input-row nz-input-number {
+    width: 70px;
+}
+
+.confirm-btn {
+    width: 100%;
+}
+
+.group-select ::ng-deep .ant-select-selection-item {
+    color: var(--group-text-color, #92400e) !important;
+    font-weight: 500;
+}
+
+/* Task Title Input */
+.task-title-input {
+    border: none;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 0;
+    box-shadow: none !important;
+    background: transparent;
+}
+
+.task-title-input:focus {
+    border: none;
+    box-shadow: none !important;
+}
+
+.task-title-input::placeholder {
+    color: #bbb;
+    font-weight: 400;
+}
+
+.detail-main {
+    padding-right: 20px;
+}
+
+.detail-sidebar {
+    background-color: #f8f9fa;
+    border-left: 1px solid #dee2e6;
+    padding: 10px;
+}
+
+.section-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 12px;
+}
+
+.info-box {
+    background: #f4f5f7;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+    min-height: 64px;
+    /* Consistent height when selected or not */
+}
+
+/* Equal Size Info Boxes */
+.info-box-equal {
+    background: #f8f9fa;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding-left: 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 72px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.info-box-equal:hover {
+    border-color: #d9d9d9;
+    background: #f0f0f0;
+}
+
+/* Placeholder state */
+.placeholder-icon {
+    font-size: 20px;
+    color: #bfbfbf;
+}
+
+.placeholder-text {
+    font-size: 14px;
+    color: #8c8c8c;
+}
+
+/* Filled state */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.date-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fff7e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fa8c16;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.info-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.info-label {
+    font-size: 12px;
+    color: #ff6b35;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.info-sub {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+}
+
+/* Date Range Display */
+.date-range-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+}
+
+.date-range-item:last-child {
+    margin-bottom: 0;
+}
+
+.date-range-item .date-label {
+    font-size: 12px;
+    color: #666;
+    min-width: 85px;
+    font-weight: 500;
+}
+
+.date-range-item .date-value {
+    font-size: 13px;
+    color: #333;
+    font-weight: 400;
+}
+
+.avatar-large {
+    width: 32px;
+    height: 32px;
+    background-color: #ff5722;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.sidebar-btn {
+    width: 100%;
+    text-align: left;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: none;
+    background: #eee;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.poiter {
+    cursor: pointer;
+}
+
+.sidebar-btn:hover {
+    background: #e2e2e2;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.checklist-item .completed {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.checklist-item .checklist-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.checklist-item:hover .checklist-actions {
+    opacity: 1;
+}
+
+.edit-icon,
+.delete-icon {
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.edit-icon:hover {
+    color: #1890ff !important;
+}
+
+.delete-icon:hover {
+    color: #ff4d4f !important;
+}
+
+.checklist-edit-input {
+    border-radius: 4px;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.add-checklist-btn,
+.add-subtask-btn {
+    color: #1890ff;
+    cursor: pointer;
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+}
+
+.add-checklist-btn:hover,
+.add-subtask-btn:hover {
+    color: #40a9ff;
+}
+
+/* Subtask styles */
+.subtask-actions .action-icon {
+    margin-left: 8px;
+    color: #999;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.subtask-actions .action-icon:hover {
+    color: #1890ff;
+}
+
+.subtask-items {
+    margin-top: 8px;
+}
+
+.subtask-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.subtask-item .drag-handle {
+    color: #ccc;
+    cursor: grab;
+}
+
+.subtask-item .subtask-title {
+    flex: 1;
+    font-size: 13px;
+}
+
+.subtask-item .subtask-title.completed {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.subtask-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.subtask-meta .due-date {
+    font-size: 12px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.subtask-meta .open-detail {
+    color: #1890ff;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.subtask-meta .open-detail:hover {
+    background: #e6f7ff;
+}
+
+.upload-area {
+    border: 2px dashed #ccc;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    background: #fafafa;
+    cursor: pointer;
+}
+
+.custom-field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.custom-field-row label {
+    width: 150px;
+    font-size: 13px;
+    color: #666;
+}
+
+.description-textarea {
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    font-size: 13px;
+    padding: 8px;
+    background: #fdfdfd;
+}
+
+.description-textarea:hover,
+.description-textarea:focus {
+    border-color: #d9d9d9;
+    background: #fff;
+    box-shadow: none;
+}
+
+/* Date Picker UI Refinements */
+.date-col {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.time-col {
+    width: 90px;
+    flex-shrink: 0;
+}
+
+nz-date-picker {
+    border-radius: 6px;
+    border: 1px solid #d3d3d3;
+    padding: 0 8px !important;
+    height: 32px !important;
+}
+
+nz-date-picker ::ng-deep .ant-picker-input>input {
+    text-align: center !important;
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Date Picker Popover Styles */
+.date-picker-popover {
+    min-width: 280px;
+}
+
+.date-picker-tab-content {
+    padding: 12px 8px;
+}
+
+.picker-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.picker-row:last-child {
+    margin-bottom: 0;
+}
+
+.picker-row label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+.picker-row nz-date-picker,
+.picker-row nz-time-picker {
+    width: 100%;
+}
+
+.info-box {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.info-box:hover {
+    background: #e8e9eb;
+}
+
+/* Compact info box — fixed size, content does NOT resize the box */
+.info-box-compact {
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
+    padding: 0 10px;
+    background: #f4f5f7;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.info-box-compact:hover {
+    background: #e8e9eb;
+}
+
+.info-value-compact {
+    font-size: 13px;
+    font-weight: 500;
+    color: #262626;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+
+/* Attachment Styles */
+.upload-area {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    background: #f8f9fa;
+    border-color: #1890ff;
+}
+
+.alert-sm {
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+.link-input-form {
+    background: #f8f9fa;
+}
+
+.attachments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid #e8e9eb;
+    border-radius: 6px;
+    background: #fff;
+    transition: all 0.2s;
+}
+
+.attachment-item:hover {
+    background: #f8f9fa;
+    border-color: #d3d4d6;
+}
+
+.attachment-icon {
+    font-size: 20px;
+    color: #1890ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #e6f7ff;
+    border-radius: 6px;
+}
+
+.attachment-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.attachment-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: #262626;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attachment-name.clickable {
+    color: #1890ff;
+    cursor: pointer;
+}
+
+.attachment-name.clickable:hover {
+    text-decoration: underline;
+}
+
+.attachment-size,
+.attachment-url {
+    font-size: 12px;
+    color: #8c8c8c;
+    margin-top: 2px;
+}
+
+.gap-2 {
+    gap: 8px;
+}
+
+/* Enhanced File & Link Management Styles */
+.section-subtitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: #595959;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e8e9eb;
+}
+
+.file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid #e8e9eb;
+    border-radius: 6px;
+    background: #fff;
+    transition: all 0.2s;
+}
+
+.file-item:hover {
+    background: #f8f9fa;
+    border-color: #d3d4d6;
+}
+
+.file-item.new {
+    background: #e6f7ff;
+    border-color: #91d5ff;
+}
+
+.file-item.new:hover {
+    background: #d4edff;
+}
+
+.file-item.deleted {
+    opacity: 0.5;
+    background: #f5f5f5;
+    text-decoration: line-through;
+}
+
+.file-item.attachment-pending {
+    background: #fffbe6;
+    border-color: #ffe58f;
+}
+
+.file-item.attachment-pending:hover {
+    background: #fff8d4;
+    border-color: #ffd666;
+}
+
+.pending-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 1px 6px;
+    background: #fff1b8;
+    color: #ad6800;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.file-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: #1890ff;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-name:hover {
+    text-decoration: underline;
+}
+
+.file-size {
+    font-size: 12px;
+    color: #8c8c8c;
+    white-space: nowrap;
+}
+
+.file-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.link-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.link-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: #1890ff;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.link-name:hover {
+    text-decoration: underline;
+}
+
+.link-url {
+    font-size: 12px;
+    color: #8c8c8c;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ==================== SELECTED PEOPLE CARD VIEW ==================== */
+.selected-people-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.people-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+}
+
+.selected-people-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.selected-person-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.selected-person-card:hover {
+    background: #f0f7ff;
+    border-color: #bae0ff;
+    box-shadow: 0 2px 6px rgba(24, 144, 255, 0.08);
+}
+
+.person-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.person-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: #262626;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.person-dept {
+    font-size: 12px;
+    color: #8c8c8c;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.empty-state {
+    margin-top: 32px;
+}
+
+/* ==================== TABS LAYOUT ==================== */
+.tabs-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    /* Important for nested flex */
+    background: #fff;
+}
+
+.main-tabs {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-tabs ::ng-deep .ant-tabs-content-holder {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-tabs ::ng-deep .ant-tabs-content {
+    height: 100%;
+}
+
+.main-tabs ::ng-deep .ant-tabs-tabpane {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-tabs ::ng-deep .ant-tabs-nav {
+    margin-bottom: 0;
+    padding: 0 16px;
+    background: #ffffff;
+    border-bottom: 1px solid #e8e9eb;
+    flex-shrink: 0;
+}
+
+/* ===== UNDERLINE TABS DESIGN ===== */
+.main-tabs ::ng-deep .ant-tabs-tab {
+    padding: 12px 16px;
+    white-space: nowrap;
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.main-tabs ::ng-deep .ant-tabs-tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: #1890ff;
+    transition: width 0.3s ease;
+}
+
+.main-tabs ::ng-deep .ant-tabs-tab:hover::after {
+    width: 60%;
+}
+
+.main-tabs ::ng-deep .ant-tabs-tab-active::after {
+    width: 100% !important;
+}
+
+.main-tabs ::ng-deep .ant-tabs-tab .ant-tabs-tab-btn {
+    color: #8c8c8c;
+    font-weight: 500;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.main-tabs ::ng-deep .ant-tabs-tab:hover .ant-tabs-tab-btn {
+    color: #595959;
+}
+
+.main-tabs ::ng-deep .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #1890ff !important;
+    font-weight: 600;
+}
+
+/* Hide default ink bar since we use custom underline */
+.main-tabs ::ng-deep .ant-tabs-ink-bar {
+    display: none !important;
+}
+
+/* Remove card tab borders */
+::ng-deep .main-tabs .ant-tabs-nav::before {
+    border-bottom: none !important;
+}
+
+/* Tabs dropdown menu (when more than can fit) */
+::ng-deep .main-tabs .ant-tabs-dropdown-menu {
+    background: #ffffff !important;
+}
+
+::ng-deep .main-tabs .ant-tabs-dropdown-menu-item {
+    background: #ffffff !important;
+    color: #595959 !important;
+}
+
+::ng-deep .main-tabs .ant-tabs-dropdown-menu-item:hover {
+    background: #f5f5f5 !important;
+    color: #1890ff !important;
+}
+
+::ng-deep .main-tabs .ant-tabs-dropdown-menu-item-active,
+::ng-deep .main-tabs .ant-tabs-dropdown-menu-item-selected {
+    background: #e6f7ff !important;
+    color: #1890ff !important;
+}
+
+.tab-content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Form elements */
+.form-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #595959;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.estimated-time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e6f7ff;
+    color: #1890ff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Tab 3 & 4: Employee Selection UI */
+.selection-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: #fdfdfd;
+    border-radius: 8px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    margin-bottom: 16px;
+}
+
+.employee-table-container {
+    overflow-x: auto;
+}
+
+.employee-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.employee-name-cell .employee-name {
+    font-weight: 500;
+}
+
+.selected-row {
+    background-color: #e6f7ff !important;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .task-detail-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .tabs-wrapper {
+        flex: 1;
+        overflow: auto;
+    }
+
+    .main-tabs ::ng-deep .ant-tabs-tab {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .tab-content {
+        padding: 16px !important;
+    }
+
+    .row .col-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 12px;
+    }
+
+    .info-box,
+    .info-box-equal {
+        min-height: 60px;
+    }
+
+    .filters-row {
+        flex-direction: column;
+    }
+
+    .filters-row .search-input {
+        width: 100%;
+    }
+}
+
+
+.selected-count {
+    font-weight: 600;
+    color: #1890ff;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+}
+
+.clear-selection {
+    color: #1890ff;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.clear-selection:hover {
+    text-decoration: underline;
+}
+
+/* ==================== APPROVAL BUTTONS ==================== */
+.approval-actions {
+    flex-shrink: 0;
+}
+
+.approval-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.approval-status-badge.approved {
+    background: #f6ffed;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+}
+
+.approval-status-badge.rejected {
+    background: #fff2f0;
+    color: #ff4d4f;
+    border: 1px solid #ffccc7;
+}
+
+.approval-status-badge.pending {
+    background: #fffbe6;
+    color: #faad14;
+    border: 1px solid #ffe58f;
+}
+
+/* ==================== TASK LOG TIMELINE ==================== */
+.log-timeline {
+    position: relative;
+    padding: 0;
+}
+
+.log-item {
+    display: flex;
+    gap: 14px;
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.log-item:last-child {
+    padding-bottom: 0;
+}
+
+.log-item:last-child .log-line {
+    display: none;
+}
+
+.log-icon-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.log-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e6f7ff;
+    color: #1890ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    z-index: 1;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.log-line {
+    width: 2px;
+    flex: 1;
+    background: #e8e8e8;
+    margin-top: 4px;
+    min-height: 16px;
+}
+
+.log-body {
+    flex: 1;
+    min-width: 0;
+    padding-top: 4px;
+}
+
+.log-type {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1890ff;
+    margin-bottom: 2px;
+    text-transform: capitalize;
+}
+
+.log-content {
+    font-size: 13px;
+    color: #333;
+    line-height: 1.5;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    margin-bottom: 6px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #e6f7ff;
+}
+
+.log-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 12px;
+    color: #8c8c8c;
+}
+
+.log-author,
+.log-time {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.log-author i,
+.log-time i {
+    font-size: 11px;
+}
+
+/* Spin animation for reload button */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+.fs-24 {
+    font-size: 24px;
+}
+
+.fs-32 {
+    font-size: 32px;
+}
+
+.py-4 {
+    padding-top: 24px;
+    padding-bottom: 24px;
+}
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+@media (max-width: 576px) {
+
+    /* Hide avatars and placeholder icons on mobile */
+    .mobile-hide {
+        display: none !important;
+    }
+
+    /* Compact info-box on mobile */
+    .mobile-info-box {
+        padding: 4px 8px;
+        min-height: 32px;
+        gap: 4px;
+        margin-bottom: 0 !important;
+    }
+
+    .mobile-info-box .info-value {
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .mobile-info-box .placeholder-text {
+        font-size: 12px;
+    }
+
+    /* Kill all spacing on mobile */
+    .mobile-mb-1 {
+        margin-bottom: 4px !important;
+    }
+
+    .mobile-tab-content {
+        padding: 8px !important;
+    }
+
+    .mobile-tab-content .mb-3 {
+        margin-bottom: 4px !important;
+    }
+
+    .mobile-tab-content .row {
+        margin-left: -4px;
+        margin-right: -4px;
+        --bs-gutter-x: 8px;
+    }
+
+    .mobile-tab-content .row>[class*="col-"] {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+
+    /* Compact form labels */
+    .mobile-tab-content .form-label {
+        font-size: 11px;
+        margin-bottom: 2px;
+        line-height: 1.2;
+    }
+
+    /* Compact task title */
+    .mobile-tab-content .task-title-input {
+        font-size: 16px;
+        padding: 4px 0;
+    }
+
+    /* Date rows compact */
+    .mobile-dates-row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-left: -3px !important;
+        margin-right: -3px !important;
+    }
+
+    .mobile-dates-row>.col-mobile-date,
+    .mobile-dates-row>.col-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding-left: 3px !important;
+        padding-right: 3px !important;
+        margin-bottom: 2px;
+    }
+
+    .mobile-dates-row .form-label {
+        font-size: 10px;
+        margin-bottom: 1px;
+    }
+
+    /* Compact section title */
+    .mobile-tab-content .section-title {
+        font-size: 12px;
+        margin-bottom: 4px !important;
+    }
+
+    /* Compact description textarea */
+    .mobile-tab-content .description-textarea {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    /* Compact estimated time */
+    .mobile-tab-content .estimated-time-badge {
+        font-size: 12px;
+        padding: 2px 8px;
+    }
+
+    /* Task detail header: wrap project + approval to separate rows */
+    .task-detail-header {
+        flex-wrap: wrap !important;
+        gap: 6px;
+        padding: 8px 12px !important;
+    }
+
+    .task-detail-header .project-badge {
+        width: 100%;
+    }
+
+    .task-detail-header .approval-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* ===== Two-Panel Desktop Layout ===== */
+.detail-panels {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.left-panel {
+    border-right: 1px solid #f0f0f0;
+    padding-right: 20px !important;
+}
+
+.right-panel {
+    padding-left: 20px !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.description-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.description-full-height {
+    flex: 1;
+    min-height: 200px;
+    resize: vertical;
+}
+
+/* On mobile, remove the panel border and restore single-column flow */
+@media (max-width: 767.98px) {
+    .left-panel {
+        border-right: none;
+        padding-right: 12px !important;
+    }
+
+    .right-panel {
+        padding-left: 12px !important;
+        margin-top: 16px;
+    }
+
+    .description-full-height {
+        min-height: 150px;
+    }
+}
+
+/* People tab header (count + Add button) */
+.people-tab-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Fix width of assignee / assigner boxes — prevent content from resizing them */
+.people-row>div {
+    flex: 1 1 0 !important;
+    /* equal halves, NOT driven by content */
+    min-width: 0;
+    /* allow overflow clipping */
+    overflow: hidden;
+}
+
+/* Empty state for people tabs */
+.people-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #bfbfbf;
+    text-align: center;
+    gap: 12px;
+}
+
+.people-empty-state i {
+    font-size: 40px;
+}
+
+.people-empty-state p {
+    margin: 0;
+    font-size: 14px;
+    color: #8c8c8c;
+}

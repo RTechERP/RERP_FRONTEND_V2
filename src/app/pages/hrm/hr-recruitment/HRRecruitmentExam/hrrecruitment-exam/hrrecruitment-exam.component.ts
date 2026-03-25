@@ -31,8 +31,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PermissionService } from '../../../../../services/permission.service';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
-import { AppUserService } from '../../../../../services/app-user.service';
-import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { HRRecruitmentExamService } from '../hr-recruitment-exam-service/hrrecruitment-exam.service';
 import { HRRecruitmentExamDetailComponent } from '../hrrecruitment-exam-detail/hrrecruitment-exam-detail.component';
 import { HRRecruitmentQuestionDetailComponent } from '../hrrecruitment-question-detail/hrrecruitment-question-detail.component';
@@ -66,8 +64,6 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
         CopyQuestionComponent,
         Menubar,
         HasPermissionDirective
-    Menubar,
-        HasPermissionDirective
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -98,8 +94,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
     departmentId: number | null = null;
     isAdmin: boolean = false;
 
-    departmentId: number | null = null;
-    isAdmin: boolean = false;
 
     datasetExam: any[] = [];
     datasetQuestion: any[] = [];
@@ -111,10 +105,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
     lastBottomPanelSize: string | number = '25%';
     //#endregion
 
-    //#region Layout state
-    sizeBottomPanel: string | number = '25%';
-    lastBottomPanelSize: string | number = '25%';
-    //#endregion
 
     //#region Trạng thái grid đã sẵn sàng
     gridsReady = false;
@@ -138,7 +128,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
         private tabService: TabServiceService,
         private permissionService: PermissionService,
         private appUserService: AppUserService,
-        private appUserService: AppUserService,
     ) { }
 
     //#region Lifecycle hooks
@@ -154,15 +143,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             this.departmentId = this.appUserService.departmentID || null;
         }
 
-        // Thêm mảng employeeID đặc biệt có quyền như admin
-        const specialAdminIds = [54, 1, 2, 3, 400, 401, 402, 403];
-
-        // Determine admin status
-        this.isAdmin = this.appUserService.isAdmin || specialAdminIds.includes(this.appUserService.employeeID || 0);
-        // Auto-fill department if not admin
-        if (!this.isAdmin) {
-            this.departmentId = this.appUserService.departmentID || null;
-        }
 
         // Load dữ liệu filter
         this.loadDepartments();
@@ -175,7 +155,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                 label: 'Thêm',
                 icon: 'fa-solid fa-circle-plus fa-lg text-success',
                 visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
                 command: () => {
                     this.onAddExam();
                 },
@@ -184,7 +163,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                 label: 'Sửa',
                 icon: 'fa-solid fa-file-pen fa-lg text-primary',
                 visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
                 command: () => {
                     this.onEditExam();
                 },
@@ -192,7 +170,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
                 visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
                 command: () => {
                     this.onDeleteExam();
@@ -212,7 +189,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                 label: 'Thêm',
                 icon: 'fa-solid fa-circle-plus fa-lg text-success',
                 visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
                 command: () => {
                     this.onAddQuestion();
                 },
@@ -220,7 +196,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-file-pen fa-lg text-primary',
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
                 visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
                 command: () => {
                     this.onEditQuestion();
@@ -230,7 +205,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
                 visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
                 command: () => {
                     this.onDeleteQuestion();
                 },
@@ -238,7 +212,6 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             {
                 label: 'Sao chép câu hỏi',
                 icon: 'fa-solid fa-copy fa-lg text-warning',
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
                 visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
                 command: () => {
                     this.onCopyQuestion();
@@ -439,36 +412,26 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                 }
                 this.isLoadingExam = false;
             },
+
             error: (err: any) => {
-                error: (err: any) => {
-                    this.isLoadingExam = false;
-                    this.datasetExam = [];
+                this.isLoadingExam = false;
+                this.datasetExam = [];
 
-                    let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
-                    if (typeof err?.error === 'string') {
-                        try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
-                    }
+                let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
+                if (typeof err?.error === 'string') {
+                    try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
+                }
 
-                    this.notification.create(
-                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                        errorMsg,
-                        { nzStyle: { whiteSpace: 'pre-line' } }
-                    );
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    errorMsg,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
 
-                    let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
-                    if (typeof err?.error === 'string') {
-                        try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
-                    }
 
-                    this.notification.create(
-                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                        errorMsg,
-                        { nzStyle: { whiteSpace: 'pre-line' } }
-                    );
-                },
-    });
+            },
+        });
     }
 
     /** Tải danh sách câu hỏi theo ExamID */
@@ -499,20 +462,12 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                         console.error('Error parsing QuestionAttachments:', e);
                     }
 
-                    let parsedAtts = [];
-                    try {
-                        if (item.QuestionAttachments) {
-                            parsedAtts = JSON.parse(item.QuestionAttachments);
-                        }
-                    } catch (e) {
-                        console.error('Error parsing QuestionAttachments:', e);
-                    }
+
 
                     return {
                         ...item,
                         id: item.ID || `question_${index + 1}`,
                         parsedAttachments: parsedAtts
-            parsedAttachments: parsedAtts
                     };
                 });
 
@@ -545,35 +500,24 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                 this.cdr.detectChanges();
             },
             error: (err: any) => {
-                error: (err: any) => {
-                    this.isLoadingQuestion = false;
-                    this.datasetQuestion = [];
+                this.isLoadingQuestion = false;
+                this.datasetQuestion = [];
 
-                    let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
-                    if (typeof err?.error === 'string') {
-                        try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
-                    }
+                let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
+                if (typeof err?.error === 'string') {
+                    try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
+                }
 
-                    this.notification.create(
-                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                        errorMsg,
-                        { nzStyle: { whiteSpace: 'pre-line' } }
-                    );
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    errorMsg,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
 
-                    let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
-                    if (typeof err?.error === 'string') {
-                        try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
-                    }
 
-                    this.notification.create(
-                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                        errorMsg,
-                        { nzStyle: { whiteSpace: 'pre-line' } }
-                    );
-                },
-    });
+            },
+        });
     }
 
     /** Tải đáp án đúng theo QuestionID */
@@ -601,35 +545,24 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                 this.isLoadingRightAnswer = false;
             },
             error: (err: any) => {
-                error: (err: any) => {
-                    this.isLoadingRightAnswer = false;
-                    this.datasetRightAnswer = [];
+                this.isLoadingRightAnswer = false;
+                this.datasetRightAnswer = [];
 
-                    let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
-                    if (typeof err?.error === 'string') {
-                        try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
-                    }
+                let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
+                if (typeof err?.error === 'string') {
+                    try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
+                }
 
-                    this.notification.create(
-                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                        errorMsg,
-                        { nzStyle: { whiteSpace: 'pre-line' } }
-                    );
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    errorMsg,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
 
-                    let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
-                    if (typeof err?.error === 'string') {
-                        try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
-                    }
 
-                    this.notification.create(
-                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                        errorMsg,
-                        { nzStyle: { whiteSpace: 'pre-line' } }
-                    );
-                },
-    });
+            },
+        });
     }
 
     //#endregion
@@ -710,20 +643,9 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                             errorMsg,
                             { nzStyle: { whiteSpace: 'pre-line' } }
                         );
-                        error: (err: any) => {
-                            let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
-                            if (typeof err?.error === 'string') {
-                                try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
-                            }
 
-                            this.notification.create(
-                                NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                                NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                                errorMsg,
-                                { nzStyle: { whiteSpace: 'pre-line' } }
-                            );
-                        },
-        });
+                    },
+                });
             },
         });
     }
@@ -758,8 +680,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
         const examName = selectedExam?.NameExam || '';
         const deptName = this.departments.find((d: any) => d.ID === selectedExam?.DepartmentID)?.Name || '';
 
-        const examName = selectedExam?.NameExam || '';
-        const deptName = this.departments.find((d: any) => d.ID === selectedExam?.DepartmentID)?.Name || '';
+
 
         const title = isEdit
             ? `Sửa câu hỏi - ${examCode}`
@@ -776,8 +697,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                 examType: this.selectedExamType,
                 examName: examName,
                 departmentName: deptName,
-                examName: examName,
-                departmentName: deptName,
+
                 isEditMode: isEdit,
                 datasetRightAnswer: this.datasetRightAnswer || [],
                 onSavedCallback: (result: any) => {
@@ -843,19 +763,9 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
                             errorMsg,
                             { nzStyle: { whiteSpace: 'pre-line' } }
                         );
-                        error: (err: any) => {
-                            let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
-                            if (typeof err?.error === 'string') {
-                                try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
-                            }
-                            this.notification.create(
-                                NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                                NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                                errorMsg,
-                                { nzStyle: { whiteSpace: 'pre-line' } }
-                            );
-                        },
-        });
+
+                    },
+                });
             },
         });
     }
@@ -958,25 +868,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
         }
     }
 
-    /** Đóng bảng đáp án đúng (panel bên phải/dưới) */
-    closeLeftPanel() {
-        if (this.sizeBottomPanel !== '0') {
-            this.lastBottomPanelSize = this.sizeBottomPanel;
-        }
-        this.sizeBottomPanel = '0';
-        setTimeout(() => this.resizeAllGrids(), 200);
-    }
 
-    /** Đồng bộ khi người dùng kéo thả splitter */
-    onSizeChange(event: any) {
-        if (event && event[1]) {
-            const newSize = event[1].size;
-            this.sizeBottomPanel = newSize + '%';
-            if (newSize > 0) {
-                this.lastBottomPanelSize = this.sizeBottomPanel;
-            }
-        }
-    }
 
     //#endregion
 }

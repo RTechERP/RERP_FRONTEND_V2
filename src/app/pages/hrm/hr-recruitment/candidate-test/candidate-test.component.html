@@ -166,7 +166,7 @@
                                 </div>
                                 <ng-container *ngFor="let att of currentMcQuestion.Attachments">
                                     <div *ngIf="att.previewUrl" class="q-att-item image-item">
-                                        <img [src]="att.previewUrl" alt="Hình đính kèm" <div *ngIf="att.previewUrl"
+                                        <img [src]="att.previewUrl" alt="Hình đính kèm" *ngIf="att.previewUrl"
                                             class="q-att-item image-item">
                                         <img [src]="att.previewUrl" alt="Hình đính kèm"
                                             (click)="openImageOverlay(att.previewUrl!)" nz-tooltip
@@ -220,6 +220,8 @@
                             <span nz-icon nzType="inbox" nzTheme="outline"></span>
                             <p>Không có câu hỏi trắc nghiệm</p>
                         </div>
+                    </div>
+
                 </nz-tab>
 
                 <!-- TAB TỰ LUẬN -->
@@ -254,7 +256,7 @@
                                 </div>
                                 <ng-container *ngFor="let att of currentEssayQuestion.Attachments">
                                     <div *ngIf="att.previewUrl" class="q-att-item image-item">
-                                        <img [src]="att.previewUrl" alt="Hình đính kèm" <div *ngIf="att.previewUrl"
+                                        <img [src]="att.previewUrl" alt="Hình đính kèm" *ngIf="att.previewUrl"
                                             class="q-att-item image-item">
                                         <img [src]="att.previewUrl" alt="Hình đính kèm"
                                             (click)="openImageOverlay(att.previewUrl!)" nz-tooltip
@@ -342,6 +344,7 @@
                             <span nz-icon nzType="inbox" nzTheme="outline"></span>
                             <p>Không có câu hỏi tự luận</p>
                         </div>
+                    </div>
                 </nz-tab>
 
             </nz-tabset>

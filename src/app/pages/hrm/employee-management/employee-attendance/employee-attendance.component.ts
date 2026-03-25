@@ -34,7 +34,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EmployeeAttendanceImportExcelComponent } from './employee-attendance-import-excel/employee-attendance-import-excel.component';
 import { EmployeeAttendanceService } from './employee-attendance.service';
 import { VehicleRepairService } from '../../vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   selector: 'app-employee-attendance',
@@ -142,24 +142,45 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
   loadEmployees(): void {
     const request = { status: 0, departmentid: 0, keyword: '' };
 
-    // lấy tất cả employees, filter theo status và department ở FE
-    this.vehicleRepairService.getEmployee(request).subscribe({
+    this.vehicleRepairService.getEmployee({ params: request }).subscribe({
       next: (res: any) => {
-        const all = (res?.data || []).filter((emp: any) => emp.Status === 0); // Filter active employees
-        this.allEmployees = all;
-
-        const filtered =
-          this.departmentId && this.departmentId > 0
-            ? all.filter(
-              (x: any) => Number(x.DepartmentID) === Number(this.departmentId)
-            )
-            : all;
-
-        this.employees = this.eas.createdDataGroup(filtered, 'DepartmentName');
+        if (res?.status === 1) {
+          const all = res.data || [];
+          this.allEmployees = all;
+          this.groupDropdownEmployees(all);
+        }
       },
       error: (res: any) =>
-        this.notification.error(NOTIFICATION_TITLE.error, res.error.message || 'Không thể tải danh sách nhân viên'),
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[res.status] || 'error',
+          NOTIFICATION_TITLE_MAP[res.status as RESPONSE_STATUS] || 'Lỗi',
+          res?.error?.message || `${res.error}\n${res.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        ),
     });
+  }
+
+  private groupDropdownEmployees(employees: any[]): void {
+    if (!employees || employees.length === 0) {
+      this.employees = [];
+      return;
+    }
+
+    const groups: any[] = [];
+    const map = new Map();
+
+    for (const emp of employees) {
+      const deptName = emp.DepartmentName || 'Khác';
+      if (!map.has(deptName)) {
+        const newGroup = { DepartmentName: deptName, items: [] };
+        groups.push(newGroup);
+        map.set(deptName, newGroup);
+      }
+      map.get(deptName).items.push(emp);
+    }
+    this.employees = groups;
   }
 
   // ---------- Helpers ----------
@@ -243,9 +264,9 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
 
   // ---------- Events ----------
   onDepartmentChange(): void {
-    // reset chọn nhân viên, chỉ load lại danh sách nhân viên, không tìm kiếm
+    // reset chọn nhân viên, load lại danh sách nhân viên theo phòng ban và tìm kiếm
     this.employeeId = 0;
-    this.loadEmployees();
+    this.getEmployeeAttendace();
   }
 
   // Lấy danh sách nhân viên đã filter theo phòng ban
@@ -327,31 +348,34 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
   }
 
   private updateGroupedAttendance(): void {
-    const grouped: any[] = [];
-    const depts = Array.from(new Set(this.attendanceData.map(d => d.DepartmentName || 'Không xác định')));
-    
-    // Sắp xếp depts theo bảng chữ cái
-    depts.sort((a, b) => a.localeCompare(b));
+    if (!this.attendanceData || this.attendanceData.length === 0) {
+      this.groupedAttendance = [];
+      return;
+    }
 
+    const groupedDataMap: Map<string, any[]> = new Map();
+    this.attendanceData.forEach(d => {
+      const dept = d.DepartmentName || 'Không xác định';
+      if (!groupedDataMap.has(dept)) groupedDataMap.set(dept, []);
+      groupedDataMap.get(dept)!.push(d);
+    });
+
+    const sortedDepts = Array.from(groupedDataMap.keys()).sort((a, b) => a.localeCompare(b));
+    const grouped: any[] = [];
     let globalStt = 1;
-    depts.forEach(deptName => {
+
+    sortedDepts.forEach(deptName => {
       // Add header row
       grouped.push({ isHeader: true, DepartmentName: deptName });
 
-      // Add data rows if expanded
-      const deptRows = this.attendanceData.filter(d => (d.DepartmentName || 'Không xác định') === deptName);
-      
       if (this.expandedRows[deptName] === undefined) this.expandedRows[deptName] = true;
 
       if (this.expandedRows[deptName]) {
+        const deptRows = groupedDataMap.get(deptName)!;
         deptRows.forEach(row => {
           row.stt = globalStt++;
           grouped.push(row);
         });
-      } else {
-        // Increment stt for non-visible rows if needed, or just let it stay
-        // Usually STT represents total sequence, but here it's easier to just count visible
-        // However, if we want total STT, we should count all rows
       }
     });
 

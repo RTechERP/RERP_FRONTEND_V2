@@ -1616,3 +1616,7 @@ export class JobRequirementPersonalComponent {
     angularGrid.slickGrid.render();
   }
 }
+   
+
+
+

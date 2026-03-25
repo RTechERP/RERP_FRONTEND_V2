@@ -657,7 +657,12 @@ export class HistoryProductRtcComponent
                             const rowData = args.dataContext;
                             const id = rowData?.ID || 0;
                             if (id > 0) {
-                                this.deleteHistoryProduct([id]);
+                                // Nếu ID click vào nằm trong danh sách đang chọn thì xóa cả list, ngược lại chỉ xóa 1
+                                if (this.selectedArrHistoryProductID.has(id)) {
+                                    this.deleteHistoryProduct();
+                                } else {
+                                    this.deleteHistoryProduct([id]);
+                                }
                             }
                         },
                     },
@@ -1534,6 +1539,14 @@ export class HistoryProductRtcComponent
                 visible: this.permissionService.hasPermission('N26,N1,N34,N80'),
                 command: () => {
                     this.editBorrower();
+                },
+            },
+            {
+                label: 'Xóa thiết bị',
+                icon: 'fa fa-trash text-danger',
+                visible: (ID_ADMIN_DEMO_LIST.includes(this.appUserService.id ?? 0) || this.appUserService.isAdmin),
+                command: () => {
+                    this.deleteHistoryProduct();
                 },
             },
             {

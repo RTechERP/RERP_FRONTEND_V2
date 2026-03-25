@@ -46,9 +46,36 @@
     padding: 0 0.5rem 0 2rem !important;
 }
 
-/* Table Headers */
 :host ::ng-deep .p-datatable-thead>tr>th {
     text-align: center;
+    vertical-align: middle;
+}
+
+:host ::ng-deep .header-content-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 24px !important;
+}
+
+:host ::ng-deep .header-spacer {
+    flex: 1 !important;
+}
+
+:host ::ng-deep .header-text {
+    flex: 0 1 auto !important;
+    text-align: center !important;
+    padding: 0 4px !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+}
+
+:host ::ng-deep .header-icons {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 4px !important;
 }
 
 
@@ -102,6 +129,26 @@
 
 :host ::ng-deep .filter-header-row .p-multiselect .p-multiselect-dropdown {
     width: 24px !important;
+}
+
+:host ::ng-deep .p-datatable-scrollable .p-datatable-table {
+    table-layout: fixed;
+}
+
+/* Better visual feedback for resizing */
+:host ::ng-deep .p-resizable-column {
+    position: relative;
+    background-clip: padding-box;
+}
+
+:host ::ng-deep .p-column-resizer {
+    width: 8px !important;
+    border-right: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+:host ::ng-deep .p-column-resizer:hover {
+    border-right-color: var(--p-primary-color, #3b82f6);
 }
 
 /* Table font size (controlled via --table-font-size CSS variable) */
@@ -388,4 +435,40 @@
   max-height: var(--tbl-submenu-max-height, 240px) !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
+}
+::ng-deep .p-datepicker-input .p-inputtext .p-filled{
+    padding: 0 20px 0 12px;
+}
+
+/* ── Virtual Scroll: fixed row height ──
+   When virtualScroll is on, PrimeNG/CDK assumes every row has the exact same height
+   (virtualScrollItemSize). Variable row heights from text wrapping cause the scroller
+   to mis-calculate total content height → scroll jumps back near the last rows.
+   We use the .vs-active class (set via HostBinding) so selectors work regardless
+   of PrimeNG's internal DOM structure. */
+:host.vs-active ::ng-deep .p-datatable-tbody > tr {
+    height: var(--virtual-row-height) !important;
+    max-height: var(--virtual-row-height) !important;
+    min-height: var(--virtual-row-height) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+:host.vs-active ::ng-deep .p-datatable-tbody > tr > td {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+}
+
+/* Override wrap-text class inside virtual scroll to prevent variable heights */
+:host.vs-active ::ng-deep .p-datatable-tbody > tr > td .wrap-text,
+:host.vs-active ::ng-deep .p-datatable-tbody > tr > td .truncate-text {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+    line-height: calc(var(--virtual-row-height) - 6px) !important;
 }

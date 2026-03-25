@@ -1,0 +1,265 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 4.5rem);
+    width: 100%;
+    overflow: hidden;
+    background-color: #f8fafc;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ===== Toolbar & Header ===== */
+.page-header {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    padding: 14px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.header-title h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.03em;
+    background: linear-gradient(to right, #0f172a, #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.action-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.filter-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px 24px;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px dashed #cbd5e1;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.filter-item label {
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #64748b;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+/* ===== Splitter Override ===== */
+::ng-deep .ant-splitter {
+    background: transparent !important;
+    flex: 1;
+    height: 100% !important;
+}
+
+::ng-deep .ant-splitter-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden !important;
+    transition: box-shadow 0.3s ease;
+    min-height: 0;
+}
+
+::ng-deep .ant-splitter-panel:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+/* ===== Tabs Styling ===== */
+.tabs-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+::ng-deep .p-tabs {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+::ng-deep .p-tablist {
+    background: #f8fafc !important;
+    padding: 6px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+::ng-deep .p-tab {
+    font-size: 11px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700 !important;
+    padding: 8px 20px !important;
+    border-radius: 8px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    color: #64748b !important;
+    border: none !important;
+}
+
+::ng-deep .p-tab-active {
+    background: #fff !important;
+    color: #2563eb !important;
+    box-shadow: 0 4px 10px -2px rgba(37, 99, 235, 0.15) !important;
+}
+
+::ng-deep .p-tabpanels {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0 !important;
+}
+
+::ng-deep .p-tabpanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+app-custom-table {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* ===== Buttons & Inputs ===== */
+.btn-modern {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #e2e8f0 !important;
+    background: white !important;
+    color: #475569 !important;
+}
+
+.btn-modern i {
+    font-size: 14px;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: #3b82f6 !important;
+    color: #2563eb !important;
+}
+
+.btn-modern.ant-btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-modern.ant-btn-primary:hover {
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+}
+
+.btn-modern.ant-btn-dangerous:hover {
+    background: #ef4444 !important;
+    color: white !important;
+    border-color: #ef4444 !important;
+    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);
+}
+
+/* Rounded controls for general use (reverting my global square reset) */
+::ng-deep .ant-input, 
+::ng-deep .ant-select-selector, 
+::ng-deep .ant-picker {
+    border-radius: 6px !important;
+}
+
+/* Squared controls specifically for Filter Bar as requested */
+.filter-bar ::ng-deep .ant-input,
+.filter-bar ::ng-deep .ant-select-selector,
+.filter-bar ::ng-deep .ant-picker,
+.filter-bar ::ng-deep .ant-input-group-wrapper,
+.filter-bar ::ng-deep .ant-input-wrapper,
+.filter-bar ::ng-deep .ant-input-group,
+.filter-bar ::ng-deep .ant-input-affix-wrapper,
+.filter-bar ::ng-deep .ant-btn {
+    border-radius: 0 !important;
+}
+
+::ng-deep .ant-input:focus, 
+::ng-deep .ant-select-selector:focus, 
+::ng-deep .ant-picker:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Shadow for panels */
+.panel-shadow {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+

@@ -1,0 +1,391 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host:focus {
+    outline: none;
+}
+
+/* Support scrollHeight="flex": let p-datatable fill the flex host */
+:host ::ng-deep .p-datatable-scrollable {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .p-datatable-scrollable .p-datatable-wrapper {
+    flex: 1;
+    min-height: 0;
+}
+
+/* ── Global Search — compact, top-right ── */
+:host ::ng-deep .p-datatable-caption {
+    padding: 2px 6px !important;
+    background: transparent !important;
+    border-bottom: none !important;
+}
+
+:host ::ng-deep .global-search-field {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+:host ::ng-deep .global-search-icon {
+    font-size: var(--table-font-size, 12px) !important;
+}
+
+:host ::ng-deep .global-search-input { 
+    height: 3vh !important;
+    width: 100% !important;
+    font-size: var(--table-font-size, 16px) !important;
+    padding: 0 0.5rem 0 2rem !important;
+}
+
+/* Table Headers */
+:host ::ng-deep .p-datatable-thead>tr>th {
+    text-align: center;
+}
+
+
+/* Filter row compact height */
+:host ::ng-deep .p-datatable-thead > tr.filter-header-row > th {
+    padding: 2px 4px !important;
+}
+
+/* Normalize filter input and select heights */
+:host ::ng-deep .filter-header-row .p-inputtext,
+:host ::ng-deep .filter-header-row .p-select {
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    box-sizing: border-box !important;
+    font-size: var(--table-font-size, 11px);
+}
+
+:host ::ng-deep .filter-header-row .p-inputtext {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 22px !important;
+    font-size: var(--table-font-size, 11px);
+}
+
+:host ::ng-deep .filter-header-row .p-select .p-select-label {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 22px !important;
+    font-size: var(--table-font-size, 11px);
+}   
+
+:host ::ng-deep .filter-header-row .p-select .p-select-dropdown {
+    width: 24px !important;
+}
+
+:host ::ng-deep .filter-header-row .p-multiselect {
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    box-sizing: border-box !important;
+    font-size: var(--table-font-size, 11px);
+}
+
+:host ::ng-deep .filter-header-row .p-multiselect .p-multiselect-label {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 22px !important;
+    font-size: var(--table-font-size, 11px);
+}
+
+:host ::ng-deep .filter-header-row .p-multiselect .p-multiselect-dropdown {
+    width: 24px !important;
+}
+
+/* Table font size (controlled via --table-font-size CSS variable) */
+:host ::ng-deep .p-datatable {
+    font-size: var(--table-font-size, 11px);
+}
+
+/* =====================================================
+   Frozen Column Fixes
+   ===================================================== */
+
+/* Frozen columns are resizable (resizeMode="expand" avoids the blank-gap issue of "fit" mode) */
+
+/* Prevent frozen columns from collapsing in expand resize mode */
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th.p-datatable-frozen-column,
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td.p-datatable-frozen-column {
+    min-width: 40px;
+}
+
+/* Fix 2: Gridlines mode — add right border to ALL frozen columns so the separator
+   is always visible. PrimeNG's gridlines only add border-right to :last-child. */
+:host ::ng-deep .p-datatable-gridlines .p-datatable-thead > tr > th.p-datatable-frozen-column,
+:host ::ng-deep .p-datatable-gridlines .p-datatable-tbody > tr > td.p-datatable-frozen-column,
+:host ::ng-deep .p-datatable-gridlines .p-datatable-tfoot > tr > td.p-datatable-frozen-column {
+    border-inline-end-width: 1px;
+}
+
+/* Distinct boundary for frozen columns (DevExpress-like drop shadow and border) */
+:host ::ng-deep .frozen-left {
+    box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.08) !important;
+    border-right: 1px solid var(--p-surface-300, #cbd5e1) !important;
+}
+
+:host ::ng-deep .frozen-right {
+    box-shadow: -4px 0 6px -2px rgba(0, 0, 0, 0.08) !important;
+    border-left: 1px solid var(--p-surface-300, #cbd5e1) !important;
+}
+
+/* Ensure frozen cells have an opaque background so scrolling text doesn't bleed through */
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th.p-frozen-column {
+    background-color: var(--p-surface-50, #f8fafc) !important;
+}
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td.p-frozen-column,
+:host ::ng-deep .p-datatable .p-datatable-tfoot > tr > td.p-frozen-column {
+    background-color: var(--p-surface-0, #ffffff) !important;
+}
+
+/* Ensuring Filters fill the column width correctly */
+:host ::ng-deep .p-column-filter-row {
+    width: 100% !important;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100% !important;
+}
+
+:host ::ng-deep .p-column-filter-element input {
+    width: 100% !important;
+}
+
+/* Fix for PrimeNG specific input containers — only filter inputs, not global search */
+:host ::ng-deep .p-datatable-thead .p-inputtext,
+:host ::ng-deep .p-datatable-tbody .p-inputtext,
+:host ::ng-deep .p-column-filter-row .p-inputtext {
+    width: 100% !important;
+}
+
+/* Force full width for filter inputs */
+:host ::ng-deep p-columnfilterformelement,
+:host ::ng-deep p-columnfilterformelement.p-fluid {
+    width: 100% !important;
+}
+
+/* Text Truncation for long strings */
+.truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+}
+
+/* Text Wrapping for long strings */
+.wrap-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: block;
+    width: 100%;
+}
+
+/* Click-to-select row highlight */
+:host ::ng-deep .p-datatable-tbody > tr.row-click-selected > td {
+    background: var(--p-primary-50, rgba(59, 130, 246, 0.08)) !important;
+    border-color: var(--p-primary-100, rgba(59, 130, 246, 0.2));
+}
+
+/* Table Lookup Popup */
+.lookup-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.lookup-table th {
+    background: var(--p-surface-100, #f1f5f9);
+    color: var(--p-surface-700, #334155);
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 2px solid var(--p-surface-300, #cbd5e1);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.lookup-table td {
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--p-surface-200, #e2e8f0);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.lookup-row {
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.lookup-row:hover {
+    background: var(--p-primary-50, rgba(59, 130, 246, 0.08));
+}
+
+.lookup-row:active {
+    background: var(--p-primary-100, rgba(59, 130, 246, 0.15));
+}
+
+/* Table Lookup Cell (select-like appearance) */
+.table-lookup-cell {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--p-surface-300, #cbd5e1);
+    border-radius: 6px;
+    background: var(--p-surface-0, #fff);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    min-height: 2rem;
+}
+
+.table-lookup-cell:hover {
+    border-color: var(--p-primary-400, #60a5fa);
+    box-shadow: 0 0 0 1px var(--p-primary-200, rgba(59, 130, 246, 0.2));
+}
+
+.table-lookup-value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table-lookup-chevron {
+    font-size: 0.7rem;
+    color: var(--p-surface-500, #64748b);
+    margin-left: 0.25rem;
+    flex-shrink: 0;
+}
+
+/* Selected row in lookup popup */
+.lookup-row-selected {
+    background: var(--p-primary-50, rgba(59, 130, 246, 0.1));
+    font-weight: 600;
+}
+
+.lookup-row-selected td {
+    color: var(--p-primary-700, #1d4ed8);
+}.lookup-row-selected td {
+    color: var(--p-primary-700, #1d4ed8);
+}
+
+/* Excel-style Filter Enhancement */
+.excel-filter-tabs {
+    min-width: 250px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+:host ::ng-deep .excel-filter-tabs .p-tablist {
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--p-surface-200);
+}
+
+:host ::ng-deep .excel-filter-tabs .p-tab {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+:host ::ng-deep .excel-filter-tabs .p-tabpanels {
+    padding: 0;
+    background: transparent;
+}
+
+.filter-list-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--p-surface-200);
+    border-radius: 4px;
+    margin-top: 5px;
+    background: #fff;
+}
+
+.filter-list-item {
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-list-item:hover {
+    background-color: var(--p-surface-100);
+}
+
+.filter-list-item label {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    color: var(--p-surface-700);
+    flex: 1;
+    cursor: pointer;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.p-column-filter-menu-button {
+    margin-left: 4px;
+}
+
+/* Tab 2: Custom Filter Styles */
+:host ::ng-deep .excel-filter-tabs .p-column-filter-menu {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+:host ::ng-deep mark {
+    background-color: #fff176;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: bold;
+    color: #000;
+}
+
+/* Cell Focus Selection */
+:host ::ng-deep .focused-cell {
+    box-shadow: inset 0 0 0 2px var(--p-primary-color, #3b82f6) !important;
+}
+/* ── Multiselect overlay font size ── */
+::ng-deep .p-multiselect-overlay .p-select-overlay {
+  font-size: 12px !important;
+}
+::ng-deep .p-multiselect-filter .p-inputtext{
+  padding: 3px 15px 3px 5px;
+  font-size: 12px;
+}
+::ng-deep .p-select-list-container{
+  font-size: 12px;
+
+}
+::ng-deep .p-multiselect-list{
+  font-size: 12px;
+
+}
+/* ── Table header context menu: submenu scrollable khi nhiều cột ── */
+::ng-deep .tbl-header-cm .p-contextmenu-submenu,
+.tbl-header-cm .p-submenu-list {
+  max-height: var(--tbl-submenu-max-height, 240px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}

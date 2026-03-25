@@ -185,6 +185,7 @@
                             </div>
                         </div>
 
+                        <!-- Candidate Answer Uploads (MC) -->
                         <div class="answers-list">
                             <div *ngFor="let ans of currentMcQuestion.Answers" class="answer-option"
                                 [class.selected]="isAnswerSelected(currentMcQuestion, ans.ID)"
@@ -204,7 +205,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
                     <div *ngIf="multipleChoiceQuestions.length === 0" class="empty-state">
@@ -293,22 +293,29 @@
                         <div class="answer-uploads-section" *ngIf="!currentEssayQuestion.IsAnswerNumberValue">
                             <div class="upload-header">
                                 <span class="upload-title">Đính kèm ảnh/file câu trả lời:</span>
-                                <button nz-button nzType="default" nzSize="small" (click)="openFileSelectorAnswer(currentEssayQuestion)" class="upload-btn">
+                                <button nz-button nzType="default" nzSize="small"
+                                    (click)="openFileSelectorAnswer(currentEssayQuestion)" class="upload-btn">
                                     <span nz-icon nzType="upload"></span> Tải lên
                                 </button>
                             </div>
-                            <div class="answer-attachments-list" *ngIf="currentEssayQuestion.AnswerAttachments.length > 0">
-                                <div *ngFor="let att of currentEssayQuestion.AnswerAttachments" class="answer-att-item" [class.loading]="att.loading">
+                            <div class="answer-attachments-list"
+                                *ngIf="currentEssayQuestion.AnswerAttachments.length > 0">
+                                <div *ngFor="let att of currentEssayQuestion.AnswerAttachments" class="answer-att-item"
+                                    [class.loading]="att.loading">
                                     <div class="att-preview" *ngIf="att.isImage && att.previewUrl">
                                         <img [src]="att.previewUrl" (click)="openImageOverlay(att.previewUrl)" />
                                     </div>
                                     <div class="att-icon" *ngIf="!att.isImage || !att.previewUrl">
                                         <span nz-icon [nzType]="att.loading ? 'loading' : 'file'"></span>
                                     </div>
-                                    <div class="att-info">
-                                        <span class="att-name" [title]="att.FileNameOrigin">{{ att.FileNameOrigin }}</span>
+                                    <div class="att-info"
+                                        (click)="!att.loading && downloadAttachment({ServerPath: att.ServerPath, FileNameOrigin: att.FileNameOrigin})">
+                                        <span class="att-name" [title]="att.FileNameOrigin">{{ att.FileNameOrigin
+                                            }}</span>
+                                        <span class="att-download-hint" *ngIf="!att.loading">(Nhấn để tải)</span>
                                     </div>
-                                    <button class="att-remove" (click)="removeAnswerAttachment(att, currentEssayQuestion)">
+                                    <button class="att-remove"
+                                        (click)="removeAnswerAttachment(att, currentEssayQuestion)">
                                         <span nz-icon nzType="close"></span>
                                     </button>
                                 </div>

@@ -21,6 +21,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -35,6 +36,7 @@ import { HRRecruitmentExamDetailComponent } from '../hrrecruitment-exam-detail/h
 import { HRRecruitmentQuestionDetailComponent } from '../hrrecruitment-question-detail/hrrecruitment-question-detail.component';
 import { CopyQuestionComponent } from '../copy-question/copy-question.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
+
 
 @Component({
   selector: 'app-hrrecruitment-exam',
@@ -53,6 +55,7 @@ import { TabServiceService } from '../../../../../layouts/tab-service.service';
     NzFormModule,
     NzGridModule,
     NzInputModule,
+    NzDropDownModule,
     TableModule,
     CheckboxModule,
     TooltipModule,
@@ -686,6 +689,74 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
     if (!html) return '';
     return String(html).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   }
+
+  /** Mở file/ảnh đính kèm trong cửa sổ trình duyệt mới hoặc tải về */
+  openAttachmentInNewWindow(serverPath: string, fileName: string): void {
+    if (!serverPath) {
+      this.notification.error('Lỗi', 'Đường dẫn file không hợp lệ');
+      return;
+    }
+
+    // Lấy extension từ tên file (vd: .pdf, .docx, .png)
+    const extension = fileName.split('.').pop()?.toLowerCase() || '';
+    
+    // Ánh xạ các MIME type phổ biến
+    const mimeTypes: { [key: string]: string } = {
+      'pdf': 'application/pdf',
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'gif': 'image/gif',
+      'doc': 'application/msword',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'xls': 'application/vnd.ms-excel',
+      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'txt': 'text/plain',
+    };
+    
+    const mimeType = mimeTypes[extension] || 'application/octet-stream';
+
+    // Dùng service download (kèm auth header) → tạo blob URL
+    this.examService.downloadFile(serverPath).subscribe({
+      next: (blob: Blob) => {
+        // Tạo lại blob với MIME type đúng để trình duyệt nhận diện được định dạng
+        const typedBlob = new Blob([blob], { type: mimeType });
+        const blobUrl = window.URL.createObjectURL(typedBlob);
+
+        // Các định dạng trình duyệt có thể render (xem trực tiếp)
+        const isViewable = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'txt'].includes(extension);
+
+        if (isViewable) {
+          // Mở trong cửa sổ mới nếu xem được
+          const newWindow = window.open(blobUrl, '_blank', 'width=1000,height=700');
+          if (newWindow) {
+            newWindow.onload = () => {
+              newWindow.document.title = fileName || 'File';
+            };
+            // Giải phóng blob URL sau 60 giây
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+          } else {
+            window.URL.revokeObjectURL(blobUrl);
+            this.notification.warning('Cảnh báo', 'Popup bị chặn! Vui lòng cho phép popup trong trình duyệt.');
+          }
+        } else {
+          // Trình duyệt không tự mở được (Word, Excel) -> Tải file về máy tính với tên chính gốc
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = fileName; // download với tên file có định dạng chuẩn (ví dụ .docx)
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          // Giải phóng
+          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+        }
+      },
+      error: () => {
+        this.notification.error('Lỗi', 'Không thể tải file!');
+      }
+    });
+  }
+
 
   /** Tải file từ grid khi double click vào cột ảnh */
   downloadFileFromGrid(serverPath: string): void {

@@ -143,6 +143,10 @@ export class HRRecruitmentExamService {
   getDataCbbHiringRequest(departmentID: number): Observable<any> {
     return this.http.get<any>(this.apiUrlExam + `get-data-cbb-hiring-request?departmentID=${departmentID}`);
   }
+
+  getDataHiringRequestByEmID(isCompleted: boolean, employeeID: number): Observable<any> {
+    return this.http.get<any>(this.apiUrlExam + `get-data-hiring-request-iscompleted?isCompleted=${isCompleted}&employeeID=${employeeID}`);
+  }
   //#endregion
 
   //#region Copy Question

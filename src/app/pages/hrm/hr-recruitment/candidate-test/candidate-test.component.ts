@@ -153,6 +153,8 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     return h > 0 ? `${this.pad(h)}:${this.pad(m)}:${this.pad(s)}` : `${this.pad(m)}:${this.pad(s)}`;
   }
   get timerDangerLevel(): string {
+    if (this.remainingSeconds <= 60) return 'danger';
+    if (this.remainingSeconds <= 300) return 'warning';
     const ratio = this.remainingSeconds / ((this.activeExam?.TestTime || this.testTime) * 60);
     if (ratio <= 0.1) return 'danger';
     if (ratio <= 0.25) return 'warning';
@@ -255,6 +257,111 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.isLoading = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi kết nối khi khởi tạo bài thi.');
+      }
+    });
+  }
+
+  private restoreExamProgress(examResultID: number, examID: number, dbRemainingSeconds: number | null): void {
+    this.candidateTestService.getExamProgress(examResultID).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          const flatData = res.data || [];
+
+          // Tính thời gian còn lại (kết hợp DB và LocalStorage)
+          let finalSeconds = (dbRemainingSeconds !== null && dbRemainingSeconds !== undefined)
+            ? dbRemainingSeconds
+            : (this.activeExam?.TestTime || 60) * 60;
+
+          const localStr = localStorage.getItem(`exam_remaining_${examResultID}`);
+          if (localStr) {
+            const localSeconds = parseInt(localStr, 10);
+            if (!isNaN(localSeconds) && localSeconds < finalSeconds) {
+              finalSeconds = localSeconds;
+            }
+          }
+          this.remainingSeconds = Math.max(0, finalSeconds);
+
+          // Group flat data từ C# trả về
+          const questionMap = new Map<number, any>();
+          flatData.forEach((item: any) => {
+            if (!questionMap.has(item.RecruitmentQuestionID)) {
+              questionMap.set(item.RecruitmentQuestionID, {
+                QuestionID: item.RecruitmentQuestionID,
+                AnswerIDs: [],
+                AnswerText: item.AnswerText || '',
+                Images: []
+              });
+            }
+            const q = questionMap.get(item.RecruitmentQuestionID);
+            if (item.RecruitmentAnswerID && item.RecruitmentAnswerID > 0 && !q.AnswerIDs.includes(item.RecruitmentAnswerID)) {
+              q.AnswerIDs.push(item.RecruitmentAnswerID);
+            }
+            if (item.ImageID && !q.Images.find((img: any) => img.ID === item.ImageID)) {
+              q.Images.push({
+                ID: item.ImageID,
+                FileNameOrigin: item.FileNameOrigin,
+                ServerPath: item.ServerPath,
+                Extension: item.Extension
+              });
+            }
+          });
+          const answeredQuestions = Array.from(questionMap.values());
+
+          // Tải danh sách câu hỏi và phục hồi đáp án
+          this.loadQuestions(examID, answeredQuestions);
+        } else {
+          this.isLoading = false;
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải tiến độ bài thi.');
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi kết nối khi tải tiến độ bài thi.');
+      }
+    });
+  }
+
+  private applySavedProgress(answeredQuestions: any[]): void {
+    answeredQuestions.forEach(savedItem => {
+      // Multiple choice
+      const mcq = this.multipleChoiceQuestions.find(q => q.ID === savedItem.QuestionID);
+      if (mcq) {
+        mcq.SelectedAnswers = savedItem.AnswerIDs || [];
+        if (mcq.SelectedAnswers.length > 0) Object.assign(mcq, { _isAnswered: true });
+        return;
+      }
+
+      // Essay
+      const essay = this.essayQuestions.find(q => q.ID === savedItem.QuestionID);
+      if (essay) {
+        essay.EssayAnswer = savedItem.AnswerText || '';
+        if (essay.EssayAnswer) Object.assign(essay, { _isAnswered: true });
+
+        if (savedItem.Images && savedItem.Images.length > 0) {
+          essay.AnswerAttachments = savedItem.Images.map((img: any) => ({
+            ID: img.ID,
+            FileNameOrigin: img.FileNameOrigin,
+            ServerPath: img.ServerPath,
+            Extension: img.Extension,
+            uid: Math.random().toString(36).substring(2) + Date.now(),
+            size: 0,
+            previewUrl: null,
+            isImage: this.isImageExtension(img.Extension),
+            loading: false
+          }));
+
+          essay.AnswerAttachments.forEach((att: any) => {
+            if (att.isImage) {
+              this.candidateTestService.downloadFileNotAuth(att.ServerPath).subscribe({
+                next: (blob: Blob) => {
+                  att.previewUrl = URL.createObjectURL(blob);
+                  this.cdr.detectChanges();
+                }
+              });
+            }
+          });
+          Object.assign(essay, { _isAnswered: true });
+        }
       }
     });
   }
@@ -442,15 +549,19 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
   private loadQuestionImage(q: MultipleChoiceQuestion | EssayQuestion): void {
     // Legacy image
     if (q.Image) {
-      this.examService.downloadFile(q.Image).subscribe({
+      this.candidateTestService.downloadFileNotAuth(q.Image).subscribe({
         next: (blob: Blob) => {
-          const imgTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/jfif'];
-          if (imgTypes.includes(blob.type)) {
+          console.log(`Loaded Question Image: ${q.Image}, Type: ${blob.type}, Size: ${blob.size}`);
+          if (this.isImageExtension(q.Image || '') || blob.type.startsWith('image/')) {
             q.imagePreviewUrl = URL.createObjectURL(blob);
             this.cdr.detectChanges();
           }
         },
-        error: () => { q.imagePreviewUrl = null; }
+        error: (err) => {
+          console.error(`Error loading Question Image: ${q.Image}`, err);
+          q.imagePreviewUrl = null;
+          this.cdr.detectChanges();
+        }
       });
     }
 
@@ -458,11 +569,11 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     if (q.Attachments && q.Attachments.length > 0) {
       q.Attachments.forEach(att => {
         if (!att.ServerPath) return;
-        this.examService.downloadFile(att.ServerPath).subscribe({
+        this.candidateTestService.downloadFileNotAuth(att.ServerPath).subscribe({
           next: (blob: Blob) => {
+            console.log(`Loaded Attachment: ${att.ServerPath}, Type: ${blob.type}`);
             // Check if it's an image to show preview
-            const imgTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/jfif', 'image/pjpeg', 'image/x-png'];
-            if (imgTypes.includes(blob.type) || att.ServerPath.match(/\.(jpg|jpeg|png|gif|webp|jfif)$/i)) {
+            if (this.isImageExtension(att.ServerPath || '') || blob.type.startsWith('image/')) {
               att.previewUrl = URL.createObjectURL(blob);
               this.cdr.detectChanges();
             }
@@ -498,9 +609,19 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
 
   private loadAnswerImage(ans: AnswerOption): void {
     if (!ans.ImageLink) return;
-    this.examService.downloadFile(ans.ImageLink).subscribe({
-      next: (blob: Blob) => { ans.imagePreviewUrl = URL.createObjectURL(blob); this.cdr.detectChanges(); },
-      error: () => { ans.imagePreviewUrl = null; }
+    this.candidateTestService.downloadFileNotAuth(ans.ImageLink).subscribe({
+      next: (blob: Blob) => {
+        console.log(`Loaded Answer Image: ${ans.ImageLink}, Type: ${blob.type}`);
+        if (this.isImageExtension(ans.ImageLink || '') || blob.type.startsWith('image/')) {
+          ans.imagePreviewUrl = URL.createObjectURL(blob);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error(`Error loading Answer Image: ${ans.ImageLink}`, err);
+        ans.imagePreviewUrl = null;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -632,8 +753,8 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     question.AnswerAttachments.push(newItem);
     this.cdr.detectChanges();
 
-    // Thực hiện upload ngay
-    this.examService.uploadImage(file).subscribe({
+    // Thực hiện upload ngay (Ứng viên upload không cần subPath theo yêu cầu)
+    this.candidateTestService.uploadFile(file).subscribe({
       next: (res: any) => {
         newItem.loading = false;
         if (res?.status === 1 || res?.success || res?.data) {
@@ -667,8 +788,10 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     return file.type.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|jfif)$/i.test(file.name);
   }
 
-  private isImageExtension(ext: string): boolean {
-    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'jfif'].includes(ext.toLowerCase().replace('.', ''));
+  private isImageExtension(path: string): boolean {
+    if (!path) return false;
+    const ext = path.split('.').pop() || '';
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'jfif', 'bmp', 'svg'].includes(ext.toLowerCase());
   }
 
   //#endregion

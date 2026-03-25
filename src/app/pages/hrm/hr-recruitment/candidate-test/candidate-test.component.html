@@ -157,54 +157,71 @@
                             <!-- Images -->
                             <div *ngIf="currentMcQuestion.imagePreviewUrl" class="q-att-item image-item">
                                 <img [src]="currentMcQuestion.imagePreviewUrl" alt="Hình câu hỏi"
-                                    (click)="openImageOverlay(currentMcQuestion.imagePreviewUrl!)" nz-tooltip
-                                    nzTooltipTitle="Nhấn để xem to" />
-                            </div>
-                            <ng-container *ngFor="let att of currentMcQuestion.Attachments">
-                                <div *ngIf="att.previewUrl" class="q-att-item image-item">
-                                    <img [src]="att.previewUrl" alt="Hình đính kèm"
-                                        (click)="openImageOverlay(att.previewUrl!)" nz-tooltip
+                                    class="q-attachments-container">
+                                <!-- Images -->
+                                <div *ngIf="currentMcQuestion.imagePreviewUrl" class="q-att-item image-item">
+                                    <img [src]="currentMcQuestion.imagePreviewUrl" alt="Hình câu hỏi"
+                                        (click)="openImageOverlay(currentMcQuestion.imagePreviewUrl!)" nz-tooltip
                                         nzTooltipTitle="Nhấn để xem to" />
                                 </div>
-                            </ng-container>
+                                <ng-container *ngFor="let att of currentMcQuestion.Attachments">
+                                    <div *ngIf="att.previewUrl" class="q-att-item image-item">
+                                        <img [src]="att.previewUrl" alt="Hình đính kèm" *ngIf="att.previewUrl"
+                                            class="q-att-item image-item">
+                                        <img [src]="att.previewUrl" alt="Hình đính kèm"
+                                            (click)="openImageOverlay(att.previewUrl!)" nz-tooltip
+                                            nzTooltipTitle="Nhấn để xem to" />
+                                    </div>
+                                </ng-container>
 
-                            <!-- Non-image files -->
-                            <ng-container *ngFor="let att of currentMcQuestion.Attachments">
-                                <div *ngIf="!att.previewUrl" class="q-att-item file-item"
-                                    (click)="downloadAttachment(att)">
-                                    <span nz-icon nzType="file" nzTheme="outline"></span>
-                                    <span class="file-name">{{ att.FileNameOrigin }}</span>
-                                    <span nz-icon nzType="download" nzTheme="outline" class="download-icon"></span>
-                                </div>
-                            </ng-container>
-                        </div>
+                                <!-- Non-image files -->
+                                <ng-container *ngFor="let att of currentMcQuestion.Attachments">
+                                    <div *ngIf="!att.previewUrl" class="q-att-item file-item"
+                                        (click)="downloadAttachment(att)">
+                                        <span nz-icon nzType="file" nzTheme="outline"></span>
+                                        <span class="file-name">{{ att.FileNameOrigin }}</span>
+                                        <span nz-icon nzType="download" nzTheme="outline" class="download-icon"></span>
+                                    </div>
+                                </ng-container>
+                                <!-- Non-image files -->
+                                <ng-container *ngFor="let att of currentMcQuestion.Attachments">
+                                    <div *ngIf="!att.previewUrl" class="q-att-item file-item"
+                                        (click)="downloadAttachment(att)">
+                                        <span nz-icon nzType="file" nzTheme="outline"></span>
+                                        <span class="file-name">{{ att.FileNameOrigin }}</span>
+                                        <span nz-icon nzType="download" nzTheme="outline" class="download-icon"></span>
+                                    </div>
+                                </ng-container>
+                            </div>
 
-                        <div class="answers-list">
-                            <div *ngFor="let ans of currentMcQuestion.Answers" class="answer-option"
-                                [class.selected]="isAnswerSelected(currentMcQuestion, ans.ID)"
-                                (click)="toggleAnswer(currentMcQuestion, ans.ID)">
-                                <span class="answer-checkbox"
-                                    [class.checked]="isAnswerSelected(currentMcQuestion, ans.ID)">
-                                    <span *ngIf="isAnswerSelected(currentMcQuestion, ans.ID)" nz-icon nzType="check"
-                                        nzTheme="outline"></span>
-                                </span>
-                                <span class="answer-caption">{{ ans.Caption }}</span>
-                                <div class="answer-content">
-                                    <span class="answer-text">{{ ans.AnswerText }}</span>
-                                    <img *ngIf="ans.imagePreviewUrl" [src]="ans.imagePreviewUrl" alt="Hình đáp án"
-                                        class="answer-image"
-                                        (click)="$event.stopPropagation(); openImageOverlay(ans.imagePreviewUrl!)"
-                                        nz-tooltip nzTooltipTitle="Nhấn để xem to" />
+                            <div class="answers-list">
+                                <div *ngFor="let ans of currentMcQuestion.Answers" class="answer-option"
+                                    [class.selected]="isAnswerSelected(currentMcQuestion, ans.ID)"
+                                    (click)="toggleAnswer(currentMcQuestion, ans.ID)">
+                                    <span class="answer-checkbox"
+                                        [class.checked]="isAnswerSelected(currentMcQuestion, ans.ID)">
+                                        <span *ngIf="isAnswerSelected(currentMcQuestion, ans.ID)" nz-icon nzType="check"
+                                            nzTheme="outline"></span>
+                                    </span>
+                                    <span class="answer-caption">{{ ans.Caption }}</span>
+                                    <div class="answer-content">
+                                        <span class="answer-text">{{ ans.AnswerText }}</span>
+                                        <img *ngIf="ans.imagePreviewUrl" [src]="ans.imagePreviewUrl" alt="Hình đáp án"
+                                            class="answer-image"
+                                            (click)="$event.stopPropagation(); openImageOverlay(ans.imagePreviewUrl!)"
+                                            nz-tooltip nzTooltipTitle="Nhấn để xem to" />
+                                    </div>
                                 </div>
                             </div>
+
                         </div>
 
+                        <div *ngIf="multipleChoiceQuestions.length === 0" class="empty-state">
+                            <span nz-icon nzType="inbox" nzTheme="outline"></span>
+                            <p>Không có câu hỏi trắc nghiệm</p>
+                        </div>
                     </div>
 
-                    <div *ngIf="multipleChoiceQuestions.length === 0" class="empty-state">
-                        <span nz-icon nzType="inbox" nzTheme="outline"></span>
-                        <p>Không có câu hỏi trắc nghiệm</p>
-                    </div>
                 </nz-tab>
 
                 <!-- TAB TỰ LUẬN -->
@@ -230,82 +247,103 @@
                             class="q-attachments-container">
                             <!-- Images -->
                             <div *ngIf="currentEssayQuestion.imagePreviewUrl" class="q-att-item image-item">
-                                <img [src]="currentEssayQuestion.imagePreviewUrl" alt="Hình câu hỏi"
-                                    (click)="openImageOverlay(currentEssayQuestion.imagePreviewUrl!)" nz-tooltip
-                                    nzTooltipTitle="Nhấn để xem to" />
-                            </div>
-                            <ng-container *ngFor="let att of currentEssayQuestion.Attachments">
-                                <div *ngIf="att.previewUrl" class="q-att-item image-item">
-                                    <img [src]="att.previewUrl" alt="Hình đính kèm"
-                                        (click)="openImageOverlay(att.previewUrl!)" nz-tooltip
+                                class="q-attachments-container">
+                                <!-- Images -->
+                                <div *ngIf="currentEssayQuestion.imagePreviewUrl" class="q-att-item image-item">
+                                    <img [src]="currentEssayQuestion.imagePreviewUrl" alt="Hình câu hỏi"
+                                        (click)="openImageOverlay(currentEssayQuestion.imagePreviewUrl!)" nz-tooltip
                                         nzTooltipTitle="Nhấn để xem to" />
                                 </div>
-                            </ng-container>
+                                <ng-container *ngFor="let att of currentEssayQuestion.Attachments">
+                                    <div *ngIf="att.previewUrl" class="q-att-item image-item">
+                                        <img [src]="att.previewUrl" alt="Hình đính kèm" *ngIf="att.previewUrl"
+                                            class="q-att-item image-item">
+                                        <img [src]="att.previewUrl" alt="Hình đính kèm"
+                                            (click)="openImageOverlay(att.previewUrl!)" nz-tooltip
+                                            nzTooltipTitle="Nhấn để xem to" />
+                                    </div>
+                                </ng-container>
 
-                            <!-- Non-image files -->
-                            <ng-container *ngFor="let att of currentEssayQuestion.Attachments">
-                                <div *ngIf="!att.previewUrl" class="q-att-item file-item"
-                                    (click)="downloadAttachment(att)">
-                                    <span nz-icon nzType="file" nzTheme="outline"></span>
-                                    <span class="file-name">{{ att.FileNameOrigin }}</span>
-                                    <span nz-icon nzType="download" nzTheme="outline" class="download-icon"></span>
-                                </div>
-                            </ng-container>
-                        </div>
-                        <!-- <div *ngIf="currentEssayQuestion.EssayGuidance" class="essay-guidance">
+                                <!-- Non-image files -->
+                                <ng-container *ngFor="let att of currentEssayQuestion.Attachments">
+                                    <div *ngIf="!att.previewUrl" class="q-att-item file-item"
+                                        (click)="downloadAttachment(att)">
+                                        <span nz-icon nzType="file" nzTheme="outline"></span>
+                                        <span class="file-name">{{ att.FileNameOrigin }}</span>
+                                        <span nz-icon nzType="download" nzTheme="outline" class="download-icon"></span>
+                                    </div>
+                                </ng-container>
+                                <!-- Non-image files -->
+                                <ng-container *ngFor="let att of currentEssayQuestion.Attachments">
+                                    <div *ngIf="!att.previewUrl" class="q-att-item file-item"
+                                        (click)="downloadAttachment(att)">
+                                        <span nz-icon nzType="file" nzTheme="outline"></span>
+                                        <span class="file-name">{{ att.FileNameOrigin }}</span>
+                                        <span nz-icon nzType="download" nzTheme="outline" class="download-icon"></span>
+                                    </div>
+                                </ng-container>
+                            </div>
+                            <!-- <div *ngIf="currentEssayQuestion.EssayGuidance" class="essay-guidance">
                             <span nz-icon nzType="bulb" nzTheme="outline"></span>
                             {{ currentEssayQuestion.EssayGuidance }}
                         </div> -->
-                        <div class="essay-answer-wrap">
-                            <textarea nz-input [(ngModel)]="currentEssayQuestion.EssayAnswer"
-                                [placeholder]="currentEssayQuestion.IsAnswerNumberValue ? 'Nhập kết quả số...' : 'Nhập câu trả lời của bạn tại đây...'"
-                                [nzAutosize]="currentEssayQuestion.IsAnswerNumberValue ? { minRows: 1, maxRows: 3 } : { minRows: 4, maxRows: 10 }"
-                                class="essay-textarea" (input)="onEssayAnswerInput($event, currentEssayQuestion)"
-                                [nzStatus]="currentEssayQuestion.IsAnswerNumberValue && currentEssayQuestion.EssayAnswer && !isNumeric(currentEssayQuestion.EssayAnswer) ? 'error' : ''">
+                            <div class="essay-answer-wrap">
+                                <textarea nz-input [(ngModel)]="currentEssayQuestion.EssayAnswer"
+                                    [placeholder]="currentEssayQuestion.IsAnswerNumberValue ? 'Nhập kết quả số...' : 'Nhập câu trả lời của bạn tại đây...'"
+                                    [nzAutosize]="currentEssayQuestion.IsAnswerNumberValue ? { minRows: 1, maxRows: 3 } : { minRows: 4, maxRows: 10 }"
+                                    [nzAutosize]="currentEssayQuestion.IsAnswerNumberValue ? { minRows: 1, maxRows: 3 } : { minRows: 4, maxRows: 10 }"
+                                    class="essay-textarea" (input)="onEssayAnswerInput($event, currentEssayQuestion)"
+                                    [nzStatus]="currentEssayQuestion.IsAnswerNumberValue && currentEssayQuestion.EssayAnswer && !isNumeric(currentEssayQuestion.EssayAnswer) ? 'error' : ''">
                             </textarea>
-                            <div class="char-count"
-                                [class.char-filled]="currentEssayQuestion.EssayAnswer && currentEssayQuestion.EssayAnswer.length > 0">
-                                <ng-container *ngIf="!currentEssayQuestion.IsAnswerNumberValue">
-                                    {{ currentEssayQuestion.EssayAnswer?.length || 0 }} ký tự
-                                </ng-container>
-                                <span
-                                    *ngIf="currentEssayQuestion.IsAnswerNumberValue && currentEssayQuestion.EssayAnswer && !isNumeric(currentEssayQuestion.EssayAnswer)"
-                                    class="text-danger">
-                                    Vui lòng chỉ nhập số!
-                                </span>
+                                <div class="char-count"
+                                    [class.char-filled]="currentEssayQuestion.EssayAnswer && currentEssayQuestion.EssayAnswer.length > 0">
+                                    <ng-container *ngIf="!currentEssayQuestion.IsAnswerNumberValue">
+                                        {{ currentEssayQuestion.EssayAnswer?.length || 0 }} ký tự
+                                    </ng-container>
+                                    <span
+                                        *ngIf="currentEssayQuestion.IsAnswerNumberValue && currentEssayQuestion.EssayAnswer && !isNumeric(currentEssayQuestion.EssayAnswer)"
+                                        class="text-danger">
+                                        Vui lòng chỉ nhập số!
+                                    </span>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Candidate Answer Uploads (NEW) -->
-                        <div class="answer-uploads-section" *ngIf="!currentEssayQuestion.IsAnswerNumberValue">
-                            <div class="upload-header">
-                                <span class="upload-title">Đính kèm ảnh/file câu trả lời:</span>
-                                <button nz-button nzType="default" nzSize="small" (click)="openFileSelectorAnswer(currentEssayQuestion)" class="upload-btn">
-                                    <span nz-icon nzType="upload"></span> Tải lên
-                                </button>
-                            </div>
-                            <div class="answer-attachments-list" *ngIf="currentEssayQuestion.AnswerAttachments.length > 0">
-                                <div *ngFor="let att of currentEssayQuestion.AnswerAttachments" class="answer-att-item" [class.loading]="att.loading">
-                                    <div class="att-preview" *ngIf="att.isImage && att.previewUrl">
-                                        <img [src]="att.previewUrl" (click)="openImageOverlay(att.previewUrl)" />
-                                    </div>
-                                    <div class="att-icon" *ngIf="!att.isImage || !att.previewUrl">
-                                        <span nz-icon [nzType]="att.loading ? 'loading' : 'file'"></span>
-                                    </div>
-                                    <div class="att-info">
-                                        <span class="att-name" [title]="att.FileNameOrigin">{{ att.FileNameOrigin }}</span>
-                                    </div>
-                                    <button class="att-remove" (click)="removeAnswerAttachment(att, currentEssayQuestion)">
-                                        <span nz-icon nzType="close"></span>
+                            <!-- Candidate Answer Uploads (NEW) -->
+                            <div class="answer-uploads-section" *ngIf="!currentEssayQuestion.IsAnswerNumberValue">
+                                <div class="upload-header">
+                                    <span class="upload-title">Đính kèm ảnh/file câu trả lời:</span>
+                                    <button nz-button nzType="default" nzSize="small"
+                                        (click)="openFileSelectorAnswer(currentEssayQuestion)" class="upload-btn">
+                                        <span nz-icon nzType="upload"></span> Tải lên
                                     </button>
+                                </div>
+                                <div class="answer-attachments-list"
+                                    *ngIf="currentEssayQuestion.AnswerAttachments.length > 0">
+                                    <div *ngFor="let att of currentEssayQuestion.AnswerAttachments"
+                                        class="answer-att-item" [class.loading]="att.loading">
+                                        <div class="att-preview" *ngIf="att.isImage && att.previewUrl">
+                                            <img [src]="att.previewUrl" (click)="openImageOverlay(att.previewUrl)" />
+                                        </div>
+                                        <div class="att-icon" *ngIf="!att.isImage || !att.previewUrl">
+                                            <span nz-icon [nzType]="att.loading ? 'loading' : 'file'"></span>
+                                        </div>
+                                        <div class="att-info">
+                                            <span class="att-name" [title]="att.FileNameOrigin">{{ att.FileNameOrigin
+                                                }}</span>
+                                        </div>
+                                        <button class="att-remove"
+                                            (click)="removeAnswerAttachment(att, currentEssayQuestion)">
+                                            <span nz-icon nzType="close"></span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div *ngIf="essayQuestions.length === 0" class="empty-state">
-                        <span nz-icon nzType="inbox" nzTheme="outline"></span>
-                        <p>Không có câu hỏi tự luận</p>
+                        <div *ngIf="essayQuestions.length === 0" class="empty-state">
+                            <span nz-icon nzType="inbox" nzTheme="outline"></span>
+                            <p>Không có câu hỏi tự luận</p>
+                        </div>
                     </div>
                 </nz-tab>
 

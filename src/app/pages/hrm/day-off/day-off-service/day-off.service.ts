@@ -109,4 +109,12 @@ export class DayOffService {
       request
     );
   }
+
+  saveMultiPhase(dto: any): Observable<any> {
+    return this.http.post<any>(this._url + 'EmployeeOnLeave/SaveMultiPhase', dto);
+  }
+
+  getMultiPhase(id: number): Observable<any> {
+    return this.http.get<any>(this._url + `EmployeeOnLeave/get-multi/${id}`);
+  }
 }

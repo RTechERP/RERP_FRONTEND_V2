@@ -49,7 +49,7 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
                             <nz-form-control>
-                                <input type="date" name="dateStart" [(ngModel)]="dateStart" class="w-100" 
+                                <input type="date" name="dateStart" [(ngModel)]="dateStart" class="w-100"
                                     style="padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
                             </nz-form-control>
                         </nz-form-item>
@@ -60,7 +60,7 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
                             <nz-form-control>
-                                <input type="date" name="dateEnd" [(ngModel)]="dateEnd" class="w-100" 
+                                <input type="date" name="dateEnd" [(ngModel)]="dateEnd" class="w-100"
                                     style="padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
                             </nz-form-control>
                         </nz-form-item>
@@ -86,21 +86,23 @@
                     </nz-col>
 
                     <!-- Nhân viên -->
-                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="6">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
                             <nz-form-control>
                                 <nz-select name="employeeId" class="w-100" nzShowSearch nzAllowClear
                                     nzPlaceHolder="Chọn nhân viên" [(ngModel)]="employeeId" nzSize="small">
-                                    <nz-option *ngFor="let item of getFilteredEmployees()" [nzValue]="item.ID"
-                                        [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
+                                    <nz-option-group *ngFor="let group of employees" [nzLabel]="group.key">
+                                        <nz-option *ngFor="let item of group.value" [nzValue]="item.ID"
+                                            [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
+                                    </nz-option-group>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
 
                     <!-- Từ khóa và nút tìm kiếm -->
-                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="4">
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="6">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
                             <nz-form-control>
@@ -123,11 +125,136 @@
         <!-- Content với bảng -->
         <div class="card-body p-0 position-relative" [class.with-search-bar]="shouldShowSearchBar"
             [class.without-search-bar]="!shouldShowSearchBar">
-            <div *ngIf="isLoadTable"
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.4); z-index: 999; display: flex; align-items: center; justify-content: center;">
-                <nz-spin [nzSpinning]="isLoadTable" nzSimple></nz-spin>
-            </div>
-            <div class="border" #tb_EA></div>
+            <p-table #p_EA [value]="groupedAttendance" [loading]="isLoadTable" [(selection)]="selectedAttendance"
+                [scrollable]="true" scrollHeight="85vh" styleClass="p-datatable-sm p-datatable-gridlines"
+                [tableStyle]="{'min-width': '100%'}" dataKey="ID">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 3rem" pFrozenColumn>
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th style="width: 60px" pFrozenColumn>STT</th>
+                        <th style="width: 110px" pFrozenColumn>ID Người</th>
+                        <th style="width: 110px" pFrozenColumn>Mã NV</th>
+                        <th style="width: 160px" pFrozenColumn>Tên Nhân Viên</th>
+                        <th style="width: 110px">Tổ chức</th>
+                        <th style="width: 110px">Ngày</th>
+                        <th style="width: 120px">Thứ</th>
+                        <th style="width: 200px">Khoảng TG</th>
+                        <th style="width: 90px">Giờ vào</th>
+                        <th style="width: 90px">Giờ ra</th>
+                        <th style="width: 110px">Muộn (ĐK)</th>
+                        <th style="width: 115px">Sớm (ĐK)</th>
+                        <th style="width: 90px">Làm thêm</th>
+                        <th style="width: 100px">Công tác</th>
+                        <th style="width: 130px">Quên VT (ĐK)</th>
+                        <th style="width: 80px">Nghỉ</th>
+                        <th style="width: 80px">WFH</th>
+                        <th style="width: 80px">Ngoại khóa</th>
+                        <th style="width: 150px">Quên VT thực tế</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
+                    <!-- Header Row -->
+                    <tr *ngIf="rowData.isHeader" class="p-rowgroup-header" style="cursor: pointer;"
+                        (click)="toggleGroup(rowData.DepartmentName)">
+                        <td colspan="20" class="bg-light">
+                            <button type="button" pButton pRipple
+                                class="p-button-text p-button-rounded p-button-plain p-0 mr-2"
+                                style="width: 2rem; height: 2rem;"
+                                (click)="toggleGroup(rowData.DepartmentName); $event.stopPropagation()"
+                                [icon]="expandedRows[rowData.DepartmentName] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+                            </button>
+                            <span class="font-bold ml-2">Phòng ban: {{rowData.DepartmentName}}
+                                ({{getGroupCount(rowData.DepartmentName)}})</span>
+                        </td>
+                    </tr>
+
+                    <!-- Data Row -->
+                    <tr *ngIf="!rowData.isHeader" [pSelectableRow]="rowData">
+                        <td style="width: 3rem" pFrozenColumn>
+                            <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+                        </td>
+                        <td style="width: 60px" class="text-center" pFrozenColumn>{{rowData.stt}}</td>
+                        <td style="width: 110px" pFrozenColumn [innerHTML]="highlightTable(rowData.IDChamCongMoi)"></td>
+                        <td style="width: 110px" pFrozenColumn [innerHTML]="highlightTable(rowData.Code)"></td>
+                        <td style="width: 160px" pFrozenColumn [innerHTML]="highlightTable(rowData.FullName)"></td>
+                        <td class="text-center">{{rowData.ToChuc}}</td>
+                        <td class="text-center">{{fmtDate(rowData.AttendanceDate)}}</td>
+                        <td class="text-center">{{rowData.DayWeek}}</td>
+                        <td class="text-center">{{rowData.Interval}}</td>
+
+                        <!-- Giờ vào -->
+                        <td class="text-center p-0">
+                            <div [ngStyle]="getCheckInStyle(rowData)"
+                                style="width: 100%; height: 100%; padding: 0.5rem 0;">
+                                {{timeDisplay(rowData.CheckInDate, rowData.CheckIn)}}
+                            </div>
+                        </td>
+
+                        <!-- Giờ ra -->
+                        <td class="text-center p-0">
+                            <div [ngStyle]="getCheckOutStyle(rowData)"
+                                style="width: 100%; height: 100%; padding: 0.5rem 0;">
+                                {{timeDisplay(rowData.CheckOutDate, rowData.CheckOut)}}
+                            </div>
+                        </td>
+
+                        <td class="text-center">
+                            <label nz-checkbox [nzChecked]="toBool(rowData.IsLateRegister)"
+                                style="pointer-events: none;" [nzIndeterminate]="false"></label>
+                        </td>
+                        <td class="text-center">
+                            <label nz-checkbox [nzChecked]="toBool(rowData.IsEarlyRegister)"
+                                style="pointer-events: none;" [nzIndeterminate]="false"></label>
+                        </td>
+                        <td class="text-center">
+                            <label nz-checkbox [nzChecked]="toBool(rowData.Overtime)" style="pointer-events: none;"
+                                [nzIndeterminate]="false"></label>
+                        </td>
+                        <td class="text-center">
+                            <label nz-checkbox [nzChecked]="toBool(rowData.Bussiness)" style="pointer-events: none;"
+                                [nzIndeterminate]="false"></label>
+                        </td>
+                        <td class="text-center">
+                            <label nz-checkbox [nzChecked]="toBool(rowData.NoFingerprint)" style="pointer-events: none;"
+                                [nzIndeterminate]="false"></label>
+                        </td>
+                        <td class="text-center">
+                            <label nz-checkbox [nzChecked]="toBool(rowData.OnLeave)" style="pointer-events: none;"
+                                [nzIndeterminate]="false"></label>
+                        </td>
+                        <td class="text-center">
+                            <label nz-checkbox [nzChecked]="toBool(rowData.WFH)" style="pointer-events: none;"
+                                [nzIndeterminate]="false"></label>
+                        </td>
+                        <td class="text-center">
+                            <label nz-checkbox [nzChecked]="toBool(rowData.Curricular)" style="pointer-events: none;"
+                                [nzIndeterminate]="false"></label>
+                        </td>
+                        <td class="text-center">
+                            <label nz-checkbox [nzChecked]="toBool(rowData.IsNoFinger)" style="pointer-events: none;"
+                                [nzIndeterminate]="false"></label>
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="20" class="text-center p-4">Không có dữ liệu để hiển thị</td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="footer">
+                    <tr *ngIf="attendanceData.length > 0">
+                        <td colspan="5" style="text-align: right; background: #f8f9fa;"><strong>Tổng bản ghi:</strong>
+                        </td>
+                        <td style="background: #f8f9fa;"><strong>{{attendanceData.length}}</strong></td>
+                        <td colspan="14" style="background: #f8f9fa;"></td>
+                    </tr>
+                </ng-template>
+            </p-table>
         </div>
     </div>
 </ng-container>

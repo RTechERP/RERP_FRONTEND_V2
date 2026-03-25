@@ -1,5 +1,25 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
 :host:focus {
     outline: none;
+}
+
+/* Support scrollHeight="flex": let p-datatable fill the flex host */
+:host ::ng-deep .p-datatable-scrollable {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .p-datatable-scrollable .p-datatable-wrapper {
+    flex: 1;
+    min-height: 0;
 }
 
 /* ── Global Search — compact, top-right ── */

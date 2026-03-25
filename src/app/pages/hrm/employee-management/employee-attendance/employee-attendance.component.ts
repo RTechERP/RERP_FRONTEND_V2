@@ -19,13 +19,15 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import type { ColumnDefinition, ColumnDefinitionAlign } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { RippleModule } from 'primeng/ripple';
+import { TooltipModule } from 'primeng/tooltip';
 import { DateTime } from 'luxon';
 
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -51,7 +53,12 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     NzSpinModule,
     NzFormModule,
     NzModalModule,
-    HasPermissionDirective
+    NzCheckboxModule,
+    HasPermissionDirective,
+    TableModule,
+    ButtonModule,
+    RippleModule,
+    TooltipModule
   ],
   templateUrl: './employee-attendance.component.html',
   styleUrls: ['./employee-attendance.component.css'],
@@ -65,8 +72,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     private modal: NzModalService
   ) { }
 
-  @ViewChild('tb_EA', { static: false }) tbEAContainer!: ElementRef;
-  tb_EA!: Tabulator;
+  // @ViewChild('tb_EA', { static: false }) tbEAContainer!: ElementRef;
+  // tb_EA!: Tabulator;
 
   // UI state
   sizeSearch = '22%';
@@ -91,8 +98,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
   employees: any[] = []; // grouped theo DepartmentName (cho dropdown)
 
   // Query params
-  dateStart: string = DateTime.local().minus({ days: 7 }).toISODate() || '';
-  dateEnd: string = DateTime.local().toISODate() || '';
+  dateStart: string = DateTime.local().startOf('month').toISODate() || '';
+  dateEnd: string = DateTime.local().endOf('month').toISODate() || '';
   departmentId = 0;
   employeeId = 0;
   searchValue = '';
@@ -106,14 +113,19 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
 
   // ✅ Thêm property cho export
   isExporting = false;
+  selectedAttendance: any[] = [];
+  expandedRows: any = {}; // { 'DepartmentName': true/false }
+  groupedAttendance: any[] = [];
+  groupCounts: Map<string, number> = new Map();
 
   ngOnInit(): void {
     this.loadDepartments();
-    this.loadEmployees(); // load danh sách nhân viên lần đầu
+    this.loadEmployees();
+    this.getEmployeeAttendace();
   }
 
   ngAfterViewInit(): void {
-    this.initializeTable();
+    // this.initializeTable();
   }
 
   // ---------- Load master ----------
@@ -163,7 +175,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     }
     return DateTime.fromJSDate(this.dateEnd);
   }
-  private toBool(v: any): boolean {
+  public toBool(v: any): boolean {
     if (v === true || v === false) return v;
     const n = Number(v);
     if (!isNaN(n)) return n > 0;
@@ -173,7 +185,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
   private pad2(n: number) {
     return String(n).padStart(2, '0');
   }
-  private fmtDate(v: any) {
+  public fmtDate(v: any) {
     if (!v) return '';
     const d = new Date(v);
     if (isNaN(d.getTime())) return '';
@@ -182,8 +194,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     )}/${d.getFullYear()}`;
   }
 
-  // Thay thế toàn bộ hàm cũ
-  private timeDisplay(dateVal: any, timeVal: any): string {
+  /** Chuyển đổi giờ từ định dạng HH:mm:ss sang HH:mm cho hiển thị */
+  public timeDisplay(dateVal: any, timeVal: any): string {
     // Ưu tiên datetime
     if (dateVal) {
       const dt = new Date(dateVal);
@@ -216,7 +228,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
   private escapeRegExp(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
-  private highlightTable(text: string): string {
+  public highlightTable(text: string): string {
     const term = (this.searchValue || '').trim();
     if (!term) return text || '';
     const re = new RegExp(`(${this.escapeRegExp(term)})`, 'gi');
@@ -279,25 +291,123 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
         next: (res: any) => {
           if (res?.status === 1) {
             this.attendanceData = res.data || [];
+            this.calculateGroupCounts();
+            this.updateGroupedAttendance();
           } else {
             this.attendanceData = [];
+            this.calculateGroupCounts();
+            this.updateGroupedAttendance();
             this.notification.warning(
               'Thông báo',
               res?.message || 'Không có dữ liệu'
             );
           }
-          this.updateTableData();
         },
         error: () => {
           this.attendanceData = [];
-          this.updateTableData();
           this.notification.error('Lỗi', 'Không thể tải dữ liệu chấm công');
         },
         complete: () => (this.isLoadTable = false),
       });
   }
 
+  calculateGroupCounts(): void {
+    this.groupCounts.clear();
+    // Sort logic removed here, moved to updateGroupedAttendance
+    this.attendanceData.forEach(x => {
+      const dept = x.DepartmentName || 'Không xác định';
+      this.groupCounts.set(dept, (this.groupCounts.get(dept) || 0) + 1);
+    });
+  }
+
+  toggleGroup(deptName: string): void {
+    const d = deptName || 'Không xác định';
+    this.expandedRows[d] = !this.expandedRows[d];
+    this.updateGroupedAttendance();
+  }
+
+  private updateGroupedAttendance(): void {
+    const grouped: any[] = [];
+    const depts = Array.from(new Set(this.attendanceData.map(d => d.DepartmentName || 'Không xác định')));
+    
+    // Sắp xếp depts theo bảng chữ cái
+    depts.sort((a, b) => a.localeCompare(b));
+
+    let globalStt = 1;
+    depts.forEach(deptName => {
+      // Add header row
+      grouped.push({ isHeader: true, DepartmentName: deptName });
+
+      // Add data rows if expanded
+      const deptRows = this.attendanceData.filter(d => (d.DepartmentName || 'Không xác định') === deptName);
+      
+      if (this.expandedRows[deptName] === undefined) this.expandedRows[deptName] = true;
+
+      if (this.expandedRows[deptName]) {
+        deptRows.forEach(row => {
+          row.stt = globalStt++;
+          grouped.push(row);
+        });
+      } else {
+        // Increment stt for non-visible rows if needed, or just let it stay
+        // Usually STT represents total sequence, but here it's easier to just count visible
+        // However, if we want total STT, we should count all rows
+      }
+    });
+
+    this.groupedAttendance = grouped;
+  }
+
+  getGroupCount(deptName: string): number {
+    return this.groupCounts.get(deptName || 'Không xác định') || 0;
+  }
+
+  getCheckInStyle(d: any): any {
+    const v = this.timeDisplay(d?.CheckInDate, d?.CheckIn);
+    if (!v) return {};
+
+    const isOnLeave = this.toBool(d?.OnLeave);
+    const isBusiness = this.toBool(d?.Bussiness);
+    const isNoFinger = this.toBool(d?.NoFingerprint);
+    const isWFH = this.toBool(d?.WFH);
+    if (isOnLeave || isBusiness || isNoFinger || isWFH) return {};
+
+    const holidayDay = Number(d?.HolidayDay) || 0;
+    if (holidayDay !== 0) return {};
+
+    const isOverLate = this.toBool(d?.IsOverLate);
+    const isLate = this.toBool(d?.IsLate);
+
+    if (isOverLate) return { 'background-color': 'yellow', color: '#000' };
+    if (isLate) return { 'background-color': 'rgb(255, 0, 0)', color: '#fff' };
+
+    return {};
+  }
+
+  getCheckOutStyle(d: any): any {
+    const v = this.timeDisplay(d?.CheckOutDate, d?.CheckOut);
+    if (!v) return {};
+
+    const isOnLeave = this.toBool(d?.OnLeave);
+    const isBusiness = this.toBool(d?.Bussiness);
+    const isNoFinger = this.toBool(d?.NoFingerprint);
+    const isWFH = this.toBool(d?.WFH);
+    if (isOnLeave || isBusiness || isNoFinger || isWFH) return {};
+
+    const holidayDay = Number(d?.HolidayDay) || 0;
+    if (holidayDay !== 0) return {};
+
+    const isOverEarly = this.toBool(d?.IsOverEarly);
+    const isEarly = this.toBool(d?.IsEarly);
+
+    if (isOverEarly) return { 'background-color': 'yellow', color: '#000' };
+    if (isEarly) return { 'background-color': 'rgb(255, 0, 0)', color: '#fff' };
+
+    return {};
+  }
+
   // ---------- Table ----------
+  /*
   initializeTable(): void {
     if (!this.tbEAContainer?.nativeElement) return;
 
@@ -317,255 +427,12 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
   }
 
   private buildColumnsAttendance(): ColumnDefinition[] {
-    const ALIGN_CENTER: ColumnDefinitionAlign = 'center';
-    const ALIGN_LEFT: ColumnDefinitionAlign = 'left';
-    const ALIGN_RIGHT: ColumnDefinitionAlign = 'right';
-
-    const checkbox = (cell: any) =>
-      this.toBool(cell.getValue())
-        ? "<input type='checkbox' checked readonly style='pointer-events:none'/>"
-        : "<input type='checkbox' readonly style='pointer-events:none'/>";
-
-    const checkInFmt = (cell: any) => {
-      const d = cell.getRow().getData();
-      const v = this.timeDisplay(d?.CheckInDate, d?.CheckIn); // ưu tiên Date, fallback chuỗi
-      if (!v) return ''; // không có giờ -> để trống
-
-      // 4 cờ phát sinh: nghỉ/công tác/quên vân tay/WFH => không tô
-      const isOnLeave = this.toBool(d?.OnLeave);
-      const isBusiness = this.toBool(d?.Bussiness); // chú ý: field là 'Bussiness' theo SP
-      const isNoFinger = this.toBool(d?.NoFingerprint);
-      const isWFH = this.toBool(d?.WFH);
-      if (isOnLeave || isBusiness || isNoFinger || isWFH) return v;
-
-      // Chỉ tô khi ngày làm việc
-      const holidayDay = Number(d?.HolidayDay) || 0;
-      if (holidayDay !== 0) return v;
-
-      // Ưu tiên vàng nếu > 1h; nếu không thì đỏ khi đi muộn thực tế
-      const isOverLate = this.toBool(d?.IsOverLate);
-      const isLate = this.toBool(d?.IsLate);
-
-      const style = isOverLate
-        ? 'background-color: yellow; color:#000;'
-        : isLate
-          ? 'background-color: rgb(255, 0, 0); color:#fff;'
-          : '';
-
-      return `<div style="${style}">${v}</div>`;
-    };
-
-    const checkOutFmt = (cell: any) => {
-      const d = cell.getRow().getData();
-      const v = this.timeDisplay(d?.CheckOutDate, d?.CheckOut);
-      if (!v) return '';
-
-      const isOnLeave = this.toBool(d?.OnLeave);
-      const isBusiness = this.toBool(d?.Bussiness);
-      const isNoFinger = this.toBool(d?.NoFingerprint);
-      const isWFH = this.toBool(d?.WFH);
-      if (isOnLeave || isBusiness || isNoFinger || isWFH) return v;
-
-      const holidayDay = Number(d?.HolidayDay) || 0;
-      if (holidayDay !== 0) return v;
-
-      const isOverEarly = this.toBool(d?.IsOverEarly);
-      const isEarly = this.toBool(d?.IsEarly);
-
-      const style = isOverEarly
-        ? 'background-color: yellow; color:#000;'
-        : isEarly
-          ? 'background-color: rgb(255, 0, 0); color:#fff;'
-          : '';
-
-      return `<div style="${style}">${v}</div>`;
-    };
-
-    const highlight = (cell: any) =>
-      this.highlightTable(String(cell.getValue() ?? ''));
-
-    const cols: ColumnDefinition[] = [
-      {
-        formatter: 'rowSelection',
-        titleFormatter: 'rowSelection',
-        title: '',
-        width: 30,
-        hozAlign: ALIGN_CENTER,
-        headerHozAlign: ALIGN_CENTER,
-        frozen: true,
-      },
-      {
-        title: 'Thông tin nhân viên',
-        headerHozAlign: ALIGN_CENTER,
-        frozen: true,
-        columns: [
-          {
-            title: 'STT',
-            field: 'STT',
-            width: 60,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-          },
-          {
-            title: 'ID Người',
-            field: 'IDChamCongMoi',
-            width: 110,
-            hozAlign: ALIGN_LEFT,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: highlight,
-          },
-          {
-            title: 'Mã NV',
-            field: 'Code',
-            width: 110,
-            hozAlign: ALIGN_LEFT,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: highlight,
-          },
-          {
-            title: 'Tên Nhân Viên',
-            field: 'FullName',
-            width: 220,
-            headerHozAlign: ALIGN_CENTER,
-            hozAlign: ALIGN_LEFT,
-            formatter: highlight,
-          },
-        ],
-      },
-      {
-        title: 'Dữ liệu chấm công',
-        headerHozAlign: ALIGN_CENTER,
-        columns: [
-          {
-            title: 'Tổ chức',
-            field: 'ToChuc',
-            width: 110,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-          },
-          {
-            title: 'Ngày',
-            field: 'AttendanceDate',
-            width: 110,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: (c: any) => this.fmtDate(c.getValue()),
-          },
-          {
-            title: 'Ngày trong tuần',
-            field: 'DayWeek',
-            width: 120,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-          },
-          {
-            title: 'Khoảng thời gian',
-            field: 'Interval',
-            width: 140,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-          },
-
-          // Giờ vào/ra hiển thị từ *Date, fallback chuỗi
-          {
-            title: 'Giờ vào',
-            field: 'CheckInDate',
-            width: 90,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkInFmt,
-          },
-          {
-            title: 'Giờ ra',
-            field: 'CheckOutDate',
-            width: 90,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkOutFmt,
-          },
-
-          {
-            title: 'Đi muộn (ĐK)',
-            field: 'IsLateRegister',
-            width: 110,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkbox,
-          },
-          {
-            title: 'Về sớm (ĐK)',
-            field: 'IsEarlyRegister',
-            width: 115,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkbox,
-          },
-
-          {
-            title: 'Làm thêm',
-            field: 'Overtime',
-            width: 90,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkbox,
-          },
-          {
-            title: 'Công tác',
-            field: 'Bussiness',
-            width: 100,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkbox,
-          }, // SP trả 'Bussiness'
-          {
-            title: 'ĐK quên vân tay',
-            field: 'NoFingerprint',
-            width: 130,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkbox,
-          },
-          {
-            title: 'Nghỉ',
-            field: 'OnLeave',
-            width: 80,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkbox,
-          },
-          {
-            title: 'WFH',
-            field: 'WFH',
-            width: 80,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkbox,
-          },
-          {
-            title: 'Ngoại khóa',
-            field: 'Curricular',
-            width: 80,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkbox,
-          },
-          {
-            title: 'Quên vân tay thực tế',
-            field: 'IsNoFinger',
-            width: 150,
-            hozAlign: ALIGN_CENTER,
-            headerHozAlign: ALIGN_CENTER,
-            formatter: checkbox,
-          },
-        ],
-      },
-    ];
-    return cols;
+    // ...
   }
+  */
 
   updateTableData(): void {
-    if (!this.tb_EA) return;
-    this.tb_EA.setData(this.attendanceData);
+    // PrimeNG handles data binding automatically via [value]
   }
 
   // ======================= EXPORT EXCEL với ExcelJS =======================
@@ -612,14 +479,13 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     }
   }
 
-  /** Tạo workbook ExcelJS với đầy đủ styling */
   private async createExcelWorkbook(): Promise<ExcelJS.Workbook> {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'RERP System';
     workbook.created = new Date();
 
     const worksheet = workbook.addWorksheet('DanhSachVanTay', {
-      views: [{ state: 'frozen', xSplit: 4, ySplit: 1 }]
+      views: [{ state: 'frozen', xSplit: 5, ySplit: 1 }]
     });
 
     // Định nghĩa các cột
@@ -774,15 +640,15 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
         // Style cho data rows: font Tahoma size 8.5
         dataRow.eachCell((cell, colNumber) => {
           cell.font = {
-            name: 'Tahoma',
-            size: 8.5,
+            name: 'Times New Roman',
+            size: 11,
             color: { argb: 'FF000000' }
           };
           cell.border = {
-            top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-            bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-            left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
-            right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+            top: { style: 'thin', color: { argb: 'FF000000' } },
+            bottom: { style: 'thin', color: { argb: 'FF000000' } },
+            left: { style: 'thin', color: { argb: 'FF000000' } },
+            right: { style: 'thin', color: { argb: 'FF000000' } }
           };
 
           // Căn giữa các cột checkbox
@@ -827,8 +693,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
               fgColor: { argb: 'FFFF0000' }
             };
             checkInCell.font = {
-              name: 'Tahoma',
-              size: 8.5,
+              name: 'Times New Roman',
+              size: 11,
               bold: true,
               color: { argb: 'FFFFFFFF' }
             };
@@ -855,8 +721,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
               fgColor: { argb: 'FFFF0000' }
             };
             checkOutCell.font = {
-              name: 'Tahoma',
-              size: 8.5,
+              name: 'Times New Roman',
+              size: 11,
               bold: true,
               color: { argb: 'FFFFFFFF' }
             };
@@ -881,8 +747,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
 
   // ======================= DELETE ITEMS =======================
   deleteItems(): void {
-    if (!this.tb_EA) return;
-    const selected = this.tb_EA.getSelectedData();
+    const selected = this.selectedAttendance;
     if (!selected || selected.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn dòng cần xóa');
       return;
@@ -906,7 +771,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
               this.notification.success('Thông báo', res?.message || 'Xóa thành công');
               this.getEmployeeAttendace();
               // Clear selection
-              this.tb_EA.deselectRow();
+              this.selectedAttendance = [];
             } else {
               this.notification.error('Lỗi', res?.message || 'Xóa thất bại');
             }

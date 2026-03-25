@@ -83,6 +83,9 @@ export class CustomTable implements OnChanges {
     /** Cache of last-loaded data per field (for formatValue when using loadData) */
     private lookupDataCache: { [field: string]: any[] } = {};
 
+    // --- Cell Value Cache (performance: avoid re-calling format() on every CD cycle) ---
+    private cellValueCache = new Map<string, string>();
+
     // --- Cell Focus State ---
     focusedCell: { rowData: any, colField: string } | null = null;
     private lookupDebounceTimer: any = null;
@@ -92,9 +95,10 @@ export class CustomTable implements OnChanges {
     private _data: any[] = [];
 
     @Input() set data(val: any[]) {
-        this._originalData = val ? [...val] : [];
-        this._data = val ? [...val] : [];
-        this.buildFilterOptionsCache();
+        this._originalData = val ?? [];
+        this._data = val ?? [];
+        this.cellValueCache.clear();
+        this.scheduleBuildFilterOptionsCache();
     }
     get data(): any[] {
         return this._data;
@@ -116,9 +120,12 @@ export class CustomTable implements OnChanges {
     }
 
     // --- Layout ---
-    @Input() height: string = '100%';
-    @HostBinding('style.height') get hostHeight() { return this.height; }
-    @Input() minWidth: string = '50rem';
+    @Input() height: string = '';
+    @HostBinding('style.height') get hostHeight() { return this.height || null; }
+    @HostBinding('style.display') get hostDisplay() { return this.height ? 'flex' : null; }
+    @HostBinding('style.flexDirection') get hostFlexDir() { return this.height ? 'column' : null; }
+    @HostBinding('style.minHeight') get hostMinHeight() { return this.height ? '0' : null; }
+    @HostBinding('style.overflow') get hostOverflow() { return this.height ? 'hidden' : null; }
     @Input() resizable: boolean = true;
     @Input() resizeMode: string = 'expand';
     @Input() showGridlines: boolean = true;
@@ -164,6 +171,7 @@ export class CustomTable implements OnChanges {
     @Input() contextMenuItems: MenuItem[] = [];
     @Input() selectedContextRow: any = null;
     @Output() selectedContextRowChange = new EventEmitter<any>();
+    @Output() contextMenuSelectionChange = new EventEmitter<any>();
 
     // --- Column Reorder ---
     @Input() reorderableColumns: boolean = false;
@@ -211,23 +219,27 @@ export class CustomTable implements OnChanges {
     showColumnChooser: boolean = false;
     chooserColumns: ColumnDef[] = [];
     @Output() rowClick = new EventEmitter<any>();
+    @Output() rowDoubleClick = new EventEmitter<any>();
     clickedRowKey: any = null;
 
     onRowClick(rowData: any) {
-        if (!this.clickSelectRow) return;
-        const newKey = this.dataKey ? rowData[this.dataKey] : rowData;
-        if (this.clickedRowKey !== newKey) {
-            // Only clear focusedCell if it belongs to the OLD row.
-            // If onCellClick already set focusedCell to the new row, keep it.
-            const focusedKey = this.focusedCell
-                ? (this.dataKey ? this.focusedCell.rowData[this.dataKey] : this.focusedCell.rowData)
-                : null;
-            if (focusedKey !== newKey) {
-                this.focusedCell = null;
+        if (this.clickSelectRow) {
+            const newKey = this.dataKey ? rowData[this.dataKey] : rowData;
+            if (this.clickedRowKey !== newKey) {
+                const focusedKey = this.focusedCell
+                    ? (this.dataKey ? this.focusedCell.rowData[this.dataKey] : this.focusedCell.rowData)
+                    : null;
+                if (focusedKey !== newKey) {
+                    this.focusedCell = null;
+                }
             }
+            this.clickedRowKey = newKey;
         }
-        this.clickedRowKey = newKey;
         this.rowClick.emit(rowData);
+    }
+
+    onRowDoubleClick(rowData: any) {
+        this.rowDoubleClick.emit(rowData);
     }
 
     isRowClicked(rowData: any): boolean {
@@ -291,13 +303,12 @@ export class CustomTable implements OnChanges {
 
     // --- Filter Options Cache ---
     filterOptionsCache: { [field: string]: { label: string; value: any }[] } = {};
+    private _cacheScheduleId: any = null;
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['data'] || changes['columns']) {
-            this.buildFilterOptionsCache();
-        }
         if (changes['columns'] && this.columns) {
             this._allColumns = [...this.columns];
+            this.scheduleBuildFilterOptionsCache();
         }
     }
 
@@ -306,6 +317,14 @@ export class CustomTable implements OnChanges {
     }
 
     // --- Filter Options (auto-populated from data, or lazy-loaded) ---
+    scheduleBuildFilterOptionsCache() {
+        if (this._cacheScheduleId != null) return;
+        this._cacheScheduleId = setTimeout(() => {
+            this._cacheScheduleId = null;
+            this.buildFilterOptionsCache();
+        }, 0);
+    }
+
     buildFilterOptionsCache() {
         this.filterOptionsCache = {};
         if (!this.columns?.length) return;
@@ -327,9 +346,14 @@ export class CustomTable implements OnChanges {
         return this.filterOptionsCache[col.field] || [];
     }
 
+    // --- TrackBy ---
+    trackByField(_: number, col: ColumnDef): string { return col.field; }
+    trackByIndex(i: number): number { return i; }
+
 
     onGlobalFilter(event: Event) {
         this.globalFilterValue = (event.target as HTMLInputElement).value;
+        this.cellValueCache.clear();
         this.dt.filterGlobal(this.globalFilterValue, 'contains');
     }
 
@@ -339,6 +363,21 @@ export class CustomTable implements OnChanges {
         const term = this.globalFilterValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(`(${term})`, 'gi');
         return str.replace(regex, '<mark>$1</mark>');
+    }
+
+    /** Memoized cell value: gọi formatValue + getHighlightedText đúng 1 lần/cell, cache lại cho các CD cycle tiếp theo */
+    getCellValue(col: ColumnDef, rowData: any): string {
+        const rowKey = this.dataKey ? rowData[this.dataKey] : null;
+        const cacheKey = rowKey != null
+            ? `${col.field}__${rowKey}__${this.globalFilterValue}`
+            : null;
+        if (cacheKey) {
+            const cached = this.cellValueCache.get(cacheKey);
+            if (cached !== undefined) return cached;
+        }
+        const result = this.getHighlightedText(this.formatValue(col, rowData));
+        if (cacheKey) this.cellValueCache.set(cacheKey, result);
+        return result;
     }
 
     isFilterSelected(value: any[], val: any): boolean {

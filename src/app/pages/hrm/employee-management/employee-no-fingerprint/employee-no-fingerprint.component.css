@@ -28,10 +28,8 @@
   font-size: 0.75rem;
 }
 
-/* Set font-size 12px for all elements */
-:host *,
-:host ::ng-deep * {
-  font-size: 12px !important;
+.reset {
+  all: revert;
 }
 
 /* Search form positioning and z-index fixes */
@@ -83,76 +81,61 @@
   }
 }
 
-/* SlickGrid adjustment */
-:host ::ng-deep .slick-cell {
-  font-size: 12px !important;
+/* SlickGrid container */
+#grvENFContainer,
+.grid-container-enf {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible !important;
 }
 
-:host ::ng-deep .slick-header-column {
+/* Ensure grid fills the container */
+::ng-deep #grvENF {
+  min-height: 80vh !important;
+}
+
+/* SlickGrid styles */
+::ng-deep #grvENFContainer .slickgrid-container {
+  font-size: 12px !important;
+  height: 100% !important;
+  min-height: 790px !important;
+  overflow: visible !important;
+}
+
+::ng-deep .slick-header-column {
   font-size: 12px !important;
   font-weight: bold;
 }
 
-:host ::ng-deep .badge {
-  font-size: 10px !important;
-  padding: 4px 8px;
-}
-
-
-/* Grid container needs explicit height */
-#grvENFContainer {
-  width: 100% !important;
-  height: 100% !important;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Ensure angular-slickgrid component fills container */
-#grvENFContainer angular-slickgrid {
-  flex: 1;
-  height: 100% !important;
-  width: 100% !important;
-}
-
-/* SlickGrid internal container */
-::ng-deep #grvENFContainer .slickgrid-container {
+::ng-deep .slick-cell {
   font-size: 12px !important;
-  height: 100% !important;
-  min-height: 85vh !important;
 }
 
-:host ::ng-deep .ant-tabs-content {
-  height: 100%;
+::ng-deep .slick-footerrow-cell {
+  font-size: 12px !important;
+  font-weight: bold;
+  background-color: #f0f0f0 !important;
+  border-top: 2px solid #1677ff !important;
 }
 
-:host ::ng-deep .ant-tabs-tabpane {
-  height: 100%;
+::ng-deep .slick-footerrow {
+  background-color: #f0f0f0 !important;
 }
 
-:host ::ng-deep .ant-tabs-tabpane-active {
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100% !important;
+/* Footer row styling for Code column */
+:host ::ng-deep .slick-footerrow-column[data-column-id="Code"] {
+  text-align: right !important;
+  padding-right: 8px !important;
 }
 
-/* Grid container - same as propose-vehicle-repair */
-.grid-container {
-  height: 100%;
-  width: 100%;
+/* Hide scrollbars in frozen left pane */
+::ng-deep .slick-pane-left .slick-viewport,
+::ng-deep .slick-frozen-left .slick-viewport {
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
 }
 
-angular-slickgrid,
-.angular-slickgrid-container {
-  height: 100% !important;
-  width: 100%;
-  display: flex;
-}
-
-:host ::ng-deep .slickgrid-container {
-  height: 100% !important;
-  width: 100% !important;
-}
-
-::ng-deep .ant-layout {
-  height: 98% !important;
+::ng-deep .slick-pane-left .slick-header,
+::ng-deep .slick-frozen-left .slick-header {
+  overflow: hidden !important;
 }

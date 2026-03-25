@@ -14,7 +14,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { EmployeeDeductionService } from '../employee-deduction.service';
-import { NOTIFICATION_TITLE, RESPONSE_STATUS } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../../app.config';
 
 @Component({
   selector: 'app-employee-deduction-form',
@@ -126,9 +126,16 @@ export class EmployeeDeductionFormComponent implements OnInit {
           this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lưu thất bại');
         }
       },
-      error: () => {
+      error: (err: any) => {
         this.isLoading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lưu dữ liệu');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       },
     });
   }

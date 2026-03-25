@@ -34,7 +34,7 @@ import {
 import { EmployeeDeductionFormComponent } from './employee-deduction-form/employee-deduction-form.component';
 import { EmployeeDeductionSummaryComponent } from './employee-deduction-summary/employee-deduction-summary.component';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
-import { NOTIFICATION_TITLE, RESPONSE_STATUS } from '../../../../app.config';
+import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
 import { PermissionService } from '../../../../services/permission.service';
 import { UserService } from '../../../../services/user.service';
 @Component({
@@ -235,6 +235,16 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
           this.groupDropdownEmployees(this.employees);
         }
       },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
+      },
     });
 
     this.deductionService.getDepartments().subscribe({
@@ -248,6 +258,16 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
           }
           this.onSearch(); // Trigger search after loading departments
         }
+      },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       },
     });
   }
@@ -295,7 +315,14 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         this.isLoading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       },
     });
   }
@@ -370,8 +397,15 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
               this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Xóa thất bại');
             }
           },
-          error: () => {
-            this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xóa dữ liệu');
+          error: (err: any) => {
+            this.notification.create(
+              NOTIFICATION_TYPE_MAP[err.status] || 'error',
+              NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+              err?.error?.message || `${err.error}\n${err.message}`,
+              {
+                nzStyle: { whiteSpace: 'pre-line' }
+              }
+            );
           },
         });
       },
@@ -477,9 +511,16 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
           this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Tính phạt thất bại');
         }
       },
-      error: () => {
+      error: (err: any) => {
         this.isLoading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tính phạt');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       },
     });
   }

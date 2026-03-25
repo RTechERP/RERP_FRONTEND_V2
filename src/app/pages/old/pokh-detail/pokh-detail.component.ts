@@ -56,7 +56,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 import { PokhService } from '../pokh/pokh-service/pokh.service';
@@ -326,12 +326,26 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
           if (callback) callback();
         } else {
-          this.notification.error('Lỗi khi tải khách hàng:', response.message);
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải khách hàng',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
           return;
         }
       },
-      (error) => {
-        this.notification.error('Lỗi kết nối khi tải khách hàng:', error);
+      (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
         return;
       }
     );
@@ -362,17 +376,25 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             }));
           this.createLabelsFromData();
         } else {
-          this.notification.error(
-            'Lỗi khi tải nhân viên quản lý:',
-            response.message
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải nhân viên quản lý',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
           return;
         }
       },
-      (error) => {
-        this.notification.error(
-          'Lỗi kết nối khi tải nhân viên quản lý:',
-          error
+      (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
         return;
       }
@@ -384,12 +406,26 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.dataProjects = response.data;
         } else {
-          this.notification.error('Lỗi khi tải dự án:', response.message);
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải dự án',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
           return;
         }
       },
-      (error) => {
-        this.notification.error('Lỗi kết nối khi tải dự án:', error);
+      (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
         return;
       }
     );
@@ -400,16 +436,24 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.dataPOTypes = response.data;
         } else {
-          this.notification.error(
-            'Thông báo',
-            'Lỗi khi tải loại PO: ' + response.message
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải loại PO',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
         }
       },
-      error: (error) => {
-        this.notification.error(
-          'Thông báo',
-          'Lỗi kết nối khi tải loại PO: ' + error
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -424,16 +468,24 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           );
         } else {
           this.dataParts = [];
-          this.notification.error(
-            'Thông báo',
-            'Lỗi khi tải phòng ban: ' + response.message
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải phòng ban',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
         }
       },
-      error: (error: any) => {
-        this.notification.error(
-          'Thông báo',
-          'Lỗi kết nối khi tải phòng ban: ' + error
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -444,16 +496,24 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.dataCurrencies = response.data;
         } else {
-          this.notification.error(
-            'Thông báo',
-            'Lỗi khi tải loại tiền: ' + response.message
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải loại tiền',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
         }
       },
-      error: (error) => {
-        this.notification.error(
-          'Thông báo',
-          'Lỗi kết nối khi tải loại tiền: ' + error
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -467,16 +527,24 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.dataPOKHProduct = treeData;
           this.tb_POKHProduct.setData(this.dataPOKHProduct);
         } else {
-          this.notification.error(
-            'Thông báo',
-            'Lỗi khi tải chi tiết POKH: ' + response.message
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải chi tiết POKH',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
         }
       },
-      error: (error) => {
-        this.notification.error(
-          'Thông báo',
-          'Lỗi kết nối khi tải chi tiết POKH: ' + error
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -489,9 +557,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.dataPOKHFiles = response.data;
           this.tb_POKHFile.setData(this.dataPOKHFiles);
         } else {
-          this.notification.error(
-            'Thông báo',
-            'Lỗi khi tải tệp POKH: ' + response.message
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải tệp POKH',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
         }
       },
@@ -515,16 +587,24 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             this.tb_ProductDetailTreeList.setData(this.dataPOKHProduct);
           }
         } else {
-          this.notification.error(
-            'Thông báo',
-            'Lỗi khi tải sản phẩm: ' + response.message
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải sản phẩm',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
         }
       },
-      error: (error: any) => {
-        this.notification.error(
-          'Thông báo',
-          'Lỗi kết nối khi tải sản phẩm: ' + error
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
       },
     });
@@ -622,9 +702,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               res.status === 1 ? this.convertToTreeData(res.data) : []
             ),
             catchError((err) => {
-              this.notification.error(
-                'Thông báo',
-                'Lỗi tải POKHProduct: ' + err
+              this.notification.create(
+                NOTIFICATION_TYPE_MAP['error'] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                'Lỗi tải POKHProduct: ' + (err?.error?.message || err?.message || err),
+                {
+                  nzStyle: { whiteSpace: 'pre-line' }
+                }
               );
               return of([]);
             })
@@ -633,7 +717,14 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           const POKHFiles$ = this.POKHService.getPOKHFile(id).pipe(
             map((res) => (res.status === 1 ? res.data : [])),
             catchError((err) => {
-              this.notification.error('Thông báo', 'Lỗi tải POKHFile: ' + err);
+              this.notification.create(
+                NOTIFICATION_TYPE_MAP['error'] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                'Lỗi tải POKHFile: ' + (err?.error?.message || err?.message || err),
+                {
+                  nzStyle: { whiteSpace: 'pre-line' }
+                }
+              );
               return of([]);
             })
           );
@@ -661,9 +752,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
                 return [];
               }),
               catchError((err) => {
-                this.notification.error(
-                  'Thông báo',
-                  'Lỗi tải DetailUser: ' + err
+                this.notification.create(
+                  NOTIFICATION_TYPE_MAP['error'] || 'error',
+                  NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                  'Lỗi tải DetailUser: ' + (err?.error?.message || err?.message || err),
+                  {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                  }
                 );
                 return of([]);
               })
@@ -719,9 +814,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               this.isLoadingData = false;
             },
             (forkJoinError) => {
-              this.notification.error(
-                'Thông báo',
-                'Lỗi khi forkJoin tải dữ liệu chi tiết POKH: ' + forkJoinError
+              this.notification.create(
+                NOTIFICATION_TYPE_MAP['error'] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                'Lỗi khi tải dữ liệu chi tiết POKH: ' + (forkJoinError?.error?.message || forkJoinError?.message || forkJoinError),
+                {
+                  nzStyle: { whiteSpace: 'pre-line' }
+                }
               );
               this.tb_ProductDetailTreeList?.setData([]);
               this.tb_POKHDetailFile?.setData([]);
@@ -731,17 +830,25 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             }
           );
         } else {
-          this.notification.error(
-            'Thông báo',
-            'Lỗi khi tải dữ liệu POKH chính: ' + response.message
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải dữ liệu POKH chính',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
           );
           this.isLoadingData = false;
         }
       },
-      (error) => {
-        this.notification.error(
-          'Thông báo',
-          'Lỗi kết nối khi tải dữ liệu POKH chính: ' + error
+      (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
         );
         this.isLoadingData = false;
       }
@@ -799,9 +906,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     console.log('Deleted Detail Users:', deletedDetailUsers);
 
     if (!details || details.length === 0) {
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        'Vui lòng thêm chi tiết sản phẩm'
+      this.notification.create(
+        NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+        NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+        'Vui lòng thêm chi tiết sản phẩm',
+        {
+          nzStyle: { whiteSpace: 'pre-line' }
+        }
       );
       return;
     }
@@ -857,8 +968,15 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.tb_POKH.setPage(1);
     this.isCopy = false;
   }
-  handleError(error: any) {
-    this.notification.error('Thông báo', 'Có lỗi xảy ra: ' + error.message);
+  handleError(err: any) {
+    this.notification.create(
+      NOTIFICATION_TYPE_MAP[err.status] || 'error',
+      NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+      err?.error?.message || `${err.error}\n${err.message}`,
+      {
+        nzStyle: { whiteSpace: 'pre-line' }
+      }
+    );
   }
   //#endregion
   //#region : Hàm xử lý upload files
@@ -905,8 +1023,15 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         next: () => {
           console.log('Upload files POKH thành công');
         },
-        error: (error) => {
-          this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
+        error: (err: any) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
         },
       });
     }
@@ -917,8 +1042,15 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         next: () => {
           this.deletedFileIds = [];
         },
-        error: (error) => {
-          this.notification.error('Lỗi xóa files:', error);
+        error: (err: any) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
         },
       });
     }

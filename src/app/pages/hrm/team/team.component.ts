@@ -148,6 +148,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
       {
         label: 'Thêm NV',
         icon: 'fa-solid fa-user-plus fa-lg text-success',
+        styleClass: 'ms-auto',
         visible: this.permissionService.hasPermission('N26,N40,N1'),
         command: () => {
           this.openAddEmployeeModal();

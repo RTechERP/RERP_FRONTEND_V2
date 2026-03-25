@@ -82,7 +82,7 @@ import { FollowProductReturnComponent } from '../follow-product-return/follow-pr
 import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { PoRequestPriceRtcComponent } from '../po-request-price-rtc/po-request-price-rtc.component';
 import { HistoryMoneyComponent } from '../history-money/history-money.component';
@@ -314,6 +314,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     deletedFileIds: number[] = [];
     selectedId: number = 0;
     selectedRow: any = null;
+    selectedPOKHRows: any[] = [];
     filterUserData: any[] = [];
     filterEmployeeTeamSale: any[] = [];
     dataPOKH: any[] = [];
@@ -453,14 +454,24 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     this.datasetPOKH = [];
                 }
 
+                this.selectedPOKHRows = [];
+                this.angularGridPOKH?.slickGrid?.setSelectedRows([]);
+
                 this.isLoadingPOKH = false;
                 setTimeout(() => {
                     this.applyDistinctFiltersToGrid(this.angularGridPOKH, this.columnDefinitionsPOKH, ['MainIndex', 'CurrencyCode', 'AccountTypeText'], this.datasetPOKH);
                 }, 0);
             },
-            error: (error: any) => {
+            error: (err: any) => {
                 this.isLoadingPOKH = false;
-                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu POKH: ' + error);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         });
     }
@@ -541,13 +552,26 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 if (response.status === 1) {
                     this.dataCustomers = response.data;
                 } else {
-                    this.notification.error('Lỗi khi tải khách hàng:', response.message);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải khách hàng',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                     return;
                 }
             },
-            (error) => {
-                this.notification.error('Lỗi kết nối khi tải khách hàng:', error);
-                return;
+            (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         );
     }
@@ -558,13 +582,26 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 if (response.status === 1) {
                     this.dataProjects = response.data;
                 } else {
-                    this.notification.error('Lỗi khi tải dự án:', response.message);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải dự án',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                     return;
                 }
             },
-            (error) => {
-                this.notification.error('Lỗi kết nối khi tải dự án:', error);
-                return;
+            (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         );
     }
@@ -576,13 +613,26 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     this.mainIndexes = response.data;
                     console.log('main', this.mainIndexes);
                 } else {
-                    this.notification.error('Lỗi khi tải Lọc:', response.message);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải Lọc',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                     return;
                 }
             },
-            (error) => {
-                this.notification.error('Lỗi kết nối khi tải Lọc:', error);
-                return;
+            (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             }
         );
     }
@@ -593,16 +643,24 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 if (response.status === 1) {
                     this.dataPOTypes = response.data;
                 } else {
-                    this.notification.error(
-                        NOTIFICATION_TITLE.error,
-                        'Lỗi khi tải loại PO: ' + response.message
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải loại PO',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
                     );
                 }
             },
-            error: (error) => {
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    'Lỗi kết nối khi tải loại PO: ' + error
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
                 );
             },
         });
@@ -615,16 +673,24 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     this.dataCurrencies = response.data;
                     console.log('currencies', this.dataCurrencies);
                 } else {
-                    this.notification.error(
-                        NOTIFICATION_TITLE.error,
-                        'Lỗi khi tải loại tiền: ' + response.message
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải loại tiền',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
                     );
                 }
             },
-            error: (error) => {
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    'Lỗi kết nối khi tải loại tiền: ' + error
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
                 );
             },
         });
@@ -649,17 +715,25 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     }, 500);
                 } else {
                     this.isLoadingPOKHProduct = false;
-                    this.notification.error(
-                        NOTIFICATION_TITLE.error,
-                        'Lỗi khi tải chi tiết POKH: ' + response.message
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải chi tiết POKH',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
                     );
                 }
             },
-            error: (error) => {
+            error: (err: any) => {
                 this.isLoadingPOKHProduct = false;
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    'Lỗi kết nối khi tải chi tiết POKH: ' + error
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
                 );
             },
         });
@@ -679,9 +753,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     this.isLoadingPOKHFile = false;
                 } else {
                     this.isLoadingPOKHFile = false;
-                    this.notification.error(
-                        NOTIFICATION_TITLE.error,
-                        'Lỗi khi tải tệp POKH: ' + response.message
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải tệp POKH',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
                     );
                 }
             },
@@ -698,9 +776,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     this.filterUserData = response.data;
                     //   console.log("user", this.filterUserData)
                 } else {
-                    this.notification.error(
-                        NOTIFICATION_TITLE.error,
-                        'Lỗi khi tải tệp POKH: ' + response.message
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải danh sách người dùng',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
                     );
                 }
             },
@@ -718,9 +800,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 if (response.status === 1) {
                     this.filterEmployeeTeamSale = response.data;
                 } else {
-                    this.notification.error(
-                        NOTIFICATION_TITLE.error,
-                        'Lỗi khi tải tệp POKH: ' + response.message
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải danh sách Team Sale',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
                     );
                 }
             },
@@ -738,16 +824,24 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 if (response.status === 1) {
                     this.dataProducts = response.data;
                 } else {
-                    this.notification.error(
-                        NOTIFICATION_TITLE.error,
-                        'Lỗi khi tải sản phẩm: ' + response.message
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                        response.message || 'Lỗi khi tải sản phẩm',
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
                     );
                 }
             },
-            error: (error: any) => {
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    'Lỗi kết nối khi tải sản phẩm: ' + error
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
                 );
             },
         });
@@ -816,16 +910,24 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                             this.selectedId = 0;
                             this.loadPOKH();
                         } else {
-                            this.notification.error(
-                                NOTIFICATION_TITLE.error,
-                                'Có lỗi xảy ra khi xử lý POKH'
+                            this.notification.create(
+                                NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                                NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                                response.message || 'Có lỗi xảy ra khi xử lý POKH',
+                                {
+                                    nzStyle: { whiteSpace: 'pre-line' }
+                                }
                             );
                         }
                     },
-                    error: (error) => {
-                        this.notification.error(
-                            'Thông báo',
-                            'Error handling POKH: ' + error
+                    error: (err: any) => {
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            {
+                                nzStyle: { whiteSpace: 'pre-line' }
+                            }
                         );
                     },
                 });
@@ -850,10 +952,14 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 next: (response) => {
                     console.log('Upload files thành công');
                 },
-                error: (error) => {
-                    this.notification.error(
-                        NOTIFICATION_TITLE.error,
-                        'Lỗi upload files: ' + error
+                error: (err: any) => {
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
                     );
                 },
             });
@@ -865,8 +971,15 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 next: (response) => {
                     this.deletedFileIds = [];
                 },
-                error: (error) => {
-                    this.notification.error('Lỗi xóa files:', error);
+                error: (err: any) => {
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        }
+                    );
                 },
             });
         }
@@ -1324,12 +1437,16 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                             this.downloadBlob(blob, fileName);
                         }
                     },
-                    error: (error) => {
-                        this.notification.error(
-                            NOTIFICATION_TITLE.error,
-                            'Lỗi khi tải file: ' + (error?.message || error)
+                    error: (err: any) => {
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            {
+                                nzStyle: { whiteSpace: 'pre-line' }
+                            }
                         );
-                        console.error('Error downloading file:', error);
+                        console.error('Error downloading file:', err);
                     },
                 });
             } else {
@@ -1393,7 +1510,15 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     // }
 
     openPORequestBuyModal() {
-        if (!this.selectedId) {
+        const selectedPokhIds = this.selectedPOKHRows
+            .map((row: any) => Number(row?.ID) || 0)
+            .filter((id: number, index: number, array: number[]) => id > 0 && array.indexOf(id) === index);
+
+        const effectivePokhIds = selectedPokhIds.length > 0
+            ? selectedPokhIds
+            : (this.selectedId ? [this.selectedId] : []);
+
+        if (effectivePokhIds.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
                 'Vui lòng chọn POKH trước!'
@@ -1406,6 +1531,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             windowClass: 'full-screen-modal',
         });
         modalRef.componentInstance.pokhId = this.selectedId;
+        modalRef.componentInstance.pokhIds = effectivePokhIds;
 
         modalRef.result.then(
             (result) => {
@@ -1448,7 +1574,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
 
         this.modal.confirm({
             nzTitle: 'Xác nhận xóa',
-            nzContent: 'Bạn có chắc chắn muốn xóa PO này?',
+            nzContent: `Bạn có chắc muốn xóa PO có mã: <strong>${this.selectedRow['POCode']}</strong> không?`,
             nzOkText: 'Đồng ý',
             nzCancelText: 'Hủy',
             nzOnOk: () => {
@@ -1473,18 +1599,26 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                             this.selectedRow = null;
                             this.selectedId = 0;
                         } else {
-                            this.notification.error(
-                                NOTIFICATION_TITLE.error,
-                                'Có lỗi xảy ra khi xóa PO'
+                            this.notification.create(
+                                NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                                NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+                                response.message || 'Có lỗi xảy ra khi xóa PO',
+                                {
+                                    nzStyle: { whiteSpace: 'pre-line' }
+                                }
                             );
                         }
                     },
-                    error: (error) => {
-                        this.notification.error(
-                            NOTIFICATION_TITLE.error,
-                            'Có lỗi xảy ra khi xóa PO'
+                    error: (err: any) => {
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            {
+                                nzStyle: { whiteSpace: 'pre-line' }
+                            }
                         );
-                        console.error(error);
+                        console.error(err);
                     },
                 });
             },
@@ -1654,9 +1788,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                                         try {
                                             const json = JSON.parse(reader.result as string);
                                             if (json?.status === 0) {
-                                                this.notification.error(
-                                                    NOTIFICATION_TITLE.error,
-                                                    json.message || 'Không thể tải file!'
+                                                this.notification.create(
+                                                    NOTIFICATION_TYPE_MAP[json.status] || 'error',
+                                                    NOTIFICATION_TITLE_MAP[json.status as RESPONSE_STATUS] || 'Lỗi',
+                                                    json.message || 'Không thể tải file!',
+                                                    {
+                                                        nzStyle: { whiteSpace: 'pre-line' }
+                                                    }
                                                 );
                                                 return;
                                             }
@@ -1671,12 +1809,16 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                                     this.downloadBlob(blob, fileName);
                                 }
                             },
-                            error: (error) => {
-                                this.notification.error(
-                                    NOTIFICATION_TITLE.error,
-                                    'Lỗi khi tải file: ' + (error?.message || error)
+                            error: (err: any) => {
+                                this.notification.create(
+                                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                                    err?.error?.message || `${err.error}\n${err.message}`,
+                                    {
+                                        nzStyle: { whiteSpace: 'pre-line' }
+                                    }
                                 );
-                                console.error('Error downloading file:', error);
+                                console.error('Error downloading file:', err);
                             },
                         });
                     } else {
@@ -1830,9 +1972,14 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             enableFiltering: true,
             enableRowSelection: true,
             rowSelectionOptions: {
-                selectActiveRow: true
+                selectActiveRow: false
             },
-            enableCheckboxSelector: false,
+            enableCheckboxSelector: true,
+            checkboxSelector: {
+                hideSelectAllCheckbox: false,
+                columnIndexPosition: 0,
+            },
+            multiSelect: true,
             multiColumnSort: true,
             enableContextMenu: true,
             contextMenu: {
@@ -1860,7 +2007,23 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
 
     angularGridReadyPOKH(angularGrid: AngularGridInstance): void {
         this.angularGridPOKH = angularGrid;
+        this.angularGridPOKH.slickGrid?.onSelectedRowsChanged.subscribe(() => {
+            this.syncSelectedPOKHRows();
+        });
         // this.loadPOKH();
+    }
+
+    private syncSelectedPOKHRows(): void {
+        const grid = this.angularGridPOKH?.slickGrid;
+        if (!grid) {
+            this.selectedPOKHRows = [];
+            return;
+        }
+
+        const selectedRowIndexes = grid.getSelectedRows() || [];
+        this.selectedPOKHRows = selectedRowIndexes
+            .map((rowIndex: number) => grid.getDataItem(rowIndex))
+            .filter((item: any) => !!item);
     }
 
     updateMainIndexFilter(): void {
@@ -2058,7 +2221,14 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                         try {
                             const json = JSON.parse(reader.result as string);
                             if (json?.status === 0) {
-                                this.notification.error(NOTIFICATION_TITLE.error, json.message || 'Không thể tải file!');
+                                this.notification.create(
+                                    NOTIFICATION_TYPE_MAP[json.status] || 'error',
+                                    NOTIFICATION_TITLE_MAP[json.status as RESPONSE_STATUS] || 'Lỗi',
+                                    json.message || 'Không thể tải file!',
+                                    {
+                                        nzStyle: { whiteSpace: 'pre-line' }
+                                    }
+                                );
                                 return;
                             }
                         } catch {
@@ -2070,8 +2240,15 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     this.downloadBlob(blob, fileName);
                 }
             },
-            error: (error) => {
-                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải file: ' + (error?.message || error));
+            error: (err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             },
         });
     }

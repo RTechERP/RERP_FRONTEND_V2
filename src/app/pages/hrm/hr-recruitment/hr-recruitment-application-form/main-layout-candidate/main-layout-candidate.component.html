@@ -33,7 +33,6 @@
                     </div>
                     <div class="card-info">
                         <h2>Test IQ ứng viên</h2>
-                        <p>Tham gia bài kiểm tra tư duy và năng lực logic.</p>
                     </div>
 
                     <!-- Loading -->
@@ -52,10 +51,9 @@
                         <!-- Mini Cards cho từng đề thi - 2 cột -->
                         <div *ngIf="examList.length > 0" class="exam-mini-cards-grid">
                             <div *ngFor="let exam of examList" class="exam-mini-card horizontal-card"
-                                [class.status-completed]="exam.StatusResult === 2"
-                                [class.status-pending]="exam.StatusResult === 1"
+                                [class.status-completed]="exam.StatusResult === 2 || exam.StatusResult === 1"
                                 [class.status-inprogress]="exam.StatusResult === 0">
-
+                                <!-- [class.status-pending]="exam.StatusResult === 1" -->
                                 <div class="card-left">
                                     <div class="exam-icon-wrapper">
                                         <span nz-icon [nzType]="exam.StatusResult === 2 ? 'check-circle' : 'file-text'"
@@ -69,14 +67,14 @@
                                 </div>
 
                                 <div class="card-right">
-                                    <div class="exam-specs" *ngIf="exam.StatusResult === 2">
+                                    <!-- <div class="exam-specs" *ngIf="exam.StatusResult === 2">
                                         <div class="spec-item score">
                                             <span class="value">{{ exam.TotalScore || 0 }}đ</span>
                                             <span class="percent">({{ exam.PercentageCorrect || 0 }}%)</span>
                                         </div>
-                                    </div>
+                                    </div> -->
 
-                                    <div class="exam-specs" *ngIf="exam.StatusResult !== 2">
+                                    <div class="exam-specs" *ngIf="exam.StatusResult === 2 || exam.StatusResult === 1">
                                         <div class="spec-item time">
                                             <span class="value">{{ exam.TestTime }}'</span>
                                         </div>

@@ -57,6 +57,11 @@
                                         </li>
                                     </ul>
                                 </nz-dropdown-menu>
+                                <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                    (click)="loadDataSolution()" title="Làm mới">
+                                    <i nz-icon nzType="sync"></i>
+                                    Làm mới
+                                </button>
                             </div>
                             <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container"
                                 style="min-height: 0;">
@@ -71,7 +76,7 @@
                     <!-- Bảng 2: Phiên bản (60%) - gộp Phiên bản giải pháp và Phiên bản PO -->
                     <nz-splitter-panel nzSize="60%">
                         <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-                            <div class="card-header bg-white p-1"
+                            <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center"
                                 style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                                 <p class="m-0">Phiên bản</p>
                             </div>
@@ -132,6 +137,11 @@
                                         </button>
                                     </ng-container>
                                 </ng-container>
+                                <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                    (click)="loadDataVersion()" title="Làm mới">
+                                    <i nz-icon nzType="sync"></i>
+                                    Làm mới
+                                </button>
                             </div>
                             <div class="card-body p-0 flex-grow-1 overflow-hidden grid-version-container"
                                 style="min-height: 0; height: 100%;">

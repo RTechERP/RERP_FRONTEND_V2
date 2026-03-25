@@ -95,10 +95,10 @@ export class CustomTable implements OnChanges {
     private _data: any[] = [];
 
     @Input() set data(val: any[]) {
-        this._originalData = val ? [...val] : [];
-        this._data = val ? [...val] : [];
-        this.buildFilterOptionsCache();
+        this._originalData = val ?? [];
+        this._data = val ?? [];
         this.cellValueCache.clear();
+        this.scheduleBuildFilterOptionsCache();
     }
     get data(): any[] {
         return this._data;
@@ -120,8 +120,12 @@ export class CustomTable implements OnChanges {
     }
 
     // --- Layout ---
-    @Input() height: string = '100%';
-    @HostBinding('style.height') get hostHeight() { return this.height; }
+    @Input() height: string = '';
+    @HostBinding('style.height') get hostHeight() { return this.height || null; }
+    @HostBinding('style.display') get hostDisplay() { return this.height ? 'flex' : null; }
+    @HostBinding('style.flexDirection') get hostFlexDir() { return this.height ? 'column' : null; }
+    @HostBinding('style.minHeight') get hostMinHeight() { return this.height ? '0' : null; }
+    @HostBinding('style.overflow') get hostOverflow() { return this.height ? 'hidden' : null; }
     @Input() resizable: boolean = true;
     @Input() resizeMode: string = 'expand';
     @Input() showGridlines: boolean = true;
@@ -206,23 +210,27 @@ export class CustomTable implements OnChanges {
     showColumnChooser: boolean = false;
     chooserColumns: ColumnDef[] = [];
     @Output() rowClick = new EventEmitter<any>();
+    @Output() rowDoubleClick = new EventEmitter<any>();
     clickedRowKey: any = null;
 
     onRowClick(rowData: any) {
-        if (!this.clickSelectRow) return;
-        const newKey = this.dataKey ? rowData[this.dataKey] : rowData;
-        if (this.clickedRowKey !== newKey) {
-            // Only clear focusedCell if it belongs to the OLD row.
-            // If onCellClick already set focusedCell to the new row, keep it.
-            const focusedKey = this.focusedCell
-                ? (this.dataKey ? this.focusedCell.rowData[this.dataKey] : this.focusedCell.rowData)
-                : null;
-            if (focusedKey !== newKey) {
-                this.focusedCell = null;
+        if (this.clickSelectRow) {
+            const newKey = this.dataKey ? rowData[this.dataKey] : rowData;
+            if (this.clickedRowKey !== newKey) {
+                const focusedKey = this.focusedCell
+                    ? (this.dataKey ? this.focusedCell.rowData[this.dataKey] : this.focusedCell.rowData)
+                    : null;
+                if (focusedKey !== newKey) {
+                    this.focusedCell = null;
+                }
             }
+            this.clickedRowKey = newKey;
         }
-        this.clickedRowKey = newKey;
         this.rowClick.emit(rowData);
+    }
+
+    onRowDoubleClick(rowData: any) {
+        this.rowDoubleClick.emit(rowData);
     }
 
     isRowClicked(rowData: any): boolean {
@@ -286,13 +294,12 @@ export class CustomTable implements OnChanges {
 
     // --- Filter Options Cache ---
     filterOptionsCache: { [field: string]: { label: string; value: any }[] } = {};
+    private _cacheScheduleId: any = null;
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['data'] || changes['columns']) {
-            this.buildFilterOptionsCache();
-        }
         if (changes['columns'] && this.columns) {
             this._allColumns = [...this.columns];
+            this.scheduleBuildFilterOptionsCache();
         }
     }
 
@@ -301,6 +308,14 @@ export class CustomTable implements OnChanges {
     }
 
     // --- Filter Options (auto-populated from data, or lazy-loaded) ---
+    scheduleBuildFilterOptionsCache() {
+        if (this._cacheScheduleId != null) return;
+        this._cacheScheduleId = setTimeout(() => {
+            this._cacheScheduleId = null;
+            this.buildFilterOptionsCache();
+        }, 0);
+    }
+
     buildFilterOptionsCache() {
         this.filterOptionsCache = {};
         if (!this.columns?.length) return;
@@ -321,6 +336,10 @@ export class CustomTable implements OnChanges {
     getFilterOptions(col: ColumnDef): { label: string; value: any }[] {
         return this.filterOptionsCache[col.field] || [];
     }
+
+    // --- TrackBy ---
+    trackByField(_: number, col: ColumnDef): string { return col.field; }
+    trackByIndex(i: number): number { return i; }
 
 
     onGlobalFilter(event: Event) {
@@ -753,7 +772,7 @@ export class CustomTable implements OnChanges {
         this.dt.sortField = undefined;
         this.dt.multiSortMeta = [];
         this.activeSortField = null;
-        this._data = [...this._originalData];
+        this._data = this._originalData;
         this.dt.value = this._data;
         if (this.dt.tableService) {
             this.dt.tableService.onSort(null);

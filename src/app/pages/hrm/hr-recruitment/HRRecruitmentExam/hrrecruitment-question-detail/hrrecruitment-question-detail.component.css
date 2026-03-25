@@ -1,8 +1,16 @@
 /* ===== Form body ===== */
 .form-body {
-    padding: 16px;
-    /*max-height: 72vh;*/
+    padding: 12px;
     overflow-y: auto;
+}
+
+:host ::ng-deep .nz-form-item,
+:host ::ng-deep .ant-form-item {
+    margin-bottom: 8px !important;
+}
+
+:host ::ng-deep .ant-form-item-label {
+    padding-bottom: 4px !important;
 }
 
 /* ===== PrimeNG Editor ===== */
@@ -242,7 +250,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 32px; /* Consistent height for both columns */
+    height: 32px;
+    /* Consistent height for both columns */
 }
 
 /* ===== Multi-file attachment list ===== */
@@ -251,7 +260,8 @@
     border-radius: 4px;
     background: #fafafa;
     padding: 6px;
-    height: 305px; /* Matches editor total height (260px + toolbar) */
+    height: 225px;
+    /* Matches editor total height (180px + toolbar) */
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -263,7 +273,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex: 1; /* Fill the list container */
+    flex: 1;
+    /* Fill the list container */
     color: #bfbfbf;
 }
 

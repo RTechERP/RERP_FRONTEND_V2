@@ -48,6 +48,8 @@ import { EmployeeBussinessComponent } from './pages/hrm/employee-management/empl
 import { EmployeeRegisterBussinessComponent } from './pages/hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness.component';
 import { EmployeeCurricularComponent } from './pages/hrm/employee-management/employee-curriculart/employee-curricular/employee-curricular.component';
 import { EmployeeErrorComponent } from './pages/hrm/employee-management/employee-error/employee-error.component';
+import { EmployeeDeductionComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction.component';
+import { EmployeeDeductionSummaryComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction-summary/employee-deduction-summary.component';
 import { EmployeeNightShiftPersonSummaryComponent } from './pages/hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
 import { EmployeeNightShiftComponent } from './pages/hrm/employee-management/employee-night-shift/employee-night-shift/employee-night-shift.component';
 import { EmployeeNoFingerSummaryComponent } from './pages/hrm/employee-management/employee-no-fingerprint/employee-no-finger-summary/employee-no-finger-summary.component';
@@ -424,6 +426,10 @@ export const routes: Routes = [
             { path: 'employee-no-fingerprint', component: EmployeeNoFingerprintComponent, canActivate: [authGuard] },
             { path: 'employee-attendance', component: EmployeeAttendanceComponent, canActivate: [authGuard] },
             { path: 'employee-error', component: EmployeeErrorComponent, canActivate: [authGuard] },
+            { path: 'employee-deduction', component: EmployeeDeductionComponent, canActivate: [authGuard] },
+            { path: 'employee-deduction-hr', component: EmployeeDeductionComponent, canActivate: [authGuard] },
+
+            { path: 'employee-deduction-summary', component: EmployeeDeductionSummaryComponent, canActivate: [authGuard] },
             { path: 'employee-curricular', component: EmployeeCurricularComponent, canActivate: [authGuard] },
             { path: 'payroll', component: PayrollComponent, canActivate: [authGuard] },
             { path: 'employee-timekeeping', component: EmployeeTimekeepingComponent, canActivate: [authGuard] },

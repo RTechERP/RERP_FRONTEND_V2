@@ -289,6 +289,7 @@ import { CommunicationComponent } from './pages/ems/components/managers/communic
 import { DailyReportAccountingSlickgridComponent } from './pages/accounting/daily-report-accounting/daily-report-accounting-slickgrid/daily-report-accounting-slickgrid.component';
 import { JobRequirementPersonalComponent } from './pages/hrm/job-requirement/job-requirement-personal/job-requirement-personal.component';
 import { SummaryAssetPersionalComponent } from './pages/hrm/asset/summary-asset-persional/summary-asset-persional.component';
+import { PaymentOrderEmployeeComponent } from './pages/general-category/payment-order-employee/payment-order-employee.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -479,7 +480,7 @@ export const routes: Routes = [
             { path: 'inventory-by-date', component: InventoryByDateComponent, canActivate: [authGuard] },
             { path: 'accounting-contract-type-master', component: AccountingContractTypeMasterComponent, canActivate: [authGuard] },
             { path: 'accounting-contract', component: AccountingContractComponent, canActivate: [authGuard] },
-            { path: 'payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
+            //{ path: 'payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'person-day-off', component: PersonDayOffComponent, canActivate: [authGuard] },
             { path: 'early-late-summary', component: EarlyLateSummaryComponent, canActivate: [authGuard] },
             { path: 'wfh-summary', component: WFHSummaryComponent, canActivate: [authGuard] },
@@ -569,8 +570,8 @@ export const routes: Routes = [
             { path: 'tracking-mark', component: TrackingMarksComponent, canActivate: [authGuard] },
             { path: 'booking-vehicle', component: VehicleBookingManagementSlickgridComponent, canActivate: [authGuard] },
             { path: 'booking-vehicle-backup', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
-            { path: 'payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
-            { path: 'payment-order-special', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'payment-order', component: PaymentOrderEmployeeComponent, canActivate: [authGuard] },
+            { path: 'payment-order-special', component: PaymentOrderEmployeeComponent, canActivate: [authGuard] },
             { path: 'job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
             { path: 'register-idea', component: RegisterIdeaComponent, canActivate: [authGuard] },
             { path: 'register-contract', component: RegisterContractComponent, canActivate: [authGuard] },

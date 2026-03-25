@@ -216,12 +216,10 @@
                 <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn tên nhân viên">
                   <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default" formControlName="EmployeeID"
                     nzPlaceHolder="Chọn họ tên nhân viên" [nzDisabled]="isEmployeeSelectDisabled">
-                    <nz-option-group *ngFor="let dept of departmentNames" [nzLabel]="dept">
-                      <nz-option *ngFor="let item of groupedEmployees[dept]" nzCustomContent="true"
-                        [nzLabel]="item.FullName" [nzValue]="item.ID">
-                        {{ item.Code + " - " + item.FullName }}
-                      </nz-option>
-                    </nz-option-group>
+                    @for (item of employeeList; track $index) {
+                    <nz-option nzCustomContent="true" [nzLabel]="item.FullName" [nzValue]="item.ID">{{ item.Code + " - "
+                      + item.FullName }}</nz-option>
+                    }
                   </nz-select>
                 </nz-form-control>
               </nz-form-item>

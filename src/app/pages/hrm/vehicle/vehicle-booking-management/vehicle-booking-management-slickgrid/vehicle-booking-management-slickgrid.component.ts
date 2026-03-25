@@ -1035,17 +1035,13 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
 
-      // Format ngày tháng search: dd-MM-yyyy
-      const start = DateTime.fromJSDate(new Date(this.dateStart)).toFormat('dd-MM-yyyy');
-      const end = DateTime.fromJSDate(new Date(this.dateEnd)).toFormat('dd-MM-yyyy');
+      // Format ngày tháng hiện tại: dd-MM-yyyy
+      const now = DateTime.local();
+      const formattedDate = now.toFormat('dd-MM-yyyy');
 
       const link = document.createElement('a');
       link.href = window.URL.createObjectURL(blob);
-      if (start === end) {
-        link.download = `Lịch đăng ký xe ngày ${start}.xlsx`;
-      } else {
-        link.download = `Lịch đăng ký xe từ ${start} đến ${end}.xlsx`;
-      }
+      link.download = `Đăng ký xe - ${formattedDate}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

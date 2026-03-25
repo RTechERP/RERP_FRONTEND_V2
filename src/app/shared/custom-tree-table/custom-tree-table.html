@@ -1,0 +1,327 @@
+<p-contextMenu #cm [model]="contextMenuItems"></p-contextMenu>
+<p-contextMenu #hcm [model]="headerMenuItems"></p-contextMenu>
+
+<p-treeTable #tt [value]="data" [columns]="visibleColumns" [tableStyle]="{ 'min-width': '50rem' }"
+    [resizableColumns]="resizable" [columnResizeMode]="resizeMode" [showGridlines]="showGridlines"
+    styleClass="p-treetable-gridlines p-treetable-sm" [globalFilterFields]="actualGlobalFilterFields"
+    [scrollable]="scrollable" [scrollHeight]="scrollable ? (scrollHeight || 'flex') : ''" [paginator]="paginator" [rows]="rows"
+    [rowsPerPageOptions]="rowsPerPageOptions" [sortMode]="sortMode" [selectionMode]="selectionMode ?? ''"
+    [(selection)]="selection" (selectionChange)="onSelectionChange($event)" [dataKey]="dataKey" [loading]="loading"
+    [contextMenu]="contextMenuItems.length > 0 ? cm : null" [(contextMenuSelection)]="selectedContextNode"
+    (onContextMenuSelect)="onContextMenuSelect($event)" [rowHover]="true" [reorderableColumns]="reorderableColumns"
+    [virtualScroll]="virtualScroll" [virtualScrollItemSize]="virtualScrollItemSize" [filterMode]="'lenient'"
+    (onColResize)="onColResize()">
+
+    <!-- Caption with Global Search + Export -->
+    <ng-template pTemplate="caption">
+        <div *ngIf="title || showGlobalFilter || exportable" class="flex justify-content-between align-items-center">
+            <h4 class="m-0">{{ title }}</h4>
+            <div class="flex gap-2 align-items-center">
+                <p-button *ngIf="exportable" icon="pi pi-download" label="Export CSV" severity="success" [text]="true"
+                    (click)="exportCSV()">
+                </p-button>
+                <p-iconfield *ngIf="showGlobalFilter">
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Global Search" />
+                </p-iconfield>
+            </div>
+        </div>
+    </ng-template>
+
+    <!-- Colgroup: required for resize and header/row width alignment -->
+    <ng-template pTemplate="colgroup" let-columns>
+        <colgroup>
+            <col *ngFor="let col of columns" [style.width]="col.width || 'auto'">
+        </colgroup>
+    </ng-template>
+
+    <!-- Header Row -->
+    <ng-template pTemplate="header" let-columns>
+        <!-- Multi-Level Header Groups (Banded Columns) -->
+        <ng-container *ngIf="headerGroups && headerGroups.length > 0">
+            <tr *ngFor="let groupRow of headerGroups">
+                <th *ngFor="let h of groupRow"
+                    [attr.colspan]="h.colspan || 1"
+                    [attr.rowspan]="h.rowspan || 1"
+                    [ngClass]="h.cssClass"
+                    [ngStyle]="h.style"
+                    class="text-center font-bold">
+                    {{ h.header }}
+                </th>
+            </tr>
+        </ng-container>
+
+        <tr>
+            <th *ngFor="let col of columns" [ttSortableColumn]="col.field"
+                [ttSortableColumnDisabled]="!col.sortable || !!col.headerFormat"
+                [style.width]="col.width || 'auto'" ttReorderableColumn
+                [ttReorderableColumnDisabled]="!reorderableColumns" ttResizableColumn
+                [ngClass]="[col.cssClass || '', col.frozen ? (col.alignFrozen === 'right' ? 'frozen-right' : 'frozen-left') : '']"
+                (contextmenu)="onHeaderContextMenu($event, col.field)">
+                <!-- Custom header HTML (e.g., add-row button) -->
+                <ng-container *ngIf="col.headerFormat; else defaultTtHeader">
+                    <div [innerHTML]="col.headerFormat()"
+                         (click)="col.headerClickable ? onHeaderCellClick($event, col) : null"
+                         [style.cursor]="col.headerClickable ? 'pointer' : ''"
+                         class="text-center w-full">
+                    </div>
+                </ng-container>
+                <ng-template #defaultTtHeader>
+                    {{ col.header }}
+                    <p-treeTableSortIcon *ngIf="col.sortable" [field]="col.field"></p-treeTableSortIcon>
+                </ng-template>
+            </th>
+        </tr>
+        <!-- Filter Row -->
+        <tr *ngIf="showColumnFilter" class="filter-header-row">
+            <th *ngFor="let col of columns">
+                <!-- Default: text input filter (auto-filter on input) -->
+                <ng-container *ngIf="!col.filterMode || col.filterMode === 'input'">
+                    <input pInputText type="text" (input)="tt.filter($any($event.target).value, col.field, 'contains')"
+                        placeholder="Lọc..." style="width: 100%;" />
+                </ng-container>
+
+                <!-- Dropdown filter -->
+                <ng-container *ngIf="col.filterMode === 'dropdown'">
+                    <p-select [options]="getFilterOptions(col)"
+                        (onChange)="tt.filter($event.value, col.field, 'equals')" optionLabel="label"
+                        optionValue="value" placeholder="Lọc..." [showClear]="true" appendTo="body"
+                        [style]="{ 'width': '100%' }">
+                    </p-select>
+                </ng-container>
+
+                <!-- MultiSelect filter (Excel-style) -->
+                <ng-container *ngIf="col.filterMode === 'multiselect'">
+                    <p-multiSelect [options]="getFilterOptions(col)"
+                        (onChange)="tt.filter($event.value, col.field, 'in')" optionLabel="label" optionValue="value"
+                        placeholder="Lọc..." [filter]="true" appendTo="body"
+                        [style]="{ 'width': '100%' }"
+                        [virtualScroll]="col.filterVirtualScroll || false"
+                        [virtualScrollItemSize]="col.filterVirtualScrollItemSize || 30">
+                    </p-multiSelect>
+                </ng-container>
+            </th>
+        </tr>
+    </ng-template>
+
+    <!-- Body Row -->
+    <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
+        <tr [ttRow]="rowNode" [ttSelectableRow]="rowNode" [ttContextMenuRow]="contextMenuItems.length > 0 ? rowNode : null"
+            [ngClass]="rowClass ? rowClass(rowData) : ''"
+            (click)="onRowClick(rowNode)" [class.row-click-selected]="isRowClicked(rowNode)">
+            <td *ngFor="let col of columns; let i = index"
+                [ngClass]="[getAutoAlignClass(col.cssClass, col), col.cellClass ? col.cellClass(rowData) : '', isCellFocused(rowData, col.field) ? 'focused-cell' : '']"
+                [ngStyle]="col.cellStyle ? col.cellStyle(rowData) : null"
+                [ttEditableColumn]="col.editable && editMode && !(i === 0 && selectionMode === 'checkbox') && col.editType !== 'table-lookup' ? rowData : null"
+                [ttEditableColumnField]="col.editable && editMode && !(i === 0 && selectionMode === 'checkbox') && col.editType !== 'table-lookup' ? col.field : ''"
+                (click)="onCellClick($event, col, rowData)">
+
+                <!-- Tree toggler: rendered in treeToggler column, or first column as fallback -->
+                <ng-container *ngIf="col.treeToggler || (!hasTtColumn && i === 0)">
+                    <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                    <p-treeTableCheckbox *ngIf="selectionMode === 'checkbox'" [value]="rowNode"></p-treeTableCheckbox>
+                </ng-container>
+
+                <!-- Table Lookup Cell -->
+                <ng-container *ngIf="col.editable && editMode && col.editType === 'table-lookup'; else normalCell">
+                    <div class="table-lookup-cell" (click)="openTableLookup($event, col, rowData)">
+                        <span class="table-lookup-value" [class.text-400]="!rowData[col.field]">
+                            {{ formatValue(col, rowData) || 'Chọn...' }}
+                        </span>
+                        <i class="pi pi-chevron-down table-lookup-chevron"></i>
+                    </div>
+                </ng-container>
+
+                <ng-template #normalCell>
+                    <!-- Editable cell -->
+                    <ng-container
+                        *ngIf="col.editable && editMode && !(i === 0 && selectionMode === 'checkbox'); else readOnlyCell">
+                        <p-treeTableCellEditor>
+                            <ng-template pTemplate="input">
+                                <ng-container *ngIf="col.editType === 'lookup'; else dateOrDefault">
+                                    <p-select [options]="col.editOptions || []"
+                                        [ngModel]="rowData[col.field]"
+                                        (onChange)="emitCellValueChange(rowData, col.field, $event.value)"
+                                        optionLabel="label" optionValue="value" [filter]="true"
+                                        filterPlaceholder="Search..." appendTo="body" [style]="{ 'width': '100%' }">
+                                    </p-select>
+                                </ng-container>
+                                <ng-template #dateOrDefault>
+                                    <ng-container *ngIf="col.editType === 'date'; else textareaOrTreeInput">
+                                        <p-datepicker
+                                            [ngModel]="rowData[col.field]"
+                                            (onSelect)="emitCellValueChange(rowData, col.field, $event)"
+                                            [showIcon]="true"
+                                            [showOnFocus]="false" appendTo="body"
+                                            [dateFormat]="col.editDateFormat || 'dd/mm/yy'"
+                                            [showTime]="col.editShowTime || false" [style]="{ 'width': '100%' }">
+                                        </p-datepicker>
+                                    </ng-container>
+                                    <ng-template #textareaOrTreeInput>
+                                        <textarea *ngIf="col.editType === 'textarea'; else defaultTreeInput" pTextarea
+                                            [ngModel]="rowData[col.field]"
+                                            (ngModelChange)="emitCellValueChange(rowData, col.field, $event)"
+                                            [autoResize]="true" rows="3"
+                                            class="w-full"></textarea>
+                                        <ng-template #defaultTreeInput>
+                                            <input pInputText [type]="col.editType === 'number' ? 'number' : 'text'"
+                                                [ngModel]="rowData[col.field]"
+                                                (ngModelChange)="emitCellValueChange(rowData, col.field, $event)"
+                                                style="width: 100%;" />
+                                        </ng-template>
+                                    </ng-template>
+                                </ng-template>
+                            </ng-template>
+                            <ng-template pTemplate="output">
+                                <ng-container *ngTemplateOutlet="visualRenderer; context: {$implicit: col, rowData: rowData}"></ng-container>
+                            </ng-template>
+                        </p-treeTableCellEditor>
+                    </ng-container>
+
+                    <!-- Read-only cell -->
+                    <ng-template #readOnlyCell>
+                        <ng-container *ngTemplateOutlet="visualRenderer; context: {$implicit: col, rowData: rowData}"></ng-container>
+                    </ng-template>
+                </ng-template>
+            </td>
+        </tr>
+    </ng-template>
+
+    <!-- Visual Renderer Template Fragment -->
+    <ng-template #visualRenderer let-col let-rowData="rowData">
+        <ng-container [ngSwitch]="col.editType">
+            <p-progressBar *ngSwitchCase="'progressbar'" [value]="rowData[col.field]" [showValue]="true">
+            </p-progressBar>
+            <p-tag *ngSwitchCase="'badge'" [value]="formatValue(col, rowData)"
+                [severity]="col.badgeSeverity ? col.badgeSeverity(rowData) : undefined">
+            </p-tag>
+            <div *ngSwitchDefault
+                [class]="(col.textWrap !== undefined ? col.textWrap : (col.editType === 'textarea' ? true : textWrap)) ? 'wrap-text' : 'truncate-text'"
+                [title]="rowData[col.field]" [innerHTML]="getHighlightedText(formatValue(col, rowData))">
+            </div>
+        </ng-container>
+    </ng-template>
+
+    <!-- Footer Row -->
+    <ng-template pTemplate="footer" let-columns *ngIf="showFooter">
+        <tr>
+            <td *ngFor="let col of columns"
+                [ngClass]="getAutoAlignClass(col.footerClass || col.cssClass, col)"
+                class="font-semibold" style="background: var(--p-surface-100);">
+                {{ getFooterValue(col) }}
+            </td>
+        </tr>
+    </ng-template>
+
+    <!-- Empty Message -->
+    <ng-template pTemplate="emptymessage" let-columns>
+        <tr>
+            <td [attr.colspan]="columns.length">No data found.</td>
+        </tr>
+    </ng-template>
+
+</p-treeTable>
+
+<!-- Table Lookup Popover -->
+<p-popover #lookupPanel appendTo="body" [style]="{ 'min-width': '400px', 'max-width': '700px' }">
+    <div class="flex flex-column gap-2 p-1">
+        <div class="flex align-items-center gap-2">
+            <p-iconfield class="flex-1">
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" [(ngModel)]="lookupSearchText" (input)="filterLookupData()"
+                    placeholder="Tìm kiếm..." style="width: 100%;" />
+            </p-iconfield>
+            <button pButton icon="pi pi-times" class="p-button-sm p-button-danger p-button-text"
+                (click)="lookupPanel.hide()"></button>
+        </div>
+        <!-- Loading state -->
+        <div *ngIf="lookupLoading" class="flex justify-content-center align-items-center" style="min-height: 80px;">
+            <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem; color: var(--p-primary-color);"></i>
+        </div>
+        <div *ngIf="!lookupLoading" style="max-height: 300px; overflow-y: auto;">
+            <table class="lookup-table">
+                <thead>
+                    <tr>
+                        <th *ngIf="activeLookupCol?.editLookupConfig?.multiSelect" style="width: 36px; text-align: center;">
+                            <p-checkbox [binary]="true"
+                                [ngModel]="lookupSelectedRows.length === lookupFilteredData.length && lookupFilteredData.length > 0"
+                                (ngModelChange)="toggleAllLookupRows()">
+                            </p-checkbox>
+                        </th>
+                        <th *ngFor="let lc of activeLookupCol?.editLookupConfig?.columns"
+                            [style.width]="lc.width || 'auto'">{{ lc.header }}</th>
+                    </tr>
+                    <tr>
+                        <th *ngIf="activeLookupCol?.editLookupConfig?.multiSelect" style="padding: 2px 4px;"></th>
+                        <th *ngFor="let lc of activeLookupCol?.editLookupConfig?.columns" style="padding: 2px 4px;">
+                            <input pInputText type="text" [(ngModel)]="lookupColFilters[lc.field]"
+                                (input)="filterLookupData()" [placeholder]="'Lọc...'"
+                                style="width: 100%; font-size: 0.75rem; padding: 2px 6px;" />
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let row of lookupFilteredData" class="lookup-row"
+                        [class.lookup-row-selected]="isLookupRowSelected(row)"
+                        (click)="activeLookupCol?.editLookupConfig?.multiSelect ? toggleLookupRow(row) : selectLookupRow(row)">
+                        <td *ngIf="activeLookupCol?.editLookupConfig?.multiSelect" style="width: 36px; text-align: center;"
+                            (click)="$event.stopPropagation()">
+                            <p-checkbox [binary]="true" [ngModel]="isLookupRowSelected(row)" (ngModelChange)="toggleLookupRow(row)"></p-checkbox>
+                        </td>
+                        <td *ngFor="let lc of activeLookupCol?.editLookupConfig?.columns">{{ row[lc.field] }}</td>
+                    </tr>
+                    <tr *ngIf="lookupFilteredData.length === 0">
+                        <td [attr.colspan]="(activeLookupCol?.editLookupConfig?.columns?.length || 0) + (activeLookupCol?.editLookupConfig?.multiSelect ? 1 : 0)"
+                            class="text-center text-500">
+                            Không tìm thấy kết quả
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Multi-select footer -->
+        <div *ngIf="activeLookupCol?.editLookupConfig?.multiSelect"
+            class="flex align-items-center justify-content-between pt-2" style="border-top: 1px solid var(--p-surface-200);">
+            <span class="text-sm text-500">Đã chọn: {{ lookupSelectedRows.length }}</span>
+            <div class="flex gap-2">
+                <button pButton label="Bỏ chọn" icon="pi pi-times" class="p-button-sm p-button-text p-button-secondary"
+                    (click)="lookupSelectedRows = []"></button>
+                <button pButton label="Xác nhận" icon="pi pi-check" class="p-button-sm p-button-success"
+                    (click)="confirmLookupSelection()"></button>
+            </div>
+        </div>
+    </div>
+</p-popover>
+
+<!-- ============================================= -->
+<!-- Column Chooser Dialog                         -->
+<!-- ============================================= -->
+<p-dialog header="Cột nâng cao (Kéo thả để sắp xếp lại)" [(visible)]="showColumnChooser" [modal]="true"
+    [style]="{ width: '400px' }" [draggable]="false" [resizable]="false">
+    <div class="column-chooser-container p-2">
+        <p-orderList [value]="chooserColumns" [listStyle]="{ 'height': '350px' }" [dragdrop]="true">
+            <ng-template pTemplate="header">
+                <div class="flex align-items-center justify-content-between">
+                    <span class="font-bold">Danh sách cột</span>
+                    <small>Kéo thả để đổi vị trí</small>
+                </div>
+            </ng-template>
+            <ng-template let-col pTemplate="item">
+                <div class="flex align-items-center justify-content-between w-full pr-2 p-1" style="cursor: grab;">
+                    <div class="flex align-items-center gap-2">
+                        <i class="pi pi-bars text-500"></i>
+                        <span>{{ col.header }}</span>
+                    </div>
+                    <p-checkbox [binary]="true" [ngModel]="!isColumnHidden(col.field)"
+                        (onChange)="toggleChooserColumnVisible($event, col.field)"></p-checkbox>
+                </div>
+            </ng-template>
+        </p-orderList>
+    </div>
+    <ng-template pTemplate="footer">
+        <div class="flex justify-content-end gap-2 mt-3">
+            <p-button label="Hủy" icon="pi pi-times" severity="secondary" (click)="closeColumnChooser()"></p-button>
+            <p-button label="Áp dụng" icon="pi pi-check" (click)="applyColumnChooser()"></p-button>
+        </div>
+    </ng-template>
+</p-dialog>

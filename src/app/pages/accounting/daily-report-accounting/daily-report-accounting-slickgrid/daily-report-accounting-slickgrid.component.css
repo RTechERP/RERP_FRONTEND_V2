@@ -7,6 +7,10 @@
     font-size: 12px;
 }
 
+::ng-deep .ant-form-item-label>label {
+    height: 24px;
+}
+
 ::ng-deep .ant-picker-input>input {
     font-size: 12px;
 }
@@ -60,23 +64,6 @@
     border-right: 1px solid #e8e8e8;
 }
 
-.grid-container-daily-report-acc {
-    /* 100vh minus: header(40px) + menubar(~40px) + filter bar(~50px) + footer(~45px) = ~175px */
-    height: calc(100vh - 175px) !important;
-    width: 100% !important;
-}
-
-angular-slickgrid,
-.angular-slickgrid-container {
-    height: 100% !important;
-    width: 100%;
-    display: flex;
-}
-
-:host ::ng-deep .slickgrid-container {
-    height: 100% !important;
-}
-
 /* nz-spin height fix: đảm bảo nz-spin và các phần tử con chiếm 100% chiều cao */
 :host ::ng-deep .grid-container-daily-report-acc nz-spin,
 :host ::ng-deep .grid-container-daily-report-acc .ant-spin-nested-loading,
@@ -85,11 +72,4 @@ angular-slickgrid,
 :host ::ng-deep .grid-container-daily-report-acc .slickgrid-container,
 :host ::ng-deep .grid-container-daily-report-acc .gridPane {
     height: 100% !important;
-}
-
-/* Mobile: filter bar is hidden, so grid gets more height */
-@media (max-width: 767px) {
-    .grid-container-daily-report-acc {
-        height: calc(100vh - 125px) !important;
-    }
 }

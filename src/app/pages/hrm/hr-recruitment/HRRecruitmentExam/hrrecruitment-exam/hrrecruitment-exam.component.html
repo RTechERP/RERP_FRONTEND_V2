@@ -12,7 +12,7 @@
                             <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
                             <nz-form-control>
                                 <nz-select [(ngModel)]="departmentId" name="departmentId" nzShowSearch nzAllowClear
-                                    [nzDisabled]="!isAdmin" nzSize="small" nzPlaceHolder="Chọn phòng ban" class="w-100"
+                                    nzSize="small" nzPlaceHolder="Chọn phòng ban" class="w-100"
                                     nzDropdownClassName="type-select-dropdown" style="font-size: 0.75rem !important;"
                                     nzSize="small" class="fs-12" (ngModelChange)="onDepartmentChange()">
                                     <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
@@ -66,7 +66,7 @@
             <!-- Splitter ngang: Trái (Đề thi) | Phải (Câu hỏi + Đáp án) -->
             <nz-splitter style="height: 100%;">
                 <!-- ========== BẢNG BÊN TRÁI: ĐỀ THI ========== -->
-                <nz-splitter-panel nzDefaultSize="30%" nzMin="25%" nzMax="60%">
+                <nz-splitter-panel nzDefaultSize="40%" nzMin="25%" nzMax="60%">
                     <div class="panel-content">
                         <!-- Tiêu đề -->
                         <div class="panel-header">
@@ -83,19 +83,19 @@
                                 <p-table #dtExam [value]="datasetExam" selectionMode="single"
                                     [(selection)]="selectedExam" dataKey="ID" rowGroupMode="subheader"
                                     groupRowsBy="DepartmentName" sortField="DepartmentName" sortMode="single"
-                                    [scrollable]="true" scrollHeight="flex" [resizableColumns]="true"
+                                    [scrollable]="false" scrollHeight="flex" [resizableColumns]="true"
                                     columnResizeMode="expand"
                                     [globalFilterFields]="['CodeExam', 'NameExam', 'ExamTypeText', 'CreatedBy']"
-                                    [tableStyle]="{ 'width': '100%', 'table-layout': 'fixed'}" styleClass="w-100"
+                                    [tableStyle]="{ 'width': '100%', 'table-layout': 'auto'}" styleClass="w-100"
                                     (onRowSelect)="onExamRowSelect($event)" (onRowUnselect)="onExamRowUnselect($event)"
                                     styleClass="p-datatable-sm p-datatable-gridlines w-100">
                                     <ng-template pTemplate="header">
                                         <tr>
-                                            <th pResizableColumn style="width: 120px">Mã đề thi</th>
-                                            <th pResizableColumn style=" width: 150px;">Tên đề thi</th>
-                                            <th pResizableColumn style="width: 80px">Điểm cần đạt (%)</th>
-                                            <th pResizableColumn style="width: 80px">Thời gian (Phút)</th>
-                                            <th pResizableColumn style="width: 150px">Loại đề</th>
+                                            <th pResizableColumn>Mã đề thi</th>
+                                            <th pResizableColumn>Tên đề thi</th>
+                                            <th pResizableColumn>Điểm cần đạt (%)</th>
+                                            <th pResizableColumn>Thời gian (Phút)</th>
+                                            <th pResizableColumn>Loại đề</th>
                                         </tr>
                                         <!-- Filter row -->
                                         <tr>
@@ -124,8 +124,7 @@
                                         </tr>
                                     </ng-template>
                                     <ng-template pTemplate="body" let-exam>
-                                        <tr [pSelectableRow]="exam" [style.cursor]="'pointer'"
-                                            (dblclick)="onEditExam()">
+                                        <tr [pSelectableRow]="exam" [style.cursor]="'pointer'">
                                             <td>{{exam.CodeExam}}</td>
                                             <td>
                                                 <div style="word-break:break-word;white-space:normal;">
@@ -148,11 +147,11 @@
                 </nz-splitter-panel>
 
                 <!-- ========== BẢNG BÊN PHẢI: CÂU HỎI + ĐÁP ÁN ========== -->
-                <nz-splitter-panel nzDefaultSize="70%" nzMin="40%" nzMax="75%">
+                <nz-splitter-panel nzDefaultSize="60%" nzMin="40%" nzMax="75%">
                     <!-- Splitter dọc: Trên (Câu hỏi) | Dưới (Đáp án đúng) -->
-                    <nz-splitter nzLayout="vertical" style="height: 100%;" (nzSizeChange)="onSizeChange($event)">
+                    <nz-splitter nzLayout="vertical" style="height: 100%;">
                         <!-- ===== BẢNG CÂU HỎI ===== -->
-                        <nz-splitter-panel nzMin="30%" nzMax="100%">
+                        <nz-splitter-panel nzDefaultSize="60%" nzMin="30%" nzMax="80%">
                             <div class="panel-content">
                                 <!-- Tiêu đề -->
                                 <div class="panel-header">
@@ -168,7 +167,6 @@
                                     <nz-spin [nzSpinning]="isLoadingQuestion">
                                         <p-table #dtQuestion [value]="datasetQuestion" [(selection)]="selectedQuestions"
                                             selectionMode="multiple" dataKey="ID" [scrollable]="true"
-                                            [tableStyle]="{ 'min-width': '100%', 'table-layout': 'fixed'}"
                                             scrollHeight="flex" [resizableColumns]="true" columnResizeMode="expand"
                                             [globalFilterFields]="['QuestionText', 'EssayGuidance']"
                                             (onRowSelect)="onQuestionRowSelect($event)"
@@ -178,30 +176,27 @@
                                                     <th style="width: 40px">
                                                         <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                                                     </th>
-                                                    <th pResizableColumn class="text-center" style="width: 50px">STT
+                                                    <th pResizableColumn class="text-center" style="width: 70px">STT
                                                     </th>
-                                                    <th pResizableColumn style="width: 400px">Nội dung câu hỏi</th>
-                                                    <th pResizableColumn class="text-center" style="width: 40px">
-                                                        <nz-icon nzType="paper-clip" nzTheme="outline" /></th>
-                                                    <th pResizableColumn class="text-right" style="width: 60px">Điểm
+                                                    <th pResizableColumn style="width: 350px">Nội dung câu hỏi</th>
+                                                    <th pResizableColumn class="text-right" style="width: 70px">Điểm
                                                     </th>
                                                     <!-- <th pResizableColumn style="width: 100px">Ảnh</th> -->
                                                     <th pResizableColumn style="width: 120px"
                                                         *ngFor="let col of dynamicAnswerCols">
                                                         {{col.header}}</th>
-                                                    <th pResizableColumn style="width: 150px">Đáp án số/ Hướng dẫn
-                                                        chấm</th>
+                                                    <th pResizableColumn>Đáp án số/ Hướng dẫn chấm</th>
                                                 </tr>
                                                 <!-- Filter row -->
                                                 <tr>
                                                     <th></th>
-                                                    <th></th>
+                                                    <th><p-columnFilter type="text" field="STT"
+                                                            filterOn="input"></p-columnFilter></th>
                                                     <th>
                                                         <p-columnFilter type="text" field="QuestionText"
                                                             placeholder="Tìm nội dung..."
                                                             filterOn="input"></p-columnFilter>
                                                     </th>
-                                                    <th></th>
                                                     <th></th>
                                                     <!-- <th>
                                                         <p-columnFilter type="text" field="Image"
@@ -213,18 +208,13 @@
                                             </ng-template>
                                             <ng-template pTemplate="body" let-q>
                                                 <tr [pSelectableRow]="q" [style.cursor]="'pointer'"
-                                                    (click)="onQuestionRowClick(q)" (dblclick)="onEditQuestion()">
+                                                    (click)="onQuestionRowClick(q)">
                                                     <td (click)="$event.stopPropagation()"><p-tableCheckbox
                                                             [value]="q"></p-tableCheckbox></td>
                                                     <td class="text-center">{{q.STT}}</td>
                                                     <td>
                                                         <div style="word-break:break-word;white-space:normal;"
                                                             [innerHTML]="q.QuestionText"></div>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <nz-icon *ngIf="q.QuestionAttachments" nzType="file-text"
-                                                            nzTheme="outline" class="text-primary" nz-tooltip
-                                                            nzTooltipTitle="Có tệp đính kèm" />
                                                     </td>
                                                     <td class="text-right">{{q.Point}}</td>
                                                     <!-- <td (dblclick)="downloadFileFromGrid(q.Image)"
@@ -255,15 +245,11 @@
                         </nz-splitter-panel>
 
                         <!-- ===== BẢNG ĐÁP ÁN ĐÚNG ===== -->
-                        <nz-splitter-panel [nzSize]="sizeBottomPanel" nzMin="0%" nzMax="70%">
+                        <nz-splitter-panel nzDefaultSize="40%" nzMin="20%" nzMax="70%">
                             <div class="panel-content">
                                 <!-- Tiêu đề -->
                                 <div class="panel-header">
                                     <span class="panel-title">ĐÁP ÁN ĐÚNG</span>
-                                    <button nz-button nzType="text" class="btn-close-panel" style="color: red;"
-                                        (click)="closeLeftPanel()" *ngIf="sizeBottomPanel !== '0'" nzSize="small">
-                                        <i nz-icon nzType="close"></i>
-                                    </button>
                                 </div>
                                 <!-- Grid đáp án đúng -->
                                 <div class="grid-container" id="grid-right-answer">

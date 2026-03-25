@@ -21,7 +21,7 @@
     transform: translateX(0);
   }
   
-  .card {
+  .report-import-export-card {
     height: 100%;
   }
   
@@ -34,7 +34,7 @@
     width: calc(100% - 300px);
   }
   
-  ::ng-deep ng-select .ng-value-container {
+  :host ::ng-deep ng-select .ng-value-container {
     display: flex !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
@@ -49,23 +49,23 @@
     padding: 0px;
   }
   
-  .fs-12 {
+  .report-import-export-fs-12 {
     font-size: 0.75rem;
   }
   
   
   
-  ::ng-deep ng-select.form-control .ng-clear-wrapper {
+  :host ::ng-deep ng-select.form-control .ng-clear-wrapper {
     display: flex;
     align-items: center;
     margin-left: 20px;
   }
   
-  ::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
+  :host ::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
     color: #d9363e;
   }
   
-  ::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+  :host ::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
       margin-top: 3px;
       margin-right: 1px;
       font-size: .75rem;

@@ -104,7 +104,7 @@
 }
 
 :host ::ng-deep .ant-tabs.ant-tabs-top.ant-tabs-default {
-  height: 67vh !important;
+  height: 74vh !important;
 }
 
 :host ::ng-deep .ant-form-vertical .ant-form-item-label {

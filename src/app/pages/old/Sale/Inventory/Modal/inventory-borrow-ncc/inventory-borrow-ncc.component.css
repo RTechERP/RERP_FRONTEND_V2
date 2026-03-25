@@ -6,11 +6,11 @@
   font-size: 12px !important;
 }
 
-.fs-12 {
+.inventory-borrow-ncc-fs-12 {
   font-size: 12px !important;
 }
 
-::ng-deep .ant-form-inline .ant-form-item {
+:host ::ng-deep .ant-form-inline .ant-form-item {
   margin-right: 4px !important; 
   margin-bottom: 0 !important;  
 }

@@ -3,8 +3,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
-import { TreeTableModule } from 'primeng/treetable';
-import { TreeNode } from 'primeng/api';
+import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
+import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { FormGroupDirective } from '@angular/forms';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -15,15 +15,6 @@ import { DepartmentServiceService } from '../../department/department-service/de
 import { CommonModule } from '@angular/common';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { EmployeeTeamFormComponent } from './employee-team-form/employee-team-form.component';
-import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzTagModule } from 'ng-zorro-antd/tag';
-import { TableModule } from 'primeng/table';
-import { Menubar } from 'primeng/menubar';
-import { MenuItem, PrimeIcons } from 'primeng/api';
-import { ChooseEmployeeComponent } from '../../phase-allocation-person/choose-employee/choose-employee.component';
-import { EmployeeSelectTableComponent } from './employee-select-table/employee-select-table.component';
 
 @Component({
   selector: 'app-employee-team',
@@ -38,210 +29,93 @@ import { EmployeeSelectTableComponent } from './employee-select-table/employee-s
     NzFormModule,
     NzInputModule,
     NzSelectModule,
-    NzSplitterModule,
-    NzGridModule,
-    NzTagModule,
-    TreeTableModule,
-    TableModule,
-    NgbModalModule,
-    Menubar,
-    EmployeeSelectTableComponent
+    NzSplitterModule
   ],
   providers: [NzNotificationService, NzModalService],
   standalone: true
 })
 export class EmployeeTeamComponent implements OnInit {
+  private tabulator!: Tabulator;
   employeeTeam: any[] = [];
-  employeeTeamTree: TreeNode[] = [];
   departmentList: any[] = [];
-  selectedNode: TreeNode | null = null;
+  employeeTeamForm!: FormGroup;
+  selectedEmployeeTeam: any = null;
   department: any = null;
   sizeSearch: string = '0';
-  groupCounts: { [key: string]: number } = {};
-
-  allEmployees: any[] = [];
-  memberList: any[] = [];
-  selectedMember: any = null;
-  menuBars: MenuItem[] = [];
-  menuBarsEmployee: MenuItem[] = [];
-
   constructor(
+    private fb: FormBuilder,
     private notification: NzNotificationService,
     private modal: NzModalService,
     private employeeService: EmployeeService,
-    private departmentService: DepartmentServiceService,
-    private ngbModal: NgbModal
+    private departmentService: DepartmentServiceService
   ) {
+    this.initForm();
   }
 
-  ngOnInit() {
-    this.initMenuBar();
-    this.loadEmployeeTeam();
-    this.loadDepartments();
-    this.loadAllEmployees();
-  }
-
-  initMenuBar() {
-    this.menuBars = [
-      {
-        label: 'Thêm team',
-        icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        command: () => {
-          this.openAddModal();
-        },
-      },
-      {
-        label: 'Sửa team',
-        icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        command: () => {
-          this.openEditModal();
-        }
-      },
-      {
-        label: 'Xóa team',
-        icon: 'fa-solid fa-trash fa-lg text-danger',
-        command: () => {
-          this.openDeleteModal();
-        }
-      }
-    ];
-
-    this.menuBarsEmployee = [
-      {
-        label: 'Thêm thành viên',
-        icon: 'fa-solid fa-user-plus fa-lg text-success',
-        disabled: true,
-        command: () => {
-          this.addMember();
-        }
-      },
-      {
-        label: 'Xóa thành viên',
-        icon: 'fa-solid fa-user-minus fa-lg text-danger',
-        disabled: true,
-        command: () => {
-          this.deleteMember();
-        }
-      }
-    ];
-  }
-
-  loadAllEmployees(callback?: () => void) {
-    this.employeeService.getAllEmployee().subscribe({
-      next: (res: any) => {
-        this.allEmployees = res.data || [];
-        if (callback) callback();
-      },
-      error: (err) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + err.message);
-      }
+  private initForm() {
+    this.employeeTeamForm = this.fb.group({
+      ID: [0],
+      STT: [0],
+      Code: ['', [Validators.required]],
+      Name: ['', [Validators.required]],
+      DepartmentID: [0, [Validators.required]],
+      IsDeleted: [0]
     });
   }
 
-  onNodeSelect(event: any) {
-    if (event.node && !event.node.data.isDepartment) {
-      const teamId = event.node.data.ID;
-      this.memberList = this.allEmployees.filter(emp => emp.EmployeeTeamID === teamId);
-      this.selectedMember = null;
-      this.menuBars[1].disabled = false;
-      this.menuBars[2].disabled = false;
-      this.menuBarsEmployee[0].disabled = false;
-      this.menuBarsEmployee[1].disabled = true; // Disabled until a member is selected
-    } else {
-      this.memberList = [];
-      this.selectedMember = null;
-      this.menuBars[1].disabled = true;
-      this.menuBars[2].disabled = true;
-      this.menuBarsEmployee[0].disabled = true;
-      this.menuBarsEmployee[1].disabled = true;
-    }
-    // Refresh menus to update disabled state in UI
-    this.menuBars = [...this.menuBars];
-    this.menuBarsEmployee = [...this.menuBarsEmployee];
+  ngOnInit() {
+    this.initializeTable();
+    this.loadEmployeeTeam();
+    this.loadDepartments();
   }
 
-  onNodeUnselect() {
-    this.memberList = [];
-    this.selectedMember = null;
-    this.menuBars[1].disabled = true;
-    this.menuBars[2].disabled = true;
-    this.menuBarsEmployee[0].disabled = true;
-    this.menuBarsEmployee[1].disabled = true;
+  private initializeTable(): void {
 
-    this.menuBars = [...this.menuBars];
-    this.menuBarsEmployee = [...this.menuBarsEmployee];
+    this.tabulator = new Tabulator('#tb_employeeTeam', {
+      data: this.employeeTeam,
+      layout: 'fitDataStretch',
+      responsiveLayout: true,
+      selectableRows: 1,
+      height: '70vh',
+      groupBy: "DepartmentName",
+      groupHeader: function (value, count, data, group) {
+        return value + "<span style='color:#d00; margin-left:10px;'>(" + count + " teams)</span>";
+      },
+      columns: [
+        {
+          title: "STT",
+          field: "STT",
+          hozAlign: "center",
+          headerHozAlign: "center",
+          frozen: true,
+          formatter: function (cell) {
+            const row = cell.getRow();
+            const group = row.getGroup();
+
+            if (group) {
+              const rowsInGroup = group.getRows();
+              const indexInGroup = rowsInGroup.indexOf(row);
+              return String(indexInGroup + 1);
+            } else {
+              return String(row.getTable().getRows().indexOf(row) + 1);
+            }
+          },
+        },
+        {
+          title: 'Mã team', field: 'Code', hozAlign: 'center', headerHozAlign: 'center'
+        },
+        {
+          title: 'Tên team', field: 'Name', hozAlign: 'center', headerHozAlign: 'center'
+        }
+      ]
+    });
   }
-
-
 
   loadEmployeeTeam() {
     this.employeeService.getEmployeeTeam().subscribe({
       next: (data: any) => {
-        let employeeTeamList = data.data || [];
-        employeeTeamList.sort((a: any, b: any) => {
-          let deptA = a.DepartmentName || '';
-          let deptB = b.DepartmentName || '';
-          return deptA.localeCompare(deptB);
-        });
-
-        let treeData: TreeNode[] = [];
-        const departments = new Map<number, any>();
-
-        employeeTeamList.forEach((emp: any) => {
-          if (!departments.has(emp.DepartmentID)) {
-            departments.set(emp.DepartmentID, {
-              DepartmentID: emp.DepartmentID,
-              DepartmentName: emp.DepartmentName,
-              DepartmentSTT: emp.DepartmentSTT
-            });
-          }
-        });
-
-        // Sắp xếp phòng ban theo STT
-        const sortedDepts = Array.from(departments.values()).sort((a, b) => (a.DepartmentSTT || 0) - (b.DepartmentSTT || 0));
-
-        sortedDepts.forEach(dept => {
-          const teamsInDept = employeeTeamList.filter((emp: any) => emp.DepartmentID === dept.DepartmentID);
-          const teamNodesMap = new Map<number, TreeNode>();
-
-          teamsInDept.forEach((team: any) => {
-            teamNodesMap.set(team.ID, {
-              data: { ...team, isDepartment: false },
-              children: [],
-              expanded: true
-            });
-          });
-
-          const rootTeams: TreeNode[] = [];
-          teamsInDept.forEach((team: any) => {
-            const node = teamNodesMap.get(team.ID)!;
-            if (team.ParentID && teamNodesMap.has(team.ParentID)) {
-              teamNodesMap.get(team.ParentID)!.children!.push(node);
-            } else {
-              rootTeams.push(node);
-            }
-          });
-
-          if (rootTeams.length > 0) {
-            treeData.push({
-              data: {
-                isDepartment: true,
-                Name: dept.DepartmentName,
-                Code: '',
-                LeaderName: '',
-                count: teamsInDept.length
-              },
-              children: rootTeams,
-              expanded: true,
-              selectable: false
-            });
-          }
-        });
-
-        this.employeeTeamTree = treeData;
-        this.employeeTeam = employeeTeamList;
-        this.selectedNode = null;
-        this.memberList = [];
+        this.employeeTeam = data.data;
+        this.tabulator.setData(this.employeeTeam);
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách team phòng ban: ' + error.message);
@@ -264,67 +138,94 @@ export class EmployeeTeamComponent implements OnInit {
     });
   }
 
+  onSubmit() {
+    if (this.employeeTeamForm.valid) {
+        this.employeeService.saveEmployeeTeam(this.employeeTeamForm.value).subscribe({
+          next: (response) => {
+            this.notification.success('Thành công', 'Cập nhật team phòng ban thành công');
+            this.closeModal();
+            this.loadEmployeeTeam();
+          },
+          error: (error) => {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật team phòng ban thất bại: ' + error.message);
+          }
+        });
+    } else {
+      Object.values(this.employeeTeamForm.controls).forEach(control => {
+        if (control.invalid) {
+          control.markAsTouched();
+          control.updateValueAndValidity({ onlySelf: true });
+        }
+      });
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
+    }
+  }
+
   openAddModal() {
     const nextSTT = this.employeeTeam.length > 0
-      ? Math.max(...this.employeeTeam.map(item => item.STT)) + 1
-      : 1;
-
-    const modalRef = this.ngbModal.open(EmployeeTeamFormComponent, {
-      size: 'md',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
+    ? Math.max(...this.employeeTeam.map(item => item.STT)) + 1
+    : 1;
+    this.employeeTeamForm.reset({
+      ID: 0,
+      STT: nextSTT,
+      Code: '',
+      Name: '',
+      DepartmentID: null,
+      IsDeleted: 0
     });
-    modalRef.componentInstance.dataInput = null;
-    modalRef.componentInstance.nextSTT = nextSTT;
+    
+        
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeTeamModal'), {
+      backdrop: false,
+      keyboard: true
+    });
+    modal.show();
 
-    modalRef.result.then(
-      (result) => {
-        if (result === 'save') {
-          this.loadEmployeeTeam();
-        }
-      },
-      (dismissed) => { }
-    );
   }
 
   openEditModal() {
-    if (!this.selectedNode || this.selectedNode.data.isDepartment) {
+    const selectedRows = this.tabulator.getSelectedRows();
+    if (selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn team phòng ban cần sửa');
       return;
     }
 
-    const modalRef = this.ngbModal.open(EmployeeTeamFormComponent, {
-      size: 'md',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
+    this.selectedEmployeeTeam = selectedRows[0].getData();
+    this.employeeTeamForm.patchValue({
+      ID: this.selectedEmployeeTeam.ID,
+      STT: this.selectedEmployeeTeam.STT,
+      DepartmentID: this.selectedEmployeeTeam.DepartmentID,
+      Code: this.selectedEmployeeTeam.Code,
+      Name: this.selectedEmployeeTeam.Name,
+      IsDeleted: 0
     });
-    modalRef.componentInstance.dataInput = this.selectedNode.data;
+    
+        
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeTeamModal'), {
+      backdrop: false,
+      keyboard: true
+    });
+    modal.show();
+  }
 
-    modalRef.result.then(
-      (result) => {
-        if (result === 'save') {
-          this.loadEmployeeTeam();
-        }
-      },
-      (dismissed) => { }
-    );
+  closeModal() {
+    const modal = document.getElementById('addEmployeeTeamModal');
+    if (modal) {
+      (window as any).bootstrap.Modal.getInstance(modal).hide();
+    }
+    
+        
+    this.employeeTeamForm.reset();
   }
 
   openDeleteModal() {
-    if (!this.selectedNode || this.selectedNode.data.isDepartment) {
+    const selectedRows = this.tabulator.getSelectedRows();
+    if (selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn team phòng ban cần xóa');
       return;
     }
 
-    const selectedEmployeeTeam = this.selectedNode.data;
-
-    // Kiểm tra nếu team có team con (team cha)
-    if (this.selectedNode.children && this.selectedNode.children.length > 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể xóa team cha. Vui lòng xóa các team con thuộc team này trước.');
-      return;
-    }
+    const selectedEmployeeTeam = selectedRows[0].getData();
     this.modal.confirm({
       nzTitle: "Xác nhận xóa",
       nzContent: `Bạn có chắc chắn muốn xóa team phòng ban này không?`,
@@ -351,88 +252,5 @@ export class EmployeeTeamComponent implements OnInit {
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '20%' : '0';
-  }
-
-  getGroupCount(departmentName: string): number {
-    return this.groupCounts[departmentName] || 0;
-  }
-
-  onMemberSelect(event: any) {
-    this.selectedMember = event.data;
-    this.menuBarsEmployee[1].disabled = false;
-    this.menuBarsEmployee = [...this.menuBarsEmployee];
-  }
-
-  onMemberUnselect() {
-    this.selectedMember = null;
-    this.menuBarsEmployee[1].disabled = true;
-    this.menuBarsEmployee = [...this.menuBarsEmployee];
-  }
-
-  addMember() {
-    if (!this.selectedNode || this.selectedNode.data.isDepartment) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một team để thêm thành viên');
-      return;
-    }
-
-    const teamId = this.selectedNode.data.ID;
-    const teamName = this.selectedNode.data.Name;
-
-    // Lọc danh sách nhân viên chưa thuộc team này
-    const employeesNotInTeam = this.allEmployees.filter(emp => emp.EmployeeTeamID !== teamId);
-
-    const modalRef = this.ngbModal.open(EmployeeSelectTableComponent, { size: 'lg', backdrop: 'static', centered: true });
-    modalRef.componentInstance.employeeList = employeesNotInTeam;
-    modalRef.componentInstance.selectedEmployeeIds = [];
-
-    modalRef.result.then((selectedEmployees: any[]) => {
-      if (selectedEmployees && selectedEmployees.length > 0) {
-        // Cập nhật từng nhân viên
-        const requests = selectedEmployees.map(emp =>
-          this.employeeService.updateEmployeeTeam(emp.ID, teamId).toPromise()
-        );
-
-        Promise.all(requests).then(() => {
-          this.notification.success(NOTIFICATION_TITLE.success, `Đã thêm ${selectedEmployees.length} nhân viên vào team ${teamName}`);
-          this.loadAllEmployees(() => {
-            this.memberList = this.allEmployees.filter(emp => emp.EmployeeTeamID === teamId);
-            this.selectedMember = null;
-            this.menuBarsEmployee[1].disabled = true;
-          });
-        }).catch(err => {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi thêm nhân viên vào team: ' + err.message);
-        });
-      }
-    }, () => { });
-  }
-
-  deleteMember() {
-    if (!this.selectedMember) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên để xóa');
-      return;
-    }
-
-    this.modal.confirm({
-      nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa nhân viên <b>${this.selectedMember.FullName}</b> khỏi team này không?`,
-      nzOkText: 'Xóa',
-      nzOkDanger: true,
-      nzOnOk: () => {
-        this.employeeService.updateEmployeeTeam(this.selectedMember.ID, 0).subscribe({
-          next: (res) => {
-            this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa nhân viên khỏi team thành công');
-            const teamId = this.selectedNode?.data.ID;
-            this.loadAllEmployees(() => {
-              this.memberList = this.allEmployees.filter(emp => emp.EmployeeTeamID === teamId);
-              this.selectedMember = null;
-              this.menuBarsEmployee[1].disabled = true;
-            });
-          },
-          error: (err) => {
-            this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xóa nhân viên: ' + err.message);
-          }
-        });
-      }
-    });
   }
 }

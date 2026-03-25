@@ -95,6 +95,10 @@ interface BillExportDetail {
   POKHDetailIDActual?: string;
   PONumber?: string;
   POCode?: string;
+  IsHeavy?: boolean; // Đánh dấu hàng nặng
+  QuantityTem?: number; // Số lượng tem
+  ConfirmTem?: boolean; // Xác nhận tem
+  BillImportTechDetailID?: number; // Liên kết đến chi tiết phiếu nhập kỹ thuật
 
 }
 
@@ -108,6 +112,9 @@ interface BillExport {
   RequestDate: Date;
   WarehouseCode: string;
   Details: BillExportDetail[];
+  TransferType?: number;
+  ProductGroupTransferID?: number;
+  BillImportTechID?: number;
 }
 
 @Component({

@@ -52,37 +52,9 @@ export class CandidateTestService {
   }
 
   /**
-   * Cập nhật thời gian thi còn lại (mỗi 30s)
-   */
-  updateExamTime(examResultID: number, remainingSeconds: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}update-exam-time`, { ID: examResultID, RemainingSeconds: remainingSeconds });
-  }
-
-  /**
    * Lưu tiến độ từng câu hỏi
    */
   saveQuestionProgress(data: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}save-question-progress`, data);
   }
-
-  /**
-   * Tải tiến độ bài thi (hỗ trợ tính toán RemainingSeconds và lấy lại answer cũ)
-   */
-  getExamProgress(examResultID: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}get-exam-progress?examResultID=${examResultID}`);
-  }
-    //#region privew ảnh
-  
-    downloadFileNotAuth(fileName: string): Observable<Blob> {
-      return this.http.get(`${this.apiUrl}download-by-key-not-auth`, {
-        params: {
-          key: 'HRRecruitmentExam',
-          fileName: fileName
-        },
-        responseType: 'blob'
-      });
-    }
-  
-    //#endregion
 }
-

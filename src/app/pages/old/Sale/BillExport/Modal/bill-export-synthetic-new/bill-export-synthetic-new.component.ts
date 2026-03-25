@@ -21,6 +21,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { BillExportService } from '../../bill-export-service/bill-export.service';
 import { AppUserService } from '../../../../../../services/app-user.service';
 import { DateTime } from 'luxon';
@@ -61,6 +63,8 @@ interface DocumentImport {
         NzDatePickerModule,
         NzSpinModule,
         NzCheckboxModule,
+        NzDropDownModule,
+        NzMenuModule,
         AngularSlickgridModule,
     ],
     templateUrl: './bill-export-synthetic-new.component.html',
@@ -499,6 +503,16 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
             },
+            {
+                id: 'IsTemVerify',
+                name: 'Xác nhận tem',
+                field: 'IsTemVerify',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['singleSelect'] },
+                formatter: Formatters.checkmarkMaterial,
+            },
             // Dynamic document columns
             //...dynamicDocumentColumns,
         ];
@@ -528,51 +542,32 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
             },
             frozenColumn: 7,
             gridHeight: 600,
-            createFooterRow: true,
-            showFooterRow: true,
-            footerRowHeight: 28,
+            enableContextMenu: true,
+            contextMenu: {
+                hideCloseButton: false,
+                commandTitle: '',
+                commandItems: [
+                    {
+                        command: 'confirm-tem',
+                        title: 'Xác nhận tem',
+                        iconCssClass: 'fa-solid fa-check',
+                        positionOrder: 10,
+                        action: (_e: any, _args: any) => {
+                            this.confirmTem();
+                        },
+                    },
+                    {
+                        command: 'cancel-confirm-tem',
+                        title: 'Hủy xác nhận tem',
+                        iconCssClass: 'fa-solid fa-xmark',
+                        positionOrder: 20,
+                        action: (_e: any, _args: any) => {
+                            this.cancelConfirmTem();
+                        },
+                    },
+                ],
+            },
         };
-    }
-
-    updateMasterFooterRow() {
-        if (this.angularGrid && this.angularGrid.slickGrid) {
-            const dataView = this.angularGrid.dataView;
-            const filteredItems = dataView.getFilteredItems() || [];
-            console.log(filteredItems);
-            // Đếm số lượng sản phẩm (đã bỏ qua group)
-            const codeCount = filteredItems.length;
-
-            // Tính tổng các cột số liệu
-            const totals = (filteredItems || []).reduce(
-                (acc, item) => {
-                    acc.Qty += Number(item.Qty) || 0;
-                    return acc;
-                },
-                {
-                    Qty: 0,
-                }
-            );
-
-            // Set footer values cho từng column
-            const columns = this.angularGrid.slickGrid.getColumns();
-            columns.forEach((col: any) => {
-                const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(
-                    col.id
-                );
-                if (!footerCell) return;
-
-                // Đếm cho cột Code
-                if (col.id === 'Code') {
-                    footerCell.innerHTML = `<b>${codeCount.toLocaleString('en-US')}</b>`;
-                }
-                // Tổng các cột số liệu
-                else if (col.id === 'Qty') {
-                    footerCell.innerHTML = `<b>${totals.Qty.toLocaleString(
-                        'en-US'
-                    )}</b>`;
-                }
-            });
-        }
     }
     // #endregion
 
@@ -984,7 +979,7 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                         if (this.angularGrid) {
                             setTimeout(() => {
                                 this.applyDistinctFilters();
-                                this.updateMasterFooterRow();
+                                // this.updateMasterFooterRow();
                             }, 100);
                         }
                     }
@@ -999,6 +994,92 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
             });
     }
     // #endregion
+
+    confirmTem() {
+        const selectedRowIndexes = this.angularGrid.gridService.getSelectedRows() || [];
+        if (selectedRowIndexes.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Vui lòng chọn ít nhất một dòng để xác nhận tem'
+            );
+            return;
+        }
+
+        this.isLoading = true;
+        const lstBillExportDetailID = selectedRowIndexes
+            .map((idx: number) => this.angularGrid.dataView.getItem(idx))
+            .filter((item: any) => item && item.BillExportDetailID)
+            .map((item: any) => Number(item.BillExportDetailID));
+        this.billExportService
+            .confirmTem(lstBillExportDetailID, true)
+            .subscribe({
+                next: (res: any) => {
+                    this.isLoading = false;
+                    if (res.data?.length > 0) {
+                        this.notification.success(
+                            NOTIFICATION_TITLE.success,
+                            'Xác nhận tem thành công'
+                        );
+                        this.loadDataBillExportSynthetic();
+                    } else {
+                        this.notification.warning(
+                            NOTIFICATION_TITLE.warning,
+                            res.message || 'Không có chi tiết phiếu xuất nào được xác nhận'
+                        );
+                    }
+                },
+                error: (err: any) => {
+                    this.isLoading = false;
+                    this.notification.error(
+                        NOTIFICATION_TITLE.error,
+                        err?.error?.message || 'Không thể xác nhận tem'
+                    );
+                },
+            });
+    }
+
+    cancelConfirmTem() {
+        const selectedRowIndexes = this.angularGrid.gridService.getSelectedRows() || [];
+        if (selectedRowIndexes.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Vui lòng chọn ít nhất một dòng để hủy xác nhận tem'
+            );
+            return;
+        }
+
+        this.isLoading = true;
+        const lstBillExportDetailID = selectedRowIndexes
+            .map((idx: number) => this.angularGrid.dataView.getItem(idx))
+            .filter((item: any) => item && item.BillExportDetailID)
+            .map((item: any) => Number(item.BillExportDetailID));
+        this.billExportService
+            .confirmTem(lstBillExportDetailID, false)
+            .subscribe({
+                next: (res: any) => {
+                    this.isLoading = false;
+                    if (res.data?.length > 0) {
+                        this.notification.success(
+                            NOTIFICATION_TITLE.success,
+                            'Hủy xác nhận tem thành công'
+                        );
+                        this.loadDataBillExportSynthetic();
+                    } else {
+                        this.notification.warning(
+                            NOTIFICATION_TITLE.warning,
+                            res.message || 'Không có chi tiết phiếu xuất nào được hủy xác nhận'
+                        );
+                    }
+                },
+                error: (err: any) => {
+                    this.isLoading = false;
+                    this.notification.error(
+                        NOTIFICATION_TITLE.error,
+                        err?.error?.message || 'Không thể hủy xác nhận tem'
+                    );
+                },
+            });
+    }
 
     // #region Dynamic Columns
     /**

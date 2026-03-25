@@ -1,238 +1,124 @@
-<ng-container class="w-100 bill-import-new-w-100">
-    <div class="card h-100 border-0 rounded-0 bill-import-new-card bill-import-new-h-100 bill-import-new-border-0 bill-import-new-rounded-0">
-        <!-- Search Panel Above Grid -->
-
-        <!-- PrimeNG Menubar Toolbar -->
-        <!-- PrimeNG Menubar Toolbar -->
-        <div class="card-header bg-white p-1">
-            <div class="d-flex gap-1 align-items-center">
-                <p-menubar [model]="menuBars" class="p-0 border-0" style="width: 100%">
-                    <ng-template pTemplate="item" let-item>
-                        <a class="p-menuitem-link bill-import-new-p-menuitem-link" [ngClass]="item.styleClass">
-                            <i [class]="item.icon"></i>
-                            <span class="p-menuitem-text bill-import-new-p-menuitem-text">{{ item.label }}</span>
-                        </a>
-                    </ng-template>
-                    <ng-template #end>
-                        <div style="margin-left: auto">
-                            <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile"
-                                (click)="isShowModal = true; $event.stopPropagation()">
-                                <i nz-icon nzType="search"></i>
-                            </button>
-                        </div>
-                    </ng-template>
-                </p-menubar>
-            </div>
-        </div>
-        <!-- Filter bar: chỉ hiện trên desktop -->
-        <div class="card-header bg-white p-2 bill-import-new-card-header bill-import-new-bg-white bill-import-new-p-2" *ngIf="!isMobile">
-            <form [id]="'form-bill-import-search-' + wareHouseCode" nz-form nzLayout="inline"
-                (keyup.enter)="onSearch()">
-                <nz-form-item>
-                    <nz-form-label class="fs-12 bill-import-new-fs-12">Từ ngày</nz-form-label>
-                    <nz-form-control>
-                        <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateStart"
-                            name="dateStart" [nzDisabled]="checked" (ngModelChange)="onDateStartChange($event)"
-                            style="width: 130px">
-                        </nz-date-picker>
-                    </nz-form-control>
-                </nz-form-item>
-
-                <nz-form-item>
-                    <nz-form-label class="fs-12 bill-import-new-fs-12">Đến ngày</nz-form-label>
-                    <nz-form-control>
-                        <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateEnd"
-                            name="dateEnd" [nzDisabled]="checked" (ngModelChange)="onDateEndChange($event)"
-                            style="width: 130px">
-                        </nz-date-picker>
-                    </nz-form-control>
-                </nz-form-item>
-
-                <nz-form-item>
-                    <nz-form-label class="fs-12 bill-import-new-fs-12">Lọc kho</nz-form-label>
-                    <nz-form-control>
-                        <nz-select nzAllowClear="true" [(ngModel)]="selectedKhoTypes"
-                            (ngModelChange)="onKhoTypeChange($event)" [nzMode]="'multiple'"
-                            [nzPlaceHolder]="'Chọn nhóm kho'" [nzMaxTagCount]="3" name="selectedKhoTypes" nzSize="small"
-                            style="width: 20vw">
-                            <nz-option *ngFor="let item of dataProductGroup" [nzLabel]="item.ProductGroupName"
-                                [nzValue]="item.ID"></nz-option>
-                        </nz-select>
-
-                        <ng-template #tagPlaceHolder let-selectedList>
-                            {{selectedList}} Đã chọn
-                        </ng-template>
-                    </nz-form-control>
-                </nz-form-item>
-
-                <nz-form-item>
-                    <nz-form-label class="fs-12 bill-import-new-fs-12">Lọc phiếu</nz-form-label>
-                    <nz-form-control>
-                        <nz-select nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status"
-                            name="status" style="width: 150px">
-                            <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
-                                <div class="d-flex align-items-center bill-import-new-d-flex bill-import-new-align-items-center">
-                                    <span class="me-2 bill-import-new-me-2">{{ item.ID }}</span>
-                                    <span>{{ item.Name }}</span>
-                                </div>
-                            </nz-option>
-                        </nz-select>
-                    </nz-form-control>
-                </nz-form-item>
-
-                <nz-form-item>
-                    <nz-form-label class="fs-12 bill-import-new-fs-12">Từ khóa</nz-form-label>
-                    <nz-form-control>
-                        <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword"
-                            nzSize="small" (keyup.enter)="onSearch()" style="width: 200px" />
-                    </nz-form-control>
-                </nz-form-item>
-
-                <nz-form-item>
-                    <nz-form-control>
-                        <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">Tất
-                            cả thời gian</label>
-                    </nz-form-control>
-                </nz-form-item>
-
-                <nz-form-item>
-                    <nz-form-control>
-                        <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
-                            Tìm kiếm
-                        </button>
-                    </nz-form-control>
-                </nz-form-item>
-            </form>
-        </div>
-
-        <!-- Modal tìm kiếm cho mobile -->
-        <nz-modal [(nzVisible)]="isShowModal" nzTitle="Tìm kiếm" nzWidth="100vw" nzCentered
-            [nzBodyStyle]="{ padding: '0px 16px' }" (nzOnCancel)="isShowModal = false"
-            (nzOnOk)="onSearch(); isShowModal = false" nzOkText="Tìm kiếm">
-            <ng-container *nzModalContent>
-                <form [id]="'form-bill-import-search-m-' + wareHouseCode" nz-form nzLayout="vertical" class="mt-2" (keyup.enter)="onSearch()">
-                    <div nz-row [nzGutter]="12">
-                        <div nz-col [nzSpan]="12">
-                            <nz-form-item>
-                                <nz-form-label>Từ ngày</nz-form-label>
-                                <nz-form-control>
-                                    <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateStart"
-                                        name="dateStart_m" [nzDisabled]="checked" (ngModelChange)="onDateStartChange($event)"
-                                        class="w-100">
-                                    </nz-date-picker>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-        
-                        <div nz-col [nzSpan]="12">
-                            <nz-form-item>
-                                <nz-form-label>Đến ngày</nz-form-label>
-                                <nz-form-control>
-                                    <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateEnd"
-                                        name="dateEnd_m" [nzDisabled]="checked" (ngModelChange)="onDateEndChange($event)"
-                                        class="w-100">
-                                    </nz-date-picker>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-        
-                        <div nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label>Lọc kho</nz-form-label>
-                                <nz-form-control>
-                                    <nz-select nzAllowClear="true" [(ngModel)]="selectedKhoTypes"
-                                        (ngModelChange)="onKhoTypeChange($event)" [nzMode]="'multiple'"
-                                        [nzPlaceHolder]="'Chọn nhóm kho'" [nzMaxTagCount]="3" name="selectedKhoTypes_m" nzSize="small"
-                                        class="w-100">
-                                        <nz-option *ngFor="let item of dataProductGroup" [nzLabel]="item.ProductGroupName"
-                                            [nzValue]="item.ID"></nz-option>
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-        
-                        <div nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label>Lọc phiếu</nz-form-label>
-                                <nz-form-control>
-                                    <nz-select nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status"
-                                        name="status_m" class="w-100">
-                                        <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
-                                            <div class="d-flex align-items-center bill-import-new-d-flex bill-import-new-align-items-center">
-                                                <span class="me-2 bill-import-new-me-2">{{ item.ID }}</span>
-                                                <span>{{ item.Name }}</span>
-                                            </div>
-                                        </nz-option>
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-        
-                        <div nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label>Từ khóa</nz-form-label>
-                                <nz-form-control>
-                                    <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword_m"
-                                        nzSize="small" (keyup.enter)="onSearch()" class="w-100" />
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-        
-                        <div nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-control>
-                                    <label nz-checkbox [(ngModel)]="checked" name="checked_m" (ngModelChange)="onCheckboxChange()">Tất
-                                        cả thời gian</label>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-                    </div>
-                </form>
-            </ng-container>
-        </nz-modal>
-
-        <!-- Grid Content -->
-        <div class="card-body p-0 bill-import-new-card-body bill-import-new-p-0">
-            <div *ngIf="isLoading">
-                <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            width: '100%',
-            height: '100%',
-            background: 'rgba(255,255,255,0.4)',
-            zIndex: '999',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }"></nz-spin>
-            </div>
-            <div [id]="'grid-container-master-' + componentId" [ngClass]="'grid-container-master-' + componentId">
-                <angular-slickgrid [gridId]="'gridMaster-' + componentId" [columns]="columnDefinitionsMaster"
-                    [options]="gridOptionsMaster" [dataset]="datasetMaster"
-                    (onAngularGridCreated)="angularGridMasterReady($event.detail)"
-                    (onSelectedRowsChanged)="onMasterRowSelectionChanged($event.detail.eventData,$event.detail.args)"
-                    (onDblClick)="openModalBillImportDetail(true)">
-                </angular-slickgrid>
-            </div>
-            <!-- Detail Grid -->
-            <div class="mt-2 bill-import-new-mt-2">
-                <fieldset class="detail-fieldset bill-import-new-detail-fieldset">
-                    <legend class="detail-legend bill-import-new-detail-legend">
-                        {{ tabDetailTitle }}
-                    </legend>
-
-                    <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
-                        <div [ngClass]="'grid-container-detail-' + componentId" class="w-100 bill-import-new-w-100">
-                            <angular-slickgrid [gridId]="'gridDetail-' + componentId"
-                                [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
-                                [dataset]="datasetDetail"
-                                (onAngularGridCreated)="angularGridDetailReady($event.detail)">
-                            </angular-slickgrid>
-                        </div>
-                    </nz-spin>
-                </fieldset>
-            </div>
-        </div>
+<p-card class="p-0">
+  <!-- Toolbar -->
+  <ng-template pTemplate="header">
+    <div class="p-1">
+      <p-menubar [model]="menuBars" class="p-0 border-0" style="width: 100%; ">
+        <ng-template pTemplate="item" let-item>
+          <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+          </a>
+        </ng-template>
+        <ng-template #end>
+          <div style="margin-left: auto; display: flex; align-items: center;">
+            <!-- Mobile: mở modal tìm kiếm -->
+            <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile"
+              (click)="isShowModal = true; $event.stopPropagation()">
+              <i nz-icon nzType="search"></i>
+            </button>
+            <!-- Desktop: toggle search bar -->
+            <button nz-button nzType="text" nzShape="circle" *ngIf="!isMobile"
+              [title]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+              [class.text-primary]="showSearchBar"
+              (click)="showSearchBar = !showSearchBar; $event.stopPropagation()">
+              <i nz-icon nzType="search"></i>
+            </button>
+          </div>
+        </ng-template>
+      </p-menubar>
     </div>
-</ng-container>
+
+    
+  </ng-template>
+<div style="display: flex; flex-direction: column; height: 100%;">
+<!-- Filter bar: desktop only -->
+    <div *ngIf="!isMobile">
+      <div class="border-top p-2" *ngIf="showSearchBar">
+        <form [id]="'form-bill-import-search-' + wareHouseCode" nz-form nzLayout="inline" (keyup.enter)="onSearch()">
+          <nz-form-item>
+            <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateStart"
+                name="dateStart" [nzDisabled]="checked" (ngModelChange)="onDateStartChange($event)"
+                style="width: 130px">
+              </nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item>
+            <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateEnd" name="dateEnd"
+                [nzDisabled]="checked" (ngModelChange)="onDateEndChange($event)" style="width: 130px">
+              </nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item>
+            <nz-form-label class="fs-12">Lọc kho</nz-form-label>
+            <nz-form-control>
+              <nz-select nzAllowClear="true" [(ngModel)]="selectedKhoTypes" (ngModelChange)="onKhoTypeChange($event)"
+                [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn nhóm kho'" [nzMaxTagCount]="1" name="selectedKhoTypes"
+                nzSize="small" style="width: 12vw">
+                <nz-option *ngFor="let item of dataProductGroup" [nzLabel]="item.ProductGroupName"
+                  [nzValue]="item.ID"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item>
+            <nz-form-label class="fs-12">Lọc phiếu</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status" name="status"
+                style="width: 150px">
+                <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item>
+            <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+            <nz-form-control>
+              <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword"
+                nzSize="small" style="width: 200px" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item>
+            <nz-form-control>
+              <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">Tất cả thời
+                gian</label>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item>
+            <nz-form-control>
+              <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                Tìm kiếm
+              </button>
+            </nz-form-control>
+          </nz-form-item>
+        </form>
+      </div>
+    </div>
+  <!-- Splitter -->
+  <p-splitter layout="vertical" [panelSizes]="[60, 40]" [minSizes]="[10, 10]" style="flex: 1; min-height: 0">
+    <!-- Master Grid Panel -->
+    <ng-template pTemplate>
+      <app-custom-table [data]="datasetMaster" [columns]="columnsMaster" [loading]="isLoading" [scrollable]="true"
+        scrollHeight="flex" selectionMode="multiple" [(selection)]="selectedMasterRows" [clickSelectRow]="true"
+        (rowClick)="onRowClick($event)" dataKey="id" [showGlobalFilter]="false" [resizeMode]="'expand'"
+        filterDisplay="row" [showGridlines]="true" [stripedRows]="true">
+      </app-custom-table>
+    </ng-template>
+
+    <!-- Detail Grid Panel -->
+    <ng-template pTemplate>
+      <app-custom-table [data]="datasetDetail" [columns]="columnsDetail" [loading]="isDetailLoad" [scrollable]="true"
+        scrollHeight="flex" [showGlobalFilter]="false" filterDisplay="row" [showGridlines]="true" [stripedRows]="true">
+      </app-custom-table>
+    </ng-template>
+  </p-splitter>
+</div>
+</p-card>

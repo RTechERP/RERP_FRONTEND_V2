@@ -1,10 +1,10 @@
-<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
-    <h6 class="modal-title text-white">Hồ sơ chứng từ phiếu nhập Sale {{code}}</h6>
-    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0 bill-document-import-modal-header bill-document-import-bg-primary bill-document-import-text-uppercase bill-document-import-py-2 bill-document-import-flex-shrink-0">
+    <h6 class="modal-title text-white bill-document-import-modal-title bill-document-import-text-white">Hồ sơ chứng từ phiếu nhập Sale {{code}}</h6>
+    <button type="button" class="btn-close bill-document-import-btn-close" (click)="closeModal()" aria-label="Close"></button>
 </div>
-<div class="modal-body p-1 flex-grow-1 overflow-hidden">
-    <div class="tab-content">
-        <div class="card-body p-0">
+<div class="modal-body p-1 flex-grow-1 overflow-hidden bill-document-import-modal-body bill-document-import-p-1 bill-document-import-flex-grow-1 bill-document-import-overflow-hidden">
+    <div class="tab-content bill-document-import-tab-content">
+        <div class="card-body p-0 bill-document-import-card-body bill-document-import-p-0">
             <nz-splitter nzLayout="vertical">
                 <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
                     <!-- <div #tableBillDocumentImport style="height: 30vh;"></div> -->
@@ -35,10 +35,10 @@
         </div>
     </div>
 </div>
-<div class="modal-footer flex-shrink-0">
-    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-    <button class="fs-12 btn" nz-button nzType="default" *hasPermission="'N52,N36,N1,N34'"
+<div class="modal-footer flex-shrink-0 bill-document-import-modal-footer bill-document-import-flex-shrink-0">
+    <button class="fs-12 btn bill-document-import-fs-12 bill-document-import-btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+    <button class="fs-12 btn bill-document-import-fs-12 bill-document-import-btn" nz-button nzType="default" *hasPermission="'N52,N36,N1,N34'"
         (click)="saveOnly()">Lưu</button>
-    <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N52,N36,N1,N34'"
+    <button class="fs-12 btn bill-document-import-fs-12 bill-document-import-btn" nz-button nzType="primary" *hasPermission="'N52,N36,N1,N34'"
         (click)="saveDataAndClose()">Lưu và đóng</button>
 </div>

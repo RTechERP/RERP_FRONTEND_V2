@@ -70,16 +70,4 @@ export class DailyReportAccountingService {
       }
     });
   }
-
-  importExcel(rows: any[]): Observable<any> {
-    return this.http.post(this._url + 'importexcel', rows);
-  }
-
-  downloadFile(filePath: string): Observable<Blob> {
-    const params = new HttpParams().set('path', filePath);
-    return this.http.get(`${environment.host}api/home/download`, {
-      params,
-      responseType: 'blob',
-    });
-  }
 }

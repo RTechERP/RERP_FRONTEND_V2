@@ -1,28 +1,28 @@
-<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0" *ngIf="!isEmbedded">
-    <h6 class="modal-title text-white">Chi tiết phiếu nhập</h6>
-    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0 bill-import-detail-modal-header bill-import-detail-bg-primary bill-import-detail-text-uppercase bill-import-detail-py-2 bill-import-detail-flex-shrink-0" *ngIf="!isEmbedded">
+    <h6 class="modal-title text-white bill-import-detail-modal-title bill-import-detail-text-white">Chi tiết phiếu nhập</h6>
+    <button type="button" class="btn-close bill-import-detail-btn-close" (click)="closeModal()" aria-label="Close"></button>
 </div>
-<div class="modal-body p-2 flex-grow-1 overflow-visible" style="overflow-y: unset;">
-    <div class="d-flex gap-2 pb-2 border-bottom">
-        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Thêm sản phẩm"
+<div class="modal-body p-2 flex-grow-1 overflow-visible bill-import-detail-modal-body bill-import-detail-p-2 bill-import-detail-flex-grow-1 bill-import-detail-overflow-visible" style="overflow-y: unset;">
+    <div class="d-flex gap-2 pb-2 border-bottom bill-import-detail-d-flex bill-import-detail-gap-2 bill-import-detail-pb-2 bill-import-detail-border-bottom">
+        <button class="fs-12 btn bill-import-detail-fs-12 bill-import-detail-btn" nz-button nzType="default" nzSize="small" title="Thêm sản phẩm"
             (click)="openModalNewProduct()">
             <nz-icon nzType="file-text"></nz-icon> Thêm sản phẩm
         </button>
-        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Thêm dự án">
+        <button class="fs-12 btn bill-import-detail-fs-12 bill-import-detail-btn" nz-button nzType="default" nzSize="small" title="Thêm dự án">
             <nz-icon nzType="exception"></nz-icon> Thêm dự án
         </button>
-        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Chọn PO">
+        <button class="fs-12 btn bill-import-detail-fs-12 bill-import-detail-btn" nz-button nzType="default" nzSize="small" title="Chọn PO">
             <nz-icon nzType="file-excel"></nz-icon> Chọn PO
         </button>
     </div>
 
     <!-- Đổi sang vertical: label nằm trên input -->
-    <form nz-form [nzLayout]="'vertical'" [nzLabelAlign]="'left'" class="mt-2" [formGroup]="validateForm">
+    <form nz-form [nzLayout]="'vertical'" [nzLabelAlign]="'left'" class="mt-2 bill-import-detail-mt-2" [formGroup]="validateForm">
         <!-- Hàng 1: 4 cột (Số phiếu, Trạng thái, Loại kho, Kho) -->
         <div nz-row [nzGutter]="16">
             <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="6">
                 <nz-form-item>
-                    <nz-form-label class="fs-12" nzRequired>Số phiếu</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-detail-fs-12" nzRequired>Số phiếu</nz-form-label>
                     <nz-form-control [nzErrorTip]="billImportCodeError">
                         <input title="billImportCode" [disabled]="true" nz-input formControlName="BillImportCode"
                             readonly />
@@ -37,7 +37,7 @@
 
             <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="6">
                 <nz-form-item>
-                    <nz-form-label class="fs-12" nzRequired>Trạng thái</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-detail-fs-12" nzRequired>Trạng thái</nz-form-label>
                     <nz-form-control [nzErrorTip]="billTypeNewError">
                         <nz-select formControlName="BillTypeNew" nzShowSearch nzAllowClear
                             nzPlaceHolder="Chọn trạng thái">
@@ -55,7 +55,7 @@
             <!-- Chuyển Loại kho lên hàng 1 -->
             <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="6">
                 <nz-form-item>
-                    <nz-form-label class="fs-12" nzRequired>Loại kho</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-detail-fs-12" nzRequired>Loại kho</nz-form-label>
                     <nz-form-control [nzErrorTip]="khoTypeIdError">
                         <!-- Loại kho -->
                         <nz-select formControlName="KhoTypeID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại kho">
@@ -76,7 +76,7 @@
 
             <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="6">
                 <nz-form-item>
-                    <nz-form-label class="fs-12" nzRequired>Kho</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-detail-fs-12" nzRequired>Kho</nz-form-label>
                     <nz-form-control>
                         <!-- Disable select, hiển thị WarehouseName, giá trị là WarehouseID -->
                         <nz-select formControlName="WarehouseID" nzShowSearch nzDisabled="true"
@@ -90,11 +90,11 @@
         </div>
 
         <!-- Hàng 2: 3 nhóm cột -->
-        <div nz-row [nzGutter]="16" class="mt-2">
+        <div nz-row [nzGutter]="16" class="mt-2 bill-import-detail-mt-2">
             <!-- Nhóm trái (2/4): Nhà cung cấp/Bộ phận + Điều khoản TT -->
             <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12">
                 <nz-form-item>
-                    <nz-form-label class="fs-12" nzRequired>{{ labelSupplier }}</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-detail-fs-12" nzRequired>{{ labelSupplier }}</nz-form-label>
                     <nz-form-control [nzErrorTip]="supplierIdError">
                         <nz-select formControlName="SupplierID" nzShowSearch nzAllowClear
                             [nzPlaceHolder]="placeholderSupplier" (ngModelChange)="changeSuplierSale()">
@@ -114,8 +114,8 @@
                     </nz-form-control>
                 </nz-form-item>
 
-                <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" nzRequired>Điều khoản TT</nz-form-label>
+                <nz-form-item class="mt-2 bill-import-detail-mt-2">
+                    <nz-form-label class="fs-12 bill-import-detail-fs-12" nzRequired>Điều khoản TT</nz-form-label>
                     <nz-form-control>
                         <nz-select formControlName="RulePayID" nzShowSearch nzAllowClear
                             nzPlaceHolder="Chọn điều khoản thanh toán">
@@ -131,7 +131,7 @@
             <!-- Nhóm phải (1/4): Người nhập + Người giao -->
             <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="6">
                 <nz-form-item>
-                    <nz-form-label class="fs-12" nzRequired>Người nhập</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-detail-fs-12" nzRequired>Người nhập</nz-form-label>
                     <nz-form-control [nzErrorTip]="reciverIdError">
                         <nz-select formControlName="ReciverID" nzShowSearch nzAllowClear
                             nzPlaceHolder="Chọn người nhập">
@@ -151,8 +151,8 @@
                     </nz-form-control>
                 </nz-form-item>
 
-                <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" nzRequired>{{ labelDeliver }}</nz-form-label>
+                <nz-form-item class="mt-2 bill-import-detail-mt-2">
+                    <nz-form-label class="fs-12 bill-import-detail-fs-12" nzRequired>{{ labelDeliver }}</nz-form-label>
                     <nz-form-control [nzErrorTip]="deliverIdError">
                         <nz-select formControlName="DeliverID" nzShowSearch nzAllowClear
                             [nzPlaceHolder]="placeholderDeliver">
@@ -176,17 +176,17 @@
             <!-- Nhóm giữa (1/4): Ngày nhập + Ngày y/c nhập -->
             <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="6">
                 <nz-form-item>
-                    <nz-form-label class="fs-12">Ngày nhập</nz-form-label>
+                    <nz-form-label class="fs-12 bill-import-detail-fs-12">Ngày nhập</nz-form-label>
                     <nz-form-control>
-                        <nz-date-picker formControlName="CreatDate" [nzFormat]="dateFormat" class="w-100"
+                        <nz-date-picker formControlName="CreatDate" [nzFormat]="dateFormat" class="w-100 bill-import-detail-w-100"
                             [nzDisabled]="validateForm.get('BillTypeNew')?.value === 4"></nz-date-picker>
                     </nz-form-control>
                 </nz-form-item>
 
-                <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12">Ngày y/c nhập</nz-form-label>
+                <nz-form-item class="mt-2 bill-import-detail-mt-2">
+                    <nz-form-label class="fs-12 bill-import-detail-fs-12">Ngày y/c nhập</nz-form-label>
                     <nz-form-control>
-                        <nz-date-picker formControlName="DateRequestImport" [nzFormat]="dateFormat" class="w-100"
+                        <nz-date-picker formControlName="DateRequestImport" [nzFormat]="dateFormat" class="w-100 bill-import-detail-w-100"
                             [nzDisabled]="validateForm.get('BillTypeNew')?.value !== 4"></nz-date-picker>
                     </nz-form-control>
                 </nz-form-item>
@@ -196,13 +196,13 @@
 
     <nz-tabset nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
         <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
-            <div class="position-relative" style="height: 38vh;">
+            <div class="position-relative bill-import-detail-position-relative" style="height: 38vh;">
                 <div #table_BillImportDetails style="height: 100%;"></div>
 
             </div>
         </nz-tab>
         <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
-            <div class="position-relative" style="height: 38vh;">
+            <div class="position-relative bill-import-detail-position-relative" style="height: 38vh;">
                 <div #table_DocumnetImport style="height: 100%;"></div>
 
             </div>
@@ -226,8 +226,8 @@
     </div>
 </div>
 
-<div class="modal-footer flex-shrink-0">
-    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-    <button class="fs-12 btn" [hidden]="isApproved" nz-button nzType="primary"
+<div class="modal-footer flex-shrink-0 bill-import-detail-modal-footer bill-import-detail-flex-shrink-0">
+    <button class="fs-12 btn bill-import-detail-fs-12 bill-import-detail-btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+    <button class="fs-12 btn bill-import-detail-fs-12 bill-import-detail-btn" [hidden]="isApproved" nz-button nzType="primary"
         [nzLoading]="isSaving" [disabled]="isSaving" (click)="saveDataBillImport()">Lưu</button>
 </div>

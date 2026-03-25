@@ -1,52 +1,52 @@
-<ng-container class="w-100">
+<ng-container class="w-100 report-import-export-w-100">
     <nz-splitter>
       <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
-        <div class="card h-100 border-0 rounded-0">
-          <div class="card-header bg-white p-1">
-            <div class="d-flex justify-content-between align-items-center">
-              <h6 class="m-0 ms-2">Tìm kiếm</h6>
-              <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+        <div class="card h-100 border-0 rounded-0 report-import-export-card report-import-export-h-100 report-import-export-border-0 report-import-export-rounded-0">
+          <div class="card-header bg-white p-1 report-import-export-card-header report-import-export-bg-white report-import-export-p-1">
+            <div class="d-flex justify-content-between align-items-center report-import-export-d-flex report-import-export-justify-content-between report-import-export-align-items-center">
+              <h6 class="m-0 ms-2 report-import-export-m-0 report-import-export-ms-2">Tìm kiếm</h6>
+              <button class="border-0 me-2 report-import-export-border-0 report-import-export-me-2" nz-button nzSize="small" nzType="default" nzDanger
                 (click)="toggleSearchPanel()">
                 <nz-icon nzType="close" nzTheme="outline" />
               </button>
             </div>
           </div>
-          <div class="card-body">
+          <div class="card-body report-import-export-card-body">
             <form nz-form nzLayout="vertical">
               <!-- Date range -->
               <nz-form-item>
-                <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                <nz-form-label class="fs-12 report-import-export-fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
                 <nz-form-control [nzSpan]="24">
-                  <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateStart" name="dateStart"></nz-date-picker>
+                  <nz-date-picker [nzFormat]="dateFormat" class="w-100 report-import-export-w-100" nzSize="small" [(ngModel)]="searchParams.dateStart" name="dateStart"></nz-date-picker>
                 </nz-form-control>
               </nz-form-item>
-              <nz-form-item class="mt-2">
-                <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+              <nz-form-item class="mt-2 report-import-export-mt-2">
+                <nz-form-label class="fs-12 report-import-export-fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
                 <nz-form-control [nzSpan]="24">
-                  <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd" name="dateEnd"></nz-date-picker>
+                  <nz-date-picker [nzFormat]="dateFormat" class="w-100 report-import-export-w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd" name="dateEnd"></nz-date-picker>
                 </nz-form-control>
               </nz-form-item>
 
-              <nz-form-item class="mt-2">
-                <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-item class="mt-2 report-import-export-mt-2">
+                <nz-form-label class="fs-12 report-import-export-fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                 <nz-form-control [nzSpan]="24">
-                    <input class="w-100" (keyup.enter)="searchData()" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
+                    <input class="w-100 report-import-export-w-100" (keyup.enter)="searchData()" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
                 </nz-form-control>
               </nz-form-item>
 
 
             </form>
           </div>
-          <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end report-import-export-card-footer report-import-export-bg-white report-import-export-p-1 report-import-export-d-flex report-import-export-gap-1 report-import-export-justify-content-end">
             <button nz-button nzType="default" nzSize="small" (click)="resetform()">Đặt lại</button>
             <button nz-button nzType="primary" nzSize="small" (click)="searchData()">Tìm kiếm</button>
           </div>
         </div>
       </nz-splitter-panel>
       <nz-splitter-panel nzDefaultSize="100%">
-        <div class="card h-100 border-0 rounded-0">
+        <div class="card h-100 border-0 rounded-0 report-import-export-card report-import-export-h-100 report-import-export-border-0 report-import-export-rounded-0">
 
-          <div class="card-body p-0">
+          <div class="card-body p-0 report-import-export-card-body report-import-export-p-0">
             <nz-splitter>
               <nz-splitter-panel style="height:90vh">
                 <nz-splitter nzLayout="vertical">
@@ -58,13 +58,13 @@
                 </nz-splitter>
               </nz-splitter-panel>
               <nz-splitter-panel [nzCollapsible]="true" nzSize="70%" style="height:100vh">
-                <div class="card-header bg-white p-1">
-                  <div class="d-flex gap-1">
+                <div class="card-header bg-white p-1 report-import-export-card-header report-import-export-bg-white report-import-export-p-1">
+                  <div class="d-flex gap-1 report-import-export-d-flex report-import-export-gap-1">
                     <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
                       <nz-icon nzType="search" />
                   </button>
-                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                      <img class="btn-action-icon" src="assets/icon/excel.png" />Xuất Excel
+                    <button class="fs-12 report-import-export-fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                      <img class="btn-action-icon report-import-export-btn-action-icon" src="assets/icon/excel.png" />Xuất Excel
                     </button>
                   </div>
                 </div>

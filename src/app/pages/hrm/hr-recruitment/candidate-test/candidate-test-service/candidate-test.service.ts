@@ -71,18 +71,39 @@ export class CandidateTestService {
   getExamProgress(examResultID: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}get-exam-progress?examResultID=${examResultID}`);
   }
-    //#region privew ảnh
-  
-    downloadFileNotAuth(fileName: string): Observable<Blob> {
-      return this.http.get(`${this.apiUrl}download-by-key-not-auth`, {
-        params: {
-          key: 'HRRecruitmentExam',
-          fileName: fileName
-        },
-        responseType: 'blob'
-      });
+  /**
+   * Tải file dựa trên key và ServerPath (đường dẫn lưu trữ) - Không yêu cầu xác thực
+   * @param serverPath Đường dẫn đầy đủ trên server (ví dụ: "PhongBan/image.png" hoặc "D:\...")
+   * @param key        Key cấu hình hệ thống (mặc định 'HRRecruitmentExam')
+   */
+  downloadFileNotAuth(serverPath: string, key: string = 'HRRecruitmentExam'): Observable<Blob> {
+    // Tách serverPath thành subPath và fileName (ví dụ: "Folder/File.jpg" -> subPath="Folder", fileName="File.jpg")
+    const lastSlash = Math.max(serverPath.lastIndexOf('/'), serverPath.lastIndexOf('\\'));
+    const subPath = lastSlash >= 0 ? serverPath.substring(0, lastSlash) : '';
+    const fileName = lastSlash >= 0 ? serverPath.substring(lastSlash + 1) : serverPath;
+
+    // Xây dựng URL thủ công với encodeURIComponent để đảm bảo các tham số (bao gồm ký tự ổ đĩa) được truyền chính xác
+    const url = `${this.apiUrl}download-by-key-not-auth?key=${key}&subPath=${encodeURIComponent(subPath)}&fileName=${encodeURIComponent(fileName)}`;
+
+    return this.http.get(url, {
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * Upload file cho ứng viên (mặc định không có subPath cho câu trả lời)
+   * @param file    File cần upload
+   * @param subPath Đường dẫn con (mặc định trống)
+   * @param key     Key cấu hình hệ thống (mặc định 'HRRecruitmentExam')
+   */
+  uploadFile(file: File, subPath: string = '', key: string = 'HRRecruitmentExam'): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('key', key);
+    if (subPath) {
+      formData.append('subPath', subPath);
     }
-  
-    //#endregion
+    return this.http.post<any>(`${environment.host}api/home/upload`, formData);
+  }
 }
 

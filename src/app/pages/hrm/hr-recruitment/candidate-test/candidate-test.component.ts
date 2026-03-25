@@ -153,9 +153,8 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     return h > 0 ? `${this.pad(h)}:${this.pad(m)}:${this.pad(s)}` : `${this.pad(m)}:${this.pad(s)}`;
   }
   get timerDangerLevel(): string {
-    const ratio = this.remainingSeconds / ((this.activeExam?.TestTime || this.testTime) * 60);
-    if (ratio <= 0.5) return 'danger';
-    if (ratio <= 1) return 'warning';
+    if (this.remainingSeconds <= 60) return 'danger';
+    if (this.remainingSeconds <= 300) return 'warning';
     return 'normal';
   }
   get currentMcQuestion(): MultipleChoiceQuestion | null {
@@ -357,7 +356,7 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
 
           essay.AnswerAttachments.forEach((att: any) => {
             if (att.isImage) {
-              this.examService.downloadFile(att.ServerPath).subscribe({
+              this.candidateTestService.downloadFileNotAuth(att.ServerPath).subscribe({
                 next: (blob: Blob) => {
                   att.previewUrl = URL.createObjectURL(blob);
                   this.cdr.detectChanges();
@@ -570,15 +569,19 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
   private loadQuestionImage(q: MultipleChoiceQuestion | EssayQuestion): void {
     // Legacy image
     if (q.Image) {
-      this.examService.downloadFile(q.Image).subscribe({
+      this.candidateTestService.downloadFileNotAuth(q.Image).subscribe({
         next: (blob: Blob) => {
-          const imgTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/jfif'];
-          if (imgTypes.includes(blob.type)) {
+          console.log(`Loaded Question Image: ${q.Image}, Type: ${blob.type}, Size: ${blob.size}`);
+          if (this.isImageExtension(q.Image || '') || blob.type.startsWith('image/')) {
             q.imagePreviewUrl = URL.createObjectURL(blob);
             this.cdr.detectChanges();
           }
         },
-        error: () => { q.imagePreviewUrl = null; }
+        error: (err) => {
+          console.error(`Error loading Question Image: ${q.Image}`, err);
+          q.imagePreviewUrl = null;
+          this.cdr.detectChanges();
+        }
       });
     }
 
@@ -586,11 +589,11 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     if (q.Attachments && q.Attachments.length > 0) {
       q.Attachments.forEach(att => {
         if (!att.ServerPath) return;
-        this.examService.downloadFile(att.ServerPath).subscribe({
+        this.candidateTestService.downloadFileNotAuth(att.ServerPath).subscribe({
           next: (blob: Blob) => {
+            console.log(`Loaded Attachment: ${att.ServerPath}, Type: ${blob.type}`);
             // Check if it's an image to show preview
-            const imgTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/jfif', 'image/pjpeg', 'image/x-png'];
-            if (imgTypes.includes(blob.type) || att.ServerPath.match(/\.(jpg|jpeg|png|gif|webp|jfif)$/i)) {
+            if (this.isImageExtension(att.ServerPath || '') || blob.type.startsWith('image/')) {
               att.previewUrl = URL.createObjectURL(blob);
               this.cdr.detectChanges();
             }
@@ -626,9 +629,19 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
 
   private loadAnswerImage(ans: AnswerOption): void {
     if (!ans.ImageLink) return;
-    this.examService.downloadFile(ans.ImageLink).subscribe({
-      next: (blob: Blob) => { ans.imagePreviewUrl = URL.createObjectURL(blob); this.cdr.detectChanges(); },
-      error: () => { ans.imagePreviewUrl = null; }
+    this.candidateTestService.downloadFileNotAuth(ans.ImageLink).subscribe({
+      next: (blob: Blob) => {
+        console.log(`Loaded Answer Image: ${ans.ImageLink}, Type: ${blob.type}`);
+        if (this.isImageExtension(ans.ImageLink || '') || blob.type.startsWith('image/')) {
+          ans.imagePreviewUrl = URL.createObjectURL(blob);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error(`Error loading Answer Image: ${ans.ImageLink}`, err);
+        ans.imagePreviewUrl = null;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -760,8 +773,8 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     question.AnswerAttachments.push(newItem);
     this.cdr.detectChanges();
 
-    // Thực hiện upload ngay
-    this.examService.uploadImage(file).subscribe({
+    // Thực hiện upload ngay (Ứng viên upload không cần subPath theo yêu cầu)
+    this.candidateTestService.uploadFile(file).subscribe({
       next: (res: any) => {
         newItem.loading = false;
         if (res?.status === 1 || res?.success || res?.data) {
@@ -795,8 +808,10 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     return file.type.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|jfif)$/i.test(file.name);
   }
 
-  private isImageExtension(ext: string): boolean {
-    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'jfif'].includes(ext.toLowerCase().replace('.', ''));
+  private isImageExtension(path: string): boolean {
+    if (!path) return false;
+    const ext = path.split('.').pop() || '';
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'jfif', 'bmp', 'svg'].includes(ext.toLowerCase());
   }
 
   //#endregion

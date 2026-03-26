@@ -82,30 +82,37 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     datasetMaster: any[] = [];
     datasetDetail: any[] = [];
 
-    // ========================================
-    // Component State
-    // ========================================
-    id: number = 0;
-    selectedRow: any = null;
-    selectBillExport: any = null;
-    data: any[] = [];
-    isLoadTable: boolean = false;
-    isDetailLoad: boolean = false;
-    isCheckmode: boolean = false;
-    newBillExport: boolean = false;
-    isModalOpening: boolean = false; // Flag để ngăn mở modal 2 lần
-    sizeTbDetail: number | string = '0';
-    warehouseCode: string = '';
-    readonly componentId: string = 'billexport-' + Math.random().toString(36).substring(2, 11);
-    checked: boolean = false;
-    selectedKhoTypes: number[] = [];
-    dataProductGroup: any[] = [];
-    cbbStatus: any[] = [
-        { ID: -1, Name: '--Tất cả--' },
-        { ID: 0, Name: 'Phiếu xuất kho' },
-        { ID: 1, Name: 'Phiếu trả' },
-        { ID: 2, Name: 'Phiếu mượn' },
-    ];
+  // ========================================
+  // Component State
+  // ========================================
+  id: number = 0;
+  selectedRow: any = null;
+  selectBillExport: any = null;
+  data: any[] = [];
+  isLoadTable: boolean = false;
+  isDetailLoad: boolean = false;
+  isCheckmode: boolean = false;
+  newBillExport: boolean = false;
+  isModalOpening: boolean = false; // Flag để ngăn mở modal 2 lần
+  sizeTbDetail: number | string = '0';
+  warehouseCode: string = '';
+  readonly componentId: string =
+    'billexport-' + Math.random().toString(36).substring(2, 11);
+  checked: boolean = false;
+  selectedKhoTypes: number[] = [];
+  dataProductGroup: any[] = [];
+  canAddEditDelete: boolean = false;
+  canReceiveDocument: boolean = false;
+  canCancelDocument: boolean = false;
+  canShippedOut: boolean = false;
+  canExcelKT: boolean = false;
+  canDocumentFile: boolean = false;
+  cbbStatus: any[] = [
+    { ID: -1, Name: '--Tất cả--' },
+    { ID: 0, Name: 'Phiếu xuất kho' },
+    { ID: 1, Name: 'Phiếu trả' },
+    { ID: 2, Name: 'Phiếu mượn' },
+  ];
 
     // Search parameters
     searchParams = {
@@ -187,14 +194,20 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         this.destroyGrids();
     }
 
-    private initializeComponent() {
-        this.initMasterGrid();
-        this.initDetailGrid();
-        this.initializeMenu();
-        this.getProductGroup();
-        this.loadDataBillExport();
-        this.isInitialized = true;
-    }
+  private initializeComponent() {
+    this.canAddEditDelete = this.appUserService.hasPermission('N27,N1,N33,N34,N69,N35') || this.appUserService.isAdmin;
+    this.canReceiveDocument = this.appUserService.hasPermission('N11,N50,N1') || this.appUserService.isAdmin;
+    this.canCancelDocument = this.appUserService.hasPermission('N11,N1,N18') || this.appUserService.isAdmin;
+    this.canShippedOut = this.appUserService.hasPermission('N27,N1') || this.appUserService.isAdmin;
+    this.canExcelKT = this.appUserService.hasPermission('N10,N11,N27,N29,N1') || this.appUserService.isAdmin;
+    this.canDocumentFile = this.appUserService.hasPermission('N52,N36,N1,N34') || this.appUserService.isAdmin;
+    this.initMasterGrid();
+    this.initDetailGrid();
+    this.initializeMenu();
+    this.getProductGroup();
+    this.loadDataBillExport();
+    this.isInitialized = true;
+  }
 
     private destroyGrids() {
         // Destroy master grid
@@ -2075,50 +2088,53 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     initializeMenu(): void {
         const allItems: MenuItem[] = [];
 
-        // Thêm
-        allItems.push({
-            label: 'Thêm',
-            icon: 'fa-solid fa-circle-plus fa-lg text-success',
-            command: () => this.openModalBillExportDetail(false),
-            visible: true
-        });
+    // Thêm
+    allItems.push({
+      label: 'Thêm',
+      icon: 'fa-solid fa-circle-plus fa-lg text-success',
+      command: () => this.openModalBillExportDetail(false),
+      visible: this.canAddEditDelete,
+    });
 
-        // Sửa
-        allItems.push({
-            label: 'Sửa',
-            icon: 'fa-solid fa-file-pen fa-lg text-primary',
-            command: () => this.openModalBillExportDetail(true),
-            visible: true
-        });
+    // Sửa
+    allItems.push({
+      label: 'Sửa',
+      icon: 'fa-solid fa-file-pen fa-lg text-primary',
+      command: () => this.openModalBillExportDetail(true),
+      visible: this.canAddEditDelete,
+    });
 
-        // Xóa
-        allItems.push({
-            label: 'Xóa',
-            icon: 'fa-solid fa-trash fa-lg text-danger',
-            command: () => this.deleteBillExport(),
-            visible: true
-        });
+    // Xóa
+    allItems.push({
+      label: 'Xóa',
+      icon: 'fa-solid fa-trash fa-lg text-danger',
+      command: () => this.deleteBillExport(),
+      visible: this.canAddEditDelete,
+    });
 
-        // Nhận chứng từ
-        allItems.push({
-            label: 'Nhận chứng từ',
-            icon: 'fa-solid fa-circle-check fa-lg text-success',
-            command: () => this.IsApproved(true)
-        });
+    // Nhận chứng từ
+    allItems.push({
+      label: 'Nhận chứng từ',
+      icon: 'fa-solid fa-circle-check fa-lg text-success',
+      command: () => this.IsApproved(true),
+      visible: this.canReceiveDocument,
+    });
 
-        // Hủy chứng từ
-        allItems.push({
-            label: 'Hủy chứng từ',
-            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-            command: () => this.IsApproved(false)
-        });
+    // Hủy chứng từ
+    allItems.push({
+      label: 'Hủy chứng từ',
+      icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+      command: () => this.IsApproved(false),
+      visible: this.canCancelDocument,
+    });
 
-        // Đã xuất kho
-        allItems.push({
-            label: 'Đã xuất kho',
-            icon: 'fa-solid fa-warehouse fa-lg text-primary',
-            command: () => this.shippedOut()
-        });
+    // Đã xuất kho
+    allItems.push({
+      label: 'Đã xuất kho',
+      icon: 'fa-solid fa-warehouse fa-lg text-primary',
+      command: () => this.shippedOut(),
+      visible: this.canShippedOut,
+    });
 
         // Xuất phiếu
         allItems.push({
@@ -2154,12 +2170,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             ]
         });
 
-        // Excel KT
-        allItems.push({
-            label: 'Excel KT',
-            icon: 'fa-solid fa-file-excel fa-lg text-success',
-            command: () => this.exportExcelKT()
-        });
+    // Excel KT
+    allItems.push({
+      label: 'Excel KT',
+      icon: 'fa-solid fa-file-excel fa-lg text-success',
+      command: () => this.exportExcelKT(),
+      visible: this.canExcelKT,
+    });
 
         // Xuất danh sách
         allItems.push({
@@ -2175,12 +2192,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             command: () => this.openFolderPath()
         });
 
-        // Hồ sơ chứng từ
-        allItems.push({
-            label: 'Hồ sơ chứng từ',
-            icon: 'fa-solid fa-folder-open fa-lg text-primary',
-            command: () => this.openModalBillDocumentExport()
-        });
+    // Hồ sơ chứng từ
+    allItems.push({
+      label: 'Hồ sơ chứng từ',
+      icon: 'fa-solid fa-folder-open fa-lg text-primary',
+      command: () => this.openModalBillDocumentExport(),
+      visible: this.canDocumentFile,
+    });
 
         // Tổng hợp
         allItems.push({

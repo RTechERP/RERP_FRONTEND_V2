@@ -116,6 +116,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     isMobile: boolean = false;
     menuBars: MenuItem[] = [];
     isLoading: boolean = false;
+    isWorkReportLoading: boolean = false;
+    isTypeLinkLoading: boolean = false;
     @Input() value: string = '';
     @Output() valueChange = new EventEmitter<string>();
 
@@ -1969,6 +1971,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     }
 
     searchProjects() {
+        this.isLoading = true;
         const ajaxParams = this.getProjectAjaxParams();
         this.projectService
             .getProjectsPagination(ajaxParams, 1, 999999)
@@ -2030,10 +2033,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
         // Clear dataset cũ trước khi load mới
         this.datasetWorkReport = [];
+        this.isWorkReportLoading = true;
 
         // Load data ngay cả khi grid chưa được tạo
         this.projectService.getProjectItemsData(this.projectId).subscribe({
             next: (res: any) => {
+                this.isWorkReportLoading = false;
                 if (res?.data) {
                     const dataArray = Array.isArray(res.data) ? res.data : [];
 
@@ -2082,6 +2087,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 }
             },
             error: (err: any) => {
+                this.isWorkReportLoading = false;
                 console.error('Lỗi khi lấy dữ liệu work report:', err);
                 this.datasetWorkReport = [];
             },
@@ -2096,10 +2102,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
         // Clear dataset cũ trước khi load mới
         this.datasetTypeLink = [];
+        this.isTypeLinkLoading = true;
 
         // Load data ngay cả khi grid chưa được tạo
         this.projectService.getProjectTypeLinks(this.projectId).subscribe({
             next: (response: any) => {
+                this.isTypeLinkLoading = false;
                 // Map data giống hệt menu-app: id và parentId
                 this.datasetTypeLink = (response.data || []).map((x: any) => ({
                     ...x,
@@ -2130,6 +2138,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 }
             },
             error: (error) => {
+                this.isTypeLinkLoading = false;
                 console.error('Lỗi:', error);
                 this.datasetTypeLink = [];
             },

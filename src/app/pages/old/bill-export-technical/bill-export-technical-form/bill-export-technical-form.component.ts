@@ -1552,21 +1552,25 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     });
 
     modalRef.result
-      .then((serials: { ID: number; Serial: string; SerialNumber?: string; ModulaLocationDetailID?: number }[]) => {
+      .then((serials: { ID: number; Serial: string; SerialNumber?: string; ModulaLocationDetailID?: number; IsDeleted?: boolean }[]) => {
         console.log('Modal result - Serials selected:', serials);
 
-        // Lưu serial vào rowData tạm thời (chưa gửi về backend)
-        // Format: array of serial objects với đầy đủ thông tin
-        rowData['SerialList'] = serials.map((s, idx) => ({
-          ID: 0, // ID = 0 nghĩa là serial mới chưa lưu vào DB
-          STT: idx + 1,
+        // Lưu toàn bộ serial vào rowData (gồm active + deleted)
+        // Backend sẽ phân biệt qua IsDeleted
+        let sttCounter = 1;
+        rowData['SerialList'] = serials.map((s) => ({
+          ID: s.ID ?? 0, // Giữ ID thật để backend xử lý update/delete đúng
+          STT: s.IsDeleted ? 0 : sttCounter++,
           SerialNumber: s.SerialNumber || s.Serial || '',
-          ModulaLocationDetailID: s.ModulaLocationDetailID ?? 0, // Lấy vị trí Modula từ modal
-          WarehouseID: this.warehouseID
+          ModulaLocationDetailID: s.ModulaLocationDetailID ?? 0,
+          WarehouseID: this.warehouseID,
+          IsDeleted: s.IsDeleted ?? false,
         }));
 
-        // Để hiển thị (backward compatible)
-        const serialStrings = serials.map((s) => s.SerialNumber || s.Serial || '');
+        // Để hiển thị (chỉ lấy active serials)
+        const serialStrings = serials
+          .filter((s) => !s.IsDeleted)
+          .map((s) => s.SerialNumber || s.Serial || '');
         rowData['Serial'] = serialStrings.join(', ');
 
         row.update(rowData);
@@ -1926,21 +1930,51 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         WarehouseID: this.warehouseID,
       },
       billExportDetailTechnicals: [
-        // Các dòng còn lại (không bị xóa)
-        ...tableData.map((device: any, index: number) => ({
-          ID: device.ID || 0,
-          STT: index + 1,
-          UnitID: device.UnitCountID || 0,
-          UnitName: device.UnitCountName || '',
-          ProjectID: device.ProjectID || 0,
-          ProductID: device.ProductID || 0,
-          Quantity: device.Quantity || 1,
-          Note: device.Note || '',
-          WarehouseID: 1,
-          TotalQuantity: device.Quantity || 0,
-          BillImportDetailTechnicalID: device.BillImportDetailTechnicalID || 0,
-          IsDeleted: false,
-        })),
+        // Các dòng còn lại (không bị xóa) — SerialList nhúng trực tiếp vào từng detail
+        ...tableData.map((device: any, index: number) => {
+          // Build SerialList cho detail này
+          let serialList: any[] = [];
+          if (device['SerialList'] && Array.isArray(device['SerialList'])) {
+            // Luồng mới: serial đã chọn từ modal (chưa lưu DB)
+            serialList = device['SerialList'].map((serial: any, idx: number) => ({
+              ID: serial.ID || 0,
+              STT: serial.IsDeleted ? 0 : idx + 1,
+              SerialNumber: serial.SerialNumber || serial.Serial || '',
+              ModulaLocationDetailID: serial.ModulaLocationDetailID || 0,
+              WarehouseID: this.warehouseID,
+              IsDeleted: serial.IsDeleted ?? false,
+            }));
+          } else if (device['SerialIDs']) {
+            // Luồng cũ: SerialIDs string từ DB (edit existing)
+            const ids = (device['SerialIDs'] as string)
+              .split(',')
+              .map((id: string) => parseInt(id.trim()))
+              .filter((id: number) => !isNaN(id) && id > 0);
+            serialList = ids.map((serialID: number, idx: number) => ({
+              ID: serialID,
+              STT: idx + 1,
+              SerialNumber: '',
+              ModulaLocationDetailID: 0,
+              WarehouseID: this.warehouseID,
+            }));
+          }
+
+          return {
+            ID: device.ID || 0,
+            STT: index + 1,
+            UnitID: device.UnitCountID || 0,
+            UnitName: device.UnitCountName || '',
+            ProjectID: device.ProjectID || 0,
+            ProductID: device.ProductID || 0,
+            Quantity: device.Quantity || 1,
+            Note: device.Note || '',
+            WarehouseID: 1,
+            TotalQuantity: device.Quantity || 0,
+            BillImportDetailTechnicalID: device.BillImportDetailTechnicalID || 0,
+            IsDeleted: false,
+            billExportTechDetailSerials: serialList,
+          };
+        }),
         // Các dòng đã xóa có ID > 0
         ...this.deletedDevices.map((device: any) => ({
           ID: device.ID,
@@ -1955,39 +1989,9 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
           TotalQuantity: device.Quantity || 0,
           BillImportDetailTechnicalID: device.BillImportDetailTechnicalID || 0,
           IsDeleted: true,
+          billExportTechDetailSerials: [],
         })),
       ],
-      billExportTechDetailSerials: tableData.flatMap((device: any) => {
-        // REFACTOR: Hỗ trợ 2 luồng:
-        // 1. Luồng cũ: có SerialIDs (string) từ DB - dùng cho edit existing bill
-        // 2. Luồng mới: có SerialList (array) từ modal - dùng cho tạo mới hoặc thêm serial chưa lưu
-
-        const detailID = device.ID || 0;
-
-        // Ưu tiên SerialList (luồng mới) nếu có
-        if (device['SerialList'] && Array.isArray(device['SerialList'])) {
-          return device['SerialList'].map((serial: any, idx: number) => ({
-            BillExportDetailID: detailID, // Dùng ID của detail (nếu có)
-            BillExportTechDetailID: detailID,
-            ID: 0, // ID = 0 nghĩa là serial mới
-            STT: idx + 1,
-            SerialNumber: serial.SerialNumber || serial.Serial || '',
-            ModulaLocationDetailID: serial.ModulaLocationDetailID || 0,
-            WarehouseID: this.warehouseID
-          }));
-        }
-
-        // Fallback: Luồng cũ với SerialIDs (string)
-        const serialIDs = (device['SerialIDs'] || '')
-          .split(',')
-          .map((id: string) => parseInt(id.trim()))
-          .filter((id: number) => !isNaN(id) && id > 0);
-
-        return serialIDs.map((serialID: number) => ({
-          BillExportDetailID: detailID,
-          ID: serialID,
-        }));
-      }),
     };
     console.log('payload',payload);
 

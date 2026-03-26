@@ -789,6 +789,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
           return;
         }
 
+        this.isLoadTable = true;
         this.eas.delete(ids).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
@@ -797,10 +798,12 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
               // Clear selection
               this.selectedAttendance = [];
             } else {
+              this.isLoadTable = false;
               this.notification.error('Lỗi', res?.message || 'Xóa thất bại');
             }
           },
           error: (err: any) => {
+            this.isLoadTable = false;
             this.notification.error('Lỗi', err?.error?.message || err.message || 'Có lỗi xảy ra khi xóa');
           },
         });
@@ -828,7 +831,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     // Reload bảng sau khi import xong
     modalRef.result.then(
       (res) => {
-        if (res?.success) this.getEmployeeAttendace();
+        if (res === 'success') this.getEmployeeAttendace();
       },
       () => { } // dismissed
     );

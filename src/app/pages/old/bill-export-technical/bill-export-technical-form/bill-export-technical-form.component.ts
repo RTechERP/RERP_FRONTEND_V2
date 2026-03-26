@@ -1236,8 +1236,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
             ProductCode: selectedProduct.ProductCode,
           };
 
-          // REFACTOR: Tự động lưu serial vào memory nếu sản phẩm có ProductQRCode
-          // Khi mở modal serial, sẽ hiển thị serial này để user có thể thêm/sửa
+          // Khi đổi sản phẩm: luôn xóa serial cũ trước, sau đó set QR của sản phẩm mới (nếu có)
           const productQRCode = selectedProduct.ProductQRCode?.trim();
           if (productQRCode) {
             console.log('Sản phẩm có ProductQRCode, tự động tạo serial:', productQRCode);
@@ -1248,8 +1247,11 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
               ModulaLocationDetailID: 0,
               WarehouseID: this.warehouseID
             }];
-            // Lưu để hiển thị
             updatedData['Serial'] = productQRCode;
+          } else {
+            // Sản phẩm mới không có QR → xóa serial cũ
+            updatedData['SerialList'] = [];
+            updatedData['Serial'] = '';
           }
 
           console.log('Updated Row Data (mapped theo C#):', updatedData);

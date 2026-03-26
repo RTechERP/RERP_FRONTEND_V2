@@ -51,6 +51,7 @@ import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../pu
 import { ProjectPartListService } from '../../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { ProductGroupSettingComponent } from '../product-group-setting/product-group-setting.component';
 
 interface ProductGroup {
     ID?: number;
@@ -1496,6 +1497,19 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
         return num.toLocaleString('vi-VN', {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits,
+        });
+    }
+
+    //#endregion
+
+    //#region Setting Product Group
+
+    openModalSettingProductGroup(): void {
+        const modalRef = this.modalService.open(ProductGroupSettingComponent, {
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
         });
     }
 

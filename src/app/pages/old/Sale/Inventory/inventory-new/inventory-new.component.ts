@@ -51,6 +51,9 @@ import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detai
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
 import { ChiTietSanPhamSaleComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
+import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
+import { AppUserService } from '../../../../../services/app-user.service';
+import { ProjectPartlistPriceRequestFormComponent } from '../../../project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 
 interface ProductGroup {
     ID?: number;
@@ -88,6 +91,7 @@ interface ProductGroup {
 })
 export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     warehouseCode: string = 'HN';
+    warehouseId: number = 1;
     componentId: string = '';
     productGroupID: number = 0;
 
@@ -156,13 +160,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         private zone: NgZone,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
+        private appUserService: AppUserService,
         @Optional() @Inject('tabData') private tabData: any,
         private elementRef: ElementRef,
         private tabService: TabServiceService,
     ) { }
 
     ngOnInit(): void {
-        this.componentId = 'inventory-' + this.generateUUIDv4();
+        this.componentId = this.generateUUIDv4();
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
             // const newWarehouseCode = params['warehouseCode'] || 'HN';
@@ -172,6 +177,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 params['warehouseCode']
                 ?? this.tabData?.warehouseCode
                 ?? 'HN';
+
+            this.warehouseId = params['warehouseID'] ?? this.tabData?.warehouseId ?? 1;
 
             // Kiểm tra xem params có thay đổi không
             const paramsChanged = this.warehouseCode !== newWarehouseCode;
@@ -568,7 +575,6 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.isWareHouseDP == false) return;
         const angularGrid = this.angularGridInventory;
         if (!angularGrid || !angularGrid.dataView) return;
-
         angularGrid.dataView.setGrouping([
             {
                 getter: 'ProductGroupName',
@@ -712,65 +718,139 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#region Data Loading
 
+    //#region old
+    // getProductGroup() {
+    //     this.isLoadingProductGroup = true;
+    //     const sub = this.productsaleSV
+    //         .getdataProductGroup(this.warehouseCode, true)
+    //         .subscribe({
+    //             next: (res) => {
+
+    //                 this.isLoadingProductGroup = false;
+    //                 if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+    //                     this.dataProductGroup = res.data;
+
+    //                     // Map data với id unique cho SlickGrid
+    //                     let mappedData = this.dataProductGroup.map((item: any, index: number) => ({
+    //                         ...item,
+    //                         id: item.ID,
+    //                         parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
+    //                     }));
+
+    //                     if (this.isWareHouseDP) {
+    //                         mappedData = mappedData.filter(
+    //                             (item: any) => item.ID === 4 || item.ID === 13
+    //                                 || item.parentId === 4 || item.parentId === 13
+    //                                 || item.ProductGroupID === 'D');
+    //                     }
+
+    //                     this.datasetProductGroup = mappedData;
+
+    //                     // Update filter collections
+    //                     this.updateFilterCollections('productGroup');
+
+    //                     this.cdr.detectChanges();
+
+    //                     // Resize grids after data is loaded
+    //                     setTimeout(() => {
+    //                         this.resizeGrids();
+
+    //                     }, 50);
+
+    //                     // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
+    //                     setTimeout(() => {
+    //                         if (this.searchParam.checkedAll) {
+    //                             // Nếu checkedAll = true, load inventory ngay lập tức
+    //                             this.getInventory();
+    //                         } else if (this.angularGridProductGroup) {
+    //                             // Nếu checkedAll = false, chọn row đầu tiên
+    //                             const firstItem = this.angularGridProductGroup.dataView.getItem(0);
+    //                             if (firstItem) {
+    //                                 this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
+    //                                 this.productGroupID = firstItem.ID || 0;
+    //                                 this.getInventory();
+    //                                 this.getDataProductGroupWareHouse(this.productGroupID);
+    //                             }
+    //                         }
+
+    //                         this.applyGrouping();
+    //                         this.angularGridInventory?.slickGrid?.invalidate();
+    //                         this.angularGridInventory?.slickGrid?.render();
+    //                     }, 100);
+
+
+    //                 }
+    //             },
+    //             error: (err) => {
+    //                 this.isLoadingProductGroup = false;
+    //                 console.error('Lỗi khi lấy nhóm vật tư:', err);
+    //             },
+    //         });
+    //     this.subscriptions.push(sub);
+    // }
+    //#endregion
+    //#region New
     getProductGroup() {
         this.isLoadingProductGroup = true;
         const sub = this.productsaleSV
-            .getdataProductGroup(this.warehouseCode, true)
+            .getdataProductGroupNew(this.warehouseId, false, true)
             .subscribe({
                 next: (res) => {
 
                     this.isLoadingProductGroup = false;
-                    if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
-                        this.dataProductGroup = res.data;
 
-                        // Map data với id unique cho SlickGrid
-                        let mappedData = this.dataProductGroup.map((item: any, index: number) => ({
-                            ...item,
-                            id: item.ID,
-                            parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
-                        }));
+                    this.dataProductGroup = res.data.data1;
 
-                        if (this.isWareHouseDP) {
-                            mappedData = mappedData.filter(
-                                (item: any) => item.ID === 4 || item.ID === 13 || item.parentId === 4 || item.parentId === 13 || item.ProductGroupID === 'D');
+                    // Map data với id unique cho SlickGrid
+                    let mappedData = this.dataProductGroup.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID,
+                        parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
+                    }));
+
+                    // if (this.isWareHouseDP) {
+                    //     mappedData = mappedData.filter(
+                    //         (item: any) => item.ID === 4 || item.ID === 13
+                    //             || item.parentId === 4 || item.parentId === 13
+                    //             || item.ProductGroupID === 'D');
+                    // }
+
+                    this.datasetProductGroup = mappedData;
+
+                    // Update filter collections
+                    this.updateFilterCollections('productGroup');
+
+                    this.cdr.detectChanges();
+
+                    // Resize grids after data is loaded
+                    setTimeout(() => {
+                        this.resizeGrids();
+
+                    }, 50);
+
+                    // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
+                    setTimeout(() => {
+                        if (this.searchParam.checkedAll) {
+                            // Nếu checkedAll = true, load inventory ngay lập tức
+                            this.getInventory();
+                        } else if (this.angularGridProductGroup) {
+                            // Nếu checkedAll = false, chọn row đầu tiên
+                            const firstItem = this.angularGridProductGroup.dataView.getItem(0);
+                            if (firstItem) {
+                                this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
+                                this.productGroupID = firstItem.ID || 0;
+                                this.getInventory();
+                                this.getDataProductGroupWareHouse(this.productGroupID);
+                            }
                         }
 
-                        this.datasetProductGroup = mappedData;
-
-                        // Update filter collections
-                        this.updateFilterCollections('productGroup');
-
-                        this.cdr.detectChanges();
-
-                        // Resize grids after data is loaded
-                        setTimeout(() => {
-                            this.resizeGrids();
-
-                        }, 50);
-
-                        // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
-                        setTimeout(() => {
-                            if (this.searchParam.checkedAll) {
-                                // Nếu checkedAll = true, load inventory ngay lập tức
-                                this.getInventory();
-                            } else if (this.angularGridProductGroup) {
-                                // Nếu checkedAll = false, chọn row đầu tiên
-                                const firstItem = this.angularGridProductGroup.dataView.getItem(0);
-                                if (firstItem) {
-                                    this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
-                                    this.productGroupID = firstItem.ID || 0;
-                                    this.getInventory();
-                                    this.getDataProductGroupWareHouse(this.productGroupID);
-                                }
-                            }
-
-                            this.applyGrouping();
-                            this.angularGridInventory?.slickGrid?.invalidate();
-                            this.angularGridInventory?.slickGrid?.render();
-                        }, 100);
+                        this.applyGrouping();
+                        this.angularGridInventory?.slickGrid?.invalidate();
+                        this.angularGridInventory?.slickGrid?.render();
+                    }, 100);
 
 
-                    }
+
                 },
                 error: (err) => {
                     this.isLoadingProductGroup = false;
@@ -779,6 +859,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             });
         this.subscriptions.push(sub);
     }
+    //#endregion
 
     getDataProductGroupWareHouse(id: number) {
         const sub = this.inventoryService.getPGWH(id, this.warehouseCode).subscribe({
@@ -822,18 +903,18 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.isLoadingInventory = false;
                     if (res?.data) {
                         this.dataInventory = res.data;
-
                         // Map data với id unique cho SlickGrid
                         let mappedData = this.dataInventory.map((item: any, index: number) => ({
                             ...item,
                             id: item.ID,
                         }));
 
-                        if (this.isWareHouseDP) {
-                            mappedData = mappedData.filter(
-                                (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 || item.ProductGroupID === 83 ||
-                                    item.ParentID === 4 || item.ParentID === 13 || item.ParentID === 83);
-                        }
+                        // if (this.isWareHouseDP) {
+                        //     mappedData = mappedData.filter(
+                        //         (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 ||
+                        //             item.ProductGroupID === 83 || item.ProductGroupID === 81 ||
+                        //             item.ParentID === 4 || item.ParentID === 13 || item.ParentID === 83);
+                        // }
 
                         this.datasetInventory = mappedData;
 
@@ -846,6 +927,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                             this.resizeGrids();
                             // Update footer row sau khi dữ liệu được load
                             this.updateMasterFooterRow();
+                            this.applyGrouping();
                         }, 100);
                     }
 
@@ -1868,7 +1950,6 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
         ];
-        debugger;
         if (this.isWareHouseDP == false) {
             columns.unshift(
                 {
@@ -1937,7 +2018,79 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     //#endregion
 
-    //#region Yêu cầu mua hàng
+    //#region Danh sách yêu cầu báo giá
+    openPurchaseRequest(): void {
+        const modalRef = this.modalService.open(ProjectPartListPurchaseRequestSlickGridComponent, {
+            centered: true,
+            windowClass: 'full-screen-modal',
+            backdrop: 'static',
+        });
+        modalRef.componentInstance.isFromConsumables = true;
+    }
+    //#endregion
+
+    //#region Yêu cầu báo giá
+    projectPartlistPriceRequestTypeID: number = 7;
+    openAddPurchaseRequest(): void {
+
+        const angularGrid = this.angularGridInventory;
+        if (!angularGrid) return;
+
+        const selectedRows = angularGrid.slickGrid.getSelectedRows().map((rowIndex: number) =>
+            angularGrid.dataView.getItem(rowIndex)
+        ).filter((item: any) => item && !item.__group && !item.__groupTotals);
+
+        if (selectedRows.length === 0) {
+            this.notification.info(
+                'Thông báo',
+                'Vui lòng chọn ít nhất 1 sản phẩm cần yêu cầu báo giá!'
+            );
+            return;
+        }
+
+        const empID = this.appUserService.employeeID;
+
+        // Gán STT và map các field cần thiết cho từng dòng được chọn
+        const processedRows = selectedRows.map((row, index) => {
+            let productNewCode = row.ProductNewCode;
+            return {
+                ...row,
+                ID: 0,
+                STT: index + 1,
+                ProductNewCode: productNewCode || row.ProductNewCode || null,
+                Maker: row.Maker || row.Manufacturer || '',
+                Unit: row.Unit || row.UnitCount || '',
+                ProjectPartlistPriceRequestTypeID: this.projectPartlistPriceRequestTypeID,
+            };
+        });
+
+        console.log("Processed Rows:", processedRows);
+
+        const modalRef = this.modalService.open(
+            ProjectPartlistPriceRequestFormComponent,
+            {
+                size: 'xl',
+                backdrop: 'static',
+                keyboard: false,
+                centered: true,
+            }
+        );
+        modalRef.componentInstance.dataInput = processedRows;
+        modalRef.componentInstance.jobRequirementID = 0;
+        modalRef.componentInstance.projectTypeID = -5;
+        modalRef.componentInstance.initialPriceRequestTypeID = 7
+
+        modalRef.result.then(
+            (result) => {
+                if (result === 'saved') {
+                    this.getdataFind();
+                }
+            },
+            (dismissed) => {
+                console.log('Modal dismissed');
+            }
+        );
+    }
     //#endregion
 
 }

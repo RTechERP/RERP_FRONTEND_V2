@@ -46,7 +46,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillExportService } from '../../../BillExport/bill-export-service/bill-export.service';
@@ -289,7 +289,7 @@ export class BillImportDetailNewComponent
     this.updateActivePur();
 
     this.loadWarehouse();
-    this.getDataCbbProductGroup();
+
     this.getDataCbbRulePay();
     this.getDataCbbUser();
     this.getDataCbbSupplierSale();
@@ -1634,6 +1634,10 @@ export class BillImportDetailNewComponent
           this.appUserService.id || 0
         );
       }
+
+      this.warehouseID = resolvedId;
+
+      this.getDataCbbProductGroup();
     });
   }
 
@@ -1970,15 +1974,33 @@ export class BillImportDetailNewComponent
   }
 
   getDataCbbProductGroup(): void {
-    this.billExportService.getCbbProductGroup().subscribe({
+    // this.billExportService.getCbbProductGroup().subscribe({
+    //   next: (res: any) => {
+    //     this.dataCbbProductGroup = res.data?.filter(
+    //       (x: any) => x.Isvisible != false && x.ParentID == 0
+    //         || x.ParentID == null || x.ParentID == undefined
+    //     );
+    //   },
+    //   error: (err: any) => {
+    //     this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+    //   },
+    // });
+    this.productSaleService.getdataProductGroupNew(this.warehouseID, false, true).subscribe({
       next: (res: any) => {
-        this.dataCbbProductGroup = res.data?.filter(
+        this.dataCbbProductGroup = res.data?.data1?.filter(
           (x: any) => x.Isvisible != false && x.ParentID == 0
             || x.ParentID == null || x.ParentID == undefined
         );
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       },
     });
   }

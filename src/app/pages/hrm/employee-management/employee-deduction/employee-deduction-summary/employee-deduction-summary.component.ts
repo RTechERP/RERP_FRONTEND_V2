@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { NOTIFICATION_TITLE, RESPONSE_STATUS } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../../app.config';
 import { PermissionService } from '../../../../../services/permission.service';
 import { UserService } from '../../../../../services/user.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
@@ -143,6 +143,16 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
           this.groupDropdownEmployees(this.employees);
         }
       },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
+      }
     });
 
     this.deductionService.getDepartments().subscribe({
@@ -157,6 +167,16 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
           this.onSearch();
         }
       },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
+      }
     });
   }
 
@@ -195,9 +215,16 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
           this.notification.error('Thông báo', res?.message || 'Có lỗi xảy ra khi tải dữ liệu.');
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
-        this.notification.error('Thông báo', 'Lỗi kết nối máy chủ.');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }

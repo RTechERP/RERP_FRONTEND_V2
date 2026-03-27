@@ -12,7 +12,7 @@ export interface DashboardStats {
   approved: number;         // 32
   rejected: number;         // 33
   pending: number;          // 4
-  pendingApproval: number;  // (Status 3 + ReviewStatus 1)
+  pendingApproval: number;  // (Status 3 + IsApproved 1)
 }
 
 export interface ChartData {
@@ -106,14 +106,14 @@ export class ProjectTaskDashboardService {
             approved: statusCounts[32],
             rejected: statusCounts[33],
             pending: statusCounts[4],
-            pendingApproval: tasks.filter(t => t.ReviewStatus === 1 && t.Status === 3 && t.EmployeeID === currentUserId).length
+            pendingApproval: tasks.filter(t => t.IsApproved === 1 && t.Status === 3 && t.EmployeeIDRequest === currentUserId).length
         };
     }
 
     private computeDisplayStatus(task: ProjectTaskItem, now: Date): number {
         const status = task.Status || 1;
         const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
-        const dueDate = task.DueDate ? new Date(task.DueDate) : null;
+        const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
 
         // Quá hạn?
         const isOverdue = (planEnd && planEnd < now && status !== 3 && status !== 32 && status !== 4) ||
@@ -121,8 +121,8 @@ export class ProjectTaskDashboardService {
 
         if (status === 2 && isOverdue) return 21;
         if (status === 3) {
-            if (task.ReviewStatus === 2) return 32;
-            if (task.ReviewStatus === 3) return 33;
+            if (task.IsApproved === 2) return 32;
+            if (task.IsApproved === 3) return 33;
             if (isOverdue) return 31;
             return 3;
         }
@@ -220,7 +220,7 @@ export class ProjectTaskDashboardService {
 
             // Số công việc hoàn thành: Status = 3 và DueDate <= ngày hiện tại
             const completed = tasks.filter(t => {
-                const date = t.DueDate ? new Date(t.DueDate) : null;
+                const date = t.ActualEndDate ? new Date(t.ActualEndDate) : null;
                 return t.Status === 3 && date && date <= checkDate;
             }).length;
 

@@ -186,7 +186,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
           ProjectName: item.ProjectName || 'Cá nhân',
           ProjectCode: item.ProjectCode || 'CA NHAN',
           Code: item.Code?.trim() || item.TaskCode || 'N/A',
-          Title: item.Title || item.TaskTitle || item.ProjectName || 'N/A',
+          Title: item.Mission || item.TaskTitle || item.ProjectName || 'N/A',
           Status: item.Status,
           DisplayStatus: item.Status, // Will be recalculated after grouping
           StatusName: this.getStatusName(item.Status),
@@ -399,7 +399,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
     const cols: any[] = [
       { header: 'STT', field: 'stt', width: 5 },
       { header: 'Mã Công Việc', field: 'Code', width: 20 },
-      { header: 'Tên Công Việc', field: 'Title', width: 40 },
+      { header: 'Tên Công Việc', field: 'Mission', width: 40 },
       { header: 'Mã CV Cha', field: 'ParentCode', width: 20 },
       { header: 'Mã Dự Án', field: 'ProjectCode', width: 15 },
       { header: 'Tên Dự Án', field: 'ProjectName', width: 25 },
@@ -435,7 +435,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
         ProjectCode: task.ProjectCode,
         ProjectName: task.ProjectName,
         Code: task.Code,
-        Title: task.Title,
+        Mission: task.Title,
         StatusName: task.StatusName,
         ParentCode: task.ParentCode,
         TypeLabel: 'Dự kiến'
@@ -447,7 +447,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
         ProjectCode: '',
         ProjectName: '',
         Code: '',
-        Title: '',
+        Mission: '',
         StatusName: '',
         ParentCode: '',
         TypeLabel: 'Thực tế'

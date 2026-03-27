@@ -8,7 +8,7 @@
             </div>
             <nz-row [nzGutter]="[8, 8]" nzAlign="bottom" nzJustify="space-between">
                 <!-- Từ ngày -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="2">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Từ ngày</label>
                         <input type="date" [(ngModel)]="dateStart" name="dateStart"
@@ -17,7 +17,7 @@
                 </nz-col>
 
                 <!-- Đến ngày -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="2">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Đến ngày</label>
                         <input type="date" [(ngModel)]="dateEnd" name="dateEnd"
@@ -26,7 +26,7 @@
                 </nz-col>
 
                 <!-- Phòng ban -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Phòng ban</label>
                         <nz-select nzPlaceHolder="Phòng ban" [(ngModel)]="departmentId" nzSize="small" nzShowSearch
@@ -40,7 +40,7 @@
                 </nz-col>
 
                 <!-- Team -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Team</label>
                         <nz-select nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
@@ -53,7 +53,7 @@
                 </nz-col>
 
                 <!-- Nhân viên -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Nhân viên</label>
                         <nz-select nzPlaceHolder="Nhân viên" [(ngModel)]="userId" nzSize="small" nzShowSearch
@@ -67,7 +67,7 @@
                 </nz-col>
 
                 <!-- Dự án -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="4">
                     <div class="form-field-vertical">
                         <label>Dự án</label>
                         <nz-select nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch
@@ -81,7 +81,7 @@
                 </nz-col>
 
                 <!-- Trạng thái -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                <!-- <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Trạng thái</label>
                         <p-multiSelect [options]="statusOptions" [(ngModel)]="selectedStatuses"
@@ -90,7 +90,7 @@
                             [maxSelectedLabels]="1" selectedItemsLabel="{0} trạng thái"
                             appendTo="body" />
                     </div>
-                </nz-col>
+                </nz-col> -->
 
                 <!-- Từ khóa -->
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">

@@ -121,7 +121,7 @@
                                     [nzFilterOption]="filterParentTaskOption"
                                     style="width: 100%;">
                                     @for (pt of parentTaskList; track pt.ID) {
-                                    <nz-option [nzValue]="pt.ID" [nzLabel]="pt.Code.trim() + ' - ' + pt.Title"></nz-option>
+                                    <nz-option [nzValue]="pt.ID" [nzLabel]="pt.Code.trim() + ' - ' + pt.Mission"></nz-option>
                                     }
                                 </nz-select>
                             </div>
@@ -231,6 +231,7 @@
                                 <div class="date-col">
                                     <label class="form-label">Ngày KT thực tế</label>
                                     <input type="date" [(ngModel)]="endDateStr" [disabled]="isReadOnly"
+                                        [min]="minActualEndDate"
                                         [style.border-color]="dateValidationError && dateValidationError.includes('thuc te') ? '#ff4d4f' : '#d9d9d9'"
                                         style="width:100%;padding:4px 8px;font-size:12px;border:1px solid;border-radius:4px;box-sizing:border-box;text-align:center;" />
                                 </div>
@@ -573,7 +574,7 @@
             <nz-tab nzTitle="Phát sinh">
                 <div class="tab-content additional-tab-content p-3">
                     <div class="mb-3 d-flex align-items-center justify-content-between">
-                        <label nz-checkbox [(ngModel)]="isAdditional" [nzDisabled]="isReadOnly || additionals.length > 0">
+                        <label nz-checkbox [(ngModel)]="isAdditional" [nzDisabled]="isReadOnly || additionals.length > 0 || taskStatus === 4">
                             <span class="fw-bold">Có vấn đề phát sinh</span>
                         </label>
                     </div>
@@ -591,7 +592,7 @@
                                         date:'dd/MM/yyyy HH:mm'}}
                                     </span>
                                 </div>
-                                <div class="actions" *ngIf="!isReadOnly">
+                                <div class="actions" *ngIf="!isReadOnly && taskStatus !== 4">
                                     <button nz-button nzType="text" nzSize="small" (click)="startEditAdditional(item)"
                                         class="text-primary p-0 h-auto">
                                         <i nz-icon nzType="edit"></i> Sửa
@@ -627,7 +628,7 @@
                     </div>
 
                     <!-- Add New Button/Input -->
-                    <div class="add-additional-section mt-4" *ngIf="!isReadOnly">
+                    <div class="add-additional-section mt-4" *ngIf="!isReadOnly && taskStatus !== 4">
                         <button *ngIf="!isAddingAdditional" nz-button nzType="dashed" nzBlock
                             (click)="startAddAdditional()" class="h-40 rounded">
                             <i nz-icon nzType="plus"></i> Thêm vấn đề phát sinh mới
@@ -649,6 +650,14 @@
                     </div>
                 </div>
             </nz-tab>
+
+            <ng-template #pendingReasonTpl>
+                <div class="p-2">
+                    <p class="mb-2 text-muted">Vui lòng cung cấp lý do hoặc vấn đề phát sinh khiến công việc này tạm dừng:</p>
+                    <textarea nz-input rows="4" [(ngModel)]="pendingReasonText" 
+                        placeholder="Nhập nội dung chi tiết..."></textarea>
+                </div>
+            </ng-template>
         </nz-tabset>
     </div>
 

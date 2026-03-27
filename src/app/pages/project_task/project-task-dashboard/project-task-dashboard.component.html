@@ -129,7 +129,7 @@
                     @for (task of upcomingTasks(); track task.ID) {
                     <div class="task-item-detailed" (click)="openTaskDetail(task)">
                         <div class="task-main">
-                            <div class="task-title">{{ task.Title }}</div>
+                            <div class="task-title">{{ task.Mission }}</div>
                             <div class="task-project">{{ task.ProjectName }}</div>
                         </div>
                         <div class="task-time-info">
@@ -164,7 +164,7 @@
                 @for (task of pendingApprovalTasks(); track task.ID) {
                 <div class="task-item-mini" (click)="openTaskDetail(task)">
                     <div class="task-content">
-                        <div class="task-title">{{ task.Title }}</div>
+                        <div class="task-title">{{ task.Mission }}</div>
                         <div class="task-meta">{{ task.ProjectName }}</div>
                     </div>
                     <div class="task-status">

@@ -107,7 +107,7 @@ export class ProjectTaskComponent implements OnInit {
 
   // Computed: only tasks eligible for approval (Status=3, not yet reviewed)
   pendingTasks = computed(() => this.filteredTasks().filter(t =>
-    t.Status === 3 && t.ReviewStatus !== 2 && t.ReviewStatus !== 3
+    t.Status === 3 && t.IsApproved !== 2 && t.IsApproved !== 3
   ));
 
   // Computed: are all pending tasks selected?
@@ -191,8 +191,8 @@ export class ProjectTaskComponent implements OnInit {
         ));
       case 'myApproval':
         return this.uniqueById(tasks.filter(t =>
-          t.EmployeeID &&
-          t.EmployeeID === userId
+          t.EmployeeIDRequest &&
+          t.EmployeeIDRequest === userId
         ));
       default:
         return this.uniqueById(tasks);
@@ -223,8 +223,8 @@ export class ProjectTaskComponent implements OnInit {
   myApprovalTasksCount = computed(() => {
     const userId = this.currentUserId();
     return this.uniqueById(this.allTasks().filter(t =>
-      t.EmployeeID &&
-      t.EmployeeID === userId
+      t.EmployeeIDRequest &&
+      t.EmployeeIDRequest === userId
     )).length;
   });
 
@@ -361,8 +361,8 @@ export class ProjectTaskComponent implements OnInit {
             // Convert date strings to Date objects for PrimeNG date filtering
             PlanStartDate: t.PlanStartDate ? new Date(t.PlanStartDate) : null,
             PlanEndDate: t.PlanEndDate ? new Date(t.PlanEndDate) : null,
-            StartDate: t.StartDate ? new Date(t.StartDate) : null,
-            DueDate: t.DueDate ? new Date(t.DueDate) : null
+            ActualStartDate: t.ActualStartDate ? new Date(t.ActualStartDate) : null,
+            ActualEndDate: t.ActualEndDate ? new Date(t.ActualEndDate) : null
           }));
 
         this.allTasks.set(tasks);
@@ -399,17 +399,17 @@ export class ProjectTaskComponent implements OnInit {
   // 21 = Đang làm quá hạn
   // 3  = Hoàn thành
   // 31 = Hoàn thành quá hạn
-  // 32 = Đã duyệt (Hoàn thành + ReviewStatus=2)
-  // 33 = Đã hủy duyệt (Hoàn thành + ReviewStatus=3)
+  // 32 = Đã duyệt (Hoàn thành + IsApproved=2)
+  // 33 = Đã hủy duyệt (Hoàn thành + IsApproved=3)
   // 4  = Pending
 
   computeDisplayStatus(task: any): number {
     const isOverdue = this.isTaskOverdue(task);
 
     // Hoàn thành + đã duyệt
-    if (task.Status === 3 && task.ReviewStatus === 2) return 32;
+    if (task.Status === 3 && task.IsApproved === 2) return 32;
     // Hoàn thành + hủy duyệt
-    if (task.Status === 3 && task.ReviewStatus === 3) return 33;
+    if (task.Status === 3 && task.IsApproved === 3) return 33;
     // Hoàn thành + quá hạn (chưa duyệt/hủy)
     if (task.Status === 3 && isOverdue) return 31;
     // Hoàn thành bình thường
@@ -429,7 +429,7 @@ export class ProjectTaskComponent implements OnInit {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
-    const dueDate = task.DueDate ? new Date(task.DueDate) : null;
+    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
 
     // Ngày KT thực tế > Ngày KT dự kiến → Quá hạn
     if (dueDate && planEnd && dueDate > planEnd) return true;
@@ -509,8 +509,9 @@ export class ProjectTaskComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], true, this.approveReviewText).subscribe({
             next: () => {
-              task.ReviewStatus = 2;
-              this.message.success(`Đã duyệt công việc "${task.Title}"`);
+              task.IsApproved = 2;
+              task.DisplayStatus = this.computeDisplayStatus(task);
+              this.message.success(`Đã duyệt công việc "${task.Mission}"`);
               this.isApproving = false;
               resolve();
             },
@@ -545,8 +546,9 @@ export class ProjectTaskComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], false, this.rejectReviewText).subscribe({
             next: () => {
-              task.ReviewStatus = 3;
-              this.message.warning(`Đã từ chối công việc "${task.Title}"`);
+              task.IsApproved = 3;
+              task.DisplayStatus = this.computeDisplayStatus(task);
+              this.message.warning(`Đã từ chối công việc "${task.Mission}"`);
               this.isApproving = false;
               resolve();
             },
@@ -563,7 +565,7 @@ export class ProjectTaskComponent implements OnInit {
 
   // Duyệt hàng loạt
   approveSelected(): void {
-    const selected = this.selectedTasks().filter(t => t.ReviewStatus === 1);
+    const selected = this.selectedTasks().filter(t => t.IsApproved === 1);
     if (selected.length === 0) {
       this.message.warning('Không có công việc chờ duyệt nào được chọn');
       return;
@@ -581,7 +583,10 @@ export class ProjectTaskComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask(ids, true, this.approveReviewText).subscribe({
             next: () => {
-              selected.forEach(t => t.ReviewStatus = 2);
+              selected.forEach(t => {
+                t.IsApproved = 2;
+                t.DisplayStatus = this.computeDisplayStatus(t);
+              });
               this.selectedTasks.set([]);
               this.message.success(`Đã duyệt ${selected.length} công việc`);
               this.isApproving = false;
@@ -600,7 +605,7 @@ export class ProjectTaskComponent implements OnInit {
 
   // Từ chối hàng loạt
   rejectSelected(): void {
-    const selected = this.selectedTasks().filter(t => t.ReviewStatus === 1);
+    const selected = this.selectedTasks().filter(t => t.IsApproved === 1);
     if (selected.length === 0) {
       this.message.warning('Không có công việc chờ duyệt nào được chọn');
       return;
@@ -624,7 +629,10 @@ export class ProjectTaskComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask(ids, false, this.rejectReviewText).subscribe({
             next: () => {
-              selected.forEach(t => t.ReviewStatus = 3);
+              selected.forEach(t => {
+                t.IsApproved = 3;
+                t.DisplayStatus = this.computeDisplayStatus(t);
+              });
               this.selectedTasks.set([]);
               this.message.warning(`Đã từ chối ${selected.length} công việc`);
               this.isApproving = false;
@@ -641,7 +649,7 @@ export class ProjectTaskComponent implements OnInit {
     });
   }
 
-  // Helper lấy label ReviewStatus
+  // Helper lấy label IsApproved
   getReviewStatusLabel(status: number | null): string {
     switch (status) {
       case 1: return 'Chờ duyệt';
@@ -681,7 +689,7 @@ export class ProjectTaskComponent implements OnInit {
         field: 'DisplayStatusLabel',
         cellStyle: (item: any) => getStatusExcelStyle(item)
       },
-      { header: 'Tên công việc', field: 'Title' },
+      { header: 'Tên công việc', field: 'Mission' },
       { header: 'Mã CV Cha', field: 'ParentCode' },
       { header: 'Dự án', field: 'ProjectFullName' },
       { header: 'Người giao việc', field: 'FullName' },
@@ -697,8 +705,8 @@ export class ProjectTaskComponent implements OnInit {
       { header: '% Quá hạn', field: 'PercentOverTime' },
       { header: 'Ngày BĐ dự kiến', field: 'PlanStartDate', type: 'date' },
       { header: 'Ngày KT dự kiến', field: 'PlanEndDate', type: 'date' },
-      { header: 'Ngày BĐ thực tế', field: 'StartDate', type: 'date' },
-      { header: 'Ngày KT thực tế', field: 'DueDate', type: 'date' },
+      { header: 'Ngày BĐ thực tế', field: 'ActualStartDate', type: 'date' },
+      { header: 'Ngày KT thực tế', field: 'ActualEndDate', type: 'date' },
       { header: 'Phòng ban giao', field: 'DepartmentAssignerName' },
       { header: 'Phòng ban nhận', field: 'DepartmentAssigneeName' }
     ];
@@ -848,10 +856,9 @@ export class ProjectTaskComponent implements OnInit {
             ID: undefined,
             Code: undefined,
             Status: 1,
-            ReviewStatus: 0,
-            ProgressPercent: 0,
-            StartDate: undefined,
-            DueDate: undefined,
+            IsApproved: 0,
+            ActualStartDate: undefined,
+            ActualEndDate: undefined,
             _copyAssigneeIds: (assignees.data || []).map((e: any) => e.EmployeeID),
             _copyRelatedPeopleIds: (relatedPeople.data || []).map((e: any) => e.EmployeeID)
           };

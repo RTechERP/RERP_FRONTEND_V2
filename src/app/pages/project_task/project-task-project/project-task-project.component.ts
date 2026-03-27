@@ -82,7 +82,7 @@ export class ProjectTaskProjectComponent implements OnInit {
   // ===== TreeTable columns =====
   cols: any[] = [
     { field: 'Code', header: 'Mã CV', width: '200px', minWidth: '200px', filterable: true },
-    { field: 'Title', header: 'Tên công việc', width: '300px', filterable: true },
+    { field: 'Mission', header: 'Tên công việc', width: '300px', filterable: true },
     { field: 'DisplayStatus', header: 'Trạng thái', width: '150px' },
     { field: 'FullName', header: 'Người thực hiện', width: '150px', filterable: true },
     { field: 'IsAdditional', header: 'Phát sinh', width: '100px' },
@@ -149,6 +149,32 @@ export class ProjectTaskProjectComponent implements OnInit {
       }
       return true;
     });
+
+    // Custom date filter: compares Date object with YYYY-MM-DD string from input
+    this.filterService.register('dateMatch', (value: any, filter: any): boolean => {
+      if (filter === undefined || filter === null || filter.trim() === '') {
+        return true;
+      }
+      if (value === undefined || value === null) {
+        return false;
+      }
+
+      // value is a Date object (from convertToTreeNode)
+      // filter is a string "YYYY-MM-DD" from <input type="date">
+      try {
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return false;
+
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${m}-${d}`;
+
+        return dateStr.includes(filter);
+      } catch (e) {
+        return false;
+      }
+    });
   }
 
   // ===== Load projects cho dropdown =====
@@ -212,8 +238,15 @@ export class ProjectTaskProjectComponent implements OnInit {
       transformedValue = value === '' ? '' : +value;
     }
 
+    // Tự động sử dụng dateMatch cho các cột ngày tháng
+    let actualMatchMode = matchMode;
+    const col = this.cols.find(c => c.field === field);
+    if (col && col.isDate) {
+      actualMatchMode = 'dateMatch';
+    }
+
     if (this.treeTable) {
-      this.treeTable.filter(transformedValue, field, matchMode);
+      this.treeTable.filter(transformedValue, field, actualMatchMode);
     }
   }
 
@@ -264,7 +297,7 @@ export class ProjectTaskProjectComponent implements OnInit {
     // 2. Định nghĩa cột cho Excel
     const excelCols = [
       { header: 'Mã CV / Dự án', field: 'Code' },
-      { header: 'Tên công việc', field: 'Title' },
+      { header: 'Tên công việc', field: 'Mission' },
       { header: 'Trạng thái', field: 'DisplayStatusLabel' },
       { header: 'Người thực hiện', field: 'FullName' },
       { header: 'Phát sinh', field: 'IsAdditionalLabel' },
@@ -303,7 +336,7 @@ export class ProjectTaskProjectComponent implements OnInit {
 
             // Format hàng dự án: Bold, Blue, Background light blue
             const projectCell = ws.getCell(rowIndex, 1);
-            projectCell.value = row.Title;
+            projectCell.value = row.Mission;
             projectCell.font = { bold: true, color: { argb: 'FF1890FF' } };
 
             // Tô màu nền cho cả dòng dự án
@@ -401,7 +434,7 @@ export class ProjectTaskProjectComponent implements OnInit {
       const childNodes = group.tasks.map(t => this.convertToTreeNode(t));
       result.push({
         data: {
-          Title: `${group.projectCode} - ${group.projectName}`,
+          Mission: `${group.projectCode} - ${group.projectName}`,
           isProjectGroup: true,
           ProjectCode: group.projectCode,
           ProjectName: group.projectName,
@@ -427,8 +460,8 @@ export class ProjectTaskProjectComponent implements OnInit {
         isProjectGroup: false,
         PlanStartDateObj: data.PlanStartDate ? new Date(data.PlanStartDate) : null,
         PlanEndDateObj: data.PlanEndDate ? new Date(data.PlanEndDate) : null,
-        StartDateObj: data.StartDate ? new Date(data.StartDate) : null,
-        DueDateObj: data.DueDate ? new Date(data.DueDate) : null,
+        StartDateObj: data.ActualStartDate ? new Date(data.ActualStartDate) : null,
+        DueDateObj: data.ActualEndDate ? new Date(data.ActualEndDate) : null,
       },
       children: node.Children ? node.Children.map((c: any) => this.convertToTreeNode(c)) : [],
       expanded: node.Expanded,
@@ -499,7 +532,7 @@ export class ProjectTaskProjectComponent implements OnInit {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
-    const dueDate = task.DueDate ? new Date(task.DueDate) : null;
+    const dueDate = task.DueDate ? new Date(task.DueDate) : (task.ActualEndDate ? new Date(task.ActualEndDate) : null);
     if (dueDate && planEnd && dueDate > planEnd) return true;
     if (!dueDate && planEnd && planEnd < now && task.Status !== 4) return true;
     return false;

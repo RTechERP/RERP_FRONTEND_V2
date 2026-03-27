@@ -134,8 +134,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
           ProjectFullName: `${task.ProjectCode || ''} - ${task.ProjectName || ''}`,
           PlanStartDate: task.PlanStartDate ? new Date(task.PlanStartDate) : null,
           PlanEndDate: task.PlanEndDate ? new Date(task.PlanEndDate) : null,
-          StartDate: task.StartDate ? new Date(task.StartDate) : null,
-          DueDate: task.DueDate ? new Date(task.DueDate) : null
+          ActualStartDate: task.ActualStartDate ? new Date(task.ActualStartDate) : null,
+          ActualEndDate: task.ActualEndDate ? new Date(task.ActualEndDate) : null
         }));
  
         // 3. Filter by statusId AND apply the "Root-Parent" filter
@@ -143,7 +143,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
           // Status filter
           let matchesStatus = false;
           if (this.statusId === 0) {
-              matchesStatus = (t.Status === 3 && t.ReviewStatus === 1);
+              matchesStatus = (t.Status === 3 && t.IsApproved === 1);
           } else {
               matchesStatus = (t.DisplayStatus === this.statusId);
           }
@@ -185,8 +185,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
 
   computeDisplayStatus(task: any): number {
     const isOverdue = this.isTaskOverdue(task);
-    if (task.Status === 3 && task.ReviewStatus === 2) return 32;
-    if (task.Status === 3 && task.ReviewStatus === 3) return 33;
+    if (task.Status === 3 && task.IsApproved === 2) return 32;
+    if (task.Status === 3 && task.IsApproved === 3) return 33;
     if (task.Status === 3 && isOverdue) return 31;
     if (task.Status === 3) return 3;
     if (task.Status === 2 && isOverdue) return 21;
@@ -199,7 +199,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
-    const dueDate = task.DueDate ? new Date(task.DueDate) : null;
+    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
     if (dueDate && planEnd && dueDate > planEnd) return true;
     if (!dueDate && planEnd && planEnd < now && task.Status !== 4) return true;
     return false;
@@ -246,8 +246,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
 
   showApprovalButtons(task: any): boolean {
     const ds = task.DisplayStatus;
-    // Hiển thị khi Hoàn thành hoặc Hoàn thành quá hạn (ReviewStatus=1)
-    return (ds === 3 || ds === 31) && task.ReviewStatus === 1;
+    // Hiển thị khi Hoàn thành hoặc Hoàn thành quá hạn (IsApproved=1)
+    return (ds === 3 || ds === 31) && task.IsApproved === 1;
   }
 
   approveTask(task: ProjectTaskItem): void {
@@ -262,8 +262,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], true, this.approveReviewText).subscribe({
             next: () => {
-              task.ReviewStatus = 2;
-              this.message.success(`Đã duyệt công việc "${task.Title}"`);
+              task.IsApproved = 2;
+              this.message.success(`Đã duyệt công việc "${task.Mission}"`);
               this.isApproving = false;
               this.loadData();
               resolve();
@@ -298,8 +298,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], false, this.rejectReviewText).subscribe({
             next: () => {
-              task.ReviewStatus = 3;
-              this.message.warning(`Đã từ chối công việc "${task.Title}"`);
+              task.IsApproved = 3;
+              this.message.warning(`Đã từ chối công việc "${task.Mission}"`);
               this.isApproving = false;
               this.loadData();
               resolve();
@@ -469,7 +469,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
         field: 'DisplayStatusLabel',
         cellStyle: (item: any) => getStatusExcelStyle(item)
       },
-      { header: 'Tên công việc', field: 'Title' },
+      { header: 'Tên công việc', field: 'Mission' },
       { header: 'Mã CV Cha', field: 'ParentCode' },
       { header: 'Dự án', field: 'ProjectFullName' },
       { header: 'Người giao việc', field: 'FullName' },
@@ -485,8 +485,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
       { header: '% Quá hạn', field: 'PercentOverTime' },
       { header: 'Ngày BĐ dự kiến', field: 'PlanStartDate', type: 'date' },
       { header: 'Ngày KT dự kiến', field: 'PlanEndDate', type: 'date' },
-      { header: 'Ngày BĐ thực tế', field: 'StartDate', type: 'date' },
-      { header: 'Ngày KT thực tế', field: 'DueDate', type: 'date' },
+      { header: 'Ngày BĐ thực tế', field: 'ActualStartDate', type: 'date' },
+      { header: 'Ngày KT thực tế', field: 'ActualEndDate', type: 'date' },
       { header: 'Phòng ban giao', field: 'DepartmentAssignerName' },
       { header: 'Phòng ban nhận', field: 'DepartmentAssigneeName' }
     ];

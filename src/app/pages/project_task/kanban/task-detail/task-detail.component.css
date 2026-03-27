@@ -199,6 +199,12 @@
 .project-select ::ng-deep .ant-select-selection-item {
     font-weight: 500;
     line-height: 30px !important;
+    user-select: text !important;
+}
+
+/* Allow text selection in the options list as well */
+::ng-deep .ant-select-item-option-content {
+    user-select: text !important;
 }
 
 .project-select ::ng-deep .ant-select-selection-placeholder {

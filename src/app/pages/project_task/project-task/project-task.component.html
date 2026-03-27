@@ -167,13 +167,13 @@
                         Ngày KT dự kiến
                         <p-sortIcon field="PlanEndDate" />
                     </th>
-                    <th pResizableColumn pSortableColumn="StartDate" class="col-date" style="width: 100px">
+                    <th pResizableColumn pSortableColumn="ActualStartDate" class="col-date" style="width: 100px">
                         Ngày BĐ thực tế
-                        <p-sortIcon field="StartDate" />
+                        <p-sortIcon field="ActualStartDate" />
                     </th>
-                    <th pResizableColumn pSortableColumn="DueDate" class="col-date" style="width: 100px">
+                    <th pResizableColumn pSortableColumn="ActualEndDate" class="col-date" style="width: 100px">
                         Ngày KT thực tế
-                        <p-sortIcon field="DueDate" />
+                        <p-sortIcon field="ActualEndDate" />
                     </th>
                     @if (activeTab() === 'all' || activeTab() === 'assigned') {
                     <th pResizableColumn pSortableColumn="DepartmentAssignerName" style="width: 180px">
@@ -212,7 +212,7 @@
                     </th> -->
 
                     <th>
-                        <p-columnFilter matchMode="contains" type="text" field="Title" placeholder="Tìm kiếm..." />
+                        <p-columnFilter matchMode="contains" type="text" field="Mission" placeholder="Tìm kiếm..." />
                     </th>
                     <th>
                         <p-columnFilter matchMode="contains" type="text" field="ParentCode" placeholder="Tìm kiếm..." />
@@ -238,7 +238,7 @@
                         </p-columnFilter>
                     </th>
                     <th>
-                        <p-columnFilter field="ProjectTaskTypeID" matchMode="equals" [showMenu]="false">
+                        <p-columnFilter field="TypeProjectItem" matchMode="equals" [showMenu]="false">
                             <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                 <select class="status-filter"
                                     (change)="filter($any($event.target).value === '' ? null : +$any($event.target).value)">
@@ -298,10 +298,10 @@
                         <p-columnFilter type="date" field="PlanEndDate" placeholder="Tìm kiếm..." />
                     </th>
                     <th class="col-date">
-                        <p-columnFilter type="date" field="StartDate" placeholder="Tìm kiếm..." />
+                        <p-columnFilter type="date" field="ActualStartDate" placeholder="Tìm kiếm..." />
                     </th>
                     <th class="col-date">
-                        <p-columnFilter type="date" field="DueDate" placeholder="Tìm kiếm..." />
+                        <p-columnFilter type="date" field="ActualEndDate" placeholder="Tìm kiếm..." />
                     </th>
                     @if (activeTab() === 'all' || activeTab() === 'myApproval') {
                     <th>
@@ -324,7 +324,7 @@
                     @if (activeTab() === 'myApproval') {
                     <td (click)="$event.stopPropagation()">
                         <p-tableCheckbox [value]="task"
-                            [disabled]="task.Status !== 3 || task.ReviewStatus === 2 || task.ReviewStatus === 3" />
+                            [disabled]="task.Status !== 3 || task.IsApproved === 2 || task.IsApproved === 3" />
                     </td>
                     }
                     @if (activeTab() === 'related') {
@@ -361,7 +361,7 @@
 
                     <td>
                         <div class="task-name-cell">
-                            <span class="task-title text-wrap" (click)="openTaskDetail(task)">{{ task.Title }}</span>
+                            <span class="task-title text-wrap" (click)="openTaskDetail(task)">{{ task.Mission }}</span>
                         </div>
                     </td>
                     <td style="text-align: center;">
@@ -414,10 +414,10 @@
                         <span class="date-text">{{ formatDate(task.PlanEndDate) }}</span>
                     </td>
                     <td class="col-date">
-                        <span class="date-text">{{ formatDate(task.StartDate) }}</span>
+                        <span class="date-text">{{ formatDate(task.ActualStartDate) }}</span>
                     </td>
                     <td class="col-date">
-                        <span class="date-text">{{ formatDate(task.DueDate) }}</span>
+                        <span class="date-text">{{ formatDate(task.ActualEndDate) }}</span>
                     </td>
                     @if (activeTab() === 'all' || activeTab() === 'myApproval') {
                     <td>

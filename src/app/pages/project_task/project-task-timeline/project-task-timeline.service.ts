@@ -14,12 +14,12 @@ export interface ProjectTaskTimelineItem {
     ParentID?: number;
     ParentCode?: string;
     ParentTitle?: string;
-    EmployeeID?: number;
+    EmployeeIDRequest?: number;
     FullName?: string;
     TaskCode?: string;
     TaskTitle?: string;
     Code?: string;
-    Title?: string;
+    Mission?: string;
     [key: string]: any; // Allow for dynamic date keys
 }
 

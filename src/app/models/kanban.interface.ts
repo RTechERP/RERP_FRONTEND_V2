@@ -42,13 +42,12 @@ export interface IProject {
 export interface IProjectTask {
     ID: number;
     ProjectID?: number;
-    ProjectTaskGroupID?: number;
-    Title?: string;
+    Mission?: string;
     Description?: string;
-    EmployeeID?: number;
+    EmployeeIDRequest?: number;
     AssignedToEmployeeID?: number; // ID nhân viên được giao việc
-    StartDate?: Date;
-    DueDate?: Date;
+    ActualStartDate?: Date;
+    ActualEndDate?: Date;
     PlanStartDate?: Date;
     PlanEndDate?: Date;
     Priority?: number;
@@ -56,10 +55,10 @@ export interface IProjectTask {
     Code?: string;
     OrderIndex?: number;
     ParentID?: number;
-    ProgressPercent?: number;
-    ReviewStatus?: number; // 0/null: chưa duyệt, 1: Chờ duyệt, 2: Đã duyệt, 3: Từ chối
+    IsApproved?: number; // 0/null: chưa duyệt, 1: Chờ duyệt, 2: Đã duyệt, 3: Từ chối
     TaskComplexity?: number;
     IsAdditional?: boolean;
+    TypeProjectItem?: number;
     PercentOverTime?: number;
     CreatedBy?: string;
     CreatedDate?: Date;

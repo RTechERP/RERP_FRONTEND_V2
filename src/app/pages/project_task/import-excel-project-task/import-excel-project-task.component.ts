@@ -87,7 +87,7 @@ export class ImportExcelProjectTaskComponent implements OnInit, AfterViewInit {
   getTableColumns() {
     return [
       { title: "TT", field: "TT", hozAlign: "center", headerHozAlign: "center", width: 80, editor: "input" },
-      { title: "Tên công việc", field: "Title", hozAlign: "left", headerHozAlign: "center", minWidth: 250, formatter: 'textarea', editor: "input" },
+      { title: "Tên công việc", field: "Mission", hozAlign: "left", headerHozAlign: "center", minWidth: 250, formatter: 'textarea', editor: "input" },
       { title: "Mã dự án", field: "ProjectCode", hozAlign: "center", headerHozAlign: "center", width: 130, editor: "input" },
       { title: "Người giao việc", field: "EmployeeCode", hozAlign: "center", headerHozAlign: "center", width: 130, editor: "input" },
       { title: "Người thực hiện", field: "AssigneesCodes", hozAlign: "left", headerHozAlign: "center", width: 210, editor: "input" },
@@ -203,7 +203,7 @@ export class ImportExcelProjectTaskComponent implements OnInit, AfterViewInit {
 
         rows.push({
           TT,
-          Title: this.getCellText(row.getCell(2)),
+          Mission: this.getCellText(row.getCell(2)),
           ProjectCode: this.getCellText(row.getCell(3)),
           EmployeeCode: this.getCellText(row.getCell(4)),
           AssigneesCodes: this.getCellText(row.getCell(5)),
@@ -268,8 +268,8 @@ export class ImportExcelProjectTaskComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Validate: Title bắt buộc
-    const invalidRows = currentTableData.filter((row: any) => !row.Title || row.Title.trim() === '');
+    // Validate: Mission bắt buộc
+    const invalidRows = currentTableData.filter((row: any) => !row.Mission || row.Mission.trim() === '');
     if (invalidRows.length > 0) {
       this.notification.warning('Thông báo', `Có ${invalidRows.length} dòng chưa có Tên công việc!`);
       this.isSaving = false;
@@ -315,7 +315,7 @@ export class ImportExcelProjectTaskComponent implements OnInit, AfterViewInit {
     // Chuẩn bị payload
     const payload = currentTableData.map((row: any) => ({
       TT: row.TT?.toString()?.trim() || '',
-      Title: row.Title?.toString()?.trim() || '',
+      Mission: row.Mission?.toString()?.trim() || '',
       ProjectCode: row.ProjectCode?.toString()?.trim() || '',
       EmployeeCode: row.EmployeeCode?.toString()?.trim() || '',
       AssigneesCodes: row.AssigneesCodes?.toString()?.trim() || '',

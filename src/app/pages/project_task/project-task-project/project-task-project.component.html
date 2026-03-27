@@ -106,7 +106,7 @@
                     @for (col of columns; track col.field) {
                     <th [style.text-align]="'center'">
                         <!-- Mã công việc, Tên công việc, Người thực hiện -->
-                        @if (col.field === 'Code' || col.field === 'Title' || col.field === 'FullName') {
+                        @if (col.field === 'Code' || col.field === 'Mission' || col.field === 'FullName') {
                         <input pInputText type="text" class="col-filter-input" placeholder="Tìm kiếm..."
                             (input)="onFilterChange($any($event.target).value, col.field, 'contains')" />
                         }
@@ -175,7 +175,7 @@
                             <span class="project-group-title">
                                 <span nz-icon nzType="project" nzTheme="outline"
                                     style="margin-right: 6px; color: #1890ff;"></span>
-                                {{ rowData.Title }}
+                                {{ rowData.Mission }}
                                 <span class="task-count-badge">{{ rowData.taskCount }}</span>
                             </span>
                         </div>
@@ -195,16 +195,16 @@
                             @if (col.field === 'Code') {
                             <span class="task-code-link" (click)="openTaskDetail(rowData)">{{ rowData.Code }}</span>
                             }
-                            @if (col.field === 'Title') {
-                            <span class="task-title">{{ rowData.Title }}</span>
+                            @if (col.field === 'Mission') {
+                            <span class="task-title">{{ rowData.Mission }}</span>
                             }
                         </div>
                         } @else {
                         @if (col.field === 'Code') {
                         <span class="task-code-link" (click)="openTaskDetail(rowData)">{{ rowData.Code }}</span>
                         }
-                        @if (col.field === 'Title') {
-                        <span class="task-title">{{ rowData.Title }}</span>
+                        @if (col.field === 'Mission') {
+                        <span class="task-title">{{ rowData.Mission }}</span>
                         }
                         @if (col.field === 'DisplayStatus') {
                         <p-tag [value]="getDisplayStatus(rowData).label"

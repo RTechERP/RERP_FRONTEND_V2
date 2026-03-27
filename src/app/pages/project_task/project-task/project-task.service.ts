@@ -12,13 +12,12 @@ export interface ProjectTaskItem {
     ProjectID: number | null;
     ProjectCode: string | null;
     ProjectName: string | null;
-    ProjectTaskGroupID: number | null;
-    Title: string | null;
+    Mission: string | null;
     Description: string | null;
-    EmployeeID: number | null;
+    EmployeeIDRequest: number | null;
     FullName: string | null;
-    StartDate: string | Date | null;
-    DueDate: string | Date | null;
+    ActualStartDate: string | Date | null;
+    ActualEndDate: string | Date | null;
     PlanStartDate: string | Date | null;
     PlanEndDate: string | Date | null;
     Priority: number | null;
@@ -28,7 +27,6 @@ export interface ProjectTaskItem {
     ParentID: number | null;
     ParentCode: string | null;
     ParentTitle: string | null;
-    ProgressPercent: number | null;
     CreatedBy: string | null;
     CreatedDate: string | null;
     UpdatedBy: string | null;
@@ -37,8 +35,8 @@ export interface ProjectTaskItem {
     SecondEmployeeID: number | null;
     SecondEmployeeFullName: string | null;
     SecondEmployeeType: number | null; // 1: assignee, 2: related
-    ReviewStatus: number | null; // 0/null: chưa duyệt, 1: Chờ duyệt, 2: Đã duyệt, 3: Từ chối
-    ReviewDiscription: string | null;
+    IsApproved: number | null; // 0/null: chưa duyệt, 1: Chờ duyệt, 2: Đã duyệt, 3: Từ chối
+    ReviewDescription: string | null;
     DisplayStatus?: number; // Computed: same as Status, or 5 = Quá hạn
     DepartmentAssignerID?: number | null;
     DepartmentAssigneeID?: number | null;

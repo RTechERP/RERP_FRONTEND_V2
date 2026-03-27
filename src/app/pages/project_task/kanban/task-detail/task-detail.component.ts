@@ -101,8 +101,6 @@ export class TaskDetailComponent implements OnInit {
     planEndDate?: Date;
     selectedTabIndex: number = 0;
 
-    // Giữ lại dueDate để tương thích ngược
-    dueDate?: Date;
     estimatedTime: string = '';
     dateValidationError: string = '';  // loi validate ngay
 
@@ -136,6 +134,21 @@ export class TaskDetailComponent implements OnInit {
             const e = new Date(this.endDate).setHours(0, 0, 0, 0);
             if (s > e) {
                 this.dateValidationError = 'Ngày KT thực tế phải sau Ngày BĐ thực tế';
+                return;
+            }
+        }
+
+        // Ràng buộc mới: Ngày kết thúc thực tế >= (hôm nay - 1)
+        if (this.endDate && this.isUpdateMode) {
+            const yesterday = new Date();
+            yesterday.setHours(0, 0, 0, 0);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const selectedEndDate = new Date(this.endDate);
+            selectedEndDate.setHours(0, 0, 0, 0);
+
+            if (selectedEndDate < yesterday) {
+                this.dateValidationError = 'Ngày KT thực tế phải từ ngày hôm qua trở đi';
             }
         }
     }
@@ -186,6 +199,15 @@ export class TaskDetailComponent implements OnInit {
         this.onEndDateChange(d!);
     }
 
+    get minActualEndDate(): string {
+        const date = new Date();
+        date.setDate(date.getDate() - 1);
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
     checklists: IProjectTaskChecklist[] = [];
     newChecklistItem: string = '';
 
@@ -211,14 +233,21 @@ export class TaskDetailComponent implements OnInit {
     taskLogs: any[] = [];
     isLoadingLogs: boolean = false;
     reviewStatus?: number;
+    previousStatus: number = 1;
 
     getStatusInfo(status: number) {
         return this.statusList.find(s => s.value === status) || this.statusList[0];
     }
 
     onStatusChange(status: number): void {
-        // Local state only - will save when user clicks "Lưu"
+        const oldStatus = this.previousStatus;
+        if (status === 4 && this.isUpdateMode) {
+            this.showPendingReasonModal(oldStatus);
+            return;
+        }
+
         this.taskStatus = status;
+        this.previousStatus = status;
         if (status === 3) {
             // Hoàn thành → set ngày KT thực tế = hôm nay
             this.endDate = new Date();
@@ -228,6 +257,55 @@ export class TaskDetailComponent implements OnInit {
             this.endDate = undefined;
             this.endTime = undefined;
         }
+    }
+
+    @ViewChild('pendingReasonTpl') pendingReasonTpl!: TemplateRef<any>;
+    pendingReasonText: string = '';
+
+    showPendingReasonModal(oldStatus: number): void {
+        this.pendingReasonText = '';
+        const modal = this.modalService.create({
+            nzTitle: 'Nhập lý do Tạm dừng (Pending)',
+            nzContent: this.pendingReasonTpl,
+            nzFooter: [
+                {
+                    label: 'Hủy',
+                    onClick: () => {
+                        this.taskStatus = oldStatus;
+                        this.previousStatus = oldStatus;
+                        modal.destroy();
+                    }
+                },
+                {
+                    label: 'Xác nhận',
+                    type: 'primary',
+                    disabled: (content) => !this.pendingReasonText.trim(),
+                    onClick: () => {
+                        const reason = this.pendingReasonText.trim();
+                        if (reason) {
+                            const tempId = this._tempAdditionalIdCounter--;
+                            const newItem: IProjectTaskAdditional = {
+                                ID: tempId,
+                                Description: `[Lý do Pending]: ${reason}`,
+                                CreatedDate: new Date(),
+                                CreatedBy: this.appUserService.fullName || 'User'
+                            };
+
+                            this.additionals = [...this.additionals, newItem];
+                            this.pendingAdditionalOps.push({ type: 'add', item: newItem });
+                            this.isAdditional = true;
+
+                            this.taskStatus = 4;
+                            this.previousStatus = 4;
+                            modal.destroy();
+                            this.cdr.detectChanges();
+                        }
+                    }
+                }
+            ],
+            nzMaskClosable: false,
+            nzClosable: false
+        });
     }
 
     // Project properties
@@ -291,7 +369,7 @@ export class TaskDetailComponent implements OnInit {
     // Computed property for assigner (for display)
     get selectedAssigner(): any {
         const activeTask = this.nzModalData?.task || this.task;
-        const id = this.assignerId ?? activeTask?.EmployeeID;
+        const id = this.assignerId ?? activeTask?.EmployeeIDRequest;
         if (id === undefined || id === null) return null;
         return this.employees.find(emp => emp.ID === id);
     }
@@ -786,8 +864,8 @@ export class TaskDetailComponent implements OnInit {
         if (time && this.startDate) {
             this.updateEstimatedTime();
             this.autoSaveTask({
-                StartDate: this.formatDateForApi(this.startDate),
-                DueDate: this.formatDateForApi(this.endDate)
+                ActualStartDate: this.formatDateForApi(this.startDate),
+                ActualEndDate: this.formatDateForApi(this.endDate)
             });
         }
     }
@@ -796,8 +874,8 @@ export class TaskDetailComponent implements OnInit {
         if (time && this.endDate) {
             this.updateEstimatedTime();
             this.autoSaveTask({
-                StartDate: this.formatDateForApi(this.startDate),
-                DueDate: this.formatDateForApi(this.endDate)
+                ActualStartDate: this.formatDateForApi(this.startDate),
+                ActualEndDate: this.formatDateForApi(this.endDate)
             });
         }
     }
@@ -1228,19 +1306,18 @@ export class TaskDetailComponent implements OnInit {
         this.isUpdateMode = !!activeTask?.ID;
 
         if (activeTask) {
-            this.title = activeTask.Title || '';
+            this.title = activeTask.Mission || '';
             this.description = activeTask.Description || '';
             this.isPersonalProject = activeTask.IsPersonalProject || false;
-            this.reviewStatus = activeTask.ReviewStatus;
+            this.reviewStatus = activeTask.IsApproved;
 
-            if (activeTask.StartDate) {
-                this.startDate = new Date(activeTask.StartDate);
-                this.startTime = new Date(activeTask.StartDate);
+            if (activeTask.ActualStartDate) {
+                this.startDate = new Date(activeTask.ActualStartDate);
+                this.startTime = new Date(activeTask.ActualStartDate);
             }
-            if (activeTask.DueDate) {
-                this.endDate = new Date(activeTask.DueDate);
-                this.endTime = new Date(activeTask.DueDate);
-                this.dueDate = new Date(activeTask.DueDate);
+            if (activeTask.ActualEndDate) {
+                this.endDate = new Date(activeTask.ActualEndDate);
+                this.endTime = new Date(activeTask.ActualEndDate);
             }
             if (this.isUpdateMode) {
                 if (activeTask.PlanStartDate) this.planStartDate = new Date(activeTask.PlanStartDate);
@@ -1248,11 +1325,10 @@ export class TaskDetailComponent implements OnInit {
             }
 
             this.selectedProjectId = activeTask.ProjectID;
-            this.selectedGroupId = activeTask.ProjectTaskGroupID;
-            this.progressPercent = activeTask.ProgressPercent || 0;
             this.taskStatus = activeTask.Status || 1;
-            this.assignerId = activeTask.EmployeeID;
-            this.selectedTaskTypeId = activeTask.ProjectTaskTypeID ?? undefined;
+            this.previousStatus = this.taskStatus;
+            this.assignerId = activeTask.EmployeeIDRequest;
+            this.selectedTaskTypeId = activeTask.TypeProjectItem ?? undefined;
             this.taskComplexity = activeTask.TaskComplexity ?? 1;
 
             if (activeTask.AssignedToEmployeeID) {
@@ -1263,7 +1339,6 @@ export class TaskDetailComponent implements OnInit {
             }
 
             this.loadAllProjects();
-            this.loadProjectTaskTypes();
 
             if (this.isUpdateMode) {
                 // ── Fix #1: forkJoin để đảm bảo employees luôn có trước khi updateFilteredLists ──
@@ -1293,6 +1368,7 @@ export class TaskDetailComponent implements OnInit {
                         }
 
                         // 4. Chỉ gọi updateFilteredLists() 1 lần duy nhất sau khi TẤT CẢ data về
+                        this.loadProjectTaskTypes();
                         this.updateFilteredLists();
                     },
                     error: (err) => console.error('Error loading task employees data', err)
@@ -1335,11 +1411,12 @@ export class TaskDetailComponent implements OnInit {
             } else {
                 // COPY mode (CREATE with pre-filled data)
                 const copySource = activeTask as any;
-                if (copySource.EmployeeID) this.assignerId = copySource.EmployeeID;
+                if (copySource.EmployeeIDRequest) this.assignerId = copySource.EmployeeIDRequest;
                 if (copySource._copyAssigneeIds?.length) this.assigneeIds = [...copySource._copyAssigneeIds];
                 if (copySource._copyRelatedPeopleIds?.length) this.relatedPeopleIds = [...copySource._copyRelatedPeopleIds];
 
                 this.updateEstimatedTime();
+                this.loadProjectTaskTypes();
 
                 // Load employees cho COPY mode (chỉ cần getEmployees)
                 this.kanbanService.getEmployees().subscribe({
@@ -1355,13 +1432,13 @@ export class TaskDetailComponent implements OnInit {
         } else {
             // Pure CREATE mode (no copy data)
             this.loadAllProjects();
-            this.loadProjectTaskTypes();
             this.selectedTaskTypeId = 1; // Mặc định loại công việc là 1
             const currentEmployeeId = this.appUserService.employeeID;
             this.assignerId = currentEmployeeId;
             if (currentEmployeeId) {
                 this.assigneeIds = [currentEmployeeId]; // Mặc định người thực hiện là chính mình
             }
+            this.loadProjectTaskTypes();
 
             // Load employees cho CREATE mode
             this.kanbanService.getEmployees().subscribe({
@@ -1384,9 +1461,7 @@ export class TaskDetailComponent implements OnInit {
     saveProgress(): void {
         const activeTask = this.nzModalData?.task || this.task;
         if (activeTask) {
-            this.kanbanService.updateTask(activeTask.ID, {
-                ProgressPercent: this.progressPercent
-            }).subscribe({
+            this.kanbanService.updateTask(activeTask.ID, {}).subscribe({
                 next: (res) => {
                     if (res.status === 200 || res.status === 1) {
                     }
@@ -1536,6 +1611,10 @@ export class TaskDetailComponent implements OnInit {
     }
 
     deleteAdditionalAction(item: IProjectTaskAdditional): void {
+        if (this.taskStatus === 4) {
+            this.message.warning('Không thể xóa nội dung phát sinh khi đang ở trạng thái Pending');
+            return;
+        }
         this.additionals = this.additionals.filter(a => a.ID !== item.ID);
         if (item.ID < 0) {
             this.pendingAdditionalOps = this.pendingAdditionalOps.filter(
@@ -1808,21 +1887,19 @@ export class TaskDetailComponent implements OnInit {
             switchMap(() => {
                 const saveData: any = {
                     ID: activeTask.ID,
-                    Title: this.title.trim(),
+                    Mission: this.title.trim(),
                     Description: this.description,
-                    StartDate: this.formatDateForApi(this.startDate),
-                    DueDate: this.formatDateForApi(this.endDate),
+                    ActualStartDate: this.formatDateForApi(this.startDate),
+                    ActualEndDate: this.formatDateForApi(this.endDate),
                     PlanStartDate: this.formatDateForApi(this.planStartDate),
                     PlanEndDate: this.formatDateForApi(this.planEndDate),
                     ProjectID: this.selectedProjectId,
-                    ProjectTaskGroupID: this.selectedGroupId,
-                    EmployeeID: this.assignerId,
+                    EmployeeIDRequest: this.assignerId,
                     Priority: activeTask.Priority || 1,
                     Status: this.taskStatus,
-                    ProgressPercent: this.progressPercent,
                     IsPersonalProject: this.isPersonalProject,
                     IsAdditional: this.isAdditional,
-                    ProjectTaskTypeID: this.selectedTaskTypeId,
+                    TypeProjectItem: this.selectedTaskTypeId,
                     TaskComplexity: this.taskComplexity,
                     AssignedToEmployeeID: this.assigneeIds.length > 0 ? this.assigneeIds[0] : undefined,
                     OrderIndex: activeTask.OrderIndex,
@@ -1924,21 +2001,20 @@ export class TaskDetailComponent implements OnInit {
 
                 const taskData: any = {
                     ID: 0,
-                    Title: this.title.trim(),
+                    Mission: this.title.trim(),
                     Description: this.description,
-                    StartDate: this.formatDateForApi(this.startDate),
-                    DueDate: this.formatDateForApi(this.endDate),
+                    ActualStartDate: this.formatDateForApi(this.startDate),
+                    ActualEndDate: this.formatDateForApi(this.endDate),
                     PlanStartDate: this.formatDateForApi(this.planStartDate),
                     PlanEndDate: this.formatDateForApi(this.planEndDate),
                     ProjectID: this.selectedProjectId,
-                    ProjectTaskGroupID: this.selectedGroupId,
                     IsPersonalProject: this.isPersonalProject,
                     Priority: 1,
                     Status: this.taskStatus,
-                    ProjectTaskTypeID: this.selectedTaskTypeId,
+                    TypeProjectItem: this.selectedTaskTypeId,
                     IsAdditional: this.isAdditional,
                     TaskComplexity: this.taskComplexity,
-                    EmployeeID: this.assignerId,
+                    EmployeeIDRequest: this.assignerId,
                     Employee: this.assigneeIds,
                     EmployeeRelate: this.relatedPeopleIds,
                     Files: [...this.fileAttachmentIds, ...(newFileIds || [])],
@@ -2020,7 +2096,7 @@ export class TaskDetailComponent implements OnInit {
         const activeTask = this.nzModalData?.task || this.task;
         if (!activeTask?.ID) return;
 
-        // Đảm bảo không gửi null cho StartDate và PlanStartDate
+        // Đảm bảo không gửi null cho ActualStartDate và PlanStartDate
         const startDateValue = this.startDate || new Date();
         const planStartDateValue = this.planStartDate || new Date();
         const planEndDateValue = this.planEndDate || new Date();
@@ -2028,22 +2104,20 @@ export class TaskDetailComponent implements OnInit {
         // Build complete task data with all fields
         const completeTaskData = {
             ID: activeTask.ID,
-            Title: this.title,
+            Mission: this.title,
             Description: this.description,
-            StartDate: this.formatDateForApi(startDateValue),
-            DueDate: this.formatDateForApi(this.endDate),
+            ActualStartDate: this.formatDateForApi(startDateValue),
+            ActualEndDate: this.formatDateForApi(this.endDate),
             PlanStartDate: this.formatDateForApi(planStartDateValue),
             PlanEndDate: this.formatDateForApi(planEndDateValue),
             ProjectID: this.selectedProjectId,
-            ProjectTaskGroupID: this.selectedGroupId,
             Priority: activeTask.Priority || 1,
             Status: activeTask.Status || 1,
-            ProgressPercent: this.progressPercent,
-            EmployeeID: this.assignerId || activeTask.EmployeeID,
+            EmployeeIDRequest: this.assignerId || activeTask.EmployeeIDRequest,
             AssignedToEmployeeID: activeTask.AssignedToEmployeeID,
             OrderIndex: activeTask.OrderIndex,
             ParentID: activeTask.ParentID,
-            ReviewStatus: activeTask.ReviewStatus,
+            IsApproved: activeTask.IsApproved,
             TaskComplexity: this.taskComplexity,
             IsAdditional: this.isAdditional,
             // Merge with any additional data passed in

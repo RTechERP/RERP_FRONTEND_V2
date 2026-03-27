@@ -263,7 +263,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
   pendingApprovalTasks = computed(() => {
     const currentUserId = this.appUserService.employeeID;
     return this.allTasks()
-      .filter(t => t.Status === 3 && t.ReviewStatus === 1 && t.EmployeeID === currentUserId);
+      .filter(t => t.Status === 3 && t.IsApproved === 1 && t.EmployeeIDRequest === currentUserId);
   });
 
   ngOnInit() {
@@ -320,7 +320,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
 
   private isOverdue(task: ProjectTaskItem, now: Date): boolean {
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
-    const dueDate = task.DueDate ? new Date(task.DueDate) : null;
+    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
 
     if (dueDate && planEnd && new Date(dueDate) > planEnd) return true;
     if (!dueDate && planEnd && planEnd < now && task.Status !== 4) return true;
@@ -339,7 +339,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], true, this.approveReviewText).subscribe({
             next: () => {
-              this.message.success(`Đã duyệt công việc "${task.Title}"`);
+              this.message.success(`Đã duyệt công việc "${task.Mission}"`);
               this.isApproving = false;
               this.refreshData();
               resolve();
@@ -374,7 +374,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], false, this.rejectReviewText).subscribe({
             next: () => {
-              this.message.warning(`Đã từ chối công việc "${task.Title}"`);
+              this.message.warning(`Đã từ chối công việc "${task.Mission}"`);
               this.isApproving = false;
               this.refreshData();
               resolve();

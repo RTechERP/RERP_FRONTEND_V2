@@ -1,0 +1,152 @@
+<div class="timeline-container">
+    <div class="timeline-header">
+        <h2 class="title">KẾ HOẠCH CÔNG VIỆC</h2>
+
+        <div class="filters-bar">
+            <div class="legend-bar">
+                <div class="legend-item">
+                    <span class="box planned"></span> Dự kiến
+                </div>
+                <div class="legend-item">
+                    <span class="box actual"></span> Thực tế
+                </div>
+            </div>
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <div class="search-field">
+                    <label class="search-label">Từ ngày</label>
+                    <input type="date" [(ngModel)]="dateStart"
+                        style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                </div>
+                <div class="search-field">
+                    <label class="search-label">Đến ngày</label>
+                    <input type="date" [(ngModel)]="dateEnd"
+                        style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                </div>
+                <div class="filter-actions">
+                    <button nz-button nzType="default" nzSize="small" (click)="resetFilters()">Đặt lại</button>
+                </div>
+                <button nz-button nzType="primary" nzSize="small" (click)="loadTimeline()"
+                    [disabled]="!dateStart || !dateEnd">
+                    <span nz-icon nzType="search"></span> Tìm kiếm
+                </button>
+                <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()"
+                    [disabled]="loading() || filteredTasks().length === 0">
+                    <span nz-icon nzType="file-excel"></span> Xuất Excel
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <div class="timeline-content" [class.loading]="loading()">
+        <div class="table-container">
+            <table class="grid-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="sticky-col col-stt">STT</th>
+                        <th rowspan="2" class="sticky-col col-job">
+                            Công việc
+                            <input type="text" class="filter-input" [(ngModel)]="filterKeyword" (keyup)="applyFilters()"
+                                placeholder="Tìm mã/tên...">
+                        </th>
+                        <th rowspan="2" class="col-parent">
+                            Mã CV Cha
+                            <input type="text" class="filter-input" [(ngModel)]="filterParentCode"
+                                (keyup)="applyFilters()" placeholder="Tìm kiếm...">
+                        </th>
+                        <th rowspan="2" class="col-proj">
+                            Dự án
+                            <input type="text" class="filter-input" [(ngModel)]="filterProjectKeyword"
+                                (keyup)="applyFilters()" placeholder="Tìm dự án...">
+                        </th>
+                        <th rowspan="2" class="col-status">
+                            Trạng Thái
+                            <p-multiSelect [options]="statusOptions" [(ngModel)]="selectedStatuses"
+                                placeholder="Tất cả" [showHeader]="false" [filter]="false"
+                                (onChange)="applyFilters()" styleClass="timeline-status-multi"
+                                [maxSelectedLabels]="1" selectedItemsLabel="{0} trạng thái"
+                                appendTo="body" />
+                        </th>
+                        <th rowspan="2" class="col-type">Loại</th>
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-header">
+                            {{ col.dayName }}
+                        </th>
+                    </tr>
+                    <tr>
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-subheader">
+                            {{ col.dateDisplay }}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngFor="let task of filteredTasks(); let i = index">
+                        <tr *ngFor="let row of task.rows; let rowIndex = index" [class.row-actual]="rowIndex === 1">
+                            <!-- Task Details (Spans 2 rows) -->
+                            <td *ngIf="rowIndex === 0" rowspan="2" class="sticky-col col-stt text-center">{{ i + 1 }}
+                            </td>
+                            <td *ngIf="rowIndex === 0" rowspan="2" class="sticky-col col-job">
+                                <div class="task-info">
+                                    <a class="task-code-link" (click)="openTaskDetail(task); $event.stopPropagation()">{{ task.Code }}</a>
+                                    <div class="task-title text-wrap">{{ task.Title }}</div>
+                                </div>
+                            </td>
+                            <td *ngIf="rowIndex === 0" rowspan="2" class="col-parent text-center">
+                                @if (task.ParentCode) {
+                                <span class="task-code-link" (click)="openTaskDetail(task.ParentID)" nz-tooltip
+                                    [nzTooltipTitle]="task.ParentTitle">
+                                    {{ task.ParentCode }}
+                                </span>
+                                } @else {
+                                -
+                                }
+                            </td>
+                            <td *ngIf="rowIndex === 0" rowspan="2" class="col-proj">
+                                <div class="project-info">
+                                    <span class="fw-bold">{{ task.ProjectCode }}</span>
+                                    <div class="project-name text-wrap">{{ task.ProjectName }}</div>
+                                </div>
+                            </td>
+                            <td *ngIf="rowIndex === 0" rowspan="2" class="col-status text-center">
+                                <span class="status-tag" [attr.data-status]="task.DisplayStatus">
+                                    {{ task.StatusName }}
+                                </span>
+                            </td>
+
+                            <!-- Type and Gantt Cells -->
+                            <td class="col-type text-center">{{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}</td>
+
+                            <td *ngFor="let col of dateColumns" class="gantt-cell" [class.sunday]="col.isSunday"
+                                [class.filled-planned]="row.TypeDate === 1 && getValue(row, col.dateStr) > 0"
+                                [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0"
+                                [nz-tooltip]="getValue(row, col.dateStr) > 0 ? (row.TypeDate === 1 ? 'Kế hoạch: Có' : 'Thực tế: Có') : null">
+                            </td>
+                        </tr>
+                    </ng-container>
+
+                    <!-- Empty state -->
+                    <tr *ngIf="filteredTasks().length === 0 && !loading()">
+                        <td [attr.colspan]="8 + dateColumns.length" class="empty-cell">
+                            Không có dữ liệu cho khoảng thời gian này
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td [attr.colspan]="6 + dateColumns.length" class="table-footer-total">
+                            Tổng số công việc: <span class="total-count">{{ filteredTasks().length }}</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" *ngIf="loading()">
+            <span nz-icon nzType="loading" nzTheme="outline"></span>
+            <p>Đang tải dữ liệu...</p>
+        </div>
+    </div>
+</div>

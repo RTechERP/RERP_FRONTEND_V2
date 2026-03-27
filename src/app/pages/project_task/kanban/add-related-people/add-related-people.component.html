@@ -1,0 +1,86 @@
+<div class="add-related-people-modal">
+    <!-- Header -->
+    <div class="modal-header">
+        <h3>{{ modalTitle }}</h3>
+        <div class="header-actions">
+            <!-- <i nz-icon nzType="fullscreen" nzTheme="outline" class="action-icon"></i> -->
+            <i nz-icon nzType="close" nzTheme="outline" class="action-icon" (click)="close()"></i>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-row">
+        <nz-input-group [nzPrefix]="prefixIconSearch" class="search-input">
+            <input type="text" nz-input placeholder="Tìm kiếm nhân viên" [(ngModel)]="searchText"
+                (ngModelChange)="onSearch()" />
+        </nz-input-group>
+        <ng-template #prefixIconSearch>
+            <i nz-icon nzType="search"></i>
+        </ng-template>
+
+        <nz-select nzPlaceHolder="Tất cả cơ cấu tổ chức" class="filter-select" [(ngModel)]="selectedDepartment"
+            (ngModelChange)="onSearch()" nzAllowClear>
+            @for (dept of departments; track dept.ID) {
+            <nz-option [nzLabel]="dept.Name" [nzValue]="dept.ID"></nz-option>
+            }
+        </nz-select>
+
+    </div>
+
+    <!-- Selection Info -->
+    <div class="selection-info">
+        <span class="selected-count" [class.active]="showOnlySelected" (click)="toggleShowOnlySelected()"
+            style="cursor: pointer;">
+            {{ selectedEmployees.length }} Đang chọn
+        </span>
+        @if (selectedEmployees.length > 0) {
+        <a class="clear-selection" (click)="clearSelection()">Bỏ chọn</a>
+        }
+    </div>
+
+    <!-- Employee Table -->
+    <div class="employee-table-container">
+        <nz-table #employeeTable [nzData]="filteredEmployees" [nzPageSize]="10" [nzShowPagination]="true"
+            [nzFrontPagination]="true" nzSize="small">
+            <thead>
+                <tr>
+                    <th nzWidth="50px">
+                        <label nz-checkbox [(ngModel)]="selectAll" (ngModelChange)="onSelectAllChange()"></label>
+                    </th>
+                    <th nzWidth="100px">Mã NV</th>
+                    <th>Họ và tên</th>
+                    <!-- <th>Email</th> -->
+                    <th>Đơn vị công tác</th>
+                    <!-- <th>Vị trí công việc</th> -->
+                </tr>
+            </thead>
+            <tbody>
+                @for (employee of employeeTable.data; track employee.ID) {
+                <tr [class.selected-row]="isSelected(employee)">
+                    <td>
+                        <label nz-checkbox [(ngModel)]="employee.checked"
+                            (ngModelChange)="onEmployeeCheckChange(employee)"></label>
+                    </td>
+                    <td>{{ employee.Code || '-' }}</td>
+                    <td>{{ employee.FullName }}</td>
+                    <!-- <td>{{ employee.Email || '-' }}</td> -->
+                    <td>{{ employee.DepartmentName || '-' }}</td>
+                    <!-- <td>{{ employee.PositionName || '-' }}</td> -->
+                </tr>
+                }
+            </tbody>
+        </nz-table>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer justify-content-end">
+        <!-- <div class="footer-info">
+            <i nz-icon nzType="setting" nzTheme="outline" class="settings-icon"></i>
+            <span class="total-count">Thiết lập</span>
+        </div> -->
+        <div class="footer-actions">
+            <button nz-button nzType="default" (click)="close()">Hủy bỏ</button>
+            <button nz-button nzType="primary" (click)="addSelectedEmployees()">{{ submitButtonText }}</button>
+        </div>
+    </div>
+</div>

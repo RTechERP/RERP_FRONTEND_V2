@@ -1,0 +1,166 @@
+<div class="project-form">
+    <!-- Header -->
+    <div class="form-header">
+        <h3>Thêm mới dự án</h3>
+        <i nz-icon nzType="close" nzTheme="outline" class="close-icon" (click)="cancel()"></i>
+    </div>
+
+    <!-- Form Content -->
+    <div class="form-content">
+        <!-- Tên dự án/nhóm -->
+        <div class="form-group">
+            <label class="form-label required">Tên dự án</label>
+            <div class="input-with-icon">
+                <div class="icon-button" [style.background-color]="selectedColor" nz-popover
+                    [nzPopoverContent]="iconPickerContent" nzPopoverTrigger="click" nzPopoverPlacement="bottomLeft">
+                    <i nz-icon [nzType]="selectedIcon" nzTheme="outline"></i>
+                </div>
+                <input nz-input [(ngModel)]="projectName" placeholder="Tên dự án/nhóm" />
+            </div>
+        </div>
+
+        <!-- Icon Picker Popover -->
+        <ng-template #iconPickerContent>
+            <div class="icon-color-picker">
+                <div class="picker-section">
+                    <label>Biểu tượng</label>
+                    <div class="icon-grid">
+                        @for (icon of iconList; track icon) {
+                        <div class="icon-item" [class.selected]="selectedIcon === icon" (click)="selectIcon(icon)">
+                            <i nz-icon [nzType]="icon" nzTheme="outline"></i>
+                        </div>
+                        }
+                    </div>
+                </div>
+                <div class="picker-section">
+                    <label>Màu sắc</label>
+                    <div class="color-grid">
+                        @for (color of colorList; track color) {
+                        <div class="color-item" [style.background-color]="color"
+                            [class.selected]="selectedColor === color" (click)="selectColor(color)">
+                            @if (selectedColor === color) {
+                            <i nz-icon nzType="check" nzTheme="outline"></i>
+                            }
+                        </div>
+                        }
+                    </div>
+                </div>
+                <div class="picker-actions">
+                    <button nz-button nzSize="small" (click)="cancelIconColor()">Hủy bỏ</button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="confirmIconColor()">Đồng ý</button>
+                </div>
+            </div>
+        </ng-template>
+
+        <!-- Chọn phòng ban -->
+        <div class="form-group">
+            <label class="form-label required">Chọn nhóm dự án</label>
+            <nz-select [(ngModel)]="departmentType" nzPlaceHolder="Chọn nhóm dự án" class="w-100 department-select">
+                @for (dept of departmentOptions; track dept.value) {
+                <nz-option [nzValue]="dept.value" [nzLabel]="dept.label"></nz-option>
+                }
+            </nz-select>
+        </div>
+
+        <!-- Mô tả -->
+        <div class="form-group">
+            <label class="form-label">Mô tả</label>
+            <textarea nz-input [(ngModel)]="description" placeholder="Mô tả"
+                [nzAutosize]="{ minRows: 3, maxRows: 5 }"></textarea>
+        </div>
+
+        <!-- Thời gian triển khai -->
+        <div class="form-group">
+            <label class="form-label">Thời gian triển khai</label>
+            <div class="date-range">
+                <div class="date-field">
+                    <span class="date-label">Từ ngày</span>
+                    <nz-date-picker [(ngModel)]="startDate" nzFormat="dd/MM/yyyy"
+                        nzPlaceHolder="dd/mm/yy"></nz-date-picker>
+                </div>
+                <div class="date-field">
+                    <span class="date-label">Đến ngày</span>
+                    <nz-date-picker [(ngModel)]="endDate" nzFormat="dd/MM/yyyy"
+                        nzPlaceHolder="dd/mm/yy"></nz-date-picker>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mức độ ưu tiên -->
+        <div class="form-group">
+            <label class="form-label">Mức độ ưu tiên</label>
+            <nz-select [(ngModel)]="priority" nzPlaceHolder="Chọn mức độ" class="priority-select"
+                [nzCustomTemplate]="prioritySelectedTemplate">
+                @for (option of priorityOptions; track option.value) {
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label" nzCustomContent>
+                    <span class="priority-badge" [style.background-color]="option.bgColor" [style.color]="option.color">
+                        {{ option.label }}
+                    </span>
+                </nz-option>
+                }
+            </nz-select>
+
+            <!-- Template for selected value display -->
+            <ng-template #prioritySelectedTemplate let-selected>
+                @if (getPriorityOption(selected.nzValue); as opt) {
+                <span class="priority-badge" [style.background-color]="opt.bgColor" [style.color]="opt.color">
+                    {{ opt.label }}
+                </span>
+                }
+            </ng-template>
+        </div>
+
+        <!-- Thành viên -->
+        <div class="form-group">
+            <div class="member-header">
+                <label class="form-label">Thành viên ({{ selectedMembers.length }})</label>
+            </div>       
+
+            <!-- Search input -->
+            <div class="member-search">
+                <input nz-input [(ngModel)]="searchText" (ngModelChange)="searchEmployees()"
+                    placeholder="Tìm theo tên hoặc email để thêm nhanh" />
+                <span class="search-action" (click)="searchEmployees()">
+                    <i nz-icon nzType="user" nzTheme="outline"></i> Chọn
+                </span>
+            </div>
+
+            <!-- Search results dropdown -->
+            @if (searchText && filteredEmployees.length > 0) {
+            <div class="search-results">
+                @for (emp of filteredEmployees; track emp.ID) {
+                <div class="search-result-item" (click)="addMember(emp)">
+                    <nz-avatar [nzText]="getInitials(emp.FullName)" nzSize="small"
+                        [style.backgroundColor]="'#ff6b35'"></nz-avatar>
+                    <div class="emp-info">
+                        <!-- <span class="emp-email">{{ emp.code }}</span> -->
+                        <span class="emp-name">{{ emp.FullName }}</span>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+
+            <!-- Selected members list -->
+            <div class="member-list">
+                @for (member of selectedMembers; track member.ID) {
+                <div class="member-item">
+                    <nz-avatar [nzText]="getInitials(member.FullName)" nzSize="default"
+                        [style.backgroundColor]="'#ff6b35'"></nz-avatar>
+                    <div class="member-info">
+                        <span class="member-name">{{ member.FullName }}</span>
+                        <span class="member-email">{{ member.Email }}</span>
+                    </div>
+                    <i nz-icon nzType="close" class="remove-member" (click)="removeMember(member)"></i>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="form-footer">
+        <button nz-button nzType="default" (click)="cancel()">Hủy bỏ</button>
+        <button nz-button nzType="primary" (click)="save()">Lưu</button>
+    </div>
+</div>

@@ -1,0 +1,278 @@
+<div class="ptp-container">
+
+    <!-- ===== HEADER ===== -->
+    <div class="card border-0 rounded-0 sticky-header">
+        <div class="card-header bg-white p-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="m-0 text-uppercase fw-bold">Tổng hợp công việc theo dự án</h6>
+                <div class="d-flex gap-2">
+                    <button nz-button nzType="default" nzSize="small" (click)="openImportExcel()" 
+                        class="btn-sm btn-outline">
+                        <span nz-icon nzType="upload"></span>
+                        Import Excel
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" 
+                        class="btn-sm btn-excel">
+                        <span nz-icon nzType="download"></span>
+                        Xuất Excel
+                    </button>
+                </div>
+            </div>
+
+
+
+                            
+
+            <!-- ===== SEARCH FORM ===== -->
+            <nz-row [nzGutter]="[8, 8]" nzAlign="bottom" nzJustify="space-between">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Từ ngày</label>
+                        <input type="date" [(ngModel)]="dateStart" name="dateStart"
+                            style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Đến ngày</label>
+                        <input type="date" [(ngModel)]="dateEnd" name="dateEnd"
+                            style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+                    <div class="form-field-vertical">
+                        <label>Dự án</label>
+                        <nz-select nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch
+                            nzAllowClear (ngModelChange)="loadData()" style="width: 100%;">
+                            <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+                            <nz-option *ngFor="let item of projectList"
+                                [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Từ khóa</label>
+                        <input nz-input placeholder="Nhập từ khóa..." [(ngModel)]="keyword" (keyup.enter)="loadData()"
+                            nzSize="small" class="search-input-field" />
+                    </div>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="2">
+                    <div class="form-field-vertical">
+                        <label>&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button nz-button nzType="default" nzSize="small" (click)="resetSearch()" nz-tooltip
+                                nzTooltipTitle="Đặt lại">
+                                <span nz-icon nzType="reload"></span>
+                            </button>
+                            <button nz-button nzType="primary" nzSize="small" (click)="loadData()" nz-tooltip
+                                nzTooltipTitle="Tìm kiếm">
+                                <span nz-icon nzType="search"></span>
+                            </button>
+                        </div>
+                    </div>
+                </nz-col>
+            </nz-row>
+        </div>
+    </div>
+
+    <!-- ===== TREE TABLE ===== -->
+    <div class="table-container">
+        <p-treeTable #tt [value]="treeNodes" [columns]="cols" [loading]="loading()" (onFilter)="onFiltered($event)"
+            (onNodeExpand)="updateAdaptiveWidth()" (onNodeCollapse)="updateAdaptiveWidth()"
+            styleClass="p-treetable-sm p-treetable-gridlines" [scrollable]="true" scrollHeight="flex">
+
+            <!-- COLGROUP — cố định chiều rộng cột cho cả header lẫn body -->
+            <ng-template pTemplate="colgroup" let-columns>
+                <colgroup>
+                    @for (col of columns; track col.field) {
+                    <col [style.width]="col.width" [style.min-width]="col.minWidth" />
+                    }
+                </colgroup>
+            </ng-template>
+
+            <!-- HEADER -->
+            <ng-template pTemplate="header" let-columns>
+                <tr>
+                    @for (col of columns; track col.field) {
+                    <th [style.text-align]="'center'" [class.col-date]="col.isDate">
+                        {{ col.header }}
+                    </th>
+                    }
+                </tr>
+                <!-- Row 2: Column filters -->
+                <tr>
+                    @for (col of columns; track col.field) {
+                    <th [style.text-align]="'center'">
+                        <!-- Mã công việc, Tên công việc, Người thực hiện -->
+                        @if (col.field === 'Code' || col.field === 'Mission' || col.field === 'FullName') {
+                        <input pInputText type="text" class="col-filter-input" placeholder="Tìm kiếm..."
+                            (input)="onFilterChange($any($event.target).value, col.field, 'contains')" />
+                        }
+
+                        <!-- Trạng thái -->
+                        @if (col.field === 'DisplayStatus') {
+                        <p-multiSelect [options]="statusOptions" [ngModel]="columnFilters[col.field]"
+                            (onChange)="onFilterChange($event.value, col.field, 'in')" placeholder="Tất cả"
+                            [showHeader]="false" [filter]="false" class="status-filter-multi" [maxSelectedLabels]="1"
+                            selectedItemsLabel="..." appendTo="body" />
+                        }
+
+                        <!-- Phát sinh -->
+                        @if (col.field === 'IsAdditional') {
+                        <select class="status-filter"
+                            (change)="onFilterChange($any($event.target).value, col.field, 'equals')">
+                            <option value="">Tất cả</option>
+                            <option value="true">Có</option>
+                            <option value="false">Không</option>
+                        </select>
+                        }
+
+                        <!-- Phức tạp -->
+                        @if (col.field === 'TaskComplexity') {
+                        <select class="status-filter"
+                            (change)="onFilterChange($any($event.target).value, col.field, 'equals')">
+                            <option value="">Tất cả</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                        }
+
+                        <!-- % Quá hạn -->
+                        @if (col.field === 'PercentOverTime') {
+                        <select class="status-filter"
+                            (change)="onFilterChange($any($event.target).value, col.field, 'overdue')">
+                            <option value="">Tất cả</option>
+                            <option value="ontime">Đúng hạn (&lt;= 0%)</option>
+                            <option value="overdue">Quá hạn (&gt; 0%)</option>
+                        </select>
+                        }
+
+                        <!-- Cột Ngày -->
+                        @if (col.isDate) {
+                        <input type="date" class="col-filter-input"
+                            (change)="onFilterChange($any($event.target).value, col.field, 'contains')" />
+                        }
+                    </th>
+                    }
+                </tr>
+            </ng-template>
+
+            <!-- BODY -->
+            <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
+                @if (rowData.isProjectGroup) {
+                <!-- Dòng dự án: giữ đủ 11 ô <td>, ô đầu chứa tên, còn lại trống -->
+                <tr class="project-group-row">
+                    @for (col of columns; track col.field; let i = $index) {
+                    <td>
+                        @if (i === 0) {
+                        <div class="cell-content-wrapper">
+                            <p-treeTableToggler [rowNode]="rowNode" />
+                            <span class="project-group-title">
+                                <span nz-icon nzType="project" nzTheme="outline"
+                                    style="margin-right: 6px; color: #1890ff;"></span>
+                                {{ rowData.Mission }}
+                                <span class="task-count-badge">{{ rowData.taskCount }}</span>
+                            </span>
+                        </div>
+                        }
+                    </td>
+                    }
+                </tr>
+                } @else {
+                <!-- Dòng công việc: render đủ 11 ô <td> -->
+                <tr>
+                    @for (col of columns; track col.field; let i = $index) {
+                    <td [style.text-align]="col.align || 'left'" [class.col-date]="col.isDate">
+                        @if (i === 0) {
+                        <div class="cell-content-wrapper" [style.padding-left.px]="(rowNode.level - 1) * 10">
+                            <p-treeTableToggler [rowNode]="rowNode" />
+
+                            @if (col.field === 'Code') {
+                            <span class="task-code-link" (click)="openTaskDetail(rowData)">{{ rowData.Code }}</span>
+                            }
+                            @if (col.field === 'Mission') {
+                            <span class="task-title">{{ rowData.Mission }}</span>
+                            }
+                        </div>
+                        } @else {
+                        @if (col.field === 'Code') {
+                        <span class="task-code-link" (click)="openTaskDetail(rowData)">{{ rowData.Code }}</span>
+                        }
+                        @if (col.field === 'Mission') {
+                        <span class="task-title">{{ rowData.Mission }}</span>
+                        }
+                        @if (col.field === 'DisplayStatus') {
+                        <p-tag [value]="getDisplayStatus(rowData).label"
+                            [severity]="getDisplayStatus(rowData).severity" />
+                        }
+                        @if (col.field === 'FullName') {
+                        <span class="text-wrap">{{ rowData.FullName || '-' }}</span>
+                        }
+                        @if (col.field === 'IsAdditional') {
+                        @if (rowData.IsAdditional) {
+                        <span nz-icon nzType="warning" nzTheme="outline" style="color: #faad14;"
+                            pTooltip="Có vấn đề phát sinh"></span>
+                        } @else {
+                        <span class="text-muted">-</span>
+                        }
+                        }
+                        @if (col.field === 'TaskComplexity') {
+                        <span class="fw-bold">{{ rowData.TaskComplexity || '-' }}</span>
+                        }
+                        @if (col.field === 'PercentOverTime') {
+                        @if (rowData.PercentOverTime !== null && rowData.PercentOverTime !== undefined) {
+                        <span [style.color]="rowData.PercentOverTime > 0 ? '#ff4d4f' : 'inherit'" class="fw-bold">
+                            {{ rowData.PercentOverTime * 100 }}%
+                        </span>
+                        } @else {
+                        <span class="text-muted">-</span>
+                        }
+                        }
+                        @if (col.isDate) {
+                        <span class="date-text">{{ formatDate(rowData[col.field]) }}</span>
+                        }
+                        }
+                    </td>
+                    }
+                </tr>
+                }
+            </ng-template>
+
+            <!-- FOOTER -->
+            <ng-template pTemplate="footer" let-columns>
+                <tr>
+                    <td [attr.colspan]="columns.length" class="table-footer-total">
+                        Tổng cộng: <span class="total-count">{{ totalProjects }}</span> dự án,
+                        <span class="total-count">{{ totalTasks }}</span> công việc
+                    </td>
+                </tr>
+            </ng-template>
+
+            <!-- EMPTY -->
+            <ng-template pTemplate="emptymessage" let-columns>
+                <tr>
+                    <td [attr.colspan]="columns.length" class="empty-message">
+                        <div class="empty-state">
+                            <span nz-icon nzType="inbox" nzTheme="outline" class="empty-icon"></span>
+                            <p>Không có dữ liệu</p>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <!-- LOADING -->
+            <ng-template pTemplate="loadingbody" let-columns>
+                <tr>
+                    <td [attr.colspan]="columns.length" class="cell-center" style="padding: 24px;">
+                        <span nz-icon nzType="loading" nzTheme="outline"></span> Đang tải...
+                    </td>
+                </tr>
+            </ng-template>
+        </p-treeTable>
+    </div>
+</div>

@@ -294,6 +294,13 @@ import { SummaryAssetPersionalComponent } from './pages/hrm/asset/summary-asset-
 import { PaymentOrderEmployeeComponent } from './pages/general-category/payment-order-employee/payment-order-employee.component';
 import { PaymentOrderTeamComponent } from './pages/general-category/payment-order-team/payment-order-team.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
+
+import { ProjectTaskComponent } from './pages/project_task/project-task/project-task.component'
+import { ProjectTaskDashboardComponent } from './pages/project_task/project-task-dashboard/project-task-dashboard.component'
+import { ProjectTaskTimelineComponent } from './pages/project_task/project-task-timeline/project-task-timeline.component'
+import { ProjectTaskStatusComponent } from './pages/project_task/project-task-status/project-task-status.component'
+import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type/project-task-type.component'
+import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
 export const routes: Routes = [
     {
         path: '',
@@ -1123,6 +1130,12 @@ export const routes: Routes = [
             { path: 'ems/devices', component: DevicesComponent, canActivate: [authGuard] },
             { path: 'ems/communication-types', component: CommunicationComponent, canActivate: [authGuard] },
             //#endregion
+            { path: 'project-task', component: ProjectTaskComponent, canActivate: [authGuard] },
+            { path: 'project-task-dashboard', component: ProjectTaskDashboardComponent, canActivate: [authGuard] },
+            { path: 'project-task-timeline', component: ProjectTaskTimelineComponent, canActivate: [authGuard] },
+            { path: 'project-task-status', component: ProjectTaskStatusComponent, canActivate: [authGuard] },
+            { path: 'project-task-type', component: ProjectTaskTypeComponent, canActivate: [authGuard] },
+            { path: 'project-task-project', component: ProjectTaskProjectComponent, canActivate: [authGuard] },
         ],
     },
 ];

@@ -166,7 +166,19 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     { value: 3, label: 'Tại nhà' },
   ];
 
+  get totalAllHours(): number {
+    let total = 0;
+    this.formTabs.forEach(tab => {
+      const h = tab.form.get('TotalHour')?.value;
+      if (h) {
+        total += Number(h);
+      }
+    });
+    return Math.round(total * 100) / 100;
+  }
+
   constructor(
+
     private fb: FormBuilder,
     private overTimeService: OverTimeService,
     private notification: NzNotificationService,
@@ -2112,9 +2124,9 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       const startDate = timeStart instanceof Date ? timeStart : new Date(timeStart);
       const endDate = endTime instanceof Date ? endTime : new Date(endTime);
 
-      if (startDate >= endDate) {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Thời gian kết thúc phải sau thời gian bắt đầu');
-      }
+      // if (startDate >= endDate) {
+      //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Thời gian kết thúc phải sau thời gian bắt đầu');
+      // }
     }
   }
 

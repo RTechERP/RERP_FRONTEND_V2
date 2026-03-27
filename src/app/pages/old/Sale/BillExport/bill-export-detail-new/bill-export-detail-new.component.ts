@@ -44,7 +44,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillExportService } from '../bill-export-service/bill-export.service';
@@ -300,7 +300,7 @@ export class BillExportDetailNewComponent
         this.getWarehouseID();
         this.getDataCbbAdressStock();
         this.getDataCbbCustomer();
-        this.getDataCbbProductGroup();
+
         this.getDataCbbSender();
         this.getDataCbbUser();
         this.getDataCbbSupplierSale();
@@ -888,7 +888,7 @@ export class BillExportDetailNewComponent
                             templateCallback: (item: any) => {
                                 // Custom template: mã bên trên, tên bên dưới, số lượng tồn bên phải
                                 const code = item?.ProductCode || '';
-                const newCode = item?.ProductNewCode || '';
+                                const newCode = item?.ProductNewCode || '';
                                 const name = item?.ProductName || '';
                                 const inventory = item?.TotalInventory ?? 0;
                                 const formattedInventory = new Intl.NumberFormat('vi-VN', {
@@ -898,7 +898,7 @@ export class BillExportDetailNewComponent
                                 // Màu đỏ nếu tồn kho < 0, màu xanh nếu >= 0
                                 const inventoryColor = inventory < 0 ? '#ff4d4f' : '#52c41a';
                                 // Tooltip hiển thị đầy đủ thông tin
-                const tooltipText = `Mã: ${code}\nMã nội bộ: ${newCode}\nTên: ${name}\nTồn kho: ${formattedInventory}`;
+                                const tooltipText = `Mã: ${code}\nMã nội bộ: ${newCode}\nTên: ${name}\nTồn kho: ${formattedInventory}`;
                                 return `<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 4px 0; gap: 8px;" title="${tooltipText.replace(/"/g, '&quot;')}">
                   <div style="flex: 1; min-width: 0; overflow: hidden;">
                     <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${code}${newCode ? ` <span style="color: #fa8c16; font-size: 11px;">(${newCode})</span>` : ''}</div>
@@ -1629,7 +1629,7 @@ export class BillExportDetailNewComponent
                     this.validateForm.get('Code')?.disable();
                     this.validateForm.get('Address')?.disable();
 
-          if (this.newBillExport.IsApproved && !this.appUserService.isAdmin) {
+                    if (this.newBillExport.IsApproved && !this.appUserService.isAdmin) {
                         this.isFormDisabled = true;
                         this.validateForm.disable();
                     }
@@ -2093,6 +2093,8 @@ export class BillExportDetailNewComponent
                         this.loadSenderFromProductGroupWarehouse(this.newBillExport.KhoTypeID, this.newBillExport.WarehouseID);
                     }
                 }
+
+                this.getDataCbbProductGroup(currentWarehouse.ID ?? 1);
             },
             error: (err: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
@@ -2225,22 +2227,40 @@ export class BillExportDetailNewComponent
     }
 
     /** Load danh sách loại kho (nhóm sản phẩm) */
-    getDataCbbProductGroup(): void {
-        this.billExportService.getCbbProductGroup().subscribe({
-            next: (res: any) => {
-                this.dataCbbProductGroup = Array.isArray(res?.data) ? res.data : [];
+    getDataCbbProductGroup(warehouseID: number): void {
+        // this.billExportService.getCbbProductGroup().subscribe({
+        //     next: (res: any) => {
+        //         this.dataCbbProductGroup = Array.isArray(res?.data) ? res.data : [];
 
-                this.dataCbbProductGroup = this.dataCbbProductGroup?.filter(
+        //         this.dataCbbProductGroup = this.dataCbbProductGroup?.filter(
+        //             (x: any) => x.Isvisible != false && x.ParentID == 0
+        //                 || x.ParentID == null || x.ParentID == undefined
+        //         );
+        //     },
+        //     error: (err: any) => {
+        //         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+        //             { nzStyle: { whiteSpace: 'pre-line' } });
+        //     },
+        // });
+
+        this.productSaleService.getdataProductGroupNew(warehouseID, false, true).subscribe({
+            next: (res: any) => {
+                this.dataCbbProductGroup = res.data?.data1?.filter(
                     (x: any) => x.Isvisible != false && x.ParentID == 0
                         || x.ParentID == null || x.ParentID == undefined
                 );
             },
             error: (err: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
-                    { nzStyle: { whiteSpace: 'pre-line' } });
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             },
         });
-
 
     }
 

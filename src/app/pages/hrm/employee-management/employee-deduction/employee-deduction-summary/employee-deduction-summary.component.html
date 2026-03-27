@@ -1,0 +1,215 @@
+<p-menubar [model]="menuBars">
+  <ng-template pTemplate="item" let-item>
+    <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command() : null">
+      <i [class]="item.icon"></i>
+      <span class="p-menuitem-text">{{ item.label }}</span>
+    </a>
+  </ng-template>
+
+  <ng-template #end>
+    <div class="flex items-center gap-2">
+      <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
+        (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
+        <nz-icon nzType="search" />
+      </button>
+    </div>
+  </ng-template>
+</p-menubar>
+
+<ng-container class="w-100">
+  <div class="card border-0 rounded-0" style="height: 89vh !important;">
+    <!-- Backdrop overlay cho mobile -->
+    <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+      <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile()">
+        <span class="fw-bold" style="font-size: 12px;">Tìm kiếm tổng hợp</span>
+        <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger (click)="ToggleSearchPanelNew()">
+          <nz-icon nzType="close" />
+        </button>
+      </div>
+
+      <div class="mobile-filter-form">
+        <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+          <!-- Tháng/Năm -->
+          <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="3" [nzXl]="4">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Tháng/Năm</nz-form-label>
+              <nz-form-control>
+                <nz-date-picker [(ngModel)]="selectedMonth" (ngModelChange)="onSearch()" nzMode="month"
+                  nzFormat="MM/yyyy" nzSize="small" class="w-100" [nzAllowClear]="false"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Loại phạt -->
+          <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="3" [nzXl]="4">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Loại phạt</nz-form-label>
+              <nz-form-control>
+                <nz-select [(ngModel)]="selectedDeductionType" (ngModelChange)="onSearch()" nzPlaceHolder="Loại phạt"
+                  nzAllowClear nzSize="small" class="w-100">
+                  <nz-option *ngFor="let type of deductionTypes" [nzValue]="type.value"
+                    [nzLabel]="type.label"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Phòng ban -->
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="5">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
+              <nz-form-control>
+                <nz-select [(ngModel)]="selectedDepartmentID" (ngModelChange)="onSearch()" nzShowSearch nzAllowClear
+                  nzSize="small" nzPlaceHolder="Chọn phòng ban" class="w-100" [nzDisabled]="!isN1N2">
+
+                  <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Nhân viên -->
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="5">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
+              <nz-form-control>
+                <nz-select [(ngModel)]="selectedEmployeeID" (ngModelChange)="onSearch()" nzShowSearch nzAllowClear
+                  nzSize="small" nzPlaceHolder="Chọn nhân viên" class="w-100" [nzDisabled]="!isN1N2">
+
+                  <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+                    <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
+                      [nzLabel]="emp.Code + '-' + emp.FullName"></nz-option>
+                  </nz-option-group>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Từ khóa và nút tìm kiếm -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="6">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
+              <nz-form-control>
+                <div class="d-flex gap-1">
+                  <input nz-input placeholder="Nhập từ khóa..." nzSize="small" [(ngModel)]="keyword" class="flex-grow-1"
+                    (keyup.enter)="onSearch()" />
+                  <button nz-button nzType="primary" style="width: 40px;" nzSize="small" (click)="onSearch()">
+                    <nz-icon nzType="search" />
+                  </button>
+                </div>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </div>
+    </div>
+
+    <!-- Data Table Container -->
+    <div class="card-body p-0 position-relative">
+      <div *ngIf="loading">
+        <nz-spin [nzSpinning]="loading" nzSimple [style]="{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(255,255,255,0.4)',
+                    zIndex: '999',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }"></nz-spin>
+      </div>
+
+      <div class="table-section" style="height: 100%;">
+        <p-table [value]="summaries" [scrollable]="true" scrollHeight="flex" [paginator]="true" [rows]="50"
+          [rowsPerPageOptions]="[20, 50, 100, 500, 1000]"
+          currentPageReportTemplate="Hiện thị {first} đến {last} của {totalRecords} bản ghi"
+          [showCurrentPageReport]="true" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+          [rowGroupMode]="'subheader'" groupRowsBy="DepartmentName">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th rowspan="2" style="width: 200px">Nhân viên</th>
+              <th colspan="2" class="text-center bg-late">Đi muộn/Về sớm</th>
+              <th colspan="2" class="text-center bg-forgot">Quên chấm công</th>
+              <th colspan="2" class="text-center bg-leave">Đăng ký nghỉ</th>
+              <th colspan="2" class="text-center bg-other">Khác</th>
+              <th colspan="2" class="text-center bg-total">Tổng cộng</th>
+            </tr>
+            <tr>
+              <th class="text-center">Số lần</th>
+              <th class="text-center">Thành tiền</th>
+              <th class="text-center">Số lần</th>
+              <th class="text-center">Thành tiền</th>
+              <th class="text-center">Số lần</th>
+              <th class="text-center">Thành tiền</th>
+              <th class="text-center">Số lần</th>
+              <th class="text-center">Thành tiền</th>
+              <th class="text-center">Số lần</th>
+              <th class="text-center">Thành tiền</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="groupheader" let-summary>
+            <tr pRowGroupHeader class="department-header">
+              <td colspan="11">
+                <i class="fa-solid fa-folder-open text-primary me-2"></i>
+                <strong>{{ summary.DepartmentName }}</strong>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-s>
+            <tr>
+              <td>
+                <div class="employee-name">
+                  <i class="fa-solid fa-user-circle text-muted me-2"></i>
+                  {{ s.FullName }}
+                </div>
+              </td>
+              <td class="text-center">{{ s.Count1 }}</td>
+              <td class="text-right ">{{ formatCurrency(s.Amount1) }}</td>
+              <td class="text-center">{{ s.Count2 }}</td>
+              <td class="text-right ">{{ formatCurrency(s.Amount2) }}</td>
+              <td class="text-center">{{ s.Count3 }}</td>
+              <td class="text-right ">{{ formatCurrency(s.Amount3) }}</td>
+              <td class="text-center">{{ s.Count4 }}</td>
+              <td class="text-right ">{{ formatCurrency(s.Amount4) }}</td>
+              <td class="text-center font-bold">{{ s.TotalCount }}</td>
+              <td class="text-right font-bold ">{{ formatCurrency(s.TotalAmount) }}</td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="footer">
+            <tr *ngIf="summaries.length > 0">
+              <td class="font-bold text-center bg-light">Tổng cộng</td>
+              <td class="text-center font-bold bg-light">{{ getTotal('Count1') }}</td>
+              <td class="text-right font-bold bg-light text-late">{{ formatCurrency(getTotal('Amount1')) }}</td>
+              <td class="text-center font-bold bg-light">{{ getTotal('Count2') }}</td>
+              <td class="text-right font-bold bg-light text-forgot">{{ formatCurrency(getTotal('Amount2')) }}</td>
+              <td class="text-center font-bold bg-light">{{ getTotal('Count3') }}</td>
+              <td class="text-right font-bold bg-light text-leave">{{ formatCurrency(getTotal('Amount3')) }}</td>
+              <td class="text-center font-bold bg-light">{{ getTotal('Count4') }}</td>
+              <td class="text-right font-bold bg-light text-other">{{ formatCurrency(getTotal('Amount4')) }}</td>
+              <td class="text-center font-bold bg-light bg-total">{{ getTotal('TotalCount') }}</td>
+              <td class="text-right font-bold bg-light text-total">{{ formatCurrency(getTotal('TotalAmount')) }}</td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="11" class="text-center py-5">
+                <i class="fa-solid fa-inbox fa-3x text-muted mb-3 d-block"></i>
+                Không tìm thấy dữ liệu tổng hợp
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+</ng-container>

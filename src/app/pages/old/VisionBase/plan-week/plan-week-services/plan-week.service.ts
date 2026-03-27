@@ -35,7 +35,7 @@ export class PlanWeekService {
     userId: number,
     groupSaleId: number
   ) {
-    return this.http.get<any>(this._url, {
+    return this.http.get<any>(this._url + 'get-data', {
       params: {
         dateStart: this.toLocalISOString(startDate),
         dateEnd: this.toLocalISOString(endDate),

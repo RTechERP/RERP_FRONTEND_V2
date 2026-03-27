@@ -60,7 +60,7 @@ export class CustomTable implements OnChanges {
 
     // --- Highlighting State ---
     globalFilterValue: string = '';
-    
+
     // --- Excel Filter State ---
     excelFilterSearchText: { [field: string]: string } = {};
     activeFilterTab: { [field: string]: string } = {};
@@ -109,6 +109,7 @@ export class CustomTable implements OnChanges {
 
     // --- Caption ---
     @Input() title: string = '';
+    @Input() minWidth: string = '50rem';
     @Input() showGlobalFilter: boolean = false;
     @Input() globalFilterFields: string[] = [];
 
@@ -131,6 +132,8 @@ export class CustomTable implements OnChanges {
     @Input() showGridlines: boolean = true;
     @Input() fontSize: string = '10px';
     @HostBinding('style.--table-font-size') get tableFontSizeVar() { return this.fontSize; }
+    @HostBinding('style.--virtual-row-height') get virtualRowHeightVar() { return this.virtualScroll ? this.virtualScrollItemSize + 'px' : null; }
+    @HostBinding('class.vs-active') get vsActiveClass() { return this.virtualScroll; }
     @Input() showColumnFilter: boolean = true;
     /** 'row' = filter inputs below header (default), 'menu' = filter icon in header opens popup */
     @Input() filterDisplay: 'row' | 'menu' = 'row';
@@ -168,6 +171,7 @@ export class CustomTable implements OnChanges {
     // --- Context Menu ---
     @Input() contextMenuItems: MenuItem[] = [];
     @Input() selectedContextRow: any = null;
+    @Output() selectedContextRowChange = new EventEmitter<any>();
     @Output() contextMenuSelectionChange = new EventEmitter<any>();
 
     // --- Column Reorder ---
@@ -185,6 +189,12 @@ export class CustomTable implements OnChanges {
 
     // --- Header Cell Action (fired for headerClickable columns, e.g. upload button in header) ---
     @Output() headerCellAction = new EventEmitter<{ field: string }>();
+
+    @Output() rowDblClick = new EventEmitter<any>();
+
+    onRowDblClick(rowData: any) {
+        this.rowDblClick.emit(rowData);
+    }
 
     onHeaderCellClick(event: Event, col: ColumnDef) {
         event.stopPropagation();
@@ -491,7 +501,10 @@ export class CustomTable implements OnChanges {
 
     onContextMenuSelect(event: any) {
         this.selectedContextRow = event.data;
-        this.contextMenuSelectionChange.emit(event.data);
+        if (this.contextMenuItems) {
+            this.contextMenuItems.forEach(item => (item as any).data = event.data);
+        }
+        this.selectedContextRowChange.emit(event.data);
         if (this.selectionMode) {
             if (Array.isArray(this.selection)) {
                 if (!this.selection.includes(event.data)) {
@@ -772,7 +785,7 @@ export class CustomTable implements OnChanges {
         this.dt.sortField = undefined;
         this.dt.multiSortMeta = [];
         this.activeSortField = null;
-        this._data = this._originalData;
+        this._data = [...this._originalData];
         this.dt.value = this._data;
         if (this.dt.tableService) {
             this.dt.tableService.onSort(null);

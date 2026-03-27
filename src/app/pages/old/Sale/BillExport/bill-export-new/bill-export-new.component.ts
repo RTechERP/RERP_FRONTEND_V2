@@ -38,6 +38,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AppUserService } from '../../../../../services/app-user.service';
+import { PermissionService } from '../../../../../services/permission.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
@@ -96,10 +97,17 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     isModalOpening: boolean = false; // Flag để ngăn mở modal 2 lần
     sizeTbDetail: number | string = '0';
     warehouseCode: string = '';
-    readonly componentId: string = 'billexport-' + Math.random().toString(36).substring(2, 11);
+    readonly componentId: string =
+        'billexport-' + Math.random().toString(36).substring(2, 11);
     checked: boolean = false;
     selectedKhoTypes: number[] = [];
     dataProductGroup: any[] = [];
+    canAddEditDelete: boolean = false;
+    canReceiveDocument: boolean = false;
+    canCancelDocument: boolean = false;
+    canShippedOut: boolean = false;
+    canExcelKT: boolean = false;
+    canDocumentFile: boolean = false;
     cbbStatus: any[] = [
         { ID: -1, Name: '--Tất cả--' },
         { ID: 0, Name: 'Phiếu xuất kho' },
@@ -156,7 +164,8 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         private appUserService: AppUserService,
         private clipboardService: ClipboardService,
         private message: NzMessageService,
-        @Optional() @Inject('tabData') private tabData: any
+        @Optional() @Inject('tabData') private tabData: any,
+        private permissionService: PermissionService
     ) { }
 
     ngOnInit() {
@@ -188,6 +197,12 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     }
 
     private initializeComponent() {
+        this.canAddEditDelete = this.permissionService.hasPermission('N27,N1,N33,N34,N69,N35');
+        this.canReceiveDocument = this.permissionService.hasPermission('N11,N50,N1');
+        this.canCancelDocument = this.permissionService.hasPermission('N11,N1,N18');
+        this.canShippedOut = this.permissionService.hasPermission('N27,N1');
+        this.canExcelKT = this.permissionService.hasPermission('N10,N11,N27,N29,N1');
+        this.canDocumentFile = this.permissionService.hasPermission('N52,N36,N1,N34');
         this.initMasterGrid();
         this.initDetailGrid();
         this.initializeMenu();
@@ -2080,7 +2095,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             label: 'Thêm',
             icon: 'fa-solid fa-circle-plus fa-lg text-success',
             command: () => this.openModalBillExportDetail(false),
-            visible: true
+            visible: this.canAddEditDelete,
         });
 
         // Sửa
@@ -2088,7 +2103,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             label: 'Sửa',
             icon: 'fa-solid fa-file-pen fa-lg text-primary',
             command: () => this.openModalBillExportDetail(true),
-            visible: true
+            visible: this.canAddEditDelete,
         });
 
         // Xóa
@@ -2096,28 +2111,31 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             label: 'Xóa',
             icon: 'fa-solid fa-trash fa-lg text-danger',
             command: () => this.deleteBillExport(),
-            visible: true
+            visible: this.canAddEditDelete,
         });
 
         // Nhận chứng từ
         allItems.push({
             label: 'Nhận chứng từ',
             icon: 'fa-solid fa-circle-check fa-lg text-success',
-            command: () => this.IsApproved(true)
+            command: () => this.IsApproved(true),
+            visible: this.canReceiveDocument,
         });
 
         // Hủy chứng từ
         allItems.push({
             label: 'Hủy chứng từ',
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-            command: () => this.IsApproved(false)
+            command: () => this.IsApproved(false),
+            visible: this.canCancelDocument,
         });
 
         // Đã xuất kho
         allItems.push({
             label: 'Đã xuất kho',
             icon: 'fa-solid fa-warehouse fa-lg text-primary',
-            command: () => this.shippedOut()
+            command: () => this.shippedOut(),
+            visible: this.canShippedOut,
         });
 
         // Xuất phiếu
@@ -2158,7 +2176,8 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         allItems.push({
             label: 'Excel KT',
             icon: 'fa-solid fa-file-excel fa-lg text-success',
-            command: () => this.exportExcelKT()
+            command: () => this.exportExcelKT(),
+            visible: this.canExcelKT,
         });
 
         // Xuất danh sách
@@ -2179,7 +2198,8 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         allItems.push({
             label: 'Hồ sơ chứng từ',
             icon: 'fa-solid fa-folder-open fa-lg text-primary',
-            command: () => this.openModalBillDocumentExport()
+            command: () => this.openModalBillDocumentExport(),
+            visible: this.canDocumentFile,
         });
 
         // Tổng hợp

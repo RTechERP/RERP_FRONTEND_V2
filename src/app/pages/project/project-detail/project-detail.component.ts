@@ -135,6 +135,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   currentUser: any = {};
   // Form validation
   formGroup: FormGroup;
+  isSaving: boolean = false;
   //#endregion
 
   constructor(
@@ -851,6 +852,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveDataProject() {
+    this.isSaving = true;
     // Kiểm tra mã dự án nếu đang edit
     if (this.projectId > 0) {
       this.projectService
@@ -858,6 +860,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         .subscribe({
           next: (response: any) => {
             if (response.data == 0) {
+              this.isSaving = false;
               this.notification.error('Thông báo', 'Mã dự án đã tồn tại. Vui lòng kiểm tra lại!');
               return;
             } else {
@@ -865,6 +868,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
             }
           },
           error: (error: any) => {
+            this.isSaving = false;
             const msg = error.message || 'Lỗi không xác định';
             this.notification.error(NOTIFICATION_TITLE.error, msg);
             console.error('Lỗi:', error.error);
@@ -882,6 +886,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
     // Kiểm tra mã dự án
     if (!this.projectCode) {
+      this.isSaving = false;
       this.notification.error('Thông báo', 'Vui lòng nhập mã dự án');
       return;
     }
@@ -890,6 +895,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
     // Kiểm tra kiểu dự án
     if (projectTypeLinks.length == 0 && this.projectTypeId <= 1) {
+      this.isSaving = false;
       this.notification.error('Thông báo', 'Vui lòng chọn kiểu dự án!');
       return;
     }
@@ -907,6 +913,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       this.openDateChangeStatusModal({
         okText: 'Lưu',
         onCancel: () => {
+          this.isSaving = false;
           this.dateChangeStatus = null;
           this.tempDateChangeStatus = null;
         },
@@ -1003,17 +1010,22 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
               if (response.status == 1 && response.data) {
                 console.log(response.data);
               }
+              this.isSaving = false; // Reset isSaving after successful tree creation
               this.activeModal.dismiss(true);
             },
             error: (error: any) => {
+              this.isSaving = false; // Reset isSaving on error during tree creation
               const msg = error.message || 'Lỗi không xác định';
               this.notification.error(NOTIFICATION_TITLE.error, msg);
               console.error('Lỗi:', error.error);
             },
           });
+        } else {
+          this.isSaving = false;
         }
       },
       error: (error: any) => {
+        this.isSaving = false;
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
@@ -1064,8 +1076,10 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       Situlator: situlatorDetail ?? '',
     };
     console.log("datasv: ", dataSave)
+    this.isSaving = true;
     this.projectService.saveProjectTypeLink(dataSave).subscribe({
       next: (response: any) => {
+        this.isSaving = false;
         if (response.status == 1) {
           this.notification.success('Thông báo', 'Đã cập nhật leader!');
           this.getProjectTypeLinks();
@@ -1073,6 +1087,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error: any) => {
+        this.isSaving = false;
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);

@@ -77,7 +77,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private dailyReportHrService: DailyReportHrService,
     private vehicleRepairService: VehicleRepairService
-  ) {}
+  ) { }
   DateStart: Date | null = null;
   DateEnd: Date | null = null;
   Keyword: string = '';
@@ -182,7 +182,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         height: '83vh',
         paginationMode: 'local',
-      
+
         columnDefaults: {
           hozAlign: 'left',
           headerHozAlign: 'center',
@@ -309,7 +309,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
         height: '83vh',
-    paginationMode: 'local',
+        paginationMode: 'local',
         columns: [
           { title: 'STT', formatter: 'rownum', width: 60, hozAlign: 'center', headerWordWrap: true },
           { title: 'Họ tên', field: 'FullName', width: 150, headerWordWrap: true },
@@ -355,7 +355,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
     const tables = [
       { table: this.hrTable, sheetName: 'Báo cáo HCNS-IT' },
       { table: this.filmTable, sheetName: 'Báo cáo cắt phim' },
-      { table: this.driverTable, sheetName: 'Báo cáo lái xe' },     
+      { table: this.driverTable, sheetName: 'Báo cáo lái xe' },
     ];
 
     const workbook = new ExcelJS.Workbook();

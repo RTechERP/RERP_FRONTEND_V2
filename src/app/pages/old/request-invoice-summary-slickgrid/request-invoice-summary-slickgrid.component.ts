@@ -585,6 +585,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 POKHId: item.POKHID ?? item.PokhId ?? item.POKHId,
                 CompanyText: companyText,
                 InvoiceNumber: item.InvoiceNumber || '',
+                InvoiceDate: item.InvoiceDate || '',
                 PONumber: item.PONumber || ''
             };
         });

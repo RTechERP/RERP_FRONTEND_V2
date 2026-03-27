@@ -277,6 +277,14 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             // console.log('[MainLayout] Received tabCompRequest:', payload);
             this.newTabComp(payload.comp, payload.title, payload.key, payload.data);
         });
+        // Subscribe to close tab by key
+        this.tabService.closeTabByKey$.subscribe((key: string) => {
+            const index = this.dynamicTabComps.findIndex(t => t.key === key);
+            if (index >= 0) {
+                this.closeTabComp({ index });
+            }
+        });
+
     }
 
     getCompMenus() {

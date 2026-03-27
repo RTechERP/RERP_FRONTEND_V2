@@ -1555,7 +1555,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           decimal: 2,
         },
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 0),
+          this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) =>
           this.sumTotalsFormatterWithFormat(totals, columnDef),

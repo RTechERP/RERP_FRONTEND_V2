@@ -545,26 +545,35 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   onSupplierChange(selectedSupplierID: number): void {
     const selectedSupplier = this.supplierSales.find(s => s.ID === selectedSupplierID);
     if (selectedSupplier) {
-      this.ponccService.getPOCode(selectedSupplier.CodeNCC).subscribe({
-        next: (response: any) => {
-          this.informationForm.patchValue({
-            POCode: response.data || '',
-            AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
-            MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
-            Note: selectedSupplier.Description || this.poncc?.Note || '',
-            RulePayID: this.rupayId || selectedSupplier.RulePayID || null,
-          });
-        },
-        error: (error) => {
-          this.informationForm.patchValue({
-            POCode: this.poncc?.CodeNCC || selectedSupplier.CodeNCC || '',
-            AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
-            MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
-            Note: selectedSupplier.Description || this.poncc?.Note || '',
-            RulePayID: this.rupayId || selectedSupplier.RulePayID || null,
-          });
-        },
-      });
+      if (!this.isEditMode && (!this.poncc || this.poncc.ID === 0 || this.isCopy)) {
+        this.ponccService.getPOCode(selectedSupplier.CodeNCC).subscribe({
+          next: (response: any) => {
+            this.informationForm.patchValue({
+              POCode: response.data || '',
+              AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
+              MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
+              Note: selectedSupplier.Description || this.poncc?.Note || '',
+              RulePayID: this.rupayId || selectedSupplier.RulePayID || null,
+            });
+          },
+          error: (error) => {
+            this.informationForm.patchValue({
+              POCode: this.poncc?.CodeNCC || selectedSupplier.CodeNCC || '',
+              AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
+              MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
+              Note: selectedSupplier.Description || this.poncc?.Note || '',
+              RulePayID: this.rupayId || selectedSupplier.RulePayID || null,
+            });
+          },
+        });
+      } else {
+        this.informationForm.patchValue({
+          AddressSupplier: selectedSupplier.AddressNCC || this.poncc?.AddressNCC || '',
+          MaSoThueNCC: selectedSupplier.MaSoThue || this.poncc?.MaSoThueNCC || '',
+          Note: selectedSupplier.Description || this.poncc?.Note || '',
+          RulePayID: this.rupayId || selectedSupplier.RulePayID || null,
+        });
+      }
 
       // udpate ở đây - update thông tin supplier vào các form
       this.extraForm.patchValue({

@@ -44,7 +44,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { BillImportDetailComponent } from '../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
-import ExcelJS from 'exceljs';
+import * as ExcelJS from 'exceljs';
 import { BillImportTechnicalComponent } from '../../old/bill-import-technical/bill-import-technical.component';
 import { BillImportTechnicalFormComponent } from '../../old/bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 import pdfMake from 'pdfmake/build/pdfmake';

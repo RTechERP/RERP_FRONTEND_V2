@@ -208,6 +208,13 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 command: () => this.onDelete(),
             },
             {
+                label: 'Bổ sung file',
+                icon: 'fa-solid fa-link fa-lg',
+                command: () => {
+                    this.onAttachFileExtend(this.selectedItem);
+                },
+            },
+            {
                 label: 'Tải lại',
                 icon: 'fa-solid fa-arrows-rotate fa-lg',
                 command: () => {
@@ -215,6 +222,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                     this.selectedItem = null;
                 },
             },
+
         ];
     }
 
@@ -584,7 +592,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
     initFileContextMenu() {
         this.contextMenu = [
             {
-                label: 'Bổ xung file',
+                label: 'Bổ sung file',
                 icon: 'pi pi-link',
                 command: (event) => {
                     this.onAttachFileExtend(event.item ? (event.item as any).data : null);
@@ -654,6 +662,13 @@ export class PaymentOrderEmployeeComponent implements OnInit {
         modalRef.componentInstance.paymentOrderId = id;
     }
     async onAttachFileExtend(itemPayment: any) {
+        if (!itemPayment) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Vui lòng chọn bản ghi để bổ sung file!',
+            );
+            return;
+        }
         const item = itemPayment as PaymentOrder; // data object
         if (item.IsApproved != 3) {
             // this.notification.warning(NOTIFICATION_TITLE.warning,1)

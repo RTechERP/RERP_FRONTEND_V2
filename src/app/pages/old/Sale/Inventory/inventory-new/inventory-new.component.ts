@@ -833,6 +833,11 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         if (this.searchParam.checkedAll) {
                             // Nếu checkedAll = true, load inventory ngay lập tức
                             this.getInventory();
+
+                            if (this.angularGridProductGroup) {
+                                this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
+                            }
+
                         } else if (this.angularGridProductGroup) {
                             // Nếu checkedAll = false, chọn row đầu tiên
                             const firstItem = this.angularGridProductGroup.dataView.getItem(0);

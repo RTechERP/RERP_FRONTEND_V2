@@ -7,6 +7,7 @@ import {
   ViewChild,
   HostListener,
   input,
+  ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -16,6 +17,10 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
+import {
+  DomSanitizer,
+  SafeUrl,
+} from '@angular/platform-browser';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
@@ -30,7 +35,6 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { EditorModule } from 'primeng/editor';
@@ -48,6 +52,7 @@ import {
   VideoUploadStateService,
   UploadState,
 } from '../video-upload-state.service';
+import { NzEmptyComponent } from "ng-zorro-antd/empty";
 
 // Interfaces
 interface Lesson {
@@ -69,6 +74,13 @@ interface Lesson {
   IsDeleted?: boolean;
   LessonCopyID?: number;
   RequiredWatchedPercent?: number;
+  Chapters?: string;
+}
+
+interface Chapter {
+  title: string;
+  startTime: number;
+  tempStartTime?: string; // hh:mm:ss
 }
 
 interface LessonFile {
@@ -112,6 +124,7 @@ interface LessonDTO {
     NzTableModule,
     NzProgressModule,
     EditorModule,
+    NzEmptyComponent
   ],
   templateUrl: './lesson-detail.component.html',
   styleUrl: './lesson-detail.component.css',
@@ -125,6 +138,7 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
   @Input() maxSTT: number = 0;
   dataCourse: any[] = [];
   @ViewChild('editor') editor!: Editor;
+  @ViewChild('previewVideo') previewVideo!: ElementRef<HTMLVideoElement>;
   formGroup: FormGroup;
   saving: boolean = false;
   isCopyEnabled: boolean = false;
@@ -164,6 +178,31 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
   editorModules = {};
   currentUser: any = null;
 
+  chapters: Chapter[] = [];
+  isVisibleBulkImport = false;
+  bulkChapterText = '';
+
+  isVisibleVideoImport = false;
+  tempVideoChapters: Chapter[] = [];
+  private _videoPreviewUrl: string | null = null;
+
+  get videoPreviewUrl(): string | SafeUrl | null {
+    if (this.selectedVideoFile) {
+      if (!this._videoPreviewUrl) {
+        this._videoPreviewUrl = URL.createObjectURL(this.selectedVideoFile);
+      }
+      return this.sanitizer.bypassSecurityTrustUrl(this._videoPreviewUrl);
+    }
+
+    // Nếu có ID bài học thì dùng API stream
+    if (this.dataInput?.[0]?.ID || this.dataInput?.ID) {
+      const id = this.dataInput?.[0]?.ID || this.dataInput?.ID;
+      return environment.host + 'api/course/stream/' + id;
+    }
+
+    return null;
+  }
+
   lessonData: any = null;
   private originalCourseID: number | null = null;
   constructor(
@@ -173,8 +212,8 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
     private activeModal: NgbActiveModal,
     private cdr: ChangeDetectorRef,
     private authService: AuthService,
-    private message: NzMessageService,
     private videoUploadService: VideoUploadStateService,
+    private sanitizer: DomSanitizer,
   ) {
     this.formGroup = this.fb.group({
       // Copy section
@@ -229,8 +268,6 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
       }
     }
 
-    console.log('CourseID:', this.formGroup.get('CourseID')?.value);
-    console.log('CopyCategoryID:', this.formGroup.get('CopyCategoryID')?.value);
 
     if (this.formGroup.get('CopyCategoryID')?.value > 0) {
       this.onCopyCategoryChange();
@@ -280,7 +317,6 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response && response.status === 1) {
           this.dataCourseCatalog = response.data || [];
-          console.log('dataCourseCatalog', this.dataCourseCatalog);
         } else {
           this.notification.warning(
             'Thông báo',
@@ -303,7 +339,6 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
       (response: any) => {
         if (response && response.status === 1) {
           this.dataCourse = response.data || [];
-          console.log('Data Course:', this.dataCourse);
         } else {
           this.notification.warning(
             'Thông báo',
@@ -329,7 +364,6 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response && response.status === 1) {
           this.employeeList = response.data || [];
-          console.log('employeeList', this.employeeList);
         } else {
           this.notification.warning(
             'Thông báo',
@@ -352,7 +386,6 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
     this.courseService.getLessonFilesByLessonID(lessonId).subscribe({
       next: (response: any) => {
         this.existingFiles = response.data || [];
-        console.log('existingFiles', this.existingFiles);
         this.updateAttachFileNames();
       },
       error: (error: any) => {
@@ -421,8 +454,6 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response && response.status === 1) {
           this.lessonListForCopy = response.data || [];
-          console.log('categoryID', categoryID);
-          console.log('lessonListForCopy', this.lessonListForCopy);
         } else {
           this.notification.warning(
             'Thông báo',
@@ -450,9 +481,6 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
           this.lessonData = Array.isArray(response.data)
             ? response.data[0]
             : response.data;
-
-          console.log('lessonID', lessonID);
-          console.log('lessonData', this.lessonData);
 
           // Patch form data sau khi đã load được lesson
           if (this.lessonData) {
@@ -483,8 +511,9 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
               this.attachPDFName =
                 parts[parts.length - 1] || this.existingPDFPath;
             }
-            console.log('Form patched with lesson data');
-            console.log('originalCourseID updated to:', this.originalCourseID);
+
+            // Parse Chapters
+            this.chapters = this.parseChapters(this.lessonData.Chapters);
 
             // Load existing files sau khi đã load lesson
             if (this.lessonData.ID) {
@@ -527,7 +556,6 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
   onCopyLessonChange(): void {
     const lessonID = this.formGroup.get('CopyLessonID')?.value;
     const lesson = this.lessonListForCopy.find((x) => x.ID === lessonID);
-    console.log('infor of lesson:', lesson);
     if (lesson) {
       this.formGroup.patchValue({
         CourseID: lesson.CourseID,
@@ -542,7 +570,9 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
         PDFFile: lesson.UrlPDF,
       });
       this.attachPDFName = lesson.UrlPDF;
-      console.log('attachPDFName', this.attachPDFName);
+
+      // Parse Chapters from copied lesson
+      this.chapters = this.parseChapters(lesson.Chapters);
     }
 
     this.loadExistingFiles(lesson.ID);
@@ -552,7 +582,7 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
   beforeUploadPDF = (file: any): boolean => {
     const isPDF = file.type === 'application/pdf';
     if (!isPDF) {
-      this.message.error('Chỉ chấp nhận file PDF!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Chỉ chấp nhận file PDF!');
       return false;
     }
 
@@ -690,6 +720,10 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
 
   // Save
   async saveLesson(): Promise<void> {
+    // Validate chapters first
+    if (!this.validateChapters()) {
+      return;
+    }
     if (this.saving) {
       return;
     }
@@ -697,7 +731,10 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
     this.trimAllStringControls();
     if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
-      this.message.error('Vui lòng điền đầy đủ thông tin bắt buộc.');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng điền đầy đủ thông tin bắt buộc.',
+      );
       return;
     }
 
@@ -816,7 +853,7 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
       ) {
         pdfInfo = pdfResponse.data[0];
       }
-      console.log('file PDF Upload', pdfInfo);
+
     }
 
     // Process lesson files response if files were selected
@@ -937,13 +974,19 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
             pathServer + finalPDFUrl;
           this.formGroup.patchValue({ UrlPDF: finalPDFUrl });
         } else {
-          this.message.error('Không thể lấy đường dẫn server!');
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Không thể lấy đường dẫn server!',
+          );
           this.selectedVideoFile = null;
         }
       },
       error: (error) => {
         console.error('Error getting path server:', error);
-        this.message.error('Không thể lấy đường dẫn server!');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể lấy đường dẫn server!',
+        );
         this.selectedVideoFile = null;
       },
     });
@@ -965,8 +1008,15 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
       UpdatedDate: DateTime.now().toISO(),
       IsDeleted: false,
       LessonCopyID: undefined,
+      Chapters: JSON.stringify(
+        [...this.chapters]
+          .sort((a, b) => (a.startTime || 0) - (b.startTime || 0))
+          .map((c) => ({
+            title: c.title,
+            startTime: c.startTime,
+          })),
+      ),
     };
-    console.log('Lesson data:', lessonData);
 
     // Prepare DTO - Chỉ gửi các file KHÔNG bị xóa
     const filteredLessonFiles = lessonFiles.filter(
@@ -1105,14 +1155,13 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
   // Cập nhật STT từ API khi có CourseID (áp dụng cho cả add và edit)
   private updateSTTFromAPI(): void {
     const courseID = this.formGroup.get('CourseID')?.value;
-    console.log('CourseID changed:', courseID);
+
 
     // Chỉ gọi API khi có CourseID
     if (courseID) {
       this.courseService.getSTTLesson(courseID).subscribe({
         next: (response: any) => {
           const maxSTT = response?.data ?? response?.STT ?? response ?? 0;
-          console.log('Received max STT from API:', maxSTT);
           this.formGroup.patchValue(
             {
               STT: maxSTT,
@@ -1158,7 +1207,10 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
     const uploadState$ = this.videoUploadService.getUploadState(lessonId);
 
     if (uploadState$) {
-      this.message.info('Đang có video upload cho bài học này...');
+      this.notification.info(
+        'Thông báo',
+        'Đang có video upload cho bài học này...',
+      );
 
       // Subscribe để cập nhật progress
       this.uploadSubscription = uploadState$.subscribe((state: UploadState) => {
@@ -1167,7 +1219,10 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
 
         if (state.status === 'completed') {
-          this.message.success('Upload video hoàn tất!');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Upload video hoàn tất!',
+          );
         } else if (state.status === 'error') {
           this.videoUploadProgress = 0;
         }
@@ -1177,19 +1232,29 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
 
   // Video Upload Methods
   beforeUploadVideo = (file: any): boolean => {
-    const isVideo = file.type.startsWith('video/');
-    if (!isVideo) {
-      this.message.error('Vui lòng chỉ chọn file video!');
+    const isMp4 = file.type === 'video/mp4' || file.name.toLowerCase().endsWith('.mp4');
+    if (!isMp4) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn file video định dạng .mp4!',
+      );
       return false;
     }
 
     const maxSize = 10 * 1024 * 1024 * 1024; // 10GB
     if (file.size > maxSize) {
-      this.message.error('Kích thước file không được vượt quá 10GB!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Kích thước file không được vượt quá 10GB!',
+      );
       return false;
     }
 
     this.selectedVideoFile = file as File;
+    if (this._videoPreviewUrl) {
+      URL.revokeObjectURL(this._videoPreviewUrl);
+      this._videoPreviewUrl = null;
+    }
 
     // Tạo filename mới với timestamp: tenfile_yyyyMMddHHmmss.ext
     const originalName = file.name;
@@ -1219,15 +1284,24 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
             this.pathServer + this.generatedVideoFileName;
           // Gán URL vào form để hiển thị
           this.formGroup.patchValue({ VideoUrl: this.generatedVideoUrl });
-          this.message.success(`Đã chọn file: ${file.name}`);
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            `Đã chọn file: ${file.name}`,
+          );
         } else {
-          this.message.error('Không thể lấy đường dẫn server!');
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Không thể lấy đường dẫn server!',
+          );
           this.selectedVideoFile = null;
         }
       },
       error: (error) => {
         console.error('Error getting path server:', error);
-        this.message.error('Không thể lấy đường dẫn server!');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể lấy đường dẫn server!',
+        );
         this.selectedVideoFile = null;
       },
     });
@@ -1242,6 +1316,10 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
     this.generatedVideoFileName = '';
     this.generatedVideoUrl = '';
     this.formGroup.patchValue({ VideoUrl: '' });
+    if (this._videoPreviewUrl) {
+      URL.revokeObjectURL(this._videoPreviewUrl);
+      this._videoPreviewUrl = null;
+    }
   }
 
   formatFileSize(bytes: number): string {
@@ -1298,5 +1376,359 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
       // Trả về video URL đã được tạo từ beforeUploadVideo
       resolve(this.generatedVideoUrl);
     });
+  }
+
+  copyChapters(): void {
+    if (this.chapters.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có phân đoạn nào để sao chép.'
+      );
+      return;
+    }
+
+    const chapterText = this.chapters
+      .map(ch => `${this.secondsToHms(ch.startTime)} ${ch.title}`)
+      .join('\n');
+    this.copyToClipboard(chapterText);
+    // navigator.clipboard.writeText(chapterText).then(() => {
+    //   this.notification.success(
+    //     NOTIFICATION_TITLE.success,
+    //     'Đã sao chép danh sách phân đoạn vào bộ nhớ tạm.'
+    //   );
+    // }).catch(err => {
+    //   console.error('Lỗi khi copy chapters:', err);
+    //   this.notification.error(
+    //     NOTIFICATION_TITLE.error,
+    //     'Không thể sao chép vào bộ nhớ tạm.'
+    //   );
+    // });
+  }
+  private async copyToClipboard(text: string): Promise<void> {
+    // Hàm fallback sử dụng execCommand
+    const useExecCommand = (): boolean => {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+          return true;
+        } else {
+          throw new Error('Copy command failed');
+        }
+      } catch (err: any) {
+        throw err;
+      } finally {
+        document.body.removeChild(textArea);
+      }
+    };
+
+    try {
+      // Thử sử dụng Clipboard API nếu có
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(text);
+          this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+        } catch (clipboardErr: any) {
+          // Nếu Clipboard API fail (thường do document not focused), fallback sang execCommand
+          if (clipboardErr.name === 'NotAllowedError' || clipboardErr.message?.includes('not focused')) {
+            useExecCommand();
+          } else {
+            throw clipboardErr;
+          }
+        }
+      } else {
+        // Nếu không có Clipboard API, dùng execCommand
+        useExecCommand();
+      }
+    } catch (err: any) {
+      this.notification.error('Thông báo', 'Không thể copy vào clipboard. Vui lòng thử lại!');
+    }
+  }
+  // Chapter methods
+  onShowBulkImport(): void {
+    this.bulkChapterText = '';
+    this.isVisibleBulkImport = true;
+  }
+
+  handleBulkImport(): void {
+    if (!this.bulkChapterText?.trim()) {
+      this.isVisibleBulkImport = false;
+      return;
+    }
+
+    const lines = this.bulkChapterText.split('\n');
+    const newChapters: Chapter[] = [];
+
+    // Regex linh hoạt hơn để tìm timestamp
+    const timestampRegex = /(\d{1,2}:)?(\d{1,2}):(\d{2})/;
+
+    lines.forEach((line: string) => {
+      const trimmedLine = line.trim();
+      const match = trimmedLine.match(timestampRegex);
+
+      if (match) {
+        let seconds = 0;
+        const h = match[1] ? parseInt(match[1].replace(':', '')) : 0;
+        const m = parseInt(match[2]);
+        const s = parseInt(match[3]);
+
+        // Lấy title bằng cách xóa phần timestamp khỏi line
+        const timestampStr = match[0];
+        let title = trimmedLine.replace(timestampStr, '').trim();
+
+        // Xóa các ký tự phân cách common ở đầu title nếu có (-, :, .)
+        title = title.replace(/^[\s\-:\.]+/, '').trim();
+
+        if (title) {
+          seconds = (h * 3600) + (m * 60) + s;
+          newChapters.push({
+            title: title,
+            startTime: seconds,
+            tempStartTime: this.secondsToHms(seconds)
+          });
+        }
+      }
+    });
+
+    if (newChapters.length > 0) {
+      newChapters.sort((a, b) => a.startTime - b.startTime);
+      this.chapters = [...newChapters];
+      this.notification.success(
+        NOTIFICATION_TITLE.success,
+        `Đã nhập thành công ${newChapters.length} phân đoạn.`
+      );
+    } else {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không tìm thấy phân đoạn nào đúng định dạng (ví dụ: 00:00 Tiêu đề).'
+      );
+    }
+
+    this.isVisibleBulkImport = false;
+  }
+
+  addChapter(): void {
+    const lastChapter = this.chapters[this.chapters.length - 1];
+    const startTime = lastChapter ? lastChapter.startTime + 60 : 0;
+    const newChapter: Chapter = {
+      title: 'Phân đoạn mới',
+      startTime: startTime,
+      tempStartTime: this.secondsToHms(startTime),
+    };
+    this.chapters = [...this.chapters, newChapter];
+    this.cdr.detectChanges();
+  }
+
+  // Video Import Modal Methods
+  onShowVideoImport(): void {
+    if (!this.videoPreviewUrl) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn video trước khi thêm phân đoạn!');
+      return;
+    }
+    this.tempVideoChapters = [];
+    this.isVisibleVideoImport = true;
+  }
+
+  closeVideoImportModal(): void {
+    this.isVisibleVideoImport = false;
+  }
+
+  addTempChapterFromVideo(currentTime: number): void {
+    const seconds = Math.floor(currentTime);
+    const newChapter: Chapter = {
+      title: 'Phân đoạn mới',
+      startTime: seconds,
+      tempStartTime: this.secondsToHms(seconds)
+    };
+    // Đưa phân đoạn lên đầu để người dùng không phải lướt xuống
+    this.tempVideoChapters = [newChapter, ...this.tempVideoChapters];
+    this.cdr.detectChanges();
+  }
+
+  removeTempChapter(index: number): void {
+    this.tempVideoChapters = this.tempVideoChapters.filter((_, i) => i !== index);
+    this.cdr.detectChanges();
+  }
+
+  getChapterSegments(): any[] {
+    const sorted = [...this.tempVideoChapters].sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+    let videoDuration = this.previewVideo?.nativeElement?.duration;
+    if (!videoDuration || isNaN(videoDuration) || videoDuration <= 0) {
+      videoDuration = Math.max(3600, sorted.length > 0 ? sorted[sorted.length - 1].startTime + 60 : 3600);
+    }
+
+    // Ensure we start at 0 visually
+    const segments = [];
+
+    if (sorted.length > 0 && sorted[0].startTime > 0) {
+      segments.push({
+        title: 'Mở đầu',
+        startTime: 0,
+        timeStr: '00:00:00',
+        widthPercent: (sorted[0].startTime / videoDuration) * 100
+      });
+    }
+
+    for (let i = 0; i < sorted.length; i++) {
+      const current = sorted[i];
+      const nextStart = i < sorted.length - 1 ? sorted[i + 1].startTime : videoDuration;
+      const duration = nextStart - current.startTime;
+      const widthPercent = (duration / videoDuration) * 100;
+
+      segments.push({
+        title: current.title || 'Phân đoạn mới',
+        startTime: current.startTime,
+        timeStr: current.tempStartTime,
+        widthPercent: widthPercent
+      });
+    }
+    return segments;
+  }
+
+  onTempTimeInputChange(index: number): void {
+    const chapter = this.tempVideoChapters[index];
+    const timeStr = chapter.tempStartTime;
+    if (timeStr) {
+      const seconds = this.hmsToSeconds(timeStr);
+      chapter.startTime = seconds;
+    }
+  }
+
+  handleVideoImport(): void {
+    if (this.tempVideoChapters.length > 0) {
+      this.chapters = [...this.tempVideoChapters];
+      this.chapters.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+      this.notification.success(
+        NOTIFICATION_TITLE.success,
+        `Đã thêm ${this.tempVideoChapters.length} phân đoạn từ video.`
+      );
+    }
+    this.isVisibleVideoImport = false;
+  }
+
+  removeChapter(index: number): void {
+    this.chapters = this.chapters.filter((_, i) => i !== index);
+    this.cdr.detectChanges();
+  }
+
+  moveChapter(index: number, direction: 'up' | 'down'): void {
+    if (direction === 'up' && index > 0) {
+      const temp = this.chapters[index];
+      this.chapters[index] = this.chapters[index - 1];
+      this.chapters[index - 1] = temp;
+    } else if (direction === 'down' && index < this.chapters.length - 1) {
+      const temp = this.chapters[index];
+      this.chapters[index] = this.chapters[index + 1];
+      this.chapters[index + 1] = temp;
+    }
+    this.chapters = [...this.chapters];
+    this.cdr.detectChanges();
+  }
+
+  onTimeInputChange(index: number, type: 'start'): void {
+    const chapter = this.chapters[index];
+    const timeStr = chapter.tempStartTime;
+    if (timeStr) {
+      const seconds = this.hmsToSeconds(timeStr);
+      chapter.startTime = seconds;
+    }
+  }
+
+  private secondsToHms(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return `${h.toString().padStart(2, '0')}:${m
+      .toString()
+      .padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  private hmsToSeconds(hmsStr: string): number {
+    if (!hmsStr) return 0;
+    const parts = hmsStr.split(':').map(Number);
+    if (parts.length === 3) {
+      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    } else if (parts.length === 2) {
+      return parts[0] * 60 + parts[1];
+    } else if (parts.length === 1) {
+      return parts[0];
+    }
+    return 0;
+  }
+
+  private validateChapters(): boolean {
+    if (this.chapters.length === 0) return true;
+
+    // 1. Check for basic invalid values
+    for (const chapter of this.chapters) {
+      if (chapter.startTime < 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Thời gian của phân đoạn "${chapter.title}" không được âm!`,
+        );
+        return false;
+      }
+    }
+
+    // 2. Check for duplicate start times after sorting
+    const sorted = [...this.chapters].sort(
+      (a, b) => (a.startTime || 0) - (b.startTime || 0),
+    );
+    for (let i = 0; i < sorted.length - 1; i++) {
+      if (sorted[i].startTime === sorted[i + 1].startTime) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Có nhiều phân đoạn bắt đầu tại cùng một thời điểm (${sorted[i].tempStartTime})!`,
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private parseChapters(rawChapters: string | any[]): Chapter[] {
+    if (!rawChapters) return [];
+    if (Array.isArray(rawChapters)) {
+      return rawChapters.map((c: any) => ({
+        ...c,
+        tempStartTime: this.secondsToHms(c.startTime || 0),
+      }));
+    }
+
+    if (typeof rawChapters !== 'string') return [];
+
+    let parsed: any[] = [];
+    try {
+      // 1. Try standard JSON
+      let result = JSON.parse(rawChapters);
+      if (typeof result === 'string') result = JSON.parse(result);
+      parsed = Array.isArray(result) ? result : [];
+    } catch (e) {
+      // 2. Fallback for JS-style (single quotes + unquoted keys)
+      try {
+        const fixed = rawChapters
+          .replace(/'/g, '"')
+          .replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+        const result = JSON.parse(fixed);
+        parsed = Array.isArray(result) ? result : [];
+      } catch (e2) {
+        parsed = [];
+      }
+    }
+
+    return parsed.map((c: any) => ({
+      ...c,
+      tempStartTime: this.secondsToHms(c.startTime || 0),
+    }));
   }
 }

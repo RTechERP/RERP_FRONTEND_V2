@@ -273,6 +273,8 @@ import { UpdateVersionComponent } from './pages/systems/update-version/update-ve
 import { KpiEvaluationFactorsComponent } from './pages/old/Technical/kpi-evaluation-factors/kpi-evaluation-factors.component';
 import { LuckyNumberComponent } from './pages/hrm/lucky-number/lucky-number.component';
 import { CoursePracticeComponent } from './pages/Course/course-practice/course-practice.component';
+import { CourseKpiEmployeeTeamComponent } from './pages/Course/course-kpi-employee-team/course-kpi-employee-team.component';
+import { CommercialPriceRequestComponent } from './pages/commercial-price-request/commercial-price-request.component';
 import { KpiSyntheticYearsComponent } from './pages/old/Technical/kpi-synthetic-years/kpi-synthetic-years.component';
 import { SummaryKpiEmployeePointComponent } from './pages/old/Technical/summary-kpi-employee-point/summary-kpi-employee-point.component';
 import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-base/follow-project-base-slickgrid/follow-project-base-slickgrid.component';
@@ -1104,6 +1106,8 @@ export const routes: Routes = [
             { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
             { path: 'lucky-number-person', component: LuckyNumberComponent, canActivate: [authGuard] },
             { path: 'lucky-number', component: LuckyNumberComponent, canActivate: [authGuard] },
+            { path: 'course-kpi-employee-team', component: CourseKpiEmployeeTeamComponent, canActivate: [authGuard] },
+            { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
             { path: 'update-version', component: UpdateVersionComponent, canActivate: [authGuard] },
 
             { path: 'daily-report-bod', component: DailyReportThrComponent, canActivate: [authGuard] },

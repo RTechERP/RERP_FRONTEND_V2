@@ -32,7 +32,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 
 import { CourseManagementService } from '../../course-management/course-management-service/course-management.service';
 import { CourseTypeService } from '../../course-type/course-type-sevice/course-type.service';
-
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { CourseTypeDetailComponent } from '../../course-type/course-type-detail/course-type-detail.component';
@@ -72,6 +72,7 @@ interface Course {
     ReactiveFormsModule,
     NzInputNumberModule,
     NzCheckboxModule,
+    NzTreeSelectModule,
     NzSwitchModule,
     NzToolTipModule,
     NgbModalModule,
@@ -288,7 +289,7 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       LeadTime: formValue.StudyDays || 0,
       CourseTypeID: formValue.TypeID,
       IdeaIDs: formValue.IdeaID || [],
-      KPIIDs: formValue.KPIID || [],
+      KPIIDs: this.extractAllKpiIds(),
       EmployeeID: formValue.EmployeeID || 0,
       QuestionDuration: formValue.QuestionDuration || 0,
     };
@@ -365,8 +366,8 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     this.courseService.getDataKPI().subscribe({
       next: (response: any) => {
         if (response && response.status === 1) {
-          this.kpiData = response.data || [];
-          console.log('Data KPI:', this.kpiData);
+          this.kpiData = this.buildTree(response.data[0] || []);
+
         } else {
           this.notification.warning(
             'Thông báo',
@@ -464,7 +465,7 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
         if (response && response.status === 1) {
           let kpiIDs: number[] = [];
           if (Array.isArray(response.data)) {
-            kpiIDs = response.data.map((item: any) => item?.KPIPositionTypeID);
+            kpiIDs = response.data.map((item: any) => item?.KPIEmployeeTeamID);
           }
           this.formGroup.patchValue({ KPIID: kpiIDs });
           console.log('Data KPIID:', this.formGroup.get('KPIID')?.value);
@@ -590,4 +591,156 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       });
     }
   }
+  buildTree(data: any[]) {
+
+    const map = new Map();
+    const roots: any[] = [];
+
+    // đảm bảo parent luôn được tạo trước
+    data.sort((a, b) => a.Level - b.Level);
+
+    data.forEach(item => {
+
+      const node = {
+        title: item.Name,
+        key: item.ID,
+        value: item.ID
+      };
+
+      map.set(item.ID, node);
+
+      if (item.Level === -1) {
+
+        roots.push(node);
+
+      } else {
+
+        const parent = map.get(item.ParentID);
+
+        if (parent) {
+
+          if (!parent.children) parent.children = [];
+
+          parent.children.push(node);
+
+        }
+
+      }
+
+    });
+
+    return roots;
+  }
+
+  // --- Helper để gom sạch ID của Cha và Con trước khi Lưu ---
+  extractAllKpiIds(): number[] {
+    const selectedKeys = this.formGroup.get('KPIID')?.value;
+    if (!selectedKeys || selectedKeys.length === 0) return [];
+
+    // Tìm trong toàn bộ cây kpiData các node ứng với key được tick
+    const selectedNodes = this.findNodesByKeys(this.kpiData, selectedKeys);
+    
+    // Đệ quy lấy sạch toàn bộ ID
+    const allIds = this.getAllNodeIds(selectedNodes);
+    
+    // Loại bỏ các ID trùng lặp 
+    return [...new Set(allIds)];
+  }
+
+  private getAllNodeIds(nodes: any[]): number[] {
+    let ids: number[] = [];
+    if (!nodes || nodes.length === 0) return ids;
+
+    nodes.forEach(node => {
+      // Ép kiểu đảm bảo luôn là number
+      if (node.key !== undefined && node.key !== null) {
+        ids.push(Number(node.key)); 
+      }
+      
+      if (node.children && node.children.length > 0) {
+        ids = ids.concat(this.getAllNodeIds(node.children));
+      }
+    });
+
+    return ids;
+  }
+
+  private findNodesByKeys(allNodes: any[], keys: any[]): any[] {
+     let result: any[] = [];
+     for(const node of allNodes) {
+        if (keys.includes(node.key) || keys.includes(node.key.toString())) {
+           result.push(node);
+        }
+        if (node.children) {
+           result = result.concat(this.findNodesByKeys(node.children, keys));
+        }
+     }
+     return result;
+  }
+  // --------------------------------------------------------
+  // buildTree(data: any[]) {
+
+  //   const map = new Map();
+  //   const roots: any[] = [];
+
+  //   data.forEach(item => {
+  //     map.set(item.ID, {
+  //       title: item.Name,
+  //       key: item.ID,
+  //       value: item.ID,
+  //       leader: item.LeaderName
+  //     });
+  //   });
+
+  //   data.forEach(item => {
+
+  //     const node = map.get(item.ID);
+
+  //     if (item.ParentID !== 0 && map.has(item.ParentID)) {
+
+  //       const parent = map.get(item.ParentID);
+
+  //       if (!parent.children) {
+  //         parent.children = [];
+  //       }
+
+  //       parent.children.push(node);
+
+  //     } else {
+  //       roots.push(node);
+  //     }
+
+  //   });
+
+  //   return roots;
+  // }
+  // buildTree(data: any[]) {
+
+  //   const map = new Map();
+  //   const roots: any[] = [];
+
+  //   data.forEach(item => {
+  //     map.set(item.ID, {
+  //       title: item.Name,
+  //       key: item.ID,
+  //       value: item.ID,
+  //       leader: item.LeaderName,
+  //       children: []
+  //     });
+  //   });
+
+  //   data.forEach(item => {
+
+  //     const node = map.get(item.ID);
+
+  //     if (item.ParentID !== 0 && map.has(item.ParentID)) {
+  //       map.get(item.ParentID).children.push(node);
+  //     } else {
+  //       roots.push(node);
+  //     }
+
+  //   });
+
+  //   return roots;
+  // }
 }

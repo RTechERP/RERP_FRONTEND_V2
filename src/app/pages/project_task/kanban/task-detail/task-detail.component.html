@@ -116,12 +116,12 @@
                             <!-- Công việc cha -->
                             <div class="mb-3 mobile-mb-1">
                                 <label class="form-label">Công việc cha</label>
-                                <nz-select [(ngModel)]="parentTaskId" [nzDisabled]="isReadOnly"
-                                    nzShowSearch nzAllowClear nzPlaceHolder="Chọn công việc cha"
-                                    [nzFilterOption]="filterParentTaskOption"
-                                    style="width: 100%;">
+                                <nz-select [(ngModel)]="parentTaskId" [nzDisabled]="isReadOnly" nzShowSearch
+                                    nzAllowClear nzPlaceHolder="Chọn công việc cha"
+                                    [nzFilterOption]="filterParentTaskOption" style="width: 100%;">
                                     @for (pt of parentTaskList; track pt.ID) {
-                                    <nz-option [nzValue]="pt.ID" [nzLabel]="pt.Code.trim() + ' - ' + pt.Mission"></nz-option>
+                                    <nz-option [nzValue]="pt.ID"
+                                        [nzLabel]="pt.Code.trim() + ' - ' + pt.Mission"></nz-option>
                                     }
                                 </nz-select>
                             </div>
@@ -200,13 +200,13 @@
                             <!-- Ngay du kien + Tong thoi gian (cung hang) -->
                             <div class="d-flex gap-2 mb-0 mobile-mb-1 mobile-dates-row">
                                 <div class="date-col">
-                                    <label class="form-label">Ngày BĐ dự kiến <span class="text-danger">*</span></label>
+                                    <label class="form-label">Ngày BĐ dự kiến </label>
                                     <input type="date" [(ngModel)]="planStartDateStr" [disabled]="isReadOnly"
                                         [style.border-color]="dateValidationError && dateValidationError.includes('du kien') ? '#ff4d4f' : '#d9d9d9'"
                                         style="width:100%;padding:4px 8px;font-size:12px;border:1px solid;border-radius:4px;box-sizing:border-box;text-align:center;" />
                                 </div>
                                 <div class="date-col">
-                                    <label class="form-label">Ngày KT dự kiến <span class="text-danger">*</span></label>
+                                    <label class="form-label">Ngày KT dự kiến </label>
                                     <input type="date" [(ngModel)]="planEndDateStr" [disabled]="isReadOnly"
                                         [style.border-color]="dateValidationError && dateValidationError.includes('du kien') ? '#ff4d4f' : '#d9d9d9'"
                                         style="width:100%;padding:4px 8px;font-size:12px;border:1px solid;border-radius:4px;box-sizing:border-box;text-align:center;" />
@@ -574,7 +574,8 @@
             <nz-tab nzTitle="Phát sinh">
                 <div class="tab-content additional-tab-content p-3">
                     <div class="mb-3 d-flex align-items-center justify-content-between">
-                        <label nz-checkbox [(ngModel)]="isAdditional" [nzDisabled]="isReadOnly || additionals.length > 0 || taskStatus === 4">
+                        <label nz-checkbox [(ngModel)]="isAdditional"
+                            [nzDisabled]="isReadOnly || additionals.length > 0 || taskStatus === 4">
                             <span class="fw-bold">Có vấn đề phát sinh</span>
                         </label>
                     </div>
@@ -653,8 +654,9 @@
 
             <ng-template #pendingReasonTpl>
                 <div class="p-2">
-                    <p class="mb-2 text-muted">Vui lòng cung cấp lý do hoặc vấn đề phát sinh khiến công việc này tạm dừng:</p>
-                    <textarea nz-input rows="4" [(ngModel)]="pendingReasonText" 
+                    <p class="mb-2 text-muted">Vui lòng cung cấp lý do hoặc vấn đề phát sinh khiến công việc này tạm
+                        dừng:</p>
+                    <textarea nz-input rows="4" [(ngModel)]="pendingReasonText"
                         placeholder="Nhập nội dung chi tiết..."></textarea>
                 </div>
             </ng-template>

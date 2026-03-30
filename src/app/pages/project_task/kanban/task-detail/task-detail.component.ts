@@ -1837,19 +1837,14 @@ export class TaskDetailComponent implements OnInit {
             this.message.error('T\u00ean c\u00f4ng vi\u1ec7c kh\u00f4ng \u0111\u01b0\u1ee3c qu\u00e1 150 k\u00fd t\u1ef1');
             return;
         }
-        if (!this.isPersonalProject && !this.selectedProjectId) {
-            this.message.error('Vui l\u00f2ng ch\u1ecdn d\u1ef1 \u00e1n');
-            return;
-        }
         if (!this.assignerId) {
             this.message.error('Vui l\u00f2ng ch\u1ecdn ng\u01b0\u1eddi giao vi\u1ec7c');
             return;
         }
         if (!this.planStartDate) {
-            this.message.error('Vui l\u00f2ng ch\u1ecdn ng\u00e0y b\u1eaft \u0111\u1ea7u d\u1ef1 ki\u1ebfn');
-            return;
+            this.planStartDate = new Date();
         }
-        if (!this.planEndDate) {
+        if (this.selectedProjectId && !this.planEndDate) {
             this.message.error('Vui l\u00f2ng ch\u1ecdn ng\u00e0y k\u1ebft th\u00fac d\u1ef1 ki\u1ebfn');
             return;
         }
@@ -1950,19 +1945,14 @@ export class TaskDetailComponent implements OnInit {
             this.message.error('Tên công việc không được quá 150 ký tự');
             return;
         }
-        if (!this.isPersonalProject && !this.selectedProjectId) {
-            this.message.error('Vui lòng chọn dự án');
-            return;
-        }
         if (!this.assignerId) {
             this.message.error('Vui lòng chọn người giao việc');
             return;
         }
         if (!this.planStartDate) {
-            this.message.error('Vui lòng chọn ngày bắt đầu dự kiến');
-            return;
+            this.planStartDate = new Date();
         }
-        if (!this.planEndDate) {
+        if (this.selectedProjectId && !this.planEndDate) {
             this.message.error('Vui lòng chọn ngày kết thúc dự kiến');
             return;
         }
@@ -1983,9 +1973,6 @@ export class TaskDetailComponent implements OnInit {
 
         if (!this.planStartDate) {
             this.planStartDate = new Date();
-        }
-        if (!this.planEndDate) {
-            this.planEndDate = new Date();
         }
 
         this.isSaving = true;

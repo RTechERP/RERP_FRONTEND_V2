@@ -3933,6 +3933,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           IsRequestPurchase: partListData.IsRequestPurchase ?? null,
           IsApprovedWarehouseExport: partListData.IsApprovedWarehouseExport ?? null,
           __hasChildren: partListData.__hasChildren ?? false, // Flag xác định node cha (có children) hay node con
+          DeadlinePriceRequest: !partListData.__hasChildren ? (partListData.DeadlinePriceRequest || null) : null,
+          DatePriceRequest: !partListData.__hasChildren ? (partListData.DatePriceRequest || null) : null,
         }];
         console.log('[EDIT] Modal selectedData:', modalRef.componentInstance.selectedData);
       }

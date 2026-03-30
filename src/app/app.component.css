@@ -91,8 +91,28 @@ nz-header {
 
 nz-content {
   margin: 0.5rem;
+ /* display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: calc(100vh - 40px - 1rem);*/ /* Subtract header and margin */
+}
+/*
+.content-host {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
 }
 
+.tab-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+*/
 .inner-content {
   padding: 24px;
   background: #fff;

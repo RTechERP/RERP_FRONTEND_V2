@@ -208,6 +208,12 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 command: () => this.onDelete(),
             },
             {
+                label: 'Copy',
+                icon: 'fa-solid fa-clone fa-lg text-primary',
+                // visible: this.permissionService.hasPermission(""),
+                command: () => this.onCopy(),
+            },
+            {
                 label: 'Bổ sung file',
                 icon: 'fa-solid fa-link fa-lg',
                 command: () => {
@@ -641,6 +647,16 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 },
             },
         ];
+    }
+    onCopy() {
+        if (!this.selectedItem) return;
+        let item = this.selectedItem; // data object
+        item.DateOrder = new Date();
+        item.FullName = this.appUserService.currentUser?.FullName || '';
+        item.DepartmentName = this.appUserService.currentUser?.DepartmentName || '';
+        item.Code = '';
+        item = item as PaymentOrder;
+        this.initModal(item, true);
     }
     onOpenPaymentOrderLog(row: any) {
         const item = row;

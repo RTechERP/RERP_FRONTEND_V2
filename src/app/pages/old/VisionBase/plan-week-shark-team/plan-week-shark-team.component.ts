@@ -33,13 +33,16 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import {
-  TabulatorFull as Tabulator,
-  RowComponent,
-  CellComponent,
-} from 'tabulator-tables';
-// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-// import 'bootstrap-icons/font/bootstrap-icons.css';
-import { OnInit, AfterViewInit } from '@angular/core';
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  Formatters,
+  GridOption,
+  MultipleSelectOption,
+} from 'angular-slickgrid';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { OnInit, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
@@ -54,18 +57,18 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { ReadOnlyLongTextEditor } from '../../../KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
 
-import { PlanWeekService } from './plan-week-services/plan-week.service';
+import { PlanWeekSharkTeamService } from './plan-week-shark-team-services/plan-week-shark-team.service';
 import { KhoBaseService } from '../kho-base/kho-base-service/kho-base.service';
 import { Title } from '@angular/platform-browser';
-import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/plan-week-detail.component';
+import { PlanWeekSharkTeamDetailComponent } from '../plan-week-shark-team-detail/plan-week-shark-team-detail/plan-week-shark-team-detail.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
-  selector: 'app-plan-week',
+  selector: 'app-plan-week-shark-team',
   imports: [
     NzCardModule,
     FormsModule,
@@ -93,15 +96,19 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     CommonModule,
     NzTreeSelectModule,
     HasPermissionDirective,
+    AngularSlickgridModule,
+    NzSpinModule,
   ],
-  templateUrl: './plan-week.component.html',
-  styleUrl: './plan-week.component.css',
+  templateUrl: './plan-week-shark-team.component.html',
+  styleUrl: './plan-week-shark-team.component.css',
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class PlanWeekComponent implements OnInit, AfterViewInit {
-  @ViewChild('tb_MainTable', { static: false })
-  tb_MainTableElement!: ElementRef;
-
-  private tb_MainTable!: Tabulator;
+export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
+  angularGrid!: AngularGridInstance;
+  columnDefinitions: Column[] = [];
+  gridOptions: GridOption = {};
+  dataset: any[] = [];
+  isLoadingData: boolean = false;
 
   sizeSearch: string = '0';
   isMobile: boolean = false;
@@ -132,17 +139,19 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
   filterTeamData: any[] = [];
   filterUserData: any[] = [];
   mainData: any[] = [];
+  rowSpanMetadata: Record<number, any> = {};
 
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private modal: NzModalService,
-    private planWeekService: PlanWeekService,
+    private planWeekService: PlanWeekSharkTeamService,
     private appUserService: AppUserService,
     private khoBaseService: KhoBaseService
   ) { }
 
   ngOnInit(): void {
+    this.initGrid();
     this.isMobile = window.innerWidth < 576;
     const today = new Date();
 
@@ -168,7 +177,6 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.initMainTable();
     window.addEventListener('resize', this.onResize);
   }
 
@@ -236,7 +244,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     } else {
       userid = this.appUserService.id || 0;
     }
-    const modalRef = this.modalService.open(PlanWeekDetailComponent, {
+    const modalRef = this.modalService.open(PlanWeekSharkTeamDetailComponent, {
       centered: true,
       backdrop: 'static',
       size: 'xl',
@@ -341,7 +349,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
             this.filters.teamId
           );
         } else {
-          this.notification.error('Thôn báo', response.message || 'Lỗi khi tải dữ liệu team');
+          this.notification.error('Thông báo', response.message || 'Lỗi khi tải dữ liệu team');
           this.loadMainData(
             this.filters.startDate,
             this.filters.endDate,
@@ -394,21 +402,117 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     userId: number,
     groupSaleId: number
   ) {
+    this.isLoadingData = true;
     this.planWeekService
       .getData(startDate, endDate, departmentId, userId, groupSaleId)
       .subscribe({
         next: (response) => {
           if (response.status === 1) {
-            this.mainData = response.data.data;
-            if (this.tb_MainTable) {
-              this.tb_MainTable.setColumns([]);
-              this.tb_MainTable.setData(this.mainData);
+            let data = response.data.data || [];
+            if (data && data.length > 0) {
+              const columns: Column[] = [];
+              const firstRow = data[0];
+              Object.keys(firstRow).forEach(key => {
+                if (key === 'ParentID' || key === 'UserID' || key === '_children' || key === 'id') return;
+
+                let title = key;
+                let width = 100;
+                let colGroupName = '';
+
+                if (key === 'FullName') {
+                  title = 'Họ tên';
+                  width = 140;
+                  colGroupName = 'Nhân viên';
+                } else if (key === 'Code') {
+                  title = 'Mã nhân viên';
+                  width = 80;
+                  colGroupName = 'Nhân viên';
+                } else if (key === 'GroupSalesName') {
+                  title = 'Tên nhóm';
+                  width = 150;
+                  colGroupName = 'Nhóm';
+                } else if (key.includes('_')) {
+                  const parts = key.split('_');
+                  const datePart = parts[0];
+                  const typePart = parts[1];
+                  const dateObj = new Date(datePart);
+
+                  if (!isNaN(dateObj.getTime())) {
+                    colGroupName = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
+                  } else {
+                    colGroupName = datePart;
+                  }
+
+                  if (typePart === 'Customer') {
+                    title = 'Khách hàng';
+                    width = 200;
+                  } else if (typePart === 'Content') {
+                    title = 'Nội dung và kết quả';
+                    width = 350;
+                  } else if (typePart === 'Problem') {
+                    title = 'Khó khăn';
+                    width = 350;
+                  }
+                }
+
+                const isLastInGroup = key.includes('_') && key.endsWith('_Problem');
+                const isLongText = key.includes('_') && (key.endsWith('_Content') || key.endsWith('_Problem'));
+
+                const colDef: any = {
+                  id: key,
+                  name: title,
+                  field: key,
+                  width: width,
+                  minWidth: width,
+                  sortable: true,
+                  columnGroup: colGroupName,
+                  cssClass: isLastInGroup ? 'column-group-border-right' : '',
+                  formatter: (row: number, cell: number, value: any) => {
+                    if (value === undefined || value === null) return '';
+                    return `<div style="white-space: pre-wrap;">${value}</div>`;
+                  }
+                };
+
+                if (isLongText) {
+                  colDef.editor = {
+                    model: ReadOnlyLongTextEditor,
+                    required: false,
+                    alwaysSaveOnEnterKey: false,
+                    minLength: 5,
+                    maxLength: 1000
+                  };
+                }
+
+                columns.push(colDef);
+              });
+              this.columnDefinitions = columns;
+            } else {
+              this.columnDefinitions = [];
+            }
+
+            // Gộp các dòng cùng UserID: mỗi ngày có N bản ghi → tổng dòng = MAX(N) thay vì SUM(N)
+            data = this.consolidateRowsByUser(data);
+
+            this.dataset = data.map((item: any, index: number) => ({
+              ...item,
+              id: `${item.UserID || 'temp'}_${index}`
+            }));
+            this.mainData = data;
+
+            this.computeRowSpanMetadata(this.dataset, this.columnDefinitions);
+            if (this.angularGrid?.slickGrid?.remapAllColumnsRowSpan) {
+              setTimeout(() => {
+                this.angularGrid.slickGrid.remapAllColumnsRowSpan();
+                this.angularGrid.slickGrid.invalidate();
+              }, 0);
             }
           } else {
             this.notification.error(NOTIFICATION_TITLE.error, response.message);
           }
+          this.isLoadingData = false;
         },
         error: (error) => {
+          this.isLoadingData = false;
           const errorMessage =
             error?.error?.message || error?.message || 'Không thể tải dữ liệu';
           this.notification.error('Lỗi', errorMessage);
@@ -473,7 +577,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
   }
 
   async exportMainTableToExcel() {
-    if (!this.tb_MainTable) {
+    if (!this.angularGrid || !this.angularGrid.slickGrid) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
         'Không có dữ liệu để xuất Excel'
@@ -484,28 +588,68 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('KeHoachTuan');
 
-    const columns = this.tb_MainTable
-      .getColumns()
-      .filter((column) => column.isVisible?.() ?? true);
+    const columns = this.angularGrid.slickGrid.getColumns() as Column[];
 
-    const headerRow = worksheet.addRow(
-      columns.map((col) => col.getDefinition().title)
-    );
-    headerRow.font = { bold: true };
-    headerRow.fill = {
+    // Extract group names and column titles
+    const groupTitles = columns.map(col => col.columnGroup || '');
+    const colTitles = columns.map(col => col.name);
+
+    // Add first row (Column Groups)
+    const headerRow1 = worksheet.addRow(groupTitles);
+    headerRow1.font = { bold: true };
+    headerRow1.fill = {
       type: 'pattern',
       pattern: 'solid',
       fgColor: { argb: 'FFE0E0E0' },
     };
+    headerRow1.alignment = { horizontal: 'center', vertical: 'middle' };
 
-    const allData = this.tb_MainTable.getData();
+    // Add second row (Column Names)
+    const headerRow2 = worksheet.addRow(colTitles);
+    headerRow2.font = { bold: true };
+    headerRow2.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' },
+    };
+    headerRow2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
-    allData.forEach((rowData) => {
+    // Merge logic for header row 1 (Horizontal merges for groups)
+    let startCol = 1;
+    while (startCol <= groupTitles.length) {
+      let endCol = startCol;
+      const currentGroup = groupTitles[startCol - 1];
+
+      // Find the span of the same group name
+      while (endCol < groupTitles.length && groupTitles[endCol] === currentGroup) {
+        endCol++;
+      }
+
+      if (currentGroup) {
+        // If there's a group, merge horizontally if spans multiple columns
+        if (endCol > startCol) {
+          worksheet.mergeCells(1, startCol, 1, endCol);
+        }
+      } else {
+        // If no group (e.g. STT), merge vertically with row 2
+        worksheet.mergeCells(1, startCol, 2, startCol);
+      }
+
+      startCol = endCol + 1;
+    }
+
+    // Merge logic for header row 2 (Vertical merges for categories like 'Nhân viên')
+    // Instead of merging 'Nhân viên' group vertically on row 1, we map it back. 
+    // Actually, 'Nhân viên', 'Nhóm' group titles exist, we can merge them vertically if needed
+    // Assuming columns with colGroup 'Nhân viên' or 'Nhóm' also need vertical merge 
+    // Wait, the user specifically asked: "merge cell cho 2 cột đầu". We'll just do for STT, Code, FullName
+    // Let's refine the merge. We already merged vertically if currentGroup is empty.
+
+    const allData = this.angularGrid.dataView.getItems();
+
+    allData.forEach((rowData: any) => {
       const row = columns.map((col) => {
-        const field = col.getField();
-        const value = rowData[field];
-
-        return value;
+        return rowData[col.field];
       });
 
       const addedRow = worksheet.addRow(row);
@@ -514,12 +658,10 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       });
     });
 
-    // Auto-fit columns
     worksheet.columns.forEach((column: any) => {
       column.width = 30;
     });
 
-    // Generate Excel file
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -545,71 +687,53 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(url);
   }
 
-  initMainTable(): void {
-    this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
-      ...DEFAULT_TABLE_CONFIG,
-      paginationMode: 'local',
-      layout: 'fitColumns',
-      height: '89vh',
-      selectableRows: 1,
-      //   pagination: true,
-      //   paginationSize: 100,
-      //   movableColumns: true,
-      //   resizableRows: true,
-
-      reactiveData: true,
-      autoColumns: true,
-      //   columnDefaults: {
-      //     headerWordWrap: true,
-      //     headerVertical: false,
-      //     headerHozAlign: 'center',
-      //     minWidth: 60,
-      //     resizable: true,
-      //     cssClass: 'tabulator-cell-wrap',
-      //   },
-      rowHeader: false,
-      autoColumnsDefinitions: (definitions: any[] = []) =>
-        definitions.map((def: any) => {
-          if (def.field === 'ParentID') {
-            return { ...def, visible: false };
-          }
-          if (def.field === 'UserID') {
-            return { ...def, visible: false };
-          }
-          if (def.field === 'FullName') {
-            return { ...def, title: 'Họ tên' };
-          }
-          if (def.field === 'Code') {
-            return { ...def, title: 'Mã nhân viên', width: 100 };
-          }
-          return def;
-        }),
-    });
-    // this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
-    //   const rowData = row.getData();
-    //   this.selectedRow = rowData;
-    //   this.selectedId = rowData['UserID'];
-    // });
-    this.tb_MainTable.on('cellClick', (e: any, cell: CellComponent) => {
-      this.highlightSelectedCell(cell);
-      const field = cell.getField();
-      this.selectedField = field;
-      const rowData = cell.getRow().getData();
-      this.selectedRow = rowData;
-      if (rowData && rowData['UserID']) {
-        this.selectedId = rowData['UserID'];
-        console.log(this.selectedId);
-      }
-    });
+  initGrid(): void {
+    this.gridOptions = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-plan-week',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      forceFitColumns: false,
+      enableCellNavigation: true,
+      enableExcelCopyBuffer: true,
+      enableFiltering: false,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: true
+      },
+      editable: true,
+      autoEdit: true,
+      createPreHeaderPanel: true,
+      showPreHeaderPanel: true,
+      preHeaderPanelHeight: 35,
+      explicitInitialization: true,
+      enableCellRowSpan: true,
+      rowTopOffsetRenderType: 'top',
+      dataView: {
+        globalItemMetadataProvider: {
+          getRowMetadata: (_item: any, row: number) => {
+            return this.rowSpanMetadata[row];
+          },
+        },
+      },
+    };
   }
 
-  private highlightSelectedCell(cell: CellComponent): void {
-    if (this.selectedCellElement) {
-      this.selectedCellElement.style.backgroundColor = '';
+  angularGridReady(angularGrid: AngularGridInstance): void {
+    this.angularGrid = angularGrid;
+  }
+
+  onRowClick(e: any, args: any): void {
+    const item = args?.grid?.getDataItem(args?.row);
+    const column = args?.grid?.getColumns()[args?.cell];
+    if (item && column) {
+      this.selectedRow = item;
+      this.selectedId = item['UserID'];
+      this.selectedField = column.field;
     }
-    const cellElement = cell.getElement() as HTMLElement;
-    cellElement.style.backgroundColor = '#e6f4ff';
-    this.selectedCellElement = cellElement;
   }
 
   private configureUserFilterByRole(): void {
@@ -637,5 +761,134 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     } else {
       this.isUserFilterDisabled = false;
     }
+  }
+
+  private computeRowSpanMetadata(data: any[], columns: Column[]): void {
+    this.rowSpanMetadata = {};
+    if (!data || data.length === 0) return;
+
+    // Tìm column index theo field name
+    const mergeFields = ['FullName', 'Code', 'GroupSalesName'];
+    const mergeColumnIndices: number[] = [];
+    columns.forEach((col, idx) => {
+      if (mergeFields.includes(col.field)) {
+        mergeColumnIndices.push(idx);
+      }
+    });
+
+    let groupStart = 0;
+    for (let i = 1; i <= data.length; i++) {
+      const cur = data[i];
+      const prev = data[i - 1];
+
+      const isSameGroup = cur && cur['UserID'] === prev['UserID'];
+
+      if (!isSameGroup) {
+        const rowspan = i - groupStart;
+        if (rowspan > 1) {
+          const columnsMetadata: Record<number, any> = {};
+          mergeColumnIndices.forEach(colIdx => {
+            columnsMetadata[colIdx] = { rowspan };
+          });
+          this.rowSpanMetadata[groupStart] = {
+            columns: columnsMetadata
+          };
+        }
+        groupStart = i;
+      }
+    }
+  }
+
+  /**
+   * Gộp các dòng cùng UserID: thay vì SUM(records) dòng, chỉ tạo MAX(records/ngày) dòng.
+   * Ví dụ: 23/03 có 3 bản ghi, 24/03 có 1 bản ghi → 3 dòng thay vì 4.
+   * Dòng 0: data 23/03[0] + data 24/03[0]
+   * Dòng 1: data 23/03[1] + (trống)
+   * Dòng 2: data 23/03[2] + (trống)
+   */
+  private consolidateRowsByUser(data: any[]): any[] {
+    if (!data || data.length === 0) return data;
+
+    // Tìm các date prefix từ tên cột (ví dụ: '2026-03-23')
+    const firstRow = data[0];
+    const datePrefixes: string[] = [];
+    Object.keys(firstRow).forEach(key => {
+      if (key.includes('_')) {
+        const datePart = key.split('_')[0];
+        if (!datePrefixes.includes(datePart) && !isNaN(new Date(datePart).getTime())) {
+          datePrefixes.push(datePart);
+        }
+      }
+    });
+
+    // Nhóm dòng theo UserID (giữ nguyên thứ tự xuất hiện)
+    const userGroups = new Map<number, any[]>();
+    const userOrder: number[] = [];
+    data.forEach(row => {
+      const uid = row.UserID;
+      if (!userGroups.has(uid)) {
+        userGroups.set(uid, []);
+        userOrder.push(uid);
+      }
+      userGroups.get(uid)!.push(row);
+    });
+
+    const result: any[] = [];
+
+    userOrder.forEach(uid => {
+      const rows = userGroups.get(uid)!;
+      const baseInfo = {
+        UserID: rows[0].UserID,
+        Code: rows[0].Code,
+        FullName: rows[0].FullName,
+        ParentID: rows[0].ParentID,
+        GroupSalesName: rows[0].GroupSalesName,
+      };
+
+      // Thu thập record theo từng ngày
+      const dateRecords: Map<string, any[]> = new Map();
+      datePrefixes.forEach(dp => dateRecords.set(dp, []));
+
+      rows.forEach(row => {
+        datePrefixes.forEach(dp => {
+          const customerKey = `${dp}_Customer`;
+          const contentKey = `${dp}_Content`;
+          const problemKey = `${dp}_Problem`;
+          const hasData = (row[customerKey] && String(row[customerKey]).trim() !== '')
+            || (row[contentKey] && String(row[contentKey]).trim() !== '')
+            || (row[problemKey] && String(row[problemKey]).trim() !== '');
+          if (hasData) {
+            dateRecords.get(dp)!.push({
+              [customerKey]: row[customerKey] || '',
+              [contentKey]: row[contentKey] || '',
+              [problemKey]: row[problemKey] || '',
+            });
+          }
+        });
+      });
+
+      // Số dòng cần = MAX(số record của mỗi ngày), tối thiểu 1
+      let maxRows = 1;
+      dateRecords.forEach(records => {
+        if (records.length > maxRows) maxRows = records.length;
+      });
+
+      for (let i = 0; i < maxRows; i++) {
+        const newRow: any = { ...baseInfo };
+        datePrefixes.forEach(dp => {
+          const records = dateRecords.get(dp)!;
+          if (i < records.length) {
+            Object.assign(newRow, records[i]);
+          } else {
+            newRow[`${dp}_Customer`] = '';
+            newRow[`${dp}_Content`] = '';
+            newRow[`${dp}_Problem`] = '';
+          }
+        });
+        result.push(newRow);
+      }
+    });
+
+    return result;
   }
 }

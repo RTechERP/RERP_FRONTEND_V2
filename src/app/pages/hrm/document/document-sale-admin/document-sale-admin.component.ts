@@ -204,19 +204,19 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
       {
         label: 'Thêm',
         icon: 'fa-solid fa-plus fa-lg text-success',
-        visible: this.permissionService.hasPermission('N2,N34,N1'),
+        visible: this.permissionService.hasPermission('N2,N34,N1,N89'),
         command: () => this.onAddDocument(),
       },
       {
         label: 'Sửa',
         icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
-        visible: this.permissionService.hasPermission('N2,N34,N1'),
+        visible: this.permissionService.hasPermission('N2,N34,N1,N89'),
         command: () => this.editDocument(),
       },
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.permissionService.hasPermission('N2,N34,N1'),
+        visible: this.permissionService.hasPermission('N2,N34,N1,N89'),
         command: () => this.onDeleteDocument(),
       },
       {
@@ -230,13 +230,13 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
       {
         label: 'Upload File',
         icon: 'fa-solid fa-upload fa-lg text-info',
-        visible: this.permissionService.hasPermission('N2,N34,N1'),
+        visible: this.permissionService.hasPermission('N2,N34,N1,N89'),
         command: () => this.triggerFileInput(),
       },
       {
         label: 'Xóa File',
         icon: 'fa-solid fa-file-circle-xmark fa-lg text-danger',
-        visible: this.permissionService.hasPermission('N2,N34,N1'),
+        visible: this.permissionService.hasPermission('N2,N34,N1,N89'),
         command: () => this.onDeleteDocumentFile(),
       },
       {
@@ -290,22 +290,22 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
           } as MultipleSelectOption,
         },
       },
-      {
-        id: 'TypeCode',
-        name: 'Mã loại văn bản',
-        field: 'CodeDocumentType',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            autoAdjustDropPosition: true,
-          } as MultipleSelectOption,
-        },
-      },
+      // {
+      //   id: 'TypeCode',
+      //   name: 'Mã loại văn bản',
+      //   field: 'CodeDocumentType',
+      //   width: 150,
+      //   sortable: true,
+      //   filterable: true,
+      //   filter: {
+      //     model: Filters['multipleSelect'],
+      //     collection: [],
+      //     filterOptions: {
+      //       autoAdjustDropHeight: true,
+      //       autoAdjustDropPosition: true,
+      //     } as MultipleSelectOption,
+      //   },
+      // },
       {
         id: 'Code',
         name: 'Mã văn bản',

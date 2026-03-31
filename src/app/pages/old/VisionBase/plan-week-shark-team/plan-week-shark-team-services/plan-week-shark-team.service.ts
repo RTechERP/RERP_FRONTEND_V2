@@ -9,7 +9,7 @@ import { environment } from '../../../../../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-export class PlanWeekService {
+export class PlanWeekSharkTeamService {
   private _url = environment.host + 'api/PlanWeek/';
   constructor(private http: HttpClient) { }
 
@@ -39,7 +39,7 @@ export class PlanWeekService {
     userId: number,
     groupSaleId: number
   ) {
-    return this.http.get<any>(this._url + 'get-data', {
+    return this.http.get<any>(this._url + 'get-data-team-shark', {
       params: {
         dateStart: this.toLocalISOString(startDate),
         dateEnd: this.toLocalISOString(endDate),
@@ -68,6 +68,10 @@ export class PlanWeekService {
       ':' +
       String(date.getSeconds()).padStart(2, '0')
     );
+  }
+
+  getCustomers(): Observable<any> {
+    return this.http.get<any>(environment.host + 'api/DailyReportSale/get-customers');
   }
 
   delete(userId: number, datePlan: Date): Observable<any> {

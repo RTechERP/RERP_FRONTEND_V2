@@ -293,6 +293,7 @@ import { JobRequirementPersonalComponent } from './pages/hrm/job-requirement/job
 import { SummaryAssetPersionalComponent } from './pages/hrm/asset/summary-asset-persional/summary-asset-persional.component';
 import { PaymentOrderEmployeeComponent } from './pages/general-category/payment-order-employee/payment-order-employee.component';
 import { PaymentOrderTeamComponent } from './pages/general-category/payment-order-team/payment-order-team.component';
+import { PlanWeekSharkTeamComponent } from './pages/old/VisionBase/plan-week-shark-team/plan-week-shark-team.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 
 import { ProjectTaskComponent } from './pages/project_task/project-task/project-task.component'
@@ -626,6 +627,7 @@ export const routes: Routes = [
             { path: 'pokh-kpi-hn', component: PokhKpiComponent, canActivate: [authGuard] },
             { path: 'pokh-history-hn', component: PokhHistoryComponent, canActivate: [authGuard] },
             { path: 'plan-week-hn', component: PlanWeekComponent, canActivate: [authGuard] },
+            { path: 'plan-week-shark-team-hn', component: PlanWeekSharkTeamComponent, canActivate: [authGuard] },
             { path: 'follow-project-base-hn', component: FollowProjectBaseSlickgridComponent, canActivate: [authGuard] },
             { path: 'customer-sale-hn', component: CustomerComponent, canActivate: [authGuard] },
 

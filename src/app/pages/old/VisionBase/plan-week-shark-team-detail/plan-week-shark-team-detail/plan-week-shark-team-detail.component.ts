@@ -38,8 +38,6 @@ import {
   RowComponent,
   CellComponent,
 } from 'tabulator-tables';
-// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -57,12 +55,13 @@ import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
-import { PlanWeekService } from '../../plan-week/plan-week-services/plan-week.service';
+import { PlanWeekSharkTeamService } from '../../plan-week-shark-team/plan-week-shark-team-services/plan-week-shark-team.service';
 
 @Component({
-  selector: 'app-plan-week-detail',
+  selector: 'app-plan-week-shark-team-detail',
   imports: [
     NzCardModule,
     FormsModule,
@@ -91,30 +90,27 @@ import { PlanWeekService } from '../../plan-week/plan-week-services/plan-week.se
     NzTreeSelectModule,
     NzCollapseModule,
     NzFormModule,
+    NzDividerModule,
   ],
-  templateUrl: './plan-week-detail.component.html',
-  styleUrl: './plan-week-detail.component.css',
+  templateUrl: './plan-week-shark-team-detail.component.html',
+  styleUrl: './plan-week-shark-team-detail.component.css',
 })
-export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
+export class PlanWeekSharkTeamDetailComponent implements OnInit, AfterViewInit {
   @Input() UserID!: number;
   @Input() isEditMode!: boolean;
-
-  // @ViewChild('tb_MainTable', { static: false })
-  // tb_MainTableElement!: ElementRef;
-
-  // private tb_MainTable!: Tabulator;
 
   filters: any = {
     startDate: new Date(),
     endDate: new Date(),
-    userId: 0, //Cần truyền ID người dùng hiện tại vào để thêm mới kế hoạch tuần theo đúng user đó
+    userId: 0,
   };
   filterUserData: any[] = [];
-  mainData: any[] = [];
+  mainData: any[] = []; // Each item: { DatePlan, tasks: [...] }
+  customers: any[] = [];
 
   constructor(
     public activeModal: NgbActiveModal,
-    private planWeekService: PlanWeekService,
+    private planWeekService: PlanWeekSharkTeamService,
     private modal: NzModalService,
     private notification: NzNotificationService
   ) { }
@@ -136,12 +132,11 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
     this.filters.startDate = monday;
     this.filters.endDate = sunday;
     this.loadUser();
+    this.loadCustomers();
     console.log('UserID nhận được từ component cha', this.UserID);
   }
 
-  ngAfterViewInit(): void {
-    // this.initMainTable(); // Đã comment vì không dùng Tabulator nữa
-  }
+  ngAfterViewInit(): void { }
 
   closeModal() {
     this.activeModal.close({ success: false, reloadData: false });
@@ -185,7 +180,6 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterUserData = response.data;
 
-
           this.filters.userId = this.UserID;
           let user = this.filterUserData.find((x) => x.UserID == this.UserID);
           console.log('User:', user);
@@ -194,7 +188,6 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
             this.filters.endDate,
             this.filters.userId
           );
-
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
@@ -205,15 +198,75 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
     });
   }
 
+  loadCustomers() {
+    this.planWeekService.getCustomers().subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.customers = response.data || [];
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
+        }
+      },
+      error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách khách hàng');
+      },
+    });
+  }
+
   loadMainData(startDate: Date, endDate: Date, userId: number) {
     this.planWeekService.getData(startDate, endDate, 0, userId, 0).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.mainData = response.data.data1;
-          // if (this.tb_MainTable) {
-          //   this.tb_MainTable.setColumns([]);
-          //   this.tb_MainTable.setData(this.mainData);
-          // }
+          const allData: any[] = response.data.data1 || [];
+          // Filter by userId to only show the selected user's data
+          const rawData = allData.filter((row: any) => row.UserID === userId);
+
+          // Group existing records by date key
+          const dayMap = new Map<string, any[]>();
+          for (const row of rawData) {
+            const dateKey = this.formatDate(row.DatePlan);
+            if (!dayMap.has(dateKey)) {
+              dayMap.set(dateKey, []);
+            }
+            dayMap.get(dateKey)!.push({
+              ID: row.ID || 0,
+              ContentPlan: row.ContentPlan || '',
+              Problem: row.Problem || '',
+              CustomerID: row.CustomerID || null,
+              UserID: row.UserID || 0,
+              _dirty: false,
+              IsDeleted: false,
+            });
+          }
+
+          // Generate all 7 days from startDate to endDate
+          this.mainData = [];
+          const current = new Date(startDate);
+          current.setHours(0, 0, 0, 0);
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+
+          while (current <= end) {
+            const dateKey = this.formatDate(current);
+            const existingTasks = dayMap.get(dateKey);
+
+            this.mainData.push({
+              DatePlan: new Date(current),
+              tasks: existingTasks && existingTasks.length > 0
+                ? existingTasks
+                : [{
+                  ID: 0,
+                  ContentPlan: '',
+                  Problem: '',
+                  CustomerID: null,
+                  UserID: userId,
+                  _dirty: false,
+                  IsDeleted: false,
+                }],
+            });
+
+            current.setDate(current.getDate() + 1);
+          }
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
@@ -225,21 +278,23 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveAndClose() {
-    // const DATA = this.tb_MainTable
-    //   .getData()
-    //   .filter((row: any) => row?._dirty === true)
-    //   .map((row: any) => ({
-    //     ...row,
-    //     UserID: row?.UserID || this.filters.userId || this.UserID || 0,
-    //   }));
-
-    // Lấy data từ mainData thay vì từ Tabulator
-    const DATA = this.mainData
-      .filter((row: any) => row?._dirty === true)
-      .map((row: any) => ({
-        ...row,
-        UserID: row?.UserID || this.filters.userId || this.UserID || 0,
-      }));
+    // Flatten all tasks from all days into a single array
+    const DATA: any[] = [];
+    for (const day of this.mainData) {
+      for (const task of day.tasks) {
+        if (task._dirty === true) {
+          DATA.push({
+            ID: task.ID || 0,
+            DatePlan: this.toLocalISOString(day.DatePlan),
+            UserID: task.UserID || this.filters.userId || this.UserID || 0,
+            ContentPlan: task.ContentPlan || '',
+            Problem: task.Problem || '',
+            CustomerID: task.CustomerID || 0,
+            IsDeleted: task.IsDeleted || false,
+          });
+        }
+      }
+    }
 
     if (DATA.length === 0) {
       this.notification.info('Thông báo', 'Không có thay đổi để lưu');
@@ -249,7 +304,10 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
     this.planWeekService.save(DATA).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Lưu thành công'
+          );
           this.UserID = 0;
           this.isEditMode = false;
           this.activeModal.close({ success: true, reloadData: true });
@@ -259,105 +317,17 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
             response?.message || 'Không thể lưu dữ liệu'
           );
         }
-
       },
       error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || 'Không thể lưu dữ liệu');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          error?.error?.message || 'Không thể lưu dữ liệu'
+        );
       },
     });
   }
 
-  // Comment lại initMainTable vì không dùng Tabulator nữa
-  // initMainTable(): void {
-  //   this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
-  //     layout: 'fitColumns',
-  //     height: '75vh',
-  //     selectableRows: 1,
-  //     movableColumns: true,
-  //     resizableRows: true,
-  //     reactiveData: true,
-  //     autoColumns: true,
-  //     columnDefaults: {
-  //       headerWordWrap: true,
-  //       headerVertical: false,
-  //       headerHozAlign: 'center',
-  //       minWidth: 60,
-  //       resizable: true,
-  //     },
-  //     autoColumnsDefinitions: (definitions: any[] = []) => {
-  //       const cols = definitions.map((def: any) => {
-  //         if (def.field === 'ID') {
-  //           return { ...def, visible: false };
-  //         }
-  //         if (def.field === 'UserID') {
-  //           return { ...def, visible: false };
-  //         }
-  //         if (def.field === 'DatePlan') {
-  //           return {
-  //             ...def,
-  //             title: 'Ngày',
-  //             formatter: (cell: any) => {
-  //               const value = cell.getValue();
-  //               if (!value) return '';
-  //               const date = new Date(value);
-  //               const dd = String(date.getDate()).padStart(2, '0');
-  //               const mm = String(date.getMonth() + 1).padStart(2, '0');
-  //               const yyyy = date.getFullYear();
-  //               return `${dd}/${mm}/${yyyy}`;
-  //             },
-  //             width: '10%',
-  //           };
-  //         }
-  //         if (def.field === 'ContentPlan') {
-  //           return { ...def, title: 'Nội dung', editor: 'textarea', width: '30%' };
-  //         }
-  //         if (def.field === 'Result') {
-  //           return { ...def, title: 'Kết quả mong đợi', editor: 'textarea', width: '30%' };
-  //         }
-  //         return def;
-  //       });
-
-  //       cols.unshift({
-  //         title: '',
-  //         field: 'actions',
-  //         hozAlign: 'center',
-  //         width: 50,
-  //         headerSort: false,
-  //         formatter: (_cell: any) => {
-  //           return `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
-  //         },
-  //         cellClick: (_e: any, cell: any) => {
-  //           this.modal.confirm({
-  //             nzTitle: 'Xác nhận xóa',
-  //             nzContent: 'Bạn có chắc chắn muốn xóa dòng này?',
-  //             nzOkText: 'Đồng ý',
-  //             nzCancelText: 'Hủy',
-  //             nzOnOk: () => {
-  //               const row = cell.getRow();
-  //               const data = row.getData();
-  //               data.IsDeleted = true;
-  //               data._dirty = true;
-  //               row.update({
-  //                 ContentPlan: '',
-  //                 Result: '',
-  //               });
-  //             },
-  //           });
-  //         },
-  //       });
-
-  //       return cols;
-  //     },
-  //   });
-  //   this.tb_MainTable.on('cellEdited', (cell: any) => {
-  //     const row = cell.getRow();
-  //     const data = row.getData();
-  //     data._dirty = true;
-  //     row.update(data);
-  //   });
-  // }
-
-  // Methods mới cho form dynamic
+  // Methods cho form dynamic
   formatDate(date: any): string {
     if (!date) return '';
     const d = new Date(date);
@@ -367,8 +337,51 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
     return `${dd}/${mm}/${yyyy}`;
   }
 
-  onFieldChange(item: any): void {
-    item._dirty = true;
+  onTaskFieldChange(task: any): void {
+    task._dirty = true;
+  }
+
+  addTask(dayItem: any): void {
+    dayItem.tasks.push({
+      ID: 0,
+      ContentPlan: '',
+      Problem: '',
+      CustomerID: null,
+      UserID: this.filters.userId || this.UserID || 0,
+      _dirty: true,
+      IsDeleted: false,
+    });
+  }
+
+  removeTask(dayItem: any, taskIndex: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    const task = dayItem.tasks[taskIndex];
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: 'Bạn có chắc chắn muốn xóa công việc này?',
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        if (task.ID > 0) {
+          // Existing record: mark as deleted
+          task.IsDeleted = true;
+          task._dirty = true;
+          task.ContentPlan = '';
+          task.Problem = '';
+          task.CustomerID = null;
+        } else {
+          // New record: just remove from array
+          dayItem.tasks.splice(taskIndex, 1);
+        }
+      },
+    });
+  }
+
+  allTasksDeleted(item: any): boolean {
+    return item.tasks.length === 0 || item.tasks.every((t: any) => t.IsDeleted);
   }
 
   deleteItem(item: any, event?: Event): void {
@@ -378,15 +391,37 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
     }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa kế hoạch ngày ' + this.formatDate(item.DatePlan) + '?',
+      nzContent:
+        'Bạn có chắc chắn muốn xóa kế hoạch ngày ' +
+        this.formatDate(item.DatePlan) +
+        '?',
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        item.IsDeleted = true;
-        item._dirty = true;
-        item.ContentPlan = '';
-        item.Result = '';
+        for (const task of item.tasks) {
+          task.IsDeleted = true;
+          task._dirty = true;
+          task.ContentPlan = '';
+          task.Problem = '';
+          task.CustomerID = null;
+        }
       },
     });
+  }
+
+  toLocalISOString(date: Date): string {
+    return (
+      date.getFullYear() +
+      '-' +
+      String(date.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(date.getDate()).padStart(2, '0') +
+      'T' +
+      String(date.getHours()).padStart(2, '0') +
+      ':' +
+      String(date.getMinutes()).padStart(2, '0') +
+      ':' +
+      String(date.getSeconds()).padStart(2, '0')
+    );
   }
 }

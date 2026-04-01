@@ -1472,13 +1472,14 @@ export class TaskDetailComponent implements OnInit {
     }
 
     addChecklistItem() {
-        if (!this.newChecklistItem.trim()) return;
+        const title = (this.newChecklistItem || '').trim();
+        if (!title) return;
 
         // Build a local item with a temp ID — actual API call is deferred to Save
         const tempItem: IProjectTaskChecklist = {
             ID: this._tempChecklistIdCounter--,
             ProjectTaskID: 0,
-            ChecklistTitle: this.newChecklistItem.trim(),
+            ChecklistTitle: title,
             IsDone: false,
             OrderIndex: this.checklists.length
         } as IProjectTaskChecklist;
@@ -1501,13 +1502,15 @@ export class TaskDetailComponent implements OnInit {
     }
 
     cancelAddChecklist(): void {
-        if (!this.newChecklistItem.trim()) {
+        const title = (this.newChecklistItem || '').trim();
+        if (!title) {
             this.isAddingChecklist = false;
         }
     }
 
     saveNewChecklist(): void {
-        if (this.newChecklistItem.trim()) {
+        const title = (this.newChecklistItem || '').trim();
+        if (title) {
             this.addChecklistItem();
             // Tiếp tục hiển thị ô nhập liệu để nhập mục mới
             this.isAddingChecklist = true;
@@ -1548,13 +1551,14 @@ export class TaskDetailComponent implements OnInit {
 
     // Save edited checklist item
     saveEditChecklist(item: IProjectTaskChecklist): void {
-        if (!this.editingChecklistTitle.trim()) {
+        const title = (this.editingChecklistTitle || '').trim();
+        if (!title) {
             this.cancelEditChecklist();
             return;
         }
 
         // Update in memory only — deferred to Save
-        item.ChecklistTitle = this.editingChecklistTitle.trim();
+        item.ChecklistTitle = title;
         this.pendingChecklistOps.push({ type: 'edit', item: { ...item } });
         this.editingChecklistId = null;
         this.editingChecklistTitle = '';
@@ -1597,12 +1601,13 @@ export class TaskDetailComponent implements OnInit {
     // ========== ADDITIONAL ISSUES METHODS (Phát sinh) ==========
 
     addAdditionalItem() {
-        if (!this.newAdditionalItem.trim()) return;
+        const desc = (this.newAdditionalItem || '').trim();
+        if (!desc) return;
 
         const tempItem: IProjectTaskAdditional = {
             ID: this._tempAdditionalIdCounter--,
             ProjectTaskID: 0,
-            Description: this.newAdditionalItem.trim(),
+            Description: desc,
             CreatedBy: this.appUserService.fullName,
             CreatedDate: new Date(),
             IsDeleted: false
@@ -1619,13 +1624,15 @@ export class TaskDetailComponent implements OnInit {
     }
 
     cancelAddAdditional(): void {
-        if (!this.newAdditionalItem.trim()) {
+        const desc = (this.newAdditionalItem || '').trim();
+        if (!desc) {
             this.isAddingAdditional = false;
         }
     }
 
     saveNewAdditional(): void {
-        if (this.newAdditionalItem.trim()) {
+        const desc = (this.newAdditionalItem || '').trim();
+        if (desc) {
             this.addAdditionalItem();
             this.isAddingAdditional = true;
             setTimeout(() => {
@@ -1668,11 +1675,12 @@ export class TaskDetailComponent implements OnInit {
     }
 
     saveEditAdditional(item: IProjectTaskAdditional): void {
-        if (!this.editingAdditionalDescription.trim()) {
+        const desc = (this.editingAdditionalDescription || '').trim();
+        if (!desc) {
             this.cancelEditAdditional();
             return;
         }
-        item.Description = this.editingAdditionalDescription.trim();
+        item.Description = desc;
         this.pendingAdditionalOps.push({ type: 'edit', item: { ...item } });
         this.editingAdditionalId = null;
         this.editingAdditionalDescription = '';
@@ -1859,12 +1867,13 @@ export class TaskDetailComponent implements OnInit {
         const activeTask = this.nzModalData?.task || this.task;
         if (!activeTask) return;
 
-        if (!this.title || !this.title.trim()) {
-            this.message.error('Vui l\u00f2ng nh\u1eadp t\u00ean c\u00f4ng vi\u1ec7c');
+        const mission = (this.title || '').trim();
+        if (!mission) {
+            this.message.error('Vui lòng nhập tên công việc');
             return;
         }
-        if (this.title.length > 150) {
-            this.message.error('T\u00ean c\u00f4ng vi\u1ec7c kh\u00f4ng \u0111\u01b0\u1ee3c qu\u00e1 150 k\u00fd t\u1ef1');
+        if (mission.length > 150) {
+            this.message.error('Tên công việc không được quá 150 ký tự');
             return;
         }
         if (!this.assignerId) {

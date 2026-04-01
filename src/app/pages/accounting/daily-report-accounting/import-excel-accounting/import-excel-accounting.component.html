@@ -58,9 +58,9 @@
     <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
       Đóng
     </button>
-    <button nz-button nzType="primary" (click)="importData()" [disabled]="tableData.length === 0">
-      <i class="fas fa-save me-1"></i>
-      Nhập
+    <button nz-button nzType="primary" (click)="importData()" [disabled]="tableData.length === 0 || isLoading" [nzLoading]="isLoading">
+      <i *ngIf="!isLoading" class="fas fa-save me-1"></i>
+      {{ isLoading ? 'Đang nhập...' : 'Nhập' }}
     </button>
   </div>
 </div>

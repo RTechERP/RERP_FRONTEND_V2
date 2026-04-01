@@ -1490,7 +1490,7 @@ export class ProjectPartlistPriceRequestFormComponent
         return;
       }
 
-      const note = (data['RequestNote']|| '').toString();
+      const note = (data['RequestNote'] || '').toString();
       const projectPartlistId =
         Number(data['ProjectPartlistID'] ?? baseProjectPartlistId) || 0;
       const jobRequirementId =
@@ -1516,7 +1516,7 @@ export class ProjectPartlistPriceRequestFormComponent
           Deadline: data['Deadline']
             ? DateTime.fromJSDate(new Date(data['Deadline'])).toJSDate()
             : null,
-          Note: note || '',
+          // Note: note || '',
           DateRequest: this.requestDate ? new Date(this.requestDate) : null,
           EmployeeID: Number(this.requester) || null,
           IsJobRequirement: Boolean(isJobRequirement) || false,

@@ -579,10 +579,10 @@ export class RequestInvoiceDetailComponent implements OnInit {
       this.requestInvoiceService.getRequestInvoiceById(RIID).subscribe((data: any) => {
         const requestInvoice = data;
 
-        const createdDate = new Date(requestInvoice.CreatedDate);
+        const createdDate = new Date(requestInvoice.data.CreatedDate);
         const year = createdDate.getFullYear().toString();
         const month = ('0' + (createdDate.getMonth() + 1)).slice(-2);
-        const code = requestInvoice.Code || '';
+        const code = requestInvoice.data.Code || '';
 
         const sanitize = (s: string) =>
           s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
@@ -609,7 +609,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
                 this.notification.warning('Thông báo', `${totalUploaded}/${totalRequested} file upload thành công, ${totalRequested - totalUploaded} file thất bại.`);
               }
 
-                // Cập nhật lại danh sách file với ServerPath trả về từ server
+              // Cập nhật lại danh sách file với ServerPath trả về từ server
               this.files = [
                 ...this.files.filter((f: any) => !f.file),
                 ...uploadedFiles.map((f: any) => ({
@@ -678,7 +678,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
             NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
             `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`,
             {
-                nzStyle: { whiteSpace: 'pre-line' }
+              nzStyle: { whiteSpace: 'pre-line' }
             }
           );
           return;

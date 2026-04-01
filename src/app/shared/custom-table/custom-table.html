@@ -1,7 +1,7 @@
-<p-contextMenu #cm [model]="contextMenuItems"></p-contextMenu>
-<p-contextMenu #hcm [model]="headerMenuItems" styleClass="tbl-header-cm"></p-contextMenu>
+<p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+<p-contextMenu #hcm [model]="headerMenuItems" styleClass="tbl-header-cm" appendTo="body"></p-contextMenu>
 
-<p-table #dt [value]="data" [columns]="columns" [tableStyle]="{ 'min-width': '50rem' }" [resizableColumns]="resizable"
+<p-table #dt [value]="data" [columns]="columns" [tableStyle]="{ 'min-width': minWidth, 'width': resizeMode === 'expand' ? null : '100%' }" [resizableColumns]="resizable"
     [columnResizeMode]="resizeMode" [showGridlines]="showGridlines" styleClass="p-datatable-gridlines p-datatable-sm"
     [globalFilterFields]="actualGlobalFilterFields" [scrollable]="scrollable" [scrollHeight]="scrollable ? scrollHeight : ''"
     [paginator]="paginator" [rows]="rows" [rowsPerPageOptions]="rowsPerPageOptions" [rowGroupMode]="rowGroupMode"
@@ -37,16 +37,17 @@
 
     <!-- Header Row: Titles -->
     <ng-template pTemplate="header">
+        <!-- Hidden row to define column widths for table-layout: fixed -->
         <tr style="height: 0;">
             <th *ngIf="reorderableRows" style="width: 3rem; height: 0; padding: 0; border: 0;"></th>
             <th *ngIf="expandable" style="width: 4rem; height: 0; padding: 0; border: 0;"></th>
             <th *ngIf="selectionMode === 'multiple'" style="width: 3rem; height: 0; padding: 0; border: 0;"></th>
             <th *ngFor="let col of columns" [style.width]="col.width" style="height: 0; padding: 0; border: 0;"></th>
         </tr>
-        
-            <!-- Multi-Level Header Groups (Banded Columns) -->
+        <!-- Multi-Level Header Groups (Banded Columns) -->
         <ng-container *ngIf="headerGroups && headerGroups.length > 0">
             <tr *ngFor="let groupRow of headerGroups">
+                <!-- Empty cells for control columns if needed -->
                 <ng-container *ngIf="reorderableRows"><th [attr.rowspan]="1" style="width: 3rem"></th></ng-container>
                 <ng-container *ngIf="expandable"><th [attr.rowspan]="1" style="width: 4rem"></th></ng-container>
                 <ng-container *ngIf="selectionMode === 'multiple'"><th [attr.rowspan]="1" style="width: 3rem"></th></ng-container>
@@ -60,7 +61,6 @@
                     {{ h.header }}
                 </th>
             </tr>
-            
         </ng-container>
 
         <tr>
@@ -86,11 +86,12 @@
                     class="text-center w-full">
                 </div>
             </ng-container>
-            <ng-template #defaultHeaderContent class=>
-                <div class="flex w-full align-items-start">
-                    <span class="me-1 text-wrap flex-1">{{ col.header }}</span>
-                    
-                    <p-sortIcon  class="ml-auto flex-shrink-0" *ngIf="col.sortable" [field]="col.field"></p-sortIcon>
+            <ng-template #defaultHeaderContent>
+                <div class="header-content-wrapper">
+                    <div class="header-spacer"></div>
+                    <span class="header-text">{{ col.header }}</span>
+                    <div class="header-icons">
+                        <p-sortIcon *ngIf="col.sortable" [field]="col.field"></p-sortIcon>
                         <!-- Menu-style filter icon (display="menu") -->
                         <ng-container *ngIf="filterDisplay === 'menu' && showColumnFilter">
                             <ng-container *ngIf="!col.filterMode || col.filterMode === 'input'">
@@ -177,6 +178,7 @@
                                 </p-columnFilter>
                             </ng-container>
                         </ng-container>
+                    </div>
                 </div>
                 </ng-template>
             </th>
@@ -407,7 +409,7 @@
             <!-- Default Text -->
             <div *ngSwitchDefault
                 [class]="(col.textWrap !== undefined ? col.textWrap : (col.editType === 'textarea' ? true : textWrap)) ? 'wrap-text' : 'truncate-text'"
-                [title]="rowData[col.field]" [innerHTML]="getCellValue(col, rowData)">
+                [title]="rowData[col.field]" [innerHTML]="getHighlightedText(formatValue(col, rowData))">
             </div>
         </ng-container>
     </ng-template>

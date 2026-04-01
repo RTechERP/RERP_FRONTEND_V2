@@ -1,0 +1,322 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.table-container {
+    flex: 1;
+    overflow: hidden;
+    padding: 0px;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .p-datatable {
+    font-size: 13px;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    background: #fafafa;
+    font-weight: 600;
+    color: #262626;
+    padding: 8px 12px;
+    border-color: #f0f0f0;
+    text-align: left;
+    /* Header default left */
+}
+
+.text-left {
+    text-align: left !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    padding: 8px 12px;
+    border-color: #f0f0f0;
+}
+
+.task-title {
+    color: #1890ff;
+    font-weight: 500;
+    cursor: pointer;
+    word-break: break-word;
+}
+
+.task-title:hover {
+    text-decoration: underline;
+}
+
+.task-code-link {
+    color: #1890ff;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.project-name {
+    color: #595959;
+    font-size: 12px;
+}
+
+.date-text {
+    white-space: nowrap;
+}
+
+.status-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.review-badge {
+    display: inline-flex;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.review-badge.pending {
+    background: #fffbe6;
+    color: #faad14;
+    border: 1px solid #ffe58f;
+}
+
+.review-badge.approved {
+    background: #f6ffed;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+}
+
+.review-badge.rejected {
+    background: #fff2f0;
+    color: #ff4d4f;
+    border: 1px solid #ffccc7;
+}
+
+/* Filter compacting */
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+}
+
+:host ::ng-deep .p-inputtext {
+    width: 100% !important;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.table-footer-total {
+    font-weight: 600;
+    background-color: #f8f9fa !important;
+    padding: 10px 16px !important;
+    color: #495057;
+    border-top: 1px solid #dee2e6 !important;
+    text-align: left;
+}
+
+.total-count {
+    color: #1890ff;
+    font-size: 1.1em;
+    margin-left: 4px;
+}
+
+.col-date {
+    width: 110px;
+    text-align: center !important;
+}
+
+.text-wrap {
+    word-break: break-word;
+    white-space: normal !important;
+}
+
+.fw-bold {
+    font-weight: 700;
+}
+
+.text-muted {
+    color: #8c8c8c;
+}
+
+.status-filter {
+    width: 100%;
+    height: 30px !important;
+    padding: 0 8px !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    background: #fff !important;
+    cursor: pointer !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+}
+
+:host ::ng-deep .p-column-filter-row .p-inputtext {
+    height: 30px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+}
+
+:host ::ng-deep .p-datatable-thead > tr:nth-child(2) > th {
+    padding: 4px 6px !important;
+    background-color: #f8fafc !important;
+    vertical-align: middle !important;
+}
+
+:host ::ng-deep .p-column-filter-menu-button,
+:host ::ng-deep .p-column-filter-clear-button {
+    width: 24px;
+    height: 24px;
+}
+
+/* Sticky Footer */
+:host ::ng-deep .p-datatable-tfoot>tr>td {
+    position: sticky;
+    bottom: 0;
+    background-color: #f8fafc !important;
+    z-index: 10;
+    border-top: 2px solid #e2e8f0 !important;
+    font-weight: 600;
+    padding: 10px 16px !important;
+}
+
+.total-count {
+    color: #1890ff;
+    font-size: 1.1em;
+    margin-left: 4px;
+}
+
+:host ::ng-deep .p-datatable-inline-filter {
+    justify-content: space-between !important;
+}
+
+:host ::ng-deep .p-fluid {
+    width: 100% !important;
+}
+
+.approval-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.approval-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    padding: 0;
+}
+
+.approval-btn.approve {
+    border: 1.5px solid #52c41a;
+    color: #52c41a;
+}
+
+.approval-btn.approve:hover {
+    background: #52c41a;
+    color: #fff;
+}
+
+.approval-btn.reject {
+    border: 1.5px solid #ff4d4f;
+    color: #ff4d4f;
+}
+
+.approval-btn.reject:hover {
+    background: #ff4d4f;
+    color: #fff;
+}
+
+/* Header & Buttons */
+.header-section {
+    padding: 8px 16px;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-outline {
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    color: #595959;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-outline:hover {
+    color: #1890ff;
+    border-color: #1890ff;
+}
+
+.btn-sm {
+    padding: 2px 8px;
+    font-size: 12px;
+}
+
+.btn-excel {
+    background-color: #1d6f42 !important;
+    border-color: #1d6f42 !important;
+    color: #fff !important;
+}
+
+.btn-excel:hover {
+    background-color: #155d37 !important;
+    border-color: #155d37 !important;
+    color: #fff !important;
+}
+
+/* MultiSelect custom style for column filter */
+:host ::ng-deep .status-filter-multi {
+    width: 100%;
+}
+
+:host ::ng-deep .status-filter-multi .p-multiselect {
+    width: 100%;
+    padding: 0px 4px;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+}
+
+:host ::ng-deep .status-filter-multi .p-multiselect-label {
+    padding: 0 8px !important;
+    font-size: 11px !important;
+    line-height: 28px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+:host ::ng-deep .status-filter-multi .p-multiselect-trigger {
+    width: 20px;
+    height: 30px;
+}

@@ -166,7 +166,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.planStartDate = d;
         this.validateDates();
-        this.onPlanStartDateChange(d!);
     }
 
     get planEndDateStr(): string {
@@ -176,7 +175,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.planEndDate = d;
         this.validateDates();
-        this.onPlanEndDateChange(d!);
     }
 
     get startDateStr(): string {
@@ -186,7 +184,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.startDate = d;
         this.validateDates();
-        this.onStartDateChange(d!);
     }
 
     get endDateStr(): string {
@@ -196,7 +193,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.endDate = d;
         this.validateDates();
-        this.onEndDateChange(d!);
     }
 
     get minActualEndDate(): string {
@@ -279,9 +275,9 @@ export class TaskDetailComponent implements OnInit {
                 {
                     label: 'Xác nhận',
                     type: 'primary',
-                    disabled: (content) => !this.pendingReasonText.trim(),
+                    disabled: (content) => !(this.pendingReasonText || '').trim(),
                     onClick: () => {
-                        const reason = this.pendingReasonText.trim();
+                        const reason = (this.pendingReasonText || '').trim();
                         if (reason) {
                             const tempId = this._tempAdditionalIdCounter--;
                             const newItem: IProjectTaskAdditional = {

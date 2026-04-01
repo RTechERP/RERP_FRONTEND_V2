@@ -997,7 +997,7 @@ export class ProjectTaskComponent implements OnInit {
     const target = event.target as HTMLElement;
     const cell = target.closest('td');
     if (cell) {
-      const text = cell.innerText.trim();
+      const text = (cell.innerText || '').trim();
       if (text && text !== '-') {
         this.contextMenuItems = [
           {

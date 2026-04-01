@@ -47,6 +47,8 @@ export interface ProjectTaskItem {
     IsAdditional?: boolean | null;
     TaskComplexity?: number | null;
     PercentOverTime?: number | null;
+    AsigneeEmployeeID?: number | null;
+    AsigneeEmployeeFullName?: string | null;
 }
 
 export interface ProjectTaskResponse {

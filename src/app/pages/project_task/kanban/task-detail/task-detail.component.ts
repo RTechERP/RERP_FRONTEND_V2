@@ -1378,7 +1378,7 @@ export class TaskDetailComponent implements OnInit {
                 this.kanbanService.getChecklists(activeTask.ID).subscribe({
                     next: (res) => {
                         if (res.status === 200 || res.status === 1) {
-                            this.checklists = res.data || [];
+                            this.checklists = (res.data || []).sort((a, b) => (a.OrderIndex || 0) - (b.OrderIndex || 0));
                         }
                     },
                     error: (err) => console.error('Error fetching checklists', err)
@@ -1486,6 +1486,7 @@ export class TaskDetailComponent implements OnInit {
         this.checklists = [...this.checklists, tempItem];
         this.pendingChecklistOps.push({ type: 'add', item: { ...tempItem } });
         this.newChecklistItem = '';
+        this.reorderChecklists();
     }
 
     toggleChecklist(item: IProjectTaskChecklist) {
@@ -1536,6 +1537,7 @@ export class TaskDetailComponent implements OnInit {
             // Real item — queue a delete
             this.pendingChecklistOps.push({ type: 'delete', item: { ...item } });
         }
+        this.reorderChecklists();
     }
 
     // Start editing a checklist item
@@ -1562,6 +1564,34 @@ export class TaskDetailComponent implements OnInit {
     cancelEditChecklist(): void {
         this.editingChecklistId = null;
         this.editingChecklistTitle = '';
+    }
+
+    private reorderChecklists(): void {
+        this.checklists.forEach((item, index) => {
+            const oldOrder = item.OrderIndex;
+            item.OrderIndex = index;
+
+            if (item.ID > 0) {
+                // For existing items, update OrderIndex in pending ops if they exist
+                const existingOp = this.pendingChecklistOps.find(op => 
+                    op.item.ID === item.ID && (op.type === 'edit' || op.type === 'toggle')
+                );
+                if (existingOp) {
+                    existingOp.item.OrderIndex = index;
+                } else if (oldOrder !== index) {
+                    // Item moved but no other change -> queue an edit for OrderIndex sync
+                    this.pendingChecklistOps.push({ type: 'edit', item: { ...item } });
+                }
+            } else {
+                // For new items, update their pending 'add' operation
+                const addOp = this.pendingChecklistOps.find(op => 
+                    op.item.ID === item.ID && op.type === 'add'
+                );
+                if (addOp) {
+                    addOp.item.OrderIndex = index;
+                }
+            }
+        });
     }
 
     // ========== ADDITIONAL ISSUES METHODS (Phát sinh) ==========

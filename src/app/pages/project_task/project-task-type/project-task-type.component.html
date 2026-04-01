@@ -117,8 +117,9 @@
                     <i class="fa-solid fa-tag me-2"></i>
                     {{ form.get('ID')?.value > 0 ? 'CẬP NHẬT LOẠI TASK' : 'THÊM MỚI LOẠI TASK' }}
                 </h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
+                <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <div class="modal-body">
                 <form nz-form [formGroup]="form" (ngSubmit)="onSubmit()" nzLayout="vertical">

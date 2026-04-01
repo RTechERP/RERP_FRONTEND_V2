@@ -165,6 +165,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   dataProjectPartList: any[] = [];
   dataProjectPartListMaster: any[] = []; // Luôn giữ bản gốc 100% data để lọc
   projects: any[] = [];
+  recentProjects: any[] = [];
   warehouses: any[] = [];
   treeWorkerData: any[] = [];
 
@@ -219,6 +220,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   filterReturn: boolean = false;
   filterProductSale: boolean = false;
   headerFilterFunction: any = null; // Lưu header filter function gốc
+
+  // Recent projects localStorage key (per-user)
+  private readonly MAX_RECENT_PROJECTS = 10;
+  private get recentProjectsKey(): string {
+    const userId = this.appUserService.id || 'default';
+    return `recent_project_ids_partlist_${userId}`;
+  }
 
   // Subscriptions
   private subscriptions: Subscription[] = [];
@@ -2491,12 +2499,50 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       next: (response: any) => {
         if (response && response.status === 1) {
           this.projects = response.data || [];
+          // Nếu projectId được truyền từ bên ngoài (tabData/queryParams), lưu vào recent
+          if (this.projectId > 0) {
+            this.saveRecentProject(this.projectId);
+          }
+          this.loadRecentProjects();
         }
       },
       error: (error: any) => {
         console.error('Error loading projects:', error);
       },
     });
+  }
+
+  // Load recent projects from localStorage
+  private loadRecentProjects(): void {
+    try {
+      const key = this.recentProjectsKey;
+      const recentIds: number[] = JSON.parse(localStorage.getItem(key) || '[]');
+      this.recentProjects = recentIds
+        .map(id => this.projects.find(p => p.ID === id))
+        .filter(p => !!p);
+    } catch {
+      this.recentProjects = [];
+    }
+  }
+
+  // Save a project ID to recent history
+  private saveRecentProject(projectId: number): void {
+    if (!projectId || projectId <= 0) return;
+    try {
+      const key = this.recentProjectsKey;
+      let recentIds: number[] = JSON.parse(localStorage.getItem(key) || '[]');
+      // Remove if already exists, then add to front
+      recentIds = recentIds.filter(id => id !== projectId);
+      recentIds.unshift(projectId);
+      // Keep max items
+      if (recentIds.length > this.MAX_RECENT_PROJECTS) {
+        recentIds = recentIds.slice(0, this.MAX_RECENT_PROJECTS);
+      }
+      localStorage.setItem(key, JSON.stringify(recentIds));
+      this.loadRecentProjects();
+    } catch (e) {
+      console.error('Error saving recent project:', e);
+    }
   }
 
   loadWarehouses(): void {
@@ -3937,6 +3983,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       if (selectedProject) {
         this.projectCodex = selectedProject.ProjectCode || '';
       }
+      // Save to recent projects
+      this.saveRecentProject(this.projectId);
       this.loadDataSolution();
     } else {
       this.projectCodex = '';
@@ -5606,6 +5654,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       { header: 'Loại tiền Pur báo', field: 'CurrencyQuote', width: 18 },
       { header: 'Tỷ giá báo', field: 'CurrencyRateQuote', width: 12, isNumber: true },
       { header: 'Thành tiền quy đổi báo giá (VNĐ)', field: 'TotalPriceExchangeQuote', width: 25, isNumber: true },
+      { header: 'Ghi chú báo giá', field: 'NoteQuote', width: 20 },
       { header: 'Đơn giá Pur mua', field: 'UnitPricePurchase', width: 18, isNumber: true },
       { header: 'Thành tiền Pur mua', field: 'TotalPricePurchase', width: 18, isNumber: true },
       { header: 'Loại tiền Pur mua', field: 'CurrencyPurchase', width: 18 },

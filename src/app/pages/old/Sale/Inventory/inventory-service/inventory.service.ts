@@ -88,10 +88,11 @@ export class InventoryService {
     );
   }
   //nhat them set location cho san pham
-  setLocationList(locationID: number, lstIDs: number[]): Observable<any> {
+  setLocationList(locationID: number, lstIDs: number[], warehouseID: number): Observable<any> {
     const params = {
       locationID,
-      lstIDs
+      lstIDs,
+      warehouseID
     };
     return this.httpclient.post(`${environment.host}api/inventory/set-location-list`, params);
   }

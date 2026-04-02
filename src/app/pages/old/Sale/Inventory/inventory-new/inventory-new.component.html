@@ -34,14 +34,14 @@
               Yêu cầu mượn
             </button>
             <!-- set location -->
-            <button class="fs-12 btn inventory-new-fs-12 inventory-new-btn" nz-button nzType="default" nzSize="small"
-              (click)="onSetLocation()">
+            <button *hasPermission="'N27'" class="fs-12 btn inventory-new-fs-12 inventory-new-btn" nz-button
+              nzType="default" nzSize="small" (click)="onSetLocation()">
               <img class="btn-action-icon inventory-new-btn-action-icon" src="assets/icon/edit-btn.png"
                 alt="Sét vị trí" />
               Set
             </button>
-            <nz-select [(ngModel)]="locationID" nzAllowClear nzShowSearch nzSize="small" style="width: 15vw;"
-              nzPlaceHolder="Chọn vị trí">
+            <nz-select *hasPermission="'N27'" [(ngModel)]="locationID" nzAllowClear nzShowSearch nzSize="small"
+              style="width: 15vw;" nzPlaceHolder="Chọn vị trí">
               @for (item of locations; track $index) {
               <nz-option [nzLabel]="item.LocationName" [nzValue]="item.ID"
                 nzDropdownClassName="select-dropdown"></nz-option>

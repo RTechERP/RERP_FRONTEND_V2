@@ -307,8 +307,8 @@ export class CustomTreeTable implements OnChanges {
 
     getDefaultMatchMode(filterType: string = 'text'): string {
         if (filterType === 'numeric') return 'equals';
-        if (filterType === 'date') return 'dateIs';
-        return 'startsWith';
+        if (filterType === 'date' || filterType === 'datetime' || filterType === 'time') return 'dateIs';
+        return 'contains';
     }
 
     getMatchMode(field: string, filterType: string = 'text'): string {
@@ -328,7 +328,7 @@ export class CustomTreeTable implements OnChanges {
                 { label: 'Greater Than', value: 'gt' },
                 { label: 'Greater Than or Equal To', value: 'gte' }
             ];
-        } else if (filterType === 'date') {
+        } else if (filterType === 'date' || filterType === 'datetime' || filterType === 'time') {
             return [
                 { label: 'Is', value: 'dateIs' },
                 { label: 'Is Not', value: 'dateIsNot' },

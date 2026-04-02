@@ -22,7 +22,7 @@
                 </p-button>
                 <p-iconfield *ngIf="showGlobalFilter">
                     <p-inputicon styleClass="pi pi-search" />
-                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Global Search" />
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" (blur)="$any($event.target).value = $any($event.target).value?.trim()" placeholder="Global Search" />
                 </p-iconfield>
             </div>
         </div>
@@ -73,19 +73,33 @@
             </th>
         </tr>
         <!-- Filter Row -->
-        <tr *ngIf="showColumnFilter" class="filter-header-row">
-            <th *ngFor="let col of columns">
+        <tr *ngIf="showColumnFilter">
+            <th *ngFor="let col of columns" pFrozenColumn [frozen]="col.frozen || false" [alignFrozen]="col.alignFrozen || 'left'"
+                [style.left]="col.frozen ? col.frozenLeft : null" [style.right]="col.frozen ? col.frozenRight : null">
                 <!-- Default: text input filter (auto-filter on input) -->
-                <ng-container *ngIf="!col.filterMode || col.filterMode === 'input'">
+                <ng-container *ngIf="(!col.filterMode || col.filterMode === 'input') && col.filterType !== 'date' && col.filterType !== 'datetime' && col.filterType !== 'time'">
                     <input pInputText type="text" (input)="tt.filter($any($event.target).value, col.field, 'contains')"
-                        placeholder="Lọc..." style="width: 100%;" />
+                        (blur)="tt.filter($any($event.target).value?.trim(), col.field, 'contains')"
+                        [placeholder]="'Search ' + col.header" style="width: 100%;" />
+                </ng-container>
+
+                <!-- Date/DateTime/Time Filter -->
+                <ng-container *ngIf="(!col.filterMode || col.filterMode === 'input') && (col.filterType === 'date' || col.filterType === 'datetime' || col.filterType === 'time')">
+                        <p-datepicker (onSelect)="tt.filter($event, col.field, 'dateIs')"
+                            [showIcon]="false" appendTo="body"
+                            [dateFormat]="col.editDateFormat || 'dd/mm/yy'"
+                            [showTime]="col.filterType === 'datetime' || !!col.editShowTime"
+                            [timeOnly]="col.filterType === 'time'"
+                            [showButtonBar]="true" clearLabel="Hủy" todayLabel="Hôm nay"
+                            [style]="{ 'width': '100%' }">
+                        </p-datepicker>
                 </ng-container>
 
                 <!-- Dropdown filter -->
                 <ng-container *ngIf="col.filterMode === 'dropdown'">
                     <p-select [options]="getFilterOptions(col)"
                         (onChange)="tt.filter($event.value, col.field, 'equals')" optionLabel="label"
-                        optionValue="value" placeholder="Lọc..." [showClear]="true" appendTo="body"
+                        optionValue="value" [placeholder]="'Select ' + col.header" [showClear]="true" appendTo="body"
                         [style]="{ 'width': '100%' }">
                     </p-select>
                 </ng-container>
@@ -94,7 +108,7 @@
                 <ng-container *ngIf="col.filterMode === 'multiselect'">
                     <p-multiSelect [options]="getFilterOptions(col)"
                         (onChange)="tt.filter($event.value, col.field, 'in')" optionLabel="label" optionValue="value"
-                        placeholder="Lọc..." [filter]="true" appendTo="body"
+                        [placeholder]="'Select ' + col.header" [filter]="true" appendTo="body"
                         [style]="{ 'width': '100%' }"
                         [virtualScroll]="col.filterVirtualScroll || false"
                         [virtualScrollItemSize]="col.filterVirtualScrollItemSize || 30">

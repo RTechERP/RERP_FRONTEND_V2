@@ -22,6 +22,10 @@
     min-height: 0;
 }
 
+:host ::ng-deep .p-treetable-table {
+    table-layout: auto !important;
+}
+
 .truncate-text {
     white-space: nowrap;
     overflow: hidden;
@@ -33,72 +37,8 @@
     word-break: break-word;
 }
 
-/* Table font size (controlled via --table-font-size CSS variable) */
-:host ::ng-deep .p-treetable {
-    font-size: var(--table-font-size, 11px);
-}
-
 :host ::ng-deep .p-treetable .p-treetable-thead>tr>th {
     text-align: center;
-}
-
-/* Filter row compact height */
-:host ::ng-deep .p-treetable-thead > tr.filter-header-row > th {
-    padding: 2px 4px !important;
-}
-
-/* Normalize filter input heights */
-:host ::ng-deep .filter-header-row .p-inputtext,
-:host ::ng-deep .filter-header-row .p-select {
-    height: 24px !important;
-    min-height: 24px !important;
-    max-height: 24px !important;
-    box-sizing: border-box !important;
-    font-size: var(--table-font-size, 11px);
-    width: 100% !important;
-}
-
-:host ::ng-deep .filter-header-row .p-inputtext {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    line-height: 22px !important;
-}
-
-:host ::ng-deep .filter-header-row .p-select .p-select-label {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    line-height: 22px !important;
-    font-size: var(--table-font-size, 11px);
-}
-
-:host ::ng-deep .filter-header-row .p-select .p-select-dropdown {
-    width: 24px !important;
-}
-
-:host ::ng-deep .filter-header-row .p-multiselect {
-    height: 24px !important;
-    min-height: 24px !important;
-    max-height: 24px !important;
-    box-sizing: border-box !important;
-    font-size: var(--table-font-size, 11px);
-    width: 100% !important;
-}
-
-:host ::ng-deep .filter-header-row .p-multiselect .p-multiselect-label {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    line-height: 22px !important;
-    font-size: var(--table-font-size, 11px);
-}
-
-:host ::ng-deep .filter-header-row .p-multiselect .p-multiselect-dropdown {
-    width: 24px !important;
-}
-
-/* Click-to-select row highlight */
-:host ::ng-deep .p-treetable-tbody > tr.row-click-selected > td {
-    background: var(--p-primary-50, rgba(59, 130, 246, 0.08)) !important;
-    border-color: var(--p-primary-100, rgba(59, 130, 246, 0.2));
 }
 
 :host ::ng-deep .p-treetable .p-treetable-thead>tr>th .p-column-filter {
@@ -185,22 +125,7 @@
 /* Cell Focus Selection */
 :host ::ng-deep .focused-cell {
     outline: 2px solid var(--p-primary-color, #3b82f6) !important;
-    outline-offset: -2px;
+    outline-offset: -2px; /* Keeps the outline inside the cell bounds */
     position: relative;
     z-index: 1;
-}
-
-/* Multiselect overlay font size */
-::ng-deep .p-multiselect-overlay .p-select-overlay {
-    font-size: 12px !important;
-}
-::ng-deep .p-multiselect-filter .p-inputtext {
-    padding: 3px 15px 3px 5px;
-    font-size: 12px;
-}
-::ng-deep .p-select-list-container {
-    font-size: 12px;
-}
-::ng-deep .p-multiselect-list {
-    font-size: 12px;
 }

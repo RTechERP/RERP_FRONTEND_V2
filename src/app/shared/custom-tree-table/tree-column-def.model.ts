@@ -15,6 +15,10 @@ export interface TreeColumnDef {
     frozen?: boolean;
     /** Freeze direction: 'left' or 'right'. Default: 'left' */
     alignFrozen?: 'left' | 'right';
+    /** @internal computed by component */
+    frozenLeft?: string;
+    /** @internal computed by component */
+    frozenRight?: string;
     /** PrimeNG filter type: 'text' | 'numeric' | 'date'. Default: 'text' */
     filterType?: string;
     /** Filter UI mode: 'input' | 'dropdown' | 'multiselect'. Default: 'input' */

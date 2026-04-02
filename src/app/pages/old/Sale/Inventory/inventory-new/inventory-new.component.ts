@@ -54,6 +54,7 @@ import { ProjectPartlistPriceRequestNewComponent } from '../../../../purchase/pr
 import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { ProjectPartlistPriceRequestFormComponent } from '../../../project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
+import { ProductLocationService } from '../../../../general-category/product-location/product-location-service/product-location.service';
 
 interface ProductGroup {
     ID?: number;
@@ -145,11 +146,16 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         ParentID: 0
     };
 
+
+
     private subscriptions: Subscription[] = [];
 
     // ResizeObserver để detect khi tab được hiển thị lại
     private resizeObserver: ResizeObserver | null = null;
     private lastVisibleWidth: number = 0;
+    //nhat them set location cho san pham
+    locations: any[] = [];
+    locationID: number = 0;
 
     constructor(
         private productsaleSV: ProductsaleServiceService,
@@ -164,6 +170,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         @Optional() @Inject('tabData') private tabData: any,
         private elementRef: ElementRef,
         private tabService: TabServiceService,
+        private productLocationService: ProductLocationService,
     ) { }
 
     ngOnInit(): void {
@@ -246,6 +253,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             // Load data mỗi khi params thay đổi
             this.getProductGroup();
             this.getDataProductGroupWareHouse(this.productGroupID);
+            this.getLocation();
         });
         this.subscriptions.push(sub);
     }
@@ -2098,4 +2106,41 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     //#endregion
 
+    //#region Set Location
+    getLocation() {
+        this.productLocationService.getProductLocations().subscribe((res: any) => {
+            this.locations = res.data;
+            console.log('location', this.locations);
+        });
+    }
+    onSetLocation() {
+        const selectedRows = this.getSelectedInventoryRows();
+        if (selectedRows.length === 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm để set vị trí!');
+            return;
+        }
+
+        if (this.locationID === 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn vị trí!');
+            return;
+        }
+
+        const lstIDs = selectedRows.map((row: any) => row.ProductSaleID || row.ID);
+
+        this.inventoryService.setLocationList(this.locationID, lstIDs).subscribe({
+            next: (res) => {
+                if (res.status == 1) {
+                    this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật vị trí thành công');
+                    this.getInventory();
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Cập nhật vị trí thất bại');
+                }
+            },
+            error: (err) => {
+                console.error('Lỗi khi set vị trí:', err);
+                this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật vị trí');
+            }
+        });
+    }
+    //#endregion
 }

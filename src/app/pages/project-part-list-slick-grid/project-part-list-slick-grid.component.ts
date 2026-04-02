@@ -7146,16 +7146,29 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           this.notification.warning('Thông báo', `[Số lượng tổng] có số thứ tự [${row.TT}] phải lớn hơn 0!\nVui lòng kiểm tra lại!`);
           return;
         }
-        if (!row.StatusPriceRequest || row.StatusPriceRequest < 0) {
-          this.notification.warning('Thông báo', `Vật tư có số thứ tự [${row.TT}] chưa được yêu cầu báo giá lần nào!\nVui lòng chọn chức năng yêu cầu báo giá!`);
+        // Kiểm tra từng StatusRequest để đưa ra thông báo rõ ràng nhất
+        if (row.StatusRequest === 1) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] đang yêu cầu báo giá.\nVui lòng chờ báo giá!`);
           return;
         }
-        if (row.StatusPriceRequest == 1 && row.DatePriceQuote == null) {
-          this.notification.warning('Thông báo', `Vật tư có số thứ tự [${row.TT}] đã được yêu cầu báo giá!\nVui lòng chờ báo giá !`);
+        if (row.StatusRequest === 3) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] đã hoàn thành báo giá.\nKhông thể yêu cầu báo giá lại!`);
           return;
         }
-        if (row.StatusPriceRequest == 1 && row.DatePriceQuote != null && row.IsCheckPrice == 1) {
-          this.notification.warning('Thông báo', `Vật tư có số thứ tự [${row.TT}] chưa được báo giá!\nVui lòng chờ báo giá !`);
+        if (row.StatusRequest === 4) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] đang yêu cầu check lại trạng thái.\nKhông thể yêu cầu báo giá lại!`);
+          return;
+        }
+        if (row.StatusRequest === 5) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] đã bị từ chối báo giá.\nKhông thể yêu cầu báo giá lại!`);
+          return;
+        }
+        if (row.StatusRequest === 6) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] đã được yêu cầu báo giá lại.\nVui lòng chờ báo giá!`);
+          return;
+        }
+        if (row.StatusRequest !== 2 && row.StatusRequest !== 7) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] chưa được báo giá hợp lệ.\nHãy yêu cầu báo giá trước!`);
           return;
         }
         if (row.IsApprovedPurchase == true) {

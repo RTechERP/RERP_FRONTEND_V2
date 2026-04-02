@@ -223,6 +223,30 @@
     width: 100%;
     margin-top: 1rem;
     margin-bottom: 1.5rem;
+    max-height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.05);
+}
+
+.exam-mini-cards-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.exam-mini-cards-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.exam-mini-cards-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+}
+
+.exam-mini-cards-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
 }
 
 .exam-list {

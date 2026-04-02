@@ -75,13 +75,14 @@
                     </tr>
                     <tr>
                         <th></th>
-                        <th><p-columnFilter type="text" field="CodeExam" display="row"></p-columnFilter></th>
-                        <th><p-columnFilter type="text" field="NameExam" display="row"></p-columnFilter></th>
-                        <th><p-columnFilter type="text" field="ExamTypeText" display="row"></p-columnFilter></th>
-                        <th style="width: 100px" class="text-right"><p-columnFilter type="numeric" field="TestTime"
-                                display="row"></p-columnFilter></th>
-                        <th style="width: 100px" class="text-right"><p-columnFilter type="numeric" field="Goal"
-                                display="row"></p-columnFilter></th>
+                        <th><p-columnFilter type="text" field="CodeExam" display="row" filterOn="input"
+                                matchMode="contains"></p-columnFilter></th>
+                        <th><p-columnFilter type="text" field="NameExam" display="row" filterOn="input"
+                                matchMode="contains"></p-columnFilter></th>
+                        <th><p-columnFilter type="text" field="ExamTypeText" display="row" filterOn="input"
+                                matchMode="contains"></p-columnFilter></th>
+                        <th style="width: 100px" class="text-right"></th>
+                        <th style="width: 100px" class="text-right"></th>
                     </tr>
                 </ng-template>
 

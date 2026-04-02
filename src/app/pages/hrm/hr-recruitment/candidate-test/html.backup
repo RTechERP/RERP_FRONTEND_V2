@@ -122,13 +122,7 @@
         <!-- ===== BODY ===== -->
         <div class="exam-body" *ngIf="pageState === 'taking'">
             <div *ngIf="isLoading" class="loading-overlay">
-                <div class="loading-card">
-                    <div class="loading-dots">
-                        <span></span><span></span><span></span>
-                    </div>
-                    <p class="loading-text">Đang chuẩn bị câu hỏi...</p>
-                    <span class="loading-exam-name">{{ activeExam?.NameExam || nameExam }}</span>
-                </div>
+                <nz-spin nzSize="large" nzTip="Đang tải câu hỏi..."></nz-spin>
             </div>
 
             <nz-tabset *ngIf="!isLoading" [(nzSelectedIndex)]="activeTabIndex" class="exam-tabs">
@@ -152,7 +146,7 @@
                             </div>
                             <div class="q-hint">
                                 <span nz-icon nzType="info-circle" nzTheme="outline"></span>
-                                Chọn 1 đáp án đúng
+                                Có thể chọn nhiều đáp án
                             </div>
                         </div>
 
@@ -186,7 +180,7 @@
                         </div>
 
                         <!-- Candidate Answer Uploads (MC) -->
-                        <div [class]="'answers-list ' + answerLayoutClass(currentMcQuestion)">
+                        <div class="answers-list">
                             <div *ngFor="let ans of currentMcQuestion.Answers" class="answer-option"
                                 [class.selected]="isAnswerSelected(currentMcQuestion, ans.ID)"
                                 (click)="toggleAnswer(currentMcQuestion, ans.ID)">
@@ -333,9 +327,7 @@
                     <div class="nav-pills">
                         <button *ngFor="let q of multipleChoiceQuestions; let i = index" class="nav-pill"
                             [class.nav-current]="i === currentMcIndex && activeTabIndex === 0"
-                            [class.nav-answered]="q.SelectedAnswers.length > 0"
-                            [class.nav-saved]="lastSavedIndex === i && lastSavedType === 'mc'"
-                            [title]="'Câu ' + (i + 1)"
+                            [class.nav-answered]="q.SelectedAnswers.length > 0" [title]="'Câu ' + (i + 1)"
                             (click)="jumpToQuestion('mc', i)">
                             {{ i + 1 }}
                         </button>
@@ -348,7 +340,6 @@
                         <button *ngFor="let q of essayQuestions; let i = index" class="nav-pill nav-pill-essay"
                             [class.nav-current]="i === currentEssayIndex && (activeTabIndex === 1 || !hasMultipleChoice)"
                             [class.nav-answered]="q.EssayAnswer && q.EssayAnswer.trim().length > 0"
-                            [class.nav-saved]="lastSavedIndex === i && lastSavedType === 'essay'"
                             [title]="'Câu ' + (multipleChoiceQuestions.length + i + 1)"
                             (click)="jumpToQuestion('essay', i)">
                             {{ multipleChoiceQuestions.length + i + 1 }}
@@ -371,75 +362,6 @@
                     </button>
                     <button nz-button nzType="primary" [disabled]="isLastQuestion" (click)="goToNextQuestion()">
                         Câu sau <span nz-icon nzType="right"></span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== FLOATING QUESTION MAP BUTTON ===== -->
-    <button class="q-map-float-btn" *ngIf="pageState === 'taking' && !isLoading"
-        (click)="toggleQuestionMap()" nz-tooltip nzTooltipTitle="Xem tổng quan câu hỏi"
-        [class.q-map-float-active]="isQuestionMapOpen">
-        <span nz-icon nzType="appstore" nzTheme="outline"></span>
-    </button>
-
-    <!-- ===== QUESTION MAP OVERLAY ===== -->
-    <div class="q-map-overlay" *ngIf="isQuestionMapOpen" (click)="toggleQuestionMap()">
-        <div class="q-map-panel" (click)="$event.stopPropagation()">
-            <!-- Header -->
-            <div class="q-map-header">
-                <span class="q-map-title">
-                    <span nz-icon nzType="appstore" nzTheme="outline"></span>
-                    Tổng quan bài thi
-                </span>
-                <button class="q-map-close" (click)="toggleQuestionMap()">
-                    <span nz-icon nzType="close"></span>
-                </button>
-            </div>
-            <!-- Legend -->
-            <div class="q-map-legend">
-                <span class="q-map-legend-item">
-                    <span class="q-map-dot dot-unanswered"></span> Chưa làm
-                </span>
-                <span class="q-map-legend-item">
-                    <span class="q-map-dot dot-answered"></span> Đã làm
-                </span>
-                <span class="q-map-legend-item">
-                    <span class="q-map-dot dot-current"></span> Đang xem
-                </span>
-            </div>
-            <!-- Trắc nghiệm -->
-            <div class="q-map-section" *ngIf="hasMultipleChoice">
-                <div class="q-map-section-label">
-                    <span nz-icon nzType="check-square" nzTheme="outline"></span>
-                    Trắc nghiệm
-                    <span class="q-map-count">{{ answeredCount }}/{{ multipleChoiceQuestions.length }}</span>
-                </div>
-                <div class="q-map-grid">
-                    <button *ngFor="let q of multipleChoiceQuestions; let i = index"
-                        class="q-map-pill"
-                        [class.q-map-answered]="q.SelectedAnswers.length > 0"
-                        [class.q-map-current]="i === currentMcIndex && activeTabIndex === 0"
-                        (click)="jumpToQuestion('mc', i); toggleQuestionMap()">
-                        {{ i + 1 }}
-                    </button>
-                </div>
-            </div>
-            <!-- Tự luận -->
-            <div class="q-map-section" *ngIf="hasEssay">
-                <div class="q-map-section-label">
-                    <span nz-icon nzType="edit" nzTheme="outline"></span>
-                    Tự luận
-                    <span class="q-map-count">{{ essayAnsweredCount }}/{{ essayQuestions.length }}</span>
-                </div>
-                <div class="q-map-grid">
-                    <button *ngFor="let q of essayQuestions; let i = index"
-                        class="q-map-pill q-map-pill-essay"
-                        [class.q-map-answered]="q.EssayAnswer && q.EssayAnswer.trim().length > 0"
-                        [class.q-map-current]="i === currentEssayIndex && (activeTabIndex === 1 || !hasMultipleChoice)"
-                        (click)="jumpToQuestion('essay', i); toggleQuestionMap()">
-                        {{ multipleChoiceQuestions.length + i + 1 }}
                     </button>
                 </div>
             </div>

@@ -118,14 +118,6 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
   activeTabIndex = 0;
   overlayImageUrl: string | null = null;
   examResultID: number = 0;
-
-  /** Trạng thái panel Xem tổng quan câu hỏi */
-  isQuestionMapOpen = false;
-  /** Index câu vừa lưu để flash feedback */
-  lastSavedIndex: number | null = null;
-  /** Loại câu vừa lưu ('mc' | 'essay') */
-  lastSavedType: 'mc' | 'essay' = 'mc';
-  private saveFlashTimeout: any = null;
   //#endregion
 
   //#region 4. Bộ đếm thời gian (Khai báo)
@@ -193,26 +185,6 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     return this.examList.every(e => this.completedExamIds.has(e.ID));
   }
   get completedCount(): number { return this.completedExamIds.size; }
-
-  /**
-   * Quyết định layout 1 hay 2 cột cho danh sách đáp án.
-   * - Mobile (CSS): luôn 1 cột qua media query.
-   * - Desktop: 2 cột nếu ≤4 đáp án, không có ảnh, text ngắn.
-   */
-  answerLayoutClass(question: MultipleChoiceQuestion | null): string {
-    if (!question || question.Answers.length === 0) return 'answers-1col';
-    const hasImages = question.Answers.some(a => !!a.imagePreviewUrl);
-    const hasLongText = question.Answers.some(a => (a.AnswerText || '').length > 55);
-    if (!hasImages && !hasLongText && question.Answers.length <= 4) {
-      return 'answers-2col';
-    }
-    return 'answers-1col';
-  }
-
-  /** Mở/đóng panel tổng quan câu hỏi */
-  toggleQuestionMap(): void {
-    this.isQuestionMapOpen = !this.isQuestionMapOpen;
-  }
   //#endregion
 
   //#region 7. Khởi tạo & Vòng đời (Lifecycle)
@@ -243,39 +215,6 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     if (this.pageState === 'taking' && !this.isFinished) {
       event.preventDefault();
       event.returnValue = 'Bạn đang làm bài thi. Thoát sẽ không lưu bài!';
-    }
-  }
-
-  /** Keyboard shortcuts: Arrow prev/next, Enter = lưu & tiếp */
-  @HostListener('window:keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent): void {
-    if (this.pageState !== 'taking' || this.isLoading || this.isSubmitting) return;
-    // Bỏ qua khi focus trong textarea/input/select (phần tự luận, dropdown...)
-    const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
-    if (tag === 'textarea' || tag === 'input' || tag === 'select') return;
-    // Bỏ qua khi đang mở modal hoặc overlay
-    if (this.overlayImageUrl || this.isQuestionMapOpen) return;
-
-    const key = event.key;
-
-    // Arrow Right / Arrow Down → Câu tiếp
-    if (key === 'ArrowRight' || key === 'ArrowDown') {
-      event.preventDefault();
-      this.goToNextQuestion();
-      return;
-    }
-    // Arrow Left / Arrow Up → Câu trước
-    if (key === 'ArrowLeft' || key === 'ArrowUp') {
-      event.preventDefault();
-      this.goToPrevQuestion();
-      return;
-    }
-    // Enter → Lưu & Tiếp (chỉ khi không focus vào button)
-    if (key === 'Enter') {
-      const activeTag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
-      if (activeTag === 'button' || activeTag === 'a') return;
-      event.preventDefault();
-      this.onSaveAndNext();
     }
   }
   //#endregion
@@ -773,25 +712,10 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
   }
 
   onSaveAndNext(): void {
-    // Ghi nhớ index câu hiện tại để flash feedback sau khi lưu
-    const savedIdx = this.activeTabIndex === 0 && this.hasMultipleChoice
-      ? this.currentMcIndex : this.currentEssayIndex;
-    const savedType: 'mc' | 'essay' = (this.activeTabIndex === 0 && this.hasMultipleChoice) ? 'mc' : 'essay';
-
     this.isLoading = true;
     this.autoSaveCurrentQuestion(() => {
       this.isLoading = false;
-
-      // Flash feedback: pill câu vừa lưu sáng lên trong 700ms
-      this.lastSavedIndex = savedIdx;
-      this.lastSavedType = savedType;
-      if (this.saveFlashTimeout) clearTimeout(this.saveFlashTimeout);
-      this.saveFlashTimeout = setTimeout(() => {
-        this.lastSavedIndex = null;
-        this.cdr.detectChanges();
-      }, 700);
-
-      // Chuyển sang câu tiếp
+      // Proceed to next directly
       if (this.activeTabIndex === 0 && this.hasMultipleChoice) {
         if (this.currentMcIndex < this.multipleChoiceQuestions.length - 1) this.currentMcIndex++;
         else if (this.hasEssay) { this.activeTabIndex = 1; this.currentEssayIndex = 0; }

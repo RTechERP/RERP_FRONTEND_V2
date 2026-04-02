@@ -48,12 +48,20 @@
                             <span>Chưa có bài thi nào</span>
                         </div>
 
+                        <!-- Cảnh báo chưa điền tờ khai -->
+                        <div *ngIf="!isFormComplete && examList.length > 0" class="mb-3 p-2 rounded text-danger"
+                            style="background-color: #fff1f0; border: 1px solid #ffccc7; font-size: 14px;">
+                            <span nz-icon nzType="warning" nzTheme="fill" class="mr-1"></span>
+                            Yêu cầu: Hoàn tất "Điền tờ khai thông tin" để làm bài.
+                        </div>
+
                         <!-- Mini Cards cho từng đề thi - 2 cột -->
                         <div *ngIf="examList.length > 0" class="exam-mini-cards-grid">
                             <div *ngFor="let exam of examList" class="exam-mini-card horizontal-card"
                                 [class.status-completed]="exam.StatusResult === 2 || exam.StatusResult === 1"
-                                [class.status-inprogress]="exam.StatusResult === 0">
-                                <!-- [class.status-pending]="exam.StatusResult === 1" -->
+                                [class.status-inprogress]="exam.StatusResult === 0"
+                                [class.status-locked]="!isFormComplete || exam.IsExamActive === 0 || exam.IsExamActive === false">
+
                                 <div class="card-left">
                                     <div class="exam-icon-wrapper">
                                         <span nz-icon [nzType]="exam.StatusResult === 2 ? 'check-circle' : 'file-text'"
@@ -62,7 +70,7 @@
                                     <div class="exam-info-text">
                                         <h3 class="exam-mini-name" [nzTooltipTitle]="exam.NameExam" nz-tooltip>{{
                                             exam.NameExam }}</h3>
-                                        <div class="exam-status-badge">{{ exam.StatusText }}</div>
+                                        <div class="exam-status-badge">{{ exam.ExamStatusText }}</div>
                                     </div>
                                 </div>
 
@@ -87,9 +95,8 @@
                         </div>
 
                         <div *ngIf="examList.length > 0" class="exam-start-btn" [class.btn-disabled]="allExamsDisabled">
-                            <span>{{ allExamsDisabled ? 'Đã hoàn tất bài thi' : 'Bắt đầu thi' }}</span>
-                            <span nz-icon [nzType]="allExamsDisabled ? 'check' : 'arrow-right'"
-                                nzTheme="outline"></span>
+                            <span>{{ getStartButtonText() }}</span>
+                            <span nz-icon [nzType]="getStartButtonIcon()" nzTheme="outline"></span>
                         </div>
                     </div>
                 </div>

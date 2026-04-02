@@ -1,0 +1,204 @@
+<!-- <div class="modal-header bg-primary text-white py-2">
+  <h6 class="modal-title m-0"><i nz-icon nzType="form" class="mr-2"></i>Chấm điểm bài thi: <span class="text-warning">{{candidateName}}</span></h6>
+  <button type="button" class="close text-white outline-none border-0 bg-transparent" (click)="onClose()">
+    <span style="font-size: 24px;">&times;</span>
+  </button>
+</div> -->
+<div class="modal-footer bg-white border-top shadow-sm">
+  <div class="d-flex gap-2 w-100 align-items-center">
+    <!-- <button nz-button nzType="default" (click)="onClose()">Hủy bỏ</button> -->
+    <button nz-button nzType="primary" (click)="finalize()" [nzLoading]="isLoading" class="ml-2">
+      XÁC NHẬN HOÀN TẤT CHẤM ĐIỂM
+    </button>
+  </div>
+</div>
+<div class="modal-body p-0 grading-container bg-light">
+  <nz-spin [nzSpinning]="isLoading">
+    <div class="p-3 candidate-header border-bottom bg-white d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <i nz-icon nzType="user" class="mr-2 text-primary"></i>
+        <h6 class="m-0">Chấm điểm ứng viên: <span class="text-primary fw-bold">{{candidateName}}</span></h6>
+      </div>
+      <div class="filter-group">
+        <nz-radio-group [(ngModel)]="filterType" nzSize="small" nzButtonStyle="solid">
+          <label nz-radio-button nzValue="all">
+            <i nz-icon nzType="unordered-list" class="mr-1"></i>Tất cả ({{details.length}})
+          </label>
+          <label nz-radio-button nzValue="mcq">
+            <i nz-icon nzType="check-square" class="mr-1"></i>Trắc nghiệm ({{mcqCount}})
+          </label>
+          <label nz-radio-button nzValue="essay">
+            <i nz-icon nzType="edit" class="mr-1"></i>Tự luận ({{essayCount}})
+          </label>
+        </nz-radio-group>
+      </div>
+    </div>
+    <div class="p-3" style="max-height: calc(100vh - 180px); overflow-y: auto;">
+      <div *ngFor="let item of filteredDetails; let i = index" class="question-card mb-4 border rounded p-3 bg-white shadow-sm">
+
+        <!-- Header: QuestionType + STT + Point -->
+        <div class="d-flex justify-content-between align-items-start border-bottom">
+          <div class="question-header">
+            <nz-tag [nzColor]="item.QuestionType === 1 ? 'blue' : 'orange'" class="mr-2">
+              {{item.QuestionType === 1 ? 'Trắc nghiệm' : 'Tự luận'}}
+            </nz-tag>
+            <span class="fw-bold">Câu {{item.STT}}:</span>
+            <div [innerHTML]="item.QuestionText" class="mt-2 text-dark font-weight-500"></div>
+          </div>
+          <div class="max-point text-muted bg-light px-2 py-1 rounded border">
+            Điểm tối đa: <span class="fw-bold text-primary">{{item.Point}}</span>
+          </div>
+        </div>
+
+        <!-- ===== QUESTION ATTACHMENTS (Images/Files) ===== -->
+        <div *ngIf="item.qImages && item.qImages.length > 0"
+          class="question-attachments mb-3 p-2 bg-light rounded border">
+          <div class="text-muted small mb-2 font-weight-bold">
+            <i nz-icon nzType="paper-clip" class="mr-1"></i>Đính kèm câu hỏi:
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <div *ngFor="let file of item.qImages"
+              class="attachment-item mr-2 mb-2 border rounded overflow-hidden shadow-sm bg-white d-flex align-items-center p-1"
+              style="min-width: 150px; max-width: 200px;">
+              <!-- Image Preview -->
+              <div *ngIf="file.isImage" class="thumb mr-2" style="width: 50px; height: 50px; flex-shrink: 0;">
+                <img *ngIf="file.blobUrl" [src]="file.blobUrl" (click)="openImageOverlay(file.blobUrl)"
+                  style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" title="Click để xem to">
+                <div *ngIf="!file.blobUrl" class="d-flex align-items-center justify-content-center bg-light h-100"><i
+                    nz-icon nzType="loading"></i></div>
+              </div>
+              <!-- File Icon -->
+              <div *ngIf="!file.isImage" class="thumb mr-2 d-flex align-items-center justify-content-center bg-light"
+                style="width: 50px; height: 50px; flex-shrink: 0;">
+                <i nz-icon nzType="file" style="font-size: 24px; color: #1890ff;"></i>
+              </div>
+              <!-- Filename & Download -->
+              <div class="file-info overflow-hidden">
+                <div class="text-truncate small font-weight-bold" [title]="file.fileName">{{file.fileName}}</div>
+                <a href="javascript:void(0)" class="small text-primary" (click)="downloadFileFromServer(file)">
+                  <i nz-icon nzType="download" class="mr-1"></i>Tải về
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== ANSWER SECTION ===== -->
+        <div class="answer-section p-3 rounded"
+          [style.background-color]="item.QuestionType === 1 ? '#f0f7ff' : '#fff9f0'">
+          <div class="fw-bold mb-2 d-flex align-items-center">
+            <span [class.text-blue]="item.QuestionType === 1" [class.text-orange]="item.QuestionType === 2">
+              Bài làm của ứng viên:
+            </span>
+          </div>
+
+          <!-- MCQ Answer — Show ALL selected answers (supports multi-choice) -->
+          <div *ngIf="item.QuestionType === 1" class="mcq-answer pl-2">
+            <ng-container *ngIf="item.selectedAnswers && item.selectedAnswers.length > 0; else noAnswer">
+              <div *ngFor="let ans of item.selectedAnswers"
+                [class.text-success]="ans.isCorrect"
+                [class.text-danger]="!ans.isCorrect"
+                class="d-flex align-items-center mb-1">
+                <i nz-icon [nzType]="ans.isCorrect ? 'check-circle' : 'close-circle'" class="mr-2"></i>
+                <span class="font-weight-500">{{ ans.content }}</span>
+              </div>
+            </ng-container>
+            <ng-template #noAnswer>
+              <span class="text-muted fst-italic">(Không chọn đáp án)</span>
+            </ng-template>
+            <!-- Overall result badge based on full-SET evaluation from SP -->
+            <div class="mt-2">
+              <nz-tag [nzColor]="item.IsCorrect ? 'success' : 'error'">
+                {{ item.IsCorrect ? '✓ Đúng toàn bộ' : '✗ Sai' }}
+              </nz-tag>
+            </div>
+          </div>
+
+
+          <!-- Essay Answer -->
+          <div *ngIf="item.QuestionType === 2" class="essay-answer">
+            <div class="white-space-pre-wrap answer-text p-2 border rounded bg-white">
+              {{item.AnswerText || '(Không có câu trả lời từ ứng viên)'}}
+            </div>
+          </div>
+
+          <!-- ===== ANSWER ATTACHMENTS (Images/Files) ===== -->
+          <div *ngIf="item.aImages && item.aImages.length > 0" class="answer-attachments pt-2 border-top">
+            <div class="text-muted small mb-2 font-weight-bold">
+              <i nz-icon nzType="folder-open" class="mr-1"></i>File đính kèm bài làm/đáp án:
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <div *ngFor="let file of item.aImages"
+                class="attachment-item mr-2 mb-2 border rounded overflow-hidden shadow-sm bg-white d-flex align-items-center p-1"
+                style="min-width: 150px; max-width: 200px;">
+                <!-- Image Preview -->
+                <div *ngIf="file.isImage" class="thumb mr-2" style="width: 50px; height: 50px; flex-shrink: 0;">
+                  <img *ngIf="file.blobUrl" [src]="file.blobUrl" (click)="openImageOverlay(file.blobUrl)"
+                    style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" title="Click để xem to">
+                  <div *ngIf="!file.blobUrl" class="d-flex align-items-center justify-content-center bg-light h-100"><i
+                      nz-icon nzType="loading"></i></div>
+                </div>
+                <!-- File Icon -->
+                <div *ngIf="!file.isImage" class="thumb mr-2 d-flex align-items-center justify-content-center bg-light"
+                  style="width: 50px; height: 50px; flex-shrink: 0;">
+                  <i nz-icon nzType="file-text" style="font-size: 24px; color: #fa8c16;"></i>
+                </div>
+                <!-- Filename & Download -->
+                <div class="file-info overflow-hidden">
+                  <div class="text-truncate small font-weight-bold" [title]="file.fileName">{{file.fileName}}</div>
+                  <a href="javascript:void(0)" class="small text-primary" (click)="downloadFileFromServer(file)">
+                    <i nz-icon nzType="download" class="mr-1"></i>Tải về
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Essay Guidance for HR -->
+          <div *ngIf="item.QuestionType === 2 && item.EssayGuidance" class="guidance border-top pt-2">
+            <div class="text-muted small italic mb-1 font-weight-bold">
+              <i nz-icon nzType="info-circle" class="mr-1"></i>Gợi ý đáp án (Dành cho HR):
+            </div>
+            <div [innerHTML]="item.EssayGuidance" class="small p-2 bg-white rounded border italic text-secondary"></div>
+          </div>
+        </div>
+
+        <!-- ===== GRADING AREA ===== -->
+        <div class="grading-area d-flex align-items-center justify-content-end px-3 py-2 bg-light rounded border"
+          style="gap:10px">
+          <span class="mr-3 font-weight-bold">Chấm điểm:</span>
+
+          <nz-input-number [(ngModel)]="item.Score" [nzMin]="0" [nzMax]="item.Point" [nzStep]="0.25"
+            [nzDisabled]="item.QuestionType === 1" nzSize="small" style="width: 90px;" class="mr-3 border-primary">
+          </nz-input-number>
+
+          <button *ngIf="item.QuestionType === 2" nz-button nzType="primary" nzSize="small" class="shadow-sm"
+            (click)="saveScore(item)">
+            <i nz-icon nzType="save"></i> Lưu điểm
+          </button>
+
+          <div *ngIf="item.QuestionType === 1" class="text-muted small">
+            <nz-tag [nzColor]="item.IsCorrect ? 'success' : 'error'">Chấm tự động</nz-tag>
+          </div>
+
+          <div *ngIf="item.QuestionType === 2 && item.IsGraded" class="ml-3 text-success font-weight-bold">
+            <i nz-icon nzType="check-circle" nzTheme="fill"></i> Đã chấm
+          </div>
+        </div>
+      </div>
+    </div>
+  </nz-spin>
+</div>
+
+
+
+<!-- Image Overlay (xem ảnh to) - Adopting project pattern -->
+<div class="img-overlay" *ngIf="overlayImageUrl" (click)="closeImageOverlay()">
+  <div class="img-overlay-content" (click)="$event.stopPropagation()">
+    <button class="img-overlay-close" (click)="closeImageOverlay()">
+      <nz-icon nzType="close" style="font-size:20px; color: white;"></nz-icon>
+    </button>
+    <img [src]="overlayImageUrl" class="img-overlay-img" alt="Xem ảnh to"
+      style="max-width: 90vw; max-height: 90vh; object-fit: contain; box-shadow: 0 0 20px rgba(0,0,0,0.5);" />
+  </div>
+</div>

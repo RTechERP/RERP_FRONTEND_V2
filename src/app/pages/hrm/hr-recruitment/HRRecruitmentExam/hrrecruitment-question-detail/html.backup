@@ -201,7 +201,7 @@
                                     (keydown.tab)="onAnswerTab($event, i)"></textarea>
                             </td>
                             <td class="text-center">
-                                <label nz-checkbox [(ngModel)]="answer.RightAnswer" (ngModelChange)="onRightAnswerChange($event, i)" [name]="'rightAnswer_' + i"></label>
+                                <label nz-checkbox [(ngModel)]="answer.RightAnswer" [name]="'rightAnswer_' + i"></label>
                             </td>
                             <td class="text-center">
                                 <div class="answer-image-cell">

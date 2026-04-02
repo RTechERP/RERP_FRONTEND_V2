@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { FilterService } from 'primeng/api';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,6 +22,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TableModule } from 'primeng/table';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -37,6 +39,7 @@ import { HRRecruitmentQuestionDetailComponent } from '../hrrecruitment-question-
 import { CopyQuestionComponent } from '../copy-question/copy-question.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+
 
 @Component({
     selector: 'app-hrrecruitment-exam',
@@ -55,6 +58,7 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
         NzFormModule,
         NzGridModule,
         NzInputModule,
+        NzDropDownModule,
         TableModule,
         CheckboxModule,
         TooltipModule,
@@ -120,6 +124,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
     //#endregion
 
     constructor(
+        private filterService: FilterService,
         private notification: NzNotificationService,
         private examService: HRRecruitmentExamService,
         private modal: NzModalService,
@@ -128,7 +133,14 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
         private tabService: TabServiceService,
         private permissionService: PermissionService,
         private appUserService: AppUserService,
-    ) { }
+    ) {
+        this.filterService.register('htmlContains', (value: any, filter: any) => {
+            if (!value || !filter) return true;
+
+            const text = this.stripHtml(value).toLowerCase();
+            return text.includes(filter.toLowerCase());
+        });
+    }
 
     //#region Lifecycle hooks
 
@@ -818,11 +830,98 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
 
     //#region Tiện ích
 
-    /** Xóa tag HTML để hiển thị tooltip text thuần */
+    /** Xóa tag HTML để hiển thị tooltip text thuần và tập trung tìm kiếm */
     stripHtml(html: any): string {
         if (!html) return '';
-        return String(html).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        let text = String(html).replace(/<[^>]*>/g, ' ');
+
+        // Giải mã các thực thể HTML phổ biến để tìm kiếm chính xác hơn
+        const entities: { [key: string]: string } = {
+            '&nbsp;': ' ',
+            '&lt;': '<',
+            '&gt;': '>',
+            '&amp;': '&',
+            '&quot;': '"',
+            '&apos;': "'"
+        };
+
+        for (const [entity, replacement] of Object.entries(entities)) {
+            text = text.replace(new RegExp(entity, 'gi'), replacement);
+        }
+
+        // Xử lý các thực thể số (ví dụ: &#160; cho nbsp)
+        text = text.replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec));
+
+        return text.replace(/\s+/g, ' ').trim();
     }
+
+    /** Mở file/ảnh đính kèm trong cửa sổ trình duyệt mới hoặc tải về */
+    openAttachmentInNewWindow(serverPath: string, fileName: string): void {
+        if (!serverPath) {
+            this.notification.error('Lỗi', 'Đường dẫn file không hợp lệ');
+            return;
+        }
+
+        // Lấy extension từ tên file (vd: .pdf, .docx, .png)
+        const extension = fileName.split('.').pop()?.toLowerCase() || '';
+
+        // Ánh xạ các MIME type phổ biến
+        const mimeTypes: { [key: string]: string } = {
+            'pdf': 'application/pdf',
+            'png': 'image/png',
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'gif': 'image/gif',
+            'doc': 'application/msword',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls': 'application/vnd.ms-excel',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'txt': 'text/plain',
+        };
+
+        const mimeType = mimeTypes[extension] || 'application/octet-stream';
+
+        // Dùng service download (kèm auth header) → tạo blob URL
+        this.examService.downloadFile(serverPath).subscribe({
+            next: (blob: Blob) => {
+                // Tạo lại blob với MIME type đúng để trình duyệt nhận diện được định dạng
+                const typedBlob = new Blob([blob], { type: mimeType });
+                const blobUrl = window.URL.createObjectURL(typedBlob);
+
+                // Các định dạng trình duyệt có thể render (xem trực tiếp)
+                const isViewable = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'txt'].includes(extension);
+
+                if (isViewable) {
+                    // Mở trong cửa sổ mới nếu xem được
+                    const newWindow = window.open(blobUrl, '_blank', 'width=1000,height=700');
+                    if (newWindow) {
+                        newWindow.onload = () => {
+                            newWindow.document.title = fileName || 'File';
+                        };
+                        // Giải phóng blob URL sau 60 giây
+                        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+                    } else {
+                        window.URL.revokeObjectURL(blobUrl);
+                        this.notification.warning('Cảnh báo', 'Popup bị chặn! Vui lòng cho phép popup trong trình duyệt.');
+                    }
+                } else {
+                    // Trình duyệt không tự mở được (Word, Excel) -> Tải file về máy tính với tên chính gốc
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = fileName; // download với tên file có định dạng chuẩn (ví dụ .docx)
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    // Giải phóng
+                    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+                }
+            },
+            error: () => {
+                this.notification.error('Lỗi', 'Không thể tải file!');
+            }
+        });
+    }
+
 
     /** Tải file từ grid khi double click vào cột ảnh */
     downloadFileFromGrid(serverPath: string): void {

@@ -152,7 +152,8 @@
                     <nz-select formControlName="unit" class="fs-12 w-100" nzShowSearch nzAllowClear
                       nzPlaceHolder="Chọn đơn vị">
                       @for (item of unitData; track $index) {
-                      <nz-option [nzValue]="item.UnitName" [nzLabel]="item.UnitName"></nz-option>
+                      <nz-option [nzValue]="item.UnitName"
+                        [nzLabel]="item.UnitName + ' - ' + item.UnitCode"></nz-option>
                       }
                     </nz-select>
                   </nz-form-control>

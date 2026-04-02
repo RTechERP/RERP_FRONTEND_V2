@@ -66,6 +66,10 @@ export class ProjectPartListService {
   requestPrice(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/price-request`, payload);
   }
+  //y/c báo giá lại
+  requestPriceAgain(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/price-request-again`, payload);
+  }
   //hủy yêu cầu báo giá
   cancelPriceRequest(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/cancel-price-request`, payload);

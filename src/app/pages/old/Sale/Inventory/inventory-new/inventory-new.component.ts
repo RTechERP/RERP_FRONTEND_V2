@@ -46,7 +46,7 @@ import { ProductsaleServiceService } from '../../ProductSale/product-sale-servic
 import { InventoryService } from '../inventory-service/inventory.service';
 import { ProductGroupDetailComponent } from '../../ProductSale/product-group-detail/product-group-detail.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
 import { ChiTietSanPhamSaleComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
@@ -867,7 +867,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
                 error: (err) => {
                     this.isLoadingProductGroup = false;
-                    console.error('Lỗi khi lấy nhóm vật tư:', err);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        { nzStyle: { whiteSpace: 'pre-line' } }
+                    );
                 },
             });
         this.subscriptions.push(sub);
@@ -895,7 +900,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
             },
             error: (err) => {
-                console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
             },
         });
         this.subscriptions.push(sub);
@@ -947,7 +957,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
                 error: (err) => {
                     this.isLoadingInventory = false;
-                    console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        { nzStyle: { whiteSpace: 'pre-line' } }
+                    );
                 },
             });
         this.subscriptions.push(sub);
@@ -1260,11 +1275,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 // Open modal
                 this.openBillExportDetailModal(dtDetail, lstTonCk, warehouseID, khoTypeID);
             });
-        } catch (error) {
-            console.error('Error in requestBorrow:', error);
-            this.notification.error(
-                NOTIFICATION_TITLE.error,
-                'Có lỗi xảy ra khi xử lý yêu cầu mượn'
+        } catch (error: any) {
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[error?.status] || 'error',
+                NOTIFICATION_TITLE_MAP[error?.status as RESPONSE_STATUS] || 'Lỗi',
+                error?.error?.message || `${error?.error}\n${error?.message}`,
+                { nzStyle: { whiteSpace: 'pre-line' } }
             );
         }
     }
@@ -1583,11 +1599,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     { nzDuration: 1000 }
                 );
             });
-        } catch (error) {
-            console.error('Lỗi khi xuất Excel:', error);
-            this.notification.error(
-                NOTIFICATION_TITLE.error,
-                'Có lỗi xảy ra khi xuất file Excel'
+        } catch (error: any) {
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[error?.status] || 'error',
+                NOTIFICATION_TITLE_MAP[error?.status as RESPONSE_STATUS] || 'Lỗi',
+                error?.error?.message || `${error?.error}\n${error?.message}`,
+                { nzStyle: { whiteSpace: 'pre-line' } }
             );
         }
     }
@@ -2127,7 +2144,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const lstIDs = selectedRows.map((row: any) => row.ProductSaleID || row.ID);
 
-        this.inventoryService.setLocationList(this.locationID, lstIDs).subscribe({
+        this.inventoryService.setLocationList(this.locationID, lstIDs, this.warehouseId).subscribe({
             next: (res) => {
                 if (res.status == 1) {
                     this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật vị trí thành công');
@@ -2137,8 +2154,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
             },
             error: (err) => {
-                console.error('Lỗi khi set vị trí:', err);
-                this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật vị trí');
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
             }
         });
     }

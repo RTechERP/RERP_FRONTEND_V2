@@ -8,11 +8,11 @@ import { environment } from '../../../../../../environments/environment';
   providedIn: 'root',
 })
 export class InventoryService {
-  constructor(private httpclient: HttpClient) {}
+  constructor(private httpclient: HttpClient) { }
   getPGWH(id: number, wareHouseCode: string): Observable<any> {
     return this.httpclient.get(
       environment.host +
-        `api/inventory/get-productgroup-warehouse?productGroupID=${id}&warehouseCode=${wareHouseCode}`
+      `api/inventory/get-productgroup-warehouse?productGroupID=${id}&warehouseCode=${wareHouseCode}`
     );
   }
   getInventory(
@@ -86,5 +86,13 @@ export class InventoryService {
       environment.host + `api/inventory/get-inventory-borrow-ncc`,
       params
     );
+  }
+  //nhat them set location cho san pham
+  setLocationList(locationID: number, lstIDs: number[]): Observable<any> {
+    const params = {
+      locationID,
+      lstIDs
+    };
+    return this.httpclient.post(`${environment.host}api/inventory/set-location-list`, params);
   }
 }

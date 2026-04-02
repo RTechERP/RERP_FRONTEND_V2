@@ -128,6 +128,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
   private selectedCellElement: HTMLElement | null = null;
   isCurrentUserAdmin: boolean = false; //flag kiểm tra quyền admin
   isUserFilterDisabled: boolean = false; //flag disable filter user
+  isTeamFilterDisabled: boolean = false;
   filterDepartmentData: any[] = [];
   filterTeamData: any[] = [];
   filterUserData: any[] = [];
@@ -321,8 +322,20 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
   }
 
   loadRootTeams(): void {
-    this.planWeekService.getRootTeams().subscribe({
-      next: (response: any) => {
+    const employeeId = this.appUserService.employeeID || 0;
+
+    forkJoin({
+      teams: this.planWeekService.getRootTeams().pipe(
+        catchError(() => of({ status: 0, message: 'Lỗi khi tải dữ liệu team' }))
+      ),
+      myTeam: employeeId > 0 ? this.planWeekService.getMyRootTeam(employeeId).pipe(
+        catchError(() => of({ status: 1, data: { TeamSaleID: 0 } }))
+      ) : of({ status: 1, data: { TeamSaleID: 0 } })
+    }).subscribe({
+      next: (results: any) => {
+        const response = results.teams;
+        const myTeamResponse = results.myTeam;
+
         if (response.status === 1) {
           // Map data từ { TeamSaleID, TeamSaleName } sang format NzTreeSelect
           this.filterTeamData = (response.data || []).map((item: any) => ({
@@ -331,6 +344,13 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
             value: item.TeamSaleID.toString(),
             isLeaf: true
           }));
+
+          if (myTeamResponse && myTeamResponse.status === 1 && myTeamResponse.data?.TeamSaleID) {
+            const teamId = myTeamResponse.data.TeamSaleID;
+            if (this.filterTeamData.some(t => t.value === teamId.toString())) {
+              this.filters.teamId = teamId.toString();
+            }
+          }
 
           // Sau khi load xong teams thì load dữ liệu chính
           this.loadMainData(
@@ -617,7 +637,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     const currentUser = this.appUserService.currentUser;
     const isAdmin = this.appUserService.isAdmin;
     const isAdminSale = currentUser?.IsAdminSale === 1;
-    const hasN1Permission = this.appUserService.hasPermission('N1');
+    const hasN1Permission = currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false;
 
     // // Set departmentId từ user đang đăng nhập
     // const currentDepartmentId = this.appUserService.departmentID;
@@ -629,6 +649,9 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     const isSpecialUser = specialUserIds.includes(currentUserId);
 
     const shouldLockUserFilter = !isAdmin && !isAdminSale && !isSpecialUser && !hasN1Permission;
+    const shouldLockTeamFilter = !isAdmin && !hasN1Permission;
+
+    this.isTeamFilterDisabled = shouldLockTeamFilter;
 
     if (shouldLockUserFilter) {
       this.isUserFilterDisabled = true;

@@ -25,6 +25,10 @@ export class PlanWeekSharkTeamService {
     return this.http.get<any>(this._url + 'get-root-teams');
   }
 
+  getMyRootTeam(employeeId: number): Observable<any> {
+    return this.http.get<any>(this._url + 'get-my-root-team?employeeId=' + employeeId);
+  }
+
   getEmployees(status: number): Observable<any> {
     return this.http.get<any>(
       environment.host + 'api/Employee/employees',

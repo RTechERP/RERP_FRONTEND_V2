@@ -40,7 +40,7 @@ export class MainLayoutCandidateComponent implements OnInit {
 
     loadExamData() {
         this.loadingExam = true;
-        this.appFormService.getDataExamByEmployee().subscribe({
+        this.appFormService.getDataExamByEmployee(this.candidate.ID).subscribe({
             next: (res: any) => {
                 this.examList = res?.data ?? [];
                 this.loadingExam = false;
@@ -73,15 +73,27 @@ export class MainLayoutCandidateComponent implements OnInit {
         this.router.navigateByUrl('/home-candidate');
     }
 
+    /** Kiểm tra trạng thái đã điền tờ khai hay chưa */
+    get isFormComplete(): boolean {
+        if (!this.examList || this.examList.length === 0) return true; // Tránh lỗi nếu chưa có list
+        return this.examList[0].IsFormComplete === 1 || this.examList[0].IsFormComplete === true;
+    }
+
     /** Kiểm tra xem tất cả bài thi có bị khóa không */
     get allExamsDisabled(): boolean {
+        if (!this.isFormComplete) return true;
         return this.examList.length > 0 && this.examList.every(e => e.IsDisabled === 1);
     }
 
     /** Mở modal chọn bài thi fullscreen */
     navigateToIQTest(exam?: any) {
+        if (!this.isFormComplete) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền tờ khai thông tin trước khi thi!');
+            return;
+        }
+
         if (this.allExamsDisabled) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn đã hoàn thành tất cả các bài thi hoặc chưa đủ điều kiện!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn đã hoàn thành tất cả các bài thi hoặc bài thi đang bị khóa!');
             return;
         }
 
@@ -90,6 +102,8 @@ export class MainLayoutCandidateComponent implements OnInit {
             return;
         }
 
+        console.log(this.candidate);
+        console.log(this.candidate.HRHiringRequestID);
         const modalRef = this.modalService.open(CandidateTestComponent, {
             fullscreen: true,
             backdrop: 'static',
@@ -99,6 +113,10 @@ export class MainLayoutCandidateComponent implements OnInit {
 
         // Truyền danh sách bài thi đầy đủ
         modalRef.componentInstance.examList = [...this.examList];
+        //Truyền ID ứng viến 
+        modalRef.componentInstance.hrRecruitmentCandidateID = this.candidate.ID;
+        //Truyền ID đợt tuyển dụng
+        modalRef.componentInstance.hrHiringRequestID = this.candidate.HrHiringRequestID;
 
         // Truyền các đề thi đã hoàn thành vào Set để modal biết mà khóa
         modalRef.componentInstance.completedExamIds = new Set(
@@ -114,6 +132,23 @@ export class MainLayoutCandidateComponent implements OnInit {
             () => { /* dismissed */ }
         );
     }
+
+    getStartButtonText(): string {
+        if (!this.allExamsDisabled) return 'Bắt đầu thi';
+        if (!this.isFormComplete) return 'Yêu cầu điền form';
+        if (this.examList.length > 0 && this.examList.every(e => e.StatusResult === 1 || e.StatusResult === 2)) return 'Đã hoàn tất bài thi';
+        if (this.examList.length > 0 && this.examList.every(e => e.IsExamActive === 0 || e.IsExamActive === false)) return 'Bài thi đang khóa';
+        return 'Đã hoàn tất bài thi';
+    }
+
+    getStartButtonIcon(): string {
+        if (!this.allExamsDisabled) return 'arrow-right';
+        if (!this.isFormComplete) return 'lock';
+        if (this.examList.length > 0 && this.examList.every(e => e.StatusResult === 1 || e.StatusResult === 2)) return 'check';
+        if (this.examList.length > 0 && this.examList.every(e => e.IsExamActive === 0 || e.IsExamActive === false)) return 'lock';
+        return 'check';
+    }
+
 
     logout() {
         localStorage.removeItem('CandidateToken');

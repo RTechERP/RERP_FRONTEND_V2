@@ -26,7 +26,6 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentExamService } from '../hr-recruitment-exam-service/hrrecruitment-exam.service';
 import { EditorModule } from 'primeng/editor';
@@ -53,7 +52,6 @@ import { forkJoin, of } from 'rxjs';
         NzModalModule,
         NzSpinModule,
         NzSelectModule,
-        NzRadioModule,
         EditorModule,
     ],
 })
@@ -120,8 +118,6 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     /** IDs đáp án cần xóa khi save */
     listAnswerIDDelete: number[] = [];
     answerCodes = ['A', 'B', 'C', 'D'];
-    
-    rightAnswerIndex: number = -1;
 
     @ViewChildren('answerInput', { read: ElementRef }) answerInputs!: QueryList<ElementRef>;
 
@@ -373,7 +369,6 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
                     imagePreviewUrl: null as string | null,
                     selectedImageFile: null as File | null,
                 }));
-                this.rightAnswerIndex = this.answers.findIndex(a => a.RightAnswer);
                 // Load ảnh đáp án qua blob
                 this.answers.forEach((ans, idx) => {
                     if (ans.ImageLink) {
@@ -564,14 +559,6 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
             }, 100);
         }
     }
-    
-    onRightAnswerChange(checked: boolean, index: number): void {
-        if (checked) {
-            this.answers.forEach((a, i) => {
-                a.RightAnswer = (i === index);
-            });
-        }
-    }
 
     onDeleteAnswer(index: number): void {
         const answer = this.answers[index];
@@ -654,7 +641,7 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
             }
             const hasRightAnswer = this.answers.some(a => a.RightAnswer);
             if (!hasRightAnswer) {
-                this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 đáp án đúng!');
+                this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 đáp án đúng!');
                 return false;
             }
         } else if (questionType === 2) {

@@ -1,0 +1,96 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.filter-bar {
+    height: 50px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.custom-table ::ng-deep .p-datatable-thead>tr>th {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+}
+
+.grading-btn {
+    transition: all 0.2s;
+}
+
+.grading-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.badge-light-primary {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    border-radius: 4px;
+}
+
+.badge-light-success {
+    background-color: #def2d6;
+    color: #28a745;
+    border-radius: 4px;
+}
+
+h5 i {
+    color: #1890ff;
+}
+
+/* Reduced row height */
+::ng-deep .custom-table .p-datatable-tbody>tr>td {
+    padding: 2px 8px !important;
+}
+
+::ng-deep .custom-table .p-datatable-thead>tr>th {
+    padding: 4px 8px !important;
+}
+
+/* Custom styles for p-selectButton highlight based on status */
+:host ::ng-deep .status-warn .p-highlight {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+:host ::ng-deep .status-success .p-highlight {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: #fff !important;
+}
+
+/* Ensure buttons in buttonset have refined spacing */
+:host ::ng-deep .p-buttonset-sm .p-button {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-datatable-inline-filter {
+    justify-content: space-between !important;
+}
+
+:host ::ng-deep .p-component .p-inputtext .ng-star-inserted {
+    width: 100% !important;
+}
+
+:host::ng-deep .p-fluid {
+    width: 100% !important;
+}
+
+:host::ng-deep .p-component .p-inputtext {
+    width: 100% !important;
+    font-size: 10px !important;
+}

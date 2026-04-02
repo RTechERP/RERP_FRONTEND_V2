@@ -279,7 +279,9 @@ import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-
 import { DailyReportSaleAdminSlickgridComponent } from './pages/old/KPISale/daily-report-sale-admin-slickgrid/daily-report-sale-admin-slickgrid.component';
 import { HRRecruitmentCandidateComponent } from './pages/hrm/hr-recruitment-candidate/hr-recruitment-candidate.component';
 import { HRRecruitmentExamComponent } from './pages/hrm/hr-recruitment/HRRecruitmentExam/hrrecruitment-exam/hrrecruitment-exam.component';
+import { ExamScoreComponent } from './pages/hrm/hr-recruitment-exam-score/exam-score/exam-score.component';
 import { HRHiringRequestExamComponent } from './pages/hrm/hrhiring-request/hrhiring-request-exam/hrhiring-request-exam.component';
+import { HiringRequestListComponent } from './pages/hrm/hr-recruitment/hiring-request-list/hiring-request-list.component';
 import { HRRecruitmentApplicationComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/hr-recruitment-application/hr-recruitment-application.component';
 import { HistoryBorrowSalePersonalComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale-personal/history-borrow-sale-personal.component';
 import { HistoryProductRtcPersonalComponent } from './pages/old/inventory-demo/borrow/borrow-product-history/history-product-rtc-personal/history-product-rtc-personal.component';
@@ -449,6 +451,8 @@ export const routes: Routes = [
             { path: 'phase-allocation-person', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
             { path: 'training-registration', component: TrainingRegistrationComponent, canActivate: [authGuard] },
             { path: 'factory-visit-registration', component: FactoryVisitRegistrationComponent, canActivate: [authGuard] },
+            { path: 'hr-recruitment-exam-score', component: ExamScoreComponent, canActivate: [authGuard] },
+            { path: 'hiring-request-list', component: HiringRequestListComponent, data: { title: 'DS Yêu cầu tuyển dụng' }, canActivate: [authGuard] },
             { path: 'app', component: AppComponent, canActivate: [authGuard] },
             { path: 'warehouse', component: WarehouseComponent1, canActivate: [authGuard] },
             { path: 'inventory-by-product', component: InventoryByProductComponent, canActivate: [authGuard] },

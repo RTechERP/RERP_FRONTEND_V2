@@ -13,7 +13,6 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
-
 @Component({
   selector: 'app-hrhiring-request-exam-detail',
   standalone: true,
@@ -25,7 +24,7 @@ import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '
     NzFormModule,
     NzCheckboxModule,
     TableModule,
-    ButtonModule
+    ButtonModule,
   ],
   templateUrl: './hrhiring-request-exam-detail.component.html',
   styleUrl: './hrhiring-request-exam-detail.component.css',
@@ -134,8 +133,20 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
       next: (res) => {
         console.log('loadAllExams success:', res);
         if (res.status === 1) {
-          // Sort by DepartmentName to ensure proper grouping in the table
+          // Sort by Selection state first (if provided), then by DepartmentName to ensure proper grouping
           this.exams = res.data.sort((a: any, b: any) => {
+            // Priority 1: Selected exams at the top
+            if (selectedExamIds && selectedExamIds.length > 0) {
+              const idA = a.ID || a.ExamID || a.Id;
+              const idB = b.ID || b.ExamID || b.Id;
+              const isSelectedA = selectedExamIds.includes(idA) ? 1 : 0;
+              const isSelectedB = selectedExamIds.includes(idB) ? 1 : 0;
+
+              if (isSelectedA > isSelectedB) return -1;
+              if (isSelectedA < isSelectedB) return 1;
+            }
+
+            // Priority 2: Sort by Department form alphabetical groups
             const nameA = (a.DepartmentName || '').toUpperCase();
             const nameB = (b.DepartmentName || '').toUpperCase();
             if (nameA < nameB) return -1;
@@ -220,7 +231,7 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
     const deletedExamIds = this.initialExamIds.filter(id => !currentExamIds.includes(id));
 
     const savePayload = {
-      IsActiveExam: this.isActive,
+      IsActiveExam: this.isActive ?? false,
       HiringRequestID: this.selectedHiringRequestId,
       listHiringRequestIDExam: currentExamIds,
       deletedHiringRequestIDExam: deletedExamIds

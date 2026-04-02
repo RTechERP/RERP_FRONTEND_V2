@@ -32,15 +32,6 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import {
-  AngularGridInstance,
-  AngularSlickgridModule,
-  Column,
-  Filters,
-  Formatters,
-  GridOption,
-  MultipleSelectOption,
-} from 'angular-slickgrid';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { OnInit, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
@@ -57,7 +48,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { ReadOnlyLongTextEditor } from '../../../KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
+import { TableModule } from 'primeng/table';
 
 import { PlanWeekSharkTeamService } from './plan-week-shark-team-services/plan-week-shark-team.service';
 import { KhoBaseService } from '../kho-base/kho-base-service/kho-base.service';
@@ -66,6 +57,14 @@ import { PlanWeekSharkTeamDetailComponent } from '../plan-week-shark-team-detail
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+
+interface TableCol {
+  field: string;
+  header: string;
+  width: string;
+  isLongText: boolean;
+  frozen?: boolean;
+}
 
 @Component({
   selector: 'app-plan-week-shark-team',
@@ -96,17 +95,16 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     CommonModule,
     NzTreeSelectModule,
     HasPermissionDirective,
-    AngularSlickgridModule,
     NzSpinModule,
+    TableModule,
   ],
   templateUrl: './plan-week-shark-team.component.html',
   styleUrl: './plan-week-shark-team.component.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
-  angularGrid!: AngularGridInstance;
-  columnDefinitions: Column[] = [];
-  gridOptions: GridOption = {};
+  tableColumns: TableCol[] = [];
+  headerGroups: { header: string; colspan: number; frozen?: boolean }[][] = [];
   dataset: any[] = [];
   isLoadingData: boolean = false;
 
@@ -131,15 +129,16 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
   selectedRow: any = null;
   selectedId: number = 0;
   selectedField: string | null = null;
+  selectedCellField: string | null = null;
+  selectedCellRow: any = null;
   isEditMode: boolean = false;
-  private selectedCellElement: HTMLElement | null = null;
-  isCurrentUserAdmin: boolean = false; //flag kiểm tra quyền admin
-  isUserFilterDisabled: boolean = false; //flag disable filter user
+  isCurrentUserAdmin: boolean = false;
+  isUserFilterDisabled: boolean = false;
+  isTeamFilterDisabled: boolean = false;
   filterDepartmentData: any[] = [];
   filterTeamData: any[] = [];
   filterUserData: any[] = [];
   mainData: any[] = [];
-  rowSpanMetadata: Record<number, any> = {};
 
   constructor(
     private notification: NzNotificationService,
@@ -151,7 +150,6 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-    this.initGrid();
     this.isMobile = window.innerWidth < 576;
     const today = new Date();
 
@@ -169,7 +167,7 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
     this.filters.startDate = monday;
     this.filters.endDate = sunday;
 
-    this.configureUserFilterByRole(); //config kiểm tra quyền admin và disable filter user
+    this.configureUserFilterByRole();
 
     this.loadDepartment();
     this.loadRootTeams();
@@ -329,10 +327,21 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
   }
 
   loadRootTeams(): void {
-    this.planWeekService.getRootTeams().subscribe({
-      next: (response: any) => {
+    const employeeId = this.appUserService.employeeID || 0;
+
+    forkJoin({
+      teams: this.planWeekService.getRootTeams().pipe(
+        catchError(() => of({ status: 0, message: 'Lỗi khi tải dữ liệu team' }))
+      ),
+      myTeam: employeeId > 0 ? this.planWeekService.getMyRootTeam(employeeId).pipe(
+        catchError(() => of({ status: 1, data: { TeamSaleID: 0 } }))
+      ) : of({ status: 1, data: { TeamSaleID: 0 } })
+    }).subscribe({
+      next: (results: any) => {
+        const response = results.teams;
+        const myTeamResponse = results.myTeam;
+
         if (response.status === 1) {
-          // Map data từ { TeamSaleID, TeamSaleName } sang format NzTreeSelect
           this.filterTeamData = (response.data || []).map((item: any) => ({
             title: item.TeamSaleName,
             key: item.TeamSaleID.toString(),
@@ -340,7 +349,14 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
             isLeaf: true
           }));
 
-          // Sau khi load xong teams thì load dữ liệu chính
+          if (myTeamResponse && myTeamResponse.status === 1 && myTeamResponse.data?.TeamSaleID) {
+            const teamId = myTeamResponse.data.TeamSaleID;
+            // Kiểm tra teamId có tồn tại trong danh sách để set mặc định
+            if (this.filterTeamData.some(t => t.value === teamId.toString())) {
+              this.filters.teamId = teamId.toString();
+            }
+          }
+
           this.loadMainData(
             this.filters.startDate,
             this.filters.endDate,
@@ -374,7 +390,6 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
   }
 
   getGroupSaleUser() {
-    // This method is now legacy, using loadRootTeams instead
     return;
   }
 
@@ -410,26 +425,36 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
           if (response.status === 1) {
             let data = response.data.data || [];
             if (data && data.length > 0) {
-              const columns: Column[] = [];
+              const columns: TableCol[] = [];
               const firstRow = data[0];
+
+              // Track column groups for headerGroups
+              const groupMap: { groupName: string; colCount: number; frozen?: boolean }[] = [];
+              let lastGroupName = '';
+
               Object.keys(firstRow).forEach(key => {
                 if (key === 'ParentID' || key === 'UserID' || key === '_children' || key === 'id') return;
 
                 let title = key;
-                let width = 100;
+                let width = '100px';
                 let colGroupName = '';
+                let isLongText = false;
+
+                let frozen = false;
 
                 if (key === 'FullName') {
                   title = 'Họ tên';
-                  width = 140;
+                  width = '140px';
                   colGroupName = 'Nhân viên';
+                  frozen = true;
                 } else if (key === 'Code') {
                   title = 'Mã nhân viên';
-                  width = 80;
+                  width = '80px';
                   colGroupName = 'Nhân viên';
+                  frozen = true;
                 } else if (key === 'GroupSalesName') {
                   title = 'Tên nhóm';
-                  width = 150;
+                  width = '150px';
                   colGroupName = 'Nhóm';
                 } else if (key.includes('_')) {
                   const parts = key.split('_');
@@ -445,52 +470,46 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
 
                   if (typePart === 'Customer') {
                     title = 'Khách hàng';
-                    width = 200;
+                    width = '200px';
                   } else if (typePart === 'Content') {
                     title = 'Nội dung và kết quả';
-                    width = 350;
+                    width = '350px';
+                    isLongText = true;
                   } else if (typePart === 'Problem') {
                     title = 'Khó khăn';
-                    width = 350;
+                    width = '350px';
+                    isLongText = true;
                   }
                 }
 
-                const isLastInGroup = key.includes('_') && key.endsWith('_Problem');
-                const isLongText = key.includes('_') && (key.endsWith('_Content') || key.endsWith('_Problem'));
+                columns.push({ field: key, header: title, width, isLongText, frozen });
 
-                const colDef: any = {
-                  id: key,
-                  name: title,
-                  field: key,
-                  width: width,
-                  minWidth: width,
-                  sortable: true,
-                  columnGroup: colGroupName,
-                  cssClass: isLastInGroup ? 'column-group-border-right' : '',
-                  formatter: (row: number, cell: number, value: any) => {
-                    if (value === undefined || value === null) return '';
-                    return `<div style="white-space: pre-wrap;">${value}</div>`;
-                  }
-                };
-
-                if (isLongText) {
-                  colDef.editor = {
-                    model: ReadOnlyLongTextEditor,
-                    required: false,
-                    alwaysSaveOnEnterKey: false,
-                    minLength: 5,
-                    maxLength: 1000
-                  };
+                // Build group tracking
+                if (colGroupName === lastGroupName && groupMap.length > 0) {
+                  groupMap[groupMap.length - 1].colCount++;
+                } else {
+                  groupMap.push({ groupName: colGroupName, colCount: 1, frozen });
+                  lastGroupName = colGroupName;
                 }
-
-                columns.push(colDef);
               });
-              this.columnDefinitions = columns;
+
+              this.tableColumns = columns;
+
+              // Build headerGroups
+              this.headerGroups = [
+                groupMap.map(g => ({
+                  header: g.groupName,
+                  colspan: g.colCount,
+                  frozen: g.frozen || false,
+                }))
+              ];
+
             } else {
-              this.columnDefinitions = [];
+              this.tableColumns = [];
+              this.headerGroups = [];
             }
 
-            // Gộp các dòng cùng UserID: mỗi ngày có N bản ghi → tổng dòng = MAX(N) thay vì SUM(N)
+            // Consolidate rows by user
             data = this.consolidateRowsByUser(data);
 
             this.dataset = data.map((item: any, index: number) => ({
@@ -498,14 +517,6 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
               id: `${item.UserID || 'temp'}_${index}`
             }));
             this.mainData = data;
-
-            this.computeRowSpanMetadata(this.dataset, this.columnDefinitions);
-            if (this.angularGrid?.slickGrid?.remapAllColumnsRowSpan) {
-              setTimeout(() => {
-                this.angularGrid.slickGrid.remapAllColumnsRowSpan();
-                this.angularGrid.slickGrid.invalidate();
-              }, 0);
-            }
           } else {
             this.notification.error(NOTIFICATION_TITLE.error, response.message);
           }
@@ -532,7 +543,9 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
       this.notification.info('Thông báo', 'Vui lòng chọn đúng ô ngày cần xóa');
       return;
     }
-    const dateFromField = new Date(this.selectedField as string);
+
+    const datePart = this.selectedField.split('_')[0];
+    const dateFromField = new Date(datePart);
 
     const UserID = this.selectedId;
     const DatePlan = dateFromField;
@@ -577,7 +590,7 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
   }
 
   async exportMainTableToExcel() {
-    if (!this.angularGrid || !this.angularGrid.slickGrid) {
+    if (!this.dataset || this.dataset.length === 0 || !this.tableColumns || this.tableColumns.length === 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
         'Không có dữ liệu để xuất Excel'
@@ -588,13 +601,22 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('KeHoachTuan');
 
-    const columns = this.angularGrid.slickGrid.getColumns() as Column[];
+    const columns = this.tableColumns;
 
-    // Extract group names and column titles
-    const groupTitles = columns.map(col => col.columnGroup || '');
-    const colTitles = columns.map(col => col.name);
+    // Extract group names from headerGroups
+    const groupTitles: string[] = [];
+    if (this.headerGroups.length > 0) {
+      this.headerGroups[0].forEach((g: any) => {
+        for (let i = 0; i < (g.colspan || 1); i++) {
+          groupTitles.push(g.header || '');
+        }
+      });
+    } else {
+      columns.forEach(() => groupTitles.push(''));
+    }
 
-    // Add first row (Column Groups)
+    const colTitles = columns.map(col => col.header);
+
     const headerRow1 = worksheet.addRow(groupTitles);
     headerRow1.font = { bold: true };
     headerRow1.fill = {
@@ -604,7 +626,6 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
     };
     headerRow1.alignment = { horizontal: 'center', vertical: 'middle' };
 
-    // Add second row (Column Names)
     const headerRow2 = worksheet.addRow(colTitles);
     headerRow2.font = { bold: true };
     headerRow2.fill = {
@@ -614,44 +635,28 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
     };
     headerRow2.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
-    // Merge logic for header row 1 (Horizontal merges for groups)
     let startCol = 1;
     while (startCol <= groupTitles.length) {
       let endCol = startCol;
       const currentGroup = groupTitles[startCol - 1];
 
-      // Find the span of the same group name
       while (endCol < groupTitles.length && groupTitles[endCol] === currentGroup) {
         endCol++;
       }
 
       if (currentGroup) {
-        // If there's a group, merge horizontally if spans multiple columns
         if (endCol > startCol) {
           worksheet.mergeCells(1, startCol, 1, endCol);
         }
       } else {
-        // If no group (e.g. STT), merge vertically with row 2
         worksheet.mergeCells(1, startCol, 2, startCol);
       }
 
       startCol = endCol + 1;
     }
 
-    // Merge logic for header row 2 (Vertical merges for categories like 'Nhân viên')
-    // Instead of merging 'Nhân viên' group vertically on row 1, we map it back. 
-    // Actually, 'Nhân viên', 'Nhóm' group titles exist, we can merge them vertically if needed
-    // Assuming columns with colGroup 'Nhân viên' or 'Nhóm' also need vertical merge 
-    // Wait, the user specifically asked: "merge cell cho 2 cột đầu". We'll just do for STT, Code, FullName
-    // Let's refine the merge. We already merged vertically if currentGroup is empty.
-
-    const allData = this.angularGrid.dataView.getItems();
-
-    allData.forEach((rowData: any) => {
-      const row = columns.map((col) => {
-        return rowData[col.field];
-      });
-
+    this.dataset.forEach((rowData: any) => {
+      const row = columns.map((col) => rowData[col.field]);
       const addedRow = worksheet.addRow(row);
       addedRow.eachCell((cell) => {
         cell.alignment = { wrapText: true, vertical: 'middle' };
@@ -682,58 +687,27 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
     const end = formatDate(this.filters.endDate);
 
     link.download = `KeHoachTuan_${start} - ${end}.xlsx`;
-
     link.click();
     window.URL.revokeObjectURL(url);
   }
 
-  initGrid(): void {
-    this.gridOptions = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-container-plan-week',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
-      gridWidth: '100%',
-      forceFitColumns: false,
-      enableCellNavigation: true,
-      enableExcelCopyBuffer: true,
-      enableFiltering: false,
-      enableRowSelection: true,
-      rowSelectionOptions: {
-        selectActiveRow: true
-      },
-      editable: true,
-      autoEdit: true,
-      createPreHeaderPanel: true,
-      showPreHeaderPanel: true,
-      preHeaderPanelHeight: 35,
-      explicitInitialization: true,
-      enableCellRowSpan: true,
-      rowTopOffsetRenderType: 'top',
-      dataView: {
-        globalItemMetadataProvider: {
-          getRowMetadata: (_item: any, row: number) => {
-            return this.rowSpanMetadata[row];
-          },
-        },
-      },
-    };
-  }
-
-  angularGridReady(angularGrid: AngularGridInstance): void {
-    this.angularGrid = angularGrid;
-  }
-
-  onRowClick(e: any, args: any): void {
-    const item = args?.grid?.getDataItem(args?.row);
-    const column = args?.grid?.getColumns()[args?.cell];
-    if (item && column) {
-      this.selectedRow = item;
-      this.selectedId = item['UserID'];
-      this.selectedField = column.field;
+  onTableRowClick(rowData: any): void {
+    if (rowData) {
+      this.selectedRow = rowData;
+      this.selectedId = rowData['UserID'];
     }
+  }
+
+  onCellClick(field: string, rowData: any): void {
+    this.selectedField = field;
+    this.selectedRow = rowData;
+    this.selectedId = rowData['UserID'];
+    this.selectedCellField = field;
+    this.selectedCellRow = rowData;
+  }
+
+  isCellSelected(field: string, rowData: any): boolean {
+    return this.selectedCellField === field && this.selectedCellRow === rowData;
   }
 
   private configureUserFilterByRole(): void {
@@ -741,18 +715,15 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
     const currentUser = this.appUserService.currentUser;
     const isAdmin = this.appUserService.isAdmin;
     const isAdminSale = currentUser?.IsAdminSale === 1;
-    const hasN1Permission = this.appUserService.hasPermission('N1');
-
-    // // Set departmentId từ user đang đăng nhập
-    // const currentDepartmentId = this.appUserService.departmentID;
-    // if (currentDepartmentId) {
-    //   this.filters.departmentId = currentDepartmentId;
-    // }
+    const hasN1Permission = currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false;
 
     const specialUserIds = [1177, 1313, 23, 1380];
     const isSpecialUser = specialUserIds.includes(currentUserId);
 
     const shouldLockUserFilter = !isAdmin && !isAdminSale && !isSpecialUser && !hasN1Permission;
+    const shouldLockTeamFilter = !isAdmin && !hasN1Permission;
+
+    this.isTeamFilterDisabled = shouldLockTeamFilter;
 
     if (shouldLockUserFilter) {
       this.isUserFilterDisabled = true;
@@ -763,53 +734,9 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private computeRowSpanMetadata(data: any[], columns: Column[]): void {
-    this.rowSpanMetadata = {};
-    if (!data || data.length === 0) return;
-
-    // Tìm column index theo field name
-    const mergeFields = ['FullName', 'Code', 'GroupSalesName'];
-    const mergeColumnIndices: number[] = [];
-    columns.forEach((col, idx) => {
-      if (mergeFields.includes(col.field)) {
-        mergeColumnIndices.push(idx);
-      }
-    });
-
-    let groupStart = 0;
-    for (let i = 1; i <= data.length; i++) {
-      const cur = data[i];
-      const prev = data[i - 1];
-
-      const isSameGroup = cur && cur['UserID'] === prev['UserID'];
-
-      if (!isSameGroup) {
-        const rowspan = i - groupStart;
-        if (rowspan > 1) {
-          const columnsMetadata: Record<number, any> = {};
-          mergeColumnIndices.forEach(colIdx => {
-            columnsMetadata[colIdx] = { rowspan };
-          });
-          this.rowSpanMetadata[groupStart] = {
-            columns: columnsMetadata
-          };
-        }
-        groupStart = i;
-      }
-    }
-  }
-
-  /**
-   * Gộp các dòng cùng UserID: thay vì SUM(records) dòng, chỉ tạo MAX(records/ngày) dòng.
-   * Ví dụ: 23/03 có 3 bản ghi, 24/03 có 1 bản ghi → 3 dòng thay vì 4.
-   * Dòng 0: data 23/03[0] + data 24/03[0]
-   * Dòng 1: data 23/03[1] + (trống)
-   * Dòng 2: data 23/03[2] + (trống)
-   */
   private consolidateRowsByUser(data: any[]): any[] {
     if (!data || data.length === 0) return data;
 
-    // Tìm các date prefix từ tên cột (ví dụ: '2026-03-23')
     const firstRow = data[0];
     const datePrefixes: string[] = [];
     Object.keys(firstRow).forEach(key => {
@@ -821,7 +748,6 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
       }
     });
 
-    // Nhóm dòng theo UserID (giữ nguyên thứ tự xuất hiện)
     const userGroups = new Map<number, any[]>();
     const userOrder: number[] = [];
     data.forEach(row => {
@@ -845,7 +771,6 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
         GroupSalesName: rows[0].GroupSalesName,
       };
 
-      // Thu thập record theo từng ngày
       const dateRecords: Map<string, any[]> = new Map();
       datePrefixes.forEach(dp => dateRecords.set(dp, []));
 
@@ -867,7 +792,6 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
         });
       });
 
-      // Số dòng cần = MAX(số record của mỗi ngày), tối thiểu 1
       let maxRows = 1;
       dateRecords.forEach(records => {
         if (records.length > maxRows) maxRows = records.length;

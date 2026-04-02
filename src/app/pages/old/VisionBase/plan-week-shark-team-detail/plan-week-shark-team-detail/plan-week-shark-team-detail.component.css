@@ -51,3 +51,24 @@
 :host ::ng-deep .ant-collapse-content-box {
     padding: 16px !important;
 }
+
+/* Task block styling */
+.task-block {
+    background-color: #f9fafb;
+    border: 1px solid #eef0f3;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.task-block:last-child {
+    margin-bottom: 0 !important;
+}
+
+:host ::ng-deep .task-block .ant-form-label {
+    padding: 0 !important;
+    line-height: 1.4;
+}
+
+:host ::ng-deep .task-block .ant-form-item {
+    margin-bottom: 0;
+}

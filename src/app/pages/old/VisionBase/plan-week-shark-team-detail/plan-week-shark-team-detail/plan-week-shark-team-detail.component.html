@@ -65,51 +65,55 @@
 
               <div class="px-2 pt-2 pb-2">
                 <div *ngFor="let task of item.tasks; let j = index">
-                  <div *ngIf="!task.IsDeleted" class="row g-2 mb-2 align-items-start">
-                    <div class="col-12 col-md-3">
-                      <nz-form-item class="mb-0">
-                        <nz-form-label class="mb-1 ps-1 fs-12">Khách hàng</nz-form-label>
-                        <nz-form-control>
-                          <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng" class="w-100"
-                            nzDropdownClassName="select-dropdown" nzSize="small" [(ngModel)]="task.CustomerID"
-                            [name]="'customerId_' + i + '_' + j" (ngModelChange)="onTaskFieldChange(task)">
-                            <nz-option *ngFor="let c of customers" [nzValue]="c.ID"
-                              [nzLabel]="c.CustomerCode + ' - ' + c.CustomerName">
-                            </nz-option>
-                          </nz-select>
-                        </nz-form-control>
-                      </nz-form-item>
+                  <div *ngIf="!task.IsDeleted" class="task-block mb-3">
+                    <!-- Row 1: Khách hàng + nút xóa -->
+                    <div class="row g-2 align-items-end mb-2">
+                      <div class="col">
+                        <nz-form-item class="mb-0">
+                          <nz-form-label class="mb-1 ps-1 fs-12">Khách hàng</nz-form-label>
+                          <nz-form-control>
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng" class="w-100"
+                              nzDropdownClassName="select-dropdown" nzSize="small" [(ngModel)]="task.CustomerID"
+                              [name]="'customerId_' + i + '_' + j" (ngModelChange)="onTaskFieldChange(task)">
+                              <nz-option *ngFor="let c of customers" [nzValue]="c.ID"
+                                [nzLabel]="c.CustomerCode + ' - ' + c.CustomerName">
+                              </nz-option>
+                            </nz-select>
+                          </nz-form-control>
+                        </nz-form-item>
+                      </div>
+                      <div class="col-auto d-flex align-items-end pb-1">
+                        <button nz-button nzType="text" nzDanger nzSize="small" (click)="removeTask(item, j, $event)"
+                          type="button" title="Xóa công việc">
+                          <nz-icon nzType="delete"></nz-icon>
+                        </button>
+                      </div>
                     </div>
 
-                    <div class="col-12 col-md">
-                      <nz-form-item class="mb-0">
-                        <nz-form-label class="mb-1 ps-1 fs-12">Nội dung và kết quả</nz-form-label>
-                        <nz-form-control>
-                          <textarea nz-input [nzAutosize]="{ minRows: 2, maxRows: 6 }" [(ngModel)]="task.ContentPlan"
-                            [name]="'contentPlan_' + i + '_' + j" (ngModelChange)="onTaskFieldChange(task)"
-                            placeholder="Nhập nội dung & kết quả mong đợi">
-                          </textarea>
-                        </nz-form-control>
-                      </nz-form-item>
-                    </div>
-
-                    <div class="col-12 col-md">
-                      <nz-form-item class="mb-0">
-                        <nz-form-label class="mb-1 ps-1 fs-12">Khó khăn</nz-form-label>
-                        <nz-form-control>
-                          <textarea nz-input [nzAutosize]="{ minRows: 2, maxRows: 6 }" [(ngModel)]="task.Problem"
-                            [name]="'problem_' + i + '_' + j" (ngModelChange)="onTaskFieldChange(task)"
-                            placeholder="Nhập khó khăn">
-                          </textarea>
-                        </nz-form-control>
-                      </nz-form-item>
-                    </div>
-
-                    <div class="col-auto d-flex align-items-end" style="padding-bottom: 4px;">
-                      <button nz-button nzType="text" nzDanger nzSize="small" (click)="removeTask(item, j, $event)"
-                        type="button" title="Xóa công việc">
-                        <nz-icon nzType="delete"></nz-icon>
-                      </button>
+                    <!-- Row 2: Nội dung kết quả + Khó khăn -->
+                    <div class="row g-2">
+                      <div class="col-12 col-md-6">
+                        <nz-form-item class="mb-0">
+                          <nz-form-label class="mb-1 ps-1 fs-12">Nội dung và kết quả</nz-form-label>
+                          <nz-form-control>
+                            <textarea nz-input [nzAutosize]="{ minRows: 2, maxRows: 6 }" [(ngModel)]="task.ContentPlan"
+                              [name]="'contentPlan_' + i + '_' + j" (ngModelChange)="onTaskFieldChange(task)"
+                              placeholder="Nhập nội dung & kết quả mong đợi">
+                            </textarea>
+                          </nz-form-control>
+                        </nz-form-item>
+                      </div>
+                      <div class="col-12 col-md-6">
+                        <nz-form-item class="mb-0">
+                          <nz-form-label class="mb-1 ps-1 fs-12">Khó khăn</nz-form-label>
+                          <nz-form-control>
+                            <textarea nz-input [nzAutosize]="{ minRows: 2, maxRows: 6 }" [(ngModel)]="task.Problem"
+                              [name]="'problem_' + i + '_' + j" (ngModelChange)="onTaskFieldChange(task)"
+                              placeholder="Nhập khó khăn">
+                            </textarea>
+                          </nz-form-control>
+                        </nz-form-item>
+                      </div>
                     </div>
                   </div>
                   <nz-divider *ngIf="!task.IsDeleted && j < item.tasks.length - 1" class="my-2"></nz-divider>

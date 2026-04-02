@@ -166,7 +166,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.planStartDate = d;
         this.validateDates();
-        this.onPlanStartDateChange(d!);
     }
 
     get planEndDateStr(): string {
@@ -176,7 +175,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.planEndDate = d;
         this.validateDates();
-        this.onPlanEndDateChange(d!);
     }
 
     get startDateStr(): string {
@@ -186,7 +184,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.startDate = d;
         this.validateDates();
-        this.onStartDateChange(d!);
     }
 
     get endDateStr(): string {
@@ -196,7 +193,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.endDate = d;
         this.validateDates();
-        this.onEndDateChange(d!);
     }
 
     get minActualEndDate(): string {
@@ -279,9 +275,9 @@ export class TaskDetailComponent implements OnInit {
                 {
                     label: 'Xác nhận',
                     type: 'primary',
-                    disabled: (content) => !this.pendingReasonText.trim(),
+                    disabled: (content) => !(this.pendingReasonText || '').trim(),
                     onClick: () => {
-                        const reason = this.pendingReasonText.trim();
+                        const reason = (this.pendingReasonText || '').trim();
                         if (reason) {
                             const tempId = this._tempAdditionalIdCounter--;
                             const newItem: IProjectTaskAdditional = {
@@ -1378,7 +1374,7 @@ export class TaskDetailComponent implements OnInit {
                 this.kanbanService.getChecklists(activeTask.ID).subscribe({
                     next: (res) => {
                         if (res.status === 200 || res.status === 1) {
-                            this.checklists = res.data || [];
+                            this.checklists = (res.data || []).sort((a, b) => (a.OrderIndex || 0) - (b.OrderIndex || 0));
                         }
                     },
                     error: (err) => console.error('Error fetching checklists', err)
@@ -1472,13 +1468,14 @@ export class TaskDetailComponent implements OnInit {
     }
 
     addChecklistItem() {
-        if (!this.newChecklistItem.trim()) return;
+        const title = (this.newChecklistItem || '').trim();
+        if (!title) return;
 
         // Build a local item with a temp ID — actual API call is deferred to Save
         const tempItem: IProjectTaskChecklist = {
             ID: this._tempChecklistIdCounter--,
             ProjectTaskID: 0,
-            ChecklistTitle: this.newChecklistItem.trim(),
+            ChecklistTitle: title,
             IsDone: false,
             OrderIndex: this.checklists.length
         } as IProjectTaskChecklist;
@@ -1486,6 +1483,7 @@ export class TaskDetailComponent implements OnInit {
         this.checklists = [...this.checklists, tempItem];
         this.pendingChecklistOps.push({ type: 'add', item: { ...tempItem } });
         this.newChecklistItem = '';
+        this.reorderChecklists();
     }
 
     toggleChecklist(item: IProjectTaskChecklist) {
@@ -1500,13 +1498,15 @@ export class TaskDetailComponent implements OnInit {
     }
 
     cancelAddChecklist(): void {
-        if (!this.newChecklistItem.trim()) {
+        const title = (this.newChecklistItem || '').trim();
+        if (!title) {
             this.isAddingChecklist = false;
         }
     }
 
     saveNewChecklist(): void {
-        if (this.newChecklistItem.trim()) {
+        const title = (this.newChecklistItem || '').trim();
+        if (title) {
             this.addChecklistItem();
             // Tiếp tục hiển thị ô nhập liệu để nhập mục mới
             this.isAddingChecklist = true;
@@ -1536,6 +1536,7 @@ export class TaskDetailComponent implements OnInit {
             // Real item — queue a delete
             this.pendingChecklistOps.push({ type: 'delete', item: { ...item } });
         }
+        this.reorderChecklists();
     }
 
     // Start editing a checklist item
@@ -1546,13 +1547,14 @@ export class TaskDetailComponent implements OnInit {
 
     // Save edited checklist item
     saveEditChecklist(item: IProjectTaskChecklist): void {
-        if (!this.editingChecklistTitle.trim()) {
+        const title = (this.editingChecklistTitle || '').trim();
+        if (!title) {
             this.cancelEditChecklist();
             return;
         }
 
         // Update in memory only — deferred to Save
-        item.ChecklistTitle = this.editingChecklistTitle.trim();
+        item.ChecklistTitle = title;
         this.pendingChecklistOps.push({ type: 'edit', item: { ...item } });
         this.editingChecklistId = null;
         this.editingChecklistTitle = '';
@@ -1564,15 +1566,44 @@ export class TaskDetailComponent implements OnInit {
         this.editingChecklistTitle = '';
     }
 
+    private reorderChecklists(): void {
+        this.checklists.forEach((item, index) => {
+            const oldOrder = item.OrderIndex;
+            item.OrderIndex = index;
+
+            if (item.ID > 0) {
+                // For existing items, update OrderIndex in pending ops if they exist
+                const existingOp = this.pendingChecklistOps.find(op => 
+                    op.item.ID === item.ID && (op.type === 'edit' || op.type === 'toggle')
+                );
+                if (existingOp) {
+                    existingOp.item.OrderIndex = index;
+                } else if (oldOrder !== index) {
+                    // Item moved but no other change -> queue an edit for OrderIndex sync
+                    this.pendingChecklistOps.push({ type: 'edit', item: { ...item } });
+                }
+            } else {
+                // For new items, update their pending 'add' operation
+                const addOp = this.pendingChecklistOps.find(op => 
+                    op.item.ID === item.ID && op.type === 'add'
+                );
+                if (addOp) {
+                    addOp.item.OrderIndex = index;
+                }
+            }
+        });
+    }
+
     // ========== ADDITIONAL ISSUES METHODS (Phát sinh) ==========
 
     addAdditionalItem() {
-        if (!this.newAdditionalItem.trim()) return;
+        const desc = (this.newAdditionalItem || '').trim();
+        if (!desc) return;
 
         const tempItem: IProjectTaskAdditional = {
             ID: this._tempAdditionalIdCounter--,
             ProjectTaskID: 0,
-            Description: this.newAdditionalItem.trim(),
+            Description: desc,
             CreatedBy: this.appUserService.fullName,
             CreatedDate: new Date(),
             IsDeleted: false
@@ -1589,13 +1620,15 @@ export class TaskDetailComponent implements OnInit {
     }
 
     cancelAddAdditional(): void {
-        if (!this.newAdditionalItem.trim()) {
+        const desc = (this.newAdditionalItem || '').trim();
+        if (!desc) {
             this.isAddingAdditional = false;
         }
     }
 
     saveNewAdditional(): void {
-        if (this.newAdditionalItem.trim()) {
+        const desc = (this.newAdditionalItem || '').trim();
+        if (desc) {
             this.addAdditionalItem();
             this.isAddingAdditional = true;
             setTimeout(() => {
@@ -1638,11 +1671,12 @@ export class TaskDetailComponent implements OnInit {
     }
 
     saveEditAdditional(item: IProjectTaskAdditional): void {
-        if (!this.editingAdditionalDescription.trim()) {
+        const desc = (this.editingAdditionalDescription || '').trim();
+        if (!desc) {
             this.cancelEditAdditional();
             return;
         }
-        item.Description = this.editingAdditionalDescription.trim();
+        item.Description = desc;
         this.pendingAdditionalOps.push({ type: 'edit', item: { ...item } });
         this.editingAdditionalId = null;
         this.editingAdditionalDescription = '';
@@ -1829,12 +1863,13 @@ export class TaskDetailComponent implements OnInit {
         const activeTask = this.nzModalData?.task || this.task;
         if (!activeTask) return;
 
-        if (!this.title || !this.title.trim()) {
-            this.message.error('Vui l\u00f2ng nh\u1eadp t\u00ean c\u00f4ng vi\u1ec7c');
+        const mission = (this.title || '').trim();
+        if (!mission) {
+            this.message.error('Vui lòng nhập tên công việc');
             return;
         }
-        if (this.title.length > 150) {
-            this.message.error('T\u00ean c\u00f4ng vi\u1ec7c kh\u00f4ng \u0111\u01b0\u1ee3c qu\u00e1 150 k\u00fd t\u1ef1');
+        if (mission.length > 150) {
+            this.message.error('Tên công việc không được quá 150 ký tự');
             return;
         }
         if (!this.assignerId) {

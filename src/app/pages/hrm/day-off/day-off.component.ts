@@ -178,26 +178,26 @@ export class DayOffComponent implements OnInit {
 
   initMenuBar(): void {
     this.menuBars = [
+      // {
+      //   label: 'Thêm',
+      //   icon: 'fa-solid fa-plus fa-lg text-success',
+      //   command: () => this.openAddModal()
+      // },
       {
-        label: 'Thêm',
-        icon: 'fa-solid fa-plus fa-lg text-success',
-        command: () => this.openAddModal()
-      },
-      {
-        label: 'Đăng ký(New)',
+        label: 'Đăng ký',
         icon: 'fa-solid fa-plus-circle fa-lg text-primary',
         command: () => this.openAddDayOffPersonForm(),
-        visible: this.permissionService.hasPermission("N1,N2"),
+        // visible: this.permissionService.hasPermission("N1,N2"),
       },
+      // {
+      //   label: 'Sửa',
+      //   icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+      //   command: () => this.openEditModal()
+      // },
       {
         label: 'Sửa',
-        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
-        command: () => this.openEditModal()
-      },
-      {
-        label: 'Sửa(New)',
         icon: 'fa-solid fa-edit fa-lg text-warning',
-        visible: this.permissionService.hasPermission("N1,N2"),
+        //   visible: this.permissionService.hasPermission("N1,N2"),
         command: () => this.openEditDayOffPersonForm()
       },
       {

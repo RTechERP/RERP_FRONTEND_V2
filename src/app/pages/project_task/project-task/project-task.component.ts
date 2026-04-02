@@ -21,6 +21,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 import { PrimeNG } from 'primeng/config';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { ContextMenuModule } from 'primeng/contextmenu';
+import { MenuItem } from 'primeng/api';
 
 import { ProjectTaskService, ProjectTaskItem } from './project-task.service';
 
@@ -42,7 +44,8 @@ type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
     TagModule,
     InputTextModule,
     TooltipModule,
-    MultiSelectModule
+    MultiSelectModule,
+    ContextMenuModule
   ],
   templateUrl: './project-task.component.html',
   styleUrl: './project-task.component.css'
@@ -61,6 +64,7 @@ export class ProjectTaskComponent implements OnInit {
   isApproving: boolean = false;
   isOpeningDetail: boolean = false; // Guard against spam-click opening multiple modals
   selectedTaskForCopy: ProjectTaskItem | null = null;
+  contextMenuItems: MenuItem[] = [];
 
   // RemoveSort state
   initialTasks: ProjectTaskItem[] = [];  // lưu thứ tự gốc (ID giảm dần)
@@ -693,6 +697,7 @@ export class ProjectTaskComponent implements OnInit {
       { header: 'Mã CV Cha', field: 'ParentCode' },
       { header: 'Dự án', field: 'ProjectFullName' },
       { header: 'Người giao việc', field: 'FullName' },
+      { header: 'Người nhận việc', field: 'AsigneeEmployeeFullName' },
       {
         header: 'Loại dự án',
         field: 'IsPersonalProject',
@@ -985,5 +990,33 @@ export class ProjectTaskComponent implements OnInit {
 
   handleFilter(event: any) {
     this.totalRecords.set(event.filteredValue.length);
+  }
+
+  // Right-click context menu for cell copy
+  onCellContextMenu(event: MouseEvent, cm: any): void {
+    const target = event.target as HTMLElement;
+    const cell = target.closest('td');
+    if (cell) {
+      const text = (cell.innerText || '').trim();
+      if (text && text !== '-') {
+        this.contextMenuItems = [
+          {
+            label: `Copy: ${text.length > 30 ? text.substring(0, 30) + '...' : text}`,
+            icon: 'pi pi-copy',
+            command: () => {
+              navigator.clipboard.writeText(text).then(() => {
+                this.message.success('Đã copy vào clipboard');
+              }).catch(err => {
+                console.error('Copy failed:', err);
+                this.message.error('Không thể copy nội dung');
+              });
+            }
+          }
+        ];
+        cm.show(event);
+      }
+    }
+    event.preventDefault();
+    event.stopPropagation();
   }
 }

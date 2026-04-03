@@ -1,0 +1,172 @@
+<p-menubar [model]="menuBars" class="p-1">
+  <ng-template pTemplate="item" let-item>
+    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+      <i [class]="item.icon"></i>
+      <span class="p-menuitem-text">{{ item.label }}</span>
+    </a>
+  </ng-template>
+  <ng-template pTemplate="end">
+    <div class="d-flex align-items-center gap-3 me-2" style="font-size: 12px">
+      <span class="d-flex align-items-center gap-1">
+        <span
+          style="
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: #e6f4ea;
+            border: 1px solid #e6f4ea;
+            border-radius: 2px;
+          "
+        ></span>
+        Sale đã báo giá
+      </span>
+      <span class="d-flex align-items-center gap-1">
+        <span
+          style="
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: #fff3cd;
+            border: 1px solid #fff3cd;
+            border-radius: 2px;
+          "
+        ></span>
+        Sale chưa báo giá
+      </span>
+    </div>
+  </ng-template>
+</p-menubar>
+
+<!-- Filter bar -->
+<div class="filter-bar bg-light border-bottom p-1">
+  <form
+    nz-form
+    nzLayout="inline"
+    class="d-flex flex-wrap gap-2 align-items-center"
+  >
+    <nz-form-item class="m-0">
+      <nz-form-label style="font-size: 12px" class="me-1"
+        >Từ ngày</nz-form-label
+      >
+      <nz-form-control>
+        <input
+          type="date"
+          [(ngModel)]="filter.DateFrom"
+          name="dateFrom"
+          style="
+            width: 150px;
+            font-size: 12px;
+            height: 24px;
+            border: 1px solid #d9d9d9;
+            border-radius: 2px;
+            padding: 0 8px;
+          "
+        />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="m-0">
+      <nz-form-label style="font-size: 12px" class="me-1"
+        >Đến ngày</nz-form-label
+      >
+      <nz-form-control>
+        <input
+          type="date"
+          [(ngModel)]="filter.DateTo"
+          name="dateTo"
+          style="
+            width: 150px;
+            font-size: 12px;
+            height: 24px;
+            border: 1px solid #d9d9d9;
+            border-radius: 2px;
+            padding: 0 8px;
+          "
+        />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="m-0">
+      <nz-form-label style="font-size: 12px" class="me-1"
+        >Nhân viên</nz-form-label
+      >
+      <nz-form-control>
+        <nz-select
+          name="employeeId"
+          [(ngModel)]="filter.EmployeeID"
+          nzShowSearch
+          nzAllowClear
+          nzPlaceHolder="--Chọn nhân viên--"
+          nzSize="small"
+          style="width: 280px !important"
+          [nzDisabled]="!isTBP"
+        >
+          @for (parent of employees; track $index) {
+            <nz-option-group [nzLabel]="parent.label">
+              @for (child of parent.options; track $index) {
+                <nz-option
+                  nzCustomContent="true"
+                  [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                  [nzValue]="child.item.EmployeeID"
+                >
+                  {{ child.item.Code + " - " + child.item.FullName }}
+                </nz-option>
+              }
+            </nz-option-group>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="m-0">
+      <nz-form-label style="font-size: 12px" class="me-1"
+        >Từ khóa</nz-form-label
+      >
+      <nz-form-control>
+        <input
+          type="text"
+          [(ngModel)]="filter.Keyword"
+          nz-input
+          nzSize="small"
+          placeholder="Nhập từ khóa"
+          name="keyword"
+          style="width: 280px"
+          (keyup.enter)="onSearch()"
+        />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="m-0">
+      <nz-form-control>
+        <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+          <span nz-icon nzType="search"></span> Tìm kiếm
+        </button>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</div>
+
+<div class="price-request-table-container" style="height: 86vh">
+  <app-custom-table
+    style="height: 100%"
+    [columns]="columns"
+    [data]="dataset"
+    [loading]="isLoading"
+    [headerGroups]="headerGroups"
+    [showColumnFilter]="true"
+    filterDisplay="row"
+    dataKey="stt"
+    [rowClass]="getRowClass"
+    [paginator]="true"
+    [rows]="50"
+    [rowsPerPageOptions]="[50, 100, 200, 500, 1000000]"
+    [scrollable]="true"
+    scrollHeight="flex"
+    [virtualScroll]="true"
+    [virtualScrollItemSize]="35"
+    selectionMode="multiple"
+    [(selection)]="selectedRequests"
+    [resizeMode]="'expand'"
+  >
+  </app-custom-table>
+</div>

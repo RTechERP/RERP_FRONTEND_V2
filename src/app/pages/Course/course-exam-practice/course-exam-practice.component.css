@@ -1,0 +1,131 @@
+:host {
+  display: flex !important;
+  flex-direction: column;
+  height: calc(100vh - 56px) !important;
+  padding: 8px;
+  background-color: #f0f2f5;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.section-card {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.active-panel {
+  border: 2px solid #1890ff !important;
+  box-shadow: 0 0 8px rgba(24, 144, 255, 0.2);
+}
+
+::ng-deep .result-tabset {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .result-tabset .ant-tabs-content {
+  height: 100%;
+  flex-grow: 1;
+}
+
+::ng-deep .result-tabset .ant-tabs-tabpane {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .result-tabset .ant-tabs-nav {
+  margin-bottom: 0 !important;
+  flex-shrink: 0;
+}
+
+::ng-deep .result-tabset .ant-tabs-tab {
+  margin-left: 16px;
+}
+
+::ng-deep .result-tabset .ant-tabs-content-holder {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto !important;
+  overflow: hidden;
+}
+
+:host ::ng-deep .ant-card-head {
+  padding: 0px;
+}
+
+::ng-deep .ant-card.h-100 {
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .ant-card.h-100>.ant-card-body {
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.layout-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.toolbar-container {
+  flex: 0 0 auto;
+}
+
+.splitter-container {
+  flex: 1 1 0;
+  /* Grow to fill remaining space */
+  min-height: 0;
+  /* Important for nested scroll/splitters */
+  width: 100%;
+  overflow: hidden;
+}
+
+.full-size-splitter {
+  height: 100% !important;
+  width: 100%;
+}
+
+/* Mobile Layout Fixes */
+::ng-deep nz-splitter[nzLayout="vertical"] .ant-splitter-split-bar-draggable {
+  height: 2px !important;
+  /* Minimize gutter height */
+  margin: 0 !important;
+  opacity: 0.5;
+}
+
+::ng-deep .ant-splitter-vertical {
+  border: none !important;
+}
+
+/* Ensure no extra margins on internal components when in splitter */
+::ng-deep .ant-splitter-panel {
+  overflow: hidden !important;
+  /* Force overflow handling to children */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Adjust card body to be fully flush */
+::ng-deep .ant-card-body {
+  padding: 0 !important;
+}
+
+/* Style for nz-option-group headers in dropdowns */
+::ng-deep .ant-select-item-group {
+  background-color: #999999 !important;
+  font-weight: 600 !important;
+  color: #555 !important;
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #e8e8e8;
+  border-top: 1px solid #e8e8e8;
+}
+
+::ng-deep .ant-select-item-option {
+  padding-left: 20px !important;
+}

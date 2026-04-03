@@ -236,6 +236,9 @@ import { OfficeSupplyRequestPersonComponent } from './pages/hrm/office-supply/Of
 
 
 import { CourseManagementComponent } from './pages/Course/course-management/course-management.component';
+import { CourseTypeComponent } from './pages/Course/course-type/course-type.component';
+import { SummaryOfExamResultsComponent } from './pages/Course/summary-of-exam-results/summary-of-exam-results.component';
+import { ExamResultQuarterlyComponent } from './pages/Course/exam-result-quarterly/exam-result-quarterly.component';
 import { EconimicContractTermComponent } from './pages/hrm/economic-contract/econimic-contract-term/econimic-contract-term.component';
 import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/economic-contract-type/economic-contract-type.component';
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
@@ -273,6 +276,8 @@ import { UpdateVersionComponent } from './pages/systems/update-version/update-ve
 import { KpiEvaluationFactorsComponent } from './pages/old/Technical/kpi-evaluation-factors/kpi-evaluation-factors.component';
 import { LuckyNumberComponent } from './pages/hrm/lucky-number/lucky-number.component';
 import { CoursePracticeComponent } from './pages/Course/course-practice/course-practice.component';
+import { CourseExamComponent } from './pages/Course/course-exam/course-exam.component';
+import { CourseExamPracticeComponent } from './pages/Course/course-exam-practice/course-exam-practice.component';
 import { KpiSyntheticYearsComponent } from './pages/old/Technical/kpi-synthetic-years/kpi-synthetic-years.component';
 import { SummaryKpiEmployeePointComponent } from './pages/old/Technical/summary-kpi-employee-point/summary-kpi-employee-point.component';
 import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-base/follow-project-base-slickgrid/follow-project-base-slickgrid.component';
@@ -1087,9 +1092,14 @@ export const routes: Routes = [
             { path: 'inventory-borrow-ncc', component: InventoryBorrowNCCComponent, canActivate: [authGuard] },
 
 
-            // COURSE
+            // COURSE: Khóa học
+            { path: 'course-type', component: CourseTypeComponent, canActivate: [authGuard] },
             { path: 'course-management', component: CourseManagementComponent, canActivate: [authGuard] },
             { path: 'course-practice', component: CoursePracticeComponent, canActivate: [authGuard] },
+            { path: 'course-exam', component: CourseExamComponent, canActivate: [authGuard] },
+            { path: 'course-exam-practice', component: CourseExamPracticeComponent, canActivate: [authGuard] },
+            { path: 'summary-of-exam-results', component: SummaryOfExamResultsComponent, canActivate: [authGuard] },
+            { path: 'exam-result-quarterly', component: ExamResultQuarterlyComponent, canActivate: [authGuard] },
 
             { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
 

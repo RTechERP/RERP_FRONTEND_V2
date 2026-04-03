@@ -36,7 +36,7 @@ import {
     GridOption,
     MultipleSelectOption,
     OnSelectedRowsChangedEventArgs,
-    MenuCommandItemCallbackArgs
+    MenuCommandItemCallbackArgs,
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import * as ExcelJS from 'exceljs';
@@ -55,6 +55,7 @@ import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../pu
 import { AppUserService } from '../../../../../services/app-user.service';
 import { ProjectPartlistPriceRequestFormComponent } from '../../../project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 import { ProductLocationService } from '../../../../general-category/product-location/product-location-service/product-location.service';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 interface ProductGroup {
     ID?: number;
@@ -86,6 +87,7 @@ interface ProductGroup {
         NzSpinModule,
         NgbModule,
         AngularSlickgridModule,
+        HasPermissionDirective
     ],
     templateUrl: './inventory-new.component.html',
     styleUrls: ['./inventory-new.component.css'],
@@ -509,7 +511,6 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             enableGrouping: true,
         };
     }
-
 
     //#endregion
 

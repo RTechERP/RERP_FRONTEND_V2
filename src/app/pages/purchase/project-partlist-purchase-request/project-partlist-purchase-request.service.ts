@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AppUserService } from '../../../services/app-user.service';
@@ -209,5 +209,27 @@ export class ProjectPartlistPurchaseRequestService {
                 Keyword: filter.keyword
             }
         );
+    }
+
+    getPurchaseQuoteSummary(
+        dateStart: string,
+        dateEnd: string,
+        departmentID: number,
+        employeeRequestID: number,
+        Keyword: string
+    ): Observable<any> {
+        let params = new HttpParams()
+            .set('DepartmentID', departmentID.toString())
+            .set('EmployeeRequestID', employeeRequestID.toString())
+            .set('Keyword', Keyword || '');
+
+        if (dateStart) {
+            params = params.set('DateStart', dateStart);
+        }
+        if (dateEnd) {
+            params = params.set('DateEnd', dateEnd);
+        }
+
+        return this.http.get<any>(`${this.baseUrl}purchase-quote-summary`, { params });
     }
 }

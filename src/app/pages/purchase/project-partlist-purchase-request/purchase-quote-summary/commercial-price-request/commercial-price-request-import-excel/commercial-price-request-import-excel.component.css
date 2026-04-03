@@ -1,0 +1,47 @@
+/* Header and general layout */
+.modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.import-container {
+  height: calc(100vh - 200px);
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tabulator Overrides */
+#priceRequestImportTable {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* Error Highlighting */
+::ng-deep .row-error {
+  background-color: #fff1f0 !important; /* Mẫu hồng nhạt rất nhẹ */
+}
+
+::ng-deep .row-error:hover {
+  background-color: #ffa39e !important;
+}
+
+::ng-deep .cell-error {
+  border: 1.5px solid #ff4d4f !important; /* Viền đỏ đậm */
+  background-color: #fff2f0 !important;
+  color: #cf1322 !important;
+  font-weight: bold;
+}
+
+/* Table container styling */
+.table-wrapper {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+}

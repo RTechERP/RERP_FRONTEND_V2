@@ -217,4 +217,25 @@ export class ProjectPartlistPriceRequestService {
 
     return this.http.get<any>(`${this.baseUrl}/get-partlist`, { params });
   }
+
+  getAllPartlistLocalSummary(
+    dateStart: string,
+    dateEnd: string,
+    statusRequest: number,
+    projectId: number,
+    keyword: string,
+    employeeID: number,
+    isDeleted: number,
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('dateStart', dateStart)
+      .set('dateEnd', dateEnd)
+      .set('statusRequest', statusRequest.toString())
+      .set('projectId', projectId.toString())
+      .set('keyword', keyword || '')
+      .set('employeeID', employeeID.toString())
+      .set('isDeleted', isDeleted.toString())
+
+    return this.http.get<any>(`${this.baseUrl}/get-partlist-summary`, { params });
+  }
 }

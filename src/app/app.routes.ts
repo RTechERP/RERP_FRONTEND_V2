@@ -309,6 +309,9 @@ import { ProjectTaskTimelineComponent } from './pages/project_task/project-task-
 import { ProjectTaskStatusComponent } from './pages/project_task/project-task-status/project-task-status.component'
 import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type/project-task-type.component'
 import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
+import { PurchaseQuoteSummaryComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary.component';
+import { CommercialPriceRequestComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/commercial-price-request/commercial-price-request.component';
+
 export const routes: Routes = [
     {
         path: '',
@@ -1152,6 +1155,8 @@ export const routes: Routes = [
             { path: 'project-task-status', component: ProjectTaskStatusComponent, canActivate: [authGuard] },
             { path: 'project-task-type', component: ProjectTaskTypeComponent, canActivate: [authGuard] },
             { path: 'project-task-project', component: ProjectTaskProjectComponent, canActivate: [authGuard] },
+            { path: 'purchase-quote-summary', component: PurchaseQuoteSummaryComponent, canActivate: [authGuard] },
+            { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
         ],
     },
 ];

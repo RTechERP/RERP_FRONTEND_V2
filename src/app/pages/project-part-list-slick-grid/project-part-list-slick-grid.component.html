@@ -418,7 +418,8 @@
                                     style="font-size: 0.75rem !important;  white-space: nowrap;">Trạng thái TBP</label>
                                 <nz-select style="font-size: 0.75rem !important;" name="IsLateActual" nzShowSearch
                                     nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
-                                    [(ngModel)]="isApprovedTBP" nzAllowClear="false" class="fs-12">
+                                    [(ngModel)]="isApprovedTBP" nzAllowClear="false" class="fs-12"
+                                    (ngModelChange)="searchDataProjectWorker()">
                                     <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
                                     <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
                                     <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
@@ -429,7 +430,8 @@
                                     mua</label>
                                 <nz-select style="font-size: 0.75rem !important;" name="IsApprovedPurchase" nzShowSearch
                                     nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
-                                    [(ngModel)]="isApprovedPurchase" nzAllowClear="false" class="fs-12">
+                                    [(ngModel)]="isApprovedPurchase" nzAllowClear="false" class="fs-12"
+                                    (ngModelChange)="searchDataProjectWorker()">
                                     <nz-option [nzValue]="-1" nzLabel="--Tất cả-- " class="fs-12"></nz-option>
                                     <nz-option [nzValue]="0" nzLabel="Chưa Y/c mua" class="fs-12"></nz-option>
                                     <nz-option [nzValue]="1" nzLabel="Đã yêu cầu mua" class="fs-12"></nz-option>
@@ -438,13 +440,13 @@
                                     style="font-size: 0.75rem !important; white-space: nowrap;">Trạng thái</label>
                                 <nz-select style="font-size: 0.75rem !important;" name="IsDeleted" nzShowSearch
                                     nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small" [(ngModel)]="isDeleted"
-                                    nzAllowClear="false" class="fs-12">
+                                    nzAllowClear="false" class="fs-12" (ngModelChange)="searchDataProjectWorker()">
                                     <nz-option [nzValue]="-1" nzLabel="--Tất cả--" class="fs-12"></nz-option>
                                     <nz-option [nzValue]="0" nzLabel="Chưa xóa" class="fs-12"></nz-option>
                                     <nz-option [nzValue]="1" nzLabel="Đã xóa" class="fs-12"></nz-option>
                                 </nz-select>
                                 <input nz-input nzSize="small" placeholder="Nhập từ khóa" style="width: 150px"
-                                    [(ngModel)]="keyword" (keyup.enter)="searchDataProjectWorker()" class="fs-12" />
+                                    [ngModel]="keyword" (ngModelChange)="onKeywordChange($event)" (keyup.enter)="searchDataProjectWorker()" class="fs-12" />
                                 <button style="font-size: 0.75rem !important;" type="button" nz-button nzType="primary"
                                     nzSize="small" (click)="searchDataProjectWorker()">
                                     <i nz-icon nzType="search"></i>

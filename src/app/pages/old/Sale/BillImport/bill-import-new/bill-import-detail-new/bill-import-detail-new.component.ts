@@ -985,6 +985,15 @@ export class BillImportDetailNewComponent
         editor: { model: Editors['text'], maxLength: 150 }, // nvarchar(150)
       },
       {
+        id: 'POKHDetailID',
+        name: 'POKHDetailID',
+        field: 'POKHDetailID',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        hidden: true,
+      },
+      {
         id: 'DateSomeBill',
         name: 'Ngày hóa đơn',
         field: 'DateSomeBill',
@@ -1807,6 +1816,10 @@ export class BillImportDetailNewComponent
               StatusQCText: item.StatusQCText || '',
               DealineQC: item.DealineQC || null,
               Overdue: item.Overdue || null,
+              POKHDetailID: item.POKHDetailID || null,
+              POKHDetailQuantity: item.POKHDetailQuantity || null,
+              CustomerID: item.CustomerID || null,
+              QuantityRequestBuy: item.QuantityRequestBuy || null,
             };
           });
 
@@ -2141,7 +2154,40 @@ export class BillImportDetailNewComponent
   }
 
   private mapTableDataToBillImportDetails(tableData: any[]): any[] {
+    const parsePOKHList = (
+      pokhString: string
+    ): Array<{ POKHDetailID: number; QuantityRequest: number }> => {
+      if (!pokhString || pokhString.trim() === '') {
+        return [];
+      }
+      return pokhString
+        .split(',')
+        .map((s) => {
+          const parts = s.split('-').map((x) => x.trim());
+          if (parts.length !== 2) return null;
+          const id = Number(parts[0]);
+          const qty = Number(parts[1]);
+          if (!isNaN(id) && !isNaN(qty) && id > 0 && qty > 0) {
+            return { POKHDetailID: id, QuantityRequest: qty };
+          }
+          return null;
+        })
+        .filter(
+          (x): x is { POKHDetailID: number; QuantityRequest: number } =>
+            x !== null
+        );
+    };
+
     return tableData.map((row: any, index: number) => {
+      const pokhList = parsePOKHList(row.POKHDetailQuantity || '');
+
+      let pokhDetailID: number | null = null;
+      if (row.POKHDetailID && Number(row.POKHDetailID) > 0) {
+        pokhDetailID = Number(row.POKHDetailID);
+      } else if (pokhList.length > 0 && pokhList[0].POKHDetailID > 0) {
+        pokhDetailID = pokhList[0].POKHDetailID;
+      }
+
       return {
         ID: (row.ID && row.ID > 0) ? row.ID : 0,
         BillImportID: row.BillImportID || 0,
@@ -2180,9 +2226,17 @@ export class BillImportDetailNewComponent
         COFormE: row.COFormE || 0,
         IsNotKeep: row.IsNotKeep || false,
         UnitName: row.Unit || '',
-        POKHDetailID: row.POKHDetailID || null,
-        CustomerID: row.CustomerID || null,
-        QuantityRequestBuy: row.QuantityRequestBuy || null,
+        POKHDetailID: pokhDetailID,
+        POKHDetailQuantity: row.POKHDetailQuantity || null,
+        CustomerID:
+          row.CustomerID && Number(row.CustomerID) > 0
+            ? Number(row.CustomerID)
+            : null,
+        QuantityRequestBuy:
+          row.QuantityRequestBuy && Number(row.QuantityRequestBuy) > 0
+            ? Number(row.QuantityRequestBuy)
+            : null,
+        POKHList: pokhList,
       };
     });
   }

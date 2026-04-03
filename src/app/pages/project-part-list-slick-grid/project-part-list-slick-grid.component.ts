@@ -50,7 +50,8 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { ProjectService } from '../project/project-service/project.service';
 import { ProjectWorkerService } from '../project/project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
@@ -178,6 +179,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   type: number = 0;
   keyword: string = '';
   searchKeyword: string = '';
+  private searchSubject = new Subject<string>();
   isDeleted: number = 0;
   isApprovedTBP: number = -1;
   isApprovedPurchase: number = -1;
@@ -326,6 +328,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
     this.isApprovedPurchase = -1;
+
+    // Setup debounce for keyword search
+    const searchSub = this.searchSubject.pipe(
+      debounceTime(2000),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.searchDataProjectWorker();
+    });
+    this.subscriptions.push(searchSub);
 
     // Initialize grids in ngOnInit to ensure options are ready before grid renders
     this.initializeGrids();
@@ -3997,6 +4008,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       this.dataProjectPartList = [];
       this.projectSolutionId = 0;
     }
+  }
+
+  onKeywordChange(value: string): void {
+    this.keyword = value;
+    this.searchSubject.next(value);
   }
 
   searchDataProjectWorker(): void {

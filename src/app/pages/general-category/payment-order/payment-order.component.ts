@@ -50,6 +50,7 @@ import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { PaymentOrderSpecialComponent } from './payment-order-special/payment-order-special.component';
 import { PaymentOrderLogComponent } from './payment-order-log/payment-order-log.component';
+import { FilePreviewComponent } from '../file-preview/file-preview.component';
 import { environment } from '../../../../environments/environment';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { DateTime } from 'luxon';
@@ -59,6 +60,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { NzResizeObserverDirective } from "ng-zorro-antd/cdk/resize-observer";
+import { PaymentOrderDetailOldComponent } from '../payment-order-detail-old/payment-order-detail-old.component';
 // import { SlickGlobalEditorLock } from 'angular-slickgrid';
 
 // (SlickGlobalEditorLock as any).Logger = {
@@ -95,7 +97,8 @@ import { NzResizeObserverDirective } from "ng-zorro-antd/cdk/resize-observer";
         NzIconModule,
         NzSpinModule,
         NzModalModule,
-        NzResizeObserverDirective
+        NzResizeObserverDirective,
+        FilePreviewComponent
     ],
     templateUrl: './payment-order.component.html',
     styleUrl: './payment-order.component.css',
@@ -153,6 +156,7 @@ export class PaymentOrderComponent implements OnInit {
     angularGridDetail!: AngularGridInstance;
     angularGridFile!: AngularGridInstance;
     angularGridFileBankslip!: AngularGridInstance;
+    angularGridLog!: AngularGridInstance;
 
     gridData: any;
     gridDetail: any;
@@ -171,10 +175,16 @@ export class PaymentOrderComponent implements OnInit {
     columnDefinitionFileBankSlips: Column[] = [];
     gridOptionFileBankSlips: GridOption = {};
 
+    columnDefinitionLog: Column[] = [];
+    gridOptionLog: GridOption = {};
+
     dataset: any[] = [];
     datasetDetails: any[] = [];
     datasetFiles: any[] = [];
     datasetFileBankslip: any[] = [];
+    datasetLog: any[] = [];
+
+    activeDetailTab = '0';
 
     //Khai báo biến slick-grid cho ĐNTTĐB
     angularGridSpecial!: AngularGridInstance;
@@ -1340,6 +1350,7 @@ export class PaymentOrderComponent implements OnInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                hidden: true,
             },
             {
                 id: PaymentOrderField.DateApprovedEmployee.field,
@@ -1351,7 +1362,8 @@ export class PaymentOrderComponent implements OnInit {
                 columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundInputDate'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                hidden: true,
             },
             {
                 id: PaymentOrderField.DateApprovedEmployee.field,
@@ -1363,7 +1375,8 @@ export class PaymentOrderComponent implements OnInit {
                 columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
                 filter: { model: Filters['compoundInputDate'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                hidden: true,
             },
 
             //TBP
@@ -1384,6 +1397,7 @@ export class PaymentOrderComponent implements OnInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                hidden: true,
             },
             {
                 id: PaymentOrderField.DateApprovedTBP.field,
@@ -1395,7 +1409,8 @@ export class PaymentOrderComponent implements OnInit {
                 columnGroup: 'TRƯỞNG BỘ PHẬN',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundInputDate'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                hidden: true,
             },
             {
                 id: PaymentOrderField.DateApprovedTBP.field,
@@ -1407,7 +1422,8 @@ export class PaymentOrderComponent implements OnInit {
                 columnGroup: 'TRƯỞNG BỘ PHẬN',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
                 filter: { model: Filters['compoundInputDate'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                hidden: true,
             },
             //Nhân sự
             {
@@ -1427,6 +1443,7 @@ export class PaymentOrderComponent implements OnInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                hidden: true,
             },
             {
                 id: PaymentOrderField.DateApprovedHR.field,
@@ -1438,7 +1455,8 @@ export class PaymentOrderComponent implements OnInit {
                 columnGroup: 'NHÂN SỰ',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundInputDate'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                hidden: true,
             },
             {
                 id: PaymentOrderField.DateApprovedHR.field,
@@ -1450,7 +1468,8 @@ export class PaymentOrderComponent implements OnInit {
                 columnGroup: 'NHÂN SỰ',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
                 filter: { model: Filters['compoundInputDate'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                hidden: true,
             },
 
             //Kế toán
@@ -1471,6 +1490,7 @@ export class PaymentOrderComponent implements OnInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                hidden: true,
             },
             {
                 id: PaymentOrderField.DateApprovedKT.field,
@@ -1482,7 +1502,8 @@ export class PaymentOrderComponent implements OnInit {
                 columnGroup: 'KẾ TOÁN',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundInputDate'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                hidden: true,
             },
             {
                 id: PaymentOrderField.DateApprovedKT.field,
@@ -1494,7 +1515,8 @@ export class PaymentOrderComponent implements OnInit {
                 columnGroup: 'KẾ TOÁN',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
                 filter: { model: Filters['compoundInputDate'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                hidden: true,
             },
 
             //BGĐ
@@ -1515,6 +1537,7 @@ export class PaymentOrderComponent implements OnInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                hidden: true,
             },
             {
                 id: PaymentOrderField.DateApprovedBGD.field,
@@ -1526,7 +1549,8 @@ export class PaymentOrderComponent implements OnInit {
                 columnGroup: 'BAN GIÁM ĐỐC',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                hidden: true,
             },
             {
                 id: PaymentOrderField.DateApprovedBGD.field,
@@ -1538,7 +1562,8 @@ export class PaymentOrderComponent implements OnInit {
                 columnGroup: 'BAN GIÁM ĐỐC',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
                 filter: { model: Filters['compoundDate'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                hidden: true,
             },
         ];
 
@@ -1834,7 +1859,7 @@ export class PaymentOrderComponent implements OnInit {
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
-
+            forceFitColumns: true,
             enableRowSelection: true,
             rowSelectionOptions: {
                 selectActiveRow: false// True (Single Selection), False (Multiple Selections)
@@ -1854,33 +1879,12 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 62,
                         action: (e, args) => {
-                            // console.log(args.row);
-                            // const row = args.row;
-
-                            // let selectedRows = args.grid.getSelectedRows();
-                            // if (selectedRows.length <= 0) selectedRows.push(row);
-
-                            // let selectedItems = selectedRows
-                            //     .map((i: any) => angularGrid.dataView?.getItem(i));
-
                             const filePath = args.dataContext?.ServerPath || '';
+                            const fileName = args.dataContext?.FileName || '';
                             if (filePath) {
                                 const host = environment.host + 'api/share';
-                                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileName}`;
-                                // window.open(urlImg, '_blank', 'width=1000,height=700,left=200,top=100');
-
-                                const newWindow = window.open(
-                                    urlImg,
-                                    '_blank',
-                                    // 'width=1000,height=700'
-                                );
-
-                                if (newWindow) {
-                                    newWindow.onload = () => {
-                                        newWindow.document.title = args.dataContext?.FileName;
-                                        // newWindow.document.icon = args.dataContext?.FileName;
-                                    };
-                                }
+                                const url = filePath.replace("\\\\192.168.1.190", host) + `/${fileName}`;
+                                this.openFilePreview(url, fileName);
                             }
                         }
                     },
@@ -1933,6 +1937,7 @@ export class PaymentOrderComponent implements OnInit {
 
         this.gridOptionFileBankSlips = {
             enableAutoResize: true,
+            forceFitColumns: true,
             autoResize: {
                 container: '.grid-container-filebankslip',
                 calculateAvailableSizeBy: 'container',
@@ -1958,33 +1963,14 @@ export class PaymentOrderComponent implements OnInit {
                 commandItems: [
 
                     {
-                        command: '', title: 'Xem file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 62,
                         action: (e, args) => {
-
-                            // let selectedRows = args.grid.getSelectedRows();
-                            // if (selectedRows.length <= 0) selectedRows.push(args.row);
-
-                            // let selectedItems = selectedRows
-                            //     .map((i: any) => this.angularGridFile.dataView?.getItem(i));
-
                             const filePath = args.dataContext?.ServerPath || '';
+                            const fileName = args.dataContext?.FileName || '';
                             if (filePath) {
                                 const host = environment.host + 'api/share';
-                                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileName}`;
-                                // window.open(urlImg, '_blank', 'width=1000,height=700,left=200,top=100');
-
-                                const newWindow = window.open(
-                                    urlImg,
-                                    '_blank',
-                                    // 'width=1000,height=700'
-                                );
-
-                                if (newWindow) {
-                                    newWindow.onload = () => {
-                                        newWindow.document.title = args.dataContext?.FileName;
-                                        // newWindow.document.icon = args.dataContext?.FileName;
-                                    };
-                                }
+                                const url = filePath.replace("\\\\192.168.1.190", host) + `/${fileName}`;
+                                this.openFilePreview(url, fileName);
                             }
                         }
                     },
@@ -2026,6 +2012,68 @@ export class PaymentOrderComponent implements OnInit {
         this.datasetDetails = [];
         this.datasetFiles = [];
         this.datasetFileBankslip = [];
+        this.datasetLog = [];
+
+        const logRowFormatter = (bg: string, text: string, icon: string) =>
+            (_row: any, _cell: any, value: any, _col: any, dataContext: any): string => {
+                const isApproved: number = dataContext.IsApproved;
+                const bgColor  = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
+                const txtColor = isApproved === 1 ? '#14532d' : isApproved === 2 ? '#7f1d1d' : '#713f12';
+                const ico      = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
+                return `<span style="display:block;width:100%;height:100%;background:${bgColor};color:${txtColor};padding:2px 4px;">${value ?? ''}</span>`;
+            };
+
+        const logCellFormatter = (_row: any, _cell: any, value: any, _col: any, dataContext: any): string => {
+            const isApproved: number = dataContext.IsApproved;
+            const bgColor  = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
+            const txtColor = isApproved === 1 ? '#14532d' : isApproved === 2 ? '#7f1d1d' : '#713f12';
+            const ico      = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
+            return `<span style="display:block;width:100%;height:100%;background:${bgColor};color:${txtColor};padding:2px 4px;">${value ?? ''}</span>`;
+        };
+
+        const logStatusFormatter = (_row: any, _cell: any, value: any, _col: any, dataContext: any): string => {
+            const isApproved: number = dataContext.IsApproved;
+            const bgColor  = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
+            const txtColor = isApproved === 1 ? '#14532d' : isApproved === 2 ? '#7f1d1d' : '#713f12';
+            const ico      = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
+            return `<span style="display:flex;align-items:center;gap:4px;width:100%;height:100%;background:${bgColor};color:${txtColor};padding:2px 4px;font-weight:600;"><i class="pi ${ico}"></i>${value ?? ''}</span>`;
+        };
+
+        this.columnDefinitionLog = [
+            { id: 'Step', name: 'Bước', field: 'Step', maxWidth: 38, sortable: true, filterable: true, formatter: logCellFormatter },
+            { id: 'StepName', name: 'Tên bước', field: 'StepName', maxWidth: 300, minWidth: 250, sortable: true, filterable: true, formatter: logCellFormatter },
+            { id: 'IsApprovedText', name: 'Trạng thái', field: 'IsApprovedText', maxWidth: 130, sortable: true, filterable: true, formatter: logStatusFormatter },
+            { id: 'FullNameDefault', name: 'Người phụ trách', field: 'FullNameDefault', width: 150, sortable: true, filterable: true, formatter: logCellFormatter },
+            { id: 'FullName', name: 'Người thực hiện', field: 'FullName', width: 150, sortable: true, filterable: true, formatter: logCellFormatter },
+            {
+                id: 'DateApproved', name: 'Ngày duyệt', field: 'DateApproved', width: 130, sortable: true, filterable: true,
+                formatter: (_row: any, _cell: any, value: any, _col: any, dataContext: any) => {
+                    if (!value) return logCellFormatter(_row, _cell, '', _col, dataContext);
+                    const d = new Date(value);
+                    const formatted = isNaN(d.getTime()) ? '' : d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                    return logCellFormatter(_row, _cell, formatted, _col, dataContext);
+                }
+            },
+            { id: 'ReasonCancel', name: 'Lý do hủy', field: 'ReasonCancel', width: 200, sortable: true, filterable: true, formatter: logCellFormatter },
+            { id: 'ReasonRequestAppendFileHR', name: 'Ghi chú HR', field: 'ReasonRequestAppendFileHR', width: 200, sortable: true, filterable: true, formatter: logCellFormatter },
+            { id: 'ReasonRequestAppendFileAC', name: 'Ghi chú kế toán', field: 'ReasonRequestAppendFileAC', width: 200, sortable: true, filterable: true, formatter: logCellFormatter },
+        ];
+
+        this.gridOptionLog = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-log',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: true,
+            enableSorting: true,
+            rowHeight: 30,
+            headerRowHeight: 35,
+            forceFitColumns: true,
+        };
     }
 
     initGridSpecial() {
@@ -2540,7 +2588,7 @@ export class PaymentOrderComponent implements OnInit {
 
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
-
+            forceFitColumns: true,
             enableFiltering: false,
             enableTreeData: false,
             // treeDataOptions: {
@@ -2844,15 +2892,27 @@ export class PaymentOrderComponent implements OnInit {
                     id: item.ID
                 }));
 
-
-                // console.log(response.data);
-                // this.dataPrint = {
-                //     paymentOrder: response.data.paymentOrder,
-                //     details: response.data.details,
-                //     signs: response.data.signs
-                // }
+                this.loadLog(id);
             }
         })
+    }
+
+    loadLog(paymentOrderId: number) {
+        this.paymentService.getLogNew(paymentOrderId).subscribe({
+            next: (response) => {
+                this.datasetLog = (response.data || []).map((item: any) => ({
+                    ...item,
+                    id: item.ID,
+                }));
+            },
+            error: () => {
+                this.datasetLog = [];
+            }
+        });
+    }
+
+    angularGridLogReady(angularGrid: AngularGridInstance) {
+        this.angularGridLog = angularGrid;
     }
 
 
@@ -3093,7 +3153,7 @@ export class PaymentOrderComponent implements OnInit {
 
         // console.log('paymentOrder.IsSpecialOrder:', paymentOrder.IsSpecialOrder);
         if (!paymentOrder.IsSpecialOrder) {
-            const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
+            const modalRef = this.modalService.open(PaymentOrderDetailOldComponent, {
                 centered: true,
                 size: 'xl',
                 backdrop: 'static',
@@ -4814,6 +4874,17 @@ export class PaymentOrderComponent implements OnInit {
             // window.open(url, '_blank', `width=${window.screen.width / 2},height=${window.screen.height}`);
             window.open(url, '_blank');
         });
+    }
+
+    openFilePreview(fileUrl: string, fileName: string): void {
+        const modalRef = this.modalService.open(FilePreviewComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: true,
+        });
+        modalRef.componentInstance.fileUrl = fileUrl;
+        modalRef.componentInstance.fileName = fileName;
     }
 
     onDownloadFileAttach(e: Event, args: any, angularGrid: AngularGridInstance) {

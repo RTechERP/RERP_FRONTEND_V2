@@ -40,6 +40,10 @@ export class PaymentOrderService {
         return this.http.get<any>(this.url + `/${id}`);
     }
 
+    getLogNew(paymentOrderId: number): Observable<any> {
+        return this.http.get<any>(`${environment.host}api/paymentorderlog/get-data-new`, { params: { paymentOrderId } });
+    }
+
     save(payment: any): Observable<any> {
         return this.http.post<any>(`${this.url}/save-data`, payment);
     }

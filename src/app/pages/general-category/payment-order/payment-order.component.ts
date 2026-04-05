@@ -60,7 +60,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { NzResizeObserverDirective } from "ng-zorro-antd/cdk/resize-observer";
-import { PaymentOrderDetailOldComponent } from '../payment-order-detail-old/payment-order-detail-old.component';
+// import { PaymentOrderDetailOldComponent } from '../payment-order-detail-old/payment-order-detail-old.component';
 // import { SlickGlobalEditorLock } from 'angular-slickgrid';
 
 // (SlickGlobalEditorLock as any).Logger = {
@@ -2017,26 +2017,26 @@ export class PaymentOrderComponent implements OnInit {
         const logRowFormatter = (bg: string, text: string, icon: string) =>
             (_row: any, _cell: any, value: any, _col: any, dataContext: any): string => {
                 const isApproved: number = dataContext.IsApproved;
-                const bgColor  = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
+                const bgColor = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
                 const txtColor = isApproved === 1 ? '#14532d' : isApproved === 2 ? '#7f1d1d' : '#713f12';
-                const ico      = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
+                const ico = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
                 return `<span style="display:block;width:100%;height:100%;background:${bgColor};color:${txtColor};padding:2px 4px;">${value ?? ''}</span>`;
             };
 
         const logCellFormatter = (_row: any, _cell: any, value: any, _col: any, dataContext: any): string => {
             const isApproved: number = dataContext.IsApproved;
-            const bgColor  = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
+            const bgColor = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
             const txtColor = isApproved === 1 ? '#14532d' : isApproved === 2 ? '#7f1d1d' : '#713f12';
-            const ico      = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
+            const ico = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
             return `<span style="display:block;width:100%;height:100%;background:${bgColor};color:${txtColor};padding:2px 4px;">${value ?? ''}</span>`;
         };
 
         const logStatusFormatter = (_row: any, _cell: any, value: any, _col: any, dataContext: any): string => {
             const isApproved: number = dataContext.IsApproved;
-            const bgColor  = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
+            const bgColor = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
             const txtColor = isApproved === 1 ? '#14532d' : isApproved === 2 ? '#7f1d1d' : '#713f12';
-            const ico      = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
-            return `<span style="display:flex;align-items:center;gap:4px;width:100%;height:100%;background:${bgColor};color:${txtColor};padding:2px 4px;font-weight:600;"><i class="pi ${ico}"></i>${value ?? ''}</span>`;
+            const ico = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
+            return `<span style="display:flex;align-items:center;gap:4px;width:100%;height:100%;background:${bgColor};color:${txtColor};padding:2px 4px;font-weight:600;">${value ?? ''}</span>`;
         };
 
         this.columnDefinitionLog = [
@@ -2821,7 +2821,7 @@ export class PaymentOrderComponent implements OnInit {
             typeOrder: 0,
             employeeID: emp
         }
-        this.paymentService.get(p).subscribe({
+        this.paymentService.getSpecial(p).subscribe({
             next: (response) => {
                 // console.log(response);
                 this.datasetSpecial = response.data;
@@ -3153,7 +3153,7 @@ export class PaymentOrderComponent implements OnInit {
 
         // console.log('paymentOrder.IsSpecialOrder:', paymentOrder.IsSpecialOrder);
         if (!paymentOrder.IsSpecialOrder) {
-            const modalRef = this.modalService.open(PaymentOrderDetailOldComponent, {
+            const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
                 centered: true,
                 size: 'xl',
                 backdrop: 'static',

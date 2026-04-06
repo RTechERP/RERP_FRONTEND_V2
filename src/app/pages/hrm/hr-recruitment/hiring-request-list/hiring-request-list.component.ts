@@ -12,6 +12,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { ExamScoreComponent } from '../../hr-recruitment-exam-score/exam-score/exam-score.component';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 
 @Component({
   selector: 'app-hiring-request-list',
@@ -43,7 +44,7 @@ export class HiringRequestListComponent implements OnInit {
     private appUserService: AppUserService,
     private tabService: TabServiceService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadData();
@@ -57,10 +58,24 @@ export class HiringRequestListComponent implements OnInit {
         this.listData = res.data || [];
         this.isLoading = false;
       },
-      error: (err) => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách yêu cầu tuyển dụng');
+      // error: (err) => {
+      //   this.notification.error('Lỗi', 'Không thể tải danh sách yêu cầu tuyển dụng');
+      //   this.isLoading = false;
+      // }
+      error: (err: any) => {
         this.isLoading = false;
-      }
+        let errorMsg = err?.error?.message || err?.message || 'Có lỗi xảy ra!';
+        if (typeof err?.error === 'string') {
+          try { errorMsg = JSON.parse(err.error).message; } catch (e) { }
+        }
+
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          errorMsg,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+      },
     });
   }
 

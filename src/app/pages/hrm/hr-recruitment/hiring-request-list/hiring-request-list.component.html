@@ -17,24 +17,47 @@
   </div>
 
   <!-- Table Body -->
-  <div class="flex-grow-1 overflow-auto p-2 bg-white">
+  <div class="flex-grow-1 overflow-auto max-h-100 p-2 bg-white">
     <nz-spin [nzSpinning]="isLoading">
       <p-table [value]="listData" [scrollable]="true" scrollHeight="flex"
         styleClass="p-datatable-sm p-datatable-gridlines w-100 custom-table">
         <ng-template pTemplate="header">
           <tr>
             <th style="width: 50px; text-align: center;">STT</th>
+            <th>Mã yêu cầu</th>
             <th>Vị trí tuyển dụng</th>
-            <th style="width: 120px; text-align: center;">SL tuyển dụng</th>
-            <th style="width: 150px; text-align: center;">Ứng viên tham gia</th>
-            <th style="width: 150px; text-align: center;">Đã làm bài</th>
-            <th style="width: 120px; text-align: center;">Thao tác</th>
+            <th style="width: 150px;">Phòng ban</th>
+            <th style="width: 200px; text-align: center;" pSortableColumn="CreatedDate">
+              Ngày tạo<p-sortIcon field="CreatedDate"></p-sortIcon>
+            </th>
+            <th style="width: 120px; text-align: center;" pSortableColumn="QuantityHiring">
+              SL tuyển dụng<p-sortIcon field="QuantityHiring"></p-sortIcon>
+            </th>
+            <th style="width: 150px; text-align: center;" pSortableColumn="uv">
+              Ứng viên tham gia<p-sortIcon field="uv"></p-sortIcon>
+            </th>
+            <th style="width: 150px; text-align: center;" pSortableColumn="examresult">
+              Đã làm bài<p-sortIcon field="examresult"></p-sortIcon>
+            </th>
+            <th style="width: 150px; text-align: center;">Thao tác</th>
           </tr>
           <tr>
             <th></th>
             <th>
+              <p-columnFilter type="text" field="HiringRequestCode" placeholder="Tìm mã yêu cầu..." filterOn="input"
+                matchMode="contains"></p-columnFilter>
+            </th>
+            <th>
               <p-columnFilter type="text" field="PositionName" placeholder="Tìm vị trí..." filterOn="input"
                 matchMode="contains"></p-columnFilter>
+            </th>
+            <th>
+              <p-columnFilter type="text" field="Name" placeholder="Tìm phòng ban..." filterOn="input"
+                matchMode="contains"></p-columnFilter>
+            </th>
+            <th>
+              <p-columnFilter type="date" placeholder="Tìm ngày tạo..." field="CreatedDate"
+                display="row"></p-columnFilter>
             </th>
             <th></th>
             <th></th>
@@ -46,8 +69,17 @@
           <tr>
             <td style="text-align: center;">{{rowIndex + 1}}</td>
             <td>
+              <div class="font-weight-bold text-dark">{{row.HiringRequestCode}}</div>
+            </td>
+            <td>
               <div class="font-weight-bold text-dark">{{row.PositionName}}</div>
-              <small class="text-muted">{{row.Name}}</small>
+              <!-- <small class="text-muted">{{row.Name}}</small> -->
+            </td>
+            <td>
+              <div class="font-weight-bold text-dark">{{row.Name}}</div>
+            </td>
+            <td style="text-align: center;">
+              {{row.CreatedDate | date:'dd/MM/yyyy'}}
             </td>
             <td style="text-align: center;">
               <p-tag [value]="row.QuantityHiring" severity="info"></p-tag>

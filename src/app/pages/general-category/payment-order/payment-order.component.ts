@@ -3153,7 +3153,7 @@ export class PaymentOrderComponent implements OnInit {
 
         // console.log('paymentOrder.IsSpecialOrder:', paymentOrder.IsSpecialOrder);
         if (!paymentOrder.IsSpecialOrder) {
-            const modalRef = this.modalService.open(PaymentOrderDetailOldComponent, {
+            const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
                 centered: true,
                 size: 'xl',
                 backdrop: 'static',
@@ -4878,22 +4878,16 @@ export class PaymentOrderComponent implements OnInit {
 
     openFilePreview(fileUrl: string, fileName: string): void {
         const ext = (fileName.split('.').pop() ?? '').toLowerCase();
-        const openInTab = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'pdf'].includes(ext);
-        if (openInTab) {
+        const openRaw = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'pdf'].includes(ext);
+        if (openRaw) {
             const newWindow = window.open(fileUrl, '_blank');
             if (newWindow) {
                 newWindow.onload = () => { newWindow.document.title = fileName; };
             }
-            return;
+        } else {
+            const url = `/file-preview?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
+            window.open(url, '_blank');
         }
-        const modalRef = this.modalService.open(FilePreviewComponent, {
-            centered: true,
-            size: 'xl',
-            backdrop: 'static',
-            keyboard: true,
-        });
-        modalRef.componentInstance.fileUrl = fileUrl;
-        modalRef.componentInstance.fileName = fileName;
     }
 
     onDownloadFileAttach(e: Event, args: any, angularGrid: AngularGridInstance) {

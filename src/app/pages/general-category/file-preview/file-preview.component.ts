@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, AfterViewChecked, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -17,7 +17,7 @@ type FileType = 'image' | 'pdf' | 'excel' | 'word' | 'other';
     templateUrl: './file-preview.component.html',
     styleUrl: './file-preview.component.css'
 })
-export class FilePreviewComponent implements OnInit, OnDestroy {
+export class FilePreviewComponent implements OnInit, AfterViewChecked, OnDestroy {
     @Input() fileName: string = '';
     @Input() fileUrl:  string = '';
 
@@ -43,6 +43,7 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
 
     // word
     wordBuffer: ArrayBuffer | null = null;
+    private _docxRendered = false;
 
     // download link
     downloadUrl: SafeUrl | null = null;
@@ -59,6 +60,13 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
         this.fileType = this.detectFileType(this.fileName);
         this.downloadUrl = this.sanitizer.bypassSecurityTrustUrl(this.fileUrl);
         this.loadFile();
+    }
+
+    ngAfterViewChecked(): void {
+        if (this.wordBuffer && !this._docxRendered && this.docxContainerRef?.nativeElement) {
+            this._docxRendered = true;
+            this.renderDocx();
+        }
     }
 
     ngOnDestroy(): void {
@@ -114,8 +122,7 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
                 next: buffer => {
                     this.wordBuffer = buffer;
                     this.isLoading = false;
-                    // Wait for *ngIf to render the container, then render docx
-                    setTimeout(() => this.renderDocx(), 0);
+                    // renderDocx() sẽ được gọi từ ngAfterViewChecked khi container sẵn sàng
                 },
                 error: () => {
                     this.errorMsg = 'Không thể tải file Word.';

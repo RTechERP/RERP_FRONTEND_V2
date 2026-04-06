@@ -195,6 +195,12 @@ export class BillImportServiceService {
             `api/billimport/get-product?warehouseID=${warehouseID}&ProductGroupID=${productGroupID}`
         );
     }
+    getProductOptionNew() {
+        return this.http.get<any>(
+            environment.host +
+            `api/billimport/get-product-new`
+        );
+    }
     convertImportToExport(billImportId: number): Observable<any> {
         return this.http.post(
             environment.host + `api/billexport/convert-from-import?billImportId=${billImportId}`,

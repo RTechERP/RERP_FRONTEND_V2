@@ -219,6 +219,21 @@ export class BillExportService {
             { params }
         );
     }
+    getOptionProductNew(warehouseCode: string, productGroupID: number): Observable<any> {
+        console.log('warehouseCode:', warehouseCode);
+
+        const code = (warehouseCode ?? '').trim() || 'HN';
+        console.log('warehouseCode:', code);
+
+        const params = new HttpParams()
+            .set('warehouseCode', code)
+            .set('productGroupID', String(productGroupID ?? 0));
+
+        return this.http.get<any>(
+            environment.host + 'api/billexport/get-product-new',
+            { params }
+        );
+    }
     export(id: number, type: number): Observable<Blob> {
         const url = `${environment.host}api/billexport/export-excel?id=${id}&type=${type}`;
         return this.http.get(url, {

@@ -477,8 +477,8 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
         });
         this.essayQuestions.forEach(q => this.loadQuestionImage(q));
 
-        // Thiết lập tab mặc định
-        this.activeTabIndex = this.multipleChoiceQuestions.length > 0 ? 0 : 1;
+        // Thiết lập tab mặc định (luôn bắt đầu từ tab đầu tiên có sẵn)
+        this.activeTabIndex = 0;
 
         this.isLoading = false;
 
@@ -979,9 +979,9 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
 
   toggleAnswer(question: MultipleChoiceQuestion, answerId: number): void {
     if (question.SelectedAnswers.includes(answerId)) {
-        question.SelectedAnswers = [];
+      question.SelectedAnswers = [];
     } else {
-        question.SelectedAnswers = [answerId];
+      question.SelectedAnswers = [answerId];
     }
   }
 
@@ -1074,7 +1074,13 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
         RecruitmentExamResultID: this.examResultID,
         RecruitmentQuestionID: q.ID,
         RecruitmentAnswerIDs: [],
-        AnswerText: q.EssayAnswer || ''
+        AnswerText: q.EssayAnswer || '',
+        litsAnswerImage: q.AnswerAttachments?.map(att => ({
+          ID: att.ID || 0,
+          FileNameOrigin: att.FileNameOrigin,
+          ServerPath: att.ServerPath,
+          Extension: att.Extension,
+        })) || []
       });
     });
 

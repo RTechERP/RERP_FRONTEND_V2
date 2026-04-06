@@ -4877,6 +4877,15 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     openFilePreview(fileUrl: string, fileName: string): void {
+        const ext = (fileName.split('.').pop() ?? '').toLowerCase();
+        const openInTab = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'pdf'].includes(ext);
+        if (openInTab) {
+            const newWindow = window.open(fileUrl, '_blank');
+            if (newWindow) {
+                newWindow.onload = () => { newWindow.document.title = fileName; };
+            }
+            return;
+        }
         const modalRef = this.modalService.open(FilePreviewComponent, {
             centered: true,
             size: 'xl',

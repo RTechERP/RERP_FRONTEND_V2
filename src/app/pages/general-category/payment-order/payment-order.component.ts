@@ -1340,7 +1340,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.FullNameEmployee.type,
                 sortable: true, filterable: true,
                 width: 200,
-                columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
+                // columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
                 // formatter: Formatters.icon,
                 filter: {
                     collection: [],
@@ -1359,7 +1359,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DateApprovedEmployee.type,
                 sortable: true, filterable: true,
                 width: 100,
-                columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
+                // columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundInputDate'] },
                 cssClass: 'text-center',
@@ -1372,7 +1372,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DateApprovedEmployee.type,
                 sortable: true, filterable: true,
                 width: 80,
-                columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
+                // columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
                 filter: { model: Filters['compoundInputDate'] },
                 cssClass: 'text-center',
@@ -1387,7 +1387,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.FullNameTBP.type,
                 sortable: true, filterable: true,
                 width: 200,
-                columnGroup: 'TRƯỞNG BỘ PHẬN',
+                // columnGroup: 'TRƯỞNG BỘ PHẬN',
                 // formatter: Formatters.icon,
                 filter: {
                     collection: [],
@@ -1406,7 +1406,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DateApprovedTBP.type,
                 sortable: true, filterable: true,
                 width: 100,
-                columnGroup: 'TRƯỞNG BỘ PHẬN',
+                // columnGroup: 'TRƯỞNG BỘ PHẬN',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundInputDate'] },
                 cssClass: 'text-center',
@@ -1419,7 +1419,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DateApprovedTBP.type,
                 sortable: true, filterable: true,
                 width: 80,
-                columnGroup: 'TRƯỞNG BỘ PHẬN',
+                // columnGroup: 'TRƯỞNG BỘ PHẬN',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
                 filter: { model: Filters['compoundInputDate'] },
                 cssClass: 'text-center',
@@ -1433,7 +1433,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.FullNameHR.type,
                 sortable: true, filterable: true,
                 width: 200,
-                columnGroup: 'NHÂN SỰ',
+                // columnGroup: 'NHÂN SỰ',
                 // formatter: Formatters.icon,
                 filter: {
                     collection: [],
@@ -1452,7 +1452,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DateApprovedHR.type,
                 sortable: true, filterable: true,
                 width: 100,
-                columnGroup: 'NHÂN SỰ',
+                // columnGroup: 'NHÂN SỰ',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundInputDate'] },
                 cssClass: 'text-center',
@@ -1465,7 +1465,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DateApprovedHR.type,
                 sortable: true, filterable: true,
                 width: 80,
-                columnGroup: 'NHÂN SỰ',
+                // columnGroup: 'NHÂN SỰ',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
                 filter: { model: Filters['compoundInputDate'] },
                 cssClass: 'text-center',
@@ -1480,7 +1480,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.FullNameKT.type,
                 sortable: true, filterable: true,
                 width: 200,
-                columnGroup: 'KẾ TOÁN',
+                // columnGroup: 'KẾ TOÁN',
                 // formatter: Formatters.icon,
                 filter: {
                     collection: [],
@@ -1499,7 +1499,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DateApprovedKT.type,
                 sortable: true, filterable: true,
                 width: 100,
-                columnGroup: 'KẾ TOÁN',
+                // columnGroup: 'KẾ TOÁN',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundInputDate'] },
                 cssClass: 'text-center',
@@ -1512,7 +1512,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DateApprovedKT.type,
                 sortable: true, filterable: true,
                 width: 80,
-                columnGroup: 'KẾ TOÁN',
+                // columnGroup: 'KẾ TOÁN',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
                 filter: { model: Filters['compoundInputDate'] },
                 cssClass: 'text-center',
@@ -1527,7 +1527,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.FullNameBGD.type,
                 sortable: true, filterable: true,
                 width: 200,
-                columnGroup: 'BAN GIÁM ĐỐC',
+                // columnGroup: 'BAN GIÁM ĐỐC',
                 // formatter: Formatters.icon,
                 filter: {
                     collection: [],
@@ -1546,7 +1546,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DateApprovedBGD.type,
                 sortable: true, filterable: true,
                 width: 100,
-                columnGroup: 'BAN GIÁM ĐỐC',
+                // columnGroup: 'BAN GIÁM ĐỐC',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center',
@@ -1559,7 +1559,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DateApprovedBGD.type,
                 sortable: true, filterable: true,
                 width: 80,
-                columnGroup: 'BAN GIÁM ĐỐC',
+                // columnGroup: 'BAN GIÁM ĐỐC',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center',
@@ -2014,49 +2014,49 @@ export class PaymentOrderComponent implements OnInit {
         this.datasetFileBankslip = [];
         this.datasetLog = [];
 
-        const logRowFormatter = (bg: string, text: string, icon: string) =>
-            (_row: any, _cell: any, value: any, _col: any, dataContext: any): string => {
-                const isApproved: number = dataContext.IsApproved;
-                const bgColor  = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
-                const txtColor = isApproved === 1 ? '#14532d' : isApproved === 2 ? '#7f1d1d' : '#713f12';
-                const ico      = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
-                return `<span style="display:block;width:100%;height:100%;background:${bgColor};color:${txtColor};padding:2px 4px;">${value ?? ''}</span>`;
-            };
-
-        const logCellFormatter = (_row: any, _cell: any, value: any, _col: any, dataContext: any): string => {
-            const isApproved: number = dataContext.IsApproved;
-            const bgColor  = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
-            const txtColor = isApproved === 1 ? '#14532d' : isApproved === 2 ? '#7f1d1d' : '#713f12';
-            const ico      = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
-            return `<span style="display:block;width:100%;height:100%;background:${bgColor};color:${txtColor};padding:2px 4px;">${value ?? ''}</span>`;
-        };
-
         const logStatusFormatter = (_row: any, _cell: any, value: any, _col: any, dataContext: any): string => {
             const isApproved: number = dataContext.IsApproved;
-            const bgColor  = isApproved === 1 ? '#dcfce7' : isApproved === 2 ? '#fee2e2' : '#fef9c3';
-            const txtColor = isApproved === 1 ? '#14532d' : isApproved === 2 ? '#7f1d1d' : '#713f12';
-            const ico      = isApproved === 1 ? 'pi-check-circle' : isApproved === 2 ? 'pi-times-circle' : 'pi-clock';
-            return `<span style="display:flex;align-items:center;gap:4px;width:100%;height:100%;background:${bgColor};color:${txtColor};padding:2px 4px;font-weight:600;"><i class="pi ${ico}"></i>${value ?? ''}</span>`;
+
+            const txtColor =
+                isApproved === 1 ? '#16a34a' :   // xanh (approved)
+                    isApproved === 2 ? '#dc2626' :   // đỏ (reject)
+                        '#ca8a04';   // vàng (pending)
+
+            return `
+        <span style="
+            display:flex;
+            align-items:center;
+            gap:4px;
+            width:100%;
+            height:100%;
+            color:${txtColor};
+            padding:2px 4px;
+            font-weight:600;
+        ">
+            ${value ?? ''}
+        </span>
+    `;
         };
 
         this.columnDefinitionLog = [
-            { id: 'Step', name: 'Bước', field: 'Step', maxWidth: 38, sortable: true, filterable: true, formatter: logCellFormatter },
-            { id: 'StepName', name: 'Tên bước', field: 'StepName', maxWidth: 300, minWidth: 250, sortable: true, filterable: true, formatter: logCellFormatter },
+            { id: 'Step', name: 'Bước', field: 'Step', maxWidth: 38, sortable: true, filterable: true, },
+            { id: 'StepName', name: 'Tên bước', field: 'StepName', maxWidth: 300, minWidth: 250, sortable: true, filterable: true, },
             { id: 'IsApprovedText', name: 'Trạng thái', field: 'IsApprovedText', maxWidth: 130, sortable: true, filterable: true, formatter: logStatusFormatter },
-            { id: 'FullNameDefault', name: 'Người phụ trách', field: 'FullNameDefault', width: 150, sortable: true, filterable: true, formatter: logCellFormatter },
-            { id: 'FullName', name: 'Người thực hiện', field: 'FullName', width: 150, sortable: true, filterable: true, formatter: logCellFormatter },
+            { id: 'FullNameDefault', name: 'Người phụ trách', field: 'FullNameDefault', width: 150, sortable: true, filterable: true, },
+            { id: 'FullName', name: 'Người thực hiện', field: 'FullName', width: 150, sortable: true, filterable: true, },
             {
                 id: 'DateApproved', name: 'Ngày duyệt', field: 'DateApproved', width: 130, sortable: true, filterable: true,
-                formatter: (_row: any, _cell: any, value: any, _col: any, dataContext: any) => {
-                    if (!value) return logCellFormatter(_row, _cell, '', _col, dataContext);
+                formatter: (_row: any, _cell: any, value: any) => {
+                    if (!value) return '';
                     const d = new Date(value);
-                    const formatted = isNaN(d.getTime()) ? '' : d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-                    return logCellFormatter(_row, _cell, formatted, _col, dataContext);
+                    if (isNaN(d.getTime())) return '';
+                    const pad = (n: number) => n.toString().padStart(2, '0');
+                    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
                 }
             },
-            { id: 'ReasonCancel', name: 'Lý do hủy', field: 'ReasonCancel', width: 200, sortable: true, filterable: true, formatter: logCellFormatter },
-            { id: 'ReasonRequestAppendFileHR', name: 'Ghi chú HR', field: 'ReasonRequestAppendFileHR', width: 200, sortable: true, filterable: true, formatter: logCellFormatter },
-            { id: 'ReasonRequestAppendFileAC', name: 'Ghi chú kế toán', field: 'ReasonRequestAppendFileAC', width: 200, sortable: true, filterable: true, formatter: logCellFormatter },
+            { id: 'ReasonCancel', name: 'Lý do hủy', field: 'ReasonCancel', width: 200, sortable: true, filterable: true, },
+            { id: 'ReasonRequestAppendFileHR', name: 'Ghi chú HR', field: 'ReasonRequestAppendFileHR', width: 200, sortable: true, filterable: true, },
+            { id: 'ReasonRequestAppendFileAC', name: 'Ghi chú kế toán', field: 'ReasonRequestAppendFileAC', width: 200, sortable: true, filterable: true, },
         ];
 
         this.gridOptionLog = {

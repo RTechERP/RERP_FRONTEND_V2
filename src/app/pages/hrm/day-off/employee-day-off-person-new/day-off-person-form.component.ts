@@ -89,6 +89,20 @@ export class DayOffPersonFormComponent implements OnInit {
       if (this.editData && this.editData.ID) {
         this.loadDetail(this.editData.ID);
       } else {
+        // Automatically bind closest approver for new requests
+        const employeeID = this.appUserService.employeeID || 0;
+        if (employeeID > 0) {
+          this.dayOffService.getApproveID(employeeID, 'EmployeeOnLeave').subscribe({
+            next: (res: any) => {
+              if (res && res.status === 1 && res.data && res.data.ApproveID) {
+                this.form.patchValue({
+                  ApprovedTP: res.data.ApproveID
+                });
+              }
+            }
+          });
+        }
+
         // Load initial summary for new
         const initialEmpId = this.form.get('EmployeeID')?.value;
         if (initialEmpId) {

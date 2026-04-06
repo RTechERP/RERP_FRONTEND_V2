@@ -1366,9 +1366,9 @@ export class EmployeeNoFingerprintComponent
       this.permissionService.hasPermission('N1') ||
       this.permissionService.hasPermission('N2');
 
-    // Nếu có quyền đặc biệt, bỏ qua check TBP (trừ khi HR đã duyệt)
+    // Nếu có quyền đặc biệt (Admin, N1, N2), luôn cho phép sửa/xóa (trả về false)
     if (hasPrivilege) {
-      return isHRApproved;
+      return false;
     }
 
     // Nếu TBP hoặc HR đã duyệt thì không cho sửa

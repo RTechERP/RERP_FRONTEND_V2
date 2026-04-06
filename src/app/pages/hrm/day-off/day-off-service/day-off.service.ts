@@ -117,4 +117,8 @@ export class DayOffService {
   getMultiPhase(id: number): Observable<any> {
     return this.http.get<any>(this._url + `EmployeeOnLeave/get-multi/${id}`);
   }
+
+  getApproveID(employeeID: number, tableName: string): Observable<any> {
+    return this.http.get<any>(this._url + `employeeonleave/get-approve-id?employeeID=${employeeID}&tableName=${tableName}`);
+  }
 }

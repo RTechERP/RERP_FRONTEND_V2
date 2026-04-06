@@ -163,7 +163,7 @@ export class PaymentOrderService {
         } else {
             let temp = integerPart;
             let i = 0;
-            const units = ['', ' nghìn', ' triệu', ' tỷ'];
+            const units = ['', ' nghìn', ' triệu', ' tỷ', ' nghìn tỷ', ' triệu tỷ', ' tỷ tỷ'];
             let text = '';
 
             while (temp > 0) {

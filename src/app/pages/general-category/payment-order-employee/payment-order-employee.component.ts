@@ -370,49 +370,54 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 width: '160px',
             },
             // --- NV đăng ký ---
-            { field: 'FullNameEmployee', header: 'Họ tên', width: '140px' },
+            { field: 'FullNameEmployee', header: 'Họ tên', width: '140px', visible: false },
             {
                 field: 'DateApprovedEmployee',
                 header: 'Ngày',
                 width: '100px',
                 format: fmtDateTime,
                 cssClass: 'text-center',
+                visible: false,
             },
             // --- TBP ---
-            { field: 'FullNameTBP', header: 'Họ tên', width: '140px' },
+            { field: 'FullNameTBP', header: 'Họ tên', width: '140px', visible: false },
             {
                 field: 'DateApprovedTBP',
                 header: 'Ngày',
                 width: '100px',
                 format: fmtDateTime,
                 cssClass: 'text-center',
+                visible: false,
             },
             // --- Nhân sự ---
-            { field: 'FullNameHR', header: 'Họ tên', width: '140px' },
+            { field: 'FullNameHR', header: 'Họ tên', width: '140px', visible: false },
             {
                 field: 'DateApprovedHR',
                 header: 'Ngày',
                 width: '100px',
                 format: fmtDateTime,
                 cssClass: 'text-center',
+                visible: false,
             },
             // --- Kế toán ---
-            { field: 'FullNameKT', header: 'Họ tên', width: '140px' },
+            { field: 'FullNameKT', header: 'Họ tên', width: '140px', visible: false },
             {
                 field: 'DateApprovedKT',
                 header: 'Ngày',
                 width: '100px',
                 format: fmtDateTime,
                 cssClass: 'text-center',
+                visible: false,
             },
             // --- BGĐ ---
-            { field: 'FullNameBGD', header: 'Họ tên', width: '140px' },
+            { field: 'FullNameBGD', header: 'Họ tên', width: '140px', visible: false },
             {
                 field: 'DateApprovedBGD',
                 header: 'Ngày',
                 width: '100px',
                 format: fmtDateTime,
                 cssClass: 'text-center',
+                visible: false,
             },
         ];
 

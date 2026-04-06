@@ -24,8 +24,7 @@ export interface ColumnDef {
     width?: string;
     /** PrimeNG filter type: 'text' | 'numeric' | 'date'. Default: 'text' */
     filterType?: string;
-    /** Filter UI mode: 'input' | 'dropdown' | 'multiselect' | 'datetime'. Default: 'input'
-     *  'datetime' shows a date picker with toggle between single-date and date-range modes. */
+    /** Filter UI mode: 'input' | 'dropdown' | 'multiselect'. Default: 'input' */
     filterMode?: 'input' | 'dropdown' | 'multiselect' | 'datetime';
     /** Manual filter options. If empty, auto-populated from data. Format: [{label, value}] */
     filterOptions?: { label: string; value: any }[];
@@ -43,6 +42,10 @@ export interface ColumnDef {
     frozen?: boolean;
     /** Freeze direction: 'left' or 'right'. Default: 'left' */
     alignFrozen?: 'left' | 'right';
+    /** @internal computed by component */
+    frozenLeft?: string;
+    /** @internal computed by component */
+    frozenRight?: string;
     /** Whether to wrap text or truncate with ellipsis. Default: false (truncate) */
     textWrap?: boolean;
     /** Enable inline editing for this column */
@@ -93,4 +96,8 @@ export interface ColumnDef {
     headerFormat?: () => string;
     /** Emit headerCellAction when the header cell is clicked. Requires headerFormat. Default: false */
     headerClickable?: boolean;
+    /** When true, this column participates in rowspan merging (requires rowSpanBy on the table). Default: false */
+    rowSpan?: boolean;
+    /** Whether the column is visible. Default: true. Set to false to hide the column. */
+    visible?: boolean;
 }

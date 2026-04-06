@@ -48,8 +48,8 @@
         <nz-form-item>
           <nz-form-label class="fs-12">Tình trạng</nz-form-label>
           <nz-form-control>
-            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.step" nzSize="small"
-              name="step" style="width: 160px">
+            <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn"
+              [(ngModel)]="param.step" nzSize="small" name="step" style="width: 160px">
               @for (item of steps; track item) {
               <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
               }
@@ -59,8 +59,8 @@
         <nz-form-item>
           <nz-form-label class="fs-12">Trạng thái</nz-form-label>
           <nz-form-control>
-            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.isApproved" nzSize="small"
-              name="isApproved" style="width: 130px">
+            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" nzDropdownClassName="select-dropdown"
+              [(ngModel)]="param.isApproved" nzSize="small" name="isApproved" style="width: 130px">
               @for (item of isApproveds; track item) {
               <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
               }
@@ -81,8 +81,8 @@
         <nz-form-item>
           <nz-form-label class="fs-12">Nội dung</nz-form-label>
           <nz-form-control>
-            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.paymentOrderTypeID"
-              nzSize="small" name="paymentOrderTypeID" style="width: 160px">
+            <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn"
+              [(ngModel)]="param.paymentOrderTypeID" nzSize="small" name="paymentOrderTypeID" style="width: 160px">
               @for (item of paymentOrderTypes; track item) {
               <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID"></nz-option>
               }
@@ -161,8 +161,8 @@
               <nz-form-item>
                 <nz-form-label>Loại</nz-form-label>
                 <nz-form-control>
-                  <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.typeOrder" nzSize="small"
-                    name="typeOrder_m" class="w-100">
+                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn"
+                    [(ngModel)]="param.typeOrder" nzSize="small" name="typeOrder_m" class="w-100">
                     @for (item of typeOrders; track item) {
                     <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
                     }
@@ -174,8 +174,8 @@
               <nz-form-item>
                 <nz-form-label>Nội dung</nz-form-label>
                 <nz-form-control>
-                  <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.paymentOrderTypeID"
-                    nzSize="small" name="paymentOrderTypeID_m" class="w-100">
+                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn"
+                    [(ngModel)]="param.paymentOrderTypeID" nzSize="small" name="paymentOrderTypeID_m" class="w-100">
                     @for (item of paymentOrderTypes; track item) {
                     <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID"></nz-option>
                     }
@@ -240,7 +240,8 @@
           <!-- Details + Approval Log Tabs -->
           <ng-template pTemplate="panel">
             <div class="tabs-container panel-shadow h-100" style="display:flex;flex-direction:column;">
-              <p-tabs [(value)]="activeDetailTab" (valueChange)="onDetailTabChange($event)" style="height:100%;display:flex;flex-direction:column;">
+              <p-tabs [(value)]="activeDetailTab" (valueChange)="onDetailTabChange($event)"
+                style="height:100%;display:flex;flex-direction:column;">
                 <p-tablist>
                   <p-tab value="0">Chi tiết</p-tab>
                   <p-tab value="1">Bước duyệt</p-tab>

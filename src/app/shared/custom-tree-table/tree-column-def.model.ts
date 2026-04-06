@@ -71,4 +71,6 @@ export interface TreeColumnDef {
     headerFormat?: () => string;
     /** Emit headerCellAction when the header cell is clicked. Requires headerFormat. Default: false */
     headerClickable?: boolean;
+    /** @internal used by TableLayoutService to track column visibility */
+    visible?: boolean;
 }

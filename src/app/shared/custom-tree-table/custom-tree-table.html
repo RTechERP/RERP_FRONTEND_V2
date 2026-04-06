@@ -85,7 +85,7 @@
 
                 <!-- Date/DateTime/Time Filter -->
                 <ng-container *ngIf="(!col.filterMode || col.filterMode === 'input') && (col.filterType === 'date' || col.filterType === 'datetime' || col.filterType === 'time')">
-                        <p-datepicker (onSelect)="tt.filter($event, col.field, 'dateIs')"
+                        <p-datepicker (onSelect)="tt.filter($any($event), col.field, 'dateIs')"
                             [showIcon]="false" appendTo="body"
                             [dateFormat]="col.editDateFormat || 'dd/mm/yy'"
                             [showTime]="col.filterType === 'datetime' || !!col.editShowTime"

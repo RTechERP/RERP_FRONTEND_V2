@@ -1,10 +1,12 @@
-import { Component, Input, OnInit, OnDestroy, AfterViewChecked, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, AfterViewChecked, ViewChild, ElementRef, HostListener, Optional } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { DomSanitizer, SafeHtml, SafeUrl, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import * as XLSX from 'xlsx';
 import { renderAsync } from 'docx-preview';
 
@@ -13,7 +15,7 @@ type FileType = 'image' | 'pdf' | 'excel' | 'word' | 'other';
 @Component({
     selector: 'app-file-preview',
     standalone: true,
-    imports: [CommonModule, NzButtonModule, NzIconModule],
+    imports: [CommonModule, NzButtonModule, NzIconModule, RouterModule],
     templateUrl: './file-preview.component.html',
     styleUrl: './file-preview.component.css'
 })
@@ -50,16 +52,35 @@ export class FilePreviewComponent implements OnInit, AfterViewChecked, OnDestroy
 
     private _objectUrls: string[] = [];
 
+    isStandalonePage = false;
+
     constructor(
-        public activeModal: NgbActiveModal,
+        @Optional() public activeModal: NgbActiveModal,
         private http: HttpClient,
-        private sanitizer: DomSanitizer
+        private sanitizer: DomSanitizer,
+        private route: ActivatedRoute,
     ) {}
 
     ngOnInit(): void {
+        // Standalone route mode: read params from URL query string
+        if (!this.activeModal) {
+            this.isStandalonePage = true;
+            const params = this.route.snapshot.queryParamMap;
+            this.fileUrl = params.get('url') ?? '';
+            this.fileName = params.get('name') ?? '';
+            if (this.fileName) document.title = this.fileName;
+        }
         this.fileType = this.detectFileType(this.fileName);
         this.downloadUrl = this.sanitizer.bypassSecurityTrustUrl(this.fileUrl);
         this.loadFile();
+    }
+
+    close(): void {
+        if (this.activeModal) {
+            this.activeModal.dismiss();
+        } else {
+            window.close();
+        }
     }
 
     ngAfterViewChecked(): void {

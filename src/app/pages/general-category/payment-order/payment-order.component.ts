@@ -3153,6 +3153,7 @@ export class PaymentOrderComponent implements OnInit {
 
         // console.log('paymentOrder.IsSpecialOrder:', paymentOrder.IsSpecialOrder);
         if (!paymentOrder.IsSpecialOrder) {
+            
             const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
                 centered: true,
                 size: 'xl',

@@ -60,7 +60,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { NzResizeObserverDirective } from "ng-zorro-antd/cdk/resize-observer";
-import { PaymentOrderDetailOldComponent } from '../payment-order-detail-old/payment-order-detail-old.component';
+// import { PaymentOrderDetailOldComponent } from '../payment-order-detail-old/payment-order-detail-old.component';
 // import { SlickGlobalEditorLock } from 'angular-slickgrid';
 
 // (SlickGlobalEditorLock as any).Logger = {
@@ -2821,7 +2821,7 @@ export class PaymentOrderComponent implements OnInit {
             typeOrder: 0,
             employeeID: emp
         }
-        this.paymentService.get(p).subscribe({
+        this.paymentService.getSpecial(p).subscribe({
             next: (response) => {
                 // console.log(response);
                 this.datasetSpecial = response.data;

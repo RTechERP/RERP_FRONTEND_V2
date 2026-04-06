@@ -935,7 +935,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             typeOrder: 0,
             employeeID: emp,
         };
-        this.paymentService.get(p).subscribe({
+        this.paymentService.getSpecial(p).subscribe({
             next: (response: any) => {
                 this.datasetSpecial = (response.data || []).map((x: any) => ({
                     ...x,

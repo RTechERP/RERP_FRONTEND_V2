@@ -1350,6 +1350,19 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
             this.commonForm.patchValue({
               EmployeeID: employeeID
             }, { emitEvent: false });
+
+            // Automatically bind closest approver for new requests
+            if (!this.isEditMode) {
+              this.overTimeService.getApproveID(employeeID, 'EmployeeOvertime').subscribe({
+                next: (res: any) => {
+                  if (res && res.status === 1 && res.data && res.data.ApproveID) {
+                    this.commonForm.patchValue({
+                      ApprovedID: res.data.ApproveID
+                    });
+                  }
+                }
+              });
+            }
           }
 
           const projectControl = this.overTimeForm.get('ProjectID');

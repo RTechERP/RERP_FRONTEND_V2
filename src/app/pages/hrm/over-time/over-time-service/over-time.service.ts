@@ -111,4 +111,8 @@ export class OverTimeService {
   getSummaryOverTimePerson(request: any): Observable<any> {
     return this.http.post<any>(this._url + 'EmployeeOverTime/get-summary-over-time-person', request);
   }
+
+  getApproveID(employeeID: number, tableName: string): Observable<any> {
+    return this.http.get<any>(this._url + `employeeonleave/get-approve-id?employeeID=${employeeID}&tableName=${tableName}`);
+  }
 }

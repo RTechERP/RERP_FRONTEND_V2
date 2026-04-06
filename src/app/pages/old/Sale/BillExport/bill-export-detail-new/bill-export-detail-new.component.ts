@@ -1807,7 +1807,7 @@ export class BillExportDetailNewComponent
         }
 
         this.billExportService
-            .getOptionProduct(normalizedWareHouseCode, ID)
+            .getOptionProductNew(normalizedWareHouseCode, ID)
             .subscribe({
                 next: (res: any) => {
                     const productData = res.data;

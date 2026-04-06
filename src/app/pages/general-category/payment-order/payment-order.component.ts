@@ -3153,6 +3153,7 @@ export class PaymentOrderComponent implements OnInit {
 
         // console.log('paymentOrder.IsSpecialOrder:', paymentOrder.IsSpecialOrder);
         if (!paymentOrder.IsSpecialOrder) {
+            
             const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
                 centered: true,
                 size: 'xl',
@@ -4877,14 +4878,17 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     openFilePreview(fileUrl: string, fileName: string): void {
-        const modalRef = this.modalService.open(FilePreviewComponent, {
-            centered: true,
-            size: 'xl',
-            backdrop: 'static',
-            keyboard: true,
-        });
-        modalRef.componentInstance.fileUrl = fileUrl;
-        modalRef.componentInstance.fileName = fileName;
+        const ext = (fileName.split('.').pop() ?? '').toLowerCase();
+        const openRaw = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'pdf'].includes(ext);
+        if (openRaw) {
+            const newWindow = window.open(fileUrl, '_blank');
+            if (newWindow) {
+                newWindow.onload = () => { newWindow.document.title = fileName; };
+            }
+        } else {
+            const url = `/file-preview?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
+            window.open(url, '_blank');
+        }
     }
 
     onDownloadFileAttach(e: Event, args: any, angularGrid: AngularGridInstance) {

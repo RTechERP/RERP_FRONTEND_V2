@@ -312,7 +312,15 @@ import { ProjectTaskProjectComponent } from './pages/project_task/project-task-p
 import { PurchaseQuoteSummaryComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary.component';
 import { CommercialPriceRequestComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/commercial-price-request/commercial-price-request.component';
 
+import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-product-project-customer/list-product-project-customer.component';
+import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-import-prime/bill-import-prime.component';
+import { PaymentOrderNewComponent } from './pages/general-category/payment-order/payment-order-new/payment-order-new.component';
+import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
 export const routes: Routes = [
+    {
+        path: 'file-preview',
+        component: FilePreviewComponent,
+    },
     {
         path: '',
         component: AuthLayoutComponent,

@@ -24,9 +24,9 @@ import { PermissionService } from '../../../../../services/permission.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { OverTimeComponent } from '../../../over-time/over-time.component';
-import { OverTimeDetailComponent } from '../../../over-time/over-time-detail/over-time-detail.component';
 import { OverTimePersonFormComponent } from '../../../over-time/over-time-person/over-time-person-form/over-time-person-form.component';
 import { EmployeeService } from '../../../employee/employee-service/employee.service';
+import { OverTimeService } from '../../../over-time/over-time-service/over-time.service';
 import flatpickr from 'flatpickr';
 import { Vietnamese } from 'flatpickr/dist/l10n/vn.js';
 
@@ -109,6 +109,7 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
     private modal: NzModalService,
     private permissionService: PermissionService,
     private employeeService: EmployeeService,
+    private overTimeService: OverTimeService,
     private cdr: ChangeDetectorRef,
   ) {
     this.initForm();
@@ -354,6 +355,19 @@ export class EmployeeNightShiftFormComponent implements OnInit, AfterViewInit, O
               this.formGroup.get('EmployeeID')?.disable();
             } else {
               this.formGroup.get('EmployeeID')?.enable();
+            }
+
+            // Automatically bind closest approver for new requests
+            if (this.currentUser.EmployeeID > 0) {
+              this.overTimeService.getApproveID(this.currentUser.EmployeeID, 'EmployeeNighShift').subscribe({
+                next: (res: any) => {
+                  if (res && res.status === 1 && res.data && res.data.ApproveID) {
+                    this.formGroup.patchValue({
+                      ApprovedTBP: res.data.ApproveID
+                    });
+                  }
+                }
+              });
             }
           } else {
             // Sửa: Populate form sau khi đã có currentUser

@@ -28,6 +28,7 @@ import { VehicleSelectModalComponent } from './vehicle-select-modal/vehicle-sele
 import { HomeLayoutService } from '../../../../../../layouts/home-layout/home-layout-service/home-layout.service';
 import { PermissionService } from '../../../../../../services/permission.service';
 import { ProjectService } from '../../../../../project/project-service/project.service';
+import { OverTimeService } from '../../../../over-time/over-time-service/over-time.service';
 
 @Component({
   selector: 'app-employee-register-bussiness-form',
@@ -96,7 +97,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     private modalService: NgbModal,
     private homeLayoutService: HomeLayoutService,
     private permissionService: PermissionService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private overTimeService: OverTimeService
   ) {
     this.initializeForm();
   }
@@ -529,6 +531,19 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
           const data = res.data;
           this.currentUser = Array.isArray(data) ? data[0] : data;
           this.setDefaultEmployeeID();
+
+          // Automatically bind closest approver for new requests
+          if (!this.isEditMode && !this.data && this.currentUser && this.currentUser.EmployeeID > 0) {
+            this.overTimeService.getApproveID(this.currentUser.EmployeeID, 'EmployeeBussiness').subscribe({
+              next: (res: any) => {
+                if (res && res.status === 1 && res.data && res.data.ApproveID) {
+                  this.bussinessForm.patchValue({
+                    ApprovedId: res.data.ApproveID
+                  });
+                }
+              }
+            });
+          }
         }
       },
       error: (error) => {

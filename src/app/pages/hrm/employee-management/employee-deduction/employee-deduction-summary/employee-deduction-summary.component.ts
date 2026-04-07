@@ -27,6 +27,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { EmployeeDeductionService } from '../employee-deduction.service';
+import { EmployeeDeductionTypeService } from '../employee-deduction-type/employee-deduction-type.service';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { DateTime } from 'luxon';
@@ -77,16 +78,12 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
   employees: any[] = [];
   groupedEmployees: any[] = [];
   departments: any[] = [];
-  deductionTypes = [
-    { label: 'Tất cả', value: 0 },
-    { label: 'Đi muộn về sớm', value: 1 },
-    { label: 'Quên chấm công', value: 2 },
-    { label: 'Nghỉ không phép', value: 3 },
-    { label: 'Khác', value: 4 }
-  ];
+  dynamicDeductionTypes: any[] = [];
+  deductionTypes: any[] = [{ label: 'Tất cả', value: 0 }];
 
   constructor(
     private deductionService: EmployeeDeductionService,
+    private deductionTypeService: EmployeeDeductionTypeService,
     private notification: NzNotificationService,
     private router: Router,
     private permissionService: PermissionService,
@@ -155,6 +152,8 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
       }
     });
 
+    this.loadDeductionTypes();
+
     this.deductionService.getDepartments().subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
@@ -181,6 +180,7 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
+    this.loadDeductionTypes();
     this.loading = true;
 
     let month: number;
@@ -212,7 +212,11 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
           const rawData = res.data || [];
           this.summaries = this.groupDataByDepartment(rawData);
         } else {
-          this.notification.error('Thông báo', res?.message || 'Có lỗi xảy ra khi tải dữ liệu.');
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[res.status] || 'error',
+            NOTIFICATION_TITLE_MAP[res.status as RESPONSE_STATUS] || 'Thông báo',
+            res?.message || 'Có lỗi xảy ra khi tải dữ liệu.'
+          );
         }
       },
       error: (err: any) => {
@@ -229,6 +233,23 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadDeductionTypes(): void {
+    this.deductionTypeService.getAll().subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.dynamicDeductionTypes = res.data || [];
+          this.deductionTypes = [
+            { label: 'Tất cả', value: 0 },
+            ...this.dynamicDeductionTypes.map((t: any) => ({
+              label: t.DeductionTypeName,
+              value: t.ID
+            }))
+          ];
+        }
+      }
+    });
+  }
+
   async exportExcel(): Promise<void> {
     try {
       const workbook = new ExcelJS.Workbook();
@@ -236,13 +257,15 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
 
       // 1. Định nghĩa Headers
       const headers = [
-        'Mã nhân viên', 'Họ và tên', 'Phòng ban',
-        'Số lần (Muộn/Sớm)', 'Tiền phạt (Muộn/Sớm)',
-        'Số lần (Quên QC)', 'Tiền phạt (Quên QC)',
-        'Số lần (Nghỉ KP)', 'Tiền phạt (Nghỉ KP)',
-        'Số lần (Khác)', 'Tiền phạt (Khác)',
-        'Tổng số lần', 'Tổng tiền phạt'
+        'Mã nhân viên', 'Họ và tên', 'Phòng ban'
       ];
+
+      this.dynamicDeductionTypes.forEach(t => {
+        headers.push(`Số lần (${t.DeductionTypeName})`);
+        headers.push(`Tiền phạt (${t.DeductionTypeName})`);
+      });
+
+      headers.push('Tổng số lần', 'Tổng tiền phạt');
       // 2. Thêm Header Row
       const headerRow = worksheet.addRow(headers);
 
@@ -282,7 +305,8 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
         const groupRow = worksheet.addRow([deptName]);
 
         // Merge toàn bộ cột cho dòng phân tách
-        worksheet.mergeCells(groupRow.number, 1, groupRow.number, 13);
+        // Merge toàn bộ cột cho dòng phân tách (3 cột cố định + 2*số loại phạt + 2 cột tổng)
+        worksheet.mergeCells(groupRow.number, 1, groupRow.number, 3 + this.dynamicDeductionTypes.length * 2 + 2);
 
         // Style cho dòng Group Header
         groupRow.eachCell((cell) => {
@@ -307,13 +331,15 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
           const rowData = [
             s.Code || s.EmployeeID,
             s.FullName,
-            s.DepartmentName,
-            s.Count1, s.Amount1,
-            s.Count2, s.Amount2,
-            s.Count3, s.Amount3,
-            s.Count4, s.Amount4,
-            s.TotalCount, s.TotalAmount
+            s.DepartmentName
           ];
+
+          this.dynamicDeductionTypes.forEach(t => {
+            rowData.push(s[`Count_${t.ID}`] || 0);
+            rowData.push(s[`Amount_${t.ID}`] || 0);
+          });
+
+          rowData.push(s.TotalCount, s.TotalAmount);
           const row = worksheet.addRow(rowData);
 
           row.eachCell((cell, colNumber) => {
@@ -326,11 +352,20 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
               right: { style: 'thin' }
             };
 
-            if ([5, 7, 9, 11, 13].includes(colNumber)) {
+            // Các cột Tiền phạt (số lẻ: 5, 7, 9...) và Tổng tiền (cột cuối)
+            const isAmountCol = colNumber > 3 && colNumber <= (3 + this.dynamicDeductionTypes.length * 2) && (colNumber - 3) % 2 === 0;
+            const isTotalAmountCol = colNumber === (3 + this.dynamicDeductionTypes.length * 2 + 2);
+
+            if (isAmountCol || isTotalAmountCol) {
               cell.numFmt = '#,##0';
               cell.alignment = { vertical: 'middle', horizontal: 'right' };
             }
-            if ([4, 6, 8, 10, 12].includes(colNumber)) {
+
+            // Các cột Số lần
+            const isCountCol = colNumber > 3 && colNumber <= (3 + this.dynamicDeductionTypes.length * 2) && (colNumber - 3) % 2 !== 0;
+            const isTotalCountCol = colNumber === (3 + this.dynamicDeductionTypes.length * 2 + 1);
+
+            if (isCountCol || isTotalCountCol) {
               cell.alignment = { vertical: 'middle', horizontal: 'center' };
             }
           });
@@ -339,27 +374,14 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
       });
 
       // 5. Thêm dòng Tổng cộng cuối cùng (Grand Total)
-      const grandTotals = {
-        Count1: this.summaries.reduce((sum: number, i: any) => sum + (i.Count1 || 0), 0),
-        Amount1: this.summaries.reduce((sum: number, i: any) => sum + (i.Amount1 || 0), 0),
-        Count2: this.summaries.reduce((sum: number, i: any) => sum + (i.Count2 || 0), 0),
-        Amount2: this.summaries.reduce((sum: number, i: any) => sum + (i.Amount2 || 0), 0),
-        Count3: this.summaries.reduce((sum: number, i: any) => sum + (i.Count3 || 0), 0),
-        Amount3: this.summaries.reduce((sum: number, i: any) => sum + (i.Amount3 || 0), 0),
-        Count4: this.summaries.reduce((sum: number, i: any) => sum + (i.Count4 || 0), 0),
-        Amount4: this.summaries.reduce((sum: number, i: any) => sum + (i.Amount4 || 0), 0),
-        TotalCount: this.summaries.reduce((sum: number, i: any) => sum + (i.TotalCount || 0), 0),
-        TotalAmount: this.summaries.reduce((sum: number, i: any) => sum + (i.TotalAmount || 0), 0),
-      };
+      const rowTotals: any[] = ['TỔNG CỘNG', '', ''];
+      this.dynamicDeductionTypes.forEach(t => {
+        rowTotals.push(this.getTotal(`Count_${t.ID}`));
+        rowTotals.push(this.getTotal(`Amount_${t.ID}`));
+      });
+      rowTotals.push(this.getTotal('TotalCount'), this.getTotal('TotalAmount'));
 
-      const totalRow = worksheet.addRow([
-        'TỔNG CỘNG', '', '',
-        grandTotals.Count1, grandTotals.Amount1,
-        grandTotals.Count2, grandTotals.Amount2,
-        grandTotals.Count3, grandTotals.Amount3,
-        grandTotals.Count4, grandTotals.Amount4,
-        grandTotals.TotalCount, grandTotals.TotalAmount
-      ]);
+      const totalRow = worksheet.addRow(rowTotals);
       worksheet.mergeCells(totalRow.number, 1, totalRow.number, 3);
 
       totalRow.eachCell((cell, colNumber) => {
@@ -377,31 +399,28 @@ export class EmployeeDeductionSummaryComponent implements OnInit, OnDestroy {
         };
         cell.alignment = { vertical: 'middle', horizontal: colNumber <= 3 ? 'center' : 'right' };
 
-        if ([4, 6, 8, 10, 12].includes(colNumber)) {
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        }
-        if ([5, 7, 9, 11, 13].includes(colNumber)) {
+        const isAmountCol = colNumber > 3 && colNumber <= (3 + this.dynamicDeductionTypes.length * 2) && (colNumber - 3) % 2 === 0;
+        const isTotalAmountCol = colNumber === (3 + this.dynamicDeductionTypes.length * 2 + 2);
+
+        if (isAmountCol || isTotalAmountCol) {
           cell.numFmt = '#,##0';
         }
       });
       totalRow.height = 30;
 
       // 6. Thiết lập độ rộng cột
-      worksheet.columns = [
+      const columnsWidth = [
         { width: 15 }, // Mã nhân viên
         { width: 20 }, // Họ và tên
         { width: 25 }, // Phòng ban
-        { width: 15 }, // Số lần (Muộn/Sớm)
-        { width: 20 }, // Tiền phạt (Muộn/Sớm)
-        { width: 15 }, // Số lần (Quên QC)
-        { width: 20 }, // Tiền phạt (Quên QC)
-        { width: 15 }, // Số lần (Nghỉ KP)
-        { width: 20 }, // Tiền phạt (Nghỉ KP)
-        { width: 15 }, // Số lần (Khác)
-        { width: 20 }, // Tiền phạt (Khác)
-        { width: 15 }, // Tổng số lần
-        { width: 20 }  // Tổng tiền phạt
       ];
+      this.dynamicDeductionTypes.forEach(() => {
+        columnsWidth.push({ width: 15 }); // Số lần
+        columnsWidth.push({ width: 20 }); // Tiền phạt
+      });
+      columnsWidth.push({ width: 15 }, { width: 20 }); // Tổng
+
+      worksheet.columns = columnsWidth;
 
       // 7. Lưu file
       const month = this.selectedMonth instanceof Date ? this.selectedMonth.getMonth() + 1 : DateTime.fromISO(this.selectedMonth as any).month;

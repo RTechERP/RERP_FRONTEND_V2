@@ -37,6 +37,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
 import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
 import { PermissionService } from '../../../../services/permission.service';
 import { UserService } from '../../../../services/user.service';
+import { EmployeeDeductionTypeService } from './employee-deduction-type/employee-deduction-type.service';
 @Component({
   selector: 'app-employee-deduction',
   standalone: true,
@@ -76,13 +77,7 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
   employees: any[] = [];
   groupedEmployees: any[] = [];
   departments: any[] = [];
-  deductionTypes = [
-    { label: 'Tất cả', value: 0 },
-    { label: 'Đi muộn về sớm', value: 1 },
-    { label: 'Quên chấm công', value: 2 },
-    { label: 'Đăng ký nghỉ', value: 3 },
-    { label: 'Khác', value: 4 },
-  ];
+  deductionTypes: any[] = [];
 
   // Table data
   deductions: any[] = [];
@@ -110,15 +105,41 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
     private router: Router,
     private tabService: TabServiceService,
     private permissionService: PermissionService,
-    private userService: UserService
+    private userService: UserService,
+    private employeeDeductionTypeService: EmployeeDeductionTypeService
   ) { }
 
   ngOnInit(): void {
     this.isN1N2 = this.permissionService.hasPermission('N1,N2');
     this.initMenuBar();
     this.loadDropdowns();
+    this.getDeductionTypes();
   }
-
+  getDeductionTypes(): void {
+    this.isLoading = true;
+    this.employeeDeductionTypeService.getAll().subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.deductionTypes = (res.data || []).map((item: any) => ({
+            label: item.DeductionTypeName,
+            value: item.ID,
+          }));
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lỗi tải dữ liệu');
+        }
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+        this.isLoading = false;
+      }
+    });
+  }
   get hasFullAccess(): boolean {
     return this.isN1N2;
   }
@@ -140,6 +161,7 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
 
   initMenuBar(): void {
     this.menuBars = [
+
       {
         label: 'Thêm',
         icon: 'fa-solid fa-plus-circle fa-lg text-success',
@@ -174,6 +196,12 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
         label: 'Tổng hợp phạt',
         icon: 'fa-solid fa-table-list fa-lg text-success',
         command: () => this.openSummary()
+      },
+      {
+        label: 'Khai báo Loại phạt',
+        icon: 'fa-solid fa-list-check fa-lg text-info',
+        command: () => this.router.navigate(['/employee-deduction-type']),
+        visible: this.permissionService.hasPermission("N1,N2"),
       }
     ];
   }

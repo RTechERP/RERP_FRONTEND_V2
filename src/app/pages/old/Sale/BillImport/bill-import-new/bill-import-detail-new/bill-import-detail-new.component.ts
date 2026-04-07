@@ -294,7 +294,7 @@ export class BillImportDetailNewComponent
         this.getDataCbbUser();
         this.getDataCbbSupplierSale();
         this.loadOptionProject();
-        this.loadProduct();
+        // this.loadProduct();
         this.loadDocumentImport();
 
         this.setupFormSubscriptions();
@@ -328,7 +328,7 @@ export class BillImportDetailNewComponent
             .get('KhoTypeID')
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((productGroupId: number) => {
-                // this.changeProductGroup(productGroupId);
+                this.changeProductGroup(productGroupId);
                 this.updateReceiverDeliver();
             });
 

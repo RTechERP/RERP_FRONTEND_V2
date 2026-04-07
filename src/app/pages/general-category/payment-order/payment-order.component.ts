@@ -3153,7 +3153,7 @@ export class PaymentOrderComponent implements OnInit {
 
         // console.log('paymentOrder.IsSpecialOrder:', paymentOrder.IsSpecialOrder);
         if (!paymentOrder.IsSpecialOrder) {
-            
+
             const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
                 centered: true,
                 size: 'xl',
@@ -4886,7 +4886,7 @@ export class PaymentOrderComponent implements OnInit {
                 newWindow.onload = () => { newWindow.document.title = fileName; };
             }
         } else {
-            const url = `/file-preview?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
+            const url = `${environment.baseHref}/file-preview?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
             window.open(url, '_blank');
         }
     }

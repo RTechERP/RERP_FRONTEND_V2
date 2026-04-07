@@ -8,6 +8,8 @@ import {
   inject,
   ChangeDetectorRef,
   Input,
+  Optional,
+  Inject
 } from '@angular/core';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import * as ExcelJS from 'exceljs';
@@ -78,7 +80,7 @@ import { PermissionService } from '../../../../../services/permission.service';
 })
 export class PurchaseQuoteProjectDetailComponent implements OnInit {
   constructor(
-    public activeModal: NgbActiveModal,
+    @Optional() public activeModal: NgbActiveModal | null,
     private notify: NzNotificationService,
     private cdr: ChangeDetectorRef,
     private ngbModal: NgbModal,
@@ -86,7 +88,8 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
     private appUserService: AppUserService,
     private projectService: ProjectService,
     private permissionService: PermissionService,
-    private projectPartlistPriceRequestService: ProjectPartlistPriceRequestService
+    private projectPartlistPriceRequestService: ProjectPartlistPriceRequestService,
+    @Optional() @Inject('tabData') public tabData?: any
   ) { }
 
   shouldShowSearchBar: boolean = true;
@@ -112,7 +115,16 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
   summaryData: any[] = [];
   isTBP: boolean = false;
 
+  gridId: string = '';
+
   ngOnInit(): void {
+    this.gridId = `gridSummaryPurchaseQuote-${this.generateUUIDv4()}`;
+    if (this.tabData) {
+      this.dateStart = this.tabData.dateStart || this.dateStart;
+      this.dateEnd = this.tabData.dateEnd || this.dateEnd;
+      this.employeeId = this.tabData.employeeId || this.employeeId;
+    }
+
     this.isTBP = this.permissionService.hasPermission('N33,N1');
     if (!this.isTBP) {
       this.employeeId = this.appUserService.employeeID;
@@ -124,6 +136,14 @@ export class PurchaseQuoteProjectDetailComponent implements OnInit {
     this.initGridColumns();
     this.initGridOptions();
     this.onSearch();
+  }
+
+  generateUUIDv4(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 
   loadMenu() {

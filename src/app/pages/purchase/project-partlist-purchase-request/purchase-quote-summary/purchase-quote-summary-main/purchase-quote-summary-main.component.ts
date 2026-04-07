@@ -33,23 +33,24 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { DateTime } from 'luxon';
-import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
-import { AppUserService } from '../../../../services/app-user.service';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
+import { AppUserService } from '../../../../../services/app-user.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
-import { PermissionService } from '../../../../services/permission.service';
-import { ProjectService } from '../../../project/project-service/project.service';
-import { DepartmentServiceService } from '../../../hrm/department/department-service/department-service.service';
-import { ProjectPartlistPurchaseRequestService } from '../project-partlist-purchase-request.service';
-import { PurchaseQuoteProjectDetailComponent } from './purchase-quote-project-detail/purchase-quote-project-detail.component';
-import { PurchaseQuoteCommerceDetailComponent } from './purchase-quote-commerce-detail/purchase-quote-commerce-detail.component';
-import { TabServiceService } from '../../../../layouts/tab-service.service';
-import { PonccNewComponent } from '../../poncc-new/poncc-new.component';
-import { PaymentOrderComponent } from '../../../general-category/payment-order/payment-order.component';
+import { PermissionService } from '../../../../../services/permission.service';
+import { ProjectService } from '../../../../project/project-service/project.service';
+import { DepartmentServiceService } from '../../../../hrm/department/department-service/department-service.service';
+import { ProjectPartlistPurchaseRequestService } from '../../project-partlist-purchase-request.service';
+import { PurchaseQuoteProjectDetailComponent } from '../purchase-quote-project-detail/purchase-quote-project-detail.component';
+import { PurchaseQuoteCommerceDetailComponent } from '../purchase-quote-commerce-detail/purchase-quote-commerce-detail.component';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { PurchaseQuoteSummaryComponent } from '../purchase-quote-summary.component';
+import { PonccNewComponent } from '../../../poncc-new/poncc-new.component';
+import { PaymentOrderComponent } from '../../../../general-category/payment-order/payment-order.component';
 
 @Component({
-  selector: 'app-purchase-quote-summary',
+  selector: 'app-purchase-quote-summary-main',
   imports: [
     CommonModule,
     FormsModule,
@@ -64,11 +65,10 @@ import { PaymentOrderComponent } from '../../../general-category/payment-order/p
     AngularSlickgridModule,
     Menubar,
   ],
-  templateUrl: './purchase-quote-summary.component.html',
-  styleUrl: './purchase-quote-summary.component.css'
+  templateUrl: './purchase-quote-summary-main.component.html',
+  styleUrl: './purchase-quote-summary-main.component.css'
 })
-export class PurchaseQuoteSummaryComponent implements OnInit {
-
+export class PurchaseQuoteSummaryMainComponent implements OnInit {
   purchaseQuoteSummaryMenu: MenuItem[] = [];
 
   isMobile: boolean = window.innerWidth <= 768;
@@ -119,11 +119,12 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
       this.departmentId = this.appUserService.departmentID;
     }
 
-    this.gridId = 'gridPurchaseQuoteSummary-' + this.generateUUIDv4();
+    this.gridId = 'gridPurchaseQuoteSummaryMain-' + this.generateUUIDv4();
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     this.dateStart = this.formatDateToInput(firstDayOfMonth);
-    this.dateEnd = this.formatDateToInput(today);
+    this.dateEnd = this.formatDateToInput(lastDayOfMonth);
 
     this.loadMenu();
     this.initGrid();
@@ -157,19 +158,11 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
         },
       },
       {
-        label: 'Chi tiết báo giá DA',
+        label: 'Chi tiết SL báo giá',
         icon: 'fa-solid fa-diagram-project text-primary',
         visible: this.permissionService.hasPermission('N1,N33,N35'),
         command: () => {
           this.onViewProjectDetail();
-        },
-      },
-      {
-        label: 'Chi tiết báo giá KH',
-        icon: 'fa-solid fa-eye text-primary',
-        visible: this.permissionService.hasPermission('N1,N33,N35'),
-        command: () => {
-          this.onViewCustomerDetail();
         },
       },
       {
@@ -185,7 +178,7 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
         icon: 'fa-solid fa-coins text-primary',
         visible: this.permissionService.hasPermission('N1,N33,N35'),
         command: () => {
-          this.onViewĐNTT();
+          this.onViewPaymentOrder();
         },
       },
     ];
@@ -244,7 +237,7 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
     const isoDateStart = this.dateStart ? `${this.dateStart}T00:00:00` : '';
     const isoDateEnd = this.dateEnd ? `${this.dateEnd}T23:59:59` : '';
 
-    this.projectPartlistPurchaseRequestService.getPurchaseQuoteSummary(
+    this.projectPartlistPurchaseRequestService.getPurchaseQuoteSummaryNew(
       isoDateStart,
       isoDateEnd,
       this.departmentId ?? -1,
@@ -304,14 +297,9 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
     const cols = [
       { key: 'STT', header: 'STT', isNum: false },
       { key: 'FullName', header: 'Nhân viên', isNum: false },
-      { key: 'DateRequest', header: 'Ngày thực hiện', isNum: false },
-      { key: 'TotalPurchaseRequests', header: 'SL yêu cầu báo giá DA', isNum: true },
-      { key: 'TotalCompletedRequests', header: 'SL hoàn thành báo giá DA', isNum: true },
-      { key: 'TotalCommercialQuoteRequests', header: 'SL yêu cầu báo giá TM', isNum: true },
-      { key: 'TotalCommercialQuoteRequestCompleted', header: 'SL hoàn thành báo giá TM', isNum: true },
-      { key: 'TotalRequest', header: 'Tổng SL yêu cầu báo giá', isNum: true },
+      { key: 'DateRequest', header: 'Ngày tổng hợp', isNum: false },
       { key: 'TotalRequestCompleted', header: 'Tổng SL hoàn thành báo giá', isNum: true },
-      { key: 'TotalPurchaseRequestPONCC', header: 'SL đơn hàng (poncc)', isNum: true },
+      { key: 'TotalPurchaseRequestPONCC', header: 'SL đơn hàng', isNum: true },
       { key: 'TotalPaymentRequests', header: 'SL ĐNTT', isNum: true },
     ];
 
@@ -415,57 +403,19 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
   }
 
   onViewProjectDetail() {
-
-    const selectedRows = this.angularGrid.gridService.getSelectedRows();
-    if (selectedRows.length != 1 && !this.isTBP) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn 1 dòng để xem chi tiết!');
-      return;
-    }
-
-    const selectedItem = this.angularGrid.gridService.getDataItemByRowIndex(selectedRows[0]);
-
-    const rawDate = selectedItem?.DateRequest;
-    const _today = new Date();
-
-    let dateStart: string;
-    let dateEnd: string;
-
-    if (rawDate) {
-      const d = new Date(rawDate);
-      dateStart = this.formatDateToInput(d);
-      dateEnd = this.formatDateToInput(d);
-    } else {
-      const firstDayPrevMonth = new Date(_today.getFullYear(), _today.getMonth() - 1, 1);
-      const lastDayCurrMonth = new Date(_today.getFullYear(), _today.getMonth() + 1, 0);
-      dateStart = this.formatDateToInput(firstDayPrevMonth);
-      dateEnd = this.formatDateToInput(lastDayCurrMonth);
-    }
-
-    const fixedKey = 'purchase-quote-project-detail';
-
-    // Đóng tab cũ nếu đang mở để reset lại component với param mới
-    this.tabService.closeTabByKey(fixedKey);
-
-    setTimeout(() => {
-      this.tabService.openTabComp({
-        comp: PurchaseQuoteProjectDetailComponent,
-        title: 'Chi tiết báo giá DA',
-        key: fixedKey,
-        data: {
-          dateStart: dateStart,
-          dateEnd: dateEnd,
-          employeeId: selectedItem?.EmployeeID ?? 0
-        }
-      });
-    }, 50);
-
+    this.tabService.openTabComp({
+      comp: PurchaseQuoteSummaryComponent,
+      title: 'Chi tiết report mua hàng',
+      key: `purchase-quote-summary`,
+      data: {}
+    });
   }
 
   onViewCustomerDetail() {
 
     const selectedRows = this.angularGrid.gridService.getSelectedRows();
-    // if (selectedRows.length != 1 && !this.isTBP) {
-    //   this.notification.warning('Cảnh báo', 'Vui lòng chọn 1 dòng để xem chi tiết!');
+    // if (selectedRows.length != 1) {
+    //   this.notification.warning('Cảnh báo', 'Vui lòng chọn 1 nhân viên để xem chi tiết!');
     //   return;
     // }
 
@@ -490,121 +440,18 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
       dateEnd = this.formatDateToInput(lastDayCurrMonth);
     }
 
-    const fixedKey = 'purchase-quote-commerce-detail';
+    const modalRef = this.ngbModal.open(PurchaseQuoteCommerceDetailComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
 
-    this.tabService.closeTabByKey(fixedKey);
+    modalRef.componentInstance.dateStart = dateStart;
+    modalRef.componentInstance.dateEnd = dateEnd;
+    modalRef.componentInstance.employeeId = selectedItem?.EmployeeID ?? null;
 
-    setTimeout(() => {
-      this.tabService.openTabComp({
-        comp: PurchaseQuoteCommerceDetailComponent,
-        title: 'Chi tiết báo giá KH',
-        key: fixedKey,
-        data: {
-          dateStart: dateStart,
-          dateEnd: dateEnd,
-          employeeId: selectedItem?.EmployeeID ?? null
-        }
-      });
-    }, 50);
-
-  }
-
-  onViewPoncc() {
-
-    const selectedRows = this.angularGrid.gridService.getSelectedRows();
-    // if (selectedRows.length != 1 && !this.isTBP) {
-    //   this.notification.warning('Cảnh báo', 'Vui lòng chọn 1 dòng để xem chi tiết!');
-    //   return;
-    // }
-
-    const selectedItem = this.angularGrid.gridService.getDataItemByRowIndex(selectedRows[0]);
-
-    const rawDate = selectedItem?.DateRequest;
-    const _today = new Date();
-
-    let dateStart: string;
-    let dateEnd: string;
-
-    if (rawDate) {
-      // Có ngày chọn → dùng đúng ngày đó cho cả start và end
-      const d = new Date(rawDate);
-      dateStart = this.formatDateToInput(d);
-      dateEnd = this.formatDateToInput(d);
-    } else {
-      // Không có → mặc định: đầu tháng trước → cuối tháng hiện tại
-      const firstDayPrevMonth = new Date(_today.getFullYear(), _today.getMonth() - 1, 1);
-      const lastDayCurrMonth = new Date(_today.getFullYear(), _today.getMonth() + 1, 0);
-      dateStart = this.formatDateToInput(firstDayPrevMonth);
-      dateEnd = this.formatDateToInput(lastDayCurrMonth);
-    }
-
-    const fixedKey = 'poncc-new';
-
-    this.tabService.closeTabByKey(fixedKey);
-
-    setTimeout(() => {
-      this.tabService.openTabComp({
-        comp: PonccNewComponent,
-        title: 'Chi tiết PO NCC',
-        key: fixedKey,
-        data: {
-          dateStart: dateStart,
-          dateEnd: dateEnd,
-          employeeId: selectedItem?.EmployeeID ?? null,
-          isPriceRequest: true
-        }
-      });
-    }, 50);
-
-  }
-
-  onViewĐNTT() {
-
-    const selectedRows = this.angularGrid.gridService.getSelectedRows();
-    // if (selectedRows.length != 1 && !this.isTBP) {
-    //   this.notification.warning('Cảnh báo', 'Vui lòng chọn 1 dòng để xem chi tiết!');
-    //   return;
-    // }
-
-    const selectedItem = this.angularGrid.gridService.getDataItemByRowIndex(selectedRows[0]);
-
-    const rawDate = selectedItem?.DateRequest;
-    const _today = new Date();
-
-    let dateStart: string;
-    let dateEnd: string;
-
-    if (rawDate) {
-      // Có ngày chọn → dùng đúng ngày đó cho cả start và end
-      const d = new Date(rawDate);
-      dateStart = this.formatDateToInput(d);
-      dateEnd = this.formatDateToInput(d);
-    } else {
-      // Không có → mặc định: đầu tháng trước → cuối tháng hiện tại
-      const firstDayPrevMonth = new Date(_today.getFullYear(), _today.getMonth() - 1, 1);
-      const lastDayCurrMonth = new Date(_today.getFullYear(), _today.getMonth() + 1, 0);
-      dateStart = this.formatDateToInput(firstDayPrevMonth);
-      dateEnd = this.formatDateToInput(lastDayCurrMonth);
-    }
-
-    const fixedKey = 'payment-order-new';
-
-    this.tabService.closeTabByKey(fixedKey);
-
-    setTimeout(() => {
-      this.tabService.openTabComp({
-        comp: PaymentOrderComponent,
-        title: 'Chi tiết ĐNTT',
-        key: fixedKey,
-        data: {
-          dateStart: dateStart,
-          dateEnd: dateEnd,
-          employeeId: selectedItem?.EmployeeID ?? null,
-          isPriceRequest: true,
-          departmentID: this.departmentId,
-        }
-      });
-    }, 50);
+    modalRef.result.finally(() => { });
 
   }
 
@@ -644,8 +491,7 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
         id: 'FullName',
         name: 'Nhân viên',
         field: 'FullName',
-        minWidth: 160,
-        maxWidth: 160,
+        width: 200,
         sortable: true,
         filterable: true,
         filter: {
@@ -655,124 +501,6 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
             filter: true,
           } as MultipleSelectOption,
         },
-      },
-      // {
-      //   id: 'DateRequest',
-      //   name: 'Ngày thực hiện',
-      //   field: 'DateRequest',
-      //   cssClass: 'text-center',
-      //   width: 120,
-      //   sortable: true,
-      //   filterable: true,
-      //   formatter: Formatters.date,
-      //   exportCustomFormatter: Formatters.date,
-      //   type: 'date',
-      //   params: { dateFormat: 'DD/MM/YYYY' },
-      //   filter: { model: Filters['compoundDate'] },
-      // },
-      {
-        id: 'DateRequest',
-        name: 'Ngày thực hiện',
-        field: 'DateRequest',
-        //cssClass: 'text-center',
-        minWidth: 180,
-        maxWidth: 180,
-        sortable: true,
-        filterable: true,
-        type: 'date',
-        params: { dateFormat: 'DD/MM/YYYY' },
-        filter: { model: Filters['compoundDate'] },
-
-        formatter: (row, cell, value, columnDef, dataContext, grid) => {
-          // gọi formatter gốc với đủ 6 tham số
-          let dateFormatted = Formatters.date(row, cell, value, columnDef, dataContext, grid);
-
-          if (dataContext.IsHoliday === 1) {
-            return `${dateFormatted} <span style="color:red">(Ngày nghỉ)</span>`;
-          }
-
-          return dateFormatted;
-        },
-
-        exportCustomFormatter: (row, cell, value, columnDef, dataContext, grid) => {
-          let dateFormatted = Formatters.date(row, cell, value, columnDef, dataContext, grid);
-
-          if (dataContext.IsHoliday === 1) {
-            return `${dateFormatted} (Ngày nghỉ)`;
-          }
-
-          return dateFormatted;
-        }
-      },
-      {
-        id: 'TotalPurchaseRequests',
-        name: 'SL yêu cầu báo giá DA',
-        field: 'TotalPurchaseRequests',
-        cssClass: 'text-end',
-        minWidth: 80,
-        width: 180,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-        filter: { model: Filters['compoundInputText'] },
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value),
-      },
-      {
-        id: 'TotalCompletedRequests',
-        name: 'SL hoàn thành báo giá DA',
-        field: 'TotalCompletedRequests',
-        cssClass: 'text-end',
-        minWidth: 80,
-        width: 180,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-        filter: { model: Filters['compoundInputText'] },
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value),
-      },
-      {
-        id: 'TotalCommercialQuoteRequests',
-        name: 'SL yêu cầu báo giá TM',
-        field: 'TotalCommercialQuoteRequests',
-        cssClass: 'text-end',
-        minWidth: 80,
-        width: 180,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-        filter: { model: Filters['compoundInputText'] },
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value),
-      },
-      {
-        id: 'TotalCommercialQuoteRequestCompleted',
-        name: 'SL hoàn thành báo giá TM',
-        field: 'TotalCommercialQuoteRequestCompleted',
-        cssClass: 'text-end',
-        minWidth: 80,
-        width: 180,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-        filter: { model: Filters['compoundInputText'] },
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value),
-      },
-      {
-        id: 'TotalRequest',
-        name: 'Tổng SL yêu cầu báo giá',
-        field: 'TotalRequest',
-        cssClass: 'text-end',
-        minWidth: 80,
-        width: 180,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-        filter: { model: Filters['compoundInputText'] },
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value),
       },
       {
         id: 'TotalRequestCompleted',
@@ -821,7 +549,7 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
     this.gridOptionsMaster = {
       enableAutoResize: true,
       autoResize: {
-        container: '.purchase-quote-summary',
+        container: '.purchase-quote-summary-main',
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container',
       },
@@ -859,21 +587,11 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
           // --- 1. Tạo Row Tổng ---
           const rowCount = items.length;
           const totals = items.reduce((acc: any, item: any) => {
-            acc.TotalPurchaseRequests += Number(item.TotalPurchaseRequests) || 0;
-            acc.TotalCompletedRequests += Number(item.TotalCompletedRequests) || 0;
-            acc.TotalCommercialQuoteRequests += Number(item.TotalCommercialQuoteRequests) || 0;
-            acc.TotalCommercialQuoteRequestCompleted += Number(item.TotalCommercialQuoteRequestCompleted) || 0;
-            acc.TotalRequest += Number(item.TotalRequest) || 0;
             acc.TotalRequestCompleted += Number(item.TotalRequestCompleted) || 0;
             acc.TotalPurchaseRequestPONCC += Number(item.TotalPurchaseRequestPONCC) || 0;
             acc.TotalPaymentRequests += Number(item.TotalPaymentRequests) || 0;
             return acc;
           }, {
-            TotalPurchaseRequests: 0,
-            TotalCompletedRequests: 0,
-            TotalCommercialQuoteRequests: 0,
-            TotalCommercialQuoteRequestCompleted: 0,
-            TotalRequest: 0,
             TotalRequestCompleted: 0,
             TotalPurchaseRequestPONCC: 0,
             TotalPaymentRequests: 0,
@@ -913,11 +631,6 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
 
           setStrCell('STT', 'Tổng cộng');
           setNumCell('FullName', rowCount);
-          setNumCell('TotalPurchaseRequests', totals.TotalPurchaseRequests);
-          setNumCell('TotalCompletedRequests', totals.TotalCompletedRequests);
-          setNumCell('TotalCommercialQuoteRequests', totals.TotalCommercialQuoteRequests);
-          setNumCell('TotalCommercialQuoteRequestCompleted', totals.TotalCommercialQuoteRequestCompleted);
-          setNumCell('TotalRequest', totals.TotalRequest);
           setNumCell('TotalRequestCompleted', totals.TotalRequestCompleted);
           setNumCell('TotalPurchaseRequestPONCC', totals.TotalPurchaseRequestPONCC);
           setNumCell('TotalPaymentRequests', totals.TotalPaymentRequests);
@@ -968,45 +681,6 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 30,
-      enableContextMenu: true,
-      contextMenu: {
-        hideCloseButton: false,
-        commandItems: [
-          {
-            command: 'view-project-detail',
-            title: 'Chi tiết báo giá DA',
-            iconCssClass: 'fa-solid fa-diagram-project text-primary',
-            positionOrder: 1,
-            itemVisibilityOverride: () => this.permissionService.hasPermission('N1,N33,N35'),
-            action: (e, args) => {
-              this.angularGrid.gridService.setSelectedRows([args.row as number]);
-              this.onViewProjectDetail();
-            }
-          },
-          {
-            command: 'view-customer-detail',
-            title: 'Chi tiết báo giá KH',
-            iconCssClass: 'fa-solid fa-eye text-primary',
-            positionOrder: 2,
-            itemVisibilityOverride: () => this.permissionService.hasPermission('N1,N33,N35'),
-            action: (e, args) => {
-              this.angularGrid.gridService.setSelectedRows([args.row as number]);
-              this.onViewCustomerDetail();
-            }
-          },
-          {
-            command: 'view-poncc',
-            title: 'Chi tiết PONCC',
-            iconCssClass: 'fa-solid fa-house text-primary',
-            positionOrder: 3,
-            itemVisibilityOverride: () => this.permissionService.hasPermission('N1,N33,N35'),
-            action: (e, args) => {
-              this.angularGrid.gridService.setSelectedRows([args.row as number]);
-              this.onViewPoncc();
-            }
-          }
-        ]
-      }
     };
   }
 
@@ -1079,11 +753,6 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
         (items || []).reduce((s, item) => s + (Number(item[field]) || 0), 0);
 
       const totals = {
-        TotalPurchaseRequests: sum('TotalPurchaseRequests'),
-        TotalCompletedRequests: sum('TotalCompletedRequests'),
-        TotalCommercialQuoteRequests: sum('TotalCommercialQuoteRequests'),
-        TotalCommercialQuoteRequestCompleted: sum('TotalCommercialQuoteRequestCompleted'),
-        TotalRequest: sum('TotalRequest'),
         TotalRequestCompleted: sum('TotalRequestCompleted'),
         TotalPurchaseRequestPONCC: sum('TotalPurchaseRequestPONCC'),
         TotalPaymentRequests: sum('TotalPaymentRequests'),
@@ -1097,21 +766,6 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
         switch (col.id) {
           case 'FullName':
             footerCell.innerHTML = `<b>${rowCount}</b>`;
-            break;
-          case 'TotalPurchaseRequests':
-            footerCell.innerHTML = `<b>${this.formatNumberEnUS(totals.TotalPurchaseRequests)}</b>`;
-            break;
-          case 'TotalCompletedRequests':
-            footerCell.innerHTML = `<b>${this.formatNumberEnUS(totals.TotalCompletedRequests)}</b>`;
-            break;
-          case 'TotalCommercialQuoteRequests':
-            footerCell.innerHTML = `<b>${this.formatNumberEnUS(totals.TotalCommercialQuoteRequests)}</b>`;
-            break;
-          case 'TotalCommercialQuoteRequestCompleted':
-            footerCell.innerHTML = `<b>${this.formatNumberEnUS(totals.TotalCommercialQuoteRequestCompleted)}</b>`;
-            break;
-          case 'TotalRequest':
-            footerCell.innerHTML = `<b>${this.formatNumberEnUS(totals.TotalRequest)}</b>`;
             break;
           case 'TotalRequestCompleted':
             footerCell.innerHTML = `<b>${this.formatNumberEnUS(totals.TotalRequestCompleted)}</b>`;
@@ -1145,4 +799,60 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
 
   //#endregion
 
+  onViewPoncc() {
+    const selectedRows = this.angularGrid.gridService.getSelectedRows();
+    // if (selectedRows.length != 1 && !this.isTBP) {
+    //   this.notification.warning('Cảnh báo', 'Vui lòng chọn 1 dòng để xem chi tiết!');
+    //   return;
+    // }
+
+    const selectedItem = this.angularGrid.gridService.getDataItemByRowIndex(selectedRows[0]);
+
+    const fixedKey = 'poncc-new';
+
+    this.tabService.closeTabByKey(fixedKey);
+
+    setTimeout(() => {
+      this.tabService.openTabComp({
+        comp: PonccNewComponent,
+        title: 'Chi tiết PO NCC',
+        key: fixedKey,
+        data: {
+          dateStart: this.dateStart,
+          dateEnd: this.dateEnd,
+          employeeId: selectedItem?.EmployeeID ?? null,
+          isPriceRequest: true
+        }
+      });
+    }, 50);
+  }
+
+  onViewPaymentOrder() {
+    const selectedRows = this.angularGrid.gridService.getSelectedRows();
+    // if (selectedRows.length != 1 && !this.isTBP) {
+    //   this.notification.warning('Cảnh báo', 'Vui lòng chọn 1 dòng để xem chi tiết!');
+    //   return;
+    // }
+
+    const selectedItem = this.angularGrid.gridService.getDataItemByRowIndex(selectedRows[0]);
+
+    const fixedKey = 'payment-order-new';
+
+    this.tabService.closeTabByKey(fixedKey);
+
+    setTimeout(() => {
+      this.tabService.openTabComp({
+        comp: PaymentOrderComponent,
+        title: 'Chi tiết ĐNTT',
+        key: fixedKey,
+        data: {
+          dateStart: this.dateStart,
+          dateEnd: this.dateEnd,
+          employeeId: selectedItem?.EmployeeID ?? null,
+          isPriceRequest: true,
+          departmentID: this.departmentId,
+        }
+      });
+    }, 50);
+  }
 }

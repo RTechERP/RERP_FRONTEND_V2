@@ -15,7 +15,7 @@
   height: auto !important;
 }
 
-::ng-deep #gridSummaryPurchaseQuote {
+::ng-deep [id^="gridSummaryPurchaseQuote-"] {
   height: 86vh !important;
 }
 

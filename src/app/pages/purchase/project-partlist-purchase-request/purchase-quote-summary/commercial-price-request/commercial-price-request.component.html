@@ -146,7 +146,7 @@
   </form>
 </div>
 
-<div class="price-request-table-container" style="height: 86vh">
+<div class="price-request-table-container" style="height: calc(86vh - 44px)">
   <app-custom-table
     style="height: 100%"
     [columns]="columns"
@@ -157,16 +157,26 @@
     filterDisplay="row"
     dataKey="stt"
     [rowClass]="getRowClass"
-    [paginator]="true"
-    [rows]="50"
-    [rowsPerPageOptions]="[50, 100, 200, 500, 1000000]"
+    [paginator]="false"
     [scrollable]="true"
     scrollHeight="flex"
-    [virtualScroll]="true"
-    [virtualScrollItemSize]="35"
+    [lazyRenderThreshold]="0"
+    [virtualScroll]="false"
     selectionMode="multiple"
     [(selection)]="selectedRequests"
     [resizeMode]="'expand'"
   >
   </app-custom-table>
 </div>
+
+<p-paginator
+  [first]="pageFirst"
+  [rows]="pageSize"
+  [totalRecords]="totalRecords"
+  [rowsPerPageOptions]="[50, 100, 200, 500]"
+  (onPageChange)="onPageChange($event)"
+  [showCurrentPageReport]="true"
+  currentPageReportTemplate="{first} - {last} / {totalRecords} dòng"
+  styleClass="border-top"
+>
+</p-paginator>

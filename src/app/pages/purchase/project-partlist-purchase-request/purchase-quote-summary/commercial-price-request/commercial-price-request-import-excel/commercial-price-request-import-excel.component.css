@@ -25,7 +25,8 @@
 
 /* Error Highlighting */
 ::ng-deep .row-error {
-  background-color: #fff1f0 !important; /* Mẫu hồng nhạt rất nhẹ */
+  background-color: #fff1f0 !important;
+  /* Mẫu hồng nhạt rất nhẹ */
 }
 
 ::ng-deep .row-error:hover {
@@ -33,7 +34,8 @@
 }
 
 ::ng-deep .cell-error {
-  border: 1.5px solid #ff4d4f !important; /* Viền đỏ đậm */
+  border: 1.5px solid #ff4d4f !important;
+  /* Viền đỏ đậm */
   background-color: #fff2f0 !important;
   color: #cf1322 !important;
   font-weight: bold;
@@ -44,4 +46,8 @@
   flex-grow: 1;
   position: relative;
   overflow: hidden;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }

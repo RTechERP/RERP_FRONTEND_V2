@@ -53,17 +53,18 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     @HostBinding('attr.tabindex') tabindex = '0';
 
     constructor() {
-        this.filterService.register('dateRange', (value: any, filter: Date[]) => {
-            if (!filter || !filter[0]) return true;
-            if (value == null) return false;
-            const date = new Date(value);
-            date.setHours(0, 0, 0, 0);
-            const start = new Date(filter[0]);
-            start.setHours(0, 0, 0, 0);
-            if (!filter[1]) return date.getTime() >= start.getTime();
-            const end = new Date(filter[1]);
-            end.setHours(23, 59, 59, 999);
-            return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
+        this.filterService.register('dateIs', (value: any, filter: any) => {
+            if (filter === undefined || filter === null) return true;
+            if (value === undefined || value === null) return false;
+
+            const vDate = new Date(value);
+            if (isNaN(vDate.getTime())) return false; // Không phải là ngày hợp lệ
+
+            const fDate = new Date(filter);
+
+            return vDate.getDate() === fDate.getDate() &&
+                vDate.getMonth() === fDate.getMonth() &&
+                vDate.getFullYear() === fDate.getFullYear();
         });
     }
 

@@ -215,6 +215,7 @@ export class PaymentOrderComponent implements OnInit {
     isPermisstionHR: boolean = false;
 
     filterTimeout: any;
+    isPriceRequest: boolean = false;
 
     constructor(
         private modalService: NgbModal,
@@ -247,7 +248,7 @@ export class PaymentOrderComponent implements OnInit {
         });
 
         this.loadDataCombo();
-        this.initMenuBar();
+
 
         // if (this.activeTab == '0') {
         const permissionCodeTBP = "N57";
@@ -329,6 +330,26 @@ export class PaymentOrderComponent implements OnInit {
         }
         // }
 
+        if (this.tabData) {
+            if (this.tabData.dateStart) {
+                this.param.dateStart = new Date(this.tabData.dateStart);
+            }
+            if (this.tabData.dateEnd) {
+                this.param.dateEnd = new Date(this.tabData.dateEnd);
+            }
+            if (this.tabData.employeeId !== undefined && this.tabData.employeeId !== null) {
+                this.param.employeeID = this.tabData.employeeId ?? this.appUserService.currentUser?.EmployeeID;
+            }
+
+            if (this.tabData.departmentID !== undefined && this.tabData.departmentID !== null) {
+                this.param.departmentID = this.tabData.departmentID ?? this.appUserService.currentUser?.DepartmentID;
+            }
+            if (this.tabData.isPriceRequest !== undefined && this.tabData.isPriceRequest !== null) {
+                this.isPriceRequest = this.tabData.isPriceRequest;
+            }
+        }
+
+        this.initMenuBar();
 
         this.initGrid();
         this.initGridSpecial();
@@ -723,6 +744,11 @@ export class PaymentOrderComponent implements OnInit {
                 }
             },
         ]
+
+        if (this.isPriceRequest) {
+            this.menuBars = [];
+        }
+
     }
 
     initGrid() {
@@ -4203,7 +4229,7 @@ export class PaymentOrderComponent implements OnInit {
     onPrint(e: Event, args: OnDblClickEventArgs) {
 
         // console.log('args:', args);
-
+        if (this.isPriceRequest) return;
         const item = args.grid.getDataItem(args.row);
 
         this.paymentService.getDetail(item.ID).subscribe({
@@ -4893,6 +4919,7 @@ export class PaymentOrderComponent implements OnInit {
 
     onDownloadFileAttach(e: Event, args: any, angularGrid: AngularGridInstance) {
         // console.log(args);
+        if (this.isPriceRequest) return;
         let selectedRows = args.grid.getSelectedRows();
         if (selectedRows.length <= 0) selectedRows.push(args.row);
 

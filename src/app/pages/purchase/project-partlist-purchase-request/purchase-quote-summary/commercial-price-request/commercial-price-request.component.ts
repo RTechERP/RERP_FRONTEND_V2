@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MenuItem, SharedModule } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -12,6 +12,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { ButtonModule } from 'primeng/button';
+import { PaginatorModule } from 'primeng/paginator';
 import { CommercialPriceRequestServiceService } from './commercial-price-request-service/commercial-price-request-service.service';
 import { NzDatePickerComponent } from "ng-zorro-antd/date-picker";
 import { NzColDirective } from "ng-zorro-antd/grid";
@@ -51,7 +52,8 @@ import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '
     NzIconModule,
     NzFormItemComponent,
     NzInputNumberModule,
-    NzSelectModule
+    NzSelectModule,
+    PaginatorModule
   ],
 })
 export class CommercialPriceRequestComponent implements OnInit {
@@ -59,11 +61,14 @@ export class CommercialPriceRequestComponent implements OnInit {
   menuBars: MenuItem[] = [];
   columns: ColumnDef[] = [];
   headerGroups: any[][] = [];
-  dataset: any[] = [];
+  dataset: any[] = [];          // slice hiện tại truyền vào table
+  private _fullDataset: any[] = []; // toàn bộ data từ BE
   selectedRequests: any[] = [];
   isLoading = false;
 
   totalRecords = 0;
+  pageFirst = 0;
+  pageSize = 50;
 
   private _today = new Date();
   private _firstDayPrevMonth = new Date(this._today.getFullYear(), this._today.getMonth() - 1, 1);
@@ -94,7 +99,8 @@ export class CommercialPriceRequestComponent implements OnInit {
     private appUserService: AppUserService,
     private permissionService: PermissionService,
     private projectService: ProjectService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -146,17 +152,17 @@ export class CommercialPriceRequestComponent implements OnInit {
         label: 'Nhập Excel',
         icon: 'fa-solid fa-file-excel fa-lg text-success',
         command: () => this.onImportExcel(),
-        visible: this.permissionService.hasPermission('N35,N1')
+        visible: this.permissionService.hasPermission('N33,N35,N1')
       },
     ];
   }
 
   onImportExcel(): void {
     const ref = this.ngbModal.open(CommercialPriceRequestImportExcelComponent, {
-      centered: true,
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      windowClass: 'full-screen-modal',
     });
     ref.componentInstance.rfqNo = '';
     ref.result.then(
@@ -192,14 +198,15 @@ export class CommercialPriceRequestComponent implements OnInit {
     this.commercialPriceRequestService.getCommercialPriceRequests(payload).subscribe({
       next: (res: any) => {
         const list = Array.isArray(res?.data) ? res.data : [];
-
-        // Frontend sẽ tự phân trang
-        this.dataset = list.map((item: any, index: number) => ({ ...item, stt: index + 1 }));
-
+        this._fullDataset = list.map((item: any, index: number) => ({ ...item, stt: index + 1 }));
+        this.totalRecords = this._fullDataset.length;
+        this.pageFirst = 0; // reset về trang 1
+        this.dataset = this._fullDataset.slice(0, this.pageSize);
         this.isLoading = false;
       },
       error: (err: any) => {
         this.isLoading = false;
+        this._fullDataset = [];
         this.dataset = [];
         this.totalRecords = 0;
       }
@@ -209,6 +216,18 @@ export class CommercialPriceRequestComponent implements OnInit {
   onSearch(): void {
     this.filter.PageNumber = 1;
     this.getData();
+  }
+
+  onPageChange(event: any): void {
+    // Show loading ngay → browser render spinner trước, sau đó mới slice data
+    this.isLoading = true;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.pageFirst = event.first;
+      this.pageSize = event.rows;
+      this.dataset = this._fullDataset.slice(event.first, event.first + event.rows);
+      this.isLoading = false;
+    }, 0);
   }
 
   onLazyLoad(event: any): void {
@@ -247,8 +266,9 @@ export class CommercialPriceRequestComponent implements OnInit {
     const d = new Date(v);
     if (isNaN(d.getTime())) return String(v);
     const pad = (n: number) => n < 10 ? '0' + n : n;
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
+
   getRowClass = (rowData: any) => {
     // Theo yêu cầu: IsSaleQuoted = 1 -> màu xanh, = 0 -> màu vàng
     const val = rowData?.IsSaleQuoted;
@@ -266,23 +286,24 @@ export class CommercialPriceRequestComponent implements OnInit {
     const d = new Date(v);
     if (isNaN(d.getTime())) return String(v);
     const pad = (n: number) => n < 10 ? '0' + n : n;
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
   }
 
   initColumns(): void {
     this.columns = [
       // ── Cột không nhóm (đầu) ─────────────────────────────────────────
-      { field: 'stt', header: 'STT', width: '60px' }, //thêm tự đánh số
+      { field: 'stt', header: 'STT', width: '60px', frozen: true }, //thêm tự đánh số
+      {
+        field: 'AdminSentAt', header: 'Ngày request', width: '170px', sortable: true, filterMode: 'datetime', cssClass: 'text-center',
+        format: (v: any) => this.formatDateTime(v), frozen: true
+      }, // hỏi lại là trường gì? ép kiểu về năm tháng ngày giờ
       {
         field: 'SalesPushedAt', header: 'Ngày sales đẩy rq', width: '170px', sortable: true, filterMode: 'datetime', cssClass: 'text-center',
         format: (v: any) => this.formatDateTime(v)
       }, //ép kiểu về năm tháng ngày giờ
       { field: 'RfqNo', header: 'Số Request', width: '160px', sortable: true }, //done
       { field: 'PicPurName', header: 'PIC (pur)', width: '150px', sortable: true, textWrap: true, filterMode: 'multiselect' }, //done
-      {
-        field: 'AdminSentAt', header: 'Ngày request', width: '170px', sortable: true, filterMode: 'datetime', cssClass: 'text-center',
-        format: (v: any) => this.formatDateTime(v)
-      }, // hỏi lại là trường gì? ép kiểu về năm tháng ngày giờ
+
       {
         field: 'QuoteDeadline', header: 'Hạn báo giá', width: '170px', sortable: true, filterMode: 'datetime', cssClass: 'text-center',
         format: (v: any) => this.formatDate(v)

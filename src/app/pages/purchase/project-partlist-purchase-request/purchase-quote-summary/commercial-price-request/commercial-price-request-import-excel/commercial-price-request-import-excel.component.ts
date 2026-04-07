@@ -89,10 +89,13 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
       const rd = row.getData();
 
       this.validateRow(rd);
-      row.update(rd); // This triggers rowFormatter refresh
+      row.update(rd); // Kích hoạt chạy lại formatter và rowFormatter
 
+      // Đồng bộ layer data nội bộ
       const idx = this.dataTableExcel.findIndex(r => r._stt === rd._stt);
-      if (idx !== -1) this.dataTableExcel[idx] = { ...rd };
+      if (idx !== -1) {
+        this.dataTableExcel[idx] = { ...rd };
+      }
     });
   }
 
@@ -146,24 +149,26 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
     const dateEditor = this.dateEditorFn();
     return [
       {
-        title: '', field: '_del', hozAlign: 'center', headerHozAlign: 'center',
+        title: '<i class="fa-solid fa-plus text-white cursor-pointer" title="Thêm dòng mới"></i>',
+        field: '_del', hozAlign: 'center', headerHozAlign: 'center',
         width: 40, resizable: false, editable: false, headerSort: false,
-        formatter: () => `<span class="fa-lg fa-solid fa-trash p-menubar-item-icon text-danger" ng-reflect-p-bind="[object Object]" tabindex="-1" title="Xoá dòng"></span>`,
+        formatter: () => `<span class="fa-lg fa-solid fa-trash p-menubar-item-icon text-danger cursor-pointer" tabindex="-1" title="Xoá dòng"></span>`,
+        headerClick: (e: any, column: any) => {
+          this.addNewRow();
+        },
         cellClick: (_e: any, cell: any) => {
           cell.getRow().delete();
           // Cập nhật lại STT sau khi xóa
-          this.tableExcel?.getRows().forEach((row: any, i: number) => {
-            row.update({ _stt: i + 1 });
-          });
+          this.updateSTT();
         },
       },
       { title: 'STT', field: '_stt', hozAlign: 'center', headerHozAlign: 'center', width: 60, editable: false },
       { title: 'RFQ No', field: 'RfqNo', hozAlign: 'left', headerHozAlign: 'center', editor: e ? 'input' : false, width: 120 },
-      {
-        title: 'Request Seq', field: 'RequestSeq', hozAlign: 'center', headerHozAlign: 'center',
-        editor: e ? 'number' : false, width: 120,
-        formatter: 'money', formatterParams: { symbol: '', precision: 0, thousand: ',' },
-      },
+      // {
+      //   title: 'Request Seq', field: 'RequestSeq', hozAlign: 'center', headerHozAlign: 'center',
+      //   editor: e ? 'number' : false, width: 120,
+      //   formatter: 'money', formatterParams: { symbol: '', precision: 0, thousand: ',' },
+      // },
       { title: 'Item Code', field: 'ProductCode', hozAlign: 'left', headerHozAlign: 'center', editor: e ? 'input' : false, width: 200 },
       { title: 'Description', field: 'Description', hozAlign: 'left', headerHozAlign: 'center', formatter: 'textarea', editor: e ? 'input' : false, width: 200 },
       { title: 'Specification', field: 'Specification', hozAlign: 'left', headerHozAlign: 'center', formatter: 'textarea', editor: e ? 'input' : false, width: 300 },
@@ -173,10 +178,13 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
         formatter: (cell: any) => {
           const vRaw = cell.getValue();
           const v = this.parseFormattedNumber(vRaw);
+          const rowData = cell.getRow().getData();
           if (!this.isValidDecimal18_4(vRaw)) {
             cell.getElement().classList.add('cell-error');
+            cell.getElement().setAttribute('title', `[Dòng ${rowData._stt}] Cột 'Est. Qty' vượt quá giới hạn cho phép. Vui lòng nhập số tối đa 18 chữ số và không quá 4 chữ số sau dấu thập phân.`);
           } else {
             cell.getElement().classList.remove('cell-error');
+            cell.getElement().removeAttribute('title');
           }
           if (isNaN(v)) return vRaw ?? '';
           return v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
@@ -189,10 +197,13 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
         formatter: (cell: any) => {
           const vRaw = cell.getValue();
           const v = this.parseFormattedNumber(vRaw);
+          const rowData = cell.getRow().getData();
           if (!this.isValidDecimal18_4(vRaw)) {
             cell.getElement().classList.add('cell-error');
+            cell.getElement().setAttribute('title', `[Dòng ${rowData._stt}] Cột 'MOQ' vượt quá giới hạn cho phép. Vui lòng nhập số tối đa 18 chữ số và không quá 4 chữ số sau dấu thập phân.`);
           } else {
             cell.getElement().classList.remove('cell-error');
+            cell.getElement().removeAttribute('title');
           }
           if (isNaN(v)) return vRaw ?? '';
           return v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
@@ -204,12 +215,16 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
         editor: e ? dateEditor : false, width: 150,
         formatter: (cell: any) => {
           const val = cell.getValue();
+          const rowData = cell.getRow().getData();
           const isValid = this.validateAdminSentAtDate(val);
           if (!isValid) {
             cell.getElement().classList.add('cell-error');
+            const msg = !val ? "không được để trống" : "sai định dạng (dd/MM/yyyy)";
+            cell.getElement().setAttribute('title', `[Dòng ${rowData._stt}] Cột 'Ngày Admin gửi' ${msg}`);
             return `<span title="Bắt buộc & đúng định dạng (dd/MM/yyyy)">${val || ''}</span>`;
           } else {
             cell.getElement().classList.remove('cell-error');
+            cell.getElement().removeAttribute('title');
             return val || '';
           }
         }
@@ -223,10 +238,13 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
         formatter: (cell: any) => {
           const vRaw = cell.getValue();
           const v = this.parseFormattedNumber(vRaw);
+          const rowData = cell.getRow().getData();
           if (!this.isValidDecimal18_4(vRaw)) {
             cell.getElement().classList.add('cell-error');
+            cell.getElement().setAttribute('title', `[Dòng ${rowData._stt}] Cột 'Unit Price' vượt quá giới hạn cho phép. Vui lòng nhập số tối đa 18 chữ số và không quá 4 chữ số sau dấu thập phân.`);
           } else {
             cell.getElement().classList.remove('cell-error');
+            cell.getElement().removeAttribute('title');
           }
           if (isNaN(v)) return vRaw ?? '';
           return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
@@ -238,10 +256,13 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
         formatter: (cell: any) => {
           const vRaw = cell.getValue();
           const v = this.parseFormattedNumber(vRaw);
+          const rowData = cell.getRow().getData();
           if (!this.isValidDecimal18_4(vRaw)) {
             cell.getElement().classList.add('cell-error');
+            cell.getElement().setAttribute('title', `[Dòng ${rowData._stt}] Cột 'Chi phí vận chuyển' vượt quá giới hạn cho phép. Vui lòng nhập số tối đa 18 chữ số và không quá 4 chữ số sau dấu thập phân.`);
           } else {
             cell.getElement().classList.remove('cell-error');
+            cell.getElement().removeAttribute('title');
           }
           if (isNaN(v)) return vRaw ?? '';
           return v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -257,10 +278,13 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
         formatter: (cell: any) => {
           const vRaw = cell.getValue();
           const v = this.parseFormattedNumber(vRaw);
+          const rowData = cell.getRow().getData();
           if (!this.isValidDecimal18_4(vRaw)) {
             cell.getElement().classList.add('cell-error');
+            cell.getElement().setAttribute('title', `[Dòng ${rowData._stt}] Cột 'Tỉ lệ margin' vượt quá giới hạn cho phép. Vui lòng nhập số tối đa 18 chữ số và không quá 4 chữ số sau dấu thập phân.`);
           } else {
             cell.getElement().classList.remove('cell-error');
+            cell.getElement().removeAttribute('title');
           }
           if (isNaN(v)) return (vRaw ?? '') + '%';
           return v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + '%';
@@ -272,10 +296,13 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
         formatter: (cell: any) => {
           const vRaw = cell.getValue();
           const v = this.parseFormattedNumber(vRaw);
+          const rowData = cell.getRow().getData();
           if (!this.isValidDecimal18_4(vRaw)) {
             cell.getElement().classList.add('cell-error');
+            cell.getElement().setAttribute('title', `[Dòng ${rowData._stt}] Cột 'Đơn giá báo' vượt quá giới hạn cho phép. Vui lòng nhập số tối đa 18 chữ số và không quá 4 chữ số sau dấu thập phân.`);
           } else {
             cell.getElement().classList.remove('cell-error');
+            cell.getElement().removeAttribute('title');
           }
           if (isNaN(v)) return vRaw ?? '';
           return v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
@@ -372,34 +399,34 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
           _stt: stt,
           ID: 0,
           RfqNo: this.getCellText(row.getCell(1)),       // A
-          RequestSeq: this.getCellText(row.getCell(2)),  // B
-          ProductCode: this.getCellText(row.getCell(3)), // C
-          Description: this.getCellText(row.getCell(4)), // D
-          ProductName: this.getCellText(row.getCell(5)), // E
-          Specification: this.getCellText(row.getCell(5)), // E
-          Qty: this.getCellText(row.getCell(6)),          // F
-          Unit: this.getCellText(row.getCell(7)),         // G
-          Moq: this.getCellText(row.getCell(8)),          // H
-          AdminSentAtHour: this.parseTime(row.getCell(9)),   // I  - nvarchar (giờ)
-          AdminSentAtDate: this.getCellDate(row.getCell(10)), // J  - date
-          QuoteDeadline: this.getCellDate(row.getCell(11)),   // K  - date
-          PurSentAtHour: this.parseTime(row.getCell(12)),   // L  - nvarchar (giờ)
-          PurSentAtDate: this.getCellDate(row.getCell(13)),   // M  - date
-          UnitPrice: this.getCellText(row.getCell(14)),        // N
-          ShippingCost: this.getCellText(row.getCell(15)),     // O
-          Supplier: this.getCellText(row.getCell(16)),         // P
-          Leadtime: this.getCellText(row.getCell(17)),         // Q
-          RequestNote: this.getCellText(row.getCell(18)),      // R
-          SaleNote: this.getCellText(row.getCell(19)),         // S
-          MarginRate: this.getCellText(row.getCell(20)),       // T
-          SaleUnitPrice: this.getCellText(row.getCell(21)),    // U
-          ImportPriceNote: this.getCellText(row.getCell(22)), // V
-          IsSaleQuotedText: this.getCellText(row.getCell(23)),// W
-          IsPurQuotedText: this.getCellText(row.getCell(24)), // X
-          NoteReason: this.getCellText(row.getCell(25)),       // Y
-          WeekNo: this.getCellText(row.getCell(26)),           // Z
-          MonthNo: this.getCellText(row.getCell(27)),          // AA
-          YearNo: this.getCellText(row.getCell(28)),           // AB
+          // RequestSeq: this.getCellText(row.getCell(2)),  // B
+          ProductCode: this.getCellText(row.getCell(2)), // C
+          Description: this.getCellText(row.getCell(3)), // D
+          ProductName: this.getCellText(row.getCell(4)), // E
+          Specification: this.getCellText(row.getCell(4)), // E
+          Qty: this.roundTo4Decimal(row.getCell(5)),      // F
+          Unit: this.getCellText(row.getCell(6)),         // G
+          Moq: this.roundTo4Decimal(row.getCell(7)),      // H
+          AdminSentAtHour: this.parseTime(row.getCell(8)),   // I  - nvarchar (giờ)
+          AdminSentAtDate: this.getCellDate(row.getCell(9)), // J  - date
+          QuoteDeadline: this.getCellDate(row.getCell(10)),   // K  - date
+          PurSentAtHour: this.parseTime(row.getCell(11)),   // L  - nvarchar (giờ)
+          PurSentAtDate: this.getCellDate(row.getCell(12)),   // M  - date
+          UnitPrice: this.roundTo4Decimal(row.getCell(13)),    // N
+          ShippingCost: this.roundTo4Decimal(row.getCell(14)),  // O
+          Supplier: this.getCellText(row.getCell(15)),         // P
+          Leadtime: this.getCellText(row.getCell(16)),         // Q
+          RequestNote: this.getCellText(row.getCell(17)),      // R
+          SaleNote: this.getCellText(row.getCell(18)),         // S
+          MarginRate: this.roundTo4Decimal(row.getCell(19)),   // T
+          SaleUnitPrice: this.roundTo4Decimal(row.getCell(20)), // U
+          ImportPriceNote: this.getCellText(row.getCell(21)), // V
+          IsSaleQuotedText: this.getCellText(row.getCell(22)),// W
+          IsPurQuotedText: this.getCellText(row.getCell(23)), // X
+          NoteReason: this.getCellText(row.getCell(24)),       // Y
+          WeekNo: this.getCellText(row.getCell(25)),           // Z
+          MonthNo: this.getCellText(row.getCell(26)),          // AA
+          YearNo: this.getCellText(row.getCell(27)),           // AB
           _hasError: false,
           _errorMsgs: []
         };
@@ -415,8 +442,26 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
         ? 'Không có dữ liệu hợp lệ trong sheet.'
         : `Đã đọc ${rows.length} bản ghi`;
 
+      // 1. Lấy dữ liệu hiện có trên bảng (các dòng đã nhấn + thủ công)
+      let currentRows: any[] = [];
       if (this.tableExcel) {
-        this.tableExcel.replaceData(this.dataTableExcel);
+        currentRows = this.tableExcel.getData();
+      }
+
+      // 2. Hợp nhất: Dòng cũ ở trên, dòng Excel ở dưới
+      const combinedRows = [...rows];
+
+      // 3. Cập nhật layer dữ liệu
+      this.dataTableExcel = combinedRows;
+      this.totalRowsAfterFileRead = combinedRows.length;
+      this.displayProgress = 0;
+      this.displayText = `Đã nhập thêm ${rows.length} bản ghi từ Excel`;
+
+      // 4. Đưa vào bảng và đánh lại STT
+      if (this.tableExcel) {
+        this.tableExcel.replaceData(this.dataTableExcel).then(() => {
+          this.updateSTT(); // Đảm bảo STT luôn đúng từ trên xuống dưới
+        });
       } else {
         this.initTable();
       }
@@ -506,7 +551,7 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
       errors.push("Cột 'Ngày Admin gửi' bị trống hoặc sai định dạng");
     }
 
-    // 2. Validate Decimal(18,4) fields
+    // 4. Validate Decimal(18,4) fields
     const decimalFields = [
       { name: 'Est. Qty', value: rowData.Qty },
       { name: 'MOQ', value: rowData.Moq },
@@ -548,7 +593,77 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
     return true;
   }
 
+  /**
+   * Đọc cell số, làm tròn tối đa 4 chữ số sau dấu thập phân.
+   * Ví dụ: 34000.3333333333 → "34000.3333"
+   * Nếu không parse được số (trống, chữ) thì trả về chuỗi gốc.
+   */
+  private roundTo4Decimal(cell: any): string {
+    const raw = this.getCellText(cell);
+    const num = this.parseFormattedNumber(raw);
+    if (isNaN(num)) return raw; // trống hoặc chữ → giữ nguyên
+    // Làm tròn 4 chữ số thập phân, bỏ các số 0 thừa ở cuối
+    const rounded = parseFloat(num.toFixed(4));
+    return String(rounded);
+  }
 
+
+
+  /**
+   * Thêm 1 dòng trống lên đầu bảng
+   */
+  addNewRow(): void {
+    if (!this.tableExcel) return;
+    const newRow = {
+      _stt: 1,
+      ID: 0,
+      RfqNo: '',
+      // RequestSeq: '',
+      ProductCode: '',
+      Description: '',
+      ProductName: '',
+      Specification: '',
+      Qty: '',
+      Unit: '',
+      Moq: '',
+      AdminSentAtHour: '',
+      AdminSentAtDate: '',
+      QuoteDeadline: '',
+      PurSentAtHour: '',
+      PurSentAtDate: '',
+      UnitPrice: '',
+      ShippingCost: '',
+      Supplier: '',
+      Leadtime: '',
+      RequestNote: '',
+      SaleNote: '',
+      MarginRate: '',
+      SaleUnitPrice: '',
+      ImportPriceNote: '',
+      IsSaleQuotedText: '',
+      IsPurQuotedText: '',
+      NoteReason: '',
+      WeekNo: '',
+      MonthNo: '',
+      YearNo: '',
+      _hasError: false,
+      _errorMsgs: []
+    };
+    this.tableExcel.addRow(newRow, true); // true: thêm vào đầu
+    this.validateRow(newRow)
+    this.updateSTT();
+  }
+
+  /**
+   * Đánh lại STT cho toàn bộ bảng
+   */
+  updateSTT(): void {
+    if (!this.tableExcel) return;
+    const rows = this.tableExcel.getRows();
+    rows.forEach((row: any, i: number) => {
+      row.update({ _stt: i + 1 });
+    });
+  }
 
   // ── Save ──────────────────────────────────────────────────────────────────
   async saveExcelData(): Promise<void> {
@@ -561,6 +676,14 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
       this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
       return;
     }
+    // // 1. Kiểm tra lỗi cho toàn bộ dữ liệu hiện có trên bảng
+    // data.forEach(row => this.validateRow(row));
+
+    // // 2. Cập nhật lại dữ liệu cho bảng. 
+    // // Việc này sẽ kích hoạt rowFormatter để highlight dòng lỗi và formatter các cột để hiện viền đỏ ô lỗi.
+    // this.tableExcel.updateData(data).then(() => {
+    //     this.tableExcel.redraw(true); // Ép chạy lại rowFormatter cho toàn bảng
+    // });
 
     const errorRows = data.filter(r => r._hasError);
     if (errorRows.length > 0) {
@@ -620,7 +743,7 @@ export class CommercialPriceRequestImportExcelComponent implements OnInit, After
     const payload = data.map(row => ({
       ID: row.ID ?? 0,
       RfqNo: row.RfqNo || null,
-      RequestSeq: toNullableInt(row.RequestSeq),            // int
+      // RequestSeq: toNullableInt(row.RequestSeq),            // int
       ProductCode: row.ProductCode || null,
       ProductName: row.ProductName || null,
       Description: row.Description || null,
